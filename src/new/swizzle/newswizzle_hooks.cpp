@@ -34,7 +34,6 @@
 #include "vinifera_util.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 
 #include "aircraft.h"
 #include "aitrigtype.h"

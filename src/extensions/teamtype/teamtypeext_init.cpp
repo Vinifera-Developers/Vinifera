@@ -37,7 +37,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +47,9 @@
  * 
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TeamTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x00627ED4, _TeamTypeClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(TeamTypeClass *, this_ptr, esi); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
+    GET(TeamTypeClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,14 +64,8 @@ DECLARE_PATCH(_TeamTypeClass_Constructor_Patch)
      */
     Extension::Make<TeamTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -83,21 +76,17 @@ original_code:
  * 
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TeamTypeClass_Destructor_Patch)
+DEFINE_HOOK(0x00627EF8, _TeamTypeClass_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(TeamTypeClass *, this_ptr, esi);
+    GET(TeamTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<TeamTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007E4840 } // TeamTypes.vtble
-    JMP_REG(eax, 0x00627EFE);
+    return 0;
 }
 
 
@@ -108,9 +97,9 @@ original_code:
  * 
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TeamTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00629298, _TeamTypeClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(TeamTypeClass *, this_ptr, esi);
+    GET(TeamTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -121,8 +110,7 @@ DECLARE_PATCH(_TeamTypeClass_Scalar_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov edx, ds:0x007E4840 } // TeamTypes.vtble
-    JMP_REG(eax, 0x0062929E);
+    return 0;
 }
 
 
@@ -131,7 +119,6 @@ original_code:
  */
 void TeamTypeClassExtension_Init()
 {
-    Patch_Jump(0x00627ED4, &_TeamTypeClass_Constructor_Patch);
-    //Patch_Jump(0x00627EF8, &_TeamTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00629298, &_TeamTypeClass_Scalar_Destructor_Patch);
+
 }
+

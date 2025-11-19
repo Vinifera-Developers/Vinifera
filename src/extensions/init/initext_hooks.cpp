@@ -46,8 +46,11 @@
 #include "sdl_functions.h"
 #include <Windows.h>
 #include <commctrl.h>
+#include <tlhelp32.h>
+#include <bcrypt.h>
+
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 extern HMODULE DLLInstance;
@@ -68,10 +71,10 @@ extern HMODULE DLLInstance;
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
+DEFINE_HOOK(0x00685F69, _Main_Window_Procedure_Scroll_Sidebar_Check_Patch, 0)
 {
-    GET_STACK_STATIC(UINT, wParam, esp, 0x14);
-    static bool _mouse_wheel_scolling;
+    GET_STACK(UINT, wParam, 0x14);
+    static bool _mouse_wheel_scolling = false;
 
     /**
      *  The code before this patch checks for WM_MOUSEWHEEL.
@@ -106,10 +109,10 @@ DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
     _mouse_wheel_scolling = false;
 
 executed:
-    JMP_REG(eax, 0x00685F9C);
+    return 0x00685F9C;
 
 message_handler:
-    JMP_REG(ecx, 0x00685FA0);
+    return 0x00685FA0;
 }
 
 
@@ -121,10 +124,8 @@ message_handler:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
+DEFINE_HOOK(0x004E0469, _Init_CDROM_Access_Local_Files_Patch, 0)
 {
-    _asm { add esp, 4 }
-
     /**
      *  If there are search drives specified then all files are to be
      *  considered local.
@@ -149,13 +150,13 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
      *  Continue to initialise the CD-ROM code.
      */
 init_cdrom:
-    JMP(0x004E0471);
+    return 0x004E0471;
 
     /**
      *  Flag files as being local, no CD-ROM init.
      */
 files_local:
-    JMP(0x004E06F5);
+    return 0x004E06F5;
 }
 
 
@@ -216,7 +217,7 @@ static bool Vinifera_Play_Startup_Movies()
     return true;
 }
 
-DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
+DEFINE_HOOK(0x004E0786, _Init_Game_Skip_Startup_Movies_Patch, 0)
 {
     if (Vinifera_SkipStartupMovies) {
         DEBUG_INFO("Skipping startup movies.\n");
@@ -228,15 +229,15 @@ DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
     }
 
 loading_screen:
-    _asm { or ebx, 0xFFFFFFFF }
-    JMP(0x004E0848);
+    R->EBX(-1);
+    return 0x004E0848;
 
 skip_loading_screen:
-    JMP(0x004E084D);
+    return 0x004E084D;
 
 failed:
-    _asm { mov ebx, 1 }
-    JMP(0x004E08B3);
+    R->EBX(1);
+    return 0x004E08B3;
 }
 
 
@@ -821,12 +822,82 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
 
 
 /**
+ *  Detaches the debugger from the current process.
+ *
+ *  @author: secsome
+ */
+bool Detach_Debugger()
+{
+    auto GetDebuggerProcessId = [](DWORD dwSelfProcessId) -> DWORD {
+        DWORD dwParentProcessId = -1;
+        HANDLE hSnapshot = CreateToolhelp32Snapshot(2, 0);
+        PROCESSENTRY32 pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32);
+        Process32First(hSnapshot, &pe32);
+        do {
+            if (pe32.th32ProcessID == dwSelfProcessId) {
+                dwParentProcessId = pe32.th32ParentProcessID;
+                break;
+            }
+        } while (Process32Next(hSnapshot, &pe32));
+        CloseHandle(hSnapshot);
+        return dwParentProcessId;
+    };
+
+    HMODULE hModule = LoadLibrary("ntdll.dll");
+    if (hModule != NULL) {
+        auto const NtRemoveProcessDebug = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, HANDLE)>(GetProcAddress(hModule, "NtRemoveProcessDebug"));
+        auto const NtSetInformationDebugObject = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtSetInformationDebugObject"));
+        auto const NtQueryInformationProcess = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtQueryInformationProcess"));
+        auto const NtClose = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE)>(GetProcAddress(hModule, "NtClose"));
+
+        HANDLE hDebug;
+        HANDLE hCurrentProcess = GetCurrentProcess();
+        NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
+        if (status >= 0) {
+            ULONG killProcessOnExit = FALSE;
+            status = NtSetInformationDebugObject(hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+            if (status >= 0) {
+                const auto pid = GetDebuggerProcessId(GetProcessId(hCurrentProcess));
+                status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
+                if (status >= 0) {
+                    HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+                    if (INVALID_HANDLE_VALUE != hDbgProcess) {
+                        BOOL ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
+                        CloseHandle(hDbgProcess);
+                        return ret;
+                    }
+                }
+            }
+            NtClose(hDebug);
+        }
+        FreeLibrary(hModule);
+    }
+
+    return false;
+}
+
+
+DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
+{
+    DEBUG_INFO("Syringe is active.");
+
+    /**
+     *  Give the user time to attach the debugger if one is not already present.
+     */
+    if (Detach_Debugger() && !IsDebuggerPresent()) {
+        MessageBox(nullptr, "[Syringe] Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+    }
+
+    return 0;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void GameInit_Hooks()
 {
-    Patch_Jump(0x004E0786, &_Init_Game_Skip_Startup_Movies_Patch);
-    Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
     Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
@@ -864,8 +935,6 @@ void GameInit_Hooks()
     Patch_Call(0x004E86F5, &Addon_Enabled);
     Patch_Call(0x004E8735, &Addon_Enabled);
 
-    Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
-
     /**
      *  Fixes a bug where CompositeSurface is used instead of HiddenSurface in Allocate_Surfaces.
      */
@@ -878,3 +947,4 @@ void GameInit_Hooks()
     //Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 #endif
 }
+

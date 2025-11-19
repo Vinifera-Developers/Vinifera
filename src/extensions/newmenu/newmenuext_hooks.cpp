@@ -39,7 +39,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -92,17 +92,22 @@ static void Set_Addon_Mode(bool firestorm)
  *  @author: CCHyper
  */
 static bool firsttime = true;
-DECLARE_PATCH(_NewMenuClass_Process_SkipToMenus_Patch)
+DEFINE_HOOK(0x004E8831, _NewMenuClass_Process_SkipToMenus_Patch, 7)
 {
-    GET_REGISTER_STATIC(NewMenuClass *, newmenu, ecx);
-    static int gamemode;
-    static int mode;
+    GET(NewMenuClass *, newmenu, ECX);
+
+    /**
+     *  Stolen instruction.
+     */
+    // Session.IsWDT
+    Session.field_4 = false;
 
     /**
      *  -1 = Game Select
      *   0 = Tiberian Sun
      *   1 = Firestorm
      */
+    int gamemode;
     if (firsttime) {
         gamemode = -1;           // Default to Game Select.
         firsttime = false;
@@ -126,7 +131,7 @@ DECLARE_PATCH(_NewMenuClass_Process_SkipToMenus_Patch)
      *  12 = Credits
      *  13 = Main Menu
      */
-    mode = 0;               // Default to Exit.
+    int mode = 0;               // Default to Exit.
 
     if (Vinifera_SkipToTSMenu) {
         DEBUG_INFO("Skipping to the Tiberian Sun menu.\n");
@@ -182,11 +187,7 @@ DECLARE_PATCH(_NewMenuClass_Process_SkipToMenus_Patch)
      */
 show_game_menu:
     newmenu->GameMode = gamemode;
-    _asm { mov ecx, newmenu }
-    _asm { mov eax, 0x0057FD40 }
-    _asm { call eax }
-
-    JMP_REG(ecx, 0x004E883D);
+    return 0;
     
     /**
      *  Set the desired dialog, making sure Exit was not set.
@@ -230,8 +231,8 @@ set_dialog_check_for_exit:
      *  Set the desired dialog, no checks.
      */
 set_dialog:
-    _asm { mov eax, mode }
-    JMP_REG(ecx, 0x004E883D);
+    R->EAX(mode);
+    return 0x004E883D;
 }
 
 
@@ -240,5 +241,6 @@ set_dialog:
  */
 void NewMenuExtension_Hooks()
 {
-    Patch_Jump(0x004E8838, &_NewMenuClass_Process_SkipToMenus_Patch);
+    
 }
+

@@ -146,7 +146,7 @@
 /**
  *  Get stack value to a variable
  */
-#define GET_STACK(type, dst, reg, off) type dst; _asm { mov eax, [reg+off] } _asm { mov dst, eax }
+//#define GET_STACK(type, dst, reg, off) type dst; _asm { mov eax, [reg+off] } _asm { mov dst, eax }
 #define GET_STACK_STATIC(type, dst, reg, off) static type dst; _asm { mov eax, [reg+off] } _asm { mov dst, eax }
 #define LEA_STACK_STATIC(type, dst, reg, off) static type dst; _asm { lea eax, [reg+off] } _asm { mov dst, eax }
 #define GET_STACK_STATIC8(type, dst, reg, off) static type dst; _asm { mov al, byte ptr [reg+off] } _asm { mov dst, al }

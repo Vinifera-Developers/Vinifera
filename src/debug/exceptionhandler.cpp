@@ -355,7 +355,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
         default:
             DEBUG_WARNING("Exception code is 0x%" PRIPTRSIZE PRIXPTR "\n", e_code);
             break;
-    };
+    }
 
     if (e_code == EXCEPTION_ACCESS_VIOLATION) {
 
@@ -378,10 +378,32 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
             default: // Unknown
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " Unknown violation.\r\n", record->ExceptionInformation[1]);
                 break;
-        };
+        }
     }
 
-    Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR "\r\n", context->Eip);
+    {
+        Init_Symbol_Info();
+
+        static char filename[512];
+        static char funcname[PATH_MAX];
+
+        uintptr_t addr;
+        unsigned line;
+
+        /**
+         *  Fetch function details for the EIP address.
+         */
+        Get_Function_Details(reinterpret_cast<void*>(context->Eip), funcname, filename, &line, &addr);
+
+        /**
+         *  If we got a function address, calculate our EIP's offset into the function.
+         */
+        if (addr != -1) {
+            addr = context->Eip - addr;
+        }
+
+        Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " (%s +0x%" PRIXPTR ") [%s:%d]\r\n", context->Eip, funcname, addr, filename, line);
+    }
 
     Exception_Printf("\r\n");
 
@@ -737,7 +759,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
                 default:
                     result = FALSE;
                     break;
-            };
+            }
             break;
 
         case WM_CLOSE:
@@ -766,7 +788,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
         default:
             result = FALSE;
             break;
-    };
+    }
 
     return result;
 }
@@ -793,7 +815,7 @@ static INT_PTR Exception_Dialog()
 
         default:
             break;
-    };
+    }
 
     HMODULE hResHandle = DLLInstance;
     const char *resId = MAKEINTRESOURCE(IDD_EXCEPTION);
@@ -1090,7 +1112,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
                     ExitAfterException = true;
                     break;
-            };
+            }
         }
 
         //WWMouseClass::System_Hide_Mouse();

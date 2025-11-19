@@ -37,7 +37,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SuperWeaponTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x0060D04A, _SuperWeaponTypeClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, ebp); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x14); // ini name.
+    GET(SuperWeaponTypeClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,16 +64,8 @@ DECLARE_PATCH(_SuperWeaponTypeClass_Constructor_Patch)
      */
     Extension::Make<SuperWeaponTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { pop edi }
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -85,21 +76,18 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SuperWeaponTypeClass_Destructor_Patch)
+DEFINE_HOOK(0x0060D0EA, _SuperWeaponTypeClass_Destructor_Patch, 0)
 {
-    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, esi);
+    GET(SuperWeaponTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<SuperWeaponTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     this_ptr->AbstractTypeClass::~AbstractTypeClass();
-    JMP_REG(ecx, 0x0060D0F1);
+    return 0x0060D0F1;
 }
 
 
@@ -110,9 +98,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SuperWeaponTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0060D87A, _SuperWeaponTypeClass_Scalar_Destructor_Patch, 0)
 {
-    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, esi);
+    GET(SuperWeaponTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -124,7 +112,7 @@ DECLARE_PATCH(_SuperWeaponTypeClass_Scalar_Destructor_Patch)
      */
 original_code:
     this_ptr->AbstractTypeClass::~AbstractTypeClass();
-    JMP_REG(ecx, 0x0060D881);
+    return 0x0060D881;
 }
 
 
@@ -133,7 +121,6 @@ original_code:
  */
 void SuperWeaponTypeClassExtension_Init()
 {
-    Patch_Jump(0x0060D04A, &_SuperWeaponTypeClass_Constructor_Patch);
-    //Patch_Jump(0x0060D0EA, &_SuperWeaponTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x0060D87A, &_SuperWeaponTypeClass_Scalar_Destructor_Patch);
+
 }
+

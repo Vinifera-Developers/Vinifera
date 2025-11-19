@@ -37,7 +37,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,25 +47,17 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_RulesClass_Constructor_Patch)
+DEFINE_HOOK(0x005C59A1, _RulesClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, esi); // "this" pointer.
+    GET(RulesClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  Create the extended class instance.
      */
     RuleExtension = Extension::Singleton::Make<RulesClass, RulesClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -76,24 +68,15 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_RulesClass_Destructor_Patch)
+DEFINE_HOOK(0x005C6120, _RulesClass_Destructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, esi);
-
     /**
      *  Remove the extended class instance.
      */
     Extension::Singleton::Destroy<RulesClass, RulesClassExtension>(RuleExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -104,10 +87,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_RulesClass_Process_Patch)
+DEFINE_HOOK(0x005C6A4D, _RulesClass_Process_Patch, 7)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(CCINIClass *, ini, esi);
+    GET(CCINIClass*, ini, ESI);
 
     RuleExtension->Process(*ini);
 
@@ -115,12 +97,7 @@ DECLARE_PATCH(_RulesClass_Process_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x20 }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -131,10 +108,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_RulesClass_MPlayer_Patch)
+DEFINE_HOOK(0x005CC3BF, _RulesClass_MPlayer_Patch, 7)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, edi);
+    GET(CCINIClass*, ini, EDI);
 
     RuleExtension->MPlayer(*ini);
 
@@ -142,10 +118,7 @@ DECLARE_PATCH(_RulesClass_MPlayer_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -154,8 +127,6 @@ original_code:
  */
 void RulesClassExtension_Init()
 {
-    Patch_Jump(0x005C59A1, &_RulesClass_Constructor_Patch);
-    Patch_Jump(0x005C6120, &_RulesClass_Destructor_Patch);
-    Patch_Jump(0x005C6A4D, &_RulesClass_Process_Patch);
-    Patch_Jump(0x005CC3BF, &_RulesClass_MPlayer_Patch);
+
 }
+

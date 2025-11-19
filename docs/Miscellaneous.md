@@ -203,6 +203,15 @@ Movement zone `Normal` cannot be overridden this way.
 Once a movement zone is replaced with water, it cannot be reverted.
 ```
 
+- Introducing a `Water` movement zone comes with a nuance. By default, lands `Water` and `Beach` are considered water-passable. This allows amphibious units to path through water and beaches, while preventing land units from doing so. However, introducing a `Water` movement zone makes ships attempt to path over `Beach`, where they get stuck because their `Speed` typically disallows moving onto beaches.
+
+- Unfortunately, it is not currently possible to fix this neatly. However, as a workaround, Vinifera allows marking beaches as "requiring crushing" for passability purposes. This will allow movement zones `AmphibiousDestroyer` and `AmphibiousCrusher` to move over beaches, while preventing `Amphibious`, as well as the `Water` override from doing so.
+
+```ini
+[General]
+BeachIsCrush=  ; boolean, are beaches considered as requiring crushing for pathfinding purposes?
+```
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.

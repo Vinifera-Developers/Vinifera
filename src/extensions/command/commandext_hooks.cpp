@@ -39,7 +39,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -91,21 +91,28 @@ static void Populate_Command_Categories(HWND hWnd, const char *category)
     }
 }
 
+/**
+ *  This can not be in client compatible builds currently as the additional
+ *  commands added do not have runtime type information.
+ */
+#if !defined(TS_CLIENT)
 
 /**
  *  Patch to intercept the populating of the keyboard command list box.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
+DEFINE_HOOK(0x0058A72E, _OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch, 0)
 {
-    GET_REGISTER_STATIC(HWND, hWnd, ebp);
-    LEA_STACK_STATIC(const char *, category, esp, 0x0A4);
+    GET(HWND, hWnd, EBP);
+    LEA_STACK(const char *, category, 0x0A4);
 
     Populate_Command_Categories(hWnd, category);
 
-    JMP(0x0058A79C);
+    return 0x0058A79C;
 }
+
+#endif
 
 
 /**
@@ -121,11 +128,9 @@ DECLARE_PATCH(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
+DEFINE_HOOK(0x004E95C2, _GuardCommandClass_Process_Harvesters_Set_Mission_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass *, techno, esi);
-    static UnitClass *unit;
-    static UnitTypeClass *unittype;
+    GET(TechnoClass *, techno, ESI);
 
     /**
      *  Original code:
@@ -144,9 +149,8 @@ DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
             /**
              *  Make sure this object is in fact a harvester of some type.
              */
-            unit = reinterpret_cast<UnitClass *>(techno);
-            unittype = unit->Class;
-            if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
+            UnitClass* unit = reinterpret_cast<UnitClass*>(techno);
+            if (unit->Class->IsToHarvest || unit->Class->IsToVeinHarvest) {
 
                 /**
                  *  If the harvester is currently busy unloading, skip it.
@@ -187,7 +191,7 @@ DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
      *  Continue the loop over CurrentObjects.
      */
 continue_loop:
-    JMP(0x004E95FC);
+    return 0x004E95FC;
 }
 
 
@@ -315,7 +319,7 @@ void Init_Vinifera_Commands()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Commands_Patch)
+DEFINE_HOOK(0x004E6FA9, _Init_Commands_Patch, 0)
 {
     Init_Vinifera_Commands();
 
@@ -324,7 +328,7 @@ DECLARE_PATCH(_Init_Commands_Patch)
      */
     Load_Keyboard_Hotkeys();
 
-    JMP(0x004E6FAE);
+    return 0x004E6FAE;
 }
 
 
@@ -333,8 +337,6 @@ DECLARE_PATCH(_Init_Commands_Patch)
  */
 void CommandExtension_Hooks()
 {
-    Patch_Jump(0x004E6FA9, &_Init_Commands_Patch);
-
     Patch_Dword(0x0058A917+1, 0x006FEFEC); // "Keyboard.ini" to "KEYBOARD.INI"
 
     /**
@@ -354,14 +356,4 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAF00, DeleteCommandClass::Get_Category);
     Hook_Virtual(0x004EAF10, DeleteCommandClass::Get_Description);
     Hook_Virtual(0x004EAF20, DeleteCommandClass::Process);
-
-    Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
-
-    /**
-     *  This can not be in client compatabile builds currently as the additional
-     *  commands added do not have runtime type information.
-     */
-#if !defined(TS_CLIENT)
-    Patch_Jump(0x0058A72E, &_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch);
-#endif
 }

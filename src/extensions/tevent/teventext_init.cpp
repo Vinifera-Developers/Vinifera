@@ -36,7 +36,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -46,9 +46,9 @@
  * 
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TEventClass_Constructor_Patch)
+DEFINE_HOOK(0x00642207, _TEventClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(TEventClass *, this_ptr, esi); // Current "this" pointer.
+    GET(TEventClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -63,14 +63,8 @@ DECLARE_PATCH(_TEventClass_Constructor_Patch)
      */
     Extension::Make<TEventClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { retn }
+    return 0;
 }
 
 
@@ -81,21 +75,17 @@ original_code:
  * 
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TEventClass_Destructor_Patch)
+DEFINE_HOOK(0x00642F28, _TEventClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(TEventClass *, this_ptr, esi);
+    GET(TEventClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<TEventClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x0080F570 } // EventActionTracker.vtble
-    JMP_REG(ecx, 0x0064222E);
+    return 0;
 }
 
 
@@ -104,6 +94,6 @@ original_code:
  */
 void TEventClassExtension_Init()
 {
-    Patch_Jump(0x00642207, &_TEventClass_Constructor_Patch);
-    Patch_Jump(0x00642228, &_TEventClass_Destructor_Patch);
+
 }
+

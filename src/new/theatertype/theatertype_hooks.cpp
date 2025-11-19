@@ -43,7 +43,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -51,14 +51,12 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Theater_Patch)
+DEFINE_HOOK(0x004E7B63, _Init_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, ebp);
-    GET_REGISTER_STATIC(void *, _imp_wsprintfA, edi); // Just to make sure we are not overwriting it.
-    LEA_STACK_STATIC(char *, root_name, esp, 0x14); // char [16]
-    LEA_STACK_STATIC(char *, iso_root, esp, 0x34); // char [16]
-    LEA_STACK_STATIC(char *, suffix_name, esp, 0x24); // char [16]
-    static const char *root;
+    GET(TheaterType, theater, EBP);
+    LEA_STACK(char *, root_name, 0x14); // char [16]
+    LEA_STACK(char *, iso_root, 0x34); // char [16]
+    LEA_STACK(char *, suffix_name, 0x24); // char [16]
 
     std::snprintf(root_name, 16, "%s.MIX", TheaterTypeClass::Root_From(theater));
     std::snprintf(iso_root, 16, "%s.MIX", TheaterTypeClass::IsoRoot_From(theater));
@@ -74,13 +72,12 @@ DECLARE_PATCH(_Init_Theater_Patch)
      *  Code further down in the function expects to have theater root without
      *  the extension, so we restore this here, along with the EDI function pointer.
      */
-    root = TheaterTypeClass::Root_From(theater);
-    _asm { mov ebx, root }
+    const char* root = TheaterTypeClass::Root_From(theater);
+    R->EBX(root);
 
-    _asm { mov edi, _imp_wsprintfA } // Restore EDI.
-    _asm { mov ebp, theater }        // Restore EBP.
+    R->ESP(R->ESP() - 0x2C); // Adjust stack for where we're returning to.
 
-    JMP(0x004E7BB0);
+    return 0x004E7BB0;
 }
 
 
@@ -89,14 +86,14 @@ DECLARE_PATCH(_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Theater_INI_Patch)
+DEFINE_HOOK(0x004F3D6C, _Init_Theater_INI_Patch, 0)
 {
-    LEA_STACK_STATIC(char *, ini_name, esp, 0x344); // char [20]
-    GET_STACK_STATIC(TheaterType, theater, esp, 0x98);
+    LEA_STACK(char *, ini_name, 0x344); // char [20]
+    GET_STACK(TheaterType, theater, 0x98);
 
     std::snprintf(ini_name, 20, "%s.INI", TheaterTypeClass::Root_From(theater));
 
-    JMP_REG(ecx, 0x004F3D88);
+    return 0x004F3D88;
 }
 
 
@@ -105,15 +102,15 @@ DECLARE_PATCH(_Init_Theater_INI_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x00418921, _AnimTypeClass_Init_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, ebp);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x10); // char [_MAX_FNAME+_MAX_EXT]
+    GET(AnimTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EBP);
+    LEA_STACK(char *, fullname, 0x10); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x00418942);
+    return 0x00418942;
 }
 
 
@@ -122,15 +119,15 @@ DECLARE_PATCH(_AnimTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_entry_64_Theater_Patch)
+DEFINE_HOOK(0x00418A15, _AnimTypeClass_entry_64_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x4); // char [_MAX_FNAME+_MAX_EXT]
+    GET(AnimTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EAX);
+    LEA_STACK(char *, fullname, 0x4); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x00418A35);
+    return 0x00418A35;
 }
 
 
@@ -140,15 +137,15 @@ DECLARE_PATCH(_AnimTypeClass_entry_64_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_Load_Theater_Patch)
+DEFINE_HOOK(0x00419722, _AnimTypeClass_Load_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x8); // char [_MAX_FNAME+_MAX_EXT]
+    GET(AnimTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EAX);
+    LEA_STACK(char *, fullname, 0x8); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x00419742);
+    return 0x00419742;
 }
 
 
@@ -157,15 +154,15 @@ DECLARE_PATCH(_AnimTypeClass_Load_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Theater_Patch)
+DEFINE_HOOK(0x00419A93, _AnimTypeClass_Get_Image_Data_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x68); // char [_MAX_FNAME+_MAX_EXT]
+    GET(AnimTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EAX);
+    LEA_STACK(char *, fullname, 0x68); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x00419AB3);
+    return 0x00419AB3;
 }
 
 
@@ -174,15 +171,15 @@ DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x0043FCB3, _BuildingTypeClass_Init_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x14); // char [_MAX_FNAME+_MAX_EXT]
+    GET(BuildingTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EDI);
+    LEA_STACK(char *, fullname, 0x14); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x0043FCD4);
+    return 0x0043FCD4;
 }
 
 
@@ -191,15 +188,15 @@ DECLARE_PATCH(_BuildingTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingTypeClass_Init_Buildup_Theater_Patch)
+DEFINE_HOOK(0x0043FCFD, _BuildingTypeClass_Init_Buildup_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x14); // char [_MAX_FNAME+_MAX_EXT]
+    GET(BuildingTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EDI);
+    LEA_STACK(char *, fullname, 0x14); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->BuildupFilename.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x0043FD1E);
+    return 0x0043FD1E;
 }
 
 
@@ -211,21 +208,21 @@ DECLARE_PATCH(_BuildingTypeClass_Init_Buildup_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingTypeClass_Load_Shape_Data_Theater_Patch)
+DEFINE_HOOK(0x0044065F, _BuildingTypeClass_Load_Shape_Data_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ebx);
-    GET_REGISTER_STATIC(TheaterType, theater, esi);
-    LEA_STACK_STATIC(char *, buff, esp, 0x64); // char [_MAX_FNAME]
+    GET(BuildingTypeClass *, this_ptr, EBX);
+    GET(TheaterType, theater, ESI);
+    LEA_STACK(char *, buff, 0x64); // char [_MAX_FNAME]
 
-    if (!this_ptr->IsTheater || (theater == THEATER_NONE || theater >= TheaterTypes.Count())) {
+    if (!this_ptr->IsTheater || theater == THEATER_NONE || theater >= TheaterTypes.Count()) {
         std::snprintf(buff, 512, "%s.SHP", this_ptr->GraphicName.c_str());
     } else {
         std::snprintf(buff, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
     }
 
-    _asm { mov eax, theater }
+    R->EAX(theater);
 
-    JMP_REG(ecx, 0x004406D1);
+    return 0x004406D1;
 }
 
 
@@ -234,15 +231,15 @@ DECLARE_PATCH(_BuildingTypeClass_Load_Shape_Data_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x0058D3D6, _OverlayTypeClass_Init_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
+    GET(OverlayTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EDI);
+    LEA_STACK(char *, fullname, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x0058D3F9);
+    return 0x0058D3F9;
 }
 
 
@@ -252,15 +249,15 @@ DECLARE_PATCH(_OverlayTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_Load_Theater_Patch)
+DEFINE_HOOK(0x0058D86C, _OverlayTypeClass_Load_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x8); // char [_MAX_FNAME+_MAX_EXT]
+    GET(OverlayTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EAX);
+    LEA_STACK(char *, fullname, 0x8); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x0058D88F);
+    return 0x0058D88F;
 }
 
 
@@ -269,15 +266,15 @@ DECLARE_PATCH(_OverlayTypeClass_Load_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SmudgeTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x005FB3F9, _SmudgeTypeClass_Init_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
+    GET(SmudgeTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EDI);
+    LEA_STACK(char *, fullname, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x005FB419);
+    return 0x005FB419;
 }
 
 
@@ -286,15 +283,15 @@ DECLARE_PATCH(_SmudgeTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SmudgeTypeClass_Read_INI_Theater_Patch)
+DEFINE_HOOK(0x005FB678, _SmudgeTypeClass_Read_INI_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x08); // char [_MAX_FNAME+_MAX_EXT]
+    GET(SmudgeTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EAX);
+    LEA_STACK(char *, fullname, 0x08); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x005FB69B);
+    return 0x005FB69B;
 }
 
 
@@ -303,14 +300,14 @@ DECLARE_PATCH(_SmudgeTypeClass_Read_INI_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_VeinholeMonsterClass_Init_Theater_Patch)
+DEFINE_HOOK(0x006619F6, _VeinholeMonsterClass_Init_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, ecx);
-    LEA_STACK_STATIC(char *, buffer, esp, 0x0);
+    GET(TheaterType, theater, ECX);
+    LEA_STACK(char *, buffer, 0x0);
 
     std::snprintf(buffer, 32, "VEINHOLE.%s", TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x00661A10);
+    return 0x00661A10;
 }
 
 
@@ -319,16 +316,15 @@ DECLARE_PATCH(_VeinholeMonsterClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Theater_Patch)
+DEFINE_HOOK(0x005888ED, _ObjectTypeClass_Load_Theater_Art_Theater_Patch, 0)
 {
-    //GET_REGISTER_STATIC(ObjectTypeClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    GET_REGISTER_STATIC(char *, ini_name, esi);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [PATH_MAX]
+    GET(TheaterType, theater, EAX);
+    GET(char *, ini_name, ESI);
+    LEA_STACK(char *, fullname, 0x0C); // char [PATH_MAX]
 
     std::snprintf(fullname, PATH_MAX, "%s.%s", ini_name, TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x0058890A);
+    return 0x0058890A;
 }
 
 
@@ -337,15 +333,15 @@ DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Theater_Patch)
+DEFINE_HOOK(0x0058DB69, _OverlayTypeClass_Get_Image_Data_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x68); // char [_MAX_FNAME+_MAX_EXT]
+    GET(OverlayTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EAX);
+    LEA_STACK(char *, fullname, 0x68); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x0058DB8C);
+    return 0x0058DB8C;
 }
 
 
@@ -354,15 +350,15 @@ DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x006416E9, _TerrainTypeClass_Init_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
+    GET(SmudgeTypeClass *, this_ptr, ESI);
+    GET(TheaterType, theater, EDI);
+    LEA_STACK(char *, fullname, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
-    JMP(0x00641710);
+    return 0x00641710;
 }
 
 
@@ -371,22 +367,21 @@ DECLARE_PATCH(_TerrainTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch)
+DEFINE_HOOK(0x004F3B67, _IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch, 0)
 {
-    LEA_STACK_STATIC(char *, fullname, esp, 0x1D8); // char [20]
-    GET_REGISTER_STATIC(TheaterType, theater, esi);
-    static const char *suffix;
+    LEA_STACK(char *, fullname, 0x1D8); // char [20]
+    GET(TheaterType, theater, ESI);
 
-    suffix = (char *)TheaterTypeClass::Suffix_From(theater);
+    char const* suffix = TheaterTypeClass::Suffix_From(theater);
     std::snprintf(fullname, 20, "SLOP01Z.%s", suffix);
 
     /**
      *  EDI is expected further down in the function to be the theater suffix.
      */
-    _asm { mov edi, suffix }
-    _asm { mov [esp+0x138], edi } // ext/suffix
+    R->EDI(suffix);
+    R->Stack(0x138, suffix); // ext/suffix
 
-    JMP(0x004F3B90);
+    return 0x004F3B90;
 }
 
 
@@ -395,14 +390,8 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Process_Ice_Tile_Theater_Patch)
+DEFINE_HOOK(0x00520719, _MapClass_Process_Ice_Tile_Theater_Patch, 0)
 {
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { push esi }
-    _asm { push edi }
-
     /**
      *  Is this theater flagged to handle the ice growth logic?
      */
@@ -411,10 +400,10 @@ DECLARE_PATCH(_MapClass_Process_Ice_Tile_Theater_Patch)
     }
 
 continue_checks:
-    JMP(0x0052071F);
+    return 0x0052071F;
 
 return_false:
-    JMP(0x005208A9);
+    return 0x005208A9;
 }
 
 
@@ -423,15 +412,8 @@ return_false:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Cracked_Ice_AI_Theater_Patch)
+DEFINE_HOOK(0x00520F59, _MapClass_Cracked_Ice_AI_Theater_Patch, 6)
 {
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { push ebp }
-    _asm { push esi }
-    _asm { push edi }
-
     /**
      *  Is this theater flagged to handle the ice growth logic?
      */
@@ -440,10 +422,10 @@ DECLARE_PATCH(_MapClass_Cracked_Ice_AI_Theater_Patch)
     }
 
 continue_checks:
-    JMP(0x00520F70);
+    return 0x00520F70;
 
 return_false:
-    JMP(0x00520F59);
+    return 0;
 }
 
 
@@ -452,7 +434,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch)
+DEFINE_HOOK(0x00651A40, _UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -462,10 +444,10 @@ DECLARE_PATCH(_UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch)
     }
 
 passes_check:
-    JMP(0x00651A53);
+    return 0x00651A53;
 
 not_allowed:
-    JMP(0x00651B2A);
+    return 0x00651B2A;
 }
 
 
@@ -474,9 +456,9 @@ not_allowed:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Theater_Palette_Theater_Patch)
+DEFINE_HOOK(0x004E7D78, _Init_Theater_Palette_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, ebp);
+    GET(TheaterType, theater, EBP);
     static char _buffer[PATH_MAX];
 
     if (theater == THEATER_NONE || theater >= TheaterTypes.Count()) {
@@ -486,8 +468,8 @@ DECLARE_PATCH(_Init_Theater_Palette_Theater_Patch)
     std::snprintf(_buffer, sizeof(_buffer), "UNIT%s.PAL", TheaterTypeClass::Suffix_From(theater));
 
 retrieve_file:
-    _asm { lea ecx, dword ptr _buffer }
-    JMP(0x004E7D8F);
+    R->ECX(_buffer);
+    return 0x004E7D8F;
 }
 
 
@@ -496,10 +478,9 @@ retrieve_file:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainClass_Set_Occupy_Bit_Theater_Patch)
+DEFINE_HOOK(0x0063F9A6, _TerrainClass_Set_Occupy_Bit_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ecx);
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater considered arctic?
@@ -509,12 +490,10 @@ DECLARE_PATCH(_TerrainClass_Set_Occupy_Bit_Theater_Patch)
     }
 
 snow_bits:
-    _asm { mov ecx, this_ptr } // restore "this".
-    JMP(0x0063F9BB);  
+    return 0x0063F9BB;  
 
 temperate_bits:
-    _asm { mov ecx, this_ptr } // restore "this".
-    JMP(0x0063F9B0);
+    return 0x0063F9B0;
 }
 
 
@@ -523,10 +502,9 @@ temperate_bits:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainClass_Clear_Occupy_Bit_Theater_Patch)
+DEFINE_HOOK(0x0063F916, _TerrainClass_Clear_Occupy_Bit_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ecx);
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater considered arctic?
@@ -536,12 +514,10 @@ DECLARE_PATCH(_TerrainClass_Clear_Occupy_Bit_Theater_Patch)
     }
 
 snow_bits:
-    _asm { mov ecx, this_ptr } // restore "this".
-    JMP(0x0063F92B);  
+    return 0x0063F92B;  
 
 temperate_bits:
-    _asm { mov ecx, this_ptr } // restore "this".
-    JMP(0x0063F920);
+    return 0x0063F920;
 }
 
 
@@ -550,12 +526,12 @@ temperate_bits:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapSeedClass_Generate_Allow_Veinholes_Theater_Patch)
+DEFINE_HOOK(0x0053D365, _MapSeedClass_Generate_Allow_Veinholes_Theater_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
      */
-    _asm { add esp, 0x4 }
+    R->ESP(R->ESP() + 0x4);
 
     /**
      *  Is this theater allowed to be used in the map generator?
@@ -572,10 +548,10 @@ DECLARE_PATCH(_MapSeedClass_Generate_Allow_Veinholes_Theater_Patch)
     }
 
 generate:
-    JMP(0x0053D376);
+    return 0x0053D376;
 
 skip_generation:
-    JMP(0x0053D37D);
+    return 0x0053D37D;
 }
 
 
@@ -585,9 +561,9 @@ skip_generation:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Ice_Growth_AI_Theater_Patch)
+DEFINE_HOOK(0x00520DBB, _MapClass_Ice_Growth_AI_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -597,13 +573,12 @@ DECLARE_PATCH(_MapClass_Ice_Growth_AI_Theater_Patch)
     }
 
 continue_check:
-    _asm { mov eax, scen } // restore ScenarioClass
-    _asm { xor ecx, ecx }
-    JMP_REG(edx, 0x00520DC8);  
+    R->ECX(0);
+    return 0x00520DC8;
 
 return_false:
-    _asm { xor eax, eax }
-    JMP_REG(edx, 0x00520F2F);
+    R->EAX(0);
+    return 0x00520F2F;
 }
 
 
@@ -613,7 +588,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Moving_Over_Ice_Theater_Patch)
+DEFINE_HOOK(0x005209B1, _MapClass_Moving_Over_Ice_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -623,11 +598,11 @@ DECLARE_PATCH(_MapClass_Moving_Over_Ice_Theater_Patch)
     }
 
 continue_check:
-    JMP(0x005209C2);  
+    return 0x005209C2;
 
 return_false:
     _asm { xor eax, eax }
-    JMP_REG(ecx, 0x00520D8F);
+    return 0x00520D8F;
 }
 
 
@@ -636,15 +611,9 @@ return_false:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Smooth_Ice_Shore_Theater_Patch)
+DEFINE_HOOK(0x0051FBD9, _MapClass_Smooth_Ice_Shore_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { push esi }
-    _asm { push edi }
+    GET(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -654,10 +623,10 @@ DECLARE_PATCH(_MapClass_Smooth_Ice_Shore_Theater_Patch)
     }
 
 continue_function:
-    JMP(0x0051FBDF);  
+    return 0x0051FBDF;
 
 function_return:
-    JMP(0x005206E8);
+    return 0x005206E8;
 }
 
 
@@ -666,15 +635,9 @@ function_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_1)
+DEFINE_HOOK(0x0051F5C9, _MapClass_Smooth_Ice_Theater_Patch_1, 0)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { push esi }
-    _asm { push edi }
+    GET(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -684,10 +647,10 @@ DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_1)
     }
 
 continue_function:
-    JMP(0x0051F5CF);  
+    return 0x0051F5CF;
 
 function_return:
-    JMP(0x0051FBA9);
+    return 0x0051FBA9;
 }
 
 
@@ -696,15 +659,9 @@ function_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_2)
+DEFINE_HOOK(0x0051F039, _MapClass_Smooth_Ice_Theater_Patch_2, 0)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { push esi }
-    _asm { push edi }
+    GET(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -714,10 +671,10 @@ DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_2)
     }
 
 continue_function:
-    JMP(0x0051F03F);  
+    return 0x0051F03F;  
 
 function_return:
-    JMP(0x0051F59D);
+    return 0x0051F59D;
 }
 
 
@@ -726,10 +683,9 @@ function_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_3)
+DEFINE_HOOK(0x0051EBDE, _MapClass_Smooth_Ice_Theater_Patch_3, 0)
 {
-    GET_REGISTER_STATIC(MapClass *, this_ptr, ecx);
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -739,12 +695,10 @@ DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_3)
     }
 
 continue_function:
-    _asm { mov ecx, this_ptr }
-    JMP(0x0051EBEB);  
+    return 0x0051EBEB;
 
 function_return:
-    _asm { mov ecx, this_ptr }
-    JMP(0x0051F015);
+    return 0x0051F015;
 }
 
 
@@ -753,7 +707,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_LogicClass_Old_AI_Ice_Timer_Theater_Patch)
+DEFINE_HOOK(0x00507320, _LogicClass_Old_AI_Ice_Timer_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -763,10 +717,10 @@ DECLARE_PATCH(_LogicClass_Old_AI_Ice_Timer_Theater_Patch)
     }
 
 update_ice_timer:
-    JMP(0x00507329);
+    return 0x00507329;
 
 skip_ice_update:
-    JMP(0x00507388);
+    return 0x00507388;
 }
 
 
@@ -775,7 +729,7 @@ skip_ice_update:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_LogicClass_AI_Ice_Timer_Theater_Patch)
+DEFINE_HOOK(0x00506F47, _LogicClass_AI_Ice_Timer_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -785,10 +739,10 @@ DECLARE_PATCH(_LogicClass_AI_Ice_Timer_Theater_Patch)
     }
 
 update_ice_timer:
-    JMP(0x00506F54);
+    return 0x00506F54;
 
 skip_ice_update:
-    JMP(0x00507000);
+    return 0x00507000;
 }
 
 
@@ -797,9 +751,9 @@ skip_ice_update:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Process_Ice_Tilesets_Theater_Patch)
+DEFINE_HOOK(0x004F5535, _IsometricTileTypeClass_Read_INI_Process_Ice_Tilesets_Theater_Patch, 0)
 {
-    GET_STACK_STATIC(TheaterType, theater, esp, 0x98);
+    GET_STACK(TheaterType, theater, 0x98);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -809,10 +763,10 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Process_Ice_Tilesets_Theater_Patc
     }
 
 process_ice_tilesets:
-    JMP(0x004F554D);
+    return 0x004F554D;
 
 function_return:
-    JMP(0x004F55F2);
+    return 0x004F55F2;
 }
 
 
@@ -821,16 +775,16 @@ function_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch)
+DEFINE_HOOK(0x004F51DF, _IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch, 0)
 {
-    GET_STACK_STATIC(TheaterType, theater, esp, 0x98);
-    LEA_STACK_STATIC(char *, filename, esp, 0x56C); // char [128]
-    LEA_STACK_STATIC(char *, fullname, esp, 0x6AC); // char [_MAX_FNAME+_MAX_EXT]
+    GET_STACK(TheaterType, theater, 0xAC);
+    GET(char *, filename, EAX); // char [128]
+    GET(char *, fullname, ECX); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", filename, TheaterTypeClass::MMSuffix_From(theater));
     //DEV_DEBUG_INFO("MM: %s\n", fullname);
 
-    JMP_REG(edx, 0x004F51E4);
+    return 0x004F51E4;
 }
 
 
@@ -839,13 +793,13 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_1)
+DEFINE_HOOK(0x00451EC4, _CellClass_Cell_Color_Theater_Patch_1, 0)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, edx);
-    static long rgb;    // Actually is a RGBClass instance.
-    static long val;
+    GET(TheaterType, theater, EDX);
+    long rgb;    // Actually is a RGBClass instance.
+    long val;
 
-    _asm { mov rgb, ecx }
+    rgb = R->ECX();
 
     /**
      *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
@@ -855,10 +809,10 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_1)
      *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
     val  = *(long *)&TheaterTypeClass::As_Reference(theater).LowRadarBrightness1;
-    
-    _asm { mov ecx, rgb }
-    _asm { mov eax, val }
-    JMP_REG(edx, 0x00451ECB);
+
+    R->ECX(rgb);
+    R->EAX(val);
+    return 0x00451ECB;
 }
 
 
@@ -867,13 +821,13 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_1)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_2)
+DEFINE_HOOK(0x00451EF5, _CellClass_Cell_Color_Theater_Patch_2, 0)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, edx);
-    static long rgb;    // Actually is a RGBClass instance.
-    static long val;
-    
-    _asm { mov rgb, ecx }
+    GET(TheaterType, theater, EDX);
+    long rgb;    // Actually is a RGBClass instance.
+    long val;
+
+    rgb = R->ECX();
 
     /**
      *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
@@ -883,10 +837,10 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_2)
      *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
     val  = *(long *)&TheaterTypeClass::As_Reference(theater).LowRadarBrightness2;
-    
-    _asm { mov ecx, rgb }
-    _asm { mov eax, val }
-    JMP_REG(edx, 0x00451EFC);
+
+    R->ECX(rgb);
+    R->EAX(val);
+    return 0x00451EFC;
 }
 
 
@@ -895,13 +849,13 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_2)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_3)
+DEFINE_HOOK(0x00451F26, _CellClass_Cell_Color_Theater_Patch_3, 0)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, edx);
-    static long rgb;    // Actually is a RGBClass instance.
-    static long val;
+    GET(TheaterType, theater, EDX);
+    long rgb;    // Actually is a RGBClass instance.
+    long val;
     
-    _asm { mov rgb, ecx }
+    rgb = R->ECX();
 
     /**
      *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
@@ -912,9 +866,9 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_3)
      */
     val  = *(long *)&TheaterTypeClass::As_Reference(theater).HighRadarBrightness1;
     
-    _asm { mov ecx, rgb }
-    _asm { mov eax, val }
-    JMP_REG(edx, 0x00451F2D);
+    R->ECX(rgb);
+    R->EAX(val);
+    return 0x00451F2D;
 }
 
 
@@ -923,13 +877,13 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_3)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_4)
+DEFINE_HOOK(0x00451F48, _CellClass_Cell_Color_Theater_Patch_4, 0)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET(TheaterType, theater, EAX);
     static long rgb;    // Actually is an address to a RGBClass instance.
     static long val;
     
-    _asm { mov rgb, edx }
+    rgb = R->EDX();
 
     /**
      *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
@@ -939,41 +893,10 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_4)
      *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
     val  = *(long *)&TheaterTypeClass::As_Reference(theater).HighRadarBrightness2;
-    
-    _asm { mov edx, rgb }
-    _asm { mov ecx, val }
-    JMP_REG(eax, 0x00451F4F);
-}
 
-
-/**
- *  Patch to add support for new theaters when setting cell occupation bits.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_CellClass_Set_Attributes_Theater_Patch)
-{
-    GET_REGISTER_STATIC(CellClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(TerrainClass *, terrain, esi);
-
-    /**
-     *  Is this theater considered arctic?
-     */
-    if (TheaterTypeClass::Is_Arctic(Scen->Theater)) {
-        if (terrain->Class->SnowOccupationBits != TERRAIN_OCCUPY_ALL) {
-            goto set_passability_FREE_SPOTS;
-        }
-    } else {
-        if (terrain->Class->TemperateOccupationBits != TERRAIN_OCCUPY_ALL) {
-            goto set_passability_FREE_SPOTS;
-        }
-    }
-
-set_passability_WALL:
-    JMP(0x00459A51);
-
-set_passability_FREE_SPOTS:
-    JMP(0x00459B62);
+    R->EDX(rgb);
+    R->ECX(val);
+    return 0x00451F4F;
 }
 
 
@@ -982,58 +905,7 @@ set_passability_FREE_SPOTS:
  */
 void TheaterTypeClassExtension_Hooks()
 {
-    Patch_Jump(0x004E7B63, &_Init_Theater_Patch);
-    Patch_Byte_Range(0x004E7BB5, 0x90, 3); // Fixup stack from above patch.
-
-    Patch_Jump(0x004F3D6C, &_Init_Theater_INI_Patch);
-    Patch_Jump(0x004E7D78, &_Init_Theater_Palette_Theater_Patch);
-
-    Patch_Jump(0x00418921, &_AnimTypeClass_Init_Theater_Patch);
-    Patch_Jump(0x00418A15, &_AnimTypeClass_entry_64_Theater_Patch);
-    Patch_Jump(0x00419722, &_AnimTypeClass_Load_Theater_Patch);
-    Patch_Jump(0x00419A93, &_AnimTypeClass_Get_Image_Data_Theater_Patch);
-    Patch_Jump(0x0043FCB3, &_BuildingTypeClass_Init_Theater_Patch);
-    Patch_Jump(0x0043FCFD, &_BuildingTypeClass_Init_Buildup_Theater_Patch);
-
-    Patch_Jump(0x0044065F, &_BuildingTypeClass_Load_Shape_Data_Theater_Patch);
-
-    Patch_Jump(0x0058D3D6, &_OverlayTypeClass_Init_Theater_Patch);
-    Patch_Jump(0x0058D86C, &_OverlayTypeClass_Load_Theater_Patch);
-    Patch_Jump(0x0058DB69, &_OverlayTypeClass_Get_Image_Data_Theater_Patch);
-    Patch_Jump(0x005FB3F9, &_SmudgeTypeClass_Init_Theater_Patch);
-    Patch_Jump(0x005FB678, &_SmudgeTypeClass_Read_INI_Theater_Patch);
-    Patch_Jump(0x005888ED, &_ObjectTypeClass_Load_Theater_Art_Theater_Patch);
-    Patch_Jump(0x006416E9, &_TerrainTypeClass_Init_Theater_Patch);
-
-    Patch_Jump(0x004F3B67, &_IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch);
-    Patch_Jump(0x004F5535, &_IsometricTileTypeClass_Read_INI_Process_Ice_Tilesets_Theater_Patch);
-
-    Patch_Jump(0x004F518F, &_IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch);
-    Patch_Byte_Range(0x004F51E8, 0x90, 3); // Fixup stack from above patch.
-
-    Patch_Jump(0x006619F6, &_VeinholeMonsterClass_Init_Theater_Patch);
-
-    Patch_Jump(0x00651A40, &_UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch);
-    Patch_Jump(0x0063F9A6, &_TerrainClass_Set_Occupy_Bit_Theater_Patch);
-    Patch_Jump(0x0063F916, &_TerrainClass_Clear_Occupy_Bit_Theater_Patch);
-
-    Patch_Jump(0x0053D365, &_MapSeedClass_Generate_Allow_Veinholes_Theater_Patch);
-
-    Patch_Jump(0x0052070E, &_MapClass_Process_Ice_Tile_Theater_Patch);
-    Patch_Jump(0x00520F4B, &_MapClass_Cracked_Ice_AI_Theater_Patch);
-    Patch_Jump(0x00520DBB, &_MapClass_Ice_Growth_AI_Theater_Patch);
-    Patch_Jump(0x005209B1, &_MapClass_Moving_Over_Ice_Theater_Patch);
-    Patch_Jump(0x0051FBCE, &_MapClass_Smooth_Ice_Shore_Theater_Patch);
-    Patch_Jump(0x0051F5BE, &_MapClass_Smooth_Ice_Theater_Patch_1);
-    Patch_Jump(0x0051F02E, &_MapClass_Smooth_Ice_Theater_Patch_2);
-    Patch_Jump(0x0051EBDE, &_MapClass_Smooth_Ice_Theater_Patch_3);
-
-    Patch_Jump(0x00507320, &_LogicClass_Old_AI_Ice_Timer_Theater_Patch);
-    Patch_Jump(0x00506F47, &_LogicClass_AI_Ice_Timer_Theater_Patch);
-
-    Patch_Jump(0x00451EC4, &_CellClass_Cell_Color_Theater_Patch_1);
-    Patch_Jump(0x00451EF5, &_CellClass_Cell_Color_Theater_Patch_2);
-    Patch_Jump(0x00451F26, &_CellClass_Cell_Color_Theater_Patch_3);
-    Patch_Jump(0x00451F48, &_CellClass_Cell_Color_Theater_Patch_4);
-    Patch_Jump(0x00459B26, &_CellClass_Set_Attributes_Theater_Patch);
+    // Patch away a 2-byte jump that's in the way of our hook
+    Patch_Byte_Range(0x00520F57, 0x90, 2);
 }
+

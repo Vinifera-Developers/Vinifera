@@ -36,7 +36,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -49,9 +49,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
+DEFINE_HOOK(0x00649171, _TriggerClass_Constructor_Enabled_For_Difficulty_Patch, 0)
 {
-    GET_REGISTER_STATIC(TriggerClass *, this_ptr, esi);
+    GET(TriggerClass *, this_ptr, ESI);
 
     /**
      *  This is direct port of the code from Red Alert 2, which looks to fix this issue.
@@ -79,7 +79,7 @@ DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
         }
     }
 
-    JMP(0x00649188);
+    return 0x00649188;
 }
 
 
@@ -88,5 +88,6 @@ DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
  */
 void TriggerClassExtension_Hooks()
 {
-    Patch_Jump(0x00649171, &_TriggerClass_Constructor_Enabled_For_Difficulty_Patch);
+
 }
+

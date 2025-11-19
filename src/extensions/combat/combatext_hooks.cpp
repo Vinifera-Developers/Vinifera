@@ -50,7 +50,6 @@
 #include "coord.h"
 #include "debughandler.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "mouse.h"
@@ -66,6 +65,7 @@
 #include "voxelanim.h"
 #include "jumpjetlocomotion.h"
 #include "smudgetype.h"
+#include "syringe.h"
 
 
 template <typename T>
@@ -671,18 +671,16 @@ static int Scale_Float_To_Int(float value, int scale)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
+DEFINE_HOOK(0x00460477, _Do_Flash_CombatLightSize_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, damage, ecx);
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, edx);
-    static const WarheadTypeClassExtension *warheadtypeext;
-    static float light_size;
-    static int flash_size;
+    GET(int, damage, ECX);
+    GET(const WarheadTypeClass *, warhead, EDX);
+    int flash_size;
 
     /**
      *  Fetch the extension instance.
      */
-    warheadtypeext = Extension::Fetch(warhead);
+    const WarheadTypeClassExtension* warheadtypeext = Extension::Fetch(warhead);
 
     /**
      *  If no custom light size has been set, then just use the default code.
@@ -693,11 +691,9 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
         /**
          *  Original code.
          */
-        flash_size = (damage / 4);
+        flash_size = damage / 4;
         if (flash_size < 63) {
-            if (flash_size <= 21) {
-                flash_size = 21;
-            }
+            flash_size = std::max(flash_size, 21);
         } else {
             flash_size = 63;
         }
@@ -712,19 +708,17 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
         /**
          *  Clamp the light size and scale to expected size range.
          */
-        light_size = warheadtypeext->CombatLightSize;
-        if (light_size > 1.0f) {
-            light_size = 1.0f;
-        }
+        float light_size = warheadtypeext->CombatLightSize;
+        light_size = std::min(light_size, 1.0f);
         flash_size = Scale_Float_To_Int(light_size, 63);
     }
 
     /**
      *  Set the desired flash size.
      */
-    _asm { mov esi, flash_size }
+    R->ESI(flash_size);
 
-    JMP(0x00460495);
+    return 0x00460495;
 }
 
 
@@ -735,7 +729,7 @@ void CombatExtension_Hooks()
 {
     Patch_Byte(0x0058604A, 0x56); // push eax -> push esi; Modify_Damage originally takes ArmorType as its argument, we instead pass the target object
 
-    Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
     Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
 }
+

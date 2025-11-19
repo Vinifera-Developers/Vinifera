@@ -37,7 +37,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ParticleTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x005AF0CD, _ParticleTypeClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(ParticleTypeClass *, this_ptr, esi); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x14); // ini name.
+    GET(ParticleTypeClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,41 +64,8 @@ DECLARE_PATCH(_ParticleTypeClass_Constructor_Patch)
      */
     Extension::Make<ParticleTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_ParticleTypeClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(ParticleTypeClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<ParticleTypeClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007E22B8 } // ParticleTypes.vtble
-    JMP_REG(eax, 0x005AF1A7);
+    return 0;
 }
 
 
@@ -110,21 +76,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ParticleTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x005AFC81, _ParticleTypeClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(ParticleTypeClass *, this_ptr, esi);
+    GET(ParticleTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<ParticleTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007E22B8 } // ParticleTypes.vtble
-    JMP_REG(eax, 0x005AFC87);
+    return 0;
 }
 
 
@@ -133,7 +95,6 @@ original_code:
  */
 void ParticleTypeClassExtension_Init()
 {
-    Patch_Jump(0x005AF0CD, &_ParticleTypeClass_Constructor_Patch);
-    //Patch_Jump(0x005AF1A1, &_ParticleTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x005AFC81, &_ParticleTypeClass_Scalar_Destructor_Patch);
+
 }
+

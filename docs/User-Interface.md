@@ -6,6 +6,10 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ### Tabs
 
+```{note}
+You don't need to follow these instructions if you change the TS Client's update channel to `Vinifera Beta` (under the `Updater` tab of the `Options` menu) and then update to the latest version after the client has restarted. The TS Client will then enable the tabs for you. Do keep in mind that updating will cause the TS Client to undo any modifications that you might have already made.
+```
+
 - Vinifera enhances the Tiberian Sun sidebar by introducing tabs similar to those found in Red Alert 2.
 - There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons, aircraft and naval units.
 - Vinifera also introduces new hotkeys for quick tab switching and placing the currently available building (in the case of the Structure tab).

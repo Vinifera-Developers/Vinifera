@@ -42,3 +42,4 @@ typedef void(__cdecl *stackcallback_ptr_t)(const char *buffer);
 
 void Stack_Dump_From_Context(register_t myeip, register_t myesp, register_t myebp, stackcallback_ptr_t callback, int skipframes = STACK_WALK_SKIP);
 void Stack_Dump(stackcallback_ptr_t callback, int skipframes = STACK_WALK_SKIP);
+void Get_Function_Details(void* pointer, char* funcname, char* filename, unsigned* linenumber, uintptr_t* address);
