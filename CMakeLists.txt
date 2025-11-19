@@ -168,56 +168,6 @@ endif()
 
 
 ################################################################################
-# Disable/Enable warnings.
-################################################################################
-# Set warning level 4
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-
-# Set /permissive (default is /permissive- starting with C++20/VS2019)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive")
-
-# For catching unreferenced local variables, we do not need to worry about this when compiling debug builds.
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4189")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4101")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4700") # uninitialized local variable 'x' used.
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244") # disable C4244: conversion from 'double' to 'float', possible loss of data
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4800") # disable C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4351") # disable C4351: "new behavior: elements of array will be default initialized"
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4514") # disable C4514: "unreferenced inline function has been removed" Yea, so what?
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4065") # disable C4065: "switch statement contains 'default' but no 'case' labels"
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4514") # disable C4514: "unreferenced inline function has been removed" Yea, so what?
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4065") # disable C4065: "switch statement contains 'default' but no 'case' labels"
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244") # disable C4244: "conversion from 'double' to 'float', possible loss of data" Yea, so what?
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4530") # disable C4530: Disable warning about exception handling not being enabled. It's used as part of STL - in a part of STL we don't use.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4056") # disable C4056: "overflow in floating-point constant arithmetic" This warning occurs even if the loss of precision is insignificant.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4710") # disable C4710: "function not inlined" This warning is typically useless. The inline keyword only serves as a suggestion to the compiler and it may or may not inline a function on a case by case basis. No need to be told of this.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4355") # disable C4355: "'this' used in base member initializer list" Using "this" in a base member initializer is valid -- no need for this warning.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4097") # disable C4097: "typedef-name used as a synonym for class-name". This is by design and should not be a warning.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4091") # disable C4091: 'typedef ': ignored on left of '' when no variable is declared
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4505") # disable C4505: Unreferenced local function removed.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4511") # disable C4511: 'copy constructor could not be generated'
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4711") # disable C4711: 'function selected for automatic inline expansion'. Cool, but since we're treating warnings as errors, don't warn us about this!
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4512") # disable C4512: 'assignment operator could not be generated' 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4100") # disable C4100: 'unreferenced formal parameter'
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4786") # disable C4786: "identifier was truncated to '255' characters in the browser information" Templates create long identifiers...
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4800") # disable C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996") # disable C4996: 'This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.'
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4324") # disable C4324: 'structure was padded due to alignment specifier.' Safe to ignore this.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4102") # disable C4102: 'unreferenced label.' Yea, so what?
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4646") # disable C4646: 'function declared with 'noreturn' has non-void return type' Yea, so what?
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4731") # disable C4731: 'frame pointer register 'ebp' modified by inline assembly code' Nothing to worry about.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4740") # disable C4740: 'flow in or out of inline asm code suppresses global optimization' Nothing to worry about.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4239") # disable C4239: 'nonstandard extension used: 'default argument': conversion from 'value' to 'value &'. Shoosh...
-
-# disable D9035: 'option 'QIfist' has been deprecated and will be removed in a future release.' Yeah yeah, we need it for now though...
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd9035") # Not allowed to disable command line warnings.
-
-# Promote some useful warnings to errors
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /we4477") # enable C4477: 'function' : format string 'string' requires an argument of type 'type', but variadic argument number has type 'type'. Really don't want to pass wrong things to sprintf, especially TStringID
-
-
-################################################################################
 # Set global configuration definitions.
 ################################################################################
 
@@ -320,7 +270,7 @@ GitWatcher_SetupInitial()  # Running the script function again forces the file t
 					       # created locally so the file can be added to the filters.
 
 ################################################################################
-# Build the DLL.
+# Create the DLL.
 ################################################################################
 message(STATUS "Configuring ${PROJECT_NAME} DLL.")
 
@@ -342,6 +292,63 @@ target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
 		${CMAKE_CURRENT_BINARY_DIR}/generated
 )
 
+
+################################################################################
+# Disable/Enable warnings.
+################################################################################
+# Set warning level 4
+target_compile_options(${PROJECT_NAME} PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:/W4>
+)
+
+# Set /permissive (default is /permissive- starting with C++20/VS2019)
+target_compile_options(${PROJECT_NAME} PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:/permissive>
+)
+
+# For catching unreferenced local variables, we do not need to worry about this when compiling debug builds.
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4189")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4101")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4700") # uninitialized local variable 'x' used.
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244") # disable C4244: conversion from 'double' to 'float', possible loss of data
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4800") # disable C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4351") # disable C4351: "new behavior: elements of array will be default initialized"
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4514") # disable C4514: "unreferenced inline function has been removed" Yea, so what?
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4065") # disable C4065: "switch statement contains 'default' but no 'case' labels"
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4514") # disable C4514: "unreferenced inline function has been removed" Yea, so what?
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4065") # disable C4065: "switch statement contains 'default' but no 'case' labels"
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244") # disable C4244: "conversion from 'double' to 'float', possible loss of data" Yea, so what?
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4530") # disable C4530: Disable warning about exception handling not being enabled. It's used as part of STL - in a part of STL we don't use.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4056") # disable C4056: "overflow in floating-point constant arithmetic" This warning occurs even if the loss of precision is insignificant.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4710") # disable C4710: "function not inlined" This warning is typically useless. The inline keyword only serves as a suggestion to the compiler and it may or may not inline a function on a case by case basis. No need to be told of this.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4355") # disable C4355: "'this' used in base member initializer list" Using "this" in a base member initializer is valid -- no need for this warning.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4097") # disable C4097: "typedef-name used as a synonym for class-name". This is by design and should not be a warning.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4091") # disable C4091: 'typedef ': ignored on left of '' when no variable is declared
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4505") # disable C4505: Unreferenced local function removed.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4511") # disable C4511: 'copy constructor could not be generated'
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4711") # disable C4711: 'function selected for automatic inline expansion'. Cool, but since we're treating warnings as errors, don't warn us about this!
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4512") # disable C4512: 'assignment operator could not be generated' 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4100") # disable C4100: 'unreferenced formal parameter'
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4786") # disable C4786: "identifier was truncated to '255' characters in the browser information" Templates create long identifiers...
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4800") # disable C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996") # disable C4996: 'This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.'
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4324") # disable C4324: 'structure was padded due to alignment specifier.' Safe to ignore this.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4102") # disable C4102: 'unreferenced label.' Yea, so what?
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4646") # disable C4646: 'function declared with 'noreturn' has non-void return type' Yea, so what?
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4731") # disable C4731: 'frame pointer register 'ebp' modified by inline assembly code' Nothing to worry about.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4740") # disable C4740: 'flow in or out of inline asm code suppresses global optimization' Nothing to worry about.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4239") # disable C4239: 'nonstandard extension used: 'default argument': conversion from 'value' to 'value &'. Shoosh...
+
+# disable D9035: 'option 'QIfist' has been deprecated and will be removed in a future release.' Yeah yeah, we need it for now though...
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd9035") # Not allowed to disable command line warnings.
+
+# Promote some useful warnings to errors
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /we4477") # enable C4477: 'function' : format string 'string' requires an argument of type 'type', but variadic argument number has type 'type'. Really don't want to pass wrong things to sprintf, especially TStringID
+
+################################################################################
+# Build the DLL.
+################################################################################
 # Set custom debugging target name (only works if the custom path option has been set!).
 if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " " AND
 	NOT ${OPTION_CUSTOM_DEBUGGER_TARGET_NAME} STREQUAL " ")
