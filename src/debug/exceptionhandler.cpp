@@ -44,6 +44,7 @@
 #include "resource.h"
 #include "fetchres.h"
 #include "stringid.h"
+#include "syringe.h"
 #include "tibsun_functions.h"
 #include "windialog.h"
 #include "tspp_gitinfo.h"
@@ -404,8 +405,8 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
         Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " (%s +0x%" PRIXPTR ") [%s:%d]\r\n", context->Eip, funcname, addr, filename, line);
 
-        if (LastHookOrigin != nullptr) {
-            Exception_Printf("Last entered hook at address: 0x%" PRIPTRSIZE PRIXPTR "\r\n", reinterpret_cast<register_t>(LastHookOrigin));
+        if (SyringeData::LastHookOrigin != nullptr) {
+            Exception_Printf("Last entered hook at address: 0x%" PRIPTRSIZE PRIXPTR "\r\n", reinterpret_cast<register_t>(SyringeData::LastHookOrigin));
         }
     }
 

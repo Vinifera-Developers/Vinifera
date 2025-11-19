@@ -283,6 +283,7 @@ namespace Hosts
 {
 
 }
+inline void* LastHookOrigin = nullptr;
 } // namespace SyringeData
 
 #define declhost(exename, checksum) \
@@ -300,14 +301,13 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 
 #ifdef HOOK_LOGGING
 
-    extern void* LastHookOrigin;
     // Verbose version
     #ifdef HOOK_LOGGING_VERBOSE
         #define declhook(address, funcname, size) \
             EXPORT_FUNC(funcname##_##address##_LogStub) \
             { \
                 DEBUG_INFO("[Syringe] Hook %s entered at %08X.\n", #funcname, address); \
-                LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
+                SyringeData::LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
                 return 0; \
             } \
             _declhook(address, funcname##_##address##_LogStub, size) \
@@ -318,7 +318,7 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
         #define declhook(address, funcname, size) \
             EXPORT_FUNC(funcname##_##address##_LogStub) \
             { \
-                LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
+                SyringeData::LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
                 return 0; \
             } \
             _declhook(address, funcname##_##address##_LogStub, size) \
