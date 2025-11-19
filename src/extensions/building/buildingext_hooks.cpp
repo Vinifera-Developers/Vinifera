@@ -74,12 +74,12 @@
 #include "session.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "jumpjetlocomotion.h"
 #include "rulesext.h"
 #include "super.h"
 #include "supertypeext.h"
+#include "syringe.h"
 #include "vox.h"
 #include "tactical.h"
 #include "vinifera_saveload.h"
@@ -969,21 +969,16 @@ SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon2() const
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
+DEFINE_HOOK(0x00428AA4, _BuildingClass_Draw_Overlays_Fetch_Factory_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
-    MAKE_STACK_FRAME(0x20)
+    BuildingTypeClassExtension const* type_ext = Extension::Fetch(this_ptr->Class);
+    FactoryClass* factory = Extension::Fetch(this_ptr->House)->Fetch_Factory(
+        this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    R->EAX(factory);
 
-    static FactoryClass* factory;
-    static BuildingTypeClassExtension const* type_ext;
-    type_ext = Extension::Fetch(this_ptr->Class);
-    factory = Extension::Fetch(this_ptr->House)->Fetch_Factory(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
-
-    END_STACK_FRAME();
-
-    _asm mov eax, factory
-    JMP_REG(ecx, 0x00428AC4);
+    return 0x00428AC4;
 }
 
 
@@ -992,14 +987,14 @@ DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Detach_Detach_Anim_Patch)
+DEFINE_HOOK(0x00433F1D, _BuildingClass_Detach_Detach_Anim_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(AnimClass*, anim, ecx);
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(AnimClass*, anim, ECX);
 
     this_ptr->Detach_Anim(anim);
 
-    JMP(0x00433F84);
+    return 0x00433F84;
 }
 
 
@@ -1011,24 +1006,16 @@ DECLARE_PATCH(_BuildingClass_Detach_Detach_Anim_Patch)
  * 
  *  @author: CCHyper
  */
-static int Building_Radio_Reload_Rate(BuildingClass *this_ptr)
+DEFINE_HOOK(0x0043266C, _BuildingClass_Mission_Repair_ReloadRate_Patch, 0)
 {
-    AircraftClass *radio = reinterpret_cast<AircraftClass *>(this_ptr->Contact_With_Whom());
-    AircraftTypeClassExtension *radio_class_ext = Extension::Fetch(radio->Class);
+    GET(BuildingClass*, this_ptr, EBP);
 
-    return radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
-}
+    AircraftClass* radio = reinterpret_cast<AircraftClass*>(this_ptr->Contact_With_Whom());
+    AircraftTypeClassExtension* radio_class_ext = Extension::Fetch(radio->Class);
+    int time = radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
+    R->EAX(time);
 
-
-DECLARE_PATCH(_BuildingClass_Mission_Repair_ReloadRate_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, ebp);
-    static int time;
-
-    time = Building_Radio_Reload_Rate(this_ptr);
-
-    _asm { mov eax, time }
-    JMP_REG(edi, 0x0043260F);
+    return 0x0043260F;
 }
 
 
@@ -1039,34 +1026,31 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_ReloadRate_Patch)
  *
  *  @author: Rampastring
  */
-bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *building, TechnoClass *techno, bool clear_archive) {
-    Cell exitcell;
-    CellClass* cellptr;
-
+bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *building, TechnoClass *techno, bool clear_archive)
+{
     AbstractClass * target = nullptr;
 
-    if (building->ArchiveTarget != nullptr)
-    {
-        if (building->ArchiveTarget != nullptr)
-            target = building->ArchiveTarget;
+    if (building->ArchiveTarget != nullptr) {
+        if (building->ArchiveTarget != nullptr) target = building->ArchiveTarget;
     }
 
-    if (target == nullptr)
-    {
+    if (target == nullptr) {
+
         /**
          *  Stolen bytes/code.
          *  Reimplements original game behaviour.
          */
-        exitcell = building->Find_Exit_Cell(reinterpret_cast<TechnoClass*>(building->Radio));
+        Cell exitcell = building->Find_Exit_Cell(reinterpret_cast<TechnoClass*>(building->Radio));
 
         if (exitcell.X == 0 && exitcell.Y == 0) {
+
             /**
              *  Failed to find valid exit cell.
              */
             return false;
         }
 
-        cellptr = &Map[exitcell];
+        CellClass* cellptr = &Map[exitcell];
         target = As_Target(cellptr);
     }
 
@@ -1096,10 +1080,10 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed)
+DEFINE_HOOK(0x00432184, _BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
-    GET_REGISTER_STATIC(TechnoClass*, techno, esi);
+    GET(BuildingClass*, building, EBP);
+    GET(TechnoClass*, techno, ESI);
 
     _BuildingClass_Mission_Repair_Assign_Unit_Destination(building, techno, true);
 
@@ -1107,7 +1091,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Rep
      *  Set mission delay and return, regardless of whether the
      *  destination assignment succeeded.
      */
-    JMP_REG(ecx, 0x004324DF);
+    return 0x004324DF;
 }
 
 
@@ -1121,10 +1105,10 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Rep
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete)
+DEFINE_HOOK(0x00431DAB, _BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, building, ebp);
-    GET_REGISTER_STATIC(TechnoClass *, techno, esi);
+    GET(BuildingClass *, building, EBP);
+    GET(TechnoClass *, techno, ESI);
 
     if (_BuildingClass_Mission_Repair_Assign_Unit_Destination(building, techno, false)) {
         goto success;
@@ -1136,14 +1120,14 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repai
      *  The unit destination was applied successfully.
      */
 success:
-    _asm { mov eax, 1 }
-    JMP_REG(edi, 0x00431E27);
+    R->EAX(true);
+    return 0x00431E27;
 
     /**
      *  Return from the function without assigning any location for the unit to move into.
      */
 fail_return:
-    JMP(0x00431E90);
+    return 0x00431E90;
 }
 
 
@@ -1154,17 +1138,14 @@ fail_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_AI_ProduceCash_Patch)
+DEFINE_HOOK(0x00429A96, _BuildingClass_AI_ProduceCash_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingClassExtension *ext_ptr;
+    GET(BuildingClass *, this_ptr, ESI);
 
     /**
      *  Fetch the extension instance.
      */
-    ext_ptr = Extension::Fetch(this_ptr);
-
-    ext_ptr->Produce_Cash_AI();
+    Extension::Fetch(this_ptr)->Produce_Cash_AI();
 
     /**
      *  Stolen bytes/code here.
@@ -1176,7 +1157,7 @@ original_code:
      */
     this_ptr->Animation_AI();
 
-    JMP(0x00429A9D);
+    return 0x00429A9D;
 }
 
 
@@ -1187,18 +1168,16 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Captured_ProduceCash_Patch)
+DEFINE_HOOK(0x0042F67D, _BuildingClass_Captured_ProduceCash_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    GET_STACK_STATIC(HouseClass *, newowner, esp, 0x58);
-    static BuildingClassExtension *ext_ptr;
-    static BuildingTypeClassExtension *exttype_ptr;
+    GET(BuildingClass *, this_ptr, ESI);
+    GET_STACK(HouseClass *, newowner, 0x58);
 
     /**
      *  Fetch the extension instances.
      */
-    ext_ptr = Extension::Fetch(this_ptr);
-    exttype_ptr = Extension::Fetch(this_ptr->Class);
+    BuildingClassExtension* ext_ptr = Extension::Fetch(this_ptr);
+    BuildingTypeClassExtension* exttype_ptr = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is the owner a passive/neutral house? Only they can provide the capture bonus.
@@ -1251,7 +1230,7 @@ original_code:
         newowner->HasCloakGenerator = true;
     }
 
-    JMP(0x0042F68E);
+    return 0x0042F68E;
 }
 
 
@@ -1262,12 +1241,12 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Grand_Opening_ProduceCash_Patch)
+DEFINE_HOOK(0x0042E179, _BuildingClass_Grand_Opening_ProduceCash_Patch, 0)
 {
-    GET_STACK_STATIC8(bool, captured, esp, 0x40);
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingClassExtension *ext_ptr;
-    static BuildingTypeClassExtension *exttype_ptr;
+    GET_STACK(bool, captured, 0x40);
+    GET(BuildingClass *, this_ptr, ESI);
+    BuildingClassExtension *ext_ptr;
+    BuildingTypeClassExtension *exttype_ptr;
 
     /**
      *  Stolen bytes/code here.
@@ -1302,19 +1281,19 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_ProduceCash_Patch)
      *  Continue function flow (HasOpened == false).
      */
 continue_function:
-    JMP(0x0042E197);
+    return 0x0042E197;
 
     /**
      *  Function return.
      */
 function_return:
-    JMP(0x0042E9DF);
+    return 0x0042E9DF;
 
     /**
      *  Else case from "HasOpened" check.
      */
 has_opened_else:
-    JMP(0x0042E4C7);
+    return 0x0042E4C7;
 }
 
 
@@ -1325,25 +1304,22 @@ has_opened_else:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
+DEFINE_HOOK(0x00433BB5, _BuildingClass_Mission_Open_Gate_Open_Sound_Patch, 0)
 {
-    GET_REGISTER_STATIC(Coord *, coord, eax);
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingTypeClass *buildingtype;
-    static BuildingTypeClassExtension *buildingtypeext;
-    static VocType voc;
+    GET(Coord *, coord, EAX);
+    GET(BuildingClass *, this_ptr, ESI);
 
-    buildingtype = this_ptr->Class;
+    BuildingTypeClass* buildingtype = this_ptr->Class;
 
     /**
      *  Fetch the default gate lowering sound.
      */
-    voc = Rule->GateDownSound;
+    VocType voc = Rule->GateDownSound;
 
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch(buildingtype);
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(buildingtype);
 
     /**
      *  Does this building have a custom gate lowering sound? If so, use it.
@@ -1357,28 +1333,25 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
      */
     Static_Sound(voc, *coord);
 
-    JMP_REG(edx, 0x00433BC8);
+    return 0x00433BC8;
 }
 
-DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
+DEFINE_HOOK(0x00433C6F, _BuildingClass_Mission_Open_Gate_Close_Sound_Patch, 0)
 {
-    GET_REGISTER_STATIC(Coord *, coord, eax);
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingTypeClass *buildingtype;
-    static BuildingTypeClassExtension *buildingtypeext;
-    static VocType voc;
+    GET(Coord *, coord, EAX);
+    GET(BuildingClass *, this_ptr, ESI);
 
-    buildingtype = this_ptr->Class;
+    BuildingTypeClass* buildingtype = this_ptr->Class;
 
     /**
      *  Fetch the default gate rising sound.
      */
-    voc = Rule->GateUpSound;
+    VocType voc = Rule->GateUpSound;
 
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch(buildingtype);
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(buildingtype);
 
     /**
      *  Does this building have a custom gate rising sound? If so, use it.
@@ -1395,7 +1368,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
     /**
      *  Function return (0).
      */
-    JMP(0x00433C81);
+    return 0x00433C81;
 }
 
 
@@ -1409,12 +1382,11 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
  */
 static void BuildingClass_Shake_Screen(BuildingClass *building)
 {
-    BuildingTypeClassExtension *buildingtypeext;
-
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch(static_cast<const BuildingTypeClass*>(building->TClass));
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(
+        static_cast<const BuildingTypeClass*>(building->TClass));
 
     /**
      *  #issue-414
@@ -1430,7 +1402,7 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
          *  offset values. GScreenClass::Blit will handle the rest for us.
          */
         if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0
-         || (buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0)) {
+         || buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0) {
 
             if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0) {
                 Map.ScreenX = Sim_Random_Pick(buildingtypeext->ShakePixelXLo, buildingtypeext->ShakePixelXHi);
@@ -1470,10 +1442,9 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
     }
 }
 
-DECLARE_PATCH(_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch)
+DEFINE_HOOK(0x0042B250, _BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static int shakes;
+    GET(BuildingClass *, this_ptr, ESI);
 
     BuildingClass_Shake_Screen(this_ptr);
 
@@ -1491,9 +1462,9 @@ continue_function:
      * 
      *  @author: CCHyper
      */
-    _asm { xor edi, edi }
+    R->EDI(0);
 
-    JMP_REG(edx, 0x0042B27F);
+    return 0x0042B27F;
 }
 
 
@@ -1505,20 +1476,13 @@ continue_function:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
+DEFINE_HOOK(0x00428AD3, _BuildingClass_Draw_Spied_Cameo_Palette_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass *, factory_obj, eax);
-    GET_REGISTER_STATIC(Point2D *, pos_xy, edi);
-    GET_REGISTER_STATIC(Rect *, window_rect, ebp);
-    static const TechnoTypeClass *technotype;
-    static TechnoTypeClassExtension *technotypeext;
-    static const ShapeSet *cameo_shape;
-    static Surface *pcx_image;
-    static Rect pcxrect;
+    GET(TechnoClass *, factory_obj, EAX);
+    GET(Point2D *, pos_xy, EDI);
+    GET(Rect *, window_rect, EBP);
 
-    MAKE_STACK_FRAME(0x30)
-
-    technotype = factory_obj->TClass;
+    const TechnoTypeClass* technotype = factory_obj->TClass;
 
     /**
      *  #issue-487
@@ -1527,12 +1491,13 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
      * 
      *  @author: CCHyper
      */
-    technotypeext = Extension::Fetch(technotype);
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch(technotype);
     if (technotypeext->CameoImageSurface) {
 
         /**
          *  Draw the cameo pcx image.
          */
+        Rect pcxrect;
         pcxrect.X = window_rect->X + pos_xy->X;
         pcxrect.Y = window_rect->Y + pos_xy->Y;
         pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
@@ -1542,7 +1507,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
 
     } else {
 
-        cameo_shape = technotype->Get_Cameo_Data();
+        const ShapeSet* cameo_shape = technotype->Get_Cameo_Data();
 
         /**
          *  Draw the cameo shape.
@@ -1553,9 +1518,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
         Draw_Shape(*LogicalSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
     }
 
-    END_STACK_FRAME()
-
-    JMP(0x00428B13);
+    return 0x00428B13;
 }
 
 
@@ -1575,17 +1538,16 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto)
+DEFINE_HOOK(0x0042C624, _BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static BuildingTypeClass* buildingtype;
+    GET(BuildingClass*, this_ptr, ESI);
 
     if (this_ptr->Class->UndeploysInto == nullptr) {
 
         /**
          *  This building cannot undeploy. Exit the function.
          */
-        JMP(0x0042C58C);
+        return 0x0042C58C;
     }
 
     /**
@@ -1594,7 +1556,7 @@ DECLARE_PATCH(_BuildingClass_Assign_Target_No_Deconstruction_With_Null_Undeploys
      */
     this_ptr->Assign_Mission(MISSION_DECONSTRUCTION);
     this_ptr->Commence();
-    JMP(0x0042C63A);
+    return 0x0042C63A;
 }
 
 
@@ -1620,9 +1582,9 @@ bool Is_Allowed_Harvester(BuildingClass* building, UnitClass* harvester)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
+DEFINE_HOOK(0x00430CC2, _BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
     // Unfortunately, it seems like Mission_Deconstruction does not know if the building was sold or is undeploying
     // So we're going to
@@ -1632,11 +1594,11 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
     if ((this_ptr->ArchiveTarget == nullptr || this_ptr->Class->UndeploysInto == nullptr) && !this_ptr->Class->Is_Deployable())
     {
         // Process crew
-        JMP(0x00430CE4);
+        return 0x00430CE4;
     }
 
     // Don't process crew
-    JMP(0x00430EEA);
+    return 0x00430EEA;
 }
 
 
@@ -1659,16 +1621,16 @@ static bool Unlimbo_Helper(UnitClass* unit, Coord const& coord, Dir256 dir)
     return result;
 }
 
-DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
+DEFINE_HOOK(0x00430A01, _BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch, 0)
 {
-    GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
-    GET_REGISTER_STATIC(Dir256, dir, eax);
-    LEA_STACK_STATIC(Coord const*, coord, esp, 0x40);
+    GET(UnitClass*, mcv, EBP);
+    GET(Dir256, dir, EAX);
+    LEA_STACK(Coord const*, coord, 0x40);
 
     if (Unlimbo_Helper(mcv, *coord, dir)) {
-        JMP(0x00430A1A);
+        return 0x00430A1A;
     } else {
-        JMP(0x00430B37);
+        return 0x00430B37;
     }
 }
 
@@ -1680,9 +1642,9 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
+DEFINE_HOOK(0x00430F2B, _BuildingClass_Mission_Deconstruction_Double_Survivors_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
     // We've already ejected the survivors, don't eject them any more.
     this_ptr->IsSurvivorless = true;
@@ -1691,7 +1653,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
     this_ptr->Status = 2;
     this_ptr->Begin_Mode(BSTATE_CONSTRUCTION);
 
-    JMP(0x00430F3B);
+    return 0x00430F3B;
 }
 
 
@@ -1700,17 +1662,17 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
+DEFINE_HOOK(0x0049436A, _EventClass_Execute_Archive_Selling_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    GET_REGISTER_STATIC(AbstractClass *, target, eax);
+    GET(TechnoClass*, techno, EDI);
+    GET(AbstractClass *, target, EAX);
 
     // Don't assign an archive target if currently selling
     if (techno->Mission != MISSION_DECONSTRUCTION) {
         techno->Assign_Archive_Target(target);
     }
 
-    JMP(0x00494372);
+    return 0x00494372;
 }
 
 
@@ -1719,18 +1681,16 @@ DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Captured_DontScore_Patch)
+DEFINE_HOOK(0x0042F799, _BuildingClass_Captured_DontScore_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static BuildingTypeClassExtension* ext;
+    GET(BuildingClass*, this_ptr, ESI);
 
-    ext = Extension::Fetch(this_ptr->Class);
-    if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !ext->IsDontScore)
-    {
-        JMP(0x0042F7A3);
+    auto ext = Extension::Fetch(this_ptr->Class);
+    if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !ext->IsDontScore) {
+        return 0x0042F7A3;
     }
 
-    JMP(0x0042F7BB);
+    return 0x0042F7BB;
 }
 
 /**
@@ -1742,21 +1702,18 @@ DECLARE_PATCH(_BuildingClass_Captured_DontScore_Patch)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch)
+DEFINE_HOOK(0x0042E5F5, _BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch, 6)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(UnitClass*, unit, edi);
-    static UnitClassExtension* unitext;
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(UnitClass*, unit, EDI);
 
-    unitext = Extension::Fetch(unit);
+    UnitClassExtension* unitext = Extension::Fetch(unit);
     unitext->LastDockedBuilding = this_ptr;
 
     /**
      *  Continue the FreeUnit down-placing process.
      */
-    _asm { movsx   eax, bp }
-    _asm { movsx   ecx, bx }
-    JMP_REG(edx, 0x0042E5FB);
+    return 0;
 }
 
 
@@ -1829,40 +1786,39 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
 }
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_INITIAL_Patch)
+DEFINE_HOOK(0x00432709, _BuildingClass_Mission_Missile_INITIAL_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static int delay;
+    GET(BuildingClass*, this_ptr, ESI);
 
-    delay = _BuildingClass_Mission_Missile_INITIAL(this_ptr);
-
+    int delay = _BuildingClass_Mission_Missile_INITIAL(this_ptr);
     this_ptr->IsToDisplay = true;
+    R->EAX(delay);
 
-    _asm mov eax, delay
-    JMP_REG(edi, 0x00432721);
+    return 0x00432721;
 }
 
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_DOOR_OPENING_Patch)
+DEFINE_HOOK(0x00432729, _BuildingClass_Mission_Missile_DOOR_OPENING_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static int delay;
+    GET(BuildingClass*, this_ptr, ESI);
+    int delay;
     
     delay = _BuildingClass_Mission_Missile_DOOR_OPENING(this_ptr);
+    R->EAX(delay);
 
-    _asm mov eax, delay
-    JMP_REG(edi, 0x0043274C);
+    return 0x0043274C;
 }
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
+DEFINE_HOOK(0x00432957, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static int delay;
-    
-    delay = _BuildingClass_Mission_Missile_LAUNCH_DOWN(this_ptr);
-    JMP_REG(edi, 0x0043296C);
+    GET(BuildingClass*, this_ptr, ESI);
+
+    int delay = _BuildingClass_Mission_Missile_LAUNCH_DOWN(this_ptr);
+    R->EAX(delay);
+
+    return 0x0043296C;
 }
 
 
@@ -1871,17 +1827,16 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
+DEFINE_HOOK(0x00432937, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static SuperWeaponTypeClassExtension* super_ext;
+    GET(BuildingClass*, this_ptr, ESI);
 
-    super_ext = Extension::Fetch(SuperWeaponTypes[this_ptr->field_298]);
+    SuperWeaponTypeClassExtension* super_ext = Extension::Fetch(SuperWeaponTypes[this_ptr->field_298]);
     if (super_ext->VoxMissileLaunched != VOX_NONE) {
         Speak(super_ext->VoxMissileLaunched);
     }
 
-    JMP(0x00432943);
+    return 0x00432943;
 }
 
 
@@ -1907,41 +1862,34 @@ bool Should_Open_Roof(BuildingClass* building)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
+EXPORT_FUNC(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
-    const BuildingTypeClassExtension* btypeext;
+    GET(BuildingClass*, building, EBP);
 
-    btypeext = Extension::Fetch(building->Class);
-
+    const auto btypeext = Extension::Fetch(building->Class);
     if (building->Class->DoorAnim != nullptr && !Should_Open_Roof(building) || btypeext->RoofDoorAnim != nullptr && Should_Open_Roof(building)) {
-        JMP(0x00427CEC);
+        return 0x00427CEC;
     }
 
-    JMP(0x00427E27);
+    return 0x00427E27;
 }
 
 
-DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
+EXPORT_FUNC(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
-    const BuildingTypeClassExtension* btypeext;
+    GET(BuildingClass*, building, EBP);
+
+    const BuildingTypeClassExtension* btypeext = Extension::Fetch(building->Class);
+
     const ShapeSet* shapefile;
-
-    _asm pushad
-
-    btypeext = Extension::Fetch(building->Class);
-
     if (Should_Open_Roof(building)) {
         shapefile = btypeext->RoofDoorAnim;
     } else {
         shapefile = building->Class->DoorAnim;
     }
 
-    _asm popad
-    _asm mov edx, shapefile
-
-    JMP_REG(ecx, 0x00427DFB);
+    R->EDX(shapefile);
+    return 0x00427DFB;
 }
 
 
@@ -2025,23 +1973,22 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
+DEFINE_HOOK(0x0042CA98, _BuildingClass_Exit_Object_Naval_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    static BuildingTypeClassExtension* type_ext;
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EDI);
 
-    type_ext = Extension::Fetch(this_ptr->Class);
+    auto type_ext = Extension::Fetch(this_ptr->Class);
     if (type_ext->IsNaval) {
         if (Unlimbo_Naval_Helper(this_ptr, techno)) {
-            JMP(0x0042D7DF); // return 2 - successfully exited
+            return 0x0042D7DF; // return 2 - successfully exited
         } else {
-            JMP(0x0042D966); // return 0 - exit failed
+            return 0x0042D966; // return 0 - exit failed
         }
     } else {
         // Stolen call
         techno->Assign_Archive_Target(this_ptr->ArchiveTarget);
-        JMP(0x0042CAA6);
+        return 0x0042CAA6;
     }
 }
 
@@ -2051,27 +1998,23 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
+DEFINE_HOOK(0x0042CA35, _BuildingClass_Exit_Object_BuildNavalUnit_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-
-    static TechnoTypeClassExtension* ttype_ext;
-    static HouseClassExtension* house_ext;
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EDI);
 
     if (techno->RTTI == RTTI_UNIT) {
-        ttype_ext = Extension::Fetch(techno->TClass);
+        TechnoTypeClassExtension* ttype_ext = Extension::Fetch(techno->TClass);
         if (ttype_ext->IsNaval) {
-            house_ext = Extension::Fetch(this_ptr->House);
+            HouseClassExtension* house_ext = Extension::Fetch(this_ptr->House);
             house_ext->BuildNavalUnit = UNIT_NONE;
         } else {
             this_ptr->House->BuildUnit = UNIT_NONE;
         }
     }
 
-    _asm mov ebp, 0xFFFFFFFF
-
-    JMP(0x0042CA50);
+    R->EBP(0xFFFFFFFF);
+    return 0x0042CA50;
 }
 
 
@@ -2364,13 +2307,13 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
 }
 
 
-DECLARE_PATCH(_BuildingClass_Load_SwizzleLightSource_Patch)
+DEFINE_HOOK(0x004381F8, _BuildingClass_Load_SwizzleLightSource_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClassExt*, this_ptr, esi);
+    GET(BuildingClassExt*, this_ptr, ESI);
 
     this_ptr->_Swizzle_Light_Source();
 
-    JMP(0x00438202);
+    return 0x00438202;
 }
 
 
@@ -2384,50 +2327,23 @@ void BuildingClassExtension_Hooks()
      */
     BuildingClassExtension_Init();
 
-    Patch_Jump(0x00428AD3, &_BuildingClass_Draw_Spied_Cameo_Palette_Patch);
-    Patch_Jump(0x0042B250, &_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch);
-    Patch_Jump(0x00433BB5, &_BuildingClass_Mission_Open_Gate_Open_Sound_Patch);
-    Patch_Jump(0x00433C6F, &_BuildingClass_Mission_Open_Gate_Close_Sound_Patch);
-    Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
-    Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
-    Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
-    Patch_Jump(0x004325F9, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
-    Patch_Jump(0x0043266C, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
-    Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
-    Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
-    Patch_Jump(0x0042C624, &_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
     Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
     Patch_Jump(0x00433FB0, &BuildingClassExt::_Crew_Type);
     Patch_Jump(0x00435DA0, &BuildingClassExt::_How_Many_Survivors);
-    Patch_Jump(0x00430CC2, &_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch);
-    Patch_Jump(0x00430A01, &_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch);
-    Patch_Jump(0x00430F2B, &_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch);
-    Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
-    Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
-    Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
     Patch_Jump(0x00436410, &BuildingClassExt::_Detach_Anim);
     Patch_Jump(0x004275B0, &BuildingClassExt::_Draw_It);
-    Patch_Jump(0x00433F1D, &_BuildingClass_Detach_Detach_Anim_Patch);
-    Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
-    Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
-    Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
-    Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
     //Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
     //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
-    Patch_Jump(0x00428AA4, &_BuildingClass_Draw_Overlays_Fetch_Factory_Patch);
     Patch_Jump(0x00434000, &BuildingClassExt::_Detach_All);
     Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
     Patch_Jump(0x0042C340, &BuildingClassExt::_Assign_Rally_Point);
     Patch_Jump(0x00434FE0, &BuildingClassExt::_Factory_AI);
     Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
-    Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
-    Patch_Jump(0x0042CA35, &_BuildingClass_Exit_Object_BuildNavalUnit_Patch);
     Patch_Jump(0x0043AF60, &BuildingClassExt::_Fetch_Super_Weapon);
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
-    Patch_Jump(0x004381F8, &_BuildingClass_Load_SwizzleLightSource_Patch);
     Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
 }

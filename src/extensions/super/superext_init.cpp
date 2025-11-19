@@ -37,6 +37,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -46,9 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SuperClass_Default_Constructor_Patch)
+DEFINE_HOOK(0x0060B352, _SuperClass_Default_Constructor_Patch, 4)
 {
-    GET_REGISTER_STATIC(SuperClass *, this_ptr, esi); // Current "this" pointer.
+    GET(SuperClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -63,13 +64,8 @@ DECLARE_PATCH(_SuperClass_Default_Constructor_Patch)
      */
     Extension::Make<SuperClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -80,9 +76,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SuperClass_Constructor_Patch)
+DEFINE_HOOK(0x0060B4AB, _SuperClass_Constructor_Patch, 7)
 {
-    GET_REGISTER_STATIC(SuperClass *, this_ptr, esi); // Current "this" pointer.
+    GET(SuperClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -97,14 +93,8 @@ DECLARE_PATCH(_SuperClass_Constructor_Patch)
      */
     Extension::Make<SuperClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 8 }
+    return 0;
 }
 
 
@@ -115,21 +105,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SuperClass_Destructor_Patch)
+DEFINE_HOOK(0x0060B51A, _SuperClass_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(SuperClass *, this_ptr, esi);
+    GET(SuperClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<SuperClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x0080F588 } // Neuron vector.vtble
-    JMP_REG(eax, 0x0060B520);
+    return 0;
 }
 
 
@@ -140,21 +126,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SuperClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0060CC2A, _SuperClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(SuperClass *, this_ptr, esi);
+    GET(SuperClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<SuperClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x0080F588 } // Neuron vector.vtble
-    JMP_REG(eax, 0x0060CC30);
+    return 0;
 }
 
 
@@ -184,9 +166,5 @@ DECLARE_PATCH(_SuperClass_Load_Patch)
  */
 void SuperClassExtension_Init()
 {
-    Patch_Jump(0x0060B352, &_SuperClass_Default_Constructor_Patch);
-    Patch_Jump(0x0060B4AB, &_SuperClass_Constructor_Patch);
-    Patch_Jump(0x0060B51A, &_SuperClass_Destructor_Patch);
-    Patch_Jump(0x0060CC2A, &_SuperClass_Scalar_Destructor_Patch);
     Patch_Jump(0x0060C7A8, &_SuperClass_Load_Patch);
 }

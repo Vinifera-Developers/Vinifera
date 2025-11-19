@@ -45,7 +45,6 @@
 #include "language.h"
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "ebolt.h"
@@ -56,6 +55,7 @@
 #include "layer.h"
 #include "prerequisitegroup.h"
 #include "rockettype.h"
+#include "syringe.h"
 
 
 /**
@@ -186,13 +186,9 @@ static void _On_Load_Clear_Scenario_Intercept()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Version_Text_Draw_Patch)
+void _ShowVersionText(Surface* surface)
 {
-    GET_REGISTER_STATIC(Surface*, surface, ecx);
-
     Vinifera_Draw_Version_Text(surface);
-
-    _asm { ret }
 }
 
 
@@ -201,18 +197,11 @@ DECLARE_PATCH(_Version_Text_Draw_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ProgressClass_Load_Screen_Version_Text_Patch)
+DEFINE_HOOK(0x005ADFBE, _ProgressClass_Load_Screen_Version_Text_Patch, 6)
 {
     Vinifera_Draw_Version_Text(HiddenSurface);
 
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-    _asm { mov eax, [HiddenSurface] }
-    _asm { mov edx, [eax] } // Second dereference required due to the global reference in TS++.
-
-    JMP(0x005ADFC4);
+    return 0;
 }
 
 
@@ -224,7 +213,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Game_Loading_Screen_Version_Text_Patch)
+DEFINE_HOOK(0x004E084D, _Init_Game_Loading_Screen_Version_Text_Patch, 0)
 {
     /**
      *  Flag as pre-init, as we need to draw this differently.
@@ -237,7 +226,7 @@ DECLARE_PATCH(_Init_Game_Loading_Screen_Version_Text_Patch)
 original_code:
     Call_Back();
 
-    JMP(0x004E0852);
+    return 0x004E0852;
 }
 
 
@@ -246,32 +235,11 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Load_Title_Page_Version_Text_Patch)
+DEFINE_HOOK(0x004E3B7A, _Load_Title_Page_Version_Text_Patch, 1)
 {
     Vinifera_Draw_Version_Text(HiddenSurface, true);
 
-    _asm { ret }
-}
-
-
-/**
- *  Patch in the Vinifera command line parser.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WinMain_Parse_Command_Line)
-{
-    GET_REGISTER_STATIC(int, argc, edi);
-    static char **argv; _asm { lea eax, [ebp-0x178] } _asm { mov argv, eax }
-
-    /**
-     *  Parse_Command_Line could return 
-     */
-    if (!Parse_Command_Line(argc, argv) || !Vinifera_Parse_Command_Line(argc, argv)) {
-        JMP(0x00601A3B); // Failure.
-    } else {
-        JMP(0x00601085);
-    }
+    return 0;
 }
 
 
@@ -280,20 +248,19 @@ DECLARE_PATCH(_WinMain_Parse_Command_Line)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WinMain_Vinifera_Startup)
+DEFINE_HOOK(0x005FF81C, _WinMain_Vinifera_Startup, 0)
 {
     if (Vinifera_Startup()) {
-        JMP(0x005FFC41);
+        return 0x005FFC41;
     }
 
     /**
      *  Something went wrong!
      */
-
     DEBUG_ERROR("Failed to initialise Vinifera systems!\n");
 
-    _asm { mov esi, EXIT_FAILURE }
-    JMP(0x00601A6B);
+    R->ESI(EXIT_FAILURE);
+    return 0x00601A6B;
 }
 
 
@@ -302,11 +269,11 @@ DECLARE_PATCH(_WinMain_Vinifera_Startup)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WinMain_Register_Com_Objects)
+DEFINE_HOOK(0x00600F6E, _WinMain_Register_Com_Objects, 0)
 {
     Vinifera_Register_Com_Objects();
 
-    JMP(0x00600FA3);
+    return 0x00600FA3;
 }
 
 
@@ -315,7 +282,8 @@ DECLARE_PATCH(_WinMain_Register_Com_Objects)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
+//DEFINE_HOOK(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 3) // TS-Patches places a call here
+DEFINE_HOOK(0x0060246E, _Game_Shutdown_Vinifera_Shutdown, 6)
 {
     if (!Vinifera_Shutdown()) {
 
@@ -326,9 +294,7 @@ DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
         DEBUG_ERROR("Failed to shutdown Vinifera systems!\n");
     }
 
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -337,13 +303,12 @@ DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Main_Game_Vinifera_Init_Game)
+DEFINE_HOOK(0x00462927, _Main_Game_Vinifera_Init_Game, 0)
 {
-    GET_REGISTER_STATIC(int, argc, ecx);
-    GET_REGISTER_STATIC(char **, argv, edx);
-    static int retval;
+    GET(int, argc, ECX);
+    GET(char **, argv, EDX);
 
-    retval = Vinifera_Pre_Init_Game(argc, argv);
+    int retval = Vinifera_Pre_Init_Game(argc, argv);
     if (retval) {
         if (retval < 0) {
             goto show_error;
@@ -371,13 +336,13 @@ DECLARE_PATCH(_Main_Game_Vinifera_Init_Game)
     DEV_DEBUG_INFO("Vinifera_Post_Init_Game returned OK.\n");
 
 success:
-    JMP(0x00462990);
+    return 0x00462990;
 
 failure:
-    JMP(0x00462932);
+    return 0x00462932;
 
 show_error:
-    JMP(0x00462938);
+    return 0x00462938;
 }
 
 
@@ -427,7 +392,7 @@ static void _Remove_External_Blowfish_Dependency_Patch()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
+DEFINE_HOOK(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0)
 {
     /**
      *  Clear any developer mode globals.
@@ -453,82 +418,8 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
      */
     Map.Set_Default_Mouse(MOUSE_NORMAL);
 
-    JMP(0x004E1F30);
+    return 0x004E1F30;
 }
-
-
-/**
- *  Replaces the division-by-zero crash in SwizzleManagerClass::Process_Tables() with
- *  a readable error, produces a crash dump and then exit.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_SwizzleManagerClass_Process_Tables_Remap_Failed_Error)
-{
-    static int old_ptr;
-
-    _asm { mov eax, [edi+0x4] }
-    _asm { mov old_ptr, eax }
-    //GET_REGISTER_STATIC(int, old_ptr, edi);
-
-    DEBUG_ERROR("Swizzle Manager - Failed to remap pointer! (old_ptr = 0x%08X)!\n", old_ptr);
-
-    ShowCursor(TRUE);
-
-    MessageBoxA(MainWindow, "Failed to process save game file!", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-
-#if 0
-    if (!IsDebuggerPresent()) {
-        Vinifera_Generate_Mini_Dump();
-    }
-#endif
-
-    Fatal("Swizzle Manager - Failed to remap pointer! (old_ptr = 0x%08X)!\n", old_ptr);
-
-    /**
-     *  We won't ever get here, but its here just for clean analysis.
-     */
-    JMP(0x0060DC15);
-}
-
-
-#ifndef RELEASE
-/**
- *  Disables the Load, Save and Delete buttons in the options menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_SaveLoad_Disable_Buttons)
-{
-    GET_REGISTER_STATIC(HWND, hDlg, ebp);
-
-    EnableWindow(GetDlgItem(hDlg, 1310), FALSE); // Load button
-    EnableWindow(GetDlgItem(hDlg, 1311), FALSE); // Save button
-    EnableWindow(GetDlgItem(hDlg, 1312), FALSE); // Delete button
-
-    JMP(0x004B6DF5);
-}
-
-/**
- *  Disables the Load button on the Firestorm main menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_Firestorm)
-{
-    JMP(0x0057FFAC);
-}
-
-/**
- *  Disables the Load button on the Tiberian Sun main menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_TiberianSun)
-{
-    JMP(0x00580075);
-}
-#endif
 
 
 /**
@@ -538,37 +429,22 @@ DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_TiberianSun)
  * 
  *  @author: CCHyper
  */
-static bool _Save_Games_Available()
+DEFINE_HOOK(0x005DCDFD, _Do_Lose_Create_Lose_WWMessageBox, 0)
 {
-    return LoadOptionsClass().Read_Save_Files();
-}
+    while (true) {
 
-static bool _Do_Load_Dialog()
-{
-    return LoadOptionsClass().Load_Dialog();
-}
+        /**
+         *  Show the message box.
+         */
+        int ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
 
-
-DECLARE_PATCH(_Do_Lose_Create_Lose_WWMessageBox)
-{
-    static int ret;
-
-    MAKE_STACK_FRAME(0x20)
-
-    /**
-     *  Show the message box.
-     */
-retry_dialog:
-    ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
-    switch (ret) {
+        switch (ret) {
         default:
         case 0: // User pressed "Yes"
-            END_STACK_FRAME();
-            JMP(0x005DCE1A);
+            return 0x005DCE1A;
 
         case 1: // User pressed "No"
-            END_STACK_FRAME();
-            JMP(0x005DCE56);
+            return 0x005DCE56;
 
         case 2: // User pressed "Load Game"
         {
@@ -576,25 +452,25 @@ retry_dialog:
              *  If no save games are available, notify the user and return back
              *  and reissue the main dialog.
              */
-            if (!_Save_Games_Available()) {
+            if (!LoadOptionsClass().Read_Save_Files()) {
                 Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
-                goto retry_dialog;
+                continue;
             }
 
             /**
              *  Show the load game dialog.
              */
-            ret = _Do_Load_Dialog();
+            ret = LoadOptionsClass().Load_Dialog();
             if (ret) {
                 Theme.Stop();
-                END_STACK_FRAME();
-                JMP(0x005DCE48);
+                return 0x005DCE48;
             }
 
             /**
              *  Reissue the dialog if the user pressed cancel on the load dialog.
              */
-            goto retry_dialog;
+            continue;
+        }
         }
     }
 }
@@ -673,9 +549,9 @@ bool LayerClassExt::_Submit(const ObjectClass* object, bool sort)
     **  appropriately sorted position.
     */
     if (sort) {
-        return((Sorted_Add(object)) != false);
+        return Sorted_Add(object) != false;
     }
-    return(Add((ObjectClass*)object) != false);
+    return Add((ObjectClass*)object) != false;
 }
 
 
@@ -690,24 +566,12 @@ void Vinifera_Hooks()
     /**
      *  Draw the build version info on the bottom on the screen.
      */
-    Patch_Jump(0x004E53C0, &_Version_Text_Draw_Patch);
-    Patch_Jump(0x005ADFBE, &_ProgressClass_Load_Screen_Version_Text_Patch);
-    Patch_Jump(0x004E084D, &_Init_Game_Loading_Screen_Version_Text_Patch);
-    Patch_Jump(0x004E3B7A, &_Load_Title_Page_Version_Text_Patch);
+    Patch_Jump(0x004E53C0, &_ShowVersionText);
 
     /**
      *  Add in Vinifera startup/shutdown hooks.
      */
-    Patch_Jump(0x00601070, &_WinMain_Parse_Command_Line);
-    Patch_Jump(0x005FF81C, &_WinMain_Vinifera_Startup);
-    Patch_Jump(0x00600F6E, &_WinMain_Register_Com_Objects);
-    Patch_Jump(0x00602474, &_Game_Shutdown_Vinifera_Shutdown);
-    Patch_Jump(0x00462927, &_Main_Game_Vinifera_Init_Game);
-
-    /**
-     *  Clear any game session and global variables before next game.
-     */
-    Patch_Jump(0x004E1F24, &_Select_Game_Clear_Globals_Patch);
+    Patch_Call(0x00601078, &Vinifera_Parse_Command_Line);
 
 #ifndef NDEBUG
     /**
@@ -736,11 +600,6 @@ void Vinifera_Hooks()
     Patch_Dword(0x00423D4D + 4, reinterpret_cast<uint32_t>(&RLEBlitBuffer[0]));
 
     /**
-     *  Fire an assert on save/load fail, rather than hard crash.
-     */
-    Patch_Jump(0x0060DBFF, &_SwizzleManagerClass_Process_Tables_Remap_Failed_Error);
-
-    /**
      *  Patch in the new save and load system functions.
      */
     Patch_Jump(0x005D4FE0, &Vinifera_Save_Game);
@@ -756,8 +615,6 @@ void Vinifera_Hooks()
      */
     ViniferaGameVersion = Extension::Get_Save_Version_Number();
     DEBUG_INFO("Save game version number: 0x%X\n", ViniferaGameVersion);
-
-    Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
 
     /**
      *  This patch randomises the serial number for this client.

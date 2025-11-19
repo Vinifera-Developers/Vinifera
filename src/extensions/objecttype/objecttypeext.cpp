@@ -304,4 +304,3 @@ BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool ne
 
     return anybuilding;
 }
-

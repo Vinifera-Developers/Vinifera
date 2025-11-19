@@ -35,8 +35,8 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "scripttype.h"
+#include "syringe.h"
 #include "vinifera_defines.h"
 
 
@@ -50,15 +50,14 @@
  * 
  *  @author: CCHyper (based on research by E1Elite)
  */
-DECLARE_PATCH(_TeamClass_AI_MoveCell_FixCellCalc_Patch)
+DEFINE_HOOK(0x00622B2C, _TeamClass_AI_MoveCell_FixCellCalc_Patch, 0)
 {
-    GET_STACK_STATIC(unsigned, argument, esp, 0x24);
-    static CellClass* cell;
-    static Cell tmpcell;
+    GET_STACK(unsigned, argument, 0x24);
 
     /**
      *  Get the cell X and Y position from the script argument.
      */
+    Cell tmpcell;
     if (NewINIFormat < 4) {
         tmpcell.X = argument % 256;
         tmpcell.Y = argument / 256;
@@ -71,7 +70,7 @@ DECLARE_PATCH(_TeamClass_AI_MoveCell_FixCellCalc_Patch)
      *  Fetch the map cell. Added pointer check to make sure the
      *  script didn't have an invalid position.
      */
-    cell = &Map[tmpcell];
+    CellClass* cell = &Map[tmpcell];
     if (!cell) {
         goto coordinate_move;
     }
@@ -80,13 +79,13 @@ DECLARE_PATCH(_TeamClass_AI_MoveCell_FixCellCalc_Patch)
      *  The Assign_Mission_Target call pushes EAX into the stack
      *  for the cell argument.
      */
-    _asm { mov eax, cell }
+    R->EAX(cell);
 
 assign_mission_target:
-    JMP_REG(ecx, 0x00622B5F);
+    return 0x00622B5F;
 
 coordinate_move:
-    JMP(0x00622B19);
+    return 0x00622B19;
 }
 
 
@@ -97,16 +96,15 @@ coordinate_move:
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TeamClass_TMission_PATROL_WaypointMax)
+DEFINE_HOOK(0x00625886, _TeamClass_TMission_PATROL_WaypointMax, 0)
 {
-    GET_REGISTER_STATIC(ScriptMissionClass*, mission, eax);
+    GET(ScriptMissionClass*, mission, EAX);
 
-    if (mission->Data.Value < NEW_WAYPOINT_COUNT)
-    {
-        JMP_REG(ecx, 0x0062588C);
+    if (mission->Data.Value < NEW_WAYPOINT_COUNT) {
+        return 0x0062588C;
     }
 
-    JMP_REG(ecx, 0x00625894);
+    return 0x00625894;
 }
 
 
@@ -116,7 +114,4 @@ DECLARE_PATCH(_TeamClass_TMission_PATROL_WaypointMax)
 void TeamClassExtension_Hooks()
 {
     TeamClassExtension_Init();
-
-    Patch_Jump(0x00622B2C, &_TeamClass_AI_MoveCell_FixCellCalc_Patch);
-    Patch_Jump(0x00625886, &_TeamClass_TMission_PATROL_WaypointMax);
 }

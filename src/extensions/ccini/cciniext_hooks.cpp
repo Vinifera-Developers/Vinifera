@@ -40,7 +40,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -264,16 +264,11 @@ bool CCINIClassExt::_Put_ArmorType(const char *section, const char *entry, Armor
  * 
  *  @author: CCHyper
  */
-static void WeaponTypeClass_Read_INI_Get_AnimTypes_Encapsultator(WeaponTypeClass *this_ptr, CCINIClassExt &ini, const char *ini_name)
+DEFINE_HOOK(0x00680F07, _WeaponTypeClass_Read_INI_Get_AnimTypes_Patch, 0)
 {
-    this_ptr->Anim = ini.Get_AnimTypes(ini_name, "Anim", this_ptr->Anim);
-}
-
-DECLARE_PATCH(_WeaponTypeClass_Read_INI_Get_AnimTypes_Patch)
-{
-    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClassExt *, ini, ebx);
-    GET_REGISTER_STATIC(const char *, ini_name, edi);
+    GET(WeaponTypeClass *, this_ptr, ESI);
+    GET(CCINIClassExt *, ini, EBX);
+    GET(const char *, ini_name, EDI);
 
     /**
      *  Load the AnimType list.
@@ -282,16 +277,9 @@ DECLARE_PATCH(_WeaponTypeClass_Read_INI_Get_AnimTypes_Patch)
      *  function and the return value from Get_AnimType_List is an TypeList
      *  instance, so it will trash the stack.
      */
-    WeaponTypeClass_Read_INI_Get_AnimTypes_Encapsultator(this_ptr, *ini, ini_name);
+    this_ptr->Anim = ini->Get_AnimTypes(ini_name, "Anim", this_ptr->Anim);
 
-    /**
-     *  Clear ECX and restore some registers to be safe.
-     */
-    _asm { xor ecx, ecx }
-    _asm { mov edi, ini_name }
-    _asm { mov ebx, ini }
-
-    JMP_REG(ecx, 0x00681004);
+    return 0x00681004;
 }
 
 
@@ -300,11 +288,6 @@ DECLARE_PATCH(_WeaponTypeClass_Read_INI_Get_AnimTypes_Patch)
  */
 void CCINIClassExtension_Hooks()
 {
-    /**
-     *  Inlined CCINIClass function hooks from here.
-     */
-    Patch_Jump(0x00680F07, &_WeaponTypeClass_Read_INI_Get_AnimTypes_Patch);
-
     Patch_Jump(0x0044ADC0, &CCINIClassExt::_Get_Owners);
     Patch_Jump(0x0044AE40, &CCINIClassExt::_Put_Owners);
     Patch_Jump(0x0044B310, &CCINIClassExt::_Get_TheaterType);

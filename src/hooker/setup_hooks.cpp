@@ -48,8 +48,8 @@ void Setup_Hooks()
     NewSwizzle_Hooks();
     Extension_Hooks();
 
-    CnCNet4_Hooks();
-    CnCNet5_Hooks();
+    //CnCNet4_Hooks();
+    //CnCNet5_Hooks();
 }
 
 /**

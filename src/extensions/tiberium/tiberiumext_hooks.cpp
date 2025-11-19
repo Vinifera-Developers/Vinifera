@@ -36,8 +36,8 @@
 #include "cell.h"
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "debughandler.h"
+#include "syringe.h"
 #include "tibsun_inline.h"
 
 
@@ -103,17 +103,17 @@ void TiberiumClassExt::_Deinitialize_Tiberium_Growth_System()
 
 
 /**
- *  Replace the log comment with a more descriptive one.
+ *  Replace the defective log (passes a TStringID instance as the argument) with a fixed and improved one.
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Get_Tiberium_Type_Debug_Info_Patch)
+DEFINE_HOOK(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch, 0)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass*, overlaytype, eax);
+    GET(OverlayTypeClass*, overlaytype, EAX);
 
-    DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->Full_Name(), overlaytype->Fetch_Heap_ID());
+    DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->IniName.c_str(), overlaytype->HeapID);
 
-    JMP(0x0058C951);
+    return 0x0058C951;
 }
 
 
@@ -123,15 +123,14 @@ DECLARE_PATCH(_Get_Tiberium_Type_Debug_Info_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_CellClass_Place_Tiberium_Variety_Patch)
+DEFINE_HOOK(0x0045CEB9, _CellClass_Place_Tiberium_Variety_Patch, 0)
 {
-    GET_REGISTER_STATIC(TiberiumClass*, tiberium, ebp);
-    static int frame;
+    GET(TiberiumClass*, tiberium, EBP);
 
-    frame = Random_Pick(0, tiberium->Variety - 1);
+    int frame = Random_Pick(0, tiberium->Variety - 1);
+    R->EAX(frame);
 
-    _asm mov eax, frame
-    JMP_REG(edx, 0x0045CEC8);
+    return 0x0045CEC8;
 }
 
 
@@ -155,9 +154,6 @@ void TiberiumClassExtension_Hooks()
      *  impassable by infantry. This hack removes this.
      */
     Patch_Jump(0x004D54E7, 0x004D5507);
-
-    Patch_Jump(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch);
-    Patch_Jump(0x0045CEB9, _CellClass_Place_Tiberium_Variety_Patch);
 
     Patch_Jump(0x006455C0, &TiberiumClassExt::_Spread_AI);
     Patch_Jump(0x006458F0, &TiberiumClassExt::_Init_Spread);

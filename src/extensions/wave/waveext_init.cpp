@@ -37,48 +37,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
-
-
-#if 0
-/**
- *  Patch for including the extended class members in the creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WaveClass_Default_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
-
-    /**
-     *  If we are performing a load operation, the Windows API will invoke the
-     *  constructors for us as part of the operation, so we can skip our hook here.
-     */
-    if (Vinifera_PerformingLoad) {
-        goto original_code;
-    }
-
-    /**
-     *  Create an extended class instance.
-     */
-    Extension::Make<WaveClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { mov esp, ebp }
-    _asm { pop ebp }
-    _asm { ret }
-}
-#endif
+#include "syringe.h"
 
 
 /**
@@ -91,9 +50,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WaveClass_Default_Constructor_Before_Init_Patch)
+DEFINE_HOOK(0x00670189, _WaveClass_Default_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
+    GET(WaveClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -108,55 +67,9 @@ DECLARE_PATCH(_WaveClass_Default_Constructor_Before_Init_Patch)
      */
     Extension::Make<WaveClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    static int waves_vector_max;
-    waves_vector_max = Waves.Length();
-    _asm { mov eax, waves_vector_max }
-    JMP_REG(ecx, 0x0067018E);
+    return 0;
 }
-
-
-#if 0
-/**
- *  Patch for including the extended class members in the creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WaveClass_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
-
-    /**
-     *  If we are performing a load operation, the Windows API will invoke the
-     *  constructors for us as part of the operation, so we can skip our hook here.
-     */
-    if (Vinifera_PerformingLoad) {
-        goto original_code;
-    }
-
-    /**
-     *  Create an extended class instance.
-     */
-    Extension::Make<WaveClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { mov esp, ebp }
-    _asm { pop ebp }
-    _asm { ret 0x14 }
-}
-#endif
 
 
 /**
@@ -169,9 +82,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WaveClass_Constructor_Before_Init_Patch)
+DEFINE_HOOK(0x0066FECF, _WaveClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
+    GET(WaveClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -186,39 +99,8 @@ DECLARE_PATCH(_WaveClass_Constructor_Before_Init_Patch)
      */
     Extension::Make<WaveClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    static int waves_vector_max;
-    waves_vector_max = Waves.Length();
-    _asm { mov eax, waves_vector_max }
-    JMP_REG(ecx, 0x0066FED4);
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WaveClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(WaveClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<WaveClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007E47E8 } // Waves.vtble
-    JMP_REG(eax, 0x006702DF);
+    return 0;
 }
 
 
@@ -229,21 +111,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WaveClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00672E78, _WaveClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(WaveClass *, this_ptr, edi);
+    GET(WaveClass *, this_ptr, EDI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<WaveClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007E47E8 } // Waves.vtble
-    JMP_REG(eax, 0x00672E7E);
+    return 0;
 }
 
 
@@ -252,10 +130,5 @@ original_code:
  */
 void WaveClassExtension_Init()
 {
-    //Patch_Jump(0x006702B2, &_WaveClass_Default_Constructor_Patch);
-    Patch_Jump(0x00670189, &_WaveClass_Default_Constructor_Before_Init_Patch);
-    //Patch_Jump(0x006700A2, &_WaveClass_Constructor_Patch);
-    Patch_Jump(0x0066FECF, &_WaveClass_Constructor_Before_Init_Patch);
-    Patch_Jump(0x006702D9, &_WaveClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00672E78, &_WaveClass_Scalar_Destructor_Patch);
+
 }

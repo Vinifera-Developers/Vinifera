@@ -41,7 +41,6 @@
 #include "cell.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "sidebarext.h"
 #include "techno.h"
 #include "tibsun_functions.h"

@@ -43,17 +43,17 @@
  */
 DECLARE_PATCH(_ParticleSystemClass_Spawn_Particle_Particle_System_Patch)
 {
-	GET_REGISTER_STATIC(ParticleSystemClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ParticleSystemClass *, this_ptr, ESI);
 
-	_asm { mov ecx, [esp+0x10] }
-	_asm { mov edx, [esp+0x0C] }
+    _asm { mov ecx, [esp+0x10] }
+    _asm { mov edx, [esp+0x0C] }
 
-	/**
-	 *  Original code pushed "NULL" (possible default argument for the ParticleClass constructor).
-	 */
-	_asm { push esi }
+    /**
+     *  Original code pushed "NULL" (possible default argument for the ParticleClass constructor).
+     */
+    _asm { push esi }
 
-	JMP_REG(edi, 0x005A5A6F);
+    JMP_REG(edi, 0x005A5A6F);
 }
 
 
@@ -62,5 +62,5 @@ DECLARE_PATCH(_ParticleSystemClass_Spawn_Particle_Particle_System_Patch)
  */
 void ParticleSystemClassExtension_Hooks()
 {
-	Patch_Jump(0x005A5A65, &_ParticleSystemClass_Spawn_Particle_Particle_System_Patch);
+    Patch_Jump(0x005A5A65, &_ParticleSystemClass_Spawn_Particle_Particle_System_Patch);
 }

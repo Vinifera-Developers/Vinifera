@@ -42,7 +42,6 @@
 #include "building.h"
 #include "session.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "mouse.h"
 #include "rules.h"
 #include "team.h"

@@ -33,11 +33,11 @@
 #include "extension.h"
 #include "foot.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "mouse.h"
 #include "radar.h"
 #include "radarevent.h"
+#include "syringe.h"
 #include "tacticalext.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
@@ -48,17 +48,17 @@
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_RadarClass_Render_Radar_Redraw_Beacons_Patch)
+DEFINE_HOOK(0x005BC4BB, _RadarClass_Render_Radar_Redraw_Beacons_Patch, 0)
 {
-    GET_REGISTER_STATIC(RadarClass*, this_ptr, esi);
+    GET(RadarClass*, this_ptr, ESI);
 
     if (this_ptr->BackgroundUpdateStack.Count() > 0 ||
         BeaconManager.Is_To_Redraw_Radar()) {
 
-        JMP(0x005BC4C9);
+        return 0x005BC4C9;
     }
 
-    JMP(0x005BCBBC);
+    return 0x005BCBBC;
 }
 
 
@@ -67,17 +67,12 @@ DECLARE_PATCH(_RadarClass_Render_Radar_Redraw_Beacons_Patch)
  *
  *  @author: ZivDero
  */
-void Draw_Radar_Beacons()
-{
-    BeaconManager.Draw_On_Radar(Map.RadarSurface, Map.RadarSurface->Get_Rect());
-}
-
-DECLARE_PATCH(_RadarClass_Render_Radar_Draw_Beacons_Patch)
+DEFINE_HOOK(0x005BC83F, _RadarClass_Render_Radar_Draw_Beacons_Patch, 0)
 {
     RadarEventClass::Draw_Events();
-    Draw_Radar_Beacons();
+    BeaconManager.Draw_On_Radar(Map.RadarSurface, Map.RadarSurface->Get_Rect());
 
-    JMP(0x005BC844);
+    return 0x005BC844;
 }
 
 
@@ -86,16 +81,13 @@ DECLARE_PATCH(_RadarClass_Render_Radar_Draw_Beacons_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_MPlayer_Defeated_Delete_Beacons_Patch)
+DEFINE_HOOK(0x004BF5CC, _HouseClass_MPlayer_Defeated_Delete_Beacons_Patch, 10)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
-    GET_REGISTER_STATIC(MouseClass*, map, ecx);
+    GET(HouseClass*, this_ptr, EBX);
 
-    Session.ObiWan = true;
     BeaconManager.Delete_Owned_Beacons(this_ptr->HeapID);
-    
-    _asm mov ecx, map
-    JMP(0x004BF5D6);
+
+    return 0;
 }
 
 /**
@@ -285,14 +277,11 @@ void DisplayClassExt::_Mouse_Right_Release(Point2D const& point)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch)
+DEFINE_HOOK(0x004795CF, _DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch, 7)
 {
-    GET_REGISTER_STATIC(DisplayClass*, this_ptr, esi);
-
-    this_ptr->IsPowerMode = false;
     TacticalMapExtension->IsBeaconPlacementMode = false;
 
-    JMP(0x004795D6);
+    return 0;
 }
 
 
@@ -301,10 +290,10 @@ DECLARE_PATCH(_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch)
  *
  *  @author: ZivDero
  */
-void Place_Beacon(Cell* cell, ActionType action)
+void Place_Beacon(Cell const& cell, ActionType action)
 {
     if (!PlayerPtr->IsDefeated) {
-        Coord coord = cell->As_Coord();
+        Coord coord = cell.As_Coord();
         coord.Z = Map[coord].Height * LEVEL_LEPTON_H;
         BeaconManager.Place_Beacon(PlayerPtr->HeapID, coord, -1, BeaconManagerClass::Beacon_Text(action));
     }
@@ -312,28 +301,28 @@ void Place_Beacon(Cell* cell, ActionType action)
     Map.Set_Default_Mouse(MOUSE_NORMAL, false);
 }
 
-void Select_Beacon(Cell* cell)
+void Select_Beacon(Cell const& cell)
 {
-    Coord coord = cell->As_Coord();
+    Coord coord = cell.As_Coord();
     coord.Z = Map[coord].Height * LEVEL_LEPTON_H;
     BeaconManager.Select_Beacon(coord);
 }
 
-DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_Beacon_Patch)
+DEFINE_HOOK(0x00478C6D, _DisplayClass_Mouse_Left_Release_Beacon_Patch, 0)
 {
-    GET_REGISTER_STATIC(ActionType, action, edi)
-    GET_REGISTER_STATIC(Cell*, cell, ebp);
+    GET(ActionType, action, EDI);
+    GET(Cell const*, cell, EBP);
 
     if (BeaconManagerClass::Is_Beacon_Placement_Action(action)) {
-        Place_Beacon(cell, action);
-        JMP(0x004790D1);
+        Place_Beacon(*cell, action);
+        return 0x004790D1;
     } if (action == EXT_ACTION_SELECT_BEACON) {
-        Select_Beacon(cell);
-        JMP(0x00478B1E);
+        Select_Beacon(*cell);
+        return 0x00478B1E;
     } else if (action == ACTION_LOOP_WAYPOINT_PATH) {
-        JMP(0x00478C72);
+        return 0x00478C72;
     } else {
-        JMP(0x00478CE5);
+        return 0x00478CE5;
     }
 }
 
@@ -343,8 +332,13 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_Beacon_Patch)
  *
  *  @author: ZivDero
  */
-void Process_Select(ObjectClass* object, TechnoClass* techno, ActionType& action, Cell* cell)
+DEFINE_HOOK(0x005E8A1B, _ScrollClass_What_Action_Select_Beacon_Patch, 0)
 {
+    GET(ObjectClass*, object, ESI);
+    GET(TechnoClass*, techno, EDI);
+    GET(ActionType, action, EBP);
+    GET_STACK(Cell*, cell, 0x20);
+
     if (object && object->Class_Of() && object->Class_Of()->IsSelectable && (object->RTTI != RTTI_BUILDING || !static_cast<BuildingClass*>(object)->IsFogged) && (techno == nullptr || !techno->IsALoaner)) {
         action = ACTION_SELECT;
     }
@@ -354,19 +348,10 @@ void Process_Select(ObjectClass* object, TechnoClass* techno, ActionType& action
     if (BeaconManager.Beacon_At(coord) != nullptr) {
         action = static_cast<ActionType>(EXT_ACTION_SELECT_BEACON);
     }
-}
 
-DECLARE_PATCH(_ScrollClass_What_Action_Select_Beacon_Patch)
-{
-    GET_REGISTER_STATIC(ObjectClass*, object, esi);
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    GET_REGISTER_STATIC(ActionType, action, ebp);
-    GET_STACK_STATIC(Cell*, cell, esp, 0x20);
+    R->EBP(action);
 
-    Process_Select(object, techno, action, cell);
-
-    _asm mov ebp, action
-    JMP(0x005E8A6A);
+    return 0x005E8A6A;
 }
 
 
@@ -375,17 +360,16 @@ DECLARE_PATCH(_ScrollClass_What_Action_Select_Beacon_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_ScrollClass_What_Action_Place_Beacon_Patch)
+DEFINE_HOOK(0x005E8C41, _ScrollClass_What_Action_Place_Beacon_Patch, 0)
 {
     if (TacticalMapExtension->IsBeaconPlacementMode) {
-        static ActionType action;
-        action = BeaconManagerClass::Pick_Beacon_Placement_Action();
-        _asm mov ebp, action
+        ActionType action = BeaconManagerClass::Pick_Beacon_Placement_Action();
+        R->EBP(action);
     }
     if (Map.IsSellMode) {
-        JMP(0x005E8C4E);
+        return 0x005E8C4E;
     } else {
-        JMP(0x005E8D7F);
+        return 0x005E8D7F;
     }
 }
 
@@ -395,15 +379,8 @@ DECLARE_PATCH(_ScrollClass_What_Action_Place_Beacon_Patch)
  */
 void Beacon_Hooks()
 {
-    Patch_Jump(0x005BC4BB, &_RadarClass_Render_Radar_Redraw_Beacons_Patch);
-    Patch_Jump(0x005BC83F, &_RadarClass_Render_Radar_Draw_Beacons_Patch);
-    Patch_Jump(0x004BF5CC, &_HouseClass_MPlayer_Defeated_Delete_Beacons_Patch);
     Patch_Jump(0x004794E0, &DisplayClassExt::_Sell_Mode_Control);
     Patch_Jump(0x00479690, &DisplayClassExt::_Power_Mode_Control);
     Patch_Jump(0x00479730, &DisplayClassExt::_Repair_Mode_Control);
     Patch_Jump(0x00477D30, &DisplayClassExt::_Mouse_Right_Release);
-    Patch_Jump(0x004795CF, &_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch);
-    Patch_Jump(0x00478C6D, &_DisplayClass_Mouse_Left_Release_Beacon_Patch);
-    Patch_Jump(0x005E8A1B, &_ScrollClass_What_Action_Select_Beacon_Patch);
-    Patch_Jump(0x005E8C41, &_ScrollClass_What_Action_Place_Beacon_Patch);
 }

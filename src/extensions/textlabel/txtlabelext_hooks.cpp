@@ -37,7 +37,6 @@
 #include "vinifera_util.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**

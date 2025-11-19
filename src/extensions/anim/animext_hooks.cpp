@@ -57,7 +57,7 @@
 #include "tiberium.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -682,12 +682,11 @@ void AnimClassExt::_Delete_Me()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
+DEFINE_HOOK(0x00413D3E, _AnimClass_Constructor_Layer_Set_Z_Height_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClassExtension *animtypeext;
-    
-    animtypeext = Extension::Fetch(this_ptr->Class);
+    GET(AnimClass *, this_ptr, ESI);
+
+    AnimTypeClassExtension* animtypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Set the layer to the highest level if "air" or "top".
@@ -706,7 +705,7 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
         this_ptr->HeightAGL = 0;
     }
 
-    JMP(0x00413D63);
+    return 0x00413D63;
 }
 
 
@@ -717,16 +716,13 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
  *  @author: ZivDero
  */
 static AnimClass* _CurrentlyDrawnAnim = nullptr;
-DECLARE_PATCH(_AnimClass_Draw_It_Shadow_Patch)
+DEFINE_HOOK(0x00414B42, _AnimClass_Draw_It_Shadow_Patch, 6)
 {
-    GET_REGISTER_STATIC(AnimClass*, anim, esi);
-    _asm pushad
+    GET(AnimClass*, anim, ESI);
 
     _CurrentlyDrawnAnim = anim;
 
-    _asm popad
-    _asm mov eax, [eax + 0x1CC]
-    JMP_REG(edx, 0x00414B48);
+    return 0;
 }
 
 
@@ -795,8 +791,6 @@ void AnimClassExtension_Hooks()
      */
     AnimClassExtension_Init();
 
-    Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
-    Patch_Jump(0x00414B42, &_AnimClass_Draw_It_Shadow_Patch);
     Patch_Call(0x00414BA9, &Draw_Shape_Proxy);
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);

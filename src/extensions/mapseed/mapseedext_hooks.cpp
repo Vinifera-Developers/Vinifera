@@ -35,7 +35,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 #include "vinifera_defines.h"
 
 
@@ -46,19 +46,15 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054E7DE, _MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix, 0)
 {
-    static const HouseTypeClass *housetype;
-    static HousesType house;
-    static HouseClass *hptr;
-
     /**
      *  Stolen bytes/code.
      */
-    _asm { mov [esp+0x2C], esi }
+    R->Stack(0x2C, R->ESI());
 
-    house = HouseTypeClass::From_Name("Neutral");
-    hptr = House_From_HousesType(house);
+    HousesType house = HouseTypeClass::From_Name("Neutral");
+    HouseClass* hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -69,21 +65,17 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Cras
     }
 
 continue_function:
-    _asm { mov eax, hptr }
-    JMP_REG(ebx, 0x0054E7F3);
+    R->EAX(hptr);
+    return 0x0054E7F30;
 
 function_return:
-    JMP_REG(ebx, 0x0054EB6D);
+    return 0x0054EB6D;
 }
 
-DECLARE_PATCH(_MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054E498, _MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fix, 0)
 {
-    static const HouseTypeClass *housetype;
-    static HousesType house;
-    static HouseClass *hptr;
-
-    house = HouseTypeClass::From_Name("Neutral");
-    hptr = House_From_HousesType(house);
+    HousesType house = HouseTypeClass::From_Name("Neutral");
+    HouseClass* hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -94,26 +86,22 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fi
     }
 
 continue_function:
-    _asm { mov eax, hptr }
-    JMP_REG(ebp, 0x0054E4A9);
+    R->EAX(hptr);
+    return 0x0054E4A9;
 
 function_return:
-    JMP_REG(ecx, 0x0054E79C);
+    return 0x0054E79C;
 }
 
-DECLARE_PATCH(_MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054C701, _MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix, 0)
 {
-    static const HouseTypeClass *housetype;
-    static HousesType house;
-    static HouseClass *hptr;
-
     /**
      *  Stolen bytes/code.
      */
-    _asm { mov [esp+0x2C], esi }
+    R->Stack(0x2C, R->ESI());
 
-    house = HouseTypeClass::From_Name("Neutral");
-    hptr = House_From_HousesType(house);
+    HousesType house = HouseTypeClass::From_Name("Neutral");
+    HouseClass* hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -124,21 +112,17 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix
     }
 
 place_building:
-    _asm { mov eax, hptr }
-    JMP_REG(ebx, 0x0054C716);
+    R->EAX(hptr);
+    return 0x0054C716;
 
 function_return:
-    JMP_REG(ebx, 0x0054CA6A);
+    return 0x0054CA6A;
 }
 
-DECLARE_PATCH(_MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054C31C, _MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fix, 0)
 {
-    static const HouseTypeClass *housetype;
-    static HousesType house;
-    static HouseClass *hptr;
-
-    house = HouseTypeClass::From_Name("Neutral");
-    hptr = House_From_HousesType(house);
+    HousesType house = HouseTypeClass::From_Name("Neutral");
+    HouseClass *hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -149,26 +133,22 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fi
     }
 
 continue_function:
-    _asm { mov eax, hptr }
-    JMP_REG(ecx, 0x0054C32D);
+    R->EAX(hptr);
+    return 0x0054C32D;
 
 function_return:
-    JMP_REG(ecx, 0x0054C6C2);
+    return 0x0054C6C2;
 }
 
-DECLARE_PATCH(_MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x00546A4B, _MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash_Fix, 0)
 {
-    static const HouseTypeClass *housetype;
-    static HousesType house;
-    static HouseClass *hptr;
-
     /**
      *  Stolen bytes/code.
      */
-    _asm { mov [esp+0x58], eax }
+    R->Stack(0x58, R->EAX());
 
-    house = HouseTypeClass::From_Name("Neutral");
-    hptr = House_From_HousesType(house);
+    HousesType house = HouseTypeClass::From_Name("Neutral");
+    HouseClass* hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -179,21 +159,17 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash
     }
 
 continue_function:
-    _asm { mov eax, hptr }
-    JMP_REG(ecx, 0x00546A60);
+    R->EAX(hptr);
+    return 0x00546A60;
 
 return_false:
-    JMP_REG(ecx, 0x005471A1);
+    return 0x005471A1;
 }
 
-DECLARE_PATCH(_MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x00535434, _MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix, 0)
 {
-    static const HouseTypeClass *housetype;
-    static HousesType house;
-    static HouseClass *hptr;
-
-    house = HouseTypeClass::From_Name("Neutral");
-    hptr = House_From_HousesType(house);
+    HousesType house = HouseTypeClass::From_Name("Neutral");
+    HouseClass* hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -204,11 +180,11 @@ DECLARE_PATCH(_MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix)
     }
 
 place_building:
-    _asm { mov ecx, hptr }
-    JMP_REG(edi, 0x00535445);
+    R->ECX(hptr);
+    return 0x00535445;
 
 return_false:
-    JMP_REG(edi, 0x00535428);    
+    return 0x00535428;
 }
 
 
@@ -219,14 +195,10 @@ return_false:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix)
+DEFINE_HOOK(0x0054F41D, _MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix, 0)
 {
-    static const HouseTypeClass *housetype;
-    static HousesType house;
-    static HouseClass *hptr;
-
-    house = HouseTypeClass::From_Name("Special");
-    hptr = House_From_HousesType(house);
+    HousesType house = HouseTypeClass::From_Name("Special");
+    HouseClass* hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -236,8 +208,8 @@ DECLARE_PATCH(_MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix)
         //goto return_false;
     }
 
-    _asm { mov ecx, hptr }
-    JMP_REG(ecx, 0x0054F42E);
+    R->ECX(hptr);
+    return 0x0054F42E;
 }
 
 
@@ -248,16 +220,13 @@ DECLARE_PATCH(_MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix)
  */
 static void MapSeedClass_Init_Houses(CCINIClass &ini)
 {
-    HouseClass *house;
-    HouseTypeClass *housetype;
-
     /**
      *  Iterate over all house types and create and init a house instance for them.
      */
     for (int i = 0; i < HouseTypes.Count(); ++i) {
-        housetype = HouseTypes[i];
+        HouseTypeClass* housetype = HouseTypes[i];
         if (housetype) {
-            house = new HouseClass(housetype);
+            HouseClass* house = new HouseClass(housetype);
             if (house) {
                 DEBUG_INFO("  Created house \"%s\".\n", housetype->Name());
                 house->Read_INI(ini);
@@ -275,17 +244,16 @@ static void MapSeedClass_Init_Houses(CCINIClass &ini)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MapSeedClass_Init_Random_Map_Init_Houses_Patch)
+DEFINE_HOOK(0x0053E48B, _MapSeedClass_Init_Random_Map_Init_Houses_Patch, 0)
 {
-    //GET_REGISTER_STATIC(MapSeedClass *, this_ptr, edi);
-    LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x128);
+    LEA_STACK(CCINIClass *, ini, 0x128);
 
-    DEBUG_INFO("Initalising houses for RMG...\n");
+    DEBUG_INFO("Initialising houses for RMG...\n");
 
     MapSeedClass_Init_Houses(*ini);
 
-    _asm { xor ebx, ebx }
-    JMP(0x0053E55E);
+    R->EBX(0);
+    return 0x0053E55E;
 }
 
 
@@ -296,16 +264,15 @@ DECLARE_PATCH(_MapSeedClass_Init_Random_Map_Init_Houses_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_MapClass_Set_Map_Dimensions_WaypointMax)
+DEFINE_HOOK(0x005104FD, _MapClass_Set_Map_Dimensions_WaypointMax, 0)
 {
-    GET_REGISTER_STATIC(int, i, esi);
+    GET(int, i, ESI);
 
-    if (i < NEW_WAYPOINT_COUNT)
-    {
-        JMP_REG(ecx, 0x005104B7);
+    if (i < NEW_WAYPOINT_COUNT) {
+        return 0x005104B7;
+    } else {
+        return 0x00510502;
     }
-
-    JMP(0x00510502);
 }
 
 
@@ -314,13 +281,5 @@ DECLARE_PATCH(_MapClass_Set_Map_Dimensions_WaypointMax)
  */
 void MapSeedClassExtension_Hooks()
 {
-    Patch_Jump(0x0053E48B, &_MapSeedClass_Init_Random_Map_Init_Houses_Patch);
-    Patch_Jump(0x0054F41D, &_MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix);
-    Patch_Jump(0x00535434, &_MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix);
-    Patch_Jump(0x00546A4B, &_MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash_Fix);
-    Patch_Jump(0x0054C31C, &_MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fix);
-    Patch_Jump(0x0054C701, &_MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix);
-    Patch_Jump(0x0054E498, &_MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fix);
-    Patch_Jump(0x0054E7DE, &_MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix);
-    Patch_Jump(0x005104FD, &_MapClass_Set_Map_Dimensions_WaypointMax);
+
 }

@@ -31,9 +31,9 @@
 #include "ccini.h"
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "prerequisitegroup.h"
+#include "syringe.h"
 #include "typelist.h"
 #include "vinifera_globals.h"
 
@@ -76,21 +76,16 @@ TypeList<int> Get_Prerequisites(CCINIClass const& ini, char const* section, char
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_Can_Build_Prereq_Groups_Patch)
+DEFINE_HOOK(0x004BBD3E, _HouseClass_Can_Build_Prereq_Groups_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, prereq, eax);
-    GET_REGISTER_STATIC(HouseClass*, house, ebp);
-
-    _asm pushad
+    GET(int, prereq, EAX);
+    GET(HouseClass*, house, EBP);
 
     if (Extension::Fetch(house)->Has_Prerequisite(prereq)) {
-
-        _asm popad
-        JMP(0x004BBFD4);
+        return 0x004BBFD4;
     }
 
-    _asm popad
-    JMP(0x004BBFEE);
+    return 0x004BBFEE;
 }
 
 
@@ -100,5 +95,4 @@ DECLARE_PATCH(_HouseClass_Can_Build_Prereq_Groups_Patch)
 void PrerequisiteGroup_Hooks()
 {
     Patch_Jump(0x0044CB30, &Get_Prerequisites);
-    Patch_Jump(0x004BBD3E, &_HouseClass_Can_Build_Prereq_Groups_Patch);
 }

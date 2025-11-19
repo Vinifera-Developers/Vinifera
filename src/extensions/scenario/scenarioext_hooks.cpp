@@ -45,10 +45,10 @@
 #include "environmentext_hooks.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "kamikazetracker.h"
 #include "mouse.h"
+#include "syringe.h"
 #include "vinifera_globals.h"
 
 
@@ -90,7 +90,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Global_Value(global, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -100,7 +100,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Global_Value(name, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -113,7 +113,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Local_Value(local, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -123,7 +123,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Local_Value(name, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -144,20 +144,15 @@ public:
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Clear_Scenario_Patch)
+DEFINE_HOOK(0x005DC85A, _Clear_Scenario_Patch, 0)
 {
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { add esp, 0x4 } // Fixes up the stack from the WWDebugPrintf call.
-
     //DEBUG_INFO("Clearing waypoints...\n");
     ScenExtension->Clear_All_Waypoints();
 
     KamikazeTracker->Clear();
     AircraftTracker->Clear();
 
-    JMP(0x005DC872);
+    return 0x005DC872;
 }
 
 
@@ -168,11 +163,10 @@ DECLARE_PATCH(_Clear_Scenario_Patch)
  *
  *  @author: ZivDero
  */
-void Init_Home_Cell()
+DEFINE_HOOK(0x005DC0A0, _Fill_In_Data_Home_Cell_Patch, 0)
 {
     Map.SidebarClass::Activate(1);
-    if (Session.Type == GAME_NORMAL)
-    {
+    if (Session.Type == GAME_NORMAL) {
         int home_cell_number = EnvironmentGlobals[0] ? Scen->AltHome : Scen->Home;
         Cell home_cell = ScenExtension->Waypoint[home_cell_number];
 
@@ -186,21 +180,8 @@ void Init_Home_Cell()
 
         Map.RadarClass::Set_Tactical_Position(home_coord);
     }
-}
 
-
-/**
- *  #issue-71
- *
- *  Assign the home cell waypoint.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_Fill_In_Data_Home_Cell_Patch)
-{
-    Init_Home_Cell();
-
-    JMP(0x005DC166);
+    return 0x005DC166;
 }
 
 
@@ -295,7 +276,7 @@ static bool Rule_Addition(const char *fname, bool with_digest = false)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
+DEFINE_HOOK(0x005DD8D5, _Read_Scenario_INI_MPlayer_INI_Patch, 0)
 {
     if (Session.Type != GAME_NORMAL && Session.Type != GAME_WDT) {
 
@@ -319,7 +300,7 @@ DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
      */
     Call_Back();
 
-    JMP(0x005DD8DA);
+    return 0x005DD8DA;
 }
 
 
@@ -331,7 +312,7 @@ DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
+DEFINE_HOOK(0x005DC9D4, _Do_Win_Skip_MPlayer_Score_Screen_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -342,10 +323,10 @@ DECLARE_PATCH(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
         MultiScore::Presentation();
     }
 
-    JMP(0x005DC9DF);
+    return 0x005DC9DF;
 }
 
-DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
+DEFINE_HOOK(0x005DCD92, _Do_Lose_Skip_MPlayer_Score_Screen_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -356,7 +337,7 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
         MultiScore::Presentation();
     }
 
-    JMP(0x005DCD9D);
+    return 0x005DCD9D;
 }
 
 
@@ -390,19 +371,15 @@ int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Create_Units_Save_Spawn_Waypoint_Patch)
+DEFINE_HOOK(0x005DEBFA, _Create_Units_Save_Spawn_Waypoint_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, house, edi);
-    static bool bases;
-
-    _asm pushad
+    GET(HouseClass*, house, EDI);
 
     Extension::Fetch(house)->Set_Spawn_Point(house->Center);
-    bases = Session.Options.Bases;
+    bool bases = Session.Options.Bases;
+    R->AL(bases);
 
-    _asm popad
-    _asm mov al, bases
-    JMP_REG(ebx, 0x005DEBFF);
+    return 0x005DEBFF;
 }
 
 
@@ -412,24 +389,20 @@ DECLARE_PATCH(_Create_Units_Save_Spawn_Waypoint_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_ScenarioClass_Do_Win_GlobalFlags_Patch)
+DEFINE_HOOK(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0)
 {
-    _asm pushad
-
     if (ScenExtension->GlobalFlags[1].Value) {
 
         /**
          *  Proceed to AltNextScenario.
          */
-        _asm popad
-        JMP_REG(edx, 0x005DCB63);
+        return 0x005DCB63;
     } else {
 
         /**
          *  Proceed to NextScenario.
          */
-        _asm popad
-        JMP_REG(edx, 0x005DCB72);
+        return 0x005DCB72;
     }
 }
 
@@ -439,13 +412,12 @@ DECLARE_PATCH(_ScenarioClass_Do_Win_GlobalFlags_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Clear_Scenario_Clear_Globals_Patch)
+DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Clear_Globals_Patch, 0)
 {
-    static int i;
-    for (i = 0; i < std::size(ScenExtension->GlobalFlags); i++) {
+    for (int i = 0; i < std::size(ScenExtension->GlobalFlags); i++) {
         ScenExtension->Set_Global_To(i, 0);
     }
-    JMP(0x005DC688);
+    return 0x005DC688;
 }
 
 
@@ -454,10 +426,10 @@ DECLARE_PATCH(_Clear_Scenario_Clear_Globals_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Read_Scenario_INI_Read_Global_INI_Patch)
+DEFINE_HOOK(0x005DD85D, _Read_Scenario_INI_Read_Global_INI_Patch, 0)
 {
     ScenExtension->Read_Global_INI(*RuleINI);
-    JMP(0x005DD8D5);
+    return 0x005DD8D5;
 }
 
 
@@ -493,10 +465,6 @@ void ScenarioClassExtension_Hooks()
     Patch_Call(0x005DD320, &ScenarioClassExtension::Create_Units);
 #endif
 
-    Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
-    Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
-    Patch_Jump(0x005DD8D5, &_Read_Scenario_INI_MPlayer_INI_Patch);
-
     /**
      *  #issue-71
      *
@@ -515,10 +483,6 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005E16E0, &ScenarioClassExt::_Set_Waypoint_Cell);
     Patch_Jump(0x005E1700, &ScenarioClassExt::_Waypoint_CellClass);
     Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
-    Patch_Jump(0x005DC852, &_Clear_Scenario_Patch);
-    Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
-    Patch_Jump(0x00673330, &_Waypoint_From_Name);
-    Patch_Jump(0x006732B0, &_Waypoint_To_Name);
 
     /**
      *  Patch vanilla Create_Units so that TS CLient builds get new unit placement.
@@ -527,8 +491,6 @@ void ScenarioClassExtension_Hooks()
      */
     Patch_Call(0x005DED81, &Scan_Place_Object_Proxy);
     Patch_Jump(0x005DEE64, 0x005DEE91); // Skip calling Scatter on placed units, let them stay in their spots.
-
-    Patch_Jump(0x005DEBFA, &_Create_Units_Save_Spawn_Waypoint_Patch);
 
     Patch_Jump(0x005DF930, &ScenarioClassExt::_Read_Global_INI);
     Patch_Jump(0x005DFBD0, &ScenarioClassExt::_Read_Local_INI);
@@ -545,8 +507,4 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DFB70, &ScenarioClassExt::_Find_Local_Variable_Index);
     Patch_Jump(0x005DFDC0, &ScenarioClassExt::_Find_Free_Local);
     Patch_Jump(0x005DFDA0, &ScenarioClassExt::_Num_Locals);
-
-    Patch_Jump(0x005DCB59, &_ScenarioClass_Do_Win_GlobalFlags_Patch);
-    Patch_Jump(0x005DC64D, &_Clear_Scenario_Clear_Globals_Patch);
-    Patch_Jump(0x005DD85D, &_Read_Scenario_INI_Read_Global_INI_Patch);
 }
