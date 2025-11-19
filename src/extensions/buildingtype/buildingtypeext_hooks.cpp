@@ -268,20 +268,19 @@ int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
  *
  *  Author: ZivDero, tomsons26
  */
+static char* BuildingZShapeBuffer = nullptr;
 void BuildingTypeClassExt::_Fetch_Z_Data()
 {
-    static char* real_array = nullptr;
-
-    if (real_array != nullptr) {
-        delete[] real_array;
-        real_array = nullptr;
+    if (BuildingZShapeBuffer != nullptr) {
+        delete[] BuildingZShapeBuffer;
+        BuildingZShapeBuffer = nullptr;
         BuildingZShape = nullptr;
     }
 
     int size = CCFileClass("BUILDNGZ.SHP").Size();
-    real_array = new char[size * 3];
-    memset(real_array, 0, size * 3);
-    BuildingZShape = reinterpret_cast<ShapeSet*>(&real_array[size]);
+    BuildingZShapeBuffer = new char[size * 3];
+    memset(BuildingZShapeBuffer, 0, size * 3);
+    BuildingZShape = reinterpret_cast<ShapeSet*>(&BuildingZShapeBuffer[size]);
     memcpy(const_cast<ShapeSet*>(BuildingZShape), MFCD::Retrieve("BUILDNGZ.SHP"), size);
 
     char* data = static_cast<char*>(BuildingZShape->Get_Data(0));
@@ -295,6 +294,23 @@ void BuildingTypeClassExt::_Fetch_Z_Data()
             }
         }
     }
+}
+
+
+/**
+ *  BuldingZ is freed at the end, need to patch it to delete the correct pointer.
+ *
+ *  Author: ZivDero, tomsons26
+ */
+DEFINE_HOOK(0x00601ECB, _Prog_End_Delete_BuildingZ_Data_Patch, 0)
+{
+    if (BuildingZShapeBuffer != nullptr) {
+        delete[] BuildingZShapeBuffer;
+        BuildingZShapeBuffer = nullptr;
+        BuildingTypeClass::BuildingZShape = nullptr;
+    }
+
+    return 0x00601EE3;
 }
 
 
