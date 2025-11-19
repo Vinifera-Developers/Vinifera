@@ -73,7 +73,9 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
 ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit),
     GraphicName(noinit),
-    AlphaGraphicName(noinit)
+    AlphaGraphicName(noinit),
+    NoSpawnVoxel(noinit),
+    WaterVoxel(noinit)
 {
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
