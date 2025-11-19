@@ -98,6 +98,8 @@ AircraftTrackerClass* AircraftTracker = nullptr;
 
 int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
+void* LastHookOrigin = nullptr;
+
 MFCD *GenericMix = nullptr;
 MFCD *IsoGenericMix = nullptr;
 MFCD *SideCTMix = nullptr;

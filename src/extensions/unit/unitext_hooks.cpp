@@ -411,7 +411,6 @@ void UnitClassExt::_Approach_Target()
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK_AGAIN(0x0065665D, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch, 0)
 DEFINE_HOOK(0x00656623, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch, 0)
 {
     GET(Cell *, cell, ESI);
@@ -435,6 +434,7 @@ DEFINE_HOOK(0x00656623, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Pa
     R->EAX(action);
     return 0x006566CC;
 }
+DEFINE_HOOK_AGAIN(0x0065665D, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch, 0)
 
 
 /**
@@ -523,7 +523,7 @@ continue_to_draw:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00654399, _UnitClass_Mission_Unload_Transport_Detach_Sound_Patch, 0)
+DEFINE_HOOK(0x00654399, _UnitClass_Mission_Unload_Transport_Detach_Sound_Patch, 6)
 {
     GET(UnitClass *, this_ptr, ESI);
 
@@ -535,26 +535,7 @@ DEFINE_HOOK(0x00654399, _UnitClass_Mission_Unload_Transport_Detach_Sound_Patch, 
         Static_Sound(radio_technotypeext->LeaveTransportSound, this_ptr->Position);
     }
 
-    /**
-     *  Stolen bytes/code.
-     * 
-     *  Are we a part of a team? If so, make any passengers we unload part of it too.
-     */
-    if (this_ptr->Team) {
-        goto add_to_team;
-    }
-
-    /**
-     *  Finished unloading passengers.
-     */
-finish_up:
-    return 0x006543BB;
-
-    /**
-     *  Add this passenger to my team.
-     */
-add_to_team:
-    return 0x006543A3;
+    return 0;
 }
 
 

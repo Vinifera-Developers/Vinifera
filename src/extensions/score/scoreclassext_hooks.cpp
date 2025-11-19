@@ -39,53 +39,31 @@
 
 
 /**
- *  Macro for applying color to the score bar.
- *  Saves and restores ecx to avoid the compiler trashing it
- *  since in every case it is used after reading in the color.
- */
-#define APPLY_SCORE_BAR_COLOR(color, jumpaddr) \
-R->Stack<char>(0x1C, (color).R); \
-R->Stack<char>(0x1C + 1, (color).G); \
-R->Stack<char>(0x1C + 2, (color).B); \
-return (jumpaddr)
-
-
-/**
  *  #issue-242
  *
  *  Allows customizing the colors of the singleplayer score screen.
  *
  *  Author: Rampastring
  */
-DEFINE_HOOK(0x005E532A, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1, 0)
+DEFINE_HOOK(0x005E532A, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch, 0)
 {
-    APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E5338);
+    R->Stack<unsigned char>(0x18, ScenExtension->ScorePlayerColor.R);
+    R->Stack<unsigned char>(0x18 + 1, ScenExtension->ScorePlayerColor.G);
+    R->Stack<unsigned char>(0x18 + 2, ScenExtension->ScorePlayerColor.B);
+    return R->Origin() + 0xE;
 }
+DEFINE_HOOK_AGAIN(0x005E536B, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch, 0);
+DEFINE_HOOK_AGAIN(0x005E53AC, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch, 0);
 
-DEFINE_HOOK(0x005E536B, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2, 0)
+DEFINE_HOOK(0x005E53F8, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch, 0)
 {
-    APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E5379);
+    R->Stack<unsigned char>(0x18, ScenExtension->ScoreEnemyColor.R);
+    R->Stack<unsigned char>(0x18 + 1, ScenExtension->ScoreEnemyColor.G);
+    R->Stack<unsigned char>(0x18 + 2, ScenExtension->ScoreEnemyColor.B);
+    return R->Origin() + 0xD;
 }
-
-DEFINE_HOOK(0x005E53AC, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3, 0)
-{
-    APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E53BA);
-}
-
-DEFINE_HOOK(0x005E53F8, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1, 0)
-{
-    APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E5405);
-}
-
-DEFINE_HOOK(0x005E543B, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2, 0)
-{
-    APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E5448);
-}
-
-DEFINE_HOOK(0x005E547E, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3, 0)
-{
-    APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E548B);
-}
+DEFINE_HOOK_AGAIN(0x005E543B, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch, 0);
+DEFINE_HOOK_AGAIN(0x005E547E, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch, 0);
 
 /**
  *  Main function for patching the hooks.

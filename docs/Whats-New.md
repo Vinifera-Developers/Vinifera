@@ -75,6 +75,7 @@ New:
 - Port to Syringe (by ZivDero)
 - Replace DirectDraw with SDL (by ZivDero, tomsons26, CCHyper)
 
+
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
 - Fix a bug where `CellSpread` incorrectly handled height distance with buildings (by ZivDero)

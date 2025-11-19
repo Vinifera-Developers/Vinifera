@@ -126,6 +126,7 @@ public:
     void _Assign_Target(AbstractClass * target);
     void _AI_Abandon_Detour();
     bool _Can_Deploy_Now() const;
+    int _Refund_Amount() const;
 };
 
 
@@ -2073,7 +2074,7 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00631661, _TechnoClass_Player_Assign_Mission_Response_Patch, 0)
+DEFINE_HOOK(0x00631663, _TechnoClass_Player_Assign_Mission_Response_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(MissionType, mission, EDI);
@@ -2086,36 +2087,28 @@ DEFINE_HOOK(0x00631661, _TechnoClass_Player_Assign_Mission_Response_Patch, 0)
 
 /**
  *  #issue-434
- * 
+ *
  *  Implements Soylent value (refund amount override) for technos.
- * 
- *  @author: CCHyper
+ *
+ *  @author: CCHyper, tomsons26, ZivDero
  */
-DEFINE_HOOK(0x00638095, _TechnoClass_Refund_Amount_Soylent_Patch, 0)
+int TechnoClassExt::_Refund_Amount() const
 {
-    GET(TechnoClass *, this_ptr, ESI);
+    TechnoTypeClassExtension* technotypext = Extension::Fetch(TClass);
 
     /**
-     *  Stolen bytes/code.
-     */
-    const TechnoTypeClass* technotype = this_ptr->TClass;
-
-    /**
-     *  Fetch the extension instance.
-     */
-    TechnoTypeClassExtension* technotypext = Extension::Fetch(technotype);
-
-    /**
-     *  If the object has a soylent value defined, return this.
+     *  If the object has a soylent value defined, return it.
      */
     if (technotypext->SoylentValue > 0) {
-        int cost = technotypext->SoylentValue;
-        R->EDI(cost);
-        return 0x006380DC;
+        return technotypext->SoylentValue;
     }
 
-continue_function:
-    return 0x0063809D;
+    int cost = TClass->Cost_Of(House);
+
+    if (House->Is_Human_Player()) {
+        cost *= Rule->RefundPercent;
+    }
+    return cost;
 }
 
 
@@ -2555,7 +2548,6 @@ bool TechnoClassExt::_Can_Deploy_Now() const
 }
 
 
-
 DEFINE_HOOK(0x0062EB27, _TechnoClass_AI_Abandon_Invalid_Target_Patch, 0)
 {
     GET(TechnoClassExt*, this_ptr, ESI);
@@ -2810,5 +2802,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00633745, 0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
     Patch_Jump(0x0062A970, &TechnoClassExt::_Time_To_Build);
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
+    Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
 }
 

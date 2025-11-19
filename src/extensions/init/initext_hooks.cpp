@@ -861,12 +861,7 @@ bool Detach_Debugger()
                 const auto pid = GetDebuggerProcessId(GetProcessId(hCurrentProcess));
                 status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
                 if (status >= 0) {
-                    HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-                    if (INVALID_HANDLE_VALUE != hDbgProcess) {
-                        BOOL ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
-                        CloseHandle(hDbgProcess);
-                        return ret;
-                    }
+                    return true;
                 }
             }
             NtClose(hDebug);
@@ -877,16 +872,30 @@ bool Detach_Debugger()
     return false;
 }
 
-
+/**
+ *  Give the user time to attach the debugger if one is not already present.
+ *
+ *  @author: ZivDero, CCHyper
+ */
 DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
 {
-    DEBUG_INFO("Syringe is active.");
+    DEBUG_INFO("Syringe is active.\n");
 
-    /**
-     *  Give the user time to attach the debugger if one is not already present.
-     */
-    if (Detach_Debugger() && !IsDebuggerPresent()) {
-        MessageBox(nullptr, "[Syringe] Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+    if (Detach_Debugger()) {
+        if (!IsDebuggerPresent()) {
+#if !defined(NDEBUG) && defined(TS_CLIENT)
+            bool wait_for_debugger = true;
+#elif defined(TS_CLIENT)
+            const char* cmdline = GetCommandLineA();
+            bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
+#else
+            bool wait_for_debugger = false;
+#endif
+
+            if (wait_for_debugger) {
+                MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+            }
+        }
     }
 
     return 0;

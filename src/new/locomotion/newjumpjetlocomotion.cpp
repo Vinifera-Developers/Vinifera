@@ -624,4 +624,3 @@ IFACEMETHODIMP_(Coord) NewJumpjetLocomotionClass::Head_To_Coord()
         return HeadToCoord;
     }
 }
-

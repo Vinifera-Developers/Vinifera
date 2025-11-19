@@ -108,9 +108,6 @@ DEFINE_HOOK(0x00448EF8, _CampaignClass_Scalar_Destructor_Patch, 6)
      */
     Extension::Destroy<CampaignClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

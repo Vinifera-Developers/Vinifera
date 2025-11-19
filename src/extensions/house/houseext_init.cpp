@@ -85,9 +85,6 @@ DEFINE_HOOK(0x004BB9B7, _HouseClass_Destructor_Patch, 6)
      */
     Extension::Destroy<HouseClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

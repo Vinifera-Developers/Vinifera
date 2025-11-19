@@ -123,9 +123,6 @@ DEFINE_HOOK(0x0060127E, _WinMain_Load_Init_Options_Settings_Patch, 5)
      */
     OptionsExtension->Load_Init_Settings();
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -164,9 +161,6 @@ DEFINE_HOOK(0x0058A5E6, _OptionsClass_Set_Patch, 6)
      */
     OptionsExtension->Set();
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

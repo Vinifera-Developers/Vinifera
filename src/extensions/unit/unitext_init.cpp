@@ -86,9 +86,6 @@ DEFINE_HOOK(0x0064D8AE, _UnitClass_Destructor_Patch, 6)
      */
     Extension::Destroy<UnitClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

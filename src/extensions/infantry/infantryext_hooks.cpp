@@ -377,16 +377,10 @@ DEFINE_HOOK(0x004D5AB4, _InfantryClass_Can_Fire_Target_Check_Patch, 0)
 {
     GET_STACK(AbstractClass *, target, 0x10);
 
-    TechnoClass* targ = Target_As_Techno(target);
-    if (targ == nullptr) {
-        goto return_FIRE_ILLEGAL;
-    }
+    TechnoClass* techno = dynamic_cast<TechnoClass*>(target);
+    R->EAX(techno);
 
-health_ratio_check:
-    return 0x004D5ACF;
-
-return_FIRE_ILLEGAL:
-    return 0x004D5AE8;
+    return 0x004D5ACB;
 }
 
 

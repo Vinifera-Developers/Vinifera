@@ -122,4 +122,3 @@ loop_continue:
 void EMPulseClassExtension_Hooks()
 {
 }
-

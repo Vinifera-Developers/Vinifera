@@ -123,6 +123,8 @@ extern AircraftTrackerClass *AircraftTracker;
 
 extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
+extern void* LastHookOrigin;
+
 
 /**
  *  Global vectors and heaps.

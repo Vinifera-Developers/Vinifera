@@ -131,4 +131,3 @@ void CreditClassExtension_Hooks()
 {
     
 }
-

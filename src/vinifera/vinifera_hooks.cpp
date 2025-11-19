@@ -201,9 +201,6 @@ DEFINE_HOOK(0x005ADFBE, _ProgressClass_Load_Screen_Version_Text_Patch, 6)
 {
     Vinifera_Draw_Version_Text(HiddenSurface);
 
-    /**
-     *  Stolen bytes/code.
-     */
     return 0;
 }
 

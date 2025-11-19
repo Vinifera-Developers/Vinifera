@@ -96,9 +96,6 @@ DEFINE_HOOK(0x00618020, _Tactical_Scalar_Destructor_Patch, 10)
      */
     Extension::Singleton::Destroy<Tactical, TacticalExtension>(TacticalMapExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
