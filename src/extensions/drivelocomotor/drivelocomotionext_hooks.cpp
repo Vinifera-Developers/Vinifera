@@ -40,7 +40,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -51,40 +51,46 @@
  */
 static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *this_ptr)
 {
-    FootClass *linked_foot = this_ptr->Linked_To();
-    FootClassExtension *linked_footext = Extension::Fetch<FootClassExtension>(linked_foot);
-    TechnoTypeClassExtension *technotype_ext = Extension::Fetch<TechnoTypeClassExtension>(linked_foot->Techno_Type_Class());
+    FootClass *linked_foot = this_ptr->LinkedTo;
+    FootClassExtension *linked_footext = Extension::Fetch(linked_foot);
+    TechnoTypeClassExtension *technotype_ext = Extension::Fetch(linked_foot->TClass);
 
     /**
-     *  x
+     *  Wakes are only created if the unit is on water and not on a bridge.
      */
     if (linked_foot->IsOnBridge || linked_foot->Get_Cell_Ptr()->Land_Type() != LAND_WATER) {
         return;
     }
 
-    /**
-     *  x
-     */
-    if (linked_footext->IdleWakeAnim) {
+    if (technotype_ext->IdleWakeAnim) {
 
-        if (!this_ptr->Is_Moving()) {
-            linked_footext->IdleWakeAnim->Make_Invisible();
-        } else {
-            linked_footext->IdleWakeAnim->Make_Visible();
-        }
-
-    } else {
-        
         /**
-         *  x
+         *  If the idle wake animation already exists, toggle its visibility
          */
-        linked_footext->IdleWakeAnim = new AnimClass(technotype_ext->IdleWakeAnim, linked_foot->Get_Coord());
-        ASSERT(linked_footext->IdleWakeAnim != nullptr);
+        if (linked_footext->IdleWakeAnim) {
 
+            if (this_ptr->Is_Moving()) {
+                linked_footext->IdleWakeAnim->Make_Invisible();
+            } else {
+                linked_footext->IdleWakeAnim->Make_Visible();
+            }
+
+        } else {
+
+            /**
+             *  Otherwise, create the wake animation at the current object's coordinate and attach it to follow the object.
+             */
+            linked_footext->IdleWakeAnim = new AnimClass(technotype_ext->IdleWakeAnim, linked_foot->PositionCoord);
+            linked_footext->IdleWakeAnim->Attach_To(linked_foot);
+
+            if (this_ptr->Is_Moving()) {
+                linked_footext->IdleWakeAnim->Make_Invisible();
+            }
+        }
     }
 
     /**
-     *  x
+     *  If the unit is moving, spawn the wake animation.
      */
     if (this_ptr->Is_Moving()) {
 
@@ -105,15 +111,12 @@ static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *t
             const AnimTypeClass *wake_anim = technotype_ext->WakeAnim != nullptr ? technotype_ext->WakeAnim : Rule->Wake;
 
             /**
-             *  Create the wake animation at the current objects coordinate.
+             *  Create the wake animation at the current object's coordinate.
              */
             if (wake_anim) {
-                AnimClass *animptr = new AnimClass(wake_anim, linked_foot->Get_Coord());
-                ASSERT(animptr != nullptr);
+                new AnimClass(wake_anim, linked_foot->PositionCoord);
             }
-
         }
-
     }
 }
 
@@ -125,13 +128,13 @@ static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *t
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_DriveLocomotionClass_Process_WakeAnim_Patch)
+DEFINE_HOOK(0x0047DFDB, _DriveLocomotionClass_Process_WakeAnim_Patch, 0)
 {
-    GET_REGISTER_STATIC(ILocomotion *, this_ptr, esi);
+    GET(ILocomotion *, this_ptr, ESI);
 
     DriveLocomotionClass_Process_Create_WakeAnim(static_cast<DriveLocomotionClass*>(this_ptr));
 
-    JMP(0x0047E05D);
+    return 0x0047E05D;
 }
 
 
@@ -140,5 +143,5 @@ DECLARE_PATCH(_DriveLocomotionClass_Process_WakeAnim_Patch)
  */
 void DriveLocomotionClassExtension_Hooks()
 {
-    Patch_Jump(0x0047DFDB, &_DriveLocomotionClass_Process_WakeAnim_Patch);
+
 }

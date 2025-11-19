@@ -28,6 +28,7 @@
 #include "technotypeext.h"
 
 #include "aircrafttype.h"
+#include "animtype.h"
 #include "technotype.h"
 #include "ccini.h"
 #include "filepng.h"
@@ -382,12 +383,13 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
 
-    WakeAnim = ArtINI.Get_Anim(graphic_name, "WakeAnim", WakeAnim);
+    WakeAnim = TGet_Class(ArtINI, graphic_name, "WakeAnim", WakeAnim);
     WakeAnimRate = ArtINI.Get_Int(graphic_name, "WakeAnimRate", WakeAnimRate);
-    IdleWakeAnim = ArtINI.Get_Anim(graphic_name, "IdleWakeAnim", IdleWakeAnim);
+    IdleWakeAnim = TGet_Class(ArtINI, graphic_name, "IdleWakeAnim", IdleWakeAnim);
 
-    if (ini.Is_Present(ini_name, "Description"))
+    if (ini.Is_Present(ini_name, "Description")) {
         ini.Get_String(ini_name, "Description", Description, std::size(Description));
+    }
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);

@@ -73,6 +73,8 @@ New:
 - Implement multiplayer beacons (by ZivDero)
 - Chat improvements (by ZivDero)
 - Port to Syringe (by ZivDero)
+- Add customizable wake animations (by CCHyper)
+
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
