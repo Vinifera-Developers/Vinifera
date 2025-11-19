@@ -504,9 +504,6 @@ target_compile_options(${PROJECT_NAME} PUBLIC /GS-)
 # Disables buffer security overrun checks.
 target_compile_options(${PROJECT_NAME} PUBLIC /GS-)
 
-# Define Syringe version 2.
-target_compile_options(${PROJECT_NAME} PUBLIC /DSYR_VER=2)
-
 # Align structures to 4-byte boundaries.
 #		target_compile_options(${PROJECT_NAME} PUBLIC /Zp4)
 
