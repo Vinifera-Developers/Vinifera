@@ -131,4 +131,3 @@ void ScenarioClassExtension_Init()
 {
 
 }
-

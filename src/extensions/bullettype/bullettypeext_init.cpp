@@ -97,4 +97,3 @@ void BulletTypeClassExtension_Init()
 {
 
 }
-

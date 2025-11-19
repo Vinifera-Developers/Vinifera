@@ -97,4 +97,3 @@ void AnimTypeClassExtension_Init()
 {
 
 }
-

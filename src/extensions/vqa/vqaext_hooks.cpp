@@ -85,4 +85,3 @@ void VQAExtension_Hooks()
 {
 
 }
-

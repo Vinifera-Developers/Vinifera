@@ -124,4 +124,3 @@ void SkirmishDialog_Hooks()
 {
 
 }
-

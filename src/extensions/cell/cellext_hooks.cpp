@@ -521,4 +521,3 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x00459A00, &CellClassExt::_Recalc_Passability);
     Patch_Jump(0x00456BF0, &CellClassExt::_Reduce_Tiberium);
 }
-

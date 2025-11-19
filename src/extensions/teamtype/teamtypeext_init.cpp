@@ -118,4 +118,3 @@ void TeamTypeClassExtension_Init()
 {
 
 }
-

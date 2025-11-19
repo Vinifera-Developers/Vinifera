@@ -90,4 +90,3 @@ void TriggerClassExtension_Hooks()
 {
 
 }
-

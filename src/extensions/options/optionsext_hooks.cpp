@@ -60,4 +60,3 @@ void OptionsClassExtension_Hooks()
      */
     OptionsClassExtension_Init();
 }
-

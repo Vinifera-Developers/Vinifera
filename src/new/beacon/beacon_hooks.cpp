@@ -384,4 +384,3 @@ void Beacon_Hooks()
     Patch_Jump(0x00479730, &DisplayClassExt::_Repair_Mode_Control);
     Patch_Jump(0x00477D30, &DisplayClassExt::_Mouse_Right_Release);
 }
-

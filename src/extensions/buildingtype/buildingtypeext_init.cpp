@@ -98,4 +98,3 @@ void BuildingTypeClassExtension_Init()
 {
     
 }
-

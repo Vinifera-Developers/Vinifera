@@ -956,4 +956,3 @@ void GameInit_Hooks()
     //Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 #endif
 }
-

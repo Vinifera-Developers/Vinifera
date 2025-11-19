@@ -98,4 +98,3 @@ void AircraftClassExtension_Init()
 {
 
 }
-

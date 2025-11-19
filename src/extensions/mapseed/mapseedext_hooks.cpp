@@ -283,4 +283,3 @@ void MapSeedClassExtension_Hooks()
 {
 
 }
-

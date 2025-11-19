@@ -133,4 +133,3 @@ void MultiScoreExtension_Hooks()
      */
     Patch_Dword(0x00568A05 + 1, (uintptr_t)&"Loser"); // +1 skips "mov eax," opcode
 }
-

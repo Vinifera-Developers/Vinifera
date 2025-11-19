@@ -97,4 +97,3 @@ void SideClassExtension_Init()
 {
 
 }
-

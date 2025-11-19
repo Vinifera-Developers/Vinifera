@@ -168,4 +168,3 @@ void SuperClassExtension_Init()
 {
     Patch_Jump(0x0060C7A8, &_SuperClass_Load_Patch);
 }
-

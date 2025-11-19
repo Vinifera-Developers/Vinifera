@@ -126,4 +126,3 @@ void SessionClassExtension_Init()
 {
 
 }
-

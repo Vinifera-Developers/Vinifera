@@ -146,4 +146,3 @@ void CampaignClassExtension_Init()
 {
 
 }
-

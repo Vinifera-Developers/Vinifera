@@ -97,4 +97,3 @@ void HouseClassExtension_Init()
 {
 
 }
-

@@ -98,4 +98,3 @@ void UnitClassExtension_Init()
 {
 
 }
-

@@ -1303,4 +1303,3 @@ void UnitClassExtension_Hooks()
 
     Patch_Byte(0x00658961, 0xEB); // Allow pre-placed units to have missions in multiplayer, change JZ to JMP
 }
-

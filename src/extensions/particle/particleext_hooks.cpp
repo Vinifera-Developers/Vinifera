@@ -101,4 +101,3 @@ void ParticleClassExtension_Hooks()
 {
     
 }
-

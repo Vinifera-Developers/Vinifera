@@ -2347,4 +2347,3 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
     Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
 }
-

@@ -113,4 +113,3 @@ void CampaignClassExtension_Hooks()
 
     Patch_Byte_Range(0x004E3377, 0x90, 3); // Removes "or ecx, 0x0FFFFFFFF"
 }
-

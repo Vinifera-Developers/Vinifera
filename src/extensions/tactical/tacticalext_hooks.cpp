@@ -945,4 +945,3 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00610D61, _TacticalClass_SubRender7_Patch);
     Patch_Jump(0x00610FB1, _TacticalClass_SubRender8_Patch);
 }
-

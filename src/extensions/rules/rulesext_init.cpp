@@ -123,4 +123,3 @@ void RulesClassExtension_Init()
 {
 
 }
-

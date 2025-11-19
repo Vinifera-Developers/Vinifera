@@ -220,4 +220,3 @@ void RulesClassExtension_Hooks()
     Patch_Dword(0x004E130C+1, IDD_RULES);
     Patch_Jump(0x004E17B0, &Rules_Dialog_Procedure);
 }
-

@@ -97,4 +97,3 @@ void TerrainTypeClassExtension_Init()
 {
 
 }
-

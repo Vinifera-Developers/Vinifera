@@ -217,4 +217,3 @@ void IsometricTileTypeClassExtension_Init()
 {
 
 }
-
