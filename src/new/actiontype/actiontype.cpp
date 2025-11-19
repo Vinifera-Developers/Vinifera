@@ -313,7 +313,7 @@ ActionType ActionTypeClass::From_Name(const char *name)
 {
     ASSERT(name != nullptr);
 
-    if (nonstd::string_view(name) == "<none>" || nonstd::string_view(name) == "none") {
+    if (std::string_view(name) == "<none>" || std::string_view(name) == "none") {
         return ACTION_NONE;
     }
 
@@ -349,7 +349,7 @@ ActionTypeClass *ActionTypeClass::Find_Or_Make(const char *name)
 {
     ASSERT(name != nullptr);
 
-    if (nonstd::string_view(name) == "<none>" || nonstd::string_view(name) == "none") {
+    if (std::string_view(name) == "<none>" || std::string_view(name) == "none") {
         return nullptr;
     }
 

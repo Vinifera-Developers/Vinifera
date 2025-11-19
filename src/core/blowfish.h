@@ -35,6 +35,7 @@
 #pragma once
 
 #include "always.h"
+#include <climits>
 
 
 class BlowfishEngine
