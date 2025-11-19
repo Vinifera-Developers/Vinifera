@@ -496,7 +496,7 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
     SetWindowLongPtr(MainWindow, GWL_STYLE, style);
 
     /**
-     *  Set the games windows proc function to the window.
+     *  Set the window to use our window procedure, save the one SDL set.
      */
     SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)SDL_Windows_Procedure);
 
