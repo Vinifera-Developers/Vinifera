@@ -41,6 +41,7 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "windialog.h"
 #include "wsproto.h"
 #include "wwmouse.h"
@@ -463,7 +464,13 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
         SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
     }
 
-    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "Tiberian Sun");
+    DWORD dwPid = GetProcessId(GetCurrentProcess());
+    if (!dwPid) {
+        DEBUG_ERROR("Create_Main_Window() - Failed to get the process id!\n");
+        return false;
+    }
+
+    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, Vinifera_Get_Window_Title(dwPid));
 
     /**
      *  Create the window.
