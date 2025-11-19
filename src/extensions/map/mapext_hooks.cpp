@@ -99,21 +99,20 @@ void MapClassExt::_Place_Down(Cell& cell, ObjectClass* object)
  *
  *  @author: Rampastring
  */
-void MapClassExt::_Pick_Up(Cell & cell,ObjectClass * object)
+void MapClassExt::_Pick_Up(Cell& cell, ObjectClass* object)
 {
-    if(!object)
-        return;
+    if (!object) return;
 
-    if(object->Class_Of()->IsFootprint && object->In_Which_Layer() == LAYER_GROUND){
+    if (object->Class_Of()->IsFootprint && object->In_Which_Layer() == LAYER_GROUND) {
         Cell xlist[32];
-        List_Copy(object->Occupy_List(),std::size(xlist),xlist);
-        Cell const * list = xlist;
-        while(*list != REFRESH_EOL){
+        List_Copy(object->Occupy_List(), std::size(xlist), xlist);
+        Cell const* list = xlist;
+        while (*list != REFRESH_EOL) {
             Cell newcell = cell + *list++;
             int cellnum = newcell.As_Cell_Number();
 
-            if(cellnum >= 0 && cellnum < MAP_CELL_TOTAL && Array[cellnum] != nullptr){
-                (*this)[newcell].Occupy_Up(object,object->IsOnBridge);
+            if (cellnum >= 0 && cellnum < MAP_CELL_TOTAL && Array[cellnum] != nullptr) {
+                (*this)[newcell].Occupy_Up(object, object->IsOnBridge);
                 (*this)[newcell].Recalc_Attributes();
             }
         }
