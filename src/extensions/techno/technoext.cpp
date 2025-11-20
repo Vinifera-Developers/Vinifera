@@ -54,7 +54,7 @@
 #include "team.h"
 #include "teamtype.h"
 #include "unit.h"
-#include "weapontype.h"
+#include "anim.h"
 
 
 /**
@@ -125,9 +125,11 @@ TechnoClassExtension::~TechnoClassExtension()
         delete SpawnManager;
         SpawnManager = nullptr;
     }
-    
-    delete IdleWakeAnim;
-    IdleWakeAnim = nullptr;
+
+    if (IdleWakeAnim) {
+        delete IdleWakeAnim;
+        IdleWakeAnim = nullptr;
+    }
 }
 
 
@@ -195,6 +197,10 @@ void TechnoClassExtension::Detach(AbstractClass * target, bool all)
 
     if (target == SpawnOwner) {
         SpawnOwner = nullptr;
+    }
+
+    if (target == IdleWakeAnim) {
+        IdleWakeAnim = nullptr;
     }
 }
 
