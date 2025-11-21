@@ -65,7 +65,7 @@ static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *t
     /**
      *  If this unit shouldn't show wakes when cloaked, hide the idle wake and return.
      */
-    if (technotype_ext->IsHideWakeWhenCloaked && linked_foot->Visual_Character() == VISUAL_HIDDEN) {
+    if (technotype_ext->IsHideWakeWhenCloaked && linked_foot->Cloak == CLOAKED) {
         if (linked_footext->IdleWakeAnim) {
             linked_footext->IdleWakeAnim->Make_Invisible();
         }
