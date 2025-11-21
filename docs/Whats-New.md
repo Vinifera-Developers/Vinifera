@@ -73,7 +73,7 @@ New:
 - Implement multiplayer beacons (by ZivDero)
 - Chat improvements (by ZivDero)
 - Port to Syringe (by ZivDero)
-- Add customizable wake animations (by CCHyper)
+- Add customizable wake animations (by CCHyper, ZivDero)
 
 
 Vinifera fixes:

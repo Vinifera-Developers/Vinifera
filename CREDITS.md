@@ -303,3 +303,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
   - Fix a bug where carryalls assign their ROT to the unit they're carrying.
   - Port to Syringe.
+  - Add customizable wake animations.
