@@ -64,12 +64,12 @@ const char *Vinifera_Name_String()
         /**
          *  Append the CnCNet version if enabled.
          */
-        char *cncnet_mode = nullptr;
+        char const* cncnet_mode = nullptr;
         if (CnCNet4::IsEnabled) {
             cncnet_mode = " (CnCNet4)";
         }
 
-        char *dev_mode = nullptr;
+        char const* dev_mode = nullptr;
         if (Vinifera_DeveloperMode) {
             dev_mode = " (Dev)";
         }
@@ -168,7 +168,7 @@ const char *Vinifera_Version_String()
         /**
          *  Append the CnCNet version if enabled.
          */
-        char *cncnet_mode = nullptr;
+        char const* cncnet_mode = nullptr;
         if (CnCNet4::IsEnabled) {
             cncnet_mode = " (CnCNet4)";
         }
