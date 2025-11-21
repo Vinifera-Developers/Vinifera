@@ -45,7 +45,7 @@ jobs:
           
       - name: Configure Project
         run: |
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DPREVIEW=ON
       
       - name: Build Project
         run: |
@@ -105,7 +105,7 @@ jobs:
           
       - name: Configure Project
         run: |
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DOPTION_TS_CLIENT_BUILD=ON
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DPREVIEW=ON -DOPTION_TS_CLIENT_BUILD=ON
       
       - name: Build Project
         run: |
