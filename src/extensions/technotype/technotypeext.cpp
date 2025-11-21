@@ -28,6 +28,7 @@
 #include "technotypeext.h"
 
 #include "aircrafttype.h"
+#include "animtype.h"
 #include "technotype.h"
 #include "ccini.h"
 #include "filepng.h"
@@ -104,7 +105,11 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsNaval(false),
     BuiltAt(),
     BuildTimeMultiplier(1.0f),
-    IsOpportunityFire(false)
+    IsOpportunityFire(false),
+    WakeAnim(nullptr),
+    WakeAnimRate(10),                   // Default DriveLocomotion value.
+    IdleWakeAnim(nullptr),
+    IsHideWakeWhenCloaked(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -169,6 +174,8 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(WakeAnim, "WakeAnim");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(IdleWakeAnim, "IdleWakeAnim");
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BuiltAt, "BuiltAt");
 
@@ -292,6 +299,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsNaval);
     crc(BuiltAt.Count());
     crc(IsOpportunityFire);
+    crc(WakeAnimRate);
+    crc(IsHideWakeWhenCloaked);
 }
 
 
@@ -376,8 +385,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
 
-    if (ini.Is_Present(ini_name, "Description"))
+    if (ini.Is_Present(ini_name, "Description")) {
         ini.Get_String(ini_name, "Description", Description, std::size(Description));
+    }
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
@@ -429,6 +439,11 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
     IsOpportunityFire = ini.Get_Bool(ini_name, "OpportunityFire", IsOpportunityFire);
+
+    WakeAnim = TGet_Class(ArtINI, graphic_name, "WakeAnim", WakeAnim);
+    WakeAnimRate = ArtINI.Get_Int(graphic_name, "WakeAnimRate", WakeAnimRate);
+    IdleWakeAnim = TGet_Class(ArtINI, graphic_name, "IdleWakeAnim", IdleWakeAnim);
+    IsHideWakeWhenCloaked = ArtINI.Get_Bool(graphic_name, "HideWakeWhenCloaked", IsHideWakeWhenCloaked);
 
     return true;
 }

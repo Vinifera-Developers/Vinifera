@@ -54,7 +54,7 @@
 #include "team.h"
 #include "teamtype.h"
 #include "unit.h"
-#include "weapontype.h"
+#include "anim.h"
 
 
 /**
@@ -72,7 +72,8 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     LastTargetFrame(Frame),
     IsToResetBurst(false),
     BurstResetTimer(),
-    LastVeterancy(RANK_NONE)
+    LastVeterancy(RANK_NONE),
+    IdleWakeAnim(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -124,6 +125,11 @@ TechnoClassExtension::~TechnoClassExtension()
         delete SpawnManager;
         SpawnManager = nullptr;
     }
+
+    if (IdleWakeAnim) {
+        delete IdleWakeAnim;
+        IdleWakeAnim = nullptr;
+    }
 }
 
 
@@ -147,6 +153,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnManager, "SpawnManager");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "SpawnOwner");
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(IdleWakeAnim, "IdleWakeAnim");
     
     return hr;
 }
@@ -189,6 +197,10 @@ void TechnoClassExtension::Detach(AbstractClass * target, bool all)
 
     if (target == SpawnOwner) {
         SpawnOwner = nullptr;
+    }
+
+    if (target == IdleWakeAnim) {
+        IdleWakeAnim = nullptr;
     }
 }
 

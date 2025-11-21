@@ -142,6 +142,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+  - Add customizable wake animations.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **Kerbiter (Metadorius)**:
@@ -302,3 +303,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
   - Fix a bug where carryalls assign their ROT to the unit they're carrying.
   - Port to Syringe.
+  - Add customizable wake animations.
