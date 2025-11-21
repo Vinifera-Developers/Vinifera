@@ -161,6 +161,9 @@
 #include "hooker.h"
 #include "objectext_hooks.h"
 #include "prerequisitegroup_hooks.h"
+#include "sdl_hooks.h"
+#include "sdlmouse_hooks.h"
+#include "sdlsurface_hooks.h"
 #include "spawnmanager_hooks.h"
 #include "teventext_hooks.h"
 #include "voxelanimext_hooks.h"
@@ -302,6 +305,10 @@ void Extension_Hooks()
     ScoreClassExtension_Hooks();
     MultiMissionExtension_Hooks();
     ConquerExtension_Hooks();
+
+    SDLSurface_Hooks();
+    SDLMouse_Hooks();
+    SDL_Hooks();
 
     /**
      *  Dialogs and associated code.

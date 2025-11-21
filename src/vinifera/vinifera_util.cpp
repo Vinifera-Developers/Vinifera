@@ -434,7 +434,7 @@ void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...)
  */
 const char *Vinifera_Get_Window_Title(DWORD dwPid)
 {
-    static char _window_name[512];
+    static char _window_name[512] = {};
 
     if (_window_name[0] != '\0') {
         return _window_name;

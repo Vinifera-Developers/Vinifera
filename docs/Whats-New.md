@@ -74,6 +74,7 @@ New:
 - Chat improvements (by ZivDero)
 - Port to Syringe (by ZivDero)
 - Add customizable wake animations (by CCHyper, ZivDero)
+- Replace DirectDraw with SDL (by ZivDero, tomsons26, CCHyper)
 
 
 Vinifera fixes:

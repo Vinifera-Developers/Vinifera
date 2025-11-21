@@ -56,6 +56,7 @@
 #include "beacon.h"
 #include "debughandler.h"
 #include "mouse.h"
+#include "scenarioext.h"
 #include "tibsun_functions.h"
 #include "uicontrol.h"
 #include "wwmouse.h"

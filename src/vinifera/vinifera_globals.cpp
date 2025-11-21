@@ -63,6 +63,12 @@ int Vinifera_Developer_FrameStepCount = 0;
 bool Vinifera_Developer_AIControl = false;
 bool Vinifera_Developer_IsToReloadRules = false;
 
+SDL_Window* SDLWindow = nullptr;
+SDL_Renderer* SDLWindowRenderer = nullptr;
+SDL_Texture* SDLWindowTexture = nullptr;
+int SDLWindowWidth = 0;
+int SDLWindowHeight = 0;
+
 bool Vinifera_SkipLogoMovies = false;
 bool Vinifera_SkipStartupMovies = false;
 

@@ -53,6 +53,7 @@
 #include "sessionext.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "sdlsurface.h"
 #include "tacticalext.h"
 
 
