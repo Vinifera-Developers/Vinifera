@@ -365,4 +365,24 @@ public:
      *  Can this object pick up targets within its range automatically (opportunity fire)?
      */
     bool IsOpportunityFire;
+
+    /**
+     *  The wake graphic to show as the object moves across water.
+     */
+    const AnimTypeClass* WakeAnim;
+
+    /**
+     *  The rate at which this object creates the wake animation while moving.
+     */
+    int WakeAnimRate;
+
+    /**
+     *  The wake graphic to show when the object is staying still on water.
+     */
+    const AnimTypeClass* IdleWakeAnim;
+
+    /**
+     *  Should this unit not spawn wakes when it's cloaked? Usually useful for submarines.
+     */
+    bool IsHideWakeWhenCloaked;
 };
