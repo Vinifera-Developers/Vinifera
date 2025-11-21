@@ -1016,10 +1016,6 @@ HideWakeWhenCloaked=no  ; boolean, should this unit not spawn wakes when it's cl
 Wake customizations currently only take effect on units using `DriveLocomotion`.
 ```
 
-```{note}
-`IdleWakeAnim` should have `LoopCount=-1` as it
-```
-
 ### ImmuneToEMP
 
 - Vinifera allows specific TechnoTypes to be immune to EMP effects.
