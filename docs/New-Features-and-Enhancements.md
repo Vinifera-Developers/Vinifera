@@ -1005,10 +1005,19 @@ ShakeXlo=0    ; unsigned integer, the minimum pixel X value.
 
 In `ART.INI`:
 ```ini
-[SOMETECHNO]     ; TechnoType
-WakeAnim=        ; AnimType, the wake graphic to show as the object moves across water.
-WakeAnimRate=10  ; integer, the rate at which this object creates the wake animation while moving.
-IdleWakeAnim=    ; AnimType, the wake graphic to show when the object is staying still on water.
+[SOMETECHNO]            ; TechnoType
+WakeAnim=               ; AnimType, the wake graphic to show as the object moves across water.
+WakeAnimRate=10         ; integer, the rate at which this object creates the wake animation while moving.
+IdleWakeAnim=           ; AnimType, the wake graphic to show when the object is staying still on water.
+HideWakeWhenCloaked=no  ; boolean, should this unit not spawn wakes when it's cloaked?
+```
+
+```{note}
+Wake customizations currently only take effect on units using `DriveLocomotion`.
+```
+
+```{note}
+`IdleWakeAnim` should have `LoopCount=-1` as it
 ```
 
 ### ImmuneToEMP

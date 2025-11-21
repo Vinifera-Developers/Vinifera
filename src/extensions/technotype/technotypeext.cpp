@@ -108,7 +108,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsOpportunityFire(false),
     WakeAnim(nullptr),
     WakeAnimRate(10),                   // Default DriveLocomotion value.
-    IdleWakeAnim(nullptr)
+    IdleWakeAnim(nullptr),
+    IsHideWakeWhenCloaked(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -299,6 +300,7 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(BuiltAt.Count());
     crc(IsOpportunityFire);
     crc(WakeAnimRate);
+    crc(IsHideWakeWhenCloaked);
 }
 
 
@@ -383,10 +385,6 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
 
-    WakeAnim = TGet_Class(ArtINI, graphic_name, "WakeAnim", WakeAnim);
-    WakeAnimRate = ArtINI.Get_Int(graphic_name, "WakeAnimRate", WakeAnimRate);
-    IdleWakeAnim = TGet_Class(ArtINI, graphic_name, "IdleWakeAnim", IdleWakeAnim);
-
     if (ini.Is_Present(ini_name, "Description")) {
         ini.Get_String(ini_name, "Description", Description, std::size(Description));
     }
@@ -441,6 +439,11 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
     IsOpportunityFire = ini.Get_Bool(ini_name, "OpportunityFire", IsOpportunityFire);
+
+    WakeAnim = TGet_Class(ArtINI, graphic_name, "WakeAnim", WakeAnim);
+    WakeAnimRate = ArtINI.Get_Int(graphic_name, "WakeAnimRate", WakeAnimRate);
+    IdleWakeAnim = TGet_Class(ArtINI, graphic_name, "IdleWakeAnim", IdleWakeAnim);
+    IsHideWakeWhenCloaked = ArtINI.Get_Bool(graphic_name, "HideWakeWhenCloaked", IsHideWakeWhenCloaked);
 
     return true;
 }

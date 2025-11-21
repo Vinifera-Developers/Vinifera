@@ -380,4 +380,9 @@ public:
      *  The wake graphic to show when the object is staying still on water.
      */
     const AnimTypeClass* IdleWakeAnim;
+
+    /**
+     *  Should this unit not spawn wakes when it's cloaked? Usually useful for submarines.
+     */
+    bool IsHideWakeWhenCloaked;
 };
