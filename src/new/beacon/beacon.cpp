@@ -310,7 +310,7 @@ void BeaconManagerClass::Load_Art()
         BeaconHeight = BeaconArt->Get_Height();
         BeaconFrameCount = BeaconArt->Get_Count();
     } else {
-        DEBUG_INFO("Failed to load BeaconArt");
+        DEBUG_WARNING("Failed to load BeaconArt\n");
     }
 
     RawFileClass rdrbeacon("RDRBEACN.SHP");
@@ -328,7 +328,7 @@ void BeaconManagerClass::Load_Art()
         RadarBeaconFrameCount = RadarBeaconArt->Get_Count();
         RadarBeaconAnimPeriod = 4 * RadarBeaconFrameCount;
     } else {
-        DEBUG_INFO("Failed to load RadarBeaconArt");
+        DEBUG_WARNING("Failed to load RadarBeaconArt\n");
     }
 }
 
