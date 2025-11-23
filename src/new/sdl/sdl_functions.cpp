@@ -169,6 +169,9 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
     }
     DEBUG_INFO("SDLWindowRenderer created.\n");
 
+    const char* driver_name = SDL_GetRendererName(SDLWindowRenderer);
+    DEBUG_INFO("Renderer driver: %s\n", driver_name);
+
     /**
      *  Set the scaling mode if specified.
      */
