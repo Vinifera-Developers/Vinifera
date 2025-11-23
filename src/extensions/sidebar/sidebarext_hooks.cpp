@@ -2475,6 +2475,11 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
     }
 
     int index = Strip->TopIndex + Index;
+
+    if (index >= std::size(Strip->Buildables)) {
+        return true;
+    }
+
     RTTIType otype = Strip->Buildables[index].BuildableType;
     int oid = Strip->Buildables[index].BuildableID;
 
