@@ -435,12 +435,12 @@ void ScenarioClassExtension::Clear_All_Waypoints()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_All_Waypoints - 0x%08X\n", (uintptr_t)(This()));
 
-    /**
-     *  Assume that whatever the contents of the VectorClass are is garbage
-     *  (it may have been loaded from a save-game file), so zero it out first.
-     */
     new (&Waypoint) VectorClass<Cell>;
     Waypoint.Resize(NEW_WAYPOINT_COUNT);
+
+    for (int i = 0; i < Waypoint.Length(); i++) {
+        Waypoint[i] = CELL_NONE;
+    }
 }
 
 
