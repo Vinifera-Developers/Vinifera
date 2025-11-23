@@ -105,7 +105,7 @@ SDLSurface::SDLSurface(int width, int height) :
      */
     GDIBitmap = CreateDIBSection(GDIDC, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, &GDIBuffer, nullptr, 0);
     if (!GDIBitmap || !GDIBuffer) {
-        DEBUG_ERROR("CreateDIBSection failed\n");
+        DEBUG_ERROR("CreateDIBSection failed! Error = %lu\n", GetLastError());
         DeleteDC(GDIDC);
         GDIDC = nullptr;
         return;
