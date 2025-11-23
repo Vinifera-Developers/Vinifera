@@ -2408,7 +2408,7 @@ DEFINE_HOOK(0x00633BD4, _TechnoClass_Do_Uncloak_Uncloak_Sound_Patch, 0)
     return 0x00633BE7;
 }
 
-
+#if 0 // Disabled because it seems to trigger false alarms when the game crashes for other reasons.
 /**
  *  A patch that adds debug logging on null house pointers in TechnoClass::Owner().
  * 
@@ -2430,7 +2430,7 @@ DEFINE_HOOK(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 6)
 
     return 0;
 }
-
+#endif
 
 /**
  *  A patch that makes Technos abandon their current target if they can't fire at it.
