@@ -95,6 +95,7 @@
 #include "bullettype.h"
 #include "eventext.h"
 #include "houseext.h"
+#include "scenarioext.h"
 #include "waypointpath.h"
 
 
@@ -1554,9 +1555,9 @@ bool DumpTriggersCommandClass::Process()
 
     DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
 
-    for (int i = 0; i < std::size(Scen->LocalFlags); i++)
+    for (int i = 0; i < std::size(ScenExtension->LocalFlags); i++)
     {
-        DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
+        DEBUG_INFO("LocalFlag %d: %s, value: %d\n", i, ScenExtension->LocalFlags[i].VariableName, ScenExtension->LocalFlags[i].Value);
     }
 
     DEBUG_INFO("\nFinished!\n\n");
