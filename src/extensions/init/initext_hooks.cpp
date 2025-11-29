@@ -64,59 +64,6 @@ extern HMODULE DLLInstance;
 
 
 /**
- *  #issue-305
- * 
- *  Fixes bug where the sidebar mouse wheel scrolling "error" sound
- *  can be heard at the main menu.
- * 
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x00685F69, _Main_Window_Procedure_Scroll_Sidebar_Check_Patch, 0)
-{
-    GET_STACK(UINT, wParam, 0x14);
-    static bool _mouse_wheel_scolling = false;
-
-    /**
-     *  The code before this patch checks for WM_MOUSEWHEEL.
-     */
-
-    /**
-     *  We are not currently playing a scenario, no need to execute this command.
-     */
-    if (!ScenarioStarted && !TacticalViewActive) {
-        goto message_handler;
-    }
-
-    /**
-     *  Are we currently executing a scroll command? This is required because
-     *  the Main_Window_Procedure function runs at a Windows level.
-     */
-    if (_mouse_wheel_scolling) {
-        goto message_handler;
-    }
-
-    _mouse_wheel_scolling = true;
-
-    /**
-     *  Execute the command based on the direction of the mouse wheel.
-     */
-    if ((wParam & 0x80000000) == 0) {
-        CommandClass::Activate_From_Name("SidebarUp");
-    } else {
-        CommandClass::Activate_From_Name("SidebarDown");
-    }
-
-    _mouse_wheel_scolling = false;
-
-executed:
-    return 0x00685F9C;
-
-message_handler:
-    return 0x00685FA0;
-}
-
-
-/**
  *  #issue-513
  * 
  *  Patch to add check for CD::IsOverrideSwap() to make sure -CD really

@@ -388,10 +388,16 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
     case WM_MOUSEWHEEL:
         if (!_MouseWheel) {
             _MouseWheel = true;
-            if (GET_WHEEL_DELTA_WPARAM(wParam) < 0) {
-                Do_Command("SidebarDown");
-            } else {
-                Do_Command("SidebarUp");
+
+            /**
+             *  If we are not currently playing a scenario, no need to execute this command.
+             */
+            if (ScenarioStarted && TacticalViewActive) {
+                if (GET_WHEEL_DELTA_WPARAM(wParam) < 0) {
+                    Do_Command("SidebarDown");
+                } else {
+                    Do_Command("SidebarUp");
+                }
             }
             _MouseWheel = false;
         }
