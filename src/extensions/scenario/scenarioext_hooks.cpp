@@ -371,15 +371,19 @@ int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x005DEBFA, _Create_Units_Save_Spawn_Waypoint_Patch, 0)
+DEFINE_HOOK(0x005DEBFA, _Create_Units_Save_Spawn_Waypoint_Patch, 5)
 {
     GET(HouseClass*, house, EDI);
+    REF_STACK(Cell, centroid, 0x20);
 
-    Extension::Fetch(house)->Set_Spawn_Point(house->Center);
-    bool bases = Session.Options.Bases;
-    R->AL(bases);
+    Extension::Fetch(house)->Set_Spawn_Point(centroid);
 
-    return 0x005DEBFF;
+    // The game was supposed to have done this but there's something wrong in ts-patches
+    // so we take it upon ourselves to do this properly.
+    house->Center = centroid.As_Coord();
+    ASSERT(house->Center == centroid.As_Coord());
+    
+    return 0;
 }
 
 

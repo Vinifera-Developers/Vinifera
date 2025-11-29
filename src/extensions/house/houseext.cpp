@@ -1239,10 +1239,10 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
  *
  *  @author: ZivDero
  */
-void HouseClassExtension::Set_Spawn_Point(const Coord& coord)
+void HouseClassExtension::Set_Spawn_Point(const Cell& cell)
 {
     for (WAYPOINT i = 0; i < MAX_PLAYERS; i++) {
-        if (Scen->Waypoint_Coord(i).As_Cell() == coord.As_Cell()) {
+        if (Scen->Is_Waypoint_Valid(i) && Scen->Waypoint_Cell(i) == cell) {
             SpawnWaypoint = i;
             return;
         }
