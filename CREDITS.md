@@ -306,3 +306,4 @@ This page lists all the individual contributions to the project by their author.
   - Port to Syringe.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
+  - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it.

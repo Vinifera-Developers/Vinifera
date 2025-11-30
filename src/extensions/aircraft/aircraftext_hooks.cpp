@@ -52,6 +52,7 @@
 #include "house.h"
 #include "rules.h"
 #include "syringe.h"
+#include "unitext.h"
 
 
 /**
@@ -165,8 +166,7 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
     if (Extension::Fetch(Class)->IsSpawned) {
         const TechnoClass* techno = Map[cell].Cell_Techno();
         if (techno) {
-            if (Extension::Fetch(techno)->SpawnManager
-                || Extension::Fetch(techno->TClass)->IsSpawned) {
+            if (Extension::Fetch(techno)->SpawnManager || Extension::Fetch(techno->TClass)->IsSpawned) {
                 return true;
             }
         }
@@ -176,8 +176,9 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
      *  If we're a carryall, we can enter a potential totable unit's cell.
      */
     bool can_tote = false;
-    if (Class->IsCarryall && NavCom != nullptr && NavCom->RTTI == RTTI_UNIT)
+    if (Class->IsCarryall && NavCom != nullptr && NavCom->RTTI == RTTI_UNIT && Extension::Fetch(static_cast<UnitClass*>(NavCom)->Class)->IsTotable) {
         can_tote = true;
+    }
 
     /**
      *  Make sure that no other aircraft are heading to the selected location. If they

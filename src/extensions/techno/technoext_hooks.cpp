@@ -1226,6 +1226,27 @@ ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force
 }
 
 
+#if 0
+/**
+ *  Disallow alt-moving with a carryall onto a non-totable unit
+ *  as the carry-all treats that as toting.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x006318ED, _TechnoClass_What_Action_Totable_Patch, 8)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+    GET(ObjectClass*, object, EBP);
+
+    if (this_ptr->RTTI == RTTI_AIRCRAFT && static_cast<AircraftClass*>(this_ptr)->Class->IsCarryall && object->RTTI == RTTI_UNIT && !Extension::Fetch(static_cast<UnitClass*>(object)->Class)->IsTotable) {
+        return 0x006318F9; // ignore alt-move
+    }
+
+    return 0;
+}
+#endif
+
+
 /**
  *  Reimplements part of TechnoClass::Take_Damage that is responsible for dropping Tiberium
  *  from a unit's storage to drop the Tiberium that the unit contains, and not always Riparius.
