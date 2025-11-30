@@ -27,10 +27,10 @@
  ******************************************************************************/
 #pragma once
 
+#include "SDL3/SDL_surface.h"
 #include "always.h"
 #include "extension.h"
 #include "options.h"
-#include "SDL3/SDL_surface.h"
 
 
 class CCINIClass;
@@ -38,69 +38,68 @@ class CCINIClass;
 
 class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
 {
-    public:
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+public:
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
 
-    public:
-        OptionsClassExtension(const OptionsClass *this_ptr);
-        OptionsClassExtension(const NoInitClass &noinit);
-        virtual ~OptionsClassExtension();
+public:
+    OptionsClassExtension(const OptionsClass* this_ptr);
+    OptionsClassExtension(const NoInitClass& noinit);
+    virtual ~OptionsClassExtension();
 
-        /**
-         *  OptionsClass extension does not require these to be used, but we
-         *  implement them for completeness.
-         */
-        virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
-        virtual void Object_CRC(CRCEngine &crc) const override;
+    /**
+     *  OptionsClass extension does not require these to be used, but we
+     *  implement them for completeness.
+     */
+    virtual int Get_Object_Size() const override;
+    virtual void Detach(AbstractClass* target, bool all = true) override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
 
-        virtual const char *Name() const override { return "Options"; }
-        virtual const char *Full_Name() const override { return "Options"; }
+    virtual const char* Name() const override { return "Options"; }
+    virtual const char* Full_Name() const override { return "Options"; }
 
-        void Load_Settings();
-        void Load_Init_Settings();
-        void Save_Settings();
+    void Load_Settings();
+    void Load_Init_Settings();
+    void Save_Settings();
 
-        void Set();
+    void Set();
 
-    public:
+public:
+    /**
+     *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
+     */
+    bool SortDefensesAsLast;
 
-        /**
-         *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
-         */
-        bool SortDefensesAsLast;
+    /**
+     *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
+     */
+    bool FilterBandBoxSelection;
 
-        /**
-         *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
-         */
-        bool FilterBandBoxSelection;
+    /**
+     *  Customizable hotkeys for starting a chat.
+     */
+    int KeyChatToAll1;
+    int KeyChatToAll2;
+    int KeyChatToAllies;
 
-        /**
-         *  Customizable hotkeys for starting a chat.
-         */
-        int KeyChatToAll1;
-        int KeyChatToAll2;
-        int KeyChatToAllies;
+    /**
+     *  Window size override.
+     */
+    int WindowWidth;
+    int WindowHeight;
 
-        /**
-         *  Window size override.
-         */
-        int WindowWidth;
-        int WindowHeight;
+    /**
+     *  Scaling mode.
+     */
+    SDL_ScaleMode ScaleMode;
 
-        /**
-         *  Scaling mode.
-         */
-        SDL_ScaleMode ScaleMode;
+    /**
+     *  Cursor scale factor.
+     */
+    int CursorScale;
 
-        /**
-         *  Cursor scale factor.
-         */
-        int CursorScale;
-
-        /**
-         *  Is VSync on?
-         */
-        bool IsVSync;
+    /**
+     *  Is VSync on?
+     */
+    bool IsVSync;
 };
