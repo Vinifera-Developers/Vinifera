@@ -98,4 +98,9 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
          *  Cursor scale factor.
          */
         int CursorScale;
+
+        /**
+         *  Is VSync on?
+         */
+        bool IsVSync;
 };

@@ -173,6 +173,11 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
     DEBUG_INFO("Renderer driver: %s\n", driver_name);
 
     /**
+     *  Toggle VSync.
+     */
+    SDL_SetRenderVSync(SDLWindowRenderer, OptionsExtension->IsVSync ? 1 : 0);
+
+    /**
      *  Set the scaling mode if specified.
      */
     if (OptionsExtension->ScaleMode != SDL_SCALEMODE_INVALID) {
