@@ -170,14 +170,28 @@ LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM 
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x00593F8D, _CtrlProc_SDL_Update_Screen, 6)
+DEFINE_HOOK(0x00593F8D, _CtrlProc_SDL_Update_Screen_Patch, 6)
 {
     SDL_Update_Screen(VisibleSurface);
     return 0;
 }
-DEFINE_HOOK_AGAIN(0x00594101, _CtrlProc_SDL_Update_Screen, 6);
-DEFINE_HOOK_AGAIN(0x0059437C, _CtrlProc_SDL_Update_Screen, 6);
-DEFINE_HOOK_AGAIN(0x0059449F, _CtrlProc_SDL_Update_Screen, 6);
+DEFINE_HOOK_AGAIN(0x00594101, _CtrlProc_SDL_Update_Screen_Patch, 6);
+DEFINE_HOOK_AGAIN(0x0059437C, _CtrlProc_SDL_Update_Screen_Patch, 6);
+DEFINE_HOOK_AGAIN(0x0059449F, _CtrlProc_SDL_Update_Screen_Patch, 6);
+
+
+/**
+ *  The kick player dialog needs separate hooks to update the screen after drawing.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x005B3F72, _Kick_Player_Dialog_SDL_Update_Screen_Patch, 6)
+{
+    SDL_Update_Screen(VisibleSurface);
+    return 0;
+}
+DEFINE_HOOK_AGAIN(0x005B3F81, _Kick_Player_Dialog_SDL_Update_Screen_Patch, 5);
+DEFINE_HOOK_AGAIN(0x005B3FA1, _Kick_Player_Dialog_SDL_Update_Screen_Patch, 6);
 
 /**
  *  This function moves a dialog window to a specified position.
