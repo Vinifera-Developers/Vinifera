@@ -710,7 +710,7 @@ void TacticalExtension::Draw_Super_Timers()
 #ifdef RELEASE
     int row_index = 0;
 #else
-    int row_index = 3;
+    int row_index = Vinifera_NoTacticalVersionString ? 0 : 3;
 #endif
 
     /**
