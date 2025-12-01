@@ -71,6 +71,7 @@ class WarheadTypeClassExtension;
 class WaveClassExtension;
 class WeaponTypeClassExtension;
 class TEventClassExtension;
+class TActionClassExtension;
 
 class TacticalExtension;
 
@@ -141,6 +142,7 @@ extern DynamicVectorClass<WarheadTypeClassExtension *> WarheadTypeExtensions;
 extern DynamicVectorClass<WaveClassExtension *> WaveExtensions;
 extern DynamicVectorClass<WeaponTypeClassExtension *> WeaponTypeExtensions;
 extern DynamicVectorClass<TEventClassExtension*> TEventExtensions;
+extern DynamicVectorClass<TActionClassExtension*> TActionExtensions;
 
 /**
  *  Abstract derived classes, but only a single instance is required.

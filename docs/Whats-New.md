@@ -79,6 +79,7 @@ New:
 - Improve alternative factory selection when the primary factory is blocked (by Rampstring)
 - Add "Adjust House Modifier" trigger action (by Rampstring)
 - Add "Only Harvesters" quarry (by Rampastring)
+- Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
 
 
 Vinifera fixes:

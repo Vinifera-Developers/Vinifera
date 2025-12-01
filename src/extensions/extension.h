@@ -175,7 +175,7 @@ class WaveClassExtension;
 // class TagClassExtension;
 // class TagTypeClassExtension;
 class TiberiumClassExtension;
-// class TActionClassExtension;
+class TActionClassExtension;
 // class TEventClassExtension;
 class WeaponTypeClassExtension;
 class WarheadTypeClassExtension;
@@ -430,7 +430,7 @@ MAKE_EXTENSION_PAIR(WaveClass);
 //MAKE_EXTENSION_PAIR(TagClass);                                        // Not yet implemented
 //MAKE_EXTENSION_PAIR(TagTypeClass);                                    // Not yet implemented
 MAKE_EXTENSION_PAIR(TiberiumClass);
-//MAKE_EXTENSION_PAIR(TActionClass);                                    // Not yet implemented
+MAKE_EXTENSION_PAIR(TActionClass);
 //MAKE_EXTENSION_PAIR(TEventClass);                                     // Not yet implemented
 MAKE_EXTENSION_PAIR(WeaponTypeClass);
 MAKE_EXTENSION_PAIR(WarheadTypeClass);

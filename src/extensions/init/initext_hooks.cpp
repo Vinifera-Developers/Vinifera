@@ -41,6 +41,7 @@
 #include "iomap.h"
 #include "dsaudio.h"
 #include "asserthandler.h"
+#include "ccini.h"
 #include "debughandler.h"
 #include "optionsext.h"
 #include "sdl_functions.h"
@@ -50,6 +51,7 @@
 #include <bcrypt.h>
 
 #include "hooker.h"
+#include "scenarioext.h"
 #include "syringe.h"
 
 
@@ -845,6 +847,31 @@ DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
         }
     }
 
+    return 0;
+}
+
+
+/**
+ *  Load tutorial.ini into our new map in Init_Bulk_Data.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004E46BB, _Init_Bulk_Data_Tutorial_Text_Patch, 0)
+{
+    REF_STACK(CCINIClass, tutorial_ini, 0x18);
+    ScenarioClassExtension::Read_Tutorial_INI(tutorial_ini);
+    return 0x004E482E;
+}
+
+
+/**
+ *  Clear our new tutorial text map in Prog_End.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x00601B15, _Prog_End_Tutorial_Text_Patch, 5)
+{
+    Vinifera_TutorialText.clear();
     return 0;
 }
 

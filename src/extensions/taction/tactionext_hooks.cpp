@@ -54,6 +54,9 @@
 #include "hooker.h"
 #include "mouse.h"
 #include "rules.h"
+#include "tagtype.h"
+#include "teamtype.h"
+#include "waypoint.h"
 
 
 /**
@@ -67,6 +70,7 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(TActionClass)
 {
 public:
     bool _Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell);
+    void _Read_INI();
 };
 
 
@@ -84,7 +88,7 @@ bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass*
      *  If this is a Vinifera TAction, execute it.
      */
     if (TActionClassExtension::Is_Vinifera_TAction(Action)) {
-        success = TActionClassExtension::Execute(*this, house, object, trigger, cell);
+        success = Extension::Fetch(this)->Execute(house, object, trigger, cell);
     }
 
     /**
@@ -95,6 +99,96 @@ bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass*
     }
 
     return success;
+}
+
+
+enum NeedCode {
+    NeedOther = 0,
+    NeedTeam = 1,
+    NeedTrigger = 2,
+    NeedTag = 3,
+    NeedTeamAndTime = 4
+};
+
+
+/**
+ *  Parses the INI text for this action's data.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void TActionClassExt::_Read_INI()
+{
+    auto& extension = *Extension::Fetch(this);
+
+    Data.Value = 0;
+    Action = static_cast<TActionType>(atoi(strtok(nullptr, ",")));
+    NeedCode code = static_cast<NeedCode>(atoi(strtok(nullptr, ",")));
+    char* text = strtok(nullptr, ",");
+    int val = atoi(text);
+
+    switch (code) {
+    case NeedOther:
+
+        /**
+         *  Hack: for text triggers, we want text now, but we won't change the need code
+         *  to preserve compatibility.
+         */
+        if (Action == TACTION_TEXT_TRIGGER) {
+            extension.Text = text;
+        } else {
+            Data.Value = val;
+        }
+        break;
+
+    case NeedTeam:
+    case NeedTeamAndTime:
+        if (val == -1) {
+            Team = nullptr;
+        } else {
+            if (strlen(text) < 3) {
+                Team = TeamTypes[val];
+            } else {
+                Team = TeamTypeClass::Find_Or_Make(text);
+            }
+        }
+        break;
+
+    case NeedTrigger:
+        if (val == -1) {
+            Trigger = nullptr;
+        } else {
+            if (strlen(text) < 3) {
+                Trigger = TriggerTypes[val];
+            } else {
+                Trigger = TriggerTypeClass::Find_Or_Make(text);
+            }
+        }
+        break;
+    case NeedTag:
+        if (val == -1) {
+            Tag = nullptr;
+        } else {
+            if (strlen(text) < 3) {
+                Tag = TagTypes[val];
+            } else {
+                Tag = TagTypeClass::Find_Or_Make(text);
+            }
+        }
+        break;
+    }
+
+    TriggerRect.X = atoi(strtok(nullptr, ","));
+    TriggerRect.Y = atoi(strtok(nullptr, ","));
+    TriggerRect.Width = atoi(strtok(nullptr, ","));
+    TriggerRect.Height = atoi(strtok(nullptr, ","));
+    char* temp = strtok(nullptr, ",");
+    if (temp != nullptr) {
+        if (code == NeedTeamAndTime) {
+            Data.Value = atoi(temp);
+        } else {
+            EffectLocation = Waypoint_From_String(temp);
+        }
+    }
 }
 
 
@@ -131,6 +225,7 @@ AttachType _Attaches_To(TActionType event)
 void TActionClassExtension_Hooks()
 {
     Patch_Call(0x0064961C, &TActionClassExt::_Operator_Parens_Intercept);
+    Patch_Jump(0x00618F70, &TActionClassExt::_Read_INI);
     Patch_Jump(0x0061D9C0, &_Attaches_To);
 
     /**

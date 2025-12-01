@@ -455,7 +455,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
         scen_ini.Load(scen_file, false);
 
-        if (!ScenExtension->Read_Tutorial_INI(scen_ini, true)) {
+        if (!ScenExtension->Read_Tutorial_INI(scen_ini)) {
             DEBUG_ERROR("Failed to read tutorial strings from scenario file!\n");
             return false;
         }
