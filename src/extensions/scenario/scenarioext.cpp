@@ -277,7 +277,7 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass const& ini)
             /**
              *  Get a tutorial message entry.
              */
-            if (ini.Get_String(TUTORIAL, entry, buffer, sizeof(buffer))) {
+            if (ini.Get_String(TUTORIAL, entry, "", buffer, sizeof(buffer))) {
                 Vinifera_TutorialText[entry] = buffer;
             }
         }

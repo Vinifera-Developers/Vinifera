@@ -1501,11 +1501,11 @@ bool TActionClassExtension::Do_DISABLE_TEMPLATED_TEXT(HouseClass* house, ObjectC
  *
  *  @author: Rampastring
  */
-bool TActionClassExtension::Do_ADJUST_HOUSE_MODIFIER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ADJUST_HOUSE_MODIFIER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    int amount = taction.TriggerRect.X;
+    int amount = This()->TriggerRect.X;
 
-    switch (taction.Data.Value)
+    switch (This()->Data.Value)
     {
     case 0:
         house->FirepowerBias += (double)amount / 100.0;
