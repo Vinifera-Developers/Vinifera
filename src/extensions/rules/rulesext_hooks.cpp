@@ -136,7 +136,7 @@ LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG 
             HWND hDlgItem = GetDlgItem(hWnd, IDC_RULE_LISTBOX);
             DynamicVectorClass<CCINIClass *> *vec = reinterpret_cast<DynamicVectorClass<CCINIClass *> *>(lParam);
             for (int i = 0; i < vec->Count(); ++i) {
-                (*vec)[i]->Get_String("General", "Name", buffer, sizeof(buffer));
+                (*vec)[i]->Get_String("General", "Name", "", buffer, sizeof(buffer));
                 SendMessage(hDlgItem, LB_ADDSTRING, 0, (LPARAM)buffer);
             }
             SendMessage(hDlgItem, LB_SETCURSEL, 0, 0);

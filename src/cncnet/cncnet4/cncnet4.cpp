@@ -54,7 +54,7 @@ bool __stdcall CnCNet4::Init()
     ini.Load(file);
     if (ini.Is_Present("CnCNet4")) {
         CnCNet4::IsEnabled = ini.Get_Bool("CnCNet4", "Enabled", CnCNet4::IsEnabled);
-        ini.Get_String("CnCNet4", "Host", CnCNet4::Host, sizeof(CnCNet4::Host));
+        ini.Get_String("CnCNet4", "Host", "", CnCNet4::Host, sizeof(CnCNet4::Host));
         CnCNet4::Peer2Peer = ini.Get_Bool("CnCNet4", "P2P", CnCNet4::Peer2Peer);
         CnCNet4::UseUDP = ini.Get_Bool("CnCNet4", "UDP", CnCNet4::UseUDP);
         CnCNet4::Port = ini.Get_Int("CnCNet4", "Port", CnCNet4::Port);

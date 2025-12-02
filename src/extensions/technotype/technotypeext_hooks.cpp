@@ -74,15 +74,15 @@ int TechnoTypeClassExt::_Max_Pips() const
 
     switch (PipScale)
     {
-    case PIP_AMMO:
+    case PIPSCALE_AMMO:
         return std::clamp(MaxAmmo, 0, max_pips);
 
-    case PIP_PASSENGERS:
+    case PIPSCALE_PASSENGERS:
         return std::clamp(MaxPassengers, 0, max_pips);
 
-    case PIP_TIBERIUM:
-    case PIP_POWER:
-    case PIP_CHARGE:
+    case PIPSCALE_TIBERIUM:
+    case PIPSCALE_POWER:
+    case PIPSCALE_CHARGE:
     default:
         return max_pips;
     }

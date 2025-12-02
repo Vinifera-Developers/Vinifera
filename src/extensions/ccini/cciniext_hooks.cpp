@@ -25,13 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "houseext_hooks.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "ccini.h"
 #include "housetype.h"
-#include "weapontype.h"
-#include "animtype.h"
 #include "theatertype.h"
 #include "armortype.h"
 #include "actiontype.h"
@@ -50,21 +47,19 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class CCINIClassExt : public CCINIClass
+class CCINIClassExt : public CCINIClass
 {
-    public:
-        TypeList<AnimTypeClass *> Get_AnimTypes(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue);
+public:
+    long _Get_Owners(const char* section, const char* entry, const long defvalue);
+    bool _Put_Owners(const char* section, const char* entry, long value);
 
-        long _Get_Owners(const char *section, const char *entry, const long defvalue);
-        bool _Put_Owners(const char *section, const char *entry, long value);
+    TheaterType _Get_TheaterType(const char* section, const char* entry, const TheaterType defvalue);
+    bool _Put_TheaterType(const char* section, const char* entry, TheaterType value);
 
-        TheaterType _Get_TheaterType(const char *section, const char *entry, const TheaterType defvalue);
-        bool _Put_TheaterType(const char *section, const char *entry, TheaterType value);
+    ArmorType _Get_ArmorType(const char* section, const char* entry, const ArmorType defvalue);
+    bool _Put_ArmorType(const char* section, const char* entry, ArmorType value);
 
-        ArmorType _Get_ArmorType(const char *section, const char *entry, const ArmorType defvalue);
-        bool _Put_ArmorType(const char *section, const char *entry, ArmorType value);
-
-        ActionType _Get_ActionType(const char *section, const char *entry, const ActionType defvalue);
+    ActionType _Get_ActionType(const char* section, const char* entry, const ActionType defvalue);
 };
 
 
@@ -189,45 +184,6 @@ ActionType CCINIClassExt::_Get_ActionType(const char *section, const char *entry
 
 
 /**
- *  Fetch a list of AnimTypes.
- * 
- *  @author: CCHyper
- */
-TypeList<AnimTypeClass *> CCINIClassExt::Get_AnimTypes(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue)
-{
-    /**
-     *  #issue-391
-     * 
-     *  Increases the buffer size from 128 to 2048.
-     * 
-     *  @author: CCHyper
-     */
-    //char buffer[128];
-    char buffer[2048];
-
-    if (CCINIClass::Get_String(section, entry, "", buffer, sizeof(buffer)) > 0) {
-
-        //DEV_DEBUG_INFO("Get_AnimTypes(\"%s\",\"%s\") - \"%s\"\n", section, entry, buffer);
-
-        TypeList<AnimTypeClass *> list;
-
-        char *name = std::strtok(buffer, ",");
-        while (name) {
-            AnimTypeClass *animtype = const_cast<AnimTypeClass *>(AnimTypeClass::Find_Or_Make(name));
-            if (animtype) {
-                list.Add(animtype);
-            }
-            name = std::strtok(nullptr, ",");
-        }
-
-        return list;
-    }
-
-    return defvalue;
-}
-
-
-/**
  *  Fetches the armor type from the INI database.
  *
  *  @author: CCHyper
@@ -252,34 +208,6 @@ ArmorType CCINIClassExt::_Get_ArmorType(const char *section, const char *entry, 
 bool CCINIClassExt::_Put_ArmorType(const char *section, const char *entry, ArmorType value)
 {
     return Put_String(section, entry, ArmorTypeClass::Name_From(value));
-}
-
-
-/**
- *  #issue-391
- *
- *  This is actually a patch in WeaponTypeClass:Read_INI, but because
- *  Get_AnimTypes is inlined there, its best to have it with all
- *  the other CCINIClass hooks.
- * 
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x00680F07, _WeaponTypeClass_Read_INI_Get_AnimTypes_Patch, 0)
-{
-    GET(WeaponTypeClass *, this_ptr, ESI);
-    GET(CCINIClassExt *, ini, EBX);
-    GET(const char *, ini_name, EDI);
-
-    /**
-     *  Load the AnimType list.
-     * 
-     *  We need to use an encapsulation function as we are replacing an inlined
-     *  function and the return value from Get_AnimType_List is an TypeList
-     *  instance, so it will trash the stack.
-     */
-    this_ptr->Anim = ini->Get_AnimTypes(ini_name, "Anim", this_ptr->Anim);
-
-    return 0x00681004;
 }
 
 

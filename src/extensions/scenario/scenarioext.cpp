@@ -244,8 +244,8 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
     static const char * const BASIC = "Basic";
 
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
-    ScorePlayerColor = ini.Get_RGB(BASIC, "ScorePlayerColor", ScorePlayerColor);
-    ScoreEnemyColor = ini.Get_RGB(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
+    ScorePlayerColor = ini.Get_RGBColor(BASIC, "ScorePlayerColor", ScorePlayerColor);
+    ScoreEnemyColor = ini.Get_RGBColor(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
 
     /**
      *  #issue-123
@@ -286,7 +286,7 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
             /**
              *  Get a tutorial message entry.
              */
-            if (ini.Get_String(TUTORIAL, entry, buf, sizeof(buf))) {
+            if (ini.Get_String(TUTORIAL, entry, "", buf, sizeof(buf))) {
 
                 /**
                  *  Convert the entry name (which in this context is an index) to an "id" value.

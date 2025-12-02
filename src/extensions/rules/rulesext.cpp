@@ -120,11 +120,11 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     This()->EngineerCaptureLevel = This()->ConditionRed;  // Building damage level before engineer can capture.
 
     MaxPips = TypeList<int>(5);
-    MaxPips.Add(5);     // PIP_AMMO
-    MaxPips.Add(5);     // PIP_TIBERIUM
-    MaxPips.Add(5);     // PIP_PASSENGERS
-    MaxPips.Add(10);    // PIP_POWER
-    MaxPips.Add(8);     // PIP_CHARGE
+    MaxPips.Add(5);     // PIPSCALE_AMMO
+    MaxPips.Add(5);     // PIPSCALE_TIBERIUM
+    MaxPips.Add(5);     // PIPSCALE_PASSENGERS
+    MaxPips.Add(10);    // PIPSCALE_POWER
+    MaxPips.Add(8);     // PIPSCALE_CHARGE
 }
 
 
@@ -701,7 +701,7 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
-    MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
+    MaxPips = ini.Get_IntList(AUDIOVISUAL, "MaxPips", MaxPips);
 
     VoxelLightAzimuth = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightAzimuth", RAD_TO_DEGF(VoxelLightAzimuth)));
     VoxelLightElevation = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightElevation", RAD_TO_DEGF(VoxelLightElevation)));
@@ -808,7 +808,7 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
         /**
          *  Get a weapon entry.
          */
-        if (ini.Get_String(WEAPONS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(WEAPONS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -849,7 +849,7 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
         /**
          *  Get a weapon entry.
          */
-        if (ini.Get_String(ARMORTYPES, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(ARMORTYPES, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -888,7 +888,7 @@ bool RulesClassExtension::Rockets(CCINIClass &ini)
         /**
          *  Get a rocket entry.
          */
-        if (ini.Get_String(ROCKETTYPES, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(ROCKETTYPES, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a rocket of the name specified.
@@ -928,7 +928,7 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
         /**
          *  Get a Tiberium entry.
          */
-        if (ini.Get_String(TIBERIUMS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(TIBERIUMS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -969,7 +969,7 @@ bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
         /**
          *  Get a group entry.
          */
-        if (ini.Get_String(PREREQUISITE_GROUPS, entry, buf, sizeof(buf)) > 0) {
+        if (ini.Get_String(PREREQUISITE_GROUPS, entry, "", buf, sizeof(buf)) > 0) {
 
             /**
              *  Find or create a group of the name specified.

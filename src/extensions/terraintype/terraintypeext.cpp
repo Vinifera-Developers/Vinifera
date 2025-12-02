@@ -197,15 +197,15 @@ bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsLightEnabled = ini.Get_Bool(ini_name, "IsLightEnabled", IsLightEnabled);
     LightVisibility = ini.Get_Int(ini_name, "LightVisibility", LightVisibility);
-    LightIntensity = ini.Get_Double(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
-    LightRedTint = ini.Get_Double(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
-    LightGreenTint = ini.Get_Double(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
-    LightBlueTint = ini.Get_Double(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
+    LightIntensity = ini.Get_Float(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
+    LightRedTint = ini.Get_Float(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
+    LightGreenTint = ini.Get_Float(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
+    LightBlueTint = ini.Get_Float(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
 
     auto get_min_max = [](auto& ini, const char* section, const char* key, const Point2D& defval) {
         char buffer[128];
         int scan_min = 0, scan_max = 0;
-        if (ini.Get_String(section, key, buffer, sizeof(buffer)) > 0) {
+        if (ini.Get_String(section, key, "", buffer, sizeof(buffer)) > 0) {
             int scanned = sscanf(buffer, "%d,%d", &scan_min, &scan_max);
             if (scanned > 0) {
                 if (scanned == 1) {

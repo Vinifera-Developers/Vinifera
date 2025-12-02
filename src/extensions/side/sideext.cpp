@@ -234,8 +234,8 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
-    UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
-    ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+    UIColor = ini.Get_Scheme_Index(ini_name, "UIColor", UIColor);
+    ToolTipColor = ini.Get_Scheme_Index(ini_name, "ToolTipColor", ToolTipColor);
 
     Crew = TGet_Class(ini, ini_name, "Crew", Crew);
     Engineer = TGet_Class(ini, ini_name, "Engineer", Engineer);

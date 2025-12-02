@@ -96,7 +96,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  The particle to spawn at the mid-point of this animation.
          */
-        ParticleType ParticleToSpawn;
+        ParticleTypeClass* ParticleToSpawn;
 
         /**
          *  The number of the particle to spawn.

@@ -29,6 +29,7 @@
 
 #include "aircrafttype.h"
 #include "animtype.h"
+#include "unittype.h"
 #include "technotype.h"
 #include "ccini.h"
 #include "filepng.h"
@@ -374,19 +375,19 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
-    UnloadingClass = ini.Get_Techno(ini_name, "UnloadingClass", UnloadingClass);
+    UnloadingClass = TGet_Class(ini, ini_name, "UnloadingClass", UnloadingClass);
     SoylentValue = ini.Get_Int(ini_name, "Soylent", SoylentValue);
     EnterTransportSound = ini.Get_VocType(ini_name, "EnterTransportSound", EnterTransportSound);
     LeaveTransportSound = ini.Get_VocType(ini_name, "LeaveTransportSound", LeaveTransportSound);
-    VoiceCapture = ini.Get_VocTypes(ini_name, "VoiceCapture", VoiceCapture);
-    VoiceEnter = ini.Get_VocTypes(ini_name, "VoiceEnter", VoiceEnter);
-    VoiceDeploy = ini.Get_VocTypes(ini_name, "VoiceDeploy", VoiceDeploy);
-    VoiceHarvest = ini.Get_VocTypes(ini_name, "VoiceHarvest", VoiceHarvest);
+    VoiceCapture = Get_VocTypes(ini, ini_name, "VoiceCapture", VoiceCapture);
+    VoiceEnter = Get_VocTypes(ini, ini_name, "VoiceEnter", VoiceEnter);
+    VoiceDeploy = Get_VocTypes(ini, ini_name, "VoiceDeploy", VoiceDeploy);
+    VoiceHarvest = Get_VocTypes(ini, ini_name, "VoiceHarvest", VoiceHarvest);
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
 
     if (ini.Is_Present(ini_name, "Description")) {
-        ini.Get_String(ini_name, "Description", Description, std::size(Description));
+        ini.Get_String(ini_name, "Description", "", Description, std::size(Description));
     }
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
@@ -427,10 +428,10 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     _JumpjetTurnRate = ini.Get_Int(ini_name, "JumpjetTurnRate", _JumpjetTurnRate);
     _JumpjetSpeed = ini.Get_Int(ini_name, "JumpjetSpeed", _JumpjetSpeed);
-    _JumpjetClimb = ini.Get_Double(ini_name, "JumpjetClimb", _JumpjetClimb);
+    _JumpjetClimb = ini.Get_Float(ini_name, "JumpjetClimb", _JumpjetClimb);
     _JumpjetCruiseHeight = ini.Get_Int(ini_name, "JumpjetCruiseHeight", _JumpjetCruiseHeight);
-    _JumpjetAcceleration = ini.Get_Double(ini_name, "JumpjetAcceleration", _JumpjetAcceleration);
-    _JumpjetWobblesPerSecond = ini.Get_Double(ini_name, "JumpjetWobblesPerSecond", _JumpjetWobblesPerSecond);
+    _JumpjetAcceleration = ini.Get_Float(ini_name, "JumpjetAcceleration", _JumpjetAcceleration);
+    _JumpjetWobblesPerSecond = ini.Get_Float(ini_name, "JumpjetWobblesPerSecond", _JumpjetWobblesPerSecond);
     _JumpjetWobbleDeviation = ini.Get_Int(ini_name, "JumpjetWobbleDeviation", _JumpjetWobbleDeviation);
     _JumpjetCloakDetectionRadius = ini.Get_Int(ini_name, "JumpjetCloakDetectionRadius", _JumpjetCloakDetectionRadius);
     JumpjetNoWobbles = ini.Get_Bool(ini_name, "JumpjetNoWobbles", JumpjetNoWobbles);

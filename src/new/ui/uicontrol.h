@@ -35,6 +35,7 @@
 #include <string>
 
 
+class RGBClass;
 struct IStream;
 class CCINIClass;
 class NoInitClass;
@@ -190,7 +191,7 @@ class UIControlsClass
         /**
          *  Two tint colors, interpolated between based on the current ambient light level.
          */
-        TypeList<RGBStruct> BandBoxTintColors;
+        TypeList<RGBClass> BandBoxTintColors;
 
         /**
          *  Should action lines remain visible continuously, instead of disappearing after some time?

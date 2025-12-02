@@ -121,7 +121,7 @@ public:
     /**
      *  The graphic class to switch to when this unit is unloading (e.g., at a refinery).
      */
-    const TechnoTypeClass *UnloadingClass;
+    const UnitTypeClass *UnloadingClass;
 
     /**
      *  The refund value for the unit when it is sold at a Service Depot.

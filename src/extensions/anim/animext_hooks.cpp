@@ -515,7 +515,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
     AnimTypeClassExtension* animtypeext;
 
     animtypeext = Extension::Fetch(this_ptr->Class);
-    if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
+    if (animtypeext->ParticleToSpawn != NULL) {
 
         for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
 
@@ -524,7 +524,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
             /**
              *  Spawn a new particle at this anims coord.
              */
-            MasterParticle->Spawn_Particle(ParticleTypes[animtypeext->ParticleToSpawn], spawn_coord);
+            MasterParticle->Spawn_Particle(animtypeext->ParticleToSpawn, spawn_coord);
         }
     }
 }

@@ -250,7 +250,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsWallAbsoluteDestroyer = ini.Get_Bool(ini_name, "WallAbsoluteDestroyer", IsWallAbsoluteDestroyer);
     IsAffectsAllies = ini.Get_Bool(ini_name, "AffectsAllies", IsAffectsAllies);
-    CombatLightSize = ini.Get_Float_Clamp(ini_name, "CombatLightSize", 0.0f, 1.0f, CombatLightSize);
+    CombatLightSize = ini.Get_Float(ini_name, "CombatLightSize", CombatLightSize);
+    CombatLightSize = std::clamp(CombatLightSize, 0.0, 1.0);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
@@ -303,7 +304,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
         std::snprintf(key_name, sizeof(key_name), "Modifier.%s", armor_name);
         if (ini.Is_Present(ini_name, key_name)) {
-            Verses::Set_Modifier(armor, warheadtype, ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
+            Verses::Set_Modifier(armor, warheadtype, ini.Get_Float(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
         }
 
         std::snprintf(key_name, sizeof(key_name), "ForceFire.%s", armor_name);

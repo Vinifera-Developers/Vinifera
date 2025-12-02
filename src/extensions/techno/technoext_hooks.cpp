@@ -205,7 +205,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
              *  Check if it contains Tiberium to show the right type of pips for the
              *  various minerals it could have stored.
              */
-            if ((RTTI == RTTI_UNIT || RTTI == RTTI_BUILDING) && TClass->PipScale == PIP_TIBERIUM)
+            if ((RTTI == RTTI_UNIT || RTTI == RTTI_BUILDING) && TClass->PipScale == PIPSCALE_TIBERIUM)
             {
                 std::vector<int> pips_to_draw;
                 pips_to_draw.reserve(Class_Of()->Max_Pips());
@@ -270,18 +270,18 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     Draw_Shape(*LogicalSurface,* NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
-            else if (TClass->PipScale == PIP_AMMO)
+            else if (TClass->PipScale == PIPSCALE_AMMO)
             {
                 if (ttype_ext->PipWrap > 0)
                 {
-                    enum { PIP_AMMO_WRAP_FIRST = 7 };
+                    enum { PIPSCALE_AMMO_WRAP_FIRST = 7 };
 
                     const int wrap_count = Ammo / ttype_ext->PipWrap;
                     const int leftover = Ammo % ttype_ext->PipWrap;
 
                     for (int index = 0; index < ttype_ext->PipWrap; index++)
                     {
-                        Draw_Shape(*LogicalSurface, *NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + wrap_count + (index < leftover), Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                        Draw_Shape(*LogicalSurface, *NormalDrawer, pips2, PIPSCALE_AMMO_WRAP_FIRST + wrap_count + (index < leftover), Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                     }
                 }
                 else
@@ -293,7 +293,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 }
                 
             }
-            else if (TClass->PipScale == PIP_CHARGE)
+            else if (TClass->PipScale == PIPSCALE_CHARGE)
             {
                 for (int index = 0; index < Class_Of()->Max_Pips(); index++)
                 {

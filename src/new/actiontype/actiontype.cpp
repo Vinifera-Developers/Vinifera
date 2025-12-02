@@ -259,7 +259,7 @@ bool ActionTypeClass::Read_INI(CCINIClass &ini)
         /**
          *  Load the properties for this mouse type.
          */
-        int readlen = ini.Get_String(ACTION, entry_name, buffer, sizeof(buffer));
+        int readlen = ini.Get_String(ACTION, entry_name, "", buffer, sizeof(buffer));
         ASSERT_FATAL(readlen > 0);
 
         ActionTypeClass *actiontype = Find_Or_Make(entry_name);

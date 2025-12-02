@@ -217,8 +217,7 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ActionOutOfRange = ini.Get_ActionType(ini_name, "ActionOutOfRange", ActionOutOfRange);
     VoxMissileLaunched = ini.Get_VoxType(ini_name, "MissileLaunchedVoice", VoxMissileLaunched);
 
-    if (ini.Is_Present(ini_name, "Description"))
-        ini.Get_String(ini_name, "Description", Description, std::size(Description));
+    if (ini.Is_Present(ini_name, "Description")) ini.Get_String(ini_name, "Description", "", Description, std::size(Description));
 
     IsInitialized = true;
     
