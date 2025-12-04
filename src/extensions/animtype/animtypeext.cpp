@@ -192,10 +192,11 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
     EndAnimsDelay.Load(pStm);
     MiddleFrames.Load(pStm);
 
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ParticleToSpawn, "ParticleToSpawn");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(EndAnims, "EndAnims");
-    
+
     return hr;
 }
 
