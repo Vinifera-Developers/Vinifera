@@ -53,7 +53,7 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     WindowHeight(-1),
     ScaleMode(SDL_SCALEMODE_PIXELART),
     CursorScale(0),
-    IsVSync(true)
+    IsVSync(false)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }

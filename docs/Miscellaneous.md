@@ -35,7 +35,7 @@ WindowWidth=-1      ; integer, if positive and Windowed=true, sets the window wi
 WindowHeight=-1     ; integer, if positive and Windowed=true, sets the window height override
 ScaleMode=PixelArt  ; scale mode, valid options are "Linear", "Nearest" and "PixelArt"
 CursorScale=0       ; integer, cursor scale factor override
-VSync=yes           ; boolean, is vertical synchronization on?
+VSync=no            ; boolean, is vertical synchronization on?
 ```
 
 ```{note}
