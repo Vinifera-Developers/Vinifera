@@ -13,6 +13,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - `FreeUnit` or `PadAircraft` would in some cases affect the cost of a building. This functionality has been removed.
 - Pre-placed units can now have missions in multiplayer.
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
+- Improve alternative factory selection when the primary factory is blocked.
 
 ## Quality of Life
 

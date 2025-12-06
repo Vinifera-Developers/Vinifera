@@ -196,6 +196,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Fix an edge case crash when AI raises money.
   - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages.
+  - Improve alternative factory selection when the primary factory is blocked.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
