@@ -93,3 +93,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
 - Fix a bug where paradrops didn't take cell passability and bridges into account.
 - Fix a bug where carryalls assign their ROT to the unit they're carrying.
+- Teams attacking a BwP now take zones into account.

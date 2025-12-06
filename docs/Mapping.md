@@ -83,6 +83,14 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 
 ## Script Actions
 
+### New Quarry Types
+
+- Script actions accepting a quarry as a parameter now take new quarry values.
+
+| Index | Name | Description |
+|-|-|-|
+|10|Only Harvesters|The team will target only harvesters (not refineries)|
+
 ## Trigger Actions
 
 ### NeedCodes

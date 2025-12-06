@@ -2162,11 +2162,11 @@ DEFINE_HOOK(0x0062DD70, _TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch, 0)
      */
     auto infantrytypeext = Extension::Fetch(infantry_this_ptr->Class);
     if (infantrytypeext->IsOmniHealer) {
-        method = method|(THREAT_INFANTRY|THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_4000);
+        method = method|(THREAT_INFANTRY|THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_ALLIES);
     } else if (infantrytypeext->IsMechanic) {
-        method = method|(THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_4000);
+        method = method|(THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_ALLIES);
     } else {
-        method = method|(THREAT_INFANTRY|THREAT_4000);
+        method = method|(THREAT_INFANTRY|THREAT_ALLIES);
     }
 
     R->EBX(method);

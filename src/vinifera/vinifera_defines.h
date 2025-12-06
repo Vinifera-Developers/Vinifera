@@ -398,3 +398,32 @@ struct ExtGlobalPacketType {
 #pragma pack()
 
 static_assert(sizeof(ExtGlobalPacketType) == sizeof(GlobalPacketType), "ExtGlobalPacketType size is wrong!");
+
+enum ExtThreatType {
+    EXT_THREAT_HARVESTERS = 0x8000 // Limit scan to harvesters only
+};
+DEFINE_ENUMERATION_OPERATORS(ExtThreatType);
+DEFINE_ENUMERATION_BITWISE_OPERATORS(ExtThreatType);
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtQuarryType {
+    EXT_QUARRY_PAD = QUARRY_POWER,            // The last QuarryType
+
+    /**
+     *  Add new ExtActionTypes from here.
+     */
+    EXT_QUARRY_HARVESTERS,   // Attack harvesters only (no refineries).
+
+    /**
+     *  The new total ExtActionType count.
+     */
+    EXT_QUARRY_COUNT,
+
+    /**
+     *  The first ExtActionType.
+     */
+    EXT_QUARRY_FIRST = 0
+};
+DEFINE_ENUMERATION_OPERATORS(ExtQuarryType);

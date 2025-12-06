@@ -121,6 +121,8 @@ Vanilla fixes:
 - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily (by ZivDero)
 - Fix a bug where Tiberium spawned by animations wouldn't grow or spread (by ZivDero)
 - Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
+- Teams attacking a BwP now take zones into account (by Rampastring) 
+- Add "Only Harvesters" quarry (by Rampastring)
 
 :::
 
