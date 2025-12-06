@@ -209,7 +209,7 @@ DEFINE_HOOK(0x004D87E9, _InfantryClass_Firing_AI_Mechanic_Patch, 0)
         if (targ->RTTI == RTTI_UNIT || 
             (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
             targ->RTTI == RTTI_INFANTRY || 
-            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
+            (targ->RTTI == RTTI_BUILDING && targ->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -224,7 +224,7 @@ DEFINE_HOOK(0x004D87E9, _InfantryClass_Firing_AI_Mechanic_Patch, 0)
          */
         if (targ->RTTI == RTTI_UNIT || 
             (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
-            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
+            (targ->RTTI == RTTI_BUILDING && targ->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -279,7 +279,7 @@ DEFINE_HOOK(0x004D7168, _InfantryClass_What_Action_Mechanic_Patch, 0)
         if (object->RTTI == RTTI_UNIT ||
             object->RTTI == RTTI_AIRCRAFT || 
             object->RTTI == RTTI_INFANTRY || 
-            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
+            (object->RTTI == RTTI_BUILDING && object->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
@@ -313,8 +313,7 @@ DEFINE_HOOK(0x004D7168, _InfantryClass_What_Action_Mechanic_Patch, 0)
          *  infantry is a mechanic before allowing it to heal the unit.
          */
         if (object->RTTI == RTTI_UNIT ||
-            object->RTTI == RTTI_AIRCRAFT ||
-            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
+            object->RTTI == RTTI_AIRCRAFT || (object->RTTI == RTTI_BUILDING && object->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!

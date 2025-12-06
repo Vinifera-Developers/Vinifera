@@ -381,7 +381,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     bool open_roof = false;
     if (Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = Contact_With_Whom();
-        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
+        if (radio != nullptr && radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             open_roof = true;
         }
     }
@@ -1850,7 +1850,7 @@ bool Should_Open_Roof(BuildingClass* building)
 {
     if (building->Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = building->Contact_With_Whom();
-        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
+        if (radio != nullptr && radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             return true;
         }
     }
@@ -2375,7 +2375,7 @@ BuildingClass* Find_Best_Alternative_Factory(BuildingClass* this_ptr, FootClass*
             // if (bldg->Class != this_ptr->Class)
             //     continue;
 
-            const TechnoTypeClass* technotype = exiting_object->Techno_Type_Class();
+            const TechnoTypeClass* technotype = exiting_object->TClass;
 
             // Check ownable, so only factories of a faction that owns the object can
             // build the object
@@ -2385,7 +2385,7 @@ BuildingClass* Find_Best_Alternative_Factory(BuildingClass* this_ptr, FootClass*
 
             // Check ownable, so only factories of a faction that owns the object can
             // build the object
-            if ((bldg->Class->Get_Ownable() & exiting_object->Techno_Type_Class()->Get_Ownable()) == 0) {
+            if ((bldg->Class->Get_Ownable() & exiting_object->TClass->Get_Ownable()) == 0) {
                 continue;
             }
 
