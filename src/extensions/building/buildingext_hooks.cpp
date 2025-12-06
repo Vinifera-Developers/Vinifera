@@ -59,6 +59,7 @@
 #include "unit.h"
 #include "unittype.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "iomap.h"
 #include "spritecollection.h"
@@ -2314,6 +2315,50 @@ DEFINE_HOOK(0x004381F8, _BuildingClass_Load_SwizzleLightSource_Patch, 0)
     this_ptr->_Swizzle_Light_Source();
 
     return 0x00438202;
+}
+
+
+/**
+ *  Prevents buildings from catching flames
+ *  when rapidly switching between yellow and green
+ *  damage states.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x0042B6CC, _BuildingClass_Take_Damage_Prevent_Cumulative_Flame_Spawn_Patch, 0)
+{
+    GET(Coord *, coord, EAX);
+    GET(BuildingClass *, this_ptr, ESI);
+
+    /**
+     *  Stolen bytes / code.
+     */
+    Static_Sound(Rule->BlowupSound, *coord);
+
+    /**
+     *  Actual functionality of the hack.
+     *  Do not spawn flames on the building if flames were spawned
+     *  on it too recently.
+     */
+    BuildingClassExtension* buildingext = Extension::Fetch(this_ptr);
+    if (Frame < buildingext->LastFlameSpawnFrame + RuleExtension->BuildingFlameSpawnBlockFrames) {
+        goto past_flame_spawn;
+    }
+
+    buildingext->LastFlameSpawnFrame = Frame;
+
+    /**
+     *  Continue into applying building flames.
+     */
+original_code:
+    R->EBX(0x7FFF);
+    return 0x0042B6E4;
+
+    /**
+     *  Skip the game's code block for spawning flames on buildings.
+     */
+past_flame_spawn:
+    return 0x0042B684;
 }
 
 

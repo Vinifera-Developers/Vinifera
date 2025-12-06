@@ -213,6 +213,15 @@ Once a movement zone is replaced with water, it cannot be reverted.
 BeachIsCrush=  ; boolean, are beaches considered as requiring crushing for pathfinding purposes?
 ```
 
+## Building Catching on Fire Timeout
+
+- When a building enters a damaged state, it spawns flame animations that may deal damage. If the building rapidly switches between damage states, it may end up spawning many instance of flame animations, taking large amount of damage. You can now specify a timeout during which buildings do not get flames spawned on them on damage state change after once catching fire.
+
+```ini
+[CombatDamage]
+BuildingFlameSpawnBlockFrames=  ; integer, for how many frames buildings do not get flames spawned on them on damage state change after once catching fire.
+```
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.
