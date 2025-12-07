@@ -58,6 +58,7 @@ DEFINE_HOOK(0x0048706A, _Dropship_Draw_Info_Text_ArmorName_Patch, 0)
 
     std::sprintf(dest, "Armor: %s", ArmorTypeClass::Name_From(armor));
 
+    R->ESP(R->ESP() - 0xC); // Fix up the stack from the removed printf call.
     return 0x0048707D;
 }
 
