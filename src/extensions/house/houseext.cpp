@@ -612,7 +612,9 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                         **  the production manager tied to this slot in the sidebar. Its job
                         **  has been completed.
                         */
-                        LastRadarEventCell = builder->Center_Coord().As_Cell();
+
+                        // Do not assign last radar event cell, it's an annoyance - Rampastring
+                        // LastRadarEventCell = builder->Center_Coord().As_Cell();
                         factory->Completed();
                         Abandon_Production(type, -1, flags);
                         placed = true;
