@@ -794,6 +794,28 @@ DEFINE_HOOK(0x00409366, _AircraftClass_AI_Carryall_Facing_Patch, 0)
 
 
 /**
+ *  Patch to prevent spawned aircraft from revealing terrain when they fire.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x0040A195, _AircraftClass_Fire_At_No_Reveal_On_Fire_For_Spawned_Aircraft_Patch, 0)
+{
+    GET(AircraftClass*, this_ptr, EDI);
+
+    if (Extension::Fetch(this_ptr)->SpawnOwner == nullptr) {
+        if (Rule->AttackingAircraftSightRange > 0) {
+
+            // Don't reveal if attacking aircraft sight range has been specified as 0 in Rules.
+            // The original game did not have this check (though maybe it has one in MapClass::Sight_From).
+            Map.Sight_From(this_ptr->PositionCoord, Rule->AttackingAircraftSightRange, this_ptr->House);
+        }
+    }
+
+    return 0x0040A1C8;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()

@@ -78,6 +78,7 @@ New:
 - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages (by Rampastring)
 - Improve alternative factory selection when the primary factory is blocked (by Rampstring)
 - Add "Adjust House Modifier" trigger action (by Rampstring)
+- Add "Only Harvesters" quarry (by Rampastring)
 
 
 Vinifera fixes:
@@ -96,7 +97,7 @@ Vinifera fixes:
 - Fix a bug where you'd hear "Construction complete" after placing a building, instead of when it's ready (by ZivDero)
 - Fix a bug where AI vehicles got stuck on War Factory if attacked while exiting (by Rampastring, ZivDero)
 - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
-- Add "Only Harvesters" quarry (by Rampastring)
+- Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
 
 
 Vanilla fixes:
