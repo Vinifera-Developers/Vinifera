@@ -94,3 +94,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where paradrops didn't take cell passability and bridges into account.
 - Fix a bug where carryalls assign their ROT to the unit they're carrying.
 - Teams attacking a BwP now take zones into account.
+- Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.

@@ -96,6 +96,7 @@ Vinifera fixes:
 - Fix a bug where you'd hear "Construction complete" after placing a building, instead of when it's ready (by ZivDero)
 - Fix a bug where AI vehicles got stuck on War Factory if attacked while exiting (by Rampastring, ZivDero)
 - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
+- Add "Only Harvesters" quarry (by Rampastring)
 
 
 Vanilla fixes:
@@ -122,7 +123,7 @@ Vanilla fixes:
 - Fix a bug where Tiberium spawned by animations wouldn't grow or spread (by ZivDero)
 - Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
 - Teams attacking a BwP now take zones into account (by Rampastring) 
-- Add "Only Harvesters" quarry (by Rampastring)
+- Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building (by Rampastring)
 
 :::
 

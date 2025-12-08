@@ -200,6 +200,7 @@ This page lists all the individual contributions to the project by their author.
   - Add "Adjust House Modifier" trigger action.
   - Teams attacking a BwP now take zones into account.
   - Add "Only Harvesters" quarry.
+  - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

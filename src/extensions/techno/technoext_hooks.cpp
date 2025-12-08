@@ -2796,6 +2796,25 @@ DEFINE_HOOK(0x0062D218, _TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneS
 
 
 /**
+ *  Fixes a bug where placed buildings are not revealed for allies.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x0062AB5E, _TechnoClass_Revealed_Look_For_Allies_Patch, 0)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+    if (this_ptr->IsOwnedByPlayer || (Session.Type != GAME_NORMAL && Rule->IsAllyReveal && this_ptr->House->Is_Ally(PlayerPtr))) {
+        // Tell the object to "look", revealing shroud around the object based on its sight range
+        return 0x0062AB9F;
+    }
+
+    // Player discovered a previously hidden object that wasn't owned by them or revealed by alliance,
+    // trigger TEVENT_DISCOVERED
+    return 0x0062AB68;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -2823,5 +2842,4 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00633745, 0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
     Patch_Jump(0x0062A970, &TechnoClassExt::_Time_To_Build);
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
-    Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
 }
