@@ -127,6 +127,7 @@ public:
     void _AI_Abandon_Detour();
     bool _Can_Deploy_Now() const;
     int _Refund_Amount() const;
+    bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
 };
 
 
@@ -2711,7 +2712,7 @@ DEFINE_HOOK(0x00631207, _TechnoClass_Fire_At_TargetLaserTimer_Patch, 0)
  *
  *  @author: Rampastring
  */
-bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* techno, AbstractClass * target, int ourzone, int targetzone)
+static bool Is_Valid_Target_Zone(const TechnoClass* techno, AbstractClass * target, int ourzone, int targetzone)
 {
     auto technotype = techno->TClass;
     auto technotypeext = Extension::Fetch(technotype);
@@ -2762,36 +2763,352 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
 
 
 /**
- *  #issue-1161
+ *  Custom Evaluate_Object implementation to allow player-owned defenses to target
+ *  enemy defenses without ignoring weaponless objects.
  *
- *  Makes Technos consider their TargetZoneScan when potential targets are in a
- *  different movement zone. Makes the AI smarter when targeting objects on different
- *  movement zones (for example, ships targeting ground targets).
- *  Implementation inspired by respective feature for the "Phobos" Yuri's Revenge engine extension.
- *
- *  @author: Rampastring
+ *  @author: tomsons26, ZivDero, Rampastring
  */
-DEFINE_HOOK(0x0062D218, _TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch, 0)
+bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const
 {
-    GET(int, targetzone, EAX);
-    GET(int, ourzone, EBP);
-    GET(AbstractClass *, target, ESI);
-    GET(TechnoClass*, this_ptr, EDI);
+    bool engineer = Is_Renovator();
 
-    enum {
-        Continue = 0x0062D220,
-        InvalidTarget = 0x0062D8C0
-    };
-
-    if (targetzone == ourzone) {
-        return Continue;
+    /*
+    **  An object in limbo can never be a valid target.
+    */
+    if (object == nullptr || object->IsInLimbo || object->Strength == 0) {
+        return false;
     }
 
-    if (!_TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(this_ptr, target, ourzone, targetzone)) {
-        return InvalidTarget;
+    /*
+    **  If the object is cloaked, then it isn't a legal target.
+    */
+    if (object->Cloak == CLOAKED) {
+        if (!Map[object->Center_Coord()].Sensed_By(House->HeapID) && House != object->House) {
+            return false;
+        }
     }
 
-    return Continue;
+    if (!object->IsLocked) {
+        return false;
+    }
+
+    /*
+    **  If the object is in a "harmless" state, then don't bother to consider it
+    **  a threat.
+    */
+    if (object->Current_Mission_Control().IsNoThreat) {
+        return false;
+    }
+
+    if (object->HeightAGL < -20) {
+        return false;
+    }
+
+    /*
+     *  #issue-1161
+     *
+     *  Makes Technos consider their TargetZoneScan when potential targets are in a
+     *  different movement zone. Makes the AI smarter when targeting objects on different
+     *  movement zones (for example, ships targeting ground targets).
+     *  Implementation inspired by respective feature for the "Phobos" Yuri's Revenge engine extension.
+     *
+     *  @author: Rampastring
+     */
+    int targetzone = Map.Get_Cell_Zone(object->Center_Coord().As_Cell(), TClass->MZone, object->IsOnBridge);
+    if (zone != -1 && targetzone != zone) {
+        if (!Is_Valid_Target_Zone(this, const_cast<TechnoClass*>(object), zone, targetzone)) {
+            return false;
+        }
+    }
+
+    /*
+    **  Friendly units are never considered a good target. Bail if this
+    **  object is a friend.  Unless we're a medic, of course.  But then,
+    **  only consider it a target if it's injured.
+    */
+    if ((RTTI != RTTI_INFANTRY || !reinterpret_cast<InfantryClass const*>(this)->IsBerzerk) && House->Is_Ally(object)) {
+        if (Combat_Damage() < 0 || engineer) {
+            if (object->HealthRatio == Rule->ConditionGreen) {
+                return false;
+            }
+            if (object->RTTI == RTTI_AIRCRAFT && RTTI == RTTI_UNIT) {
+                if (object->HeightAGL > 0) {
+                    return false;
+                }
+                if (Map[object->Center_Coord()].Cell_Building()) {
+                    return false;
+                }
+            } else if (RTTI == RTTI_UNIT && !object->Considered_Vehicle()) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    if (Scen->Special.IsHarvesterImmune) {
+        if (Rule->HarvesterUnit.Is_Present((UnitTypeClass*)object->Class_Of())) {
+            return false;
+        }
+    }
+
+    /*
+    **  If the object is further away than allowed, bail.
+    */
+    int dist = Distance_To(object);
+    if (range > 0 && dist > range) {
+        return false;
+    }
+
+    if (range == 0) {
+        if (!Is_Weapon_Equipped()) {
+            if (dist > TClass->ThreatRange) {
+                return false;
+            }
+        } else {
+            WeaponSlotType primary = What_Weapon_Should_I_Use(const_cast<TechnoClass*>(object));
+            if (!In_Range_Of(const_cast<TechnoClass*>(object), primary)) {
+                return false;
+            }
+        }
+    }
+
+    /*
+    **  If the object is not visible, then bail. Human controlled units
+    **  are always considered to be visible.
+    */
+    if (House->Is_Player_Control() && !object->IsOwnedByPlayer && !object->IsDiscoveredByPlayer && Session.Type == GAME_NORMAL && object->RTTI != RTTI_AIRCRAFT) {
+        return false;
+    }
+
+    if (object->RTTI == RTTI_BUILDING) {
+
+        const BuildingClass* bldg = reinterpret_cast<const BuildingClass*>(object);
+
+        if (bldg->Class->IsInvisibleInGame) return false;
+
+        // Port over ts-patches hack that makes buildings not targeted by default if they have a weapon with a range of 0.
+        const WeaponTypeClass* bldgweapon = bldg->Class->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon;
+        if (bldgweapon != nullptr && bldgweapon->Range == 0) {
+            return false;
+        }
+    }
+
+    /*
+    **  Quickly eliminate all unit types that are not allowed according to the mask
+    **  value.
+    */
+    RTTIType otype = object->RTTI;
+    if (!(1 << otype & mask) && (!(mask & 2) || !object->Considered_Vehicle())) {
+        return false; // Mask failure.
+    }
+
+    if (Session.Type != GAME_NORMAL && object->House->Class->IsMultiplayPassive && object->PrimaryWeapon == nullptr) {
+        return false;
+    }
+
+    /*
+    **  Determine if the target is theoretically allowed to be a target. If
+    **  not, then bail.
+    */
+    TechnoTypeClass const* tclass = object->TClass;
+    if (!tclass->IsLegalTarget) {
+        return false; // Legality failure.
+    }
+
+    if (tclass->IsTrain && RTTI == RTTI_INFANTRY && reinterpret_cast<InfantryClass const*>(this)->Class->IsVehicleThief) {
+        return false;
+    }
+
+    /*
+    **  Never consider a spy to be a valid target, unless you're a dog
+    */
+    if (House->Is_Human_Player() && otype == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(tclass)->IsDisguised) {
+        return false;
+    }
+
+    /*
+    **  Special case so that SAM site doesn't fire on aircraft that are landed.
+    */
+    if (PrimaryWeapon != nullptr && !PrimaryWeapon->Bullet->IsAntiGround) {
+        if (object->Height == 0) {
+            return false;
+        }
+    }
+
+    /*
+    **  If only allowed to attack civilians, then eliminate all other types.
+    */
+    if (method & THREAT_CIVILIANS) {
+        return false;
+    }
+
+    /*
+    **  If the scan is limited to capturable buildings only, then bail if the examined
+    **  object isn't a capturable building.
+    */
+    if (method & THREAT_CAPTURE && (otype != RTTI_BUILDING || !static_cast<BuildingTypeClass const*>(tclass)->IsCaptureable)) {
+        return false;
+    }
+
+    /*
+    **  SPECIAL CASE: Friendly units won't automatically fire on buildings
+    **  if the building is not aggressive. That is, unless it is part of a team. A team
+    **  is allowed to pick any target it so chooses.
+    */
+    if ((!Is_Foot() || reinterpret_cast<FootClass const*>(this)->Team == nullptr) && House->Is_Human_Player() && !object->Considered_Vehicle() && otype == RTTI_BUILDING && object->PrimaryWeapon == nullptr) {
+        if (!engineer) {
+            return false;
+        }
+    }
+
+    if (engineer) {
+        if (object->RTTI != RTTI_BUILDING || (House->Is_Ally(object->House) && (object->HealthRatio > Rule->ConditionRed || !static_cast<BuildingClass const*>(object)->Class->Cost_Of(House)))) {
+            return false;
+        }
+    }
+
+    /*
+    **  If the search is restricted to Tiberium processing objects, then
+    **  perform the special qualification check now.
+    */
+    if (method & THREAT_TIBERIUM) {
+        if (tclass->Storage == 0) {
+            return false;
+        }
+    }
+
+    /*
+    **  If the search is restricted to harvesters, then
+    **  perform the special qualification check now.
+    */
+    if (method & EXT_THREAT_HARVESTERS) {
+        if (object->RTTI != RTTI_UNIT || !reinterpret_cast<const UnitClass*>(object)->Class->IsToHarvest) {
+            return false;
+        }
+    }
+
+    CellClass* cell_this = &Map[Get_Coord()];
+    CellClass* cell_that = &Map[object->Get_Coord()];
+    if (cell_this->IsUnderBridge && cell_that->IsUnderBridge && IsOnBridge != object->IsOnBridge) {
+        return false;
+    }
+
+    bool webbysecondary = false;
+    WarheadTypeClass const* wh = nullptr;
+    WeaponTypeClass const* secondary = SecondaryWeapon;
+    if (secondary != nullptr) {
+        wh = secondary->WarheadPtr;
+        if (wh != nullptr && wh->IsWebby) {
+            webbysecondary = true;
+        }
+    }
+
+    if (!webbysecondary) {
+        WeaponTypeClass const* primary = PrimaryWeapon;
+        if (primary != nullptr) {
+            wh = primary->WarheadPtr;
+        } else {
+            wh = nullptr;
+        }
+    }
+
+    if (wh && wh->IsWebby) {
+        if (object->RTTI == RTTI_INFANTRY) {
+            InfantryClass const* infantry = dynamic_cast<InfantryClass const*>(object);
+            if (infantry != nullptr && infantry->ProneStruggleTimer > wh->WebDuration / 4) {
+                return false;
+            }
+        }
+    }
+
+    /*
+    **  If this target value is better than the previously recorded best
+    **  target value then record this target for possible return as the
+    **  best.
+    */
+    value = Target_Threat(const_cast<TechnoClass*>(object), coord);
+
+    /*
+    **  If the candidate object is owned by the designated enemy of this house, then
+    **  give it a higher value. This will tend to gravitate attacks toward the main
+    **  antagonist of this house.
+    */
+    if (House->field_11C && House->Enemy != HOUSE_NONE && object->House != Houses[House->Enemy]) {
+        value = 1;
+    }
+
+    /*
+    **  If power plants are to be considered a greater threat, then increase
+    **  their value here. Buildings that produce no power are not considered
+    **  a threat.
+    */
+    if (method & THREAT_POWER && otype == RTTI_BUILDING) {
+        if (static_cast<BuildingTypeClass const*>(tclass)->Power > 0) {
+            value += static_cast<BuildingTypeClass const*>(tclass)->Power * 1000;
+        } else {
+            value = 0;
+        }
+    }
+
+    /*
+    **  If factories are to be considered a greater threat, then don't
+    **  consider any non-factory building.
+    */
+    if (method & THREAT_FACTORIES && otype == RTTI_BUILDING) {
+        if (static_cast<BuildingTypeClass const*>(tclass)->ToBuild == RTTI_NONE) {
+            value = 0;
+        }
+    }
+
+    /*
+    **  Rampastring:
+    **  If we cannot passively acquire the target, then ignore it.
+    */
+    if (object->RTTI != RTTI_BUILDING || RTTI != RTTI_INFANTRY || !reinterpret_cast<const InfantryClass*>(this)->Class->IsBomber) {
+        WeaponSlotType which = _What_Weapon_Should_I_Use(const_cast<TechnoClass*>(object));
+        if (which != WEAPON_SLOT_NONE) {
+            const WeaponTypeClass* weapon = TClass->Fetch_Weapon_Info(which).Weapon;
+            if (weapon != nullptr) {
+                WarheadTypeClass* warhead = weapon->WarheadPtr;
+                if (warhead != nullptr) {
+                    if (!Verses::Get_PassiveAcquire(object->TClass->Armor, warhead)) value = 0;
+                }
+            }
+        }
+    }
+
+    /*
+    **  If base defensive structures are to be considered a greater threat, then
+    **  don't consider an unarmed building to be a threat.
+    **
+    **  Rampastring: Only ignore unarmed buildings, not all unarmed objects.
+    */
+    if (method & THREAT_BASE_DEFENSE) {
+        if (object->PrimaryWeapon == nullptr) {
+            value = object->RTTI == RTTI_BUILDING ? 0 : 1;
+        }
+    }
+
+    /*
+    **  Possibly cause a reduction of the target's value if it is nearby friendly
+    **  structures and the primary weapon of this object is flagged for
+    **  friendly fire supression special check logic.
+    */
+    double areamod = Area_Modify(object->Center_Coord().As_Cell());
+    if (areamod != 1) {
+        value = areamod * value;
+    }
+
+    /*
+    **  Lessen threat as a factor of distance.
+    */
+    if (value) {
+        value = std::max(1, value);
+        return true;
+    }
+    value = 0;
+    return false;
 }
 
 
@@ -2812,6 +3129,7 @@ DEFINE_HOOK(0x0062AB5E, _TechnoClass_Revealed_Look_For_Allies_Patch, 0)
     // trigger TEVENT_DISCOVERED
     return 0x0062AB68;
 }
+
 
 
 /**
@@ -2842,4 +3160,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00633745, 0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
     Patch_Jump(0x0062A970, &TechnoClassExt::_Time_To_Build);
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
+    Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
+    Patch_Jump(0x0062D0F0, &TechnoClassExt::_Evaluate_Object);
 }

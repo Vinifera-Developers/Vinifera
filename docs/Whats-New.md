@@ -98,6 +98,7 @@ Vinifera fixes:
 - Fix a bug where AI vehicles got stuck on War Factory if attacked while exiting (by Rampastring, ZivDero)
 - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
 - Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
+- Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
 
 
 Vanilla fixes:

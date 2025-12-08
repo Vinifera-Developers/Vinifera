@@ -202,6 +202,7 @@ This page lists all the individual contributions to the project by their author.
   - Add "Only Harvesters" quarry.
   - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
   - Fix a bug where spawned aircraft would reveal terrain when they fired.
+  - Port a ts-patches fix for a bug where the player's army wouldn't fire at armed civilians.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
