@@ -58,7 +58,7 @@ public:
 
     virtual TEventClass *This() const override { return reinterpret_cast<TEventClass *>(AbstractClassExtension::This()); }
     virtual const TEventClass *This_Const() const override { return reinterpret_cast<const TEventClass *>(AbstractClassExtension::This_Const()); }
-    virtual RTTIType Fetch_RTTI() const override { return RTTI_UNIT; }
+    virtual RTTIType Fetch_RTTI() const override { return RTTI_EVENT; }
 
     /**
      *  Trigger events don't have names.

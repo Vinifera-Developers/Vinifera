@@ -199,19 +199,14 @@ void ScenarioClassExtension::Init_Clear()
          *  Clear the any previously loaded tutorial messages in preperation for
          *  reloading the TUTORIAL.INI as they might contain scenario overrides.
          */
-        for (int i = 0; i < TutorialText.Count(); i++) {
-            const char* txt = TutorialText.Fetch_By_Position(i);
-            if (txt != nullptr) {
-                free(const_cast<char*>(txt));
-            }
-        }
-        TutorialText.Clear();
+        Vinifera_TutorialText.clear();
 
         /**
          *  Reload the main tutorial message data.
          */
         CCINIClass ini;
-        ini.Load(CCFileClass("TUTORIAL.INI"), false);
+        CCFileClass tutorial_file("TUTORIAL.INI");
+        ini.Load(tutorial_file, false);
         Read_Tutorial_INI(ini);
     }
 
@@ -252,7 +247,7 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
      * 
      *  Fetch additional tutorial message data (if present) from the scenario.
      */
-    Read_Tutorial_INI(ini, true);
+    Read_Tutorial_INI(ini);
 
     BeaconManager.Load_Art();
 
@@ -265,20 +260,16 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
  *
  *  @author: CCHyper
  */
-bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
+bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass const& ini)
 {
+    char buffer[512];
     static char const * const TUTORIAL = "Tutorial";
 
     /**
      *  Fetch the additional tutorial message data (if present).
      */
     if (ini.Is_Present(TUTORIAL)) {
-
-        char buf[300];
-
         int counter = ini.Entry_Count(TUTORIAL);
-
-        if (counter > 0 && log) DEBUG_INFO("Tutorial section found and has %d entries.\n", counter);
 
         for (int index = 0; index < counter; ++index) {
             const char *entry = ini.Get_Entry(TUTORIAL, index);
@@ -286,36 +277,10 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
             /**
              *  Get a tutorial message entry.
              */
-            if (ini.Get_String(TUTORIAL, entry, "", buf, sizeof(buf))) {
-
-                /**
-                 *  Convert the entry name (which in this context is an index) to an "id" value.
-                 */
-                int id = std::strtol(entry, nullptr, 10);
-                const char *string = strdup(buf);
-
-                /**
-                 *  Check to see if this id already exists before adding it, otherwise
-                 *  the replacement message will not get used.
-                 */
-                if (TutorialText.Is_Present(id)) {
-                    TutorialText.Remove_Index(id);
-                    if (log) DEV_DEBUG_INFO("  Removed ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                    if (log) { DEV_DEBUG_INFO("  %d = \"%s\".\n", id, TutorialText[id]); }
-#endif
-                }
-
-                if (log) DEV_DEBUG_INFO("  Adding ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                if (log) DEV_DEBUG_INFO("  %d = \"%s\".\n", id, string);
-#endif
-
-                TutorialText.Add_Index(id, string);
+            if (ini.Get_String(TUTORIAL, entry, "", buffer, sizeof(buffer))) {
+                Vinifera_TutorialText[entry] = buffer;
             }
-
         }
-
     }
 
     return true;

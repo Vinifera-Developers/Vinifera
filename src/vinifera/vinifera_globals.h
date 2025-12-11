@@ -31,6 +31,7 @@
 #include "vector.h"
 #include "ccfile.h"
 #include "extension_globals.h"
+#include <unordered_map>
 
 
 class PrerequisiteGroupClass;
@@ -122,6 +123,8 @@ extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
 
 extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
+
+extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
 
 /**

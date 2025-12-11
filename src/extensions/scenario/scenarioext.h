@@ -53,7 +53,7 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         void Init_Clear();
         bool Read_INI(CCINIClass &ini);
 
-        bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
+        static bool Read_Tutorial_INI(CCINIClass const& ini);
 
         Cell Waypoint_Cell(WAYPOINT wp) const;
         CellClass * Waypoint_CellClass(WAYPOINT wp) const;
