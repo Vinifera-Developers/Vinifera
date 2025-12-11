@@ -34,6 +34,7 @@
 #include "sdlsurface.h"
 #include "shapeset.h"
 #include "wwmouse.h"
+#include "SDL3/SDL_hints.h"
 #include "SDL3/SDL_mouse.h"
 #include <cassert>
 
@@ -77,6 +78,9 @@ SDLMouseClass::SDLMouseClass() :
 {
     _MousePtr = this;
     TimerHandle = timeSetEvent(1000 / 60, 1, SDL_Callback_Process_Mouse, 0, TIME_PERIODIC);
+
+    // Ensure the mouse image won't get scaled by SDL
+    SDL_SetHint(SDL_HINT_MOUSE_DPI_SCALE_CURSORS, "0");
 }
 
 
