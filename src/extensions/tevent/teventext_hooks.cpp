@@ -44,6 +44,8 @@
 #include "hooker.h"
 #include "mouse.h"
 #include "rules.h"
+#include "syringe.h"
+#include "tag.h"
 #include "team.h"
 #include "teamtype.h"
 #include "teventext.h"
@@ -966,6 +968,48 @@ AttachType _Attaches_To(TEventType event)
     }
 
     return attach;
+}
+
+
+/**
+ *  Spring all the new local and global events in LogicClass::AI.
+ *  This patch is after `if (Scen->IsGlobalChanged)`.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x00506B9D, _LogicClass_AI_GlobalChanged_Patch, 6)
+{
+    GET(TagClass*, tag, ESI);
+
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_COMPARE_GLOBAL_WITH_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_COMPARE_GLOBAL_WITH_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_COMPARE_GLOBAL_WITH_LOCAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_EQUALS_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_EQUALS_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_EQUALS_LOCAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_GREATER_THAN_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_GREATER_THAN_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_GREATER_THAN_LOCAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_LESS_THAN_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_LESS_THAN_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_GLOBAL_LESS_THAN_LOCAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_COMPARE_LOCAL_WITH_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_COMPARE_LOCAL_WITH_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_COMPARE_LOCAL_WITH_LOCAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_EQUALS_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_EQUALS_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_EQUALS_LOCAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_GREATER_THAN_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_GREATER_THAN_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_GREATER_THAN_LOCAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL))) goto cont;
+    if (tag->Spring(static_cast<TEventType>(EXT_TEVENT_LOCAL_LESS_THAN_LOCAL))) goto cont;
+
+    return 0;
+
+    cont:
+    return 0x00506C5E; // continue;
 }
 
 

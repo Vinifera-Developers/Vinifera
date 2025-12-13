@@ -99,7 +99,7 @@ Vinifera fixes:
 - Fix a bug where AI vehicles got stuck on War Factory if attacked while exiting (by Rampastring, ZivDero)
 - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
 - Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
-- Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
+- Fix a bug where new local/global variable trigger events wouldn't reset their timers correctly (by ZivDero)
 
 
 Vanilla fixes:
@@ -127,6 +127,7 @@ Vanilla fixes:
 - Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
 - Teams attacking a BwP now take zones into account (by Rampastring) 
 - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building (by Rampastring)
+- Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
 
 :::
 
