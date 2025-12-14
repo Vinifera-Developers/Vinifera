@@ -154,6 +154,7 @@ This page lists all the individual contributions to the project by their author.
   - Graphics for the new sidebar fitting vanilla sidebar.
 - **[Phobos Contributors](https://github.com/Phobos-developers/Phobos/blob/develop/CREDITS.md)**:
   - DirStruct implementation.
+  - Original INI inheritance implementation as reference.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
@@ -316,3 +317,6 @@ This page lists all the individual contributions to the project by their author.
   - Replace DirectDraw with SDL.
   - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it.
   - Tutorial text INI keys are now interpreted as strings, not integers.
+  - Implement INI inheritance/includes.
+  - Fix a bug where the last line of an INI file would not be parsed.
+  - Fix incorrect merging of sections and keys in INI files.

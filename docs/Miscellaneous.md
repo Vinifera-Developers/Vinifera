@@ -15,6 +15,77 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
 - Improve alternative factory selection when the primary factory is blocked.
 
+## INI
+
+### INI Inclusion and Inheritance
+
+INI files now support modularity through the `[$Include]` and `[$Inherit]` sections. These allow files to be merged or used as templates, each with distinct override behaviors.
+
+#### `[$Include]`
+* **Behavior:** The current file pulls in external data as if "pasting" it into the logic.
+* **Priority:** Included files override the current file. Values read later in the inclusion chain take precedence.
+* **Use Case:** Splitting a massive configuration into smaller, organized sub-modules.
+
+#### `[$Inherit]`
+* **Behavior:** The current file uses external files as a base template or background layer.
+* **Priority:** The current file overrides inherited files. This allows the host file to act as a "patch" layer.
+* **Use Case:** Creating map-specific overrides or mods that only define changes relative to a base file (e.g., `RULES.INI`).
+
+### Technical Rules
+* Supported in any INI file (`RULES.INI`, `ART.INI`, `SOUND.INI`, `AI.INI`, maps, etc.).
+* Files must be listed with unique keys (e.g., `0=FILE1.INI`, `1=FILE2.INI`).
+* Supported with files loaded from the game directory or from within any loaded `.MIX` archive.
+* Both features perform **depth-first recursion** (nested includes are resolved before moving to the next file in the list).
+* Entries are processed sequentially in the order in which they appear, regardless of their key (left of `=`).
+
+In any `INI` file:
+```ini
+[$Inherit]
+0=SOMEFILE1.INI  ; file name
+
+[$Include]
+0=SOMEFILE2.INI  ; file name
+```
+
+```{caution}
+Avoid recursive includes. Vinifera does not provide circular reference protection; self-referencing files will cause the game to stop responding.
+```
+
+### Section inheritance
+
+Sections can now inherit entries from one or more "parent" sections using the `$Inherits` key. This allows for shared configuration templates and reduced redundancy within INI files.
+
+### Technical Rules
+* **Fallback Logic:** If a key is missing or has no value in the current section, the game looks up the value in the specified parent sections. If the value is still not found, it falls back to the hardcoded engine default.
+* **Override Priority:** The current (child) section always takes precedence.
+* **Multiple Parents:** You can list multiple parents separated by commas. The lookup follows a **left-to-right** priority:
+  `$Inherits=ParentA, ParentB` (The engine checks ParentA first, then ParentB).
+* **Recursion:** Inheritance is **depth-first**. If ParentA inherits from ParentX, Vinifera will fully resolve ParentA's hierarchy before checking ParentB.
+
+In any `INI` file:
+```ini
+[TemplateA]
+Armor=heavy
+Speed=5
+
+[TemplateB]
+Speed=10
+Weapon=Vulcan
+
+[NewUnit]
+$Inherits=TemplateA,TemplateB
+Owner=GDI
+; Result: Armor=heavy (from A), Weapon=Vulcan (from B), Speed=5 (from A), Owner=GDI (Own value)
+```
+
+```{caution}
+There are no internal guards against recursive inheritance. If Section A inherits from Section B, and Section B inherits from Section A, the game will hang in an infinite loop.
+```
+
+```{caution}
+Section-level does not work in certain cases that *iterate* a section. Notably, it may not be used with type lists, `[Tutorial]`, map briefings, as well as with map object lists.
+```
+
 ## Quality of Life
 
 - Harvesters are now considered when executing the "Guard" command. They have a special case when assigned with the Guard mission that tells them to find the nearest Tiberium patch and begin harvesting.
