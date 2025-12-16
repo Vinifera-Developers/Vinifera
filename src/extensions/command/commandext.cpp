@@ -1936,11 +1936,7 @@ void Classify(const Classify_Function &classify_function, TechnoList &current_se
  *  otherwise the selection will be replaced with the next tier.
  */
 bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
-{
-    if (Session.Players.Count() > 1) {
-        return false;
-    }
-
+{    
     // each classify_function has its own last_full_selection and last_selection arrays
     static std::map<Classify_Function, TechnoList*> last_full_selection_by_classifiers = {
         { Get_Veterancy_Level, new TechnoList() },
