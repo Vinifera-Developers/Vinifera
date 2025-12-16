@@ -30,6 +30,8 @@
 #include "command.h"
 #include "tibsun_defines.h"
 #include "vinifera_globals.h"
+#include <map>
+#include <algorithm>
 
 
 /**
@@ -662,6 +664,15 @@ class HoldPositionCommandClass : public ViniferaCommandClass
 
         virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT | KN_H); }
 };
+
+
+/**
+ *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2
+ */
+typedef int (*Classify_Function)(TechnoClass*);
+
+extern std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
+
 /**
  *  Cycles through green/veteran/elite units among the initially selected group 
  */

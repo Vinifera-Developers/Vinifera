@@ -48,7 +48,7 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "houseext.h"
-
+#include "commandext.h"
 
 /**
  *  Class constructor.
@@ -187,12 +187,11 @@ void ScenarioClassExtension::Init_Clear()
     IsIceDestruction = true;
     ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
     ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
-
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
     {
         /**
-         *  Clear the any previously loaded tutorial messages in preperation for
+         *  Clear the any previously loaded tutorial messages in preparation for
          *  reloading the TUTORIAL.INI as they might contain scenario overrides.
          */
         TutorialText.Clear();
@@ -209,6 +208,10 @@ void ScenarioClassExtension::Init_Clear()
      *  Clear all waypoint values, preparing for scenario loading.
      */
     Clear_All_Waypoints();
+    /* 
+     * Erase unit all filter hotkey states as their unit objects are invalid now 
+     */
+    UnitFilterLastFullSelectionByClassifiers.clear();
 }
 
 

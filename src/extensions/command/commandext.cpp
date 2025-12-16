@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "commandext.h"
 #include <map>
+#include <iostream>
 #include <algorithm>
 #include "tibsun_globals.h"
 #include "tibsun_util.h"
@@ -1814,6 +1815,7 @@ bool VeterancyPromoteCommandClass::Process()
  */
 using TechnoList = DynamicVectorClass<TechnoClass*>;
 
+std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
 
 /**
  * Checks if two lists are equal, meaning they contain the same TechnoClass pointers.
@@ -1885,11 +1887,6 @@ static int Get_Health_Level(TechnoClass* techno) {
 }
 
 /**
- *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2
- */
-typedef int (*Classify_Function)(TechnoClass*);
-
-/**
  *  returns the tier other than the two specified
  */
 int Get_Other_Tier(int a, int b)
@@ -1938,14 +1935,17 @@ void Classify(const Classify_Function &classify_function, TechnoList &current_se
 bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
 {    
     // each classify_function has its own last_full_selection and last_selection arrays
-    static std::map<Classify_Function, TechnoList*> last_full_selection_by_classifiers = {
-        { Get_Veterancy_Level, new TechnoList() },
-        { Get_Health_Level, new TechnoList() }
-    };
     
+    if (UnitFilterLastFullSelectionByClassifiers.size() == 0)
+    {
+        UnitFilterLastFullSelectionByClassifiers[Get_Veterancy_Level] = new TechnoList();
+        UnitFilterLastFullSelectionByClassifiers[Get_Health_Level] = new TechnoList();
+    }
+
     // we fetch the last full selection for the given classify_function
-    TechnoList &last_full_selection = *(last_full_selection_by_classifiers[classify_function]);
-    TechnoList last_selection[3];
+    TechnoList& last_full_selection = *(UnitFilterLastFullSelectionByClassifiers[classify_function]);
+    TechnoList last_selection[3]; 
+
     // then we classify the last full selection into three tiers
     Classify(classify_function, last_full_selection, last_selection);
     TechnoList current_selection[3];
