@@ -2051,6 +2051,61 @@ bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pr
         }
     }
 
+    return true;   
+}
+
+/**
+ *  Toggle Mission=Sticky for selected units.
+ *
+ *  @author: hacklex
+ */
+const char* HoldPositionCommandClass::Get_Name() const
+{
+    return "HoldPosition";
+}
+
+const char* HoldPositionCommandClass::Get_UI_Name() const
+{
+    return "Hold Position";
+}
+
+const char* HoldPositionCommandClass::Get_Category() const
+{
+    return "Control";
+}
+
+const char* HoldPositionCommandClass::Get_Description() const
+{
+    return "Toggle Hold Position for selected units";
+}
+
+bool HoldPositionCommandClass::Process()
+{
+    static std::map<TechnoClass*, MissionType> old_missions;
+
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass* object = CurrentObjects[i];
+        if (!object || !object->Is_Techno() || !static_cast<TechnoClass*>(object)->House->Is_Player_Control()) {
+            // skip non-techno objects and objects not owned by the player
+            continue;
+        }
+        TechnoClass* techno = static_cast<TechnoClass*>(object);
+        if (techno->CurrentMission == MISSION_STICKY) {
+            auto old = old_missions.find(techno);
+            if (old == old_missions.end()) {
+                techno->CurrentMission = MISSION_STOP;
+            }
+            else {
+                techno->CurrentMission = old->second;
+                old_missions.erase(techno);
+            }
+        }
+        else {
+            old_missions[techno] = techno->CurrentMission;
+            techno->CurrentMission = MISSION_STICKY;
+        }
+    }
+
     return true;
 }
 
