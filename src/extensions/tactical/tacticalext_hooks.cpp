@@ -57,6 +57,7 @@
 #include "clipline.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 #include "technotypeext.h"
 #include "uicontrol.h"
 
@@ -103,19 +104,18 @@ bool TacticalExt::FilterSelection = false;
  */
 bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
 {
-    int xmin = TacticalRect.Width / 2 - (CELL_PIXEL_W >> 1) * (Map.MapSize.Width - 2 * Map.MapLocalSize.X);
-    int xmax = std::max(xmin + CELL_PIXEL_W * Map.MapLocalSize.Width - TacticalRect.Width, xmin);
+    int xmin = TacticalRect.Width / 2 - (CELL_PIXEL_W >> 1) * (Map.PlayRect.Width - 2 * Map.LocalRect.X);
+    int xmax = std::max(xmin + CELL_PIXEL_W * Map.LocalRect.Width - TacticalRect.Width, xmin);
 
-    int ymin = TacticalRect.Height / 2 + (CELL_PIXEL_H >> 1) * (Map.MapSize.Width + 2 * Map.MapLocalSize.Y - 5);
-    int ymax = std::max(ymin + CELL_PIXEL_H * (2 * Map.MapLocalSize.Height + 9) / 2 - TacticalRect.Height, ymin);
+    int ymin = TacticalRect.Height / 2 + (CELL_PIXEL_H >> 1) * (Map.PlayRect.Width + 2 * Map.LocalRect.Y - 5);
+    int ymax = std::max(ymin + CELL_PIXEL_H * (2 * Map.LocalRect.Height + 9) / 2 - TacticalRect.Height, ymin);
 
     bool clamped = false;
 
     if (pixel.Y < ymin) {
         pixel.Y = ymin;
         clamped = true;
-    }
-    else if (pixel.Y > ymax) {
+    } else if (pixel.Y > ymax) {
         pixel.Y = ymax;
         clamped = true;
     }
@@ -123,13 +123,12 @@ bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
     if (pixel.X < xmin) {
         pixel.X = xmin;
         clamped = true;
-    }
-    else if (pixel.X > xmax) {
+    } else if (pixel.X > xmax) {
         pixel.X = xmax;
         clamped = true;
     }
 
-    return(clamped);
+    return clamped;
 }
 
 
@@ -140,12 +139,12 @@ bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
  */
 void TacticalExt::_Draw_Band_Box()
 {
-    if (Band.X || Band.Y)
+    if (RubberBandStart != Point2D(0, 0))
     {
-        int x = Band.X;
-        int y = Band.Y;
-        int width = Band.Width;
-        int height = Band.Height;
+        int x = RubberBandStart.X;
+        int y = RubberBandStart.Y;
+        int width = RubberBandEnd.X;
+        int height = RubberBandEnd.Y;
 
         if (width < x) {
             std::swap(width, x);
@@ -183,7 +182,7 @@ void TacticalExt::_Draw_Band_Box()
             const float adjust = static_cast<float>(Scen->CurrentAmbientLight) / 100.0f;
             const RGBClass tint_color = RGBClass::Interpolate(tint_dark, tint_light, adjust);
 
-            LogicSurface->Fill_Rect_Trans(tint_rect, tint_color, trans);
+            LogicalSurface->Fill_Rect_Trans(tint_rect, tint_color, trans);
         }
 
         /**
@@ -195,7 +194,7 @@ void TacticalExt::_Draw_Band_Box()
             drop_rect.X += 1;
             drop_rect.Y += 1;
 
-            const unsigned drop_color = DSurface::RGB_To_Pixel(
+            const unsigned drop_color = DSurface::Build_Hicolor_Pixel(
                 UIControls->BandBoxDropShadowColor.R,
                 UIControls->BandBoxDropShadowColor.G,
                 UIControls->BandBoxDropShadowColor.B);
@@ -208,7 +207,7 @@ void TacticalExt::_Draw_Band_Box()
                 drop_rect.X += 1;
                 drop_rect.Y += 1;
 
-                LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+                LogicalSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
 
                 Rect thick_rect = drop_rect;
                 thick_rect.X += 1;
@@ -216,11 +215,11 @@ void TacticalExt::_Draw_Band_Box()
                 thick_rect.Width -= 2;
                 thick_rect.Height -= 2;
 
-                LogicSurface->Draw_Rect(TacticalRect, thick_rect, drop_color);
+                LogicalSurface->Draw_Rect(TacticalRect, thick_rect, drop_color);
 
             }
             else {
-                LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+                LogicalSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
             }
 
         }
@@ -228,12 +227,12 @@ void TacticalExt::_Draw_Band_Box()
         /**
          *  Draw the custom rubber band rect.
          */
-        const unsigned band_color = DSurface::RGB_To_Pixel(
+        const unsigned band_color = DSurface::Build_Hicolor_Pixel(
             UIControls->BandBoxColor.R,
             UIControls->BandBoxColor.G,
             UIControls->BandBoxColor.B);
 
-        LogicSurface->Draw_Rect(TacticalRect, band_rect, band_color);
+        LogicalSurface->Draw_Rect(TacticalRect, band_rect, band_color);
 
         /**
          *  If the band box is thick, draw an extra outline.
@@ -244,7 +243,7 @@ void TacticalExt::_Draw_Band_Box()
             thick_rect.Y += 1;
             thick_rect.Width -= 2;
             thick_rect.Height -= 2;
-            LogicSurface->Draw_Rect(TacticalRect, thick_rect, band_color);
+            LogicalSurface->Draw_Rect(TacticalRect, thick_rect, band_color);
         }
     }
 }
@@ -438,7 +437,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
      const TechnoClass* techno = Target_As_Techno(obj);
      if (techno && OptionsExtension->FilterBandBoxSelection
          && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants
-         && !WWKeyboard->Down(VK_ALT))
+         && !Keyboard->Down(VK_ALT))
      {
          const auto ext = Extension::Fetch(techno->TClass);
          if (ext->IsFilterFromBandBoxSelection)
@@ -452,7 +451,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
         /**
          *  If this is a new selection, filter it at the end.
          */
-        if (TacticalExt::SelectedCount == 0 && !WWKeyboard->Down(VK_ALT))
+        if (TacticalExt::SelectedCount == 0 && !Keyboard->Down(VK_ALT))
             TacticalExt::FilterSelection = true;
     }
 }
@@ -482,8 +481,8 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
     const int time = timeGetTime();
     const int offset = (-time / 32) & (std::size(_pattern) - 1);
 
-    const unsigned color = DSurface::RGB_To_Pixel(0, 255, 0);
-    const unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    const unsigned color = DSurface::Build_Hicolor_Pixel(0, 255, 0);
+    const unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
 
     /**
      *  Iterate all selected objects to see if we need to draw a rally point line for them.
@@ -502,7 +501,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                 /**
                  *  ArchiveTarget contains the rally point cell, so it needs to be set.
                  */
-                if (Target_Legal(bldg->ArchiveTarget) && bldg->Get_Mission() != MISSION_DECONSTRUCTION)
+                if (bldg->ArchiveTarget != nullptr && bldg->Get_Mission() != MISSION_DECONSTRUCTION)
                 {
                     /**
                      *  The start of the line is just at the building's center.
@@ -539,7 +538,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                     end_pos.Y += 2;
                     if (Clip_Line(start_pos, end_pos, TacticalRect))
                     {
-                        LogicSurface->entry_48(start_pos, end_pos, color_black, _pattern, offset, blit);
+                        LogicalSurface->entry_48(start_pos, end_pos, color_black, _pattern, offset, blit);
                     }
 
                     /**
@@ -550,14 +549,14 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                     --end_pos.Y;
                     if (Clip_Line(start_pos, end_pos, TacticalRect))
                     {
-                        LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
+                        LogicalSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
                     }
 
                     --start_pos.Y;
                     --end_pos.Y;
                     if (Clip_Line(start_pos, end_pos, TacticalRect))
                     {
-                        LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
+                        LogicalSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
                     }
                 }
             }
@@ -575,11 +574,11 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_Text_Color_Patch)
+DEFINE_HOOK(0x00616FDA, _Tactical_Draw_Waypoint_Paths_Text_Color_Patch, 0)
 {
-    _asm { mov eax, 14 }
+    R->EAX(14);
 
-    JMP_REG(ecx, 0x00616FEB);
+    return(0x00616FEB);
 }
 
 
@@ -593,36 +592,25 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_Text_Color_Patch)
  * 
  *  @authors: CCHyper
  */
-DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
+DEFINE_HOOK(0x006172DB, _Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch, 0)
 {
-    GET_REGISTER_STATIC(unsigned, color, eax);
-    GET_STACK_STATIC8(bool, blit, esp, 0x90);
-    LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x34);
-    LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x3C);
+    GET(unsigned, color, EAX);
+    GET_STACK(bool, blit, 0x90);
+    REF_STACK(Point2D, start_pos, 0x34);
+    REF_STACK(Point2D, end_pos, 0x3C);
 
     /**
      *  5 pixels on, 3 off, 5 pixels on, 3 off.
      */
     static bool _pattern[16] = { true, true, true, true, true, false, false, false, true, true, true, true, true, false, false, false };
 
-    static int time;
-    static int offset;
-    static unsigned color_black;
-
     /**
      *  Adjust the offset of the line pattern (this animates a little slower than rally points).
      */
-    time = timeGetTime();
-    offset = (-time / 64) & (std::size(_pattern)-1);
+    int time = timeGetTime();
+    int offset = (-time / 64) & (std::size(_pattern)-1);
 
-    color_black = DSurface::RGB_To_Pixel(0,0,0);
-
-#if 0
-    /**
-     *  Draw the line line with the desired pattern.
-     */
-    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
-#endif
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0,0,0);
 
     /**
      *  #issue-351
@@ -635,32 +623,29 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
     /**
      *  Draw the drop shadow line.
      */
-    start_pos->Y += 2;
-    end_pos->Y += 2;
-    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
-    {
-        LogicSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+    start_pos.Y += 2;
+    end_pos.Y += 2;
+    if (Clip_Line(start_pos, end_pos, TacticalRect)) {
+        LogicalSurface->entry_48(start_pos, end_pos, color_black, _pattern, offset, blit);
     }
 
     /**
      *  Draw two lines, offset by one pixel from each other, giving the
      *  impression that it is double the thickness.
      */
-    --start_pos->Y;
-    --end_pos->Y;
-    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
-    {
-        LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    --start_pos.Y;
+    --end_pos.Y;
+    if (Clip_Line(start_pos, end_pos, TacticalRect)) {
+        LogicalSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
     }
 
-    --start_pos->Y;
-    --end_pos->Y;
-    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
-    {
-        LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    --start_pos.Y;
+    --end_pos.Y;
+    if (Clip_Line(start_pos, end_pos, TacticalRect)) {
+        LogicalSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
     }
 
-    JMP(0x00617307);
+    return(0x00617307);
 }
 
 
@@ -671,46 +656,41 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
  * 
  *  @authors: CCHyper
  */
-DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
+DEFINE_HOOK(0x00617327, _Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch, 0)
 {
-    GET_REGISTER_STATIC(unsigned, color, eax);
-    GET_STACK_STATIC8(bool, blit, esp, 0x90);
-    LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x34);
-    LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x3C);
+    GET(unsigned, color, EAX);
+    GET_STACK(bool, blit, 0x90);
+    REF_STACK(Point2D, start_pos, 0x34);
+    REF_STACK(Point2D, end_pos, 0x3C);
 
-    static unsigned color_black;
-
-    color_black = DSurface::RGB_To_Pixel(0,0,0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
 
     /**
      *  Draw the drop shadow line.
      */
-    start_pos->Y += 2;
-    end_pos->Y += 2;
-    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
-    {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color_black);
+    start_pos.Y += 2;
+    end_pos.Y += 2;
+    if (Clip_Line(start_pos, end_pos, TacticalRect)) {
+        LogicalSurface->entry_4C(start_pos, end_pos, color_black, false);
     }
 
     /**
      *  Draw two lines, offset by one pixel from each other, giving the
      *  impression that it is double the thickness.
      */
-    --start_pos->Y;
-    --end_pos->Y;
-    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
-    {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+    --start_pos.Y;
+    --end_pos.Y;
+    if (Clip_Line(start_pos, end_pos, TacticalRect)) {
+        LogicalSurface->entry_4C(start_pos, end_pos, color, false);
     }
 
-    --start_pos->Y;
-    --end_pos->Y;
-    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
-    {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+    --start_pos.Y;
+    --end_pos.Y;
+    if (Clip_Line(start_pos, end_pos, TacticalRect)) {
+        LogicalSurface->entry_4C(start_pos, end_pos, color, false);
     }
 
-    JMP(0x00617307);
+    return(0x00617307);
 }
 
 
@@ -720,9 +700,9 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
+DEFINE_HOOK(0x00611AF9, _Tactical_Render_Post_Effects_Patch, 0)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
+    GET(Tactical *, this_ptr, EBP);
 
     /**
      *  Stolen bytes/code.
@@ -734,7 +714,7 @@ DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
      */
     TacticalMapExtension->Render_Post();
 
-    JMP(0x00611AFE);
+    return(0x00611AFE);
 }
 
 
@@ -744,9 +724,9 @@ DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
+DEFINE_HOOK(0x00611BCB, _Tactical_Render_Overlay_Patch, 0)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
+    GET(Tactical *, this_ptr, EBP);
 
     /**
      *  If the developer mode is active, draw the developer overlay.
@@ -794,7 +774,18 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
             std::memset(TacticalMapExtension->InfoTextBuffer, 0, sizeof(TacticalMapExtension->InfoTextBuffer));
             TacticalMapExtension->InfoTextNotifySound = VOC_NONE;
             TacticalMapExtension->InfoTextPosition = TOP_LEFT;
-        }       
+        }
+    }
+
+    /**
+     *  Has a templated text been set to be displayed?
+     */
+    if (TacticalMapExtension->IsTemplatedTextVisible) {
+
+        /**
+         *  Draw it to the screen.
+         */
+        TacticalMapExtension->Draw_Templated_Text();
     }
 
     /**
@@ -813,7 +804,7 @@ original_code:
     this_ptr->field_D30 = false;
     this_ptr->IsToRedraw = false;
 
-    JMP(0x00611BE4);
+    return(0x00611BE4);
 }
 
 
@@ -826,17 +817,11 @@ original_code:
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_Tactical_Center_On_Location_Unfollow_Object_Patch)
+DEFINE_HOOK(0x0060F953, _Tactical_Center_On_Location_Unfollow_Object_Patch, 7)
 {
-    Map.Follow_This(nullptr);
+    Map.Break_Follow_Mode();
 
-    // Rebuild function epilogue
-    _asm { pop  edi }
-    _asm { pop  esi }
-    _asm { pop  ebp }
-    _asm { pop  ebx }
-    _asm { add  esp, 8 }
-    _asm { retn 8 }
+    return 0;
 }
 
 
@@ -845,37 +830,21 @@ DECLARE_PATCH(_Tactical_Center_On_Location_Unfollow_Object_Patch)
  *
  *  @authors: Belonit, ZivDero
  */
-static void _Fill_With_Black()
+DEFINE_HOOK(0x00611BBB, _Tactical_Render_Fill_With_Black_Patch, 6)
 {
-    const int max_width = TacticalRect.Width - Map.MapLocalSize.Width * CELL_PIXEL_W;
+    const int max_width = TacticalRect.Width - Map.LocalRect.Width * CELL_PIXEL_W;
     if (max_width > 0) {
-        Rect rect = {
-            TacticalRect.X + TacticalRect.Width - max_width,
-            TacticalRect.Y,
-            max_width,
-            TacticalRect.Height };
+        Rect rect = {TacticalRect.X + TacticalRect.Width - max_width, TacticalRect.Y, max_width, TacticalRect.Height};
         CompositeSurface->Fill_Rect(rect, COLOR_TBLACK);
     }
 
-    const int max_height = TacticalRect.Height - Map.MapLocalSize.Height * CELL_PIXEL_H - int(4.5 * CELL_PIXEL_H);
+    const int max_height = TacticalRect.Height - Map.LocalRect.Height * CELL_PIXEL_H - static_cast<int>(4.5 * CELL_PIXEL_H);
     if (max_height > 0) {
-        Rect rect = {
-            TacticalRect.X,
-            TacticalRect.Y + TacticalRect.Height - max_height,
-            TacticalRect.Width,
-            max_height };
+        Rect rect = {TacticalRect.X, TacticalRect.Y + TacticalRect.Height - max_height, TacticalRect.Width, max_height};
         CompositeSurface->Fill_Rect(rect, COLOR_TBLACK);
     }
-}
 
-DECLARE_PATCH(_Tactical_Render_Fill_With_Black_Patch)
-{
-    _Fill_With_Black();
-
-    // Stolen instructions
-    _asm {mov eax, [esp+0x18]}
-    _asm {mov ecx, ebx}
-    JMP_REG(EDX, 0x00611BC1);
+    return 0;
 }
 
 
@@ -905,13 +874,13 @@ HRESULT STDMETHODCALLTYPE TacticalExt::_Save(IStream* stream, BOOL cleardirty)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TacticalClass_Flag_Cell_New_Array_Patch)
+DEFINE_HOOK(0x00616C07, _TacticalClass_Flag_Cell_New_Array_Patch, 0)
 {
-    GET_STACK_STATIC(CellClass*, cell, esp, 0x20);
+    GET_STACK(CellClass*, cell, 0x20);
 
     TacticalMapExtension->Flag_Cell(*cell);
 
-    JMP(0x00616C2C);
+    return(0x00616C2C);
 }
 
 
@@ -950,15 +919,12 @@ void TacticalExtension_Hooks()
      */
     TacticalExtension_Init();
 
-    Patch_Jump(0x00611AF9, &_Tactical_Render_Post_Effects_Patch);
-    Patch_Jump(0x00611BCB, &_Tactical_Render_Overlay_Patch);
-
     Patch_Jump(0x00616C90, &TacticalExt::_Draw_Rally_Points);
-
-    Patch_Jump(0x006172DB, &_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch);
-    Patch_Jump(0x00617327, &_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch);
-
-    Patch_Jump(0x0060F953, &_Tactical_Center_On_Location_Unfollow_Object_Patch);
+    Patch_Jump(0x00616560, &TacticalExt::_Draw_Band_Box);
+    Patch_Jump(0x00616940, &TacticalExt::_Select_These);
+    Patch_Jump(0x00614EC0, &TacticalExt::_Clamp_To_Tactical_Rect);
+    Patch_Jump(0x00617F80, &TacticalExt::_Save);
+    Patch_Jump(0x00479150, &Vinifera_Bandbox_Select);
 
     /**
      *  #issue-351
@@ -969,18 +935,7 @@ void TacticalExtension_Hooks()
      */
     Patch_Dword(0x006171C8+1, (TPF_CENTER|TPF_EFNT|TPF_FULLSHADOW));
 
-    Patch_Jump(0x00616FDA, &_Tactical_Draw_Waypoint_Paths_Text_Color_Patch);
-    Patch_Jump(0x00616560, &TacticalExt::_Draw_Band_Box);
-
-    Patch_Jump(0x00616940, &TacticalExt::_Select_These);
-    Patch_Jump(0x00479150, &Vinifera_Bandbox_Select);
-
-    Patch_Jump(0x00614EC0, &TacticalExt::_Clamp_To_Tactical_Rect);
-    Patch_Jump(0x00611BBB, &_Tactical_Render_Fill_With_Black_Patch);
-
     Patch_Jump(0x00617F54, 0x00617F79); // Skip swizzling cell redraw pointers in TacticalClass as we have our own array
-    Patch_Jump(0x00617F80, &TacticalExt::_Save);
-    Patch_Jump(0x00616C07, _TacticalClass_Flag_Cell_New_Array_Patch);
     Patch_Jump(0x00610154, _TacticalClass_SubRender1_Patch);
     Patch_Jump(0x006102B9, _TacticalClass_SubRender2_Patch);
     Patch_Jump(0x00610519, _TacticalClass_SubRender3_Patch);

@@ -28,6 +28,8 @@
 #include "technotypeext.h"
 
 #include "aircrafttype.h"
+#include "animtype.h"
+#include "unittype.h"
 #include "technotype.h"
 #include "ccini.h"
 #include "filepng.h"
@@ -104,7 +106,11 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsNaval(false),
     BuiltAt(),
     BuildTimeMultiplier(1.0f),
-    IsOpportunityFire(false)
+    IsOpportunityFire(false),
+    WakeAnim(nullptr),
+    WakeAnimRate(10),                   // Default DriveLocomotion value.
+    IdleWakeAnim(nullptr),
+    IsHideWakeWhenCloaked(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -169,6 +175,8 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(WakeAnim, "WakeAnim");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(IdleWakeAnim, "IdleWakeAnim");
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BuiltAt, "BuiltAt");
 
@@ -176,13 +184,13 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
      *  We need to reload the "Cameo" key because TechnoTypeClass does
      *  not store the entry value. 
      */
-    const char *ini_name = IniName;
-    const char *graphic_name = GraphicName;
+    const char *ini_name = IniName.c_str();
+    const char* graphic_name = GraphicName.c_str();
 
     char cameo_buffer[32];
     
     ArtINI.Get_String(ini_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
-    if (Wstring(cameo_buffer) != "XXICON") {
+    if (std::string_view(cameo_buffer) != "XXICON") {
 
         ArtINI.Get_String(graphic_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
 
@@ -292,6 +300,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsNaval);
     crc(BuiltAt.Count());
     crc(IsOpportunityFire);
+    crc(WakeAnimRate);
+    crc(IsHideWakeWhenCloaked);
 }
 
 
@@ -365,19 +375,20 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
-    UnloadingClass = ini.Get_Techno(ini_name, "UnloadingClass", UnloadingClass);
+    UnloadingClass = TGet_Class(ini, ini_name, "UnloadingClass", UnloadingClass);
     SoylentValue = ini.Get_Int(ini_name, "Soylent", SoylentValue);
     EnterTransportSound = ini.Get_VocType(ini_name, "EnterTransportSound", EnterTransportSound);
     LeaveTransportSound = ini.Get_VocType(ini_name, "LeaveTransportSound", LeaveTransportSound);
-    VoiceCapture = ini.Get_VocTypes(ini_name, "VoiceCapture", VoiceCapture);
-    VoiceEnter = ini.Get_VocTypes(ini_name, "VoiceEnter", VoiceEnter);
-    VoiceDeploy = ini.Get_VocTypes(ini_name, "VoiceDeploy", VoiceDeploy);
-    VoiceHarvest = ini.Get_VocTypes(ini_name, "VoiceHarvest", VoiceHarvest);
+    VoiceCapture = Get_VocTypes(ini, ini_name, "VoiceCapture", VoiceCapture);
+    VoiceEnter = Get_VocTypes(ini, ini_name, "VoiceEnter", VoiceEnter);
+    VoiceDeploy = Get_VocTypes(ini, ini_name, "VoiceDeploy", VoiceDeploy);
+    VoiceHarvest = Get_VocTypes(ini, ini_name, "VoiceHarvest", VoiceHarvest);
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
 
-    if (ini.Is_Present(ini_name, "Description"))
-        ini.Get_String(ini_name, "Description", Description, std::size(Description));
+    if (ini.Is_Present(ini_name, "Description")) {
+        ini.Get_String(ini_name, "Description", "", Description, std::size(Description));
+    }
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
@@ -387,7 +398,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface* imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename);
+    BSurface* imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename.c_str());
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
@@ -397,14 +408,14 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     CrewCount = ini.Get_Int(ini_name, "CrewCount", CrewCount);
 
     IsMissileSpawn = ini.Get_Bool(ini_name, "MissileSpawn", IsMissileSpawn);
-    Spawns = ini.Get_Aircraft(ini_name, "Spawns", Spawns);
+    Spawns = TGet_Class(ini, ini_name, "Spawns", Spawns);
     SpawnReloadRate = ini.Get_Int(ini_name, "SpawnReloadRate", SpawnReloadRate);
     SpawnRegenRate = ini.Get_Int(ini_name, "SpawnRegenRate", SpawnRegenRate);
     SpawnSpawnRate = ini.Get_Int(ini_name, "SpawnSpawnRate", SpawnSpawnRate);
     SpawnLogicRate = ini.Get_Int(ini_name, "SpawnLogicRate", SpawnLogicRate);
     SpawnsNumber = ini.Get_Int(ini_name, "SpawnsNumber", SpawnsNumber);
     SecondSpawnOffset = ArtINI.Get_Point(graphic_name, "SecondSpawnOffset", SecondSpawnOffset);
-    MaxRandomSpawnOffset = ini.Get_Int(graphic_name, "MaxRandomSpawnOffset", MaxRandomSpawnOffset);
+    MaxRandomSpawnOffset = ini.Get_Int(ini_name, "MaxRandomSpawnOffset", MaxRandomSpawnOffset);
 
     IsDontScore = ini.Get_Bool(ini_name, "DontScore", IsDontScore);
     IsSpawned = ini.Get_Bool(ini_name, "Spawned", IsSpawned);
@@ -417,10 +428,10 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     _JumpjetTurnRate = ini.Get_Int(ini_name, "JumpjetTurnRate", _JumpjetTurnRate);
     _JumpjetSpeed = ini.Get_Int(ini_name, "JumpjetSpeed", _JumpjetSpeed);
-    _JumpjetClimb = ini.Get_Double(ini_name, "JumpjetClimb", _JumpjetClimb);
+    _JumpjetClimb = ini.Get_Float(ini_name, "JumpjetClimb", _JumpjetClimb);
     _JumpjetCruiseHeight = ini.Get_Int(ini_name, "JumpjetCruiseHeight", _JumpjetCruiseHeight);
-    _JumpjetAcceleration = ini.Get_Double(ini_name, "JumpjetAcceleration", _JumpjetAcceleration);
-    _JumpjetWobblesPerSecond = ini.Get_Double(ini_name, "JumpjetWobblesPerSecond", _JumpjetWobblesPerSecond);
+    _JumpjetAcceleration = ini.Get_Float(ini_name, "JumpjetAcceleration", _JumpjetAcceleration);
+    _JumpjetWobblesPerSecond = ini.Get_Float(ini_name, "JumpjetWobblesPerSecond", _JumpjetWobblesPerSecond);
     _JumpjetWobbleDeviation = ini.Get_Int(ini_name, "JumpjetWobbleDeviation", _JumpjetWobbleDeviation);
     _JumpjetCloakDetectionRadius = ini.Get_Int(ini_name, "JumpjetCloakDetectionRadius", _JumpjetCloakDetectionRadius);
     JumpjetNoWobbles = ini.Get_Bool(ini_name, "JumpjetNoWobbles", JumpjetNoWobbles);
@@ -429,6 +440,11 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
     IsOpportunityFire = ini.Get_Bool(ini_name, "OpportunityFire", IsOpportunityFire);
+
+    WakeAnim = TGet_Class(ArtINI, graphic_name, "WakeAnim", WakeAnim);
+    WakeAnimRate = ArtINI.Get_Int(graphic_name, "WakeAnimRate", WakeAnimRate);
+    IdleWakeAnim = TGet_Class(ArtINI, graphic_name, "IdleWakeAnim", IdleWakeAnim);
+    IsHideWakeWhenCloaked = ArtINI.Get_Bool(graphic_name, "HideWakeWhenCloaked", IsHideWakeWhenCloaked);
 
     return true;
 }

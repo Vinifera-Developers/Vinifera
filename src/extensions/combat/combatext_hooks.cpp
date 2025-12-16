@@ -50,7 +50,6 @@
 #include "coord.h"
 #include "debughandler.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "mouse.h"
@@ -66,6 +65,7 @@
 #include "voxelanim.h"
 #include "jumpjetlocomotion.h"
 #include "smudgetype.h"
+#include "syringe.h"
 
 
 template <typename T>
@@ -109,23 +109,22 @@ static T Percent_At_Max(T value, int range, int distance, float percent_at_max)
 int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * target, int distance)
 {
     /**
-     *	If there is no raw damage value to start with, then
-     *	there can be no modified damage either.
+     *  If there is no raw damage value to start with, then
+     *  there can be no modified damage either.
      */
-    if (!damage || Scen->Special.IsInert || warhead == nullptr)
-        return 0;
+    if (!damage || Scen->Special.IsInert || warhead == nullptr) return 0;
 
     ArmorType armor = target->Class_Of()->Armor;
 
     /**
-     *	Negative damage (i.e., heal) is always applied full strength, but only if the heal
-     *	effect is close enough.
+     *  Negative damage (i.e., heal) is always applied full strength, but only if the heal
+     *  effect is close enough.
      */
-    if (damage < 0)
-    {
+    if (damage < 0) {
         enum { MAX_HEAL_DISTANCE = 8 };
-        if (distance < MAX_HEAL_DISTANCE)
+        if (distance < MAX_HEAL_DISTANCE) {
             return damage;
+        }
 
         return 0;
     }
@@ -133,33 +132,11 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
     const auto warhead_ext = Extension::Fetch(warhead);
     const int min_damage = warhead_ext->MinDamage >= 0 ? warhead_ext->MinDamage : Rule->MinDamage;
 
-    float type_modifier = 1.0f;
-    switch (target->RTTI)
-    {
-    case RTTI_INFANTRY:
-        type_modifier = warhead_ext->InfantryModifier;
-        break;
-    case RTTI_UNIT:
-        type_modifier = warhead_ext->VehicleModifier;
-        break;
-    case RTTI_AIRCRAFT:
-        type_modifier = warhead_ext->AircraftModifier;
-        break;
-    case RTTI_BUILDING:
-        type_modifier = warhead_ext->BuildingModifier;
-        break;
-    case RTTI_TERRAIN:
-        type_modifier = warhead_ext->TerrainModifier;
-        break;
-    default:
-        break;
-    }
-
     /**
      *  Apply TS Spread logic.
      */
-    if (warhead_ext->CellSpread < 0.0)
-    {
+    if (warhead_ext->CellSpread < 0.0) {
+
         /**
          *  Apply the warhead's modifier to the damage.
          */
@@ -168,8 +145,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        if (type_modifier != 1.0f)
-            damage *= type_modifier;
+        damage *= warhead_ext->Fetch_Type_Modifier(target->RTTI);
 
         /**
          *  Ensure that the damage is at least MinDamage.
@@ -179,32 +155,36 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Reduce damage according to the distance from the impact point.
          */
-        if (damage)
-        {
-            if (!warhead->SpreadFactor)
+        if (damage) {
+
+            if (warhead->SpreadFactor == 0) {
                 distance /= PIXEL_LEPTON_W / 2;
-            else
+            } else {
                 distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
+            }
 
             distance = std::clamp(distance, 0, 16);
 
-            if (distance)
+            if (distance) {
                 damage /= distance;
+            }
 
             /**
-             *	Allow damage to drop to zero only if the distance would have
-             *	reduced damage to less than 1/4 full damage. Otherwise, ensure
-             *	that at least one damage point is done.
+             *  Allow damage to drop to zero only if the distance would have
+             *  reduced damage to less than 1/4 full damage. Otherwise, ensure
+             *  that at least one damage point is done.
              */
-            if (distance < 4)
+            if (distance < 4) {
                 damage = std::max(damage, min_damage);
+            }
         }
     }
+
     /**
      *  Apply RA2 CellSpread logic.
      */
-    else
-    {
+    else {
+
         /**
          *  Apply PercentAtMax.
          */
@@ -218,8 +198,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        if (type_modifier != 1.0f)
-            damage *= type_modifier;
+        damage *= warhead_ext->Fetch_Type_Modifier(target->RTTI);
 
         /**
          *  Ensure that the damage is at least MinDamage.
@@ -318,12 +297,11 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
     if (cellptr->Overlay != OVERLAY_NONE) {
         OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
 
-        if (optr->IsChainReactive) {
-            if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
-                Chain_Reaction_Damage(cell);
-                cellptr->Reduce_Tiberium(strength / 10);
-            }
+        if (optr->IsChainReactive && (!optr->IsTiberium || warhead->IsTiberiumDestroyer) && do_chain_reaction) {
+            Chain_Reaction_Damage(cell);
+            cellptr->Reduce_Tiberium(strength / 10);
         }
+
         if (optr->IsWall) {
 
             /**
@@ -337,10 +315,15 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
             if (warheadtypeext->IsWallAbsoluteDestroyer) {
                 Map[cell].Reduce_Wall(-1);
             }
-            else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
+            else if (warhead->IsWallDestroyer) {
                 Map[cell].Reduce_Wall(strength);
             }
         }
+
+        if (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD) {
+            Map[cell].Reduce_Wall(strength);
+        }
+
         if (cellptr->Overlay == OVERLAY_NONE) {
             TechnoClass::Update_Mission_Targets(cellptr);
         }
@@ -651,7 +634,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
          */
         if ((warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(explosion_coord)
             && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)) {
-            Map.field_DC.Clear();
+            Map.PendingIceCells.Clear();
             if (Map.Crack_Ice(*cellptr, nullptr)) {
                 Map.Recalc_Ice();
             }
@@ -688,18 +671,16 @@ static int Scale_Float_To_Int(float value, int scale)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
+DEFINE_HOOK(0x00460477, _Do_Flash_CombatLightSize_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, damage, ecx);
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, edx);
-    static const WarheadTypeClassExtension *warheadtypeext;
-    static float light_size;
-    static int flash_size;
+    GET(int, damage, ECX);
+    GET(const WarheadTypeClass *, warhead, EDX);
+    int flash_size;
 
     /**
      *  Fetch the extension instance.
      */
-    warheadtypeext = Extension::Fetch(warhead);
+    const WarheadTypeClassExtension* warheadtypeext = Extension::Fetch(warhead);
 
     /**
      *  If no custom light size has been set, then just use the default code.
@@ -710,11 +691,9 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
         /**
          *  Original code.
          */
-        flash_size = (damage / 4);
+        flash_size = damage / 4;
         if (flash_size < 63) {
-            if (flash_size <= 21) {
-                flash_size = 21;
-            }
+            flash_size = std::max(flash_size, 21);
         } else {
             flash_size = 63;
         }
@@ -729,19 +708,17 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
         /**
          *  Clamp the light size and scale to expected size range.
          */
-        light_size = warheadtypeext->CombatLightSize;
-        if (light_size > 1.0f) {
-            light_size = 1.0f;
-        }
+        float light_size = warheadtypeext->CombatLightSize;
+        light_size = std::min(light_size, 1.0f);
         flash_size = Scale_Float_To_Int(light_size, 63);
     }
 
     /**
      *  Set the desired flash size.
      */
-    _asm { mov esi, flash_size }
+    R->ESI(flash_size);
 
-    JMP(0x00460495);
+    return 0x00460495;
 }
 
 
@@ -752,7 +729,6 @@ void CombatExtension_Hooks()
 {
     Patch_Byte(0x0058604A, 0x56); // push eax -> push esi; Modify_Damage originally takes ArmorType as its argument, we instead pass the target object
 
-    Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
     Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
 }

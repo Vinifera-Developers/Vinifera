@@ -106,19 +106,19 @@ void Verses::Resize()
     // Resize the old arrays for new warheads and set defaults
     for (int i = 0; i < old_armor_count; i++)
     {
-        Modifier[i].resize(WarheadTypes.Count());
-        ForceFire[i].resize(WarheadTypes.Count());
-        PassiveAcquire[i].resize(WarheadTypes.Count());
-        Retaliate[i].resize(WarheadTypes.Count());
+        Modifier[i].resize(Warheads.Count());
+        ForceFire[i].resize(Warheads.Count());
+        PassiveAcquire[i].resize(Warheads.Count());
+        Retaliate[i].resize(Warheads.Count());
     }
 
     // Create new arrays for new armors
     for (int i = old_armor_count; i < ArmorTypes.Count(); i++)
     {
-        Modifier[i] = std::vector<VersesData<double>>(WarheadTypes.Count());
-        ForceFire[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
-        PassiveAcquire[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
-        Retaliate[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
+        Modifier[i] = std::vector<VersesData<double>>(Warheads.Count());
+        ForceFire[i] = std::vector<VersesData<bool>>(Warheads.Count());
+        PassiveAcquire[i] = std::vector<VersesData<bool>>(Warheads.Count());
+        Retaliate[i] = std::vector<VersesData<bool>>(Warheads.Count());
     }
 }
 

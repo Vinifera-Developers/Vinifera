@@ -35,7 +35,6 @@
 #include "side.h"
 #include "armortype.h"
 #include "rockettype.h"
-#include "wstring.h"
 #include "wwcrc.h"
 #include "noinit.h"
 #include "swizzle.h"
@@ -76,7 +75,7 @@
  *  
  *  @author: CCHyper
  */
-RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
+RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     GlobalExtensionClass(this_ptr),
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
@@ -93,7 +92,19 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     VoxelLightAzimuth(0),
     VoxelLightElevation(DEG_TO_RAD(45)),
     VoxelShadowOffset(6),
-    IsTiberiumStorage(true)
+    IsTiberiumStorage(true),
+    UpgradeVeteranSound(VOC_NONE),
+    UpgradeEliteSound(VOC_NONE),
+    VoxUnitPromoted(VOX_NONE),
+    EliteFlashTimer(0),
+    IsBeaconsEnabled(false),
+    IsSPBeacons(false),
+    MaxBeacons(-1),
+    PlaceBeaconSound(VOC_NONE),
+    PlaceBeaconVoice(VOX_NONE),
+    DetectBeaconVoice(VOX_NONE),
+    IsBeachIsCrush(false),
+    BuildingFlameSpawnBlockFrames(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -110,11 +121,11 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     This()->EngineerCaptureLevel = This()->ConditionRed;  // Building damage level before engineer can capture.
 
     MaxPips = TypeList<int>(5);
-    MaxPips.Add(5);     // PIP_AMMO
-    MaxPips.Add(5);     // PIP_TIBERIUM
-    MaxPips.Add(5);     // PIP_PASSENGERS
-    MaxPips.Add(10);    // PIP_POWER
-    MaxPips.Add(8);     // PIP_CHARGE
+    MaxPips.Add(5);     // PIPSCALE_AMMO
+    MaxPips.Add(5);     // PIPSCALE_TIBERIUM
+    MaxPips.Add(5);     // PIPSCALE_PASSENGERS
+    MaxPips.Add(10);    // PIPSCALE_POWER
+    MaxPips.Add(8);     // PIPSCALE_CHARGE
 }
 
 
@@ -228,6 +239,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsRecheckPrerequisites);
     crc(IsMultiMCV);
     crc(AINavalYardAdjacency);
+    crc(BuildingFlameSpawnBlockFrames);
 }
 
 
@@ -307,8 +319,6 @@ void RulesClassExtension::Process(CCINIClass &ini)
     for (int index = 0; index < BuildingTypes.Count(); ++index) {
 
         BuildingTypeClass *btype = BuildingTypes[index];
-        Wstring name = btype->Name();
-        Wstring graphic_name = btype->Graphic_Name();
 
         /**
          *  This is a edge case issue we exposed in the original RULES.INI where the
@@ -318,7 +328,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
          *  BuildingTypes (see RulesClass::Objects()), we make sure NARADR has the
          *  default value of "IsNewTheater" set to true.
          */
-        if (name == "NARADR" && btype->IsNewTheater == false) {
+        if (btype->IniName == "NARADR" && btype->IsNewTheater == false) {
             DEBUG_WARNING("Rules: Changing the default value of IsNewTheater for NARADR to 'true'!\n");
             DEBUG_WARNING("Rules: Please consider changing NewTheater on NARADR to 'yes'!\n");
             btype->IsNewTheater = true;
@@ -479,9 +489,9 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         InfantryTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing WeaponTypes (Count: %d)...\n", WeaponTypes.Count());
-    for (int index = 0; index < WeaponTypes.Count(); ++index) {
-        WeaponTypes[index]->Read_INI(ini);
+    DEBUG_INFO("Rules: Processing WeaponTypes (Count: %d)...\n", ::Weapons.Count());
+    for (int index = 0; index < ::Weapons.Count(); ++index) {
+        ::Weapons[index]->Read_INI(ini);
     }
 
     DEBUG_INFO("Rules: Processing WeaponTypeExtensions (Count: %d)...\n", WeaponTypeExtensions.Count());
@@ -499,9 +509,9 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         BulletTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing WarheadTypes (Count: %d)...\n", WarheadTypes.Count());
-    for (int index = 0; index < WarheadTypes.Count(); ++index) {
-        WarheadTypes[index]->Read_INI(ini);
+    DEBUG_INFO("Rules: Processing WarheadTypes (Count: %d)...\n", Warheads.Count());
+    for (int index = 0; index < Warheads.Count(); ++index) {
+        Warheads[index]->Read_INI(ini);
     }
     
     DEBUG_INFO("Rules: Processing WarheadTypeExtensions (Count: %d)...\n", WarheadTypeExtensions.Count());
@@ -509,9 +519,9 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         WarheadTypeExtensions[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Calling WeaponTypeClass::Set_Speed (Count: %d)...\n", WeaponTypes.Count());
-    for (int index = 0; index < WeaponTypes.Count(); ++index) {
-        WeaponTypes[index]->Set_Speed();
+    DEBUG_INFO("Rules: Calling WeaponTypeClass::Set_Speed (Count: %d)...\n", ::Weapons.Count());
+    for (int index = 0; index < ::Weapons.Count(); ++index) {
+        ::Weapons[index]->Set_Speed();
     }
 
     DEBUG_INFO("Rules: Calling BuildingTypeClass::Set_Base_Defense_Values (Count: %d)...\n", BuildingTypes.Count());
@@ -657,6 +667,20 @@ bool RulesClassExtension::General(CCINIClass &ini)
     LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
     MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
     IsTiberiumStorage = ini.Get_Bool(GENERAL, "TiberiumStorage", IsTiberiumStorage);
+    IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
+    IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
+    MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
+
+    /**
+     *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
+     */
+    MZoneType mzone_water = ini.Get_MZoneType(GENERAL, "WaterMovementZoneOverride", MZONE_NORMAL);
+    if (mzone_water != MZONE_NORMAL) {
+        int water[7] = {2, 2, 2, 1, 2, 2, 3}; // LAND = NO, CRUSH = NO, BLOCKED = NO, WATER = YES, PARTIALLY_BLOCKED = NO, NO = NO, OUTSIDE = ILLEGAL
+        std::copy(std::begin(water), std::end(water), MovementZonePassability[mzone_water]);
+    }
+
+    IsBeachIsCrush = ini.Get_Bool(GENERAL, "BeachIsCrush", IsBeachIsCrush);
 
     return true;
 }
@@ -679,13 +703,22 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
-    MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
+    MaxPips = ini.Get_IntList(AUDIOVISUAL, "MaxPips", MaxPips);
 
     VoxelLightAzimuth = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightAzimuth", RAD_TO_DEGF(VoxelLightAzimuth)));
     VoxelLightElevation = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightElevation", RAD_TO_DEGF(VoxelLightElevation)));
     VoxelShadowOffset = ini.Get_Float(AUDIOVISUAL, "VoxelShadowOffset", VoxelShadowOffset);
 
     Set_Voxel_Light_Angle(VoxelLightAzimuth, VoxelLightElevation, VoxelShadowOffset);
+
+    UpgradeVeteranSound = ini.Get_VocType(AUDIOVISUAL, "UpgradeVeteranSound", UpgradeVeteranSound);
+    UpgradeEliteSound = ini.Get_VocType(AUDIOVISUAL, "UpgradeEliteSound", UpgradeEliteSound);
+    VoxUnitPromoted = ini.Get_VoxType(AUDIOVISUAL, "VoxUnitPromoted", VoxUnitPromoted);
+    EliteFlashTimer = ini.Get_Int(AUDIOVISUAL, "EliteFlashTimer", EliteFlashTimer);
+
+    PlaceBeaconSound = ini.Get_VocType(AUDIOVISUAL, "PlaceBeaconSound", PlaceBeaconSound);
+    PlaceBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "PlaceBeaconVoice", PlaceBeaconVoice);
+    DetectBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "DetectBeaconVoice", DetectBeaconVoice);
 
     return true;
 }
@@ -707,6 +740,7 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
     }
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
+    BuildingFlameSpawnBlockFrames = ini.Get_Int(COMBATDAMAGE, "BuildingFlameSpawnBlockFrames", BuildingFlameSpawnBlockFrames);
 
     return true;
 }
@@ -777,7 +811,7 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
         /**
          *  Get a weapon entry.
          */
-        if (ini.Get_String(WEAPONS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(WEAPONS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -818,7 +852,7 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
         /**
          *  Get a weapon entry.
          */
-        if (ini.Get_String(ARMORTYPES, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(ARMORTYPES, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -857,7 +891,7 @@ bool RulesClassExtension::Rockets(CCINIClass &ini)
         /**
          *  Get a rocket entry.
          */
-        if (ini.Get_String(ROCKETTYPES, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(ROCKETTYPES, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a rocket of the name specified.
@@ -897,7 +931,7 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
         /**
          *  Get a Tiberium entry.
          */
-        if (ini.Get_String(TIBERIUMS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(TIBERIUMS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -938,7 +972,7 @@ bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
         /**
          *  Get a group entry.
          */
-        if (ini.Get_String(PREREQUISITE_GROUPS, entry, buf, sizeof(buf)) > 0) {
+        if (ini.Get_String(PREREQUISITE_GROUPS, entry, "", buf, sizeof(buf)) > 0) {
 
             /**
              *  Find or create a group of the name specified.
@@ -997,7 +1031,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     DEV_DEBUG_INFO("Rules: RuleINI CRC = %lX\n", rule_crc);
 
     int fsrule_crc = FSRuleINI.Get_Unique_ID();
-    if (Is_Addon_Available(ADDON_FIRESTORM)) {
+    if (Addon_Installed(ADDON_FIRESTORM)) {
         DEV_DEBUG_INFO("Rules: FSRuleINI CRC = %lX\n", fsrule_crc);
     }
 
@@ -1010,7 +1044,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
         rule_unmodified = true;
     }
     bool fsrule_unmodified = false;
-    if (Is_Addon_Available(ADDON_FIRESTORM)) {
+    if (Addon_Installed(ADDON_FIRESTORM)) {
         if (fsrule_crc == Unmodified_FSRuleINI_CRC) {
             DEBUG_INFO("Rules: FSRuleINI is unmodified (version 2.03).\n");
             fsrule_unmodified = true;
@@ -1026,7 +1060,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
         is_ruleini = true;
     }
     bool is_fsruleini = false;
-    if (Is_Addon_Available(ADDON_FIRESTORM) && ini.Get_Unique_ID() == Unmodified_FSRuleINI_CRC) {
+    if (Addon_Installed(ADDON_FIRESTORM) && ini.Get_Unique_ID() == Unmodified_FSRuleINI_CRC) {
         DEV_DEBUG_INFO("Rules: Current INI is FSRuleINI.\n");
         is_fsruleini = true;
     }
@@ -1104,11 +1138,11 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
              *   - The HouseType's Side name is "GDI"
              *   - Side 1 name is "Nod"
              */
-            if (Wstring(housetype->Name()) == Wstring("Nod")
+            if (housetype->IniName == "Nod"
                 && housetype->Fetch_Heap_ID() == HOUSE_NOD
                 && housetype->Side == SIDE_GDI
-                && Wstring(Sides[housetype->Side]->Name()) == Wstring("GDI")
-                && Wstring(Sides[SIDE_NOD]->Name()) == Wstring("Nod")) {
+                && Sides[housetype->Side]->IniName == "GDI"
+                && Sides[SIDE_NOD]->IniName == "Nod") {
 
                 DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Side=GDI\", changing Side to \"Nod\"!\n",
                     housetype->Name(), housetype->Fetch_Heap_ID());
@@ -1132,7 +1166,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
              *   - HouseType "Nod" is index 1
              *   - HouseType "Nod" has Prefix=B
              */
-            if (Wstring(housetype->Name()) == Wstring("Nod")
+            if (housetype->IniName == "Nod"
                 && housetype->Fetch_Heap_ID() == HOUSE_NOD
                 && housetype->Prefix == 'B') {
 

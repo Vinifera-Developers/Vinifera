@@ -6,6 +6,10 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ### Tabs
 
+```{note}
+You don't need to follow these instructions if you change the TS Client's update channel to `Vinifera Beta` (under the `Updater` tab of the `Options` menu) and then update to the latest version after the client has restarted. The TS Client will then enable the tabs for you. Do keep in mind that updating will cause the TS Client to undo any modifications that you might have already made.
+```
+
 - Vinifera enhances the Tiberian Sun sidebar by introducing tabs similar to those found in Red Alert 2.
 - There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons, aircraft and naval units.
 - Vinifera also introduces new hotkeys for quick tab switching and placing the currently available building (in the case of the Structure tab).
@@ -77,13 +81,83 @@ Due to limitations of the game's tooltip system, the length of the description i
 Due to implementation details, it is recommended that you do not make the queue longer than 50 units. Dequeueing more than 63 units at a time could potentially result in other actions being done by the player on the same frame being ignored by the game.
 ```
 
+## Beacons
+
+Vinifera implements multiplayer beacons, similar to those seen in Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[General]
+BeaconsEnabled=no  ; boolean, are beacons enabled?
+SPBeacons=no       ; boolean, can the player place beacons in single-player?
+MaxBeacons=-1      ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
+```
+
+- When a beacon is placed/detected, a sound effect and an EVA line are played.
+
+```ini
+[AudioVisual]
+PlaceBeaconSound=   ; VocType, the sound played when the player places a beacon.
+PlaceBeaconVoice=   ; VoxType, the EVA line played when the player places a beacon.
+DetectBeaconVoice=  ; VoxType, the EVA line played another player places a beacon.
+```
+
+- Beacons can have a text label.
+- Additionally, beacons may be placed with a preset label by holding `CTRL`, `SHIFT`, `ALT`, or a combination of them. The text that is shows as the preview, and the text that is set on the placed beacon can be configured.
+
+In `UI.INI`:
+```ini
+[Ingame]
+BeaconTextOffset=32         ; integer, the Y offset for the beacon text.
+BeaconPreviewTextOffset=20  ; integer, the Y offset for the beacon text during preview.
+
+BeaconText1=Expand  ; string, shown when placing with Shift.
+BeaconText2=Attack  ; string, shown when placing with Ctrl.
+BeaconText3=Move    ; string, shown when placing with Alt.
+BeaconText4=        ; string, shown when placing with Ctrl+Shift.
+BeaconText5=        ; string, shown when placing with Alt+Shift.
+BeaconText6=Defend  ; string, shown when placing with Ctrl+Alt.
+BeaconText7=        ; string, shown when placing with Ctrl+Alt+Shift.
+
+BeaconPreviewText1=Expand  ; string, preview shown with Shift.
+BeaconPreviewText2=Attack  ; string, preview shown with Ctrl.
+BeaconPreviewText3=Move    ; string, preview shown with Alt.
+BeaconPreviewText4=        ; string, preview shown with Ctrl+Shift.
+BeaconPreviewText5=        ; string, preview shown with Alt+Shift.
+BeaconPreviewText6=Defend  ; string, preview shown with Ctrl+Alt.
+BeaconPreviewText7=        ; string, preview shown with Ctrl+Alt+Shift.
+```
+
+- When drawn on the map, beacons use `PBEACON.SHP`. The animation is drawn using the unit palette, and is remapped to the beacon owner's house color. The second half of the animation is played when the beacon is selected.
+
+- When drawn on the radar, beacons use `RDRBEACN.SHP`.
+
+- Beacon animations are not tied to game FPS and instead play at a set framerate.
+
+In `UI.INI`:
+```ini
+[Ingame]
+BeaconAnimFramesPerSecond=25       ; integer, the framerate at which the beacon anim is played.
+RadarBeaconAnimFramesPerSecond=25  ; integer, the framerate at which the radar beacon anim is played.
+```
+
+- Beacon placement/selection uses new mouse actions. For their defaults, please refer to [Actions](New-Features-and-Enhancements.md/#actions).
+
 ## Hotkey Commands
 
 Vinifera modifies the vanilla "Deploy" keyboard command to work with air transports and carryalls.
 
 ### `[ ]` Place Building
 
-- Enters the manual placement mode when a building is complete and pending on the sidebar. Defaults to `Z`.
+- Enters the manual placement mode when a building is complete and pending on the sidebar.
+
+### `[ ]` Veterancy Filter
+
+- Cycles through green/veteran/elite units among the initially selected group.
+
+### `[ ]` Health Level Filter
+
+- Cycles through red/yellow/green HP units among the initially selected group.
 
 ### `[ ]` Veterancy Filter
 
@@ -95,79 +169,83 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 ### `[ ]` Toggle Special Timers
 
-- Toggles the visibility of Super Weapon timers. Defaults to `<none>`.
+- Toggles the visibility of Super Weapon timers.
 
 ### `[ ]` Repeat Last Building
 
-- Queue the last structure that was built. Defaults to `Ctrl` + `Q` if the new sidebar is enabled, otherwise to `Ctrl` + `Z`.
+- Queue the last structure that was built.
 
 ### `[ ]` Repeat Last Infantry
 
-- Queue the last infantry that was built. Defaults to `<none>`.
+- Queue the last infantry that was built.
 
 ### `[ ]` Repeat Last Unit
 
-- Queue the last vehicle that was built. Defaults to `<none>`.
+- Queue the last vehicle that was built.
 
 ### `[ ]` Repeat Last Aircraft
 
-- Queue the last aircraft that was built. Defaults to `<none>`.
+- Queue the last aircraft that was built.
 
 ### `[ ]` Select Building Tab
 
-- Switch the command bar to the Building Tab and select the completed building if any. Defaults to `Q` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Building Tab and select the completed building if any.
 
 ### `[ ]` Select Infantry Tab
 
-- Switch the command bar to the Infantry Tab. Defaults to `W` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Infantry Tab.
 
 ### `[ ]` Select Vehicles Tab
 
-- Switch the command bar to the Vehicle Tab. Defaults to `E` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Vehicle Tab.
 
 ### `[ ]` Select Specials Tab
 
-- Switch the command bar to the Special Tab. Defaults to `R` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Special Tab.
 
 ### `[ ]` Jump Camera West
 
-- Jump the tactical map camera to the west edge of the map. Defaults to `Ctrl` + `Left Arrow`.
+- Jump the tactical map camera to the west edge of the map.
 
 ### `[ ]` Jump Camera East
 
-- Jump the tactical map camera to the east edge of the map. Defaults to `Ctrl` + `Right Arrow`.
+- Jump the tactical map camera to the east edge of the map.
 
 ### `[ ]` Jump Camera North
 
-- Jump the tactical map camera to the north edge of the map. Defaults to `Ctrl` + `Up Arrow`.
+- Jump the tactical map camera to the north edge of the map.
 
 ### `[ ]` Jump Camera South
 
-- Jump the tactical map camera to the north edge of the map. Defaults to `Ctrl` + `Down Arrow`.
+- Jump the tactical map camera to the north edge of the map.
 
 ### `[ ]` Scroll North-East
 
-- Scroll the camera North-East. Defaults to `<none>`.
+- Scroll the camera North-East.
 
 ### `[ ]` Scroll South-East
 
-- Scroll the camera South-East. Defaults to `<none>`.
+- Scroll the camera South-East.
 
 ### `[ ]` Scroll South-West
 
-- Scroll the camera South-West. Defaults to `<none>`.
+- Scroll the camera South-West.
 
 ### `[ ]` Scroll North-West
 
-- Scroll the camera North-West. Defaults to `<none>`.
+- Scroll the camera North-West.
 
 ### `[ ]` Previous Track
 
-- Plays the previous music track. Defaults to `[`.
+- Plays the previous music track.
 
 ### `[ ]` Next Track
 
-- Plays the next music track. Defaults to `]`.
+- Plays the next music track.
+
+### `[ ]` Place Beacon
+
+- Enters beacon placement mode.
 
 ![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
 
@@ -221,12 +299,34 @@ ShowTimer=no       ; boolean, when this superweapon is active, does its recharge
 - Additionally, Vinifera implements the system to echo the user's sent messages back to them in-game as a confirmation they were sent. This is an enhancement from Red Alert 2.
 ![image](https://user-images.githubusercontent.com/73803386/137031682-3f265d48-7f28-410f-bf0d-3260e24f1748.png)
 
+- Vinifera allows players to send a message to only their allies. Additionally, all messages now display their recipient ("to all", "to team" or "to PlayerName").
+
+In `KEYBOARD.INI`:
+```ini
+[Hotkey]
+ChatToAll=13    ; key number, RETURN
+ChatToAll2=119  ; key number, F8
+ChatToAllies=8  ; key number, BACKSPACE
+```
 
 In `UI.INI`:
 ```ini
 [Ingame]
 TextLabelOutline=yes                ; boolean, should the text be drawn with a black outline?
 TextLabelBackgroundTransparency=50  ; unsigned integer, the transparency of the text background fill. Ranged between 0 and 100.
+```
+
+### Unit Promotion Indicators
+
+- In Red Alert 2, unit promotion is indicated by sounds, flashing and an EVA voiceline. Vinifera ports this behavior to Tiberian Sun.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+UpgradeVeteranSound=    ; VocType, the sound played when a unit is promoited to veteran status.
+UpgradeEliteSound=      ; VocType, the sound played when a unit is promoted to elite status.
+VoxUnitPromoted=        ; VoxType, the EVA line played when a unit is promoted.
+EliteFlashTimer=0       ; integer, the number of frames that a newly elite unit will flash for.
 ```
 
 ### Unit Health Bar

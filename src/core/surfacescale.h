@@ -27,14 +27,14 @@
  ******************************************************************************/
 #pragma once
 
-#include <always.h>
+#include "always.h"
 
 
-class XSurface;
+class Surface;
 
 
-bool Scale_Surface_Nearest(XSurface *src, XSurface *dst);
-bool Scale_Surface_Bilinear(XSurface *src, XSurface *dst);
-bool Scale_Surface_Bicubic(XSurface *src, XSurface *dst);
-bool Scale_Surface_Cardinal(XSurface *src, XSurface *dst);
-bool Scale_Surface_Lanczos(XSurface *src, XSurface *dst);
+bool Scale_Surface_Nearest(Surface *src, Surface *dst);
+bool Scale_Surface_Bilinear(Surface *src, Surface *dst);
+bool Scale_Surface_Bicubic(Surface *src, Surface *dst);
+bool Scale_Surface_Cardinal(Surface *src, Surface *dst);
+bool Scale_Surface_Lanczos(Surface *src, Surface *dst);

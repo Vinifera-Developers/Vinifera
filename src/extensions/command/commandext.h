@@ -43,8 +43,6 @@ public:
     ViniferaCommandClass() : CommandClass(), IsDeveloper(false), IsMultiplayerOnly(false) {}
     virtual ~ViniferaCommandClass() {}
 
-    virtual KeyNumType Default_Key() const = 0;
-
     bool Developer_Only() const { return IsDeveloper; }
     bool Multiplayer_Only() const { return IsMultiplayerOnly; }
 
@@ -75,8 +73,23 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
+};
 
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+
+/**
+ *  Replacement for DeleteWaypointCommandClass.
+ */
+class DeleteCommandClass : public ViniferaCommandClass
+{
+public:
+    DeleteCommandClass() : ViniferaCommandClass() {}
+    virtual ~DeleteCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
 };
 
 
@@ -95,8 +108,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_NONE) : KeyNumType(KN_Z); }
 };
 
 
@@ -114,8 +125,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_Q|KN_CTRL_BIT) : KeyNumType(KN_Z|KN_CTRL_BIT); }
 };
 
 
@@ -133,8 +142,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -152,8 +159,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -171,8 +176,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -190,8 +193,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_LBRACKET); }
 };
 
 
@@ -209,8 +210,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_RBRACKET); }
 };
 
 
@@ -228,8 +227,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -247,8 +244,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -266,8 +261,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -285,8 +278,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -304,8 +295,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_LEFT); }
 };
 
 
@@ -323,8 +312,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_RIGHT); }
 };
 
 
@@ -342,8 +329,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_UP); }
 };
 
 
@@ -361,8 +346,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_DOWN); }
 };
 
 
@@ -380,8 +363,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -399,8 +380,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-    
-    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_Q) : KeyNumType(KN_NONE); }
 };
 
 
@@ -418,8 +397,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-    
-    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_W) : KeyNumType(KN_NONE); }
 };
 
 
@@ -437,8 +414,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-    
-    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_E) : KeyNumType(KN_NONE); }
 };
 
 
@@ -456,8 +431,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-    
-    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_R) : KeyNumType(KN_NONE); }
 };
 
 
@@ -475,8 +448,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -494,8 +465,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -513,8 +482,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-    
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -532,8 +499,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -551,8 +516,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -570,8 +533,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -589,8 +550,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -608,8 +567,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -627,8 +584,105 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
+};
 
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+
+/**
+ *  Promote selected units.
+ */
+class VeterancyPromoteCommandClass : public ViniferaCommandClass
+{
+public:
+    VeterancyPromoteCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~VeterancyPromoteCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
+ *  Cycles through green/veteran/elite units among the initially selected group.
+ */
+class VeterancyFilterCommandClass : public ViniferaCommandClass
+{
+public:
+    VeterancyFilterCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~VeterancyFilterCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
+ *  Cycles through red/yellow/green health units among the initially selected group.
+ */
+class HealthFilterCommandClass : public ViniferaCommandClass
+{
+public:
+    HealthFilterCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~HealthFilterCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
+ *  Adds lower-ranked units to already filtered veterans.
+ */
+class VeterancyFilterAddNextCommandClass : public ViniferaCommandClass
+{
+public:
+    VeterancyFilterAddNextCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~VeterancyFilterAddNextCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
+ *  Adds units from the next health group (yellow, green) to already filtered veterans.
+ */
+class HealthFilterAddNextCommandClass : public ViniferaCommandClass
+{
+public:
+    HealthFilterAddNextCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~HealthFilterAddNextCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
+ *  Enters beacon placement mode.
+ */
+class BeaconPlacementCommandClass : public ViniferaCommandClass
+{
+public:
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
 };
 
 
@@ -763,8 +817,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -782,8 +834,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -801,8 +851,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -820,8 +868,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -839,8 +885,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -858,8 +902,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -877,8 +919,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -896,8 +936,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -915,8 +953,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -934,8 +970,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -953,8 +987,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 
 private:
     bool Try_Unlimbo(TechnoClass *techno, Cell &cell);
@@ -975,8 +1007,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -994,8 +1024,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1013,8 +1041,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1032,8 +1058,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1051,8 +1075,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1070,8 +1092,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1089,8 +1109,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1108,8 +1126,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1127,8 +1143,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1146,8 +1160,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1165,8 +1177,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1184,8 +1194,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1203,8 +1211,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1222,8 +1228,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1241,8 +1245,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1260,8 +1262,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1279,8 +1279,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1298,8 +1296,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1317,8 +1313,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1336,8 +1330,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1355,8 +1347,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1374,8 +1364,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1393,8 +1381,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1412,8 +1398,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1431,8 +1415,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1450,8 +1432,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1469,8 +1449,6 @@ class MeteorShowerCommandClass : public ViniferaCommandClass
         virtual const char *Get_Category() const override;
         virtual const char *Get_Description() const override;
         virtual bool Process() override;
-
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1488,8 +1466,6 @@ class MeteorImpactCommandClass : public ViniferaCommandClass
         virtual const char *Get_Category() const override;
         virtual const char *Get_Description() const override;
         virtual bool Process() override;
-
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1507,8 +1483,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1526,8 +1500,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1545,8 +1517,6 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1564,8 +1534,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-    
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1583,6 +1551,4 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };

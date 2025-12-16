@@ -39,14 +39,19 @@
  *  
  *  @author: CCHyper
  */
-TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass *this_ptr) :
+TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* this_ptr) :
     ObjectTypeClassExtension(this_ptr),
     IsLightEnabled(false),
     LightVisibility(5000),
     LightIntensity(0),
     LightRedTint(1000000),
     LightGreenTint(1000000),
-    LightBlueTint(1000000)
+    LightBlueTint(1000000),
+    TiberiumSpawnRange(1),
+    TiberiumSpawnStage(5, 5),
+    TiberiumSpawnCount(1, 1),
+    TiberiumSpawnStageFalloff(0),
+    IsTiberiumScatterSpawn(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -192,10 +197,33 @@ bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsLightEnabled = ini.Get_Bool(ini_name, "IsLightEnabled", IsLightEnabled);
     LightVisibility = ini.Get_Int(ini_name, "LightVisibility", LightVisibility);
-    LightIntensity = ini.Get_Double(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
-    LightRedTint = ini.Get_Double(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
-    LightGreenTint = ini.Get_Double(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
-    LightBlueTint = ini.Get_Double(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
+    LightIntensity = ini.Get_Float(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
+    LightRedTint = ini.Get_Float(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
+    LightGreenTint = ini.Get_Float(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
+    LightBlueTint = ini.Get_Float(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
+
+    auto get_min_max = [](auto& ini, const char* section, const char* key, const Point2D& defval) {
+        char buffer[128];
+        int scan_min = 0, scan_max = 0;
+        if (ini.Get_String(section, key, "", buffer, sizeof(buffer)) > 0) {
+            int scanned = sscanf(buffer, "%d,%d", &scan_min, &scan_max);
+            if (scanned > 0) {
+                if (scanned == 1) {
+                    return Point2D(scan_min, scan_min);
+                } else if (scanned == 2) {
+                    if (scan_max < scan_min) std::swap(scan_min, scan_max);
+                    return Point2D(scan_min, scan_max);
+                }
+            }
+        }
+        return defval;
+    };
+
+    TiberiumSpawnRange = ini.Get_Int(ini_name, "SpawnsTiberiumRange", TiberiumSpawnRange);
+    TiberiumSpawnCount = get_min_max(ini, ini_name, "SpawnsTiberiumCount", TiberiumSpawnCount);
+    TiberiumSpawnStage = get_min_max(ini, ini_name, "SpawnsTiberiumStage", TiberiumSpawnStage);
+    TiberiumSpawnStageFalloff = ini.Get_Float(ini_name, "SpawnsTiberiumStageFalloff", TiberiumSpawnStageFalloff);
+    IsTiberiumScatterSpawn = ini.Get_Bool(ini_name, "SpawnsTiberiumScattered", IsTiberiumScatterSpawn);
 
     IsInitialized = true;
     

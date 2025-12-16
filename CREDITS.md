@@ -141,6 +141,9 @@ This page lists all the individual contributions to the project by their author.
   - Implement 'OmniFire' for WeaponTypes.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+  - Add customizable wake animations.
+  - Replace DirectDraw with SDL.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **Kerbiter (Metadorius)**:
@@ -187,9 +190,19 @@ This page lists all the individual contributions to the project by their author.
   - Allow deploying air transports with the "Deploy" keyboard command.
   - Add WallOwner to BuildingTypes.
   - Implement `Mechanic` for InfantryTypes.
-  - Fix a buffer overflow crash in MapClass::Place_Down.
+  - Fix a buffer overflow crash in `MapClass::Place_Down`.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+  - Fix an edge case crash when AI raises money.
+  - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages.
+  - Improve alternative factory selection when the primary factory is blocked.
+  - Add "Adjust House Modifier" trigger action.
+  - Teams attacking a BwP now take zones into account.
+  - Add "Only Harvesters" quarry.
+  - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
+  - Fix a bug where spawned aircraft would reveal terrain when they fired.
+  - Port a ts-patches fix for a bug where the player's army wouldn't fire at armed civilians.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -271,3 +284,35 @@ This page lists all the individual contributions to the project by their author.
   - Implement voxel light customization.
   - Implement TActionClass extension, port ts-patches actions.
   - Implement TEventClass extension.
+  - Increase the local/global variable cap to 500.
+  - Implement integer varialbes, and trigger actiosn and events to operate on them.
+  - Add unit promotion sounds, EVA and flashing.
+  - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player.
+  - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets.
+  - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.
+  - Fix a bug where `Totable=no` did not work.
+  - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+  - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
+  - Implement `BarGate` for buildings.
+  - Add Tiberium spreader customization.
+  - Fix a bug where carryalls would unload infantry like they unload vehicles.
+  - Fix a bug where carryalls would draw their infantry passenger's shadow.
+  - Fix a bug where carryalls would try to drop off units when landing on a helipad.
+  - Fix a bug where carryalls would land too high when carrying infantry.
+  - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.
+  - Fix a bug where paradropped vehicles would be placed off-center in the cell.
+  - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
+  - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
+  - Fix a bug where paradrops didn't take cell passability and bridges into account.
+  - Add Water movement zone override.
+  - Implement multiplayer beacons.
+  - Chat improvements.
+  - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily.
+  - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.
+  - Port to Syringe.
+  - Add customizable wake animations.
+  - Replace DirectDraw with SDL.
+  - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it.
+  - Tutorial text INI keys are now interpreted as strings, not integers.

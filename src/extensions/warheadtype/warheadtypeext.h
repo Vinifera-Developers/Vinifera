@@ -61,6 +61,8 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        float Fetch_Type_Modifier(RTTIType type) const;
+
     public:
         /**
          *  Does this warhead instantly destroy walls regardless of the warhead damage value?
@@ -75,7 +77,7 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  This is used to override the size of the combat light flash at the point of impact.
          */
-        float CombatLightSize;
+        double CombatLightSize;
 
         /**
          *  These values are used to shake the screen when the projectile impacts.

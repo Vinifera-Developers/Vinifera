@@ -34,7 +34,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -44,9 +44,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ToolTipManager_Message_Handler_CursorPosition_Patch)
+DEFINE_HOOK(0x006473D4, _ToolTipManager_Message_Handler_CursorPosition_Patch, 0)
 {
-    GET_REGISTER_STATIC(ToolTipManager *, this_ptr, esi);
+    GET(ToolTipManager *, this_ptr, ESI);
 
     /**
      *  If the cursor position command is activated, skip all
@@ -65,7 +65,7 @@ original_code:
      */
     KillTimer(this_ptr->Window, ToolTipManager::TIMER_ID);
 
-    JMP(0x006473E3);
+    return 0x006473E3;
 
 set_tooltip:
     /**
@@ -84,7 +84,7 @@ set_tooltip:
         SetTimer(this_ptr->Window, ToolTipManager::TIMER_ID, this_ptr->ToolTipLifetime, nullptr);
     }
 
-    JMP(0x006474D2);
+    return 0x006474D2;
 }
 
 
@@ -93,5 +93,5 @@ set_tooltip:
  */
 void ToolTipManagerExtension_Hooks()
 {
-    Patch_Jump(0x006473D4, &_ToolTipManager_Message_Handler_CursorPosition_Patch);
+
 }

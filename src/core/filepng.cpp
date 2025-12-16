@@ -226,14 +226,14 @@ BSurface *Read_PNG_File(FileClass *name, unsigned char *palette, void *buff, lon
      */
     for (int y = 0; y < pic->Get_Height(); ++y) {
     
-        unsigned short *buffptr = (unsigned short *)pic->Lock(0, y);
+        unsigned short *buffptr = (unsigned short *)pic->Lock(Point2D(0, y));
         for (int x = 0; x < pic->Get_Width(); ++x) {
     
             int r = *png_image++; // & 0xFF;
             int g = *png_image++; // & 0xFF;
             int b = *png_image++; // & 0xFF;
     
-            *buffptr++ = DSurface::RGB_To_Pixel(r, g, b);
+            *buffptr++ = DSurface::Build_Hicolor_Pixel(r, g, b);
         }
     
         pic->Unlock();

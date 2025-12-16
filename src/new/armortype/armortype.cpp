@@ -340,7 +340,7 @@ bool ArmorTypeClass::Read_INI(CCINIClass& ini)
         return false;
     }
 
-    Modifier = ini.Get_Double(IniName, "Modifier", Modifier);
+    Modifier = ini.Get_Float(IniName, "Modifier", Modifier);
     ForceFire = ini.Get_Bool(IniName, "ForceFire", ForceFire);
     PassiveAcquire = ini.Get_Bool(IniName, "PassiveAcquire", PassiveAcquire);
     Retaliate = ini.Get_Bool(IniName, "Retaliate", Retaliate);

@@ -38,7 +38,6 @@
 #include "techno.h"
 #include "technotype.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"
@@ -61,6 +60,7 @@ public:
     bool _Start(bool suspend);
     void _Resume_Queue();
     bool _Abandon();
+    void _Object_CRC(CRCEngine & crc) const;
 };
 
 
@@ -260,7 +260,7 @@ bool FactoryClassExt::_Abandon()
 {
     if (Object) {
 
-        DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->FullName);
+        DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->GivenName.c_str());
 
         /*
         **  Refund all money expended so far, back to the owner of the object under construction.
@@ -315,6 +315,37 @@ bool FactoryClassExt::_Abandon()
 
 
 /**
+ *  Reimplementation of FactoryClass::Object_CRC. Adds sanity checks to prevent crashes.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+void FactoryClassExt::_Object_CRC(CRCEngine& crc) const
+{
+    DEBUG_INFO("Frame == %d\n", Frame);
+    DEBUG_INFO("QueuedObjects.Count() == %d\n", QueuedObjects.Count());
+    if (Object != nullptr) DEBUG_INFO("Object->RTTI == %d\n", Object->RTTI);
+    if (Object != nullptr) DEBUG_INFO("Object->HeapID == %d\n", Object->Fetch_Heap_ID());
+    DEBUG_INFO("IsSuspended\t= %d\n", IsSuspended);
+    DEBUG_INFO("IsDifferent\t= %d\n", IsDifferent);
+    DEBUG_INFO("Balance\t= %d\n", Balance);
+    DEBUG_INFO("OriginalBalance = %d\n", OriginalBalance);
+    DEBUG_INFO("SpecialItem\t= %d\n", SpecialItem);
+    if (House != nullptr) DEBUG_INFO("House->Fetch_ID()\t= %d\n", House->Fetch_ID());
+    DEBUG_INFO("ID\t= %d\n", Fetch_ID());
+
+    AbstractClass::Object_CRC(crc);
+
+    crc(IsSuspended);
+    crc(IsDifferent);
+    crc(Balance);
+    crc(OriginalBalance);
+    if (Object != nullptr) crc(Object->Fetch_ID());
+    crc(SpecialItem);
+    if (House != nullptr) crc(House->Fetch_ID());
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void FactoryClassExtension_Hooks()
@@ -328,4 +359,5 @@ void FactoryClassExtension_Hooks()
     Patch_Jump(0x004971E0, &FactoryClassExt::_Start);
     Patch_Jump(0x004978D0, &FactoryClassExt::_Resume_Queue);
     Patch_Jump(0x00497330, &FactoryClassExt::_Abandon);
+    Patch_Jump(0x00497760, &FactoryClassExt::_Object_CRC);
 }

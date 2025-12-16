@@ -54,8 +54,8 @@
 #include "tibsun_inline.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "sideext.h"
+#include "syringe.h"
 
 
 /**
@@ -110,25 +110,7 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 static int Get_Engineer_Damage(TechnoClass *tech)
 {
     float damage = Rule->EngineerDamage;    // Was "Rule->ConditionRed * 0.5f"
-    return std::min((tech->TClass->MaxStrength * damage), (float)(tech->Strength-1));
-}
-
-
-/** 
- *  Is the target buildings health low enough to be captured? 
- * 
- *  @author: CCHyper
- */
-static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
-{
-    /**
-     *  #issue-633
-     * 
-     *  Changed to use Rule->EngineerCaptureLevel.
-     * 
-     *  @author: CCHyper
-     */
-    return tech->HealthRatio <= Rule->EngineerCaptureLevel;
+    return std::min(tech->TClass->MaxStrength * damage, (float)(tech->Strength-1));
 }
 
 
@@ -137,37 +119,38 @@ static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch)
+DEFINE_HOOK(0x004D35F9, _InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass *, tech, edi);      // From "cellptr->Cell_Building()".
-    GET_REGISTER_STATIC(bool, iscapturable, bl);
-    static int damage;
+    GET(InfantryClass *, this_ptr, ESI);
+    GET(TechnoClass *, tech, EDI);      // From "cellptr->Cell_Building()".
 
     /**
      *  If the target buildings health is low enough, go ahead and capture it.
+     *  Changed to use Rule->EngineerCaptureLevel.
+     * 
+     *  @author: CCHyper
      */
-    if (Health_Low_Enough_To_Capture(tech)) {
+    if (tech->HealthRatio <= Rule->EngineerCaptureLevel) {
         goto capture;
     }
 
     /**
      *  Health is still not low enough, go ahead and apply some more damage to it.
      */
-    damage = Get_Engineer_Damage(tech);
+    int damage = Get_Engineer_Damage(tech);
     tech->Take_Damage(damage, 0, Rule->C4Warhead, this_ptr, true);
 
     /**
      *  Spring the DESTROYED_BY_ANYTHING event and remove this infantry.
      */
 spring_and_delete:
-    JMP(0x004D378D);
+    return 0x004D378D;
 
     /**
      *  Processing capturing of the target building.
      */
 capture:
-    JMP(0x004D36E1);
+    return 0x004D36E1;
 }
 
 
@@ -178,11 +161,10 @@ capture:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
+DEFINE_HOOK(0x004D3A7B, _InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass *, techno, edi);        // Radio contact
-    static TechnoTypeClassExtension *radio_technotypeext;
+    GET(InfantryClass *, this_ptr, ESI);
+    GET(TechnoClass *, techno, EDI);        // Radio contact
 
     /**
      *  Stolen bytes/code.
@@ -192,12 +174,12 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
     /**
      *  If this transport we are entering has a passenger entering sound, play it now.
      */
-    radio_technotypeext = Extension::Fetch(techno->TClass);
+    auto radio_technotypeext = Extension::Fetch(techno->TClass);
     if (radio_technotypeext->EnterTransportSound != VOC_NONE) {
         Static_Sound(radio_technotypeext->EnterTransportSound, techno->Position);
     }
 
-    JMP(0x004D3A87);
+    return 0x004D3A87;
 }
 
 
@@ -208,13 +190,12 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
+DEFINE_HOOK(0x004D87E9, _InfantryClass_Firing_AI_Mechanic_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
-    static InfantryTypeClassExtension *infantrytypeext;
+    GET(InfantryClass *, this_ptr, EBP);
+    GET(ObjectClass *, targ, ESI);      // TarCom as ObjectClass.
 
-    infantrytypeext = Extension::Fetch(this_ptr->Class);
+    auto infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -228,7 +209,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
         if (targ->RTTI == RTTI_UNIT || 
             (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
             targ->RTTI == RTTI_INFANTRY || 
-            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
+            (targ->RTTI == RTTI_BUILDING && targ->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -243,7 +224,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          */
         if (targ->RTTI == RTTI_UNIT || 
             (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
-            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
+            (targ->RTTI == RTTI_BUILDING && targ->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -255,13 +236,13 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
     }
 
 assign_NULL_target:
-    JMP(0x004D8824);
+    return 0x004D8824;
 
     /**
      *  Check the targets health ratio.
      */
 health_ratio_check:
-    JMP(0x004D87F5);
+    return 0x004D87F5;
 }
 
 
@@ -272,13 +253,12 @@ health_ratio_check:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
+DEFINE_HOOK(0x004D7168, _InfantryClass_What_Action_Mechanic_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
-    static InfantryTypeClassExtension *infantrytypeext;
+    GET(InfantryClass *, this_ptr, EDI);
+    GET(/*const */ObjectClass *, object, ESI);  // target
 
-    infantrytypeext = Extension::Fetch(this_ptr->Class);
+    auto infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -299,13 +279,13 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
         if (object->RTTI == RTTI_UNIT ||
             object->RTTI == RTTI_AIRCRAFT || 
             object->RTTI == RTTI_INFANTRY || 
-            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
+            (object->RTTI == RTTI_BUILDING && object->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
             if (object->TClass->MaxPassengers > 0) {
-                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                if (Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
             }
@@ -333,14 +313,13 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  infantry is a mechanic before allowing it to heal the unit.
          */
         if (object->RTTI == RTTI_UNIT ||
-            object->RTTI == RTTI_AIRCRAFT ||
-            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
+            object->RTTI == RTTI_AIRCRAFT || (object->RTTI == RTTI_BUILDING && object->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
             if (object->TClass->MaxPassengers > 0) {
-                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                if (Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
             }
@@ -370,19 +349,19 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     }
 
 next_check:
-    JMP(0x004D71B0);
+    return 0x004D71B0;
 
     /**
      *  Show the guard area mouse cursor over us.
      */
 guard_area:
-    JMP(0x004D71A1);
+    return 0x004D71A1;
 
     /**
      *  Check the targets health ratio.
      */
 health_ratio_check:
-    JMP(0x004D7178);
+    return 0x004D7178;
 }
 
 
@@ -393,23 +372,14 @@ health_ratio_check:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Can_Fire_Target_Check_Patch)
+DEFINE_HOOK(0x004D5AB4, _InfantryClass_Can_Fire_Target_Check_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_STACK_STATIC(AbstractClass *, target, esp, 0x10);
-    GET_STACK_STATIC(int, which, esp, 0x14);
-    static TechnoClass *targ;
+    GET_STACK(AbstractClass *, target, 0x10);
 
-    targ = Target_As_Techno(target);
-    if (targ == nullptr) {
-        goto return_FIRE_ILLEGAL;
-    }
+    TechnoClass* techno = dynamic_cast<TechnoClass*>(target);
+    R->EAX(techno);
 
-health_ratio_check:
-    JMP_REG(ecx, 0x004D5ACF);
-
-return_FIRE_ILLEGAL:
-    JMP(0x004D5AE8);
+    return 0x004D5ACB;
 }
 
 
@@ -423,12 +393,11 @@ return_FIRE_ILLEGAL:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
+DEFINE_HOOK(0x004D8C83, _InfantryClass_Doing_AI_JumpJet_Idle_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    static const InfantryTypeClass *infantrytype;
+    GET(InfantryClass *, this_ptr, ESI);
 
-    infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
+    auto infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
 
     /**
      *  Stolen code.
@@ -436,7 +405,7 @@ DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
      *  If infantry is prone, set DO_PRONE.
      */
     if (this_ptr->IsProne) {
-        JMP(0x004D8B12);
+        return 0x004D8B12;
     }
 
     if (infantrytype->IsJumpJet) {
@@ -459,7 +428,7 @@ DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
         this_ptr->Do_Action(DO_STAND_READY, true);
     }
 
-    JMP(0x004D8CA1);
+    return 0x004D8CA1;
 }
 
 
@@ -476,12 +445,11 @@ DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
+DEFINE_HOOK(0x004D50C9, _InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    static const InfantryTypeClass *infantrytype;
+    GET(InfantryClass *, this_ptr, ESI);
 
-    infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
+    auto infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
 
     if (infantrytype->IsJumpJet) {
 
@@ -510,7 +478,7 @@ DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
      */
     this_ptr->IsFiring = false;
 
-    JMP(0x004D50E0);
+    return 0x004D50E0;
 }
 
 
@@ -522,12 +490,11 @@ DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
+DEFINE_HOOK(0x004D9076, _InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
-    static const InfantryTypeClass *infantrytype;
+    GET(InfantryClass *, this_ptr, EBP);
 
-    infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
+    auto infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
 
     if (infantrytype->IsJumpJet) {
 
@@ -549,7 +516,7 @@ DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
         this_ptr->Do_Action(DO_STAND_READY);
     }
 
-    JMP(0x004D9087);
+    return 0x004D9087;
 }
 
 
@@ -565,9 +532,9 @@ DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
+DEFINE_HOOK(0x004D88FA, _InfantryClass_Firing_AI_JumpJet_In_Air_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
+    GET(InfantryClass *, this_ptr, EBP);
 
     /**
      *  Make sure its in the air before assigning the hover firing graphic sequence.
@@ -578,7 +545,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
         this_ptr->Do_Action(DO_FIRE_WEAPON);
     }
 
-    JMP(0x004D8933);
+    return 0x004D8933;
 }
 
 
@@ -587,17 +554,16 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
+DEFINE_HOOK(0x004D3F5D, _InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, tib_id, eax);
+    GET(int, tib_id, EAX);
 
-    static int damage;
-    damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
+    int damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
 
-    _asm mov eax, damage
-    _asm mov [esp + 0x10], eax
+    R->EAX(damage);
+    R->Stack(0x10, damage);
 
-    JMP(0x004D3F8E);
+    return 0x004D3F8E;
 }
 
 
@@ -625,11 +591,11 @@ void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_p
 }
 
 
-DECLARE_PATCH(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
+DEFINE_HOOK(0x004D8BE4, _InfantryClass_Doing_AI_Fix_Invalid_Facing_Set, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass*, inf, esi);
+    GET(InfantryClass*, inf, ESI);
     _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
-    JMP(0x004D8C14);
+    return 0x004D8C14;
 }
 
 
@@ -642,18 +608,6 @@ void InfantryClassExtension_Hooks()
      *  Initialises the extended class.
      */
     InfantryClassExtension_Init();
-
-    Patch_Jump(0x004D88FA, &_InfantryClass_Firing_AI_JumpJet_In_Air_Patch);
-    Patch_Jump(0x004D8C83, &_InfantryClass_Doing_AI_JumpJet_Idle_Patch);
-    Patch_Jump(0x004D50C9, &_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch);
-    Patch_Jump(0x004D9076, &_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch);
-    Patch_Jump(0x004D5AB4, &_InfantryClass_Can_Fire_Target_Check_Patch);
-    Patch_Jump(0x004D7168, &_InfantryClass_What_Action_Mechanic_Patch);
-    Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
-    Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
-    Patch_Jump(0x004D35F9, &_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch);
-    Patch_Jump(0x004D3F5D, &_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch);
-    Patch_Jump(0x004D8BE4, &_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set);
 
     Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
 }

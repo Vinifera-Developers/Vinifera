@@ -58,7 +58,8 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     RoofDoorAnim(nullptr),
     UnderRoofDoorAnim(nullptr),
     IsExclusiveFactory(false),
-    IsWallOwner(true)
+    IsWallOwner(true),
+    IsBarGate(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -222,8 +223,8 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsHideDuringSpecialAnim = ArtINI.Get_Bool(ini_name, "HideDuringSpecialAnim", IsHideDuringSpecialAnim);
 
     IsExclusiveFactory = ini.Get_Bool(ini_name, "ExclusiveFactory", IsExclusiveFactory);
-
     IsWallOwner = ini.Get_Bool(ini_name, "WallOwner", IsWallOwner);
+    IsBarGate = ini.Get_Bool(ini_name, "BarGate", IsBarGate);
 
     Fetch_Building_Normal_Image(Scen->Theater);
 
@@ -243,21 +244,21 @@ void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater
     char fullname[MAX_PATH];
     char buffer[64];
 
-    ArtINI.Get_String(This()->GraphicName, "RoofDeployingAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "RoofDeployingAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);
         RoofDeployingAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
-    ArtINI.Get_String(This()->GraphicName, "RoofDoorAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "RoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);
         RoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
-    ArtINI.Get_String(This()->GraphicName, "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);

@@ -59,6 +59,8 @@ class SmudgeClassExtension;
 class SmudgeTypeClassExtension;
 class SuperClassExtension;
 class SuperWeaponTypeClassExtension;
+class TeamClassExtension;
+class TeamTypeClassExtension;
 class TerrainClassExtension;
 class TerrainTypeClassExtension;
 class TiberiumClassExtension;
@@ -68,6 +70,8 @@ class VoxelAnimTypeClassExtension;
 class WarheadTypeClassExtension;
 class WaveClassExtension;
 class WeaponTypeClassExtension;
+class TEventClassExtension;
+class TActionClassExtension;
 
 class TacticalExtension;
 
@@ -127,6 +131,8 @@ extern DynamicVectorClass<SmudgeClassExtension *> SmudgeExtensions;
 extern DynamicVectorClass<SmudgeTypeClassExtension *> SmudgeTypeExtensions;
 extern DynamicVectorClass<SuperClassExtension *> SuperExtensions;
 extern DynamicVectorClass<SuperWeaponTypeClassExtension *> SuperWeaponTypeExtensions;
+extern DynamicVectorClass<TeamClassExtension*> TeamExtensions;
+extern DynamicVectorClass<TeamTypeClassExtension *> TeamTypeExtensions;
 extern DynamicVectorClass<TerrainClassExtension *> TerrainExtensions;
 extern DynamicVectorClass<TerrainTypeClassExtension *> TerrainTypeExtensions;
 extern DynamicVectorClass<TiberiumClassExtension *> TiberiumExtensions;
@@ -135,6 +141,8 @@ extern DynamicVectorClass<VoxelAnimTypeClassExtension *> VoxelAnimTypeExtensions
 extern DynamicVectorClass<WarheadTypeClassExtension *> WarheadTypeExtensions;
 extern DynamicVectorClass<WaveClassExtension *> WaveExtensions;
 extern DynamicVectorClass<WeaponTypeClassExtension *> WeaponTypeExtensions;
+extern DynamicVectorClass<TEventClassExtension*> TEventExtensions;
+extern DynamicVectorClass<TActionClassExtension*> TActionExtensions;
 
 /**
  *  Abstract derived classes, but only a single instance is required.

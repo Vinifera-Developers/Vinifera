@@ -192,7 +192,7 @@ bool CampaignClassExtension::Read_INI(CCINIClass &ini)
         std::snprintf(This()->Description, sizeof(This()->Description), "[Debug] - %s", buffer);
     }
     
-    ini.Get_String(ini_name, "IntroMovie", IntroMovie, sizeof(IntroMovie));
+    ini.Get_String(ini_name, "IntroMovie", "", IntroMovie, sizeof(IntroMovie));
 
     return true;
 }

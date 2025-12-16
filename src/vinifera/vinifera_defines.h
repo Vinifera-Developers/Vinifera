@@ -28,13 +28,9 @@
 #pragma once
 
 #include "always.h"
+#include "session.h"
 #include "tibsun_defines.h"
 
-
-/**
- *  If defined, this will replace the SwizzleManagerClass with our own new implementation.
- */
-#define VINIFERA_USE_NEW_SWIZZLE_MANAGER 1
 
 /**
  *  Enable debug printing of the swizzle remapping process.
@@ -146,13 +142,29 @@
 #define NEW_WAYPOINT_COUNT SHRT_MAX // "AVLG"
 
 
-enum ViniferaRTTIType
+/**
+ *  Extension of the RTTIType enum.
+ */
+enum ExtRTTIType
 {
-    RTTI_SPAWN_MANAGER = RTTI_COUNT,
+    EXT_RTTI_PAD = RTTI_VEINHOLEMONSTER, // The last RTTIType
 
-    VINIFERA_RTTI_COUNT
+    /**
+     *  Add new ExtRTTITypes from here.
+     */
+    EXT_RTTI_SPAWN_MANAGER,
+
+    /**
+     *  The new total ExtRTTITypes count.
+     */
+    EXT_RTTI_COUNT,
+
+    /**
+     *  The first ExtRTTITypes.
+     */
+    EXT_RTTI_FIRST = EXT_RTTI_PAD + 1
 };
-DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);
+DEFINE_ENUMERATION_OPERATORS(ExtRTTIType);
 
 
 enum TargetZoneScanType
@@ -163,6 +175,9 @@ enum TargetZoneScanType
 };
 
 
+/**
+ *  Production flags that are used for factory selection.
+ */
 enum ProductionFlags
 {
     PRODFLAG_NONE = 0,
@@ -172,6 +187,9 @@ enum ProductionFlags
 DEFINE_ENUMERATION_OPERATORS(ProductionFlags);
 
 
+/**
+ *  Prerequisite group enum.
+ */
 enum PrerequisiteGroupType
 {
     PREREQ_GROUP_FIRST = 0,
@@ -204,6 +222,23 @@ typedef enum ExtTActionType
     EXT_TACTION_ALL_ASSIGN_MISSION,
     EXT_TACTION_MAKE_ALLY_ONE_WAY,
     EXT_TACTION_MAKE_ENEMY_ONE_WAY,
+    EXT_TACTION_MODIFY_GLOBAL_CONSTANT,
+    EXT_TACTION_MODIFY_GLOBAL_GLOBAL,
+    EXT_TACTION_MODIFY_GLOBAL_LOCAL,
+    EXT_TACTION_INCREMENT_GLOBAL,
+    EXT_TACTION_DECREMENT_GLOBAL,
+    EXT_TACTION_MODIFY_LOCAL_CONSTANT,
+    EXT_TACTION_MODIFY_LOCAL_GLOBAL,
+    EXT_TACTION_MODIFY_LOCAL_LOCAL,
+    EXT_TACTION_INCREMENT_LOCAL,
+    EXT_TACTION_DECREMENT_LOCAL,
+    EXT_TACTION_RANDOM_NUMBER_GLOBAL,
+    EXT_TACTION_RANDOM_NUMBER_LOCAL,
+    EXT_TACTION_PRINT_GLOBAL,
+    EXT_TACTION_PRINT_LOCAL,
+    EXT_TACTION_ENABLE_TEMPLATED_TEXT,
+    EXT_TACTION_DISABLE_TEMPLATED_TEXT,
+    EXT_TACTION_ADJUST_HOUSE_MODIFIER,
 
     /**
      *  The new total ExtTActionType count.
@@ -215,3 +250,180 @@ typedef enum ExtTActionType
      */
     EXT_TACTION_FIRST = EXT_TACTION_PAD + 1
 } ExtTActionType;
+
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTEventType
+{
+    EXT_TEVENT_PAD = TEVENT_LIMPED, // The last TEventType
+
+    /**
+     *  Add new ExtTEventTypes from here.
+     */
+    EXT_TEVENT_COMPARE_GLOBAL_WITH_CONSTANT,
+    EXT_TEVENT_COMPARE_GLOBAL_WITH_GLOBAL,
+    EXT_TEVENT_COMPARE_GLOBAL_WITH_LOCAL,
+    EXT_TEVENT_GLOBAL_EQUALS_CONSTANT,
+    EXT_TEVENT_GLOBAL_EQUALS_GLOBAL,
+    EXT_TEVENT_GLOBAL_EQUALS_LOCAL,
+    EXT_TEVENT_GLOBAL_GREATER_THAN_CONSTANT,
+    EXT_TEVENT_GLOBAL_GREATER_THAN_GLOBAL,
+    EXT_TEVENT_GLOBAL_GREATER_THAN_LOCAL,
+    EXT_TEVENT_GLOBAL_LESS_THAN_CONSTANT,
+    EXT_TEVENT_GLOBAL_LESS_THAN_GLOBAL,
+    EXT_TEVENT_GLOBAL_LESS_THAN_LOCAL,
+    EXT_TEVENT_COMPARE_LOCAL_WITH_CONSTANT,
+    EXT_TEVENT_COMPARE_LOCAL_WITH_GLOBAL,
+    EXT_TEVENT_COMPARE_LOCAL_WITH_LOCAL,
+    EXT_TEVENT_LOCAL_EQUALS_CONSTANT,
+    EXT_TEVENT_LOCAL_EQUALS_GLOBAL,
+    EXT_TEVENT_LOCAL_EQUALS_LOCAL,
+    EXT_TEVENT_LOCAL_GREATER_THAN_CONSTANT,
+    EXT_TEVENT_LOCAL_GREATER_THAN_GLOBAL,
+    EXT_TEVENT_LOCAL_GREATER_THAN_LOCAL,
+    EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT,
+    EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL,
+    EXT_TEVENT_LOCAL_LESS_THAN_LOCAL,
+
+    /**
+     *  The new total ExtTEventType count.
+     */
+    EXT_TEVENT_COUNT,
+
+    /**
+     *  The first ExtTEventType.
+     */
+    EXT_TEVENT_FIRST = EXT_TEVENT_PAD + 1
+} ExtTEventType;
+
+
+/**
+ *  Extension of the EventType enum.
+ */
+enum ExtEventType {
+    EXT_EVENT_PAD = EVENT_LATENCYFUDGE, // The last EventType
+
+    /**
+     *  Add new ExtEventTypes from here.
+     */
+    
+
+    /**
+     *  The new total ExtEventTypes count.
+     */
+    EXT_EVENT_COUNT,
+
+    /**
+     *  The first ExtEventTypes.
+     */
+    EXT_EVENT_FIRST = EXT_EVENT_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtEventType);
+
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtActionType {
+    EXT_ACTION_PAD = ACTION_ATTACK_SUPPORT, // The last ActionType
+
+    /**
+     *  Add new ExtEventTypes from here.
+     */
+    EXT_ACTION_PLACE_BEACON,
+    EXT_ACTION_PLACE_BEACON_1,
+    EXT_ACTION_PLACE_BEACON_2,
+    EXT_ACTION_PLACE_BEACON_3,
+    EXT_ACTION_PLACE_BEACON_4,
+    EXT_ACTION_PLACE_BEACON_5,
+    EXT_ACTION_PLACE_BEACON_6,
+    EXT_ACTION_PLACE_BEACON_7,
+    EXT_ACTION_SELECT_BEACON,
+
+    /**
+     *  The new total ExtEventTypes count.
+     */
+    EXT_ACTION_COUNT,
+
+    /**
+     *  The first ExtEventTypes.
+     */
+    EXT_ACTION_FIRST = EXT_ACTION_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtActionType);
+
+/**
+ *  New global packet types.
+ */
+enum ExtNetCommandType {
+    EXT_NET_BEACON_PLACE = NET_PROPOSE_KICK + 1,
+    EXT_NET_BEACON_DELETE,
+    EXT_NET_BEACON_TEXT
+};
+
+/**
+ *  Extended struct for new global packet types.
+ */
+#pragma pack(1)
+struct ExtGlobalPacketType {
+    ExtNetCommandType Command;
+    char Name[MPLAYER_NAME_MAX];
+    char Serial[SERIAL_MAX];
+    union {
+        struct {
+            CoordStruct Position;
+            char House;
+            int Number;
+        } PlaceBeacon;
+        struct {
+            char House;
+            int Number;
+        } DeleteBeacon;
+        struct {
+            char Text[256];
+            int Number;
+            char House;
+        } BeaconText;
+        struct {
+            char Buf[370];
+            char Scope[30];
+            PlayerColorType Color;
+            unsigned long NameCRC;
+        } Message;
+        char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
+    };
+};
+#pragma pack()
+
+static_assert(sizeof(ExtGlobalPacketType) == sizeof(GlobalPacketType), "ExtGlobalPacketType size is wrong!");
+
+enum ExtThreatType {
+    EXT_THREAT_HARVESTERS = 0x8000 // Limit scan to harvesters only
+};
+DEFINE_ENUMERATION_OPERATORS(ExtThreatType);
+DEFINE_ENUMERATION_BITWISE_OPERATORS(ExtThreatType);
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtQuarryType {
+    EXT_QUARRY_PAD = QUARRY_POWER,            // The last QuarryType
+
+    /**
+     *  Add new ExtActionTypes from here.
+     */
+    EXT_QUARRY_HARVESTERS,   // Attack harvesters only (no refineries).
+
+    /**
+     *  The new total ExtActionType count.
+     */
+    EXT_QUARRY_COUNT,
+
+    /**
+     *  The first ExtActionType.
+     */
+    EXT_QUARRY_FIRST = 0
+};
+DEFINE_ENUMERATION_OPERATORS(ExtQuarryType);

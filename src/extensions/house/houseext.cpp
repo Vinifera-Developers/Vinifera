@@ -401,7 +401,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         if (who != nullptr) {
             onhold = true;
         } else {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. No-one can build.\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. No-one can build.\n", tech->GivenName.c_str());
             return PROD_CANT;
         }
     }
@@ -412,7 +412,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         fptr = new FactoryClass;
 
         if (fptr == nullptr) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Unable to create factory\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Unable to create factory\n", tech->GivenName.c_str());
             return PROD_CANT;
         }
     }
@@ -423,7 +423,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     */
     if (fptr != nullptr) {
         if (fptr->Is_Building() && type == RTTI_BUILDINGTYPE) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n", tech->GivenName.c_str());
             return PROD_CANT;
         }
     }
@@ -465,7 +465,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         return PROD_OK;
     }
 
-    DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->FullName);
+    DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->GivenName.c_str());
 
     /*
     **  Output debug information if production failed.
@@ -580,8 +580,6 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
             if (!factory_ext->HasSpoken && factory->House == PlayerPtr) {
                 if (tech->Is_Foot()) {
                     Speak(VOX_UNIT_READY);
-                } else if (tech->RTTI == RTTI_BUILDING) {
-                    Speak(VOX_CONSTRUCTION);
                 }
                 factory_ext->HasSpoken = true;
             }
@@ -614,7 +612,9 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                         **  the production manager tied to this slot in the sidebar. Its job
                         **  has been completed.
                         */
-                        LastRadarEventCell = builder->Center_Coord().As_Cell();
+
+                        // Do not assign last radar event cell, it's an annoyance - Rampastring
+                        // LastRadarEventCell = builder->Center_Coord().As_Cell();
                         factory->Completed();
                         Abandon_Production(type, -1, flags);
                         placed = true;
@@ -833,7 +833,7 @@ int HouseClassExtension::AI_Unit()
     **  harvester if possible.
     */
     if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
-        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
+        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->Level <= This()->Control.TechLevel) {
             This()->BuildUnit = This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID;
             return TICKS_PER_SECOND;
         }
@@ -1073,7 +1073,7 @@ bool HouseClassExtension::Has_Prerequisite(StructType building)
     /*
     **  If this isn't an upgrade, just check the counter.
     */
-    if (btype->PowersUpBuilding[0] == '\0') {
+    if (btype->PowersUpBuilding.empty()) {
         return This()->ActiveBQuantity.Value(building) > 0;
     }
 
@@ -1241,10 +1241,10 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
  *
  *  @author: ZivDero
  */
-void HouseClassExtension::Set_Spawn_Point(const Coord& coord)
+void HouseClassExtension::Set_Spawn_Point(const Cell& cell)
 {
     for (WAYPOINT i = 0; i < MAX_PLAYERS; i++) {
-        if (Scen->Waypoint_Coord(i).As_Cell() == coord.As_Cell()) {
+        if (Scen->Is_Waypoint_Valid(i) && Scen->Waypoint_Cell(i) == cell) {
             SpawnWaypoint = i;
             return;
         }

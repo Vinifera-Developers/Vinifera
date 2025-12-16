@@ -35,44 +35,7 @@
 #include "scenarioext.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
-
-static char r;
-static char g;
-static char b;
-
-/**
- *  Macro for applying color to the score bar.
- *  Saves and restores ecx to avoid the compiler trashing it
- *  since in every case it is used after reading in the color.
- */
-#define APPLY_SCORE_BAR_COLOR(funcname, jumpaddr) \
-_asm { push ecx } \
-funcname(); \
-_asm { mov al, byte ptr ds:r } \
-_asm { mov [esp+0x1C], al } \
-_asm { mov al, byte ptr ds:g } \
-_asm { mov [esp+0x1C+1], al } \
-_asm { mov al, byte ptr ds:b } \
-_asm { mov [esp+0x1C+2], al } \
-_asm { pop ecx } \
-JMP(jumpaddr)
-
-
-void Fetch_Player_Score_Color_From_ScenExtension()
-{
-    r = ScenExtension->ScorePlayerColor.R;
-    g = ScenExtension->ScorePlayerColor.G;
-    b = ScenExtension->ScorePlayerColor.B;
-}
-
-
-void Fetch_Enemy_Score_Color_From_ScenExtension()
-{
-    r = ScenExtension->ScoreEnemyColor.R;
-    g = ScenExtension->ScoreEnemyColor.G;
-    b = ScenExtension->ScoreEnemyColor.B;
-}
+#include "syringe.h"
 
 
 /**
@@ -82,45 +45,30 @@ void Fetch_Enemy_Score_Color_From_ScenExtension()
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1)
+DEFINE_HOOK(0x005E532A, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Player_Score_Color_From_ScenExtension, 0x005E5338);
+    R->Stack<unsigned char>(0x18, ScenExtension->ScorePlayerColor.R);
+    R->Stack<unsigned char>(0x18 + 1, ScenExtension->ScorePlayerColor.G);
+    R->Stack<unsigned char>(0x18 + 2, ScenExtension->ScorePlayerColor.B);
+    return R->Origin() + 0xE;
 }
+DEFINE_HOOK_AGAIN(0x005E536B, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch, 0);
+DEFINE_HOOK_AGAIN(0x005E53AC, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch, 0);
 
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2)
+DEFINE_HOOK(0x005E53F8, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Player_Score_Color_From_ScenExtension, 0x005E5379);
+    R->Stack<unsigned char>(0x18, ScenExtension->ScoreEnemyColor.R);
+    R->Stack<unsigned char>(0x18 + 1, ScenExtension->ScoreEnemyColor.G);
+    R->Stack<unsigned char>(0x18 + 2, ScenExtension->ScoreEnemyColor.B);
+    return R->Origin() + 0xD;
 }
-
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3)
-{
-    APPLY_SCORE_BAR_COLOR(Fetch_Player_Score_Color_From_ScenExtension, 0x005E53BA);
-}
-
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1)
-{
-    APPLY_SCORE_BAR_COLOR(Fetch_Enemy_Score_Color_From_ScenExtension, 0x005E5405);
-}
-
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2)
-{
-    APPLY_SCORE_BAR_COLOR(Fetch_Enemy_Score_Color_From_ScenExtension, 0x005E5448);
-}
-
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3)
-{
-    APPLY_SCORE_BAR_COLOR(Fetch_Enemy_Score_Color_From_ScenExtension, 0x005E548B);
-}
+DEFINE_HOOK_AGAIN(0x005E543B, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch, 0);
+DEFINE_HOOK_AGAIN(0x005E547E, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch, 0);
 
 /**
  *  Main function for patching the hooks.
  */
 void ScoreClassExtension_Hooks()
 {
-    Patch_Jump(0x005E532A, &_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1);
-    Patch_Jump(0x005E536B, &_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2);
-    Patch_Jump(0x005E53AC, &_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3);
-    Patch_Jump(0x005E53F8, &_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1);
-    Patch_Jump(0x005E543B, &_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2);
-    Patch_Jump(0x005E547E, &_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3);
+
 }

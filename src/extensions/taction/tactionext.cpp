@@ -39,11 +39,15 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
+#include "tacticalext.h"
 #include "tag.h"
+#include "tagtype.h"
+#include "teamtype.h"
 #include "techno.h"
 #include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
+#include "vinifera_globals.h"
 #include "voc.h"
 
 
@@ -61,7 +65,157 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "All Assign Mission", "Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move)." },
     { "Make Ally (One-Way)", "Cause this trigger's house to make a one-sided alliance with the specified house." },
     { "Make Enemy (One-Way)", "Cause this trigger's house to unilaterally declare war on the specified house." },
+    { "Modify global (constant)", "Modifies a global variable using a constant as the second operand." },
+    { "Modify global (global)", "Modifies a global variable using another global variable as the second operand." },
+    { "Modify global (local)", "Modifies a global variable using a local variable as the second operand." },
+    { "Increment global", "Increases a global variable by 1." },
+    { "Decrement global", "Decreases a global variable by 1." },
+    { "Modify local (constant)", "Modifies a local variable using a constant as the second operand." },
+    { "Modify local (global)", "Modifies a local variable using a global variable as the second operand." },
+    { "Modify local (local)", "Modifies a local variable using another local variable as the second operand." },
+    { "Increment local", "Increases a local variable by 1." },
+    { "Decrement local", "Decreases a local variable by 1." },
+    { "Random number (global)", "Generates a random number and stores it in a global variable." },
+    { "Random number (local)", "Generates a random number and stores it in a local variable." },
+    { "Print global", "Prints the value of a global variable." },
+    { "Print local", "Prints the value of a local variable." },
+    { "Enable templated text", "Displays a line of text on the screen with variable substitution. The text may include placeholders like {{g_variableName}} or {{l_variableName}}, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house." },
+    { "Disable templated text", "Removes the currently active templated text from the screen." },
+    { "Adjust House Modifier", "Adjusts a house modifier by given percentage points." },
 };
+
+
+/**
+ *  Class constructor.
+ *
+ *  @author: ZivDero
+ */
+TActionClassExtension::TActionClassExtension(const TActionClass* this_ptr) :
+    AbstractClassExtension(this_ptr),
+    Text {""}
+{
+    // if (this_ptr) EXT_DEBUG_TRACE("TActionClassExtension::TActionClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    TActionExtensions.Add(this);
+}
+
+
+/**
+ *  Class no-init constructor.
+ *
+ *  @author: ZivDero
+ */
+TActionClassExtension::TActionClassExtension(const NoInitClass& noinit) :
+    AbstractClassExtension(noinit),
+    Text(noinit)
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::TActionClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+}
+
+
+/**
+ *  Class destructor.
+ *
+ *  @author: ZivDero
+ */
+TActionClassExtension::~TActionClassExtension()
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::~TActionClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    TActionExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *
+ *  @author: ZivDero
+ */
+HRESULT TActionClassExtension::GetClassID(CLSID* lpClassID)
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
+}
+
+
+/**
+ *  Initializes an object from the stream where it was saved previously.
+ *
+ *  @author: ZivDero
+ */
+HRESULT TActionClassExtension::Load(IStream* pStm)
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+
+    new (this) TActionClassExtension(NoInitClass());
+
+    return hr;
+}
+
+
+/**
+ *  Saves an object to the specified stream.
+ *
+ *  @author: ZivDero
+ */
+HRESULT TActionClassExtension::Save(IStream* pStm, BOOL fClearDirty)
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return hr;
+}
+
+
+/**
+ *  Return the raw size of class data for save/load purposes.
+ *
+ *  @author: ZivDero
+ */
+int TActionClassExtension::Get_Object_Size() const
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    return sizeof(*this);
+}
+
+
+/**
+ *  Removes the specified target from any targeting and reference trackers.
+ *
+ *  @author: ZivDero
+ */
+void TActionClassExtension::Detach(AbstractClass* target, bool all)
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+}
+
+
+/**
+ *  Compute a unique crc value for this instance.
+ *
+ *  @author: ZivDero
+ */
+void TActionClassExtension::Object_CRC(CRCEngine& crc) const
+{
+    // EXT_DEBUG_TRACE("TActionClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+}
 
 
 /**
@@ -72,7 +226,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
 const char* TActionClassExtension::Action_Name(int action)
 {
     if (action < TACTION_COUNT) {
-        return TActionClass::Action_Name(TActionType(action));
+        return TActionClass::Action_Name(static_cast<TActionType>(action));
     }
 
     if (action < EXT_TACTION_COUNT) {
@@ -91,7 +245,7 @@ const char* TActionClassExtension::Action_Name(int action)
 const char* TActionClassExtension::Action_Description(int action)
 {
     if (action < TACTION_COUNT) {
-        return TActionClass::Action_Description(TActionType(action));
+        return TActionClass::Action_Description(static_cast<TActionType>(action));
     }
 
     if (action < EXT_TACTION_COUNT) {
@@ -107,7 +261,7 @@ const char* TActionClassExtension::Action_Description(int action)
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     bool success = false;
 
@@ -120,22 +274,24 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         object = nullptr;
     }
 
-    #define DISPATCH(a) case TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
-    #define EXT_DISPATCH(a) case EXT_TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
+    #define DISPATCH(a) case TACTION_ ## a: success = Do_ ## a (house, object, trig, cell); break;
+    #define EXT_DISPATCH(a) case EXT_TACTION_ ## a: success = Do_ ## a (house, object, trig, cell); break;
 
     // warning C4063: case '#' is not a valid value for switch of enum 'TActionType'
     #pragma warning(push)
     #pragma warning(disable : 4063)
 
-    switch (taction.Action) {
+    switch (This()->Action) {
 
         /**
          *  Intercepted vanilla TActions.
          */
         DISPATCH(WIN);
         DISPATCH(LOSE);
+        DISPATCH(TEXT_TRIGGER);
         DISPATCH(DESTROY_TRIGGER);
         DISPATCH(ENABLE_TRIGGER);
+        DISPATCH(DESTROY_TAG);
         DISPATCH(PLAY_SOUND_RANDOM);
 
         /**
@@ -153,6 +309,23 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         EXT_DISPATCH(ALL_ASSIGN_MISSION);
         EXT_DISPATCH(MAKE_ALLY_ONE_WAY);
         EXT_DISPATCH(MAKE_ENEMY_ONE_WAY);
+        EXT_DISPATCH(MODIFY_GLOBAL_CONSTANT);
+        EXT_DISPATCH(MODIFY_GLOBAL_GLOBAL);
+        EXT_DISPATCH(MODIFY_GLOBAL_LOCAL);
+        EXT_DISPATCH(INCREMENT_GLOBAL);
+        EXT_DISPATCH(DECREMENT_GLOBAL);
+        EXT_DISPATCH(MODIFY_LOCAL_CONSTANT);
+        EXT_DISPATCH(MODIFY_LOCAL_GLOBAL);
+        EXT_DISPATCH(MODIFY_LOCAL_LOCAL);
+        EXT_DISPATCH(INCREMENT_LOCAL);
+        EXT_DISPATCH(DECREMENT_LOCAL);
+        EXT_DISPATCH(RANDOM_NUMBER_GLOBAL);
+        EXT_DISPATCH(RANDOM_NUMBER_LOCAL);
+        EXT_DISPATCH(PRINT_GLOBAL);
+        EXT_DISPATCH(PRINT_LOCAL);
+        EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
+        EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
+        EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
 
         /**
          *  Used to print the current difficulty in ts-patches, available to be repurposed.
@@ -165,7 +338,7 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
          *  Unexpected TActionType.
          */
     default:
-        DEV_DEBUG_WARNING("Invalid action type (%d)!\n", taction.Action);
+        DEV_DEBUG_WARNING("Invalid action type (%d)!\n", This()->Action);
         break;
     }
 
@@ -203,8 +376,10 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     switch (type) {
     case TACTION_WIN:
     case TACTION_LOSE:
+    case TACTION_TEXT_TRIGGER:
     case TACTION_DESTROY_TRIGGER:
     case TACTION_ENABLE_TRIGGER:
+    case TACTION_DESTROY_TAG:
     case TACTION_PLAY_SOUND_RANDOM:
         return true;
 
@@ -258,12 +433,12 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
  *
  *  @author: Rampastring
  */
-bool TActionClassExtension::Do_WIN(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_WIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  Flag the player as won or lost, like in the original code.
      */
-    if (taction.Data.House == PlayerPtr->Class->House) {
+    if (This()->Data.House == PlayerPtr->Class->House) {
         PlayerPtr->Flag_To_Win();
     } else {
         PlayerPtr->Flag_To_Lose();
@@ -277,7 +452,7 @@ bool TActionClassExtension::Do_WIN(TActionClass& taction, HouseClass* house, Obj
         for (int i = 0; i < Houses.Count(); i++) {
             HouseClass* hptr = Houses[i];
 
-            if (hptr->Class->House != taction.Data.House) {
+            if (hptr->Class->House != This()->Data.House) {
                 hptr->IsDefeated = true;
             }
         }
@@ -295,12 +470,12 @@ bool TActionClassExtension::Do_WIN(TActionClass& taction, HouseClass* house, Obj
  *
  *  @author: Rampastring
  */
-bool TActionClassExtension::Do_LOSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_LOSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  Flag the player as won or lost, like in the original code.
      */
-    if (taction.Data.House != PlayerPtr->Class->House) {
+    if (This()->Data.House != PlayerPtr->Class->House) {
         PlayerPtr->Flag_To_Win();
     } else {
         PlayerPtr->Flag_To_Lose();
@@ -314,12 +489,52 @@ bool TActionClassExtension::Do_LOSE(TActionClass& taction, HouseClass* house, Ob
         for (int i = 0; i < Houses.Count(); i++) {
             HouseClass* hptr = Houses[i];
 
-            if (hptr->Class->House == taction.Data.House) {
+            if (hptr->Class->House == This()->Data.House) {
                 hptr->IsDefeated = true;
             }
         }
     }
 
+    return true;
+}
+
+
+/**
+ *  An enhanced text trigger action.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_TEXT_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (!Vinifera_TutorialText.contains(Text.c_str())) {
+        return false;
+    }
+
+    /**
+     *  Substitute the placeholders in the tutorial string.
+     */
+    std::string text = ScenarioClassExtension::Substitute_Variable_Placeholders(Vinifera_TutorialText[Text.c_str()]);
+
+    /**
+     *  Fetch the requested duration. If it's <= 0, fall back to vanilla.
+     */
+    int duration = This()->TriggerRect.Y;
+    duration = std::max(0, duration);
+    if (duration == 0) {
+        duration = Rule->MessageDelay * TICKS_PER_MINUTE;
+    } else {
+        duration *= TIMER_SECOND;
+    }
+
+    ColorSchemeType color = static_cast<ColorSchemeType>(This()->TriggerRect.X) * 2;
+    if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
+        color = PlayerPtr->Scheme;
+    }
+
+    /**
+     *  Display a text message overlayed onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, text.c_str(), color, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, duration);
     return true;
 }
 
@@ -332,13 +547,13 @@ bool TActionClassExtension::Do_LOSE(TActionClass& taction, HouseClass* house, Ob
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_DESTROY_TRIGGER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_DESTROY_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Trigger != nullptr) {
+    if (This()->Trigger != nullptr) {
         int count = Triggers.Count();
 
         for (int index = count - 1; index >= 0; index--) {
-            if (Triggers[index]->Class == taction.Trigger) {
+            if (Triggers[index]->Class == This()->Trigger) {
                 Triggers[index]->Mark_To_Die();
             }
         }
@@ -355,14 +570,14 @@ bool TActionClassExtension::Do_DESTROY_TRIGGER(TActionClass& taction, HouseClass
  *
  *  @author: CCHyper
  */
-bool TActionClassExtension::Do_ENABLE_TRIGGER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  This is direct port of the code from Red Alert 2, which looks to fix this issue.
      */
-    if (taction.Trigger != nullptr) {
+    if (This()->Trigger != nullptr) {
         for (int index = 0; index < Triggers.Count(); index++) {
-            if (Triggers[index]->Class == taction.Trigger) {
+            if (Triggers[index]->Class == This()->Trigger) {
                 bool really_enable = true;
 
                 /**
@@ -390,13 +605,33 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(TActionClass& taction, HouseClass*
 
 
 /**
+ *  Fixes a bug where caching Tags.Count() before the loop
+ *  could cause out-of-bounds access after deletions
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DESTROY_TAG(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (This()->Tag != nullptr) {
+        for (int index = 0; index < Tags.Count(); index++) {
+            if (Tags[index]->Class == This()->Tag) {
+                delete Tags[index];
+                index--;
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
  *  #issue-71
  *
  *  Reimplement Do_PLAY_SOUND_RANDOM to support the new waypoint limit.
  *
  *  @author: CCHyper
  */
-bool TActionClassExtension::Do_PLAY_SOUND_RANDOM(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     Cell list[NEW_WAYPOINT_COUNT];
     int count = 0;
@@ -414,7 +649,7 @@ bool TActionClassExtension::Do_PLAY_SOUND_RANDOM(TActionClass& taction, HouseCla
     /**
      *  Pick a random cell from the valid waypoint list and play the desired sound.
      */
-    Static_Sound(taction.Data.Sound, list[Random_Pick(0u, std::size(list) - 1)].As_Coord());
+    Static_Sound(This()->Data.Sound, list[Random_Pick(0u, std::size(list) - 1)].As_Coord());
     return true;
 }
 
@@ -424,16 +659,16 @@ bool TActionClassExtension::Do_PLAY_SOUND_RANDOM(TActionClass& taction, HouseCla
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_GIVE_CREDITS(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_GIVE_CREDITS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    HouseClass* hptr = HouseClassExtension::House_From_HousesType(taction.Data.House);
+    HouseClass* hptr = HouseClassExtension::House_From_HousesType(This()->Data.House);
 
     /**
      *  Give credits to the house.
      */
     if (hptr != nullptr) {
 
-        const int amount = taction.TriggerRect.X;
+        const int amount = This()->TriggerRect.X;
         if (amount >= 0) {
             hptr->Refund_Money(amount);
         } else {
@@ -450,7 +685,7 @@ bool TActionClassExtension::Do_GIVE_CREDITS(TActionClass& taction, HouseClass* h
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_ENABLE_SHORT_GAME(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ENABLE_SHORT_GAME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     Session.Options.ShortGame = true;
 
@@ -463,7 +698,7 @@ bool TActionClassExtension::Do_ENABLE_SHORT_GAME(TActionClass& taction, HouseCla
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_DISABLE_SHORT_GAME(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_DISABLE_SHORT_GAME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     Session.Options.ShortGame = false;
 
@@ -476,9 +711,9 @@ bool TActionClassExtension::Do_DISABLE_SHORT_GAME(TActionClass& taction, HouseCl
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_HOUSE_DESTROY_ALL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_HOUSE_DESTROY_ALL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    HouseClass* hptr = HouseClassExtension::House_From_HousesType(taction.Data.House);
+    HouseClass* hptr = HouseClassExtension::House_From_HousesType(This()->Data.House);
 
     /**
      *  Blow the house up and mark the player as defeated.
@@ -497,7 +732,7 @@ bool TActionClassExtension::Do_HOUSE_DESTROY_ALL(TActionClass& taction, HouseCla
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_MAKE_ELITE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_MAKE_ELITE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  Iterate all technos, and if their tag is attached to this trigger, make them elite.
@@ -507,7 +742,7 @@ bool TActionClassExtension::Do_MAKE_ELITE(TActionClass& taction, HouseClass* hou
 
         if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
             if (techno->Tag && techno->Tag->Is_Trigger_Attached(trig)) {
-                techno->Veterancy.Set_Elite(true);
+                techno->Crew.Set_Elite(true);
             }
         }
     }
@@ -521,7 +756,7 @@ bool TActionClassExtension::Do_MAKE_ELITE(TActionClass& taction, HouseClass* hou
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_ENABLE_ALLYREVEAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ENABLE_ALLYREVEAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     Rule->IsAllyReveal = true;
 
@@ -534,7 +769,7 @@ bool TActionClassExtension::Do_ENABLE_ALLYREVEAL(TActionClass& taction, HouseCla
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_DISABLE_ALLYREVEAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_DISABLE_ALLYREVEAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     Rule->IsAllyReveal = false;
 
@@ -547,7 +782,7 @@ bool TActionClassExtension::Do_DISABLE_ALLYREVEAL(TActionClass& taction, HouseCl
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_CREATE_AUTOSAVE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_CREATE_AUTOSAVE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     DEBUG_ERROR("EXT_TACTION_CREATE_AUTOSAVE is not yet implemented, but has been executed!");
     return false;
@@ -559,7 +794,7 @@ bool TActionClassExtension::Do_CREATE_AUTOSAVE(TActionClass& taction, HouseClass
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_DELETE_OBJECT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_DELETE_OBJECT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  Iterate all technos, and if their tag is attached to this trigger, flag them for deletion.
@@ -583,7 +818,7 @@ bool TActionClassExtension::Do_DELETE_OBJECT(TActionClass& taction, HouseClass* 
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_ALL_ASSIGN_MISSION(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ALL_ASSIGN_MISSION(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  Iterate all units, and if they are owned by the trigger owner, assign the mission.
@@ -593,7 +828,7 @@ bool TActionClassExtension::Do_ALL_ASSIGN_MISSION(TActionClass& taction, HouseCl
 
         if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
             if (techno->House == house) {
-                techno->Assign_Mission(static_cast<MissionType>(taction.Data.Value));
+                techno->Assign_Mission(static_cast<MissionType>(This()->Data.Value));
             }
         }
     }
@@ -607,10 +842,10 @@ bool TActionClassExtension::Do_ALL_ASSIGN_MISSION(TActionClass& taction, HouseCl
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_MAKE_ALLY_ONE_WAY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_MAKE_ALLY_ONE_WAY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* house2 = HouseClassExtension::House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* house2 = HouseClassExtension::House_From_HousesType(This()->Data.House);
 
         /**
          *  We need to increment ScenarioInit to allow houses to ally even if
@@ -629,10 +864,10 @@ bool TActionClassExtension::Do_MAKE_ALLY_ONE_WAY(TActionClass& taction, HouseCla
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_MAKE_ENEMY_ONE_WAY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_MAKE_ENEMY_ONE_WAY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* house2 = HouseClassExtension::House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* house2 = HouseClassExtension::House_From_HousesType(This()->Data.House);
 
         /**
          *  We need to increment ScenarioInit to allow houses to ally even if
@@ -644,3 +879,657 @@ bool TActionClassExtension::Do_MAKE_ENEMY_ONE_WAY(TActionClass& taction, HouseCl
     }
     return true;
 }
+
+
+/**
+ *  An enum for the operations that the actions can perform.
+ */
+enum VariableOperation
+{
+    OP_ASSIGN,
+    OP_ADD,
+    OP_SUBTRACT,
+    OP_MULTIPLY,
+    OP_DIVIDE,
+    OP_MODULO,
+    OP_NEGATE,
+    OP_LSHIFT,
+    OP_RSHIFT,
+    OP_NOT,
+    OP_XOR,
+    OP_OR,
+    OP_AND,
+    OP_MAX,
+    OP_MIN
+};
+
+
+/**
+ *  Performs an operation.
+ */
+static int Operate(int lhs, int rhs, VariableOperation operation)
+{
+    switch (operation) {
+    case OP_ASSIGN:
+        lhs = rhs;
+        break;
+    case OP_ADD:
+        lhs += rhs;
+        break;
+    case OP_SUBTRACT:
+        lhs -= rhs;
+        break;
+    case OP_MULTIPLY:
+        lhs *= rhs;
+        break;
+    case OP_DIVIDE:
+        lhs /= rhs;
+        break;
+    case OP_MODULO:
+        lhs %= rhs;
+        break;
+    case OP_NEGATE:
+        lhs = -lhs;
+        break;
+    case OP_LSHIFT:
+        lhs <<= rhs;
+        break;
+    case OP_RSHIFT:
+        lhs >>= rhs;
+        break;
+    case OP_NOT:
+        lhs = ~lhs;
+        break;
+    case OP_XOR:
+        lhs ^= rhs;
+        break;
+    case OP_OR:
+        lhs |= rhs;
+        break;
+    case OP_AND:
+        lhs &= rhs;
+        break;
+    case OP_MAX:
+        lhs = std::max(lhs, rhs);
+        break;
+    case OP_MIN:
+        lhs = std::min(lhs, rhs);
+        break;
+    }
+    return lhs;
+}
+
+
+/**
+ *  Edits a global with a constant as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_GLOBAL_CONSTANT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = This()->Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(This()->TriggerRect.X);
+    int right = This()->TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Global_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a global with another global as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_GLOBAL_GLOBAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = This()->Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(This()->TriggerRect.X);
+    int right_index = This()->TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Global_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Global_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a global with a local as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_GLOBAL_LOCAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = This()->Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(This()->TriggerRect.X);
+    int right_index = This()->TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Global_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Local_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Increments a global.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_INCREMENT_GLOBAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Global_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value++;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Decrements a global.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DECREMENT_GLOBAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Global_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value--;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Edits a local with a constant as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_LOCAL_CONSTANT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = This()->Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(This()->TriggerRect.X);
+    int right = This()->TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Local_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a local with a global as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_LOCAL_GLOBAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = This()->Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(This()->TriggerRect.X);
+    int right_index = This()->TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Local_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Global_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a local with another local as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_LOCAL_LOCAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = This()->Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(This()->TriggerRect.X);
+    int right_index = This()->TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Local_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Local_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Increments a local.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_INCREMENT_LOCAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Local_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value++;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Decrements a local.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DECREMENT_LOCAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Local_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value--;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Generates a random number and stores it in a global.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_RANDOM_NUMBER_GLOBAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+    int min = This()->TriggerRect.X;
+    int max = This()->TriggerRect.Y;
+
+    /**
+     *  Generate the number.
+     */
+    int number = Random_Pick(min, max);
+
+    /**
+     *  Save the result.
+     */
+    if (!ScenExtension->Set_Global_To(index, number)) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Generates a random number and stores it in a local.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_RANDOM_NUMBER_LOCAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+    int min = This()->TriggerRect.X;
+    int max = This()->TriggerRect.Y;
+
+    /**
+     *  Generate the number.
+     */
+    int number = Random_Pick(min, max);
+
+    /**
+     *  Save the result.
+     */
+    if (!ScenExtension->Set_Local_To(index, number)) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Prints the global as a message.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PRINT_GLOBAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Global_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Format the value into a string.
+     */
+    char buffer[32];
+    std::snprintf(buffer, sizeof(buffer), "%d", value);
+
+    /**
+     *  Display a text message overlaid onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, buffer, COLORSCHEME_FIRST, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+    return true;
+}
+
+
+/**
+ *  Prints the local as a message.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PRINT_LOCAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = This()->Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Local_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Format the value into a string.
+     */
+    char buffer[32];
+    std::snprintf(buffer, sizeof(buffer), "%d", value);
+
+    /**
+     *  Display a text message overlaid onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, buffer, COLORSCHEME_FIRST, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+    return true;
+}
+
+
+/**
+ *  Enables the variable counter for a global variable.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    TacticalMapExtension->Enable_Templated_Text(This()->Data.Value, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
+    return true;
+}
+
+
+/**
+ *  Disables the variable counter.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DISABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    TacticalMapExtension->Disable_Templated_Text();
+    return true;
+}
+
+
+/**
+ *  Adjusts a house modifier.
+ *
+ *  @author: Rampastring
+ */
+bool TActionClassExtension::Do_ADJUST_HOUSE_MODIFIER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    int amount = This()->TriggerRect.X;
+
+    switch (This()->Data.Value)
+    {
+    case 0:
+        house->FirepowerBias += (double)amount / 100.0;
+        break;
+    case 1:
+        house->ArmorBias += (double)amount / 100.0;
+        break;
+    case 2:
+        house->GroundspeedBias += (double)amount / 100.0;
+        break;
+    case 3:
+        house->AirspeedBias += (double)amount / 100.0;
+        break;
+    case 4:
+        house->ROFBias += (double)amount / 100.0;
+        break;
+    case 5:
+        house->CostBias += (double)amount / 100.0;
+        break;
+    case 6:
+        house->BuildSpeedBias += (double)amount / 100.0;
+        break;
+    }
+
+    return true;
+}
+

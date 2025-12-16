@@ -34,6 +34,7 @@
  ******************************************************************************/
 #include "blowpipe.h"
 #include "asserthandler.h"
+#include <cstring>
 
 
 int BlowPipe::Flush()

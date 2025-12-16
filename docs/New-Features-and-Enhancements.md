@@ -128,6 +128,16 @@ GateUpSound=    ; VocType, sound effect to play when the gate is rising. Default
 GateDownSound=  ; VocType, sound effect to play when the gate is lowering. Defaults to [AudioVisual]->GateDown.
 ```
 
+### Vertical Gate
+
+- Normally, the game drawn gates flat on the ground when they are open. You can optionally turn this off to have a gate that is drawn above units when open instead.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]  ; BuildingType
+BarGate=no      ; boolean, should the gate be drawn normally, as opposed to flat when it's open.
+```
+
 ### ProduceCash
 
 - Vinifera implements the Produce Cash logic from Red Alert 2. The system works exactly as it does in Red Alert 2, but with the following differences:
@@ -269,7 +279,18 @@ AllowedSmudges=   ; list of SmudgeTypes, which Smudges can appear on this tile. 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
 [SOMEISOTILESET]  ; IsometricTileType
-AllowVeins=yes    ; boolean, can Veins can grow on this tile.
+AllowVeins=yes    ; boolean, can Veins can grow on this tile?
+```
+
+
+### WaterTunnel
+
+- The `WaterTunnel` key turns this tile's `Tunnel` LandType tiles water-passable.
+
+In `TEMPERAT.INI` (or other theater file):
+```ini
+[SOMEISOTILESET]  ; IsometricTileType
+WaterTunnel=no    ; boolean, is this tile's tunnel on water?
 ```
 
 ## Infantry
@@ -291,6 +312,18 @@ OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, a
 
 ```{note}
 When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `ALT` key (Force Move) will allow you to enter the transport instead of healing it.
+```
+
+## Overlays
+
+### WaterTunnel
+
+- If the cell the overlay is on has the `Tunnel` LandType, the `WaterTunnel` key turns this tile water-passable.
+
+In `RULES.INI`:
+```ini
+[SOMEOVERLAY]   ; OverlayType
+WaterTunnel=no  ; boolean, is this tile's tunnel on water?
 ```
 
 ## Projectiles
@@ -611,6 +644,15 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     DropPod=AirStrike,AirStrike
     RallyToPoint=CanMove,Normal
     AttackSupport=Normal,Normal
+    PlaceBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon1=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon2=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon3=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon4=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon5=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon6=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon7=PlaceWaypoint,PlaceWaypoint
+    SelectBeacon=SelectWaypoint,SelectWaypoint
 
     ```
    :::
@@ -957,6 +999,23 @@ ShakeXlo=0    ; unsigned integer, the minimum pixel X value.
 
 - Vinifera allows `WalkRate` to be optionally loaded from `ART.INI` image entries, overriding any value defined in `RULES.INI`.
 
+### Wake Animation Customization
+
+- Vinifera allows customizing the wake (moving on water) animation per-techno.
+
+In `ART.INI`:
+```ini
+[SOMETECHNO]            ; TechnoType
+WakeAnim=               ; AnimType, the wake graphic to show as the object moves across water.
+WakeAnimRate=10         ; integer, the rate at which this object creates the wake animation while moving.
+IdleWakeAnim=           ; AnimType, the wake graphic to show when the object is staying still on water.
+HideWakeWhenCloaked=no  ; boolean, should this unit not spawn wakes when it's cloaked?
+```
+
+```{note}
+Wake customizations currently only take effect on units using `DriveLocomotion`.
+```
+
 ### ImmuneToEMP
 
 - Vinifera allows specific TechnoTypes to be immune to EMP effects.
@@ -1192,6 +1251,24 @@ LightGreenTint=1      ; float, the green tint of this terrain objects light.
 LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 ```
 
+### Tiberium Speaders
+
+- Vinifera adds additional customization for Tiberium spreaders (`SpawnsTiberium=yes`).
+
+```{note}
+With `SpawnsTiberiumScattered=no`, Spreaders don't spawn Tiberium out of thin air. A spreader first spreads Tiberium from itself, then from the radius-1 ring of Tiberium around it, then from the radius-2 ring, and so on. You can think of it as accelerating the natural spread process. If a cell doesn't border the spreader of a piece of Tiberium, it won't be spread to.
+```
+
+In `RULES.INI`:
+```ini
+[SOMETERRAIN]                 ; TerrainType
+SpawnsTiberiumRange=1         ; integer, the maximum range in which Tiberium will be spawned.
+SpawnsTiberiumStage=5,5       ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
+SpawnsTiberiumStageFalloff=0  ; float, the amount by which the growth stage will decrease for every ring after the first one.
+SpawnsTiberiumCount=1,1       ; two integers, the minimum and maximum number of spreads that will occur (maximum can be omitted).
+SpawnsTiberiumScattered=no    ; boolean, whether Tiberium should spawn scattered in the spawn range, as opposed to spreading from the center (imitates the old Tiberium spreaders using animations).
+```
+
 ## Theaters
 
 - Vinifera allow the creation of new custom theater types. A new INI has been added to define these TheaterTypes, if the INI is not present, the game will default to the normal `TEMPERATE` and `SNOW` TheaterTypes.
@@ -1365,6 +1442,16 @@ In `RULES.INI`:
 ```ini
 [AudioVisual]
 WeedPipIndex=1  ; integer, the pip index used for Weeds.
+```
+
+### Spread Customization
+
+- Vinifera allows mods to customize some aspects about how Tiberiums spread.
+In `RULES.INI`:
+```ini
+[SOMETIBERIUM]      ; Tiberium
+MinSpreadStage=0    ; integer, the minimum growth stage at which this Tiberium can spread to a nearby cell. Defaults to ((Tiberium Index in list) / 2 + 1).
+SpreadSpawnStage=5  ; integer, newly spread Tiberium spawns grown to this stage.
 ```
 
 ## Vehicles

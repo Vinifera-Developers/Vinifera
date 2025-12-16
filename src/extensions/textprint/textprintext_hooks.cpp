@@ -37,7 +37,6 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
@@ -71,7 +70,7 @@ int _Format_Window_String_Custom_Implementation(char* string, WWFontClass* font,
     // While there are more letters left divide the line up.
     while (*string) {
         linelen = 0;
-        height += font->Get_Font_Height() + font->Get_Y_Spacing();
+        height += font->Get_Height() + font->Get_YSpacing();
         lines++;
 
         /*

@@ -30,7 +30,6 @@
 /**
  *  Include the hook headers here.
  */
-#include "vinifera_newdel.h"
 #include "crt_hooks.h"
 #include "debug_hooks.h"
 #include "vinifera_hooks.h"
@@ -43,16 +42,14 @@
 
 void Setup_Hooks()
 {
-    Vinifera_Memory_Hooks();
-
     CRT_Hooks();
     Debug_Hooks();
     Vinifera_Hooks();
     NewSwizzle_Hooks();
     Extension_Hooks();
 
-    CnCNet4_Hooks();
-    CnCNet5_Hooks();
+    //CnCNet4_Hooks();
+    //CnCNet5_Hooks();
 }
 
 /**

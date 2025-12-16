@@ -73,7 +73,7 @@
 #include "supertypeext_hooks.h"
 //#include "taskforceext_hooks.h"
 #include "teamext_hooks.h"
-//#include "teamtypeext_hooks.h"
+#include "teamtypeext_hooks.h"
 #include "terrainext_hooks.h"
 #include "terraintypeext_hooks.h"
 #include "triggerext_hooks.h"
@@ -103,6 +103,8 @@
 //#include "veinholemonsterext_hooks.h"
 
 #include "aircrafttracker_hooks.h"
+#include "beacon_hooks.h"
+#include "drivelocomotionext_hooks.h"
 #include "rulesext_hooks.h"
 #include "scenarioext_hooks.h"
 #include "sessionext_hooks.h"
@@ -132,6 +134,7 @@
 #include "textprintext_hooks.h"
 
 #include "combatext_hooks.h"
+#include "conquerext_hooks.h"
 #include "dropshipext_hooks.h"
 #include "environmentext_hooks.h"
 #include "eventext_hooks.h"
@@ -156,11 +159,15 @@
 #include "swizzle.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "objectext_hooks.h"
 #include "prerequisitegroup_hooks.h"
+#include "sdl_hooks.h"
+#include "sdlmouse_hooks.h"
+#include "sdlsurface_hooks.h"
 #include "spawnmanager_hooks.h"
 #include "teventext_hooks.h"
 #include "voxelanimext_hooks.h"
+#include "xsurfaceext_hooks.h"
 
 
 void Extension_Hooks()
@@ -206,6 +213,7 @@ void Extension_Hooks()
     IsometricTileTypeClassExtension_Hooks();
     MapClassExtension_Hooks();
     //BuildingLightExtension_Hooks();                       // Not yet implemented
+    ObjectClassExtension_Hooks();
     OverlayClassExtension_Hooks();
     OverlayTypeClassExtension_Hooks();
     ParticleClassExtension_Hooks();
@@ -220,7 +228,7 @@ void Extension_Hooks()
     SuperWeaponTypeClassExtension_Hooks();
     //TaskForceClassExtension_Hooks();                      // Not yet implemented
     TeamClassExtension_Hooks();
-    //TeamTypeClassExtension_Hooks();                       // Not yet implemented
+    TeamTypeClassExtension_Hooks();
     TerrainClassExtension_Hooks();
     TerrainTypeClassExtension_Hooks();
     TriggerClassExtension_Hooks();
@@ -249,6 +257,11 @@ void Extension_Hooks()
     //AlphaShapeClassExtension_Hooks();                     // Not yet implemented
     //VeinholeMonsterClassExtension_Hooks();                // Not yet implemented
     StorageClassExtension_Hooks();
+
+    /**
+     *  Locomotors.
+     */
+    DriveLocomotionClassExtension_Hooks();
 
     /**
      *  All global class extensions here.
@@ -291,6 +304,11 @@ void Extension_Hooks()
     MultiScoreExtension_Hooks();
     ScoreClassExtension_Hooks();
     MultiMissionExtension_Hooks();
+    ConquerExtension_Hooks();
+
+    SDLSurface_Hooks();
+    SDLMouse_Hooks();
+    SDL_Hooks();
 
     /**
      *  Dialogs and associated code.
@@ -302,6 +320,7 @@ void Extension_Hooks()
      */
     FilePCXExtension_Hooks();
     FetchRes_Hooks();
+    XSurfaceExtension_Hooks();
 
     /**
      *  New classes and interfaces.
@@ -310,4 +329,5 @@ void Extension_Hooks()
     SpawnManager_Hooks();
     AircraftTracker_Hooks();
     PrerequisiteGroup_Hooks();
+    Beacon_Hooks();
 }

@@ -57,7 +57,7 @@
 #include "tiberium.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -85,7 +85,7 @@ public:
  */
 LayerType AnimClassExt::_In_Which_Layer() const
 {
-    if (Target_Legal(xObject)) {
+    if (xObject != nullptr) {
         return LAYER_GROUND;
     }
 
@@ -120,7 +120,7 @@ static void Do_Anim_Damage(AnimClass* anim, int damage)
     /*
      *  INVISO is hardcoded to use C4Warhead, let's leave that just in case.
      */
-    if (std::strcmp(anim->Class->IniName, "INVISO") == 0) {
+    if (anim->Class->IniName == "INVISO") {
         Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->C4Warhead);
     }
     /*
@@ -225,11 +225,15 @@ void AnimClassExt::_AI()
                             if ((int)sqrt((double)x * (double)x + (double)y * (double)y) <= Class->TiberiumSpreadRadius) {
                                 CellClass* tibcell = &Map[Adjacent_Cell(coord.As_Cell(), FacingType(x))];
                                 if (tibcell->Can_Tiberium_Germinate(nullptr) && Class->TiberiumSpawnType != nullptr) {
-                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Cell_Number());
+                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Fetch_CellID());
                                     tibcell->OverlayData = Random_Pick(0, 2);
-                                    Rect overlayrect = tibcell->Get_Overlay_Rect();
+                                    Rect overlayrect = tibcell->Overlay_Render_Rect();
                                     overlayrect.Y -= TacticalRect.Y;
                                     updaterect = Union(updaterect, overlayrect);
+                                    TiberiumType tiberium = tibcell->Tiberium_Type_Here();
+                                    if (tiberium != TIBERIUM_NONE) {
+                                        Tiberiums[tiberium]->Queue_Growth(tibcell->CellID);
+                                    }
                                 }
                             }
                         }
@@ -511,7 +515,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
     AnimTypeClassExtension* animtypeext;
 
     animtypeext = Extension::Fetch(this_ptr->Class);
-    if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
+    if (animtypeext->ParticleToSpawn != NULL) {
 
         for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
 
@@ -520,7 +524,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
             /**
              *  Spawn a new particle at this anims coord.
              */
-            MasterParticle->Spawn_Particle(ParticleTypes[animtypeext->ParticleToSpawn], spawn_coord);
+            MasterParticle->Spawn_Particle(animtypeext->ParticleToSpawn, spawn_coord);
         }
     }
 }
@@ -678,12 +682,11 @@ void AnimClassExt::_Delete_Me()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
+DEFINE_HOOK(0x00413D3E, _AnimClass_Constructor_Layer_Set_Z_Height_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClassExtension *animtypeext;
-    
-    animtypeext = Extension::Fetch(this_ptr->Class);
+    GET(AnimClass *, this_ptr, ESI);
+
+    AnimTypeClassExtension* animtypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Set the layer to the highest level if "air" or "top".
@@ -702,7 +705,7 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
         this_ptr->HeightAGL = 0;
     }
 
-    JMP(0x00413D63);
+    return 0x00413D63;
 }
 
 
@@ -713,16 +716,13 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
  *  @author: ZivDero
  */
 static AnimClass* _CurrentlyDrawnAnim = nullptr;
-DECLARE_PATCH(_AnimClass_Draw_It_Shadow_Patch)
+DEFINE_HOOK(0x00414B42, _AnimClass_Draw_It_Shadow_Patch, 6)
 {
-    GET_REGISTER_STATIC(AnimClass*, anim, esi);
-    _asm pushad
+    GET(AnimClass*, anim, ESI);
 
     _CurrentlyDrawnAnim = anim;
 
-    _asm popad
-    _asm mov eax, [eax + 0x1CC]
-    JMP_REG(edx, 0x00414B48);
+    return 0;
 }
 
 
@@ -791,8 +791,6 @@ void AnimClassExtension_Hooks()
      */
     AnimClassExtension_Init();
 
-    Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
-    Patch_Jump(0x00414B42, &_AnimClass_Draw_It_Shadow_Patch);
     Patch_Call(0x00414BA9, &Draw_Shape_Proxy);
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);

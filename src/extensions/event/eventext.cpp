@@ -32,6 +32,90 @@
 #include "houseext.h"
 
 
+/***************************************************************************
+** Table of what data is really used in the EventClass struct for different
+** events.  This table must be kept current with the EventType enum.
+*/
+unsigned char EventClassExt::EventLength[EXT_EVENT_COUNT] = {
+    0,                                          // EMPTY
+    sizeof(EventClass::Data.Target),            // POWERON
+    sizeof(EventClass::Data.Target),            // POWEROFF
+    sizeof(EventClass::Data.General),           // ALLY
+    sizeof(EventClass::Data.MegaMission),       // MEGAMISSION
+    sizeof(EventClass::Data.MegaMission_F),     // MEGAMISSION_F
+    sizeof(EventClass::Data.Target),            // IDLE
+    sizeof(EventClass::Data.Target),            // SCATTER
+    0,                                          // DESTRUCT
+    sizeof(EventClass::Data.Target),            // DEPLOY
+    sizeof(EventClassExt::Data.NewPlace),       // PLACE
+    0,                                          // OPTIONS
+    sizeof(EventClass::Data.General),           // GAMESPEED
+    sizeof(EventClassExt::Data.Production),     // PRODUCE
+    sizeof(EventClassExt::Data.Production),     // SUSPEND
+    sizeof(EventClassExt::Data.Production),     // ABANDON
+    sizeof(EventClass::Data.Target),            // PRIMARY
+    sizeof(EventClass::Data.Special),           // SPECIAL_PLACE
+    0,                                          // EXIT
+    sizeof(EventClass::Data.Anim),              // ANIMATION
+    sizeof(EventClass::Data.Target),            // REPAIR
+    sizeof(EventClass::Data.Target),            // SELL
+    sizeof(EventClass::Data.SellCell),          // SELLCELL
+    sizeof(EventClass::Data.Options),           // SPECIAL
+    0,                                          // FRAMESYNC
+    0,                                          // MESSAGE
+    sizeof(EventClass::Data.FrameInfo.Delay),   // RESPONSE_TIME
+    sizeof(EventClass::Data.FrameInfo),         // FRAMEINFO
+    0,                                          // SAVEGAME
+    sizeof(EventClass::Data.NavCom),            // ARCHIVE
+    sizeof(EventClass::Data.Variable.Size),     // ADDPLAYER
+    sizeof(EventClass::Data.Timing),            // TIMING
+    sizeof(EventClass::Data.ProcessTime),       // PROCESS_TIME
+    0,                                          // PAGEUSER
+    sizeof(EventClass::Data.General),           // REMOVEPLAYER
+    sizeof(EventClass::Data.General),           // LATENCYFUDGE
+};
+
+
+char const* EventClassExt::EventNames[EXT_EVENT_COUNT] = {
+    "EMPTY",
+    "POWERON",
+    "POWEROFF",
+    "ALLY",
+    "MEGAMISSION",
+    "MEGAMISSION_F",
+    "IDLE",
+    "SCATTER",
+    "DESTRUCT",
+    "DEPLOY",
+    "PLACE",
+    "OPTIONS",
+    "GAMESPEED",
+    "PRODUCE",
+    "SUSPEND",
+    "ABANDON",
+    "PRIMARY",
+    "SPECIAL_PLACE",
+    "EXIT",
+    "ANIMATION",
+    "REPAIR",
+    "SELL",
+    "SELLCELL",
+    "SPECIAL",
+    "FRAMESYNC",
+    "MESSAGE",
+    "RESPONSE_TIME",
+    "FRAMEINFO",
+    "SAVEGAME",
+    "ARCHIVE",
+    "ADDPLAYER",
+    "TIMING",
+    "PROCESS_TIME",
+    "PAGEUSER",
+    "REMOVEPLAYER",
+    "LATENCYFUDGE",
+};
+
+
 /**
  *  EventClassExt constructor for production events.
  *
@@ -134,7 +218,7 @@ void EventClassExt::Execute()
         **  exact factory and real object pointer to use.
         */
     case EVENT_PLACE:
-        house_ext->Place_Object(Data.Production.Type, Cell(Data.NewPlace.Where.X, Data.NewPlace.Where.Y), Data.NewPlace.Flags);
+        house_ext->Place_Object(Data.NewPlace.Type, Cell(Data.NewPlace.Where.X, Data.NewPlace.Where.Y), Data.NewPlace.Flags);
         break;
 
         /*

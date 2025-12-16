@@ -31,7 +31,6 @@
 #include "tibsun_util.h"
 #include "vinifera_util.h"
 #include "vinifera_gitinfo.h"
-#include "wstring.h"
 #include "saveload.h"
 #include "extension.h"
 #include "debughandler.h"
@@ -130,6 +129,7 @@
 
 #include "aircrafttracker.h"
 #include "animtypeext.h"
+#include "beacon.h"
 #include "buildingtypeext.h"
 #include "hooker.h"
 #include "isotiletypeext.h"
@@ -196,7 +196,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
         hr = OleSaveToStream(lpPS, pStm);
         if (FAILED(hr)) {
             DEBUG_ERROR("  OleSaveToStream failed!\n");
-            return false;
+            return hr;
         }
 
         /**
@@ -205,7 +205,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
         hr = lpPS->Release();
         if (FAILED(hr)) {
             DEBUG_ERROR("  Release failed!\n");
-            return false;
+            return hr;
         }
 
     }
@@ -220,7 +220,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
  *  @author: CCHyper
  */
 template<class T>
-static bool Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, const char *heap_name)
+static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, const char *heap_name)
 {
     DEBUG_INFO("Loading %s...\n", heap_name);
 
@@ -334,8 +334,8 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Vinifera_Save_Vector(pStm, Factories, "Factories"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, VoxelAnimTypes, "VoxelAnimTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, VoxelAnims, "VoxelAnims"))) { return false; }
-    if (FAILED(Vinifera_Save_Vector(pStm, WarheadTypes, "Warheads"))) { return false; }
-    if (FAILED(Vinifera_Save_Vector(pStm, WeaponTypes, "Weapons"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, Warheads, "Warheads"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, Weapons, "Weapons"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, ParticleTypes, "ParticleTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Particles, "Particles"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, ParticleSystemTypes, "ParticleSystemTypes"))) { return false; }
@@ -455,18 +455,18 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
         scen_ini.Load(scen_file, false);
 
-        if (!ScenExtension->Read_Tutorial_INI(scen_ini, true)) {
+        if (!ScenExtension->Read_Tutorial_INI(scen_ini)) {
             DEBUG_ERROR("Failed to read tutorial strings from scenario file!\n");
             return false;
         }
     }
 
-    Disable_Addon(ADDON_NONE);
+    Disable_Addon(ADDON_BASE_GAME);
 
     DEBUG_INFO("Setting required addon to '%d'\n", Scen->RequiredAddOn);
     Set_Required_Addon(Scen->RequiredAddOn);
 
-    if (!Is_Addon_Available(Scen->RequiredAddOn)) {
+    if (!Addon_Installed(Scen->RequiredAddOn)) {
         DEBUG_ERROR("Addon '%d' is not installed!\n", Scen->RequiredAddOn);
         return false;
     }
@@ -486,11 +486,11 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     {
     Rect tactical_rect = Get_Tactical_Rect();
-    Rect composite_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
-    Rect tile_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
-    Rect sidebar_rect(tactical_rect.X, tactical_rect.Y, SidebarClass::SIDE_WIDTH, ScreenRect.Height);
+    Rect composite_rect(0, 0, tactical_rect.Width, VisibleRect.Height);
+    Rect tile_rect(0, 0, tactical_rect.Width, VisibleRect.Height);
+    Rect sidebar_rect(tactical_rect.X, tactical_rect.Y, SidebarClass::SIDE_WIDTH, VisibleRect.Height);
     DEBUG_INFO("About to call Allocate_Surfaces()...\n");
-    Allocate_Surfaces(&ScreenRect, &composite_rect, &tile_rect, &sidebar_rect);
+    Allocate_Surfaces(VisibleRect, composite_rect, tile_rect, sidebar_rect);
 
     DEBUG_INFO("About to call Map.Set_View_Dimensions()...\n");
     Map.Set_View_Dimensions(tactical_rect);
@@ -504,7 +504,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     DEBUG_INFO("About to call Load_Art_INI()...\n");
     RulesClass::Load_Art_INI();
 
-    if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
+    if (Addon_Enabled(ADDON_FIRESTORM)) {
         DEBUG_INFO("About to call Load_ArtFS_INI()...\n");
         RulesClass::Load_ArtFS_INI();
     }
@@ -579,8 +579,8 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (FAILED(Vinifera_Load_Vector(pStm, Factories, "Factories"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, VoxelAnimTypes, "VoxelAnimTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, VoxelAnims, "VoxelAnims"))) { return false; }
-    if (FAILED(Vinifera_Load_Vector(pStm, WarheadTypes, "Warheads"))) { return false; }
-    if (FAILED(Vinifera_Load_Vector(pStm, WeaponTypes, "Weapons"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, Warheads, "Warheads"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, Weapons, "Weapons"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, ParticleTypes, "ParticleTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Particles, "Particles"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, ParticleSystemTypes, "ParticleSystemTypes"))) { return false; }
@@ -717,6 +717,8 @@ void Vinifera_Post_Load_Game()
     for (auto isotype_extension : IsometricTileTypeExtensions) {
         isotype_extension->Read_INI(theater_ini);
     }
+
+    BeaconManager.Load_Art();
 }
 
 
@@ -950,8 +952,8 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();
-    TiberiumClass::Growth_Init_Clear();
-    TiberiumClass::Init_Cells();
+    TiberiumClass::Initialize_Tiberium_Growth_System();
+    TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
     TacticalViewActive = true;
     ScenarioStarted = true;
@@ -1004,6 +1006,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
     if (handle) {
         WinDialogClass::End_Dialog(handle);
     }
+
+    // TODO should exit game on failure in TS Client builds
 
     return result;
 }

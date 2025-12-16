@@ -35,14 +35,13 @@
 #include "movie.h"
 #include "playmovie.h"
 #include "cd.h"
-#include "wstring.h"
 #include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -122,12 +121,12 @@ static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool mai
  *
  *  @author: CCHyper, Rampastring
  */
-void Scale_Movie_Helper(MovieClass* this_ptr)
+void Scale_Movie_Helper(VQHandle* this_ptr)
 {
     /**
      *  Calculate the stretched rect for this video, maintaining the video ratio.
      */
-    Rect stretched_rect = this_ptr->VideoRect;
+    Rect stretched_rect = this_ptr->InitialRect;
     if (Scale_Video_Rect(stretched_rect, HiddenSurface->Width, HiddenSurface->Height, true)) {
 
         /**
@@ -135,8 +134,8 @@ void Scale_Movie_Helper(MovieClass* this_ptr)
          */
         this_ptr->StretchRect = stretched_rect;
 
-        DEBUG_INFO("Stretching movie - VideoRect: %d,%d -> StretchRect: %d,%d\n",
-            this_ptr->VideoRect.Width, this_ptr->VideoRect.Height,
+        DEBUG_INFO("Stretching movie - InitialRect: %d,%d -> StretchRect: %d,%d\n",
+            this_ptr->InitialRect.Width, this_ptr->InitialRect.Height,
             this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
     }
 }
@@ -149,11 +148,11 @@ void Scale_Movie_Helper(MovieClass* this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
+DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
 {
-    GET_REGISTER_STATIC(MovieClass *, this_ptr, esi);
+    GET(VQHandle*, this_ptr, ESI);
     Scale_Movie_Helper(this_ptr);
-    JMP(0x00563805);
+    return 0x00563805;
 }
 
 
@@ -190,8 +189,8 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     /**
      *  Check if the current campaign is an original GDI or NOD campaign.
      */
-    bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
-    bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
+    bool is_original_gdi = (cd_num == DISK_GDI && campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && campaign->Scenario == "GDI1A.MAP";
+    bool is_original_nod = (cd_num == DISK_NOD && campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && campaign->Scenario == "NOD1A.MAP";
 
     /**
      *  #issue-762
@@ -246,15 +245,15 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     return true;
 }
 
-DECLARE_PATCH(_Start_Scenario_Intro_Movie_Patch)
+DEFINE_HOOK(0x005DB2DE, _Start_Scenario_Intro_Movie_Patch, 0)
 {
-    GET_REGISTER_STATIC(CampaignType, campaign_id, ebx);
-    GET_REGISTER_STATIC(char *, name, ebp);
+    GET(CampaignType, campaign_id, EBX);
+    GET(char *, name, EBP);
 
     Play_Intro_Movie(campaign_id);
 
 read_scenario:
-    //JMP(0x005DB319);
+    //return 0x005DB319;
 
     /**
      *  The First Decade" and "Freeware TS" EXE's actually have patched code at
@@ -262,7 +261,7 @@ read_scenario:
      *  jump back at a safe location.
      */
     DEBUG_GAME("Reading scenario: %s\n", name);
-    JMP(0x005DB327);
+    return 0x005DB327;
 }
 
 
@@ -295,7 +294,7 @@ static void Play_Intro_SneakPeak_Movies()
      *  If at least one of the movie pairs were found, we can go ahead and play
      *  them, otherwise set the required disk to GDI and request it if not present.
      */
-    if (movie_pair_available || (CD::Set_Required_CD(DISK_GDI), CD().Is_Available(DISK_GDI))) {
+    if (movie_pair_available || (CD::SetRequiredDisk(DISK_GDI), CD().ForceAvailable(DISK_GDI))) {
         
         /**
          *  Play the intro movie (GDI).
@@ -339,11 +338,11 @@ static void Play_Intro_SneakPeak_Movies()
 }
 
 
-DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
+DEFINE_HOOK(0x004E2796, _Select_Game_Intro_SneakPeak_Movies_Patch, 0)
 {
     Play_Intro_SneakPeak_Movies();
 
-    JMP(0x004E288B);
+    return 0x004E288B;
 }
 
 
@@ -352,9 +351,6 @@ DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
  */
 void PlayMovieExtension_Hooks()
 {
-    Patch_Jump(0x005DB2DE, &_Start_Scenario_Intro_Movie_Patch);
-    Patch_Jump(0x004E2796, &_Select_Game_Intro_SneakPeak_Movies_Patch);
-
     /**
      *  #issue-287
      * 
@@ -365,6 +361,4 @@ void PlayMovieExtension_Hooks()
      */
     Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
     Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
-
-    Patch_Jump(0x00563795, &_Play_Movie_Scale_By_Ratio_Patch);
 }

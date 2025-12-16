@@ -37,7 +37,6 @@
 #include "vinifera_util.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
@@ -75,7 +74,7 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     }
 
     Point2D xy = Point2D(X, Y);
-    Rect rect = LogicSurface->Get_Rect();
+    Rect rect = LogicalSurface->Get_Rect();
     TextPrintType style = Style;
 
     /**
@@ -88,10 +87,10 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     if (UIControls->TextLabelBackgroundTransparency > 0) {
 
         RGBClass black_color(0,0,0);
-        WWFontClass *font = Font_Ptr(style);
+        FontClass *font = Font_Ptr(style);
 
         Rect text_rect;
-        font->String_Pixel_Rect(Text, &text_rect);
+        font->String_Pixel_Bounds(Text, text_rect);
 
         /**
          *  Kludge to remove the space at the end of a line as it is being typed.
@@ -112,8 +111,8 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
             text_rect.Height -= 2;
         }
 
-        LogicSurface->Fill_Rect_Trans(text_rect, black_color,
-            UIControls->TextLabelBackgroundTransparency);
+        LogicalSurface->Fill_Rect_Trans(text_rect, black_color,
+                                      UIControls->TextLabelBackgroundTransparency);
     }
 
     /**
@@ -128,9 +127,9 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     }
 
     if (PixWidth == -1) {
-        Simple_Text_Print(Text, LogicSurface, &rect, &xy, scheme, COLOR_TBLACK, style);
+        Simple_Text_Print(Text, *LogicalSurface, rect, xy, scheme, COLOR_TBLACK, style, TPF_8POINT | TPF_DROPSHADOW);
     } else {
-        Conquer_Clip_Text_Print(Text, LogicSurface, &rect, &xy, scheme, COLOR_TBLACK, style, PixWidth);
+        Conquer_Clip_Text_Print(Text, *LogicalSurface, rect, xy, scheme, COLOR_TBLACK, style, PixWidth);
     }
 
 #ifndef NDEBUG

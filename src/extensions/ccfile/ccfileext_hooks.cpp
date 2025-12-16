@@ -33,7 +33,6 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
@@ -61,7 +60,7 @@ void CCFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fil
     /**
      *  File system is failled as local, no need to check if required cd is available.
      */
-    if (CD::IsFilesLocal) {
+    if (CD::IsOverrideSwap()) {
         CDFileClass::Error(error, can_retry, filename);
 
     } else {
@@ -70,7 +69,7 @@ void CCFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fil
          *  If the file was not found, its possible we have the wrong disk inserted
          *  so prompt the user to insert the correct disk.
          */
-        if (!CD().Is_Available(CD::RequiredCD)) {
+        if (!CD::ForceAvailable()) {
 
             DEV_DEBUG_ERROR("File - Error, CD '%d' not found!", CD::RequiredCD);
 

@@ -45,7 +45,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -103,14 +103,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coord& coord)
             (Payback == nullptr || !Payback->House->Is_Ally(cellptr->Cell_Techno())))) {
 
             /*
-            **  Force explosion to be at center of techno object if one is present.
-            */
-            if (cellptr->Cell_Techno() != nullptr) {
-                coord = cellptr->Cell_Techno()->Target_Coord();
-            }
-
-            /*
-            **  However, if the torpedo was blocked by a bridge, then force the
+            **  If the torpedo was blocked by a bridge, then force the
             **  torpedo to explode on top of that bridge cell.
             */
             if (cellptr->Is_Bridge_Here()) {
@@ -118,6 +111,34 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coord& coord)
             }
 
             return true;
+        }
+
+        /*
+        **  Torpedoes can be blocked by enemy objects on their path.
+        */
+        TechnoClass* celltechno = cellptr->Cell_Techno();
+
+        if (celltechno != nullptr)
+        {
+            int snapdistance = CELL_LEPTON_W * 2;
+
+            if (celltechno == TarCom || 
+                (Distance(celltechno) < snapdistance && (Payback == nullptr || !Payback->House->Is_Ally(celltechno))))
+            {
+                /*
+                **  If the techno is not a building, force
+                **  explosion to be at center of techno object.
+                **  Otherwise, explode in the center of the cell.
+                */
+                if (celltechno->Fetch_RTTI() != RTTI_BUILDING) {
+                    coord = cellptr->Cell_Techno()->Target_Coord();
+                }
+                else {
+                    coord = cellptr->Center_Coord();
+                }
+
+                return true;
+            }
         }
     }
 
@@ -139,28 +160,27 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coord& coord)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BulletClass_AI_SpawnDelay_Patch)
+DEFINE_HOOK(0x004447BF, _BulletClass_AI_SpawnDelay_Patch, 0)
 {
-    GET_REGISTER_STATIC(BulletClass *, this_ptr, ebp);
-    static BulletTypeClassExtension *bullettypeext;
+    GET(BulletClass *, this_ptr, EBP);
 
     /**
      *  Fetch the extension instance.
      */
-    bullettypeext = Extension::Fetch(this_ptr->Class);
+    BulletTypeClassExtension* bullettypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  If this bullet has a custom spawn delay (defaults to the original delay of 3), perform that check first.
      */
-    if ((Frame % bullettypeext->SpawnDelay) == 0) {
+    if (Frame % bullettypeext->SpawnDelay == 0) {
         goto create_trailer_anim;
     }
 
 skip_anim:
-    JMP(0x00444801);
+    return 0x00444801;
 
 create_trailer_anim:
-    JMP(0x004447D0);
+    return 0x004447D0;
 }
 
 
@@ -171,17 +191,17 @@ create_trailer_anim:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
+DEFINE_HOOK(0x00446652, _BulletClass_Logic_ShakeScreen_Patch, 0)
 {
-    GET_REGISTER_STATIC(BulletClass *, this_ptr, ebx);
-    GET_REGISTER_STATIC(WarheadTypeClass *, warhead, eax);
-    GET_STACK_STATIC(Coord *, coord, esp, 0x0A8);
-    static WarheadTypeClassExtension *warheadext;
+    GET(WarheadTypeClass *, warhead, EAX);
+    GET_STACK(Coord*, coord, 0x0A8);
+
+    R->EDI(coord);
 
     /**
      *  Fetch the extension instance.
      */
-    warheadext = Extension::Fetch(warhead);
+    auto warheadext = Extension::Fetch(warhead);
 
     /**
      *  If this warhead has screen shake values defined, then set the blitter
@@ -195,15 +215,9 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
     }
 
     /**
-     *  Restore some registers.
-     */
-    _asm { mov eax, warhead }
-    _asm { mov edi, coord /*[esp+0x0A8]*/ } // coord
-
-    /**
      *  Jumps back to IsEMEffect check.
      */
-    JMP_REG(edx, 0x00446659);
+    return 0x00446659;
 }
 
 
@@ -213,6 +227,4 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
 void BulletClassExtension_Hooks()
 {
     Patch_Jump(0x004462C0, &BulletClassExt::_Is_Forced_To_Explode);
-    Patch_Jump(0x00446652, &_BulletClass_Logic_ShakeScreen_Patch);
-    Patch_Jump(0x004447BF, &_BulletClass_AI_SpawnDelay_Patch);
 }

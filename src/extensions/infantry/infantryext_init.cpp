@@ -38,7 +38,7 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -48,9 +48,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Constructor_Patch)
+DEFINE_HOOK(0x004D21E1, _InfantryClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi); // Current "this" pointer.
+    GET(InfantryClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,15 +65,8 @@ DECLARE_PATCH(_InfantryClass_Constructor_Patch)
      */
     Extension::Make<InfantryClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 8 }
+    return 0;
 }
 
 
@@ -84,21 +77,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Destructor_Patch)
+DEFINE_HOOK(0x004D22E1, _InfantryClass_Destructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET(InfantryClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<InfantryTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, ds:0x007E2300 } // Infantry.vtble
-    JMP_REG(edx, 0x004D22E6);
+    return 0;
 }
 
 
@@ -107,6 +96,5 @@ original_code:
  */
 void InfantryClassExtension_Init()
 {
-    Patch_Jump(0x004D21E1, &_InfantryClass_Constructor_Patch);
-    Patch_Jump(0x004D22E1, &_InfantryClass_Destructor_Patch);
+
 }

@@ -240,8 +240,11 @@ public:
 
         /**
          *  Replacement select buttons.
+         *
+         *  We can't have this many buildables in a strip, but let's have more buttons so that we can support higher resolutions.
+         *  160 should be sufficient for 8K.
          */
-        ViniferaSelectClass SelectButton[SIDEBAR_TAB_COUNT][SidebarClass::StripClass::MAX_BUILDABLES];
+        ViniferaSelectClass SelectButton[SIDEBAR_TAB_COUNT][160];
 
         /**
          *  Buttons for the tabs.

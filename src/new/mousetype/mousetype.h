@@ -30,7 +30,6 @@
 #include "always.h"
 #include "iomap.h"
 #include "point.h"
-#include "wstring.h"
 
 
 class CCINIClass;
@@ -51,8 +50,6 @@ class MouseTypeClass
         MouseTypeClass(const NoInitClass &noinit);
         virtual ~MouseTypeClass();
 
-        Wstring Get_Name() const { return Name; }
-
         static void One_Time();
 
         static bool Read_INI(CCINIClass &ini);
@@ -60,10 +57,6 @@ class MouseTypeClass
         static bool Write_Default_INI(CCINIClass &ini);
 #endif
 
-        static const MouseTypeClass *As_Pointer(MouseType type);
-        static const MouseTypeClass *As_Pointer(const char *name);
-        static const MouseTypeClass &As_Reference(MouseType type);
-        static const MouseTypeClass &As_Reference(const char *name);
         static MouseType From_Name(const char *name);
         static const char *Name_From(MouseType type);
 
@@ -71,7 +64,7 @@ class MouseTypeClass
         static MouseTypeClass *Find_Or_Make(const char *name);
 
     private:
-        Wstring Name;
+        std::string Name;
 
         /**
          *  Starting frame number.
@@ -112,8 +105,4 @@ class MouseTypeClass
          *  Hotspot X and Y offset for the small version (if any).
          */
         Point2D SmallHotspot;
-
-    private:
-        static MouseTypeClass MouseControl[MOUSE_COUNT];
-        static const char *MouseTypeClass::MouseNames[MOUSE_COUNT];
 };

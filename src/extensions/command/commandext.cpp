@@ -92,9 +92,12 @@
 #include "miscutil.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "bullettype.h"
 #include "eventext.h"
 #include "houseext.h"
+#include "scenarioext.h"
+#include "waypointpath.h"
 
 
 /**
@@ -279,18 +282,18 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  We don't want the mouse to appear in screenshots!
      */
-    WWMouse->Hide_Mouse();
+    Hide_Mouse();
 
     /**
      *  Blit primary surface to the hidden.
      */
-    bool blit = HiddenSurface->Copy_From(dest, *PrimarySurface, src);
+    bool blit = HiddenSurface->Blit_From(dest, *VisibleSurface, src);
     ASSERT(blit);
 
     /**
      *  Now show the mouse again.
      */
-    WWMouse->Show_Mouse();
+    Show_Mouse();
 
     char buffer[256];
 
@@ -340,6 +343,57 @@ bool PNGScreenCaptureCommandClass::Process()
     }
 
     return success;
+}
+
+
+/**
+ *  Replacement for DeleteWaypointCommandClass.
+ *
+ *  @author: ZivDero
+ */
+const char* DeleteCommandClass::Get_Name() const
+{
+    return "DeleteWaypoint"; // kept as DeleteWaypoint to preserve keyboard.ini compatibility
+}
+
+const char* DeleteCommandClass::Get_UI_Name() const
+{
+    return "Delete";
+}
+
+const char* DeleteCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* DeleteCommandClass::Get_Description() const
+{
+    return "Deletes the selected waypoint or beacon.";
+}
+
+bool DeleteCommandClass::Process()
+{
+    if (Map.DraggedWaypoint) {
+        char waypoint_number;
+        PathType path_type = PATH_NONE;
+        PlayerPtr->Fetch_Waypoint_Data(Map.DraggedWaypoint, path_type, waypoint_number);
+        PlayerPtr->Ensure_Path(path_type);
+        PlayerPtr->Paths[path_type]->Delete_Waypoint(waypoint_number);
+        Map.DraggedWaypoint = nullptr;
+
+        for (int i = Foots.Count() - 1; i >= 0; i--) {
+            FootClass* foot = Foots[i];
+            if (foot->House == PlayerPtr && foot->CurrentPath == path_type && foot->NextWaypoint > waypoint_number) {
+                foot->NextWaypoint--;
+            }
+        }
+
+        Show_Mouse();
+    }
+
+    BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
+
+    return true;
 }
 
 
@@ -487,7 +541,7 @@ bool RepeatLastBuildingCommandClass::Process()
         return false;
     }
 
-    const BuildingTypeClass *buildingtype = BuildingTypeClass::As_Pointer(building);
+    const BuildingTypeClass *buildingtype = BuildingTypes[building];
     if (!buildingtype) {
         return false;
     }
@@ -557,7 +611,7 @@ bool RepeatLastInfantryCommandClass::Process()
         return false;
     }
 
-    const InfantryTypeClass *infantrytype = InfantryTypeClass::As_Pointer(infantry);
+    const InfantryTypeClass *infantrytype = InfantryTypes[infantry];
     if (!infantrytype) {
         return false;
     }
@@ -627,7 +681,7 @@ bool RepeatLastUnitCommandClass::Process()
         return false;
     }
 
-    const UnitTypeClass *unittype = UnitTypeClass::As_Pointer(unit);
+    const UnitTypeClass *unittype = UnitTypes[unit];
     if (!unittype) {
         return false;
     }
@@ -697,7 +751,7 @@ bool RepeatLastAircraftCommandClass::Process()
         return false;
     }
 
-    const AircraftTypeClass *aircrafttype = AircraftTypeClass::As_Pointer(aircraft);
+    const AircraftTypeClass *aircrafttype = AircraftTypes[aircraft];
     if (!aircrafttype) {
         return false;
     }
@@ -953,7 +1007,7 @@ bool JumpCameraWestCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_W, dist);
 
@@ -991,7 +1045,7 @@ bool JumpCameraEastCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_E, dist);
 
@@ -1029,7 +1083,7 @@ bool JumpCameraNorthCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_N, dist);
 
@@ -1067,7 +1121,7 @@ bool JumpCameraSouthCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_S, dist);
 
@@ -1409,8 +1463,8 @@ bool DumpHeapCRCCommandClass::Process()
     LOG_CRC(BuildingTypeClass, BuildingTypes);
     LOG_CRC(AircraftTypeClass, AircraftTypes);
 
-    LOG_CRC(WeaponTypeClass, WeaponTypes);
-    LOG_CRC(WarheadTypeClass, WarheadTypes);
+    LOG_CRC(WeaponTypeClass, Weapons);
+    LOG_CRC(WarheadTypeClass, Warheads);
 
     /**
      *  Color Schemes.
@@ -1472,7 +1526,7 @@ bool DumpTriggersCommandClass::Process()
     {
         TriggerClass* trigger = Triggers[i];
 
-        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->FullName);
+        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->GivenName.c_str());
         DEBUG_INFO("    IsToDie: %d\n", trigger->IsToDie);
         DEBUG_INFO("    TrippedFlags: %d\n", trigger->TrippedFlags);
         DEBUG_INFO("    IsActive: %d\n", trigger->IsActive);
@@ -1480,7 +1534,7 @@ bool DumpTriggersCommandClass::Process()
         while (trigger->LinkedTo != nullptr) {
             trigger = trigger->LinkedTo;
 
-            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->FullName);
+            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->GivenName.c_str());
             DEBUG_INFO("        IsToDie: %d\n", trigger->IsToDie);
             DEBUG_INFO("        TrippedFlags: %d\n", trigger->TrippedFlags);
             DEBUG_INFO("        IsActive: %d\n", trigger->IsActive);
@@ -1493,7 +1547,7 @@ bool DumpTriggersCommandClass::Process()
     {
         TagClass* tag = Tags[i];
 
-        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->FullName);
+        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->GivenName.c_str());
         DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
         DEBUG_INFO("    CellID: %d,%d\n", tag->CellID.X, tag->CellID.Y);
         DEBUG_INFO("    IsToDie: %d\n", tag->IsToDie);
@@ -1502,9 +1556,9 @@ bool DumpTriggersCommandClass::Process()
 
     DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
 
-    for (int i = 0; i < std::size(Scen->LocalFlags); i++)
+    for (int i = 0; i < std::size(ScenExtension->LocalFlags); i++)
     {
-        DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
+        DEBUG_INFO("LocalFlag %d: %s, value: %d\n", i, ScenExtension->LocalFlags[i].VariableName, ScenExtension->LocalFlags[i].Value);
     }
 
     DEBUG_INFO("\nFinished!\n\n");
@@ -1798,10 +1852,10 @@ bool VeterancyPromoteCommandClass::Process()
         }
         TechnoClass* techno = static_cast<TechnoClass*>(object);
         if (techno->House->Is_Player_Control()) {
-            if (techno->Veterancy.Is_Rookie()) {
-                techno->Veterancy.Set_Veteran(true);
-            } else if (techno->Veterancy.Is_Veteran()) {
-                techno->Veterancy.Set_Elite(true);
+            if (techno->Crew.IsRookie) {
+                techno->Crew.Set_Veteran(true);
+            } else if (techno->Crew.IsVeteran) {
+                techno->Crew.Set_Elite(true);
             }
         }
     }
@@ -1858,9 +1912,9 @@ static bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, T
  */
 static int Get_Veterancy_Level(TechnoClass* techno)
 {
-    if (techno->Veterancy.Is_Elite()) {
+    if (techno->Crew.IsElite) {
         return 0;
-    } else if (techno->Veterancy.Is_Veteran()) {
+    } else if (techno->Crew.IsVeteran) {
         return 1;
     } else {
         return 2;
@@ -1884,6 +1938,11 @@ static int Get_Health_Level(TechnoClass* techno) {
     }
     return 2;
 }
+
+/**
+ *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2.
+ */
+typedef int (*Classify_Function)(TechnoClass*);
 
 /**
  *  Returns the tier other than the two specified.
@@ -2290,6 +2349,43 @@ bool HealthFilterAddNextCommandClass::Process()
 
 
 /**
+ *  Enters beacon placement mode.
+ *
+ *  @author: ZivDero
+ */
+const char* BeaconPlacementCommandClass::Get_Name() const
+{
+    return "PlaceBeacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_UI_Name() const
+{
+    return "Place Beacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* BeaconPlacementCommandClass::Get_Description() const
+{
+    return "Used to place a communication beacon.";
+}
+
+bool BeaconPlacementCommandClass::Process()
+{
+    if (BeaconManagerClass::Are_Beacons_Enabled()) {
+        if (!PlayerPtr->IsDefeated) {
+            TacticalMapExtension->Beacon_Mode_Control(-1);
+        }
+    }
+
+    return true;
+}
+
+
+/**
  *  Grants all available special weapons to the player.
  * 
  *  @author: CCHyper
@@ -2506,7 +2602,7 @@ bool ExplosionCommandClass::Process()
     /**
      *  Pick a random warhead from the list, using C4Warhead as a backup.
      */
-    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer(Percent_Chance(50) ? "AP" : "HE");
+    const WarheadTypeClass* warheadtypeptr = Warheads[WarheadTypeClass::From_Name(Percent_Chance(50) ? "AP" : "HE")];
     if (!warheadtypeptr) {
         warheadtypeptr = Rule->C4Warhead;
     }
@@ -2574,7 +2670,7 @@ bool SuperExplosionCommandClass::Process()
     /**
      *  Pick a random warhead from the list, using C4Warhead as a backup.
      */
-    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer("Super");
+    const WarheadTypeClass *warheadtypeptr = Warheads[WarheadTypeClass::From_Name("Super")];
     if (!warheadtypeptr) {
         warheadtypeptr = Rule->C4Warhead;
     }
@@ -2818,10 +2914,10 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 {
     if (techno) {
 
-        int map_cell_x = Map.MapCellX;
-        int map_cell_y = Map.MapCellY;
-        int map_cell_right = map_cell_x + Map.MapCellWidth;
-        int map_cell_bottom = map_cell_y + Map.MapCellHeight;
+        int map_cell_x = Map.MapRect.X;
+        int map_cell_y = Map.MapRect.Y;
+        int map_cell_right = map_cell_x + Map.MapRect.Width;
+        int map_cell_bottom = map_cell_y + Map.MapRect.Height;
 
         /**
          *  Generally try to prevent the objects from spawning off the right of the screen.
@@ -2867,18 +2963,18 @@ bool SpawnAllCommandClass::Process()
     /**
      *  Dont spawn anything lower than this row.
      */
-    int map_cell_bottom = Map.MapCellY + Map.MapCellHeight;
+    int map_cell_bottom = Map.MapRect.Y + Map.MapRect.Height;
 
     /**
      *  Default spawn location (top left of map).
      */
-    Cell origin(Map.MapCellX + 2, Map.MapCellY + 2);
+    Cell origin(Map.MapRect.X + 2, Map.MapRect.Y + 2);
 
     /**
      *  If mouse position is valid, convert to world coordinates and update
      *  the spawn origin position to that of the mouse position.
      */
-    if (WWMouse->Get_Mouse_XY() != Point2D(0, 0)) {
+    if (Get_Mouse_Point() != Point2D(0, 0)) {
         origin = Get_Cell_Under_Mouse();
     }
 
@@ -2889,7 +2985,7 @@ bool SpawnAllCommandClass::Process()
      */
 
     for (StructType index = STRUCT_FIRST; index < BuildingTypes.Count(); ++index) {
-        BuildingTypeClass const & building_type = BuildingTypeClass::As_Reference(index);
+        BuildingTypeClass const & building_type = *BuildingTypes[index];
         if (building_type.Get_Ownable() /*&& building_type.Level != -1*/) {
             BuildingClass * building = (BuildingClass *)building_type.Create_One_Of(PlayerPtr);
             if (building) {
@@ -2905,7 +3001,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (UnitType index = UNIT_FIRST; index < UnitTypes.Count(); ++index) {
-        UnitTypeClass const & unit_type = UnitTypeClass::As_Reference(index);
+        UnitTypeClass const & unit_type = *UnitTypes[index];
         if (unit_type.Get_Ownable() /*&& unit_type.Level != -1*/) {
             UnitClass * unit = (UnitClass *)unit_type.Create_One_Of(PlayerPtr);
             if (unit) {
@@ -2923,7 +3019,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (InfantryType index = INFANTRY_FIRST; index < InfantryTypes.Count(); ++index) {
-        InfantryTypeClass const & infantry_type = InfantryTypeClass::As_Reference(index);
+        InfantryTypeClass const & infantry_type = *InfantryTypes[index];
         if (infantry_type.Get_Ownable() /*&& infantry_type.Level != -1*/) {
             InfantryClass * inf = (InfantryClass *)infantry_type.Create_One_Of(PlayerPtr);
             if (inf) {
@@ -2939,7 +3035,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (AircraftType index = AIRCRAFT_FIRST; index < AircraftTypes.Count(); ++index) {
-        AircraftTypeClass const & aircraft_type = AircraftTypeClass::As_Reference(index);
+        AircraftTypeClass const & aircraft_type = *AircraftTypes[index];
 
         /**
          *  DROPPOD breaks the game!
@@ -2999,7 +3095,7 @@ bool DamageCommandClass::Process()
      */
     for (int i = 0; i < CurrentObjects.Count(); ++i) {
         int damage = std::max(50, Rule->MinDamage);
-        const WarheadTypeClass *warhead = WarheadTypeClass::As_Pointer("SA");
+        const WarheadTypeClass *warhead = Warheads[WarheadTypeClass::From_Name("SA")];
         if (!warhead) {
             warhead = Rule->C4Warhead;
         }
@@ -3053,32 +3149,32 @@ bool ToggleEliteCommandClass::Process()
         /**
          *  Upgrade to rookie.
          */
-        if (techno->Veterancy.Is_Dumbass()) {
-            techno->Veterancy.Set_Rookie(true);
+        if (techno->Crew.Is_Dumbass()) {
+            techno->Crew.Set_Rookie(true);
             continue;
         }
 
         /**
          *  Upgrade to veteran.
          */
-        if (techno->Veterancy.Is_Rookie()) {
-            techno->Veterancy.Set_Veteran(true);
+        if (techno->Crew.IsRookie) {
+            techno->Crew.Set_Veteran(true);
             continue;
         }
         
         /**
          *  Upgrade to elite.
          */
-        if (techno->Veterancy.Is_Veteran()) {
-            techno->Veterancy.Set_Elite(true);
+        if (techno->Crew.IsVeteran) {
+            techno->Crew.Set_Elite(true);
             continue;
         }
         
         /**
          *  Degrade elite back to dumbass.
          */
-        if (techno->Veterancy.Is_Elite()) {
-            techno->Veterancy.Set_Dumbass(true);
+        if (techno->Crew.IsElite) {
+            techno->Crew.Set_Dumbass(true);
             continue;
         }
     }
@@ -3370,7 +3466,7 @@ bool DumpAIBaseNodesCommandClass::Process()
                 }
 
                 const char *name = BuildingTypeClass::Name_From(node.Type);
-                DEBUG_INFO("  Node %03d: \"%s\" at %d,%d\n", node_index, name, node.Where.X, node.Where.Y);
+                DEBUG_INFO("  Node %03d: \"%s\" at %d,%d\n", node_index, name, node.CellID.X, node.CellID.Y);
             }
         }
     }
@@ -4009,7 +4105,7 @@ bool StartingWaypointsCommandClass::Process()
     if (Map.PendingObject) {
         Map.Set_Cursor_Pos(Cell(0,0));
     }
-    Map.Follow_This(nullptr);
+    Map.Break_Follow_Mode();
 
     Map.Flag_To_Redraw(true);
 
@@ -4066,7 +4162,7 @@ bool PlaceInfantryCommandClass::Process()
     for (int i = 0; i < InfantryTypes.Count(); ++i) {
         InfantryTypeClass *infantrytype = InfantryTypes[i];
         if (infantrytype && infantrytype->IsAllowedToStartInMultiplayer) {
-            if (infantrytype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
+            if (infantrytype->Level <= PlayerPtr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
                 available_infantry.Add(infantrytype);
             }
         }
@@ -4143,7 +4239,7 @@ bool PlaceUnitCommandClass::Process()
         UnitTypeClass *unittype = UnitTypes[i];
         if (unittype && unittype->IsAllowedToStartInMultiplayer) {
             if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
-                if (unittype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
+                if (unittype->Level <= PlayerPtr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
                     available_units.Add(unittype);
                 }
             }
@@ -4211,7 +4307,7 @@ bool PlaceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 1)) {
-        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4259,7 +4355,7 @@ bool ReduceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Reduce_Tiberium(1)) {
-        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4307,7 +4403,7 @@ bool PlaceFullTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 11)) {
-        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4497,7 +4593,7 @@ bool DumpNetworkCRCCommandClass::Process()
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
         Vinifera_DebugDirectory,
-        PlayerPtr->IniName,
+        PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         day, month, year, hour, min, sec);
 
@@ -4589,8 +4685,8 @@ bool DumpHeapsCommandClass::Process()
     LOG_HEAP(ParticleTypeClass, ParticleTypes);
     LOG_HEAP(ParticleSystemTypeClass, ParticleSystemTypes);
 
-    LOG_HEAP(WeaponTypeClass, WeaponTypes);
-    LOG_HEAP(WarheadTypeClass, WarheadTypes);
+    LOG_HEAP(WeaponTypeClass, Weapons);
+    LOG_HEAP(WarheadTypeClass, Warheads);
     LOG_HEAP(SuperWeaponTypeClass, SuperWeaponTypes);
     LOG_HEAP(BulletTypeClass, BulletTypes);
 
@@ -4686,8 +4782,8 @@ bool MeteorShowerCommandClass::Process()
      */
     int count = Random_Pick<unsigned>(0, std::size(_meteor_counts)-1);
 
-    const AnimTypeClass *large_meteor = AnimTypeClass::As_Pointer("METLARGE");
-    const AnimTypeClass *small_meteor = AnimTypeClass::As_Pointer("METSMALL");
+    const AnimTypeClass *large_meteor = AnimTypes[AnimTypeClass::From_Name("METLARGE")];
+    const AnimTypeClass *small_meteor = AnimTypes[AnimTypeClass::From_Name("METSMALL")];
 
     for (int i = 0; i < count; ++i) {
 
@@ -4753,7 +4849,7 @@ bool MeteorImpactCommandClass::Process()
     /**
      *  Pick a random a random meteor object.
      */
-    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypeClass::As_Pointer(Percent_Chance(50) ? "METEOR01" : "METEOR02");
+    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypes[VoxelAnimTypeClass::From_Name(Percent_Chance(50) ? "METEOR01" : "METEOR02")];
     if (!voxelanimtypeptr) {
         return false;
     }

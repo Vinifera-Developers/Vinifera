@@ -36,6 +36,8 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "animtype.h"
+#include "findmake.h"
 #include "miscutil.h"
 #include "verses.h"
 #include "vinifera_saveload.h"
@@ -248,13 +250,14 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsWallAbsoluteDestroyer = ini.Get_Bool(ini_name, "WallAbsoluteDestroyer", IsWallAbsoluteDestroyer);
     IsAffectsAllies = ini.Get_Bool(ini_name, "AffectsAllies", IsAffectsAllies);
-    CombatLightSize = ini.Get_Float_Clamp(ini_name, "CombatLightSize", 0.0f, 1.0f, CombatLightSize);
+    CombatLightSize = ini.Get_Float(ini_name, "CombatLightSize", CombatLightSize);
+    CombatLightSize = std::clamp(CombatLightSize, 0.0, 1.0);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
 
-    WarheadType warheadtype = static_cast<WarheadType>(WarheadTypes.ID(This()));
+    WarheadType warheadtype = static_cast<WarheadType>(Warheads.ID(This()));
 
     /**
      *  Reload the legacy version Verses, ForceFire, PassiveAcquire, Retaliate entries into the new Modifier array.
@@ -301,7 +304,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
         std::snprintf(key_name, sizeof(key_name), "Modifier.%s", armor_name);
         if (ini.Is_Present(ini_name, key_name)) {
-            Verses::Set_Modifier(armor, warheadtype, ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
+            Verses::Set_Modifier(armor, warheadtype, ini.Get_Float(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
         }
 
         std::snprintf(key_name, sizeof(key_name), "ForceFire.%s", armor_name);
@@ -345,7 +348,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     CellAnimChance = ini.Get_Float(ini_name, "CellAnimChance", CellAnimChance);
     CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
     CellAnimPercentAtMax = ini.Get_Float(ini_name, "CellAnimPercentAtMax", CellAnimPercentAtMax);
-    CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
+    CellAnim = TGet_TypeList(ini, ini_name, "CellAnim", CellAnim);
 
     InfantryModifier = ini.Get_Float(ini_name, "InfantryModifier", InfantryModifier);
     VehicleModifier = ini.Get_Float(ini_name, "VehicleModifier", VehicleModifier);
@@ -359,4 +362,34 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     IsInitialized = true;
 
     return true;
+}
+
+
+/**
+ *  Returns the damage modifier for this type of object.
+ *
+ *  @author: ZivDero
+ */
+float WarheadTypeClassExtension::Fetch_Type_Modifier(RTTIType type) const
+{
+    switch (type) {
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return InfantryModifier;
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return VehicleModifier;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return AircraftModifier;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return BuildingModifier;
+    case RTTI_TERRAIN:
+    case RTTI_TERRAINTYPE:
+        return TerrainModifier;
+    default:
+        break;
+    }
+    return 1.0f;
 }

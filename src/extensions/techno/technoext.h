@@ -35,6 +35,7 @@ class SpawnManagerClass;
 class EBoltClass;
 class TechnoTypeClass;
 class TechnoTypeClassExtension;
+class AnimClass;
 
 
 class TechnoClassExtension : public RadioClassExtension
@@ -64,7 +65,7 @@ class TechnoClassExtension : public RadioClassExtension
         virtual void Response_Deploy();
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
-        virtual Coord Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>()) const;
+        virtual Coord Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>(0, 0, 0)) const;
 
         void Put_Storage_Pointers();
 
@@ -116,4 +117,15 @@ class TechnoClassExtension : public RadioClassExtension
          *  The countdown until burst gets reset if unit has lost the target.
          */
         CDTimerClass<FrameTimerClass> BurstResetTimer;
+
+        /**
+         *  The veternacy rank of this unit last time it performed its AI() function.
+         *  Used to determine when a unit has ranked up.
+         */
+        VeterancyRankType LastVeterancy;
+
+        /**
+         *  The idle wake animation attached to this object.
+         */
+        AnimClass* IdleWakeAnim;
 };

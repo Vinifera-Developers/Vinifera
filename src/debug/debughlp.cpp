@@ -28,6 +28,8 @@
 #include "debughlp.h"
 #include "debughandler.h"
 
+#include <cstdlib>
+#include <iterator>
 
 /**
  *  The process we initialised the symbols of.

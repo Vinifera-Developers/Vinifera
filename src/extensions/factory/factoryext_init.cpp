@@ -37,7 +37,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,9 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_FactoryClass_Constructor_Patch)
+DEFINE_HOOK(0x00496D97, _FactoryClass_Constructor_Patch, 7)
 {
-    GET_REGISTER_STATIC(FactoryClass *, this_ptr, esi); // "this" pointer.
+    GET(FactoryClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -64,42 +64,8 @@ DECLARE_PATCH(_FactoryClass_Constructor_Patch)
      */
     Extension::Make<FactoryClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { add esp, 0x0C }
-    _asm { ret }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_FactoryClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(FactoryClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<FactoryClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov byte ptr [esi+0x39], 0 } // this->QueuedObjects.IsAllocated = 0;
-    _asm { mov dword ptr [esi+0x34], 0 } // this->QueuedObjects.VectorMax = 0;
-    this_ptr->AbstractClass::~AbstractClass();
-    JMP(0x00496E91);
+    return 0;
 }
 
 
@@ -110,23 +76,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_FactoryClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00497B6F, _FactoryClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(FactoryClass *, this_ptr, esi);
+    GET(FactoryClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<FactoryClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov byte ptr [esi+0x39], 0 } // this->QueuedObjects.IsAllocated = 0;
-    _asm { mov dword ptr [esi+0x34], 0 } // this->QueuedObjects.VectorMax = 0;
-    this_ptr->AbstractClass::~AbstractClass();
-    JMP(0x00497B81);
+    return 0;
 }
 
 
@@ -135,7 +95,4 @@ original_code:
  */
 void FactoryClassExtension_Init()
 {
-    Patch_Jump(0x00496D97, &_FactoryClass_Constructor_Patch);
-    //Patch_Jump(0x00496E7F, &_FactoryClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00497B6F, &_FactoryClass_Scalar_Destructor_Patch);
 }

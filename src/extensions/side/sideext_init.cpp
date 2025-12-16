@@ -37,7 +37,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SideClass_Constructor_Patch)
+DEFINE_HOOK(0x005F1AC6, _SideClass_Constructor_Patch, 7)
 {
-    GET_REGISTER_STATIC(SideClass *, this_ptr, esi); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
+    GET(SideClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,39 +64,8 @@ DECLARE_PATCH(_SideClass_Constructor_Patch)
      */
     Extension::Make<SideClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_SideClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(SideClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<SideClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007B3470 } // Sides.vtble
-    JMP_REG(eax, 0x005F1AEE);
+    return 0;
 }
 
 
@@ -108,21 +76,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SideClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x005F1D98, _SideClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(SideClass *, this_ptr, esi);
+    GET(SideClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<SideClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007B3470 } // Sides.vtble
-    JMP_REG(eax, 0x005F1D9E);
+    return 0;
 }
 
 
@@ -131,7 +95,5 @@ original_code:
  */
 void SideClassExtension_Init()
 {
-    Patch_Jump(0x005F1AC6, &_SideClass_Constructor_Patch);
-    //Patch_Jump(0x005F1AE8, &_SideClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x005F1D98, &_SideClass_Scalar_Destructor_Patch);
+
 }

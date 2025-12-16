@@ -46,9 +46,14 @@
 #include "swizzle.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "debughandler.h"
 #include "houseext.h"
 #include "commandext.h"
+#include "tacticalext.h"
+#include "tag.h"
+#include <regex>
+
 
 /**
  *  Class constructor.
@@ -194,13 +199,14 @@ void ScenarioClassExtension::Init_Clear()
          *  Clear the any previously loaded tutorial messages in preparation for
          *  reloading the TUTORIAL.INI as they might contain scenario overrides.
          */
-        TutorialText.Clear();
+        Vinifera_TutorialText.clear();
 
         /**
          *  Reload the main tutorial message data.
          */
         CCINIClass ini;
-        ini.Load(CCFileClass("TUTORIAL.INI"), false);
+        CCFileClass tutorial_file("TUTORIAL.INI");
+        ini.Load(tutorial_file, false);
         Read_Tutorial_INI(ini);
     }
 
@@ -208,6 +214,17 @@ void ScenarioClassExtension::Init_Clear()
      *  Clear all waypoint values, preparing for scenario loading.
      */
     Clear_All_Waypoints();
+
+    for (int index = 0; index < std::size(GlobalFlags); index++) {
+        GlobalFlags[index].VariableName[0] = '\0';
+        Set_Global_To(index, 0);
+    }
+
+    for (int index = 0; index < std::size(LocalFlags); index++) {
+        LocalFlags[index].VariableName[0] = '\0';
+        Set_Local_To(index, 0);
+    }
+
     /* 
      * Erase unit all filter hotkey states as their unit objects are invalid now 
      */
@@ -227,15 +244,17 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
     static const char * const BASIC = "Basic";
 
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
-    ScorePlayerColor = ini.Get_RGB(BASIC, "ScorePlayerColor", ScorePlayerColor);
-    ScoreEnemyColor = ini.Get_RGB(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
+    ScorePlayerColor = ini.Get_RGBColor(BASIC, "ScorePlayerColor", ScorePlayerColor);
+    ScoreEnemyColor = ini.Get_RGBColor(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
 
     /**
      *  #issue-123
      * 
      *  Fetch additional tutorial message data (if present) from the scenario.
      */
-    Read_Tutorial_INI(ini, true);
+    Read_Tutorial_INI(ini);
+
+    BeaconManager.Load_Art();
 
     return true;
 }
@@ -246,20 +265,16 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
  *
  *  @author: CCHyper
  */
-bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
+bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass const& ini)
 {
+    char buffer[512];
     static char const * const TUTORIAL = "Tutorial";
 
     /**
      *  Fetch the additional tutorial message data (if present).
      */
     if (ini.Is_Present(TUTORIAL)) {
-
-        char buf[300];
-
         int counter = ini.Entry_Count(TUTORIAL);
-
-        if (counter > 0 && log) DEBUG_INFO("Tutorial section found and has %d entries.\n", counter);
 
         for (int index = 0; index < counter; ++index) {
             const char *entry = ini.Get_Entry(TUTORIAL, index);
@@ -267,36 +282,10 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
             /**
              *  Get a tutorial message entry.
              */
-            if (ini.Get_String(TUTORIAL, entry, buf, sizeof(buf))) {
-
-                /**
-                 *  Convert the entry name (which in this context is an index) to an "id" value.
-                 */
-                int id = std::strtol(entry, nullptr, 10);
-                const char *string = strdup(buf);
-
-                /**
-                 *  Check to see if this id already exists before adding it, otherwise
-                 *  the replacement message will not get used.
-                 */
-                if (TutorialText.Is_Present(id)) {
-                    TutorialText.Remove_Index(id);
-                    if (log) DEV_DEBUG_INFO("  Removed ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                    if (log) { DEV_DEBUG_INFO("  %d = \"%s\".\n", id, TutorialText[id]); }
-#endif
-                }
-
-                if (log) DEV_DEBUG_INFO("  Adding ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                if (log) DEV_DEBUG_INFO("  %d = \"%s\".\n", id, string);
-#endif
-
-                TutorialText.Add_Index(id, string);
+            if (ini.Get_String(TUTORIAL, entry, "", buffer, sizeof(buffer))) {
+                Vinifera_TutorialText[entry] = buffer;
             }
-
         }
-
     }
 
     return true;
@@ -403,7 +392,7 @@ void ScenarioClassExtension::Clear_Waypoint(WAYPOINT wp)
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_Waypoint - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
-    Waypoint[wp] = Cell();
+    Waypoint[wp] = Cell(0, 0);
 }
 
 
@@ -416,12 +405,12 @@ void ScenarioClassExtension::Clear_All_Waypoints()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_All_Waypoints - 0x%08X\n", (uintptr_t)(This()));
 
-    /**
-     *  Assume that whatever the contents of the VectorClass are is garbage
-     *  (it may have been loaded from a save-game file), so zero it out first.
-     */
     new (&Waypoint) VectorClass<Cell>;
     Waypoint.Resize(NEW_WAYPOINT_COUNT);
+
+    for (int i = 0; i < Waypoint.Length(); i++) {
+        Waypoint[i] = CELL_NONE;
+    }
 }
 
 
@@ -566,6 +555,372 @@ const char * ScenarioClassExtension::Waypoint_As_String(WAYPOINT wp) const
 
 
 /**
+ *  Set scenario global to value specified.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Set_Global_To(int global, int value)
+{
+    if ((unsigned)global < std::size(GlobalFlags)) {
+
+        int previous = GlobalFlags[global].Value;
+        if (previous != value) {
+            GlobalFlags[global].Value = value;
+            This()->IsGlobalChanged = true;
+
+            /*
+            **  Special case to scan through all triggers and if any are found that depend on this
+            **  global being set/cleared, then if there is an elapsed time event associated, it
+            **  will be reset at this time.
+            */
+            TagClass::All_Timer_Global_Reset(global);
+
+            /*
+            **  Clear the templated text cache as it may contain this variable.
+            */
+            if (TacticalMapExtension) {
+                TacticalMapExtension->Clear_Templated_Text_Cache();
+            }
+        }
+        return previous;
+    }
+    return 0;
+}
+
+
+/**
+ *  Set scenario global to value specified.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Set_Global_To(char const* name, int value)
+{
+    int global = Find_Global_Variable_Index(name);
+    if (global != -1) {
+        return Set_Global_To(global, value);
+    }
+    return 0;
+}
+
+
+/**
+ *  Get scenario global value.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Global_Value(int global, int& value)
+{
+    if (global >= 0 && global < std::size(GlobalFlags)) {
+        value = GlobalFlags[global].Value;
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario global value.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Global_Value(char const* name, int& value)
+{
+    int global = Find_Global_Variable_Index(name);
+    if (global != -1) {
+        return Get_Global_Value(global, value);
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario global index by its name.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Find_Global_Variable_Index(char const* name)
+{
+    for (int i = 0; i < std::size(GlobalFlags); i++) {
+        if (!strcmp(name, GlobalFlags[i].VariableName)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+/**
+ *  Read scenario globals from an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Read_Global_INI(INIClass& ini)
+{
+    int count = std::min(ini.Entry_Count("VariableNames"), static_cast<int>(std::size(GlobalFlags)));
+
+    for (int i = 0; i < count; i++) {
+        const char* entry = ini.Get_Entry("VariableNames", i);
+        int idx = std::atoi(entry);
+        ini.Get_String("VariableNames", entry, nullptr, GlobalFlags[idx].VariableName, sizeof(GlobalFlags[idx].VariableName));
+    }
+
+    return true;
+}
+
+
+/**
+ *  Set scenario local to value specified.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Set_Local_To(int local, int value)
+{
+    if (static_cast<size_t>(local) < std::size(LocalFlags)) {
+
+        int previous = LocalFlags[local].Value;
+        if (previous != value) {
+            LocalFlags[local].Value = value;
+            This()->IsGlobalChanged = true;
+
+            /*
+            **  Special case to scan through all triggers and if any are found that depend on this
+            **  local being set/cleared, then if there is an elapsed time event associated, it
+            **  will be reset at this time.
+            */
+            TagClass::All_Timer_Local_Reset(local);
+
+            /*
+            **  Clear the templated text cache as it may contain this variable.
+            */
+            if (TacticalMapExtension) {
+                TacticalMapExtension->Clear_Templated_Text_Cache();
+            }
+        }
+        return previous;
+    }
+    return 0;
+}
+
+
+/**
+ *  Set scenario local to value specified.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Set_Local_To(char const* name, int value)
+{
+    int local = Find_Local_Variable_Index(name);
+    if (local != -1) {
+        return Set_Local_To(local, value);
+    }
+    return 0;
+}
+
+
+/**
+ *  Set scenario local to value specified.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Local_Value(int local, int& value)
+{
+    if (local >= 0 && local < std::size(LocalFlags)) {
+        value = LocalFlags[local].Value;
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario local value.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Local_Value(char const* name, int& value)
+{
+    int local = Find_Local_Variable_Index(name);
+    if (local != -1) {
+        return Get_Local_Value(local, value);
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario local index by its name.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Find_Local_Variable_Index(char const* name)
+{
+    for (int i = 0; i < std::size(LocalFlags); i++) {
+        if (!strcmp(name, LocalFlags[i].VariableName)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+/**
+ *  Read scenario locals from an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Read_Local_INI(INIClass& ini)
+{
+    char buffer[128];
+
+    for (int i = 0; i < std::size(LocalFlags); i++) {
+        LocalFlags[i].VariableName[0] = 0;
+    }
+
+    int count = std::min(ini.Entry_Count("VariableNames"), static_cast<int>(std::size(LocalFlags)));
+
+    for (int i = 0; i < count; i++) {
+        const char* entry = ini.Get_Entry("VariableNames", i);
+        int local = atoi(entry);
+        ini.Get_String("VariableNames", entry, nullptr, buffer, sizeof(buffer));
+
+        const char* tok = std::strtok(buffer, ",");
+        strcpy(LocalFlags[local].VariableName, tok);
+
+        tok = std::strtok(nullptr, ",");
+        if (tok != nullptr) {
+            LocalFlags[local].Value = std::atoi(tok);
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Write scenario locals to an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Write_Local_INI(INIClass& ini)
+{
+    static char const* const VARIABLENAMES = "VariableNames";
+    char buffer[128];
+    char local[10];
+
+    ini.Clear(VARIABLENAMES);
+
+    int length = std::size(LocalFlags);
+    for (int index = 0; index < length; index++) {
+        if (LocalFlags[index].VariableName[0] != '\0') {
+            std::snprintf(local, sizeof(local), "%d", index);
+            std::snprintf(buffer, sizeof(buffer), "%s,%d", LocalFlags[index].VariableName, LocalFlags[index].Value);
+            ini.Put_String(VARIABLENAMES, local, buffer);
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Count how many locals are in use in this scenario.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Num_Locals() const
+{
+    int count = 0;
+    for (int i = 0; i < std::size(LocalFlags); i++) {
+        if (LocalFlags[i].VariableName[0] != '\0') {
+            count++;
+        }
+    }
+    return count;
+}
+
+
+/**
+ *  Gets the value of a global as a string.
+ *
+ *  @author: ZivDero
+ */
+static std::string Resolve_Global(const std::string& name)
+{
+    int value;
+    if (ScenExtension->Get_Global_Value(ScenExtension->Find_Global_Variable_Index(name.c_str()), value)) {
+        return std::to_string(value);
+    }
+    return "";
+}
+
+
+/**
+ *  Gets the value of a local as a string.
+ *
+ *  @author: ZivDero
+ */
+static std::string Resolve_Local(const std::string& name)
+{
+    int value;
+    if (ScenExtension->Get_Local_Value(ScenExtension->Find_Local_Variable_Index(name.c_str()), value)) {
+        return std::to_string(value);
+    }
+    return "";
+}
+
+
+/**
+ *  Replaces variable placeholders in a text line with the variables' values.
+ *
+ *  @author: ZivDero
+ */
+std::string ScenarioClassExtension::Substitute_Variable_Placeholders(std::string input)
+{
+    static const std::regex placeholder_re(R"(\{\{([^{}]*)\}\})");
+
+    std::string result;
+    std::sregex_iterator begin(input.begin(), input.end(), placeholder_re), end;
+    std::size_t last_pos = 0;
+
+    for (auto it = begin; it != end; ++it) {
+        result.append(input, last_pos, it->position() - last_pos);
+
+        const std::string name = (*it)[1];
+        if (name.compare(0, 2, "g_") == 0) {
+            result.append(Resolve_Global(name.substr(2)));
+        }
+        else if (name.compare(0, 2, "l_") == 0) {
+            result.append(Resolve_Local(name.substr(2)));
+        }
+        else {
+            // Unknown prefix: skip (i.e. replace with "")
+        }
+
+        last_pos = it->position() + it->length();
+    }
+
+    result.append(input, last_pos, std::string::npos);
+    return result;
+}
+
+
+/**
+ *  Finds the first unused local variable.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Find_Free_Local() const
+{
+    for (int index = 0; index < std::size(LocalFlags); index++) {
+        if (LocalFlags[index].VariableName[0] == '\0') {
+            return index;
+        }
+    }
+    return -1;
+}
+
+
+/**
  *  Assigns multiplayer houses to various players.
  * 
  *  @author: 06/09/1995 BRR - Red Alert source code.
@@ -635,9 +990,7 @@ void ScenarioClassExtension::Assign_Houses()
          *  in the HouseClass array.
          */
         housep = new HouseClass(HouseTypes[node.Player.House]);
-
-        std::memset((char *)housep->IniName, 0, MPLAYER_NAME_MAX);
-        std::strncpy((char *)housep->IniName, node.Name, MPLAYER_NAME_MAX-1);
+        housep->IniName = node.Name;
 
         /**
          *  Set the house's IsHuman, Credits, ActLike, and RemapTable.
@@ -645,10 +998,9 @@ void ScenarioClassExtension::Assign_Houses()
         housep->IsHuman = true;
 
         housep->Control.TechLevel = BuildLevel;
-        housep->Init_Data((PlayerColorType)node.Player.Color,
-            node.Player.House, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)node.Player.Color);
-        housep->Init_Remap_Color();
+        housep->Init_Data(node.Player.Color, node.Player.House, Session.Options.Credits);
+        housep->Scheme = Session.Scheme_From_Color_ID(node.Player.Color);
+        housep->Initialize_Radar_Color();
 
         /**
          *  If this ID is for myself, set up PlayerPtr.
@@ -666,7 +1018,7 @@ void ScenarioClassExtension::Assign_Houses()
         node.Player.ID = HousesType(housep->HeapID);
 
         DEBUG_INFO("    Assigned player \"%s\" (House: \"%s\", ID: %d, Color: \"%s\") to slot %d.\n",
-            node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->RemapColor]->Name, i);
+            node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->Scheme]->Name, i);
     }
 
     if (Session.Options.AIPlayers > 0) {
@@ -706,7 +1058,7 @@ void ScenarioClassExtension::Assign_Houses()
          *  Pick a color for this house; keep looping until we find one.
          */
         while (true) {
-            color = Random_Pick(0, (MAX_PLAYERS-1));
+            color = Random_Pick(0, MAX_PLAYERS -1);
             if (color_used[color] == false) {
                 break;
             }
@@ -723,10 +1075,10 @@ void ScenarioClassExtension::Assign_Houses()
 
         housep->Control.TechLevel = BuildLevel;
         housep->Init_Data((PlayerColorType)color, pref_house, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)color);
-        housep->Init_Remap_Color();
+        housep->Scheme = Session.Scheme_From_Color_ID((PlayerColorType)color);
+        housep->Initialize_Radar_Color();
 
-        std::strcpy(housep->IniName, Text_String(TXT_COMPUTER));
+        housep->IniName = Text_String(TXT_COMPUTER);
 
         if (Session.Type != GAME_NORMAL) {
             housep->IQ = Rule->MaxIQ;
@@ -740,7 +1092,7 @@ void ScenarioClassExtension::Assign_Houses()
         housep->Assign_Handicap(difficulty);
 
         DEBUG_INFO("    Assigned computer house \"%s\" (ID: %d, Color: \"%s\") to slot %d.\n",
-            housep->Class->Name(), housep->HeapID, ColorSchemes[housep->RemapColor]->Name, i);
+            housep->Class->Name(), housep->HeapID, ColorSchemes[housep->Scheme]->Name, i);
     }
 
     /**
@@ -750,8 +1102,8 @@ void ScenarioClassExtension::Assign_Houses()
      *  Added checks to make sure the houses exist before blindly
      *  attempting to create a instance of them.
      */
-    ColorSchemeType remap_color = ColorScheme::From_Name("LightGrey");
-    ColorSchemeType grey_color = ColorScheme::From_Name("Grey");
+    ColorSchemeType remap_color = Fetch_Scheme_Index_By_Name("LightGrey");
+    ColorSchemeType grey_color = Fetch_Scheme_Index_By_Name("Grey");
 
     house = HouseTypeClass::From_Name("Neutral");
     if (house != HOUSE_NONE) {
@@ -770,12 +1122,12 @@ void ScenarioClassExtension::Assign_Houses()
          * 
          *  @author: CCHyper
          */
-        if (housetype->RemapColor != remap_color && housetype->RemapColor != grey_color) {
-            remap_color = housetype->RemapColor;
+        if (housetype->Scheme != remap_color && housetype->Scheme != grey_color) {
+            remap_color = housetype->Scheme;
         }
-        housep->RemapColor = remap_color;
+        housep->Scheme = remap_color;
 
-        housep->Init_Remap_Color();
+        housep->Initialize_Radar_Color();
     }
 
     house = HouseTypeClass::From_Name("Special");
@@ -795,12 +1147,12 @@ void ScenarioClassExtension::Assign_Houses()
          * 
          *  @author: CCHyper
          */
-        if (housetype->RemapColor != remap_color && housetype->RemapColor != grey_color) {
-            remap_color = housetype->RemapColor;
+        if (housetype->Scheme != remap_color && housetype->Scheme != grey_color) {
+            remap_color = housetype->Scheme;
         }
-        housep->RemapColor = remap_color;
+        housep->Scheme = remap_color;
 
-        housep->Init_Remap_Color();
+        housep->Initialize_Radar_Color();
     }
 
     DEBUG_INFO("Assign_Houses(exit)\n");
@@ -824,10 +1176,10 @@ static Cell Clip_Scatter(Cell cell, int maxdist)
     /**
      *  Compute our x & y limits
      */
-    int xmin = Map.MapCellX;
-    int xmax = xmin + Map.MapCellWidth - 1;
-    int ymin = Map.MapCellY;
-    int ymax = ymin + Map.MapCellHeight - 1;
+    int xmin = Map.MapRect.X;
+    int xmax = xmin + Map.MapRect.Width - 1;
+    int ymin = Map.MapRect.Y;
+    int ymax = ymin + Map.MapRect.Height - 1;
 
     /**
      *  Adjust the x-coordinate.
@@ -882,10 +1234,10 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
     /**
      *  Compute our x & y limits.
      */
-    int xmin = Map.MapCellX;
-    int xmax = xmin + Map.MapCellWidth - 1;
-    int ymin = Map.MapCellY;
-    int ymax = ymin + Map.MapCellHeight - 1;
+    int xmin = Map.MapRect.X;
+    int xmax = xmin + Map.MapRect.Width - 1;
+    int ymin = Map.MapRect.Y;
+    int ymax = ymin + Map.MapRect.Height - 1;
 
     /**
      *  Adjust the x-coordinate.
@@ -1185,8 +1537,8 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
         DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
         for (int index = 0; index < deficiency; ++index) {
 
-            Cell trycell = Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
-                                   Map.MapCellY + Random_Pick(0, Map.MapCellHeight-10) + 10);
+            Cell trycell = Cell(Map.MapRect.X + Random_Pick(10, Map.MapRect.Width-10),
+                                   Map.MapRect.Y + Random_Pick(0, Map.MapRect.Height-10) + 10);
 
             trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
             if (trycell != CELL_NONE) {
@@ -1295,14 +1647,14 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Skip passive houses.
          */
         if (hptr->Class->IsMultiplayPassive) {
-            DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName);
+            DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName.c_str());
             continue;
         }
 
         int owner_id = 1 << hptr->Class->HeapID;
 
         DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n",
-            house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->RemapColor]->Name);
+            house, hptr->Class->Name(), hptr->IniName.c_str(), ColorSchemes[hptr->Scheme]->Name);
 
         /**
          *  Generate list of starting units for this house.
@@ -1322,7 +1674,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 /**
                  *  Check tech level and ownership.
                  */
-                if (unittype->TechLevel <= hptr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
+                if (unittype->Level <= hptr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
 
                     if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
                         DEBUG_INFO("    Added %s\n", unittype->Name());
@@ -1350,7 +1702,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 /**
                  *  Check tech level and ownership.
                  */
-                if (infantrytype->TechLevel <= hptr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
+                if (infantrytype->Level <= hptr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
                     available_infantry.Add(infantrytype);
                     DEBUG_INFO("    Added %s\n", infantrytype->Name());
                 }
@@ -1423,7 +1775,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
-        Extension::Fetch(hptr)->Set_Spawn_Point(hptr->Center);
+        Extension::Fetch(hptr)->Set_Spawn_Point(centroid);
         DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**
@@ -1478,7 +1830,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 
                                     building->House->Begin_Construction();
 
-                                    building->House->Base.Nodes[0].Where = cell;
+                                    building->House->Base.Nodes[0].CellID = cell;
                                     building->House->Base.field_50 = cell;
 
                                     building->House->IsStarted = true;
@@ -1599,7 +1951,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
                             if (Scen->Special.IsInitialVeteran) {
-                                obj->Veterancy.Set_Elite(true);
+                                obj->Crew.Set_Elite(true);
                             }
 
                             if (hptr->Is_Human_Player()) {
@@ -1651,7 +2003,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
                             if (Scen->Special.IsInitialVeteran) {
-                                obj->Veterancy.Set_Elite(true);
+                                obj->Crew.Set_Elite(true);
                             }
 
                             if (hptr->Is_Human_Player()) {
@@ -1729,7 +2081,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                     hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
                                 if (Scen->Special.InitialVeteran) {
-                                    obj->Veterancy.Set_Elite(true);
+                                    obj->Crew.Set_Elite(true);
                                 }
 
                                 if (hptr->Is_Human_Player()) {
@@ -1750,5 +2102,5 @@ void ScenarioClassExtension::Create_Units(bool official)
         }
     }
 
-    DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber);
+    DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber());
 }

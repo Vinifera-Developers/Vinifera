@@ -87,7 +87,7 @@ bool SmudgeTypeClassExt::_Can_Place_Here(Cell const& origin, bool underbuildings
                 return false;
             }
             auto isotype_ext = Extension::Fetch(IsoTileTypes[ittype]);
-            if (isotype_ext->AllowedSmudges.Count() > 0 && !isotype_ext->AllowedSmudges.Is_Present(const_cast<SmudgeTypeClassExt*>(this))) {
+            if (isotype_ext->AllowedSmudges.Count() > 0 && !isotype_ext->AllowedSmudges.Is_Present(HeapID)) {
                 return false;
             }
         }

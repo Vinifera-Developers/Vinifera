@@ -32,8 +32,8 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "rawfile.h"
+#include "syringe.h"
 
 
 /**
@@ -42,16 +42,11 @@
  *
  *  @author: ZivDero
  */
-void _Delete_Keyboard_INI()
+DEFINE_HOOK(0x0058AA18, _Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch, 0)
 {
     RawFileClass keyboard_ini("Keyboard.ini");
     keyboard_ini.Delete();
-}
-
-DECLARE_PATCH(_Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch)
-{
-    _Delete_Keyboard_INI();
-    JMP(0x0058AA21);
+    return 0x0058AA21;
 }
 
 
@@ -64,6 +59,4 @@ void OptionsClassExtension_Hooks()
      *  Initialises the extended class.
      */
     OptionsClassExtension_Init();
-
-    Patch_Jump(0x0058AA18, &_Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch);
 }

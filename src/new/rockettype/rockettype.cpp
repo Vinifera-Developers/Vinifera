@@ -31,6 +31,9 @@
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "asserthandler.h"
+#include "animtype.h"
+#include "aircrafttype.h"
+#include "findmake.h"
 #include "vinifera_saveload.h"
 
 
@@ -385,23 +388,23 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
 
     PauseFrames = ini.Get_Int(IniName, "PauseFrames", PauseFrames);
     TiltFrames = ini.Get_Int(IniName, "TiltFrames", TiltFrames);
-    PitchInitial = ini.Get_Double(IniName, "PitchInitial", PitchInitial);
-    PitchFinal = ini.Get_Double(IniName, "PitchFinal", PitchFinal);
-    TurnRate = ini.Get_Double(IniName, "TurnRate", TurnRate);
+    PitchInitial = ini.Get_Float(IniName, "PitchInitial", PitchInitial);
+    PitchFinal = ini.Get_Float(IniName, "PitchFinal", PitchFinal);
+    TurnRate = ini.Get_Float(IniName, "TurnRate", TurnRate);
     RaiseRate = ini.Get_Int(IniName, "RaiseRate", RaiseRate);
-    Acceleration = ini.Get_Double(IniName, "Acceleration", Acceleration);
+    Acceleration = ini.Get_Float(IniName, "Acceleration", Acceleration);
     Altitude = ini.Get_Int(IniName, "Altitude", Altitude);
     Damage = ini.Get_Int(IniName, "Damage", Damage);
     EliteDamage = ini.Get_Int(IniName, "EliteDamage", EliteDamage);
     BodyLength = ini.Get_Int(IniName, "BodyLength", BodyLength);
     IsLazyCurve = ini.Get_Bool(IniName, "LazyCurve", IsLazyCurve);
     IsCruiseMissile = ini.Get_Bool(IniName, "CruiseMissile", IsCruiseMissile);
-    CloseEnoughFactor = ini.Get_Double(IniName, "CloseEnoughFactor", CloseEnoughFactor);
-    Type = ini.Get_Aircraft(IniName, "Type", Type);
-    Warhead = ini.Get_Warhead(IniName, "Warhead", Warhead);
-    EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
-    TakeoffAnim = ini.Get_Anim(IniName, "TakeoffAnim", TakeoffAnim);
-    TrailAnim = ini.Get_Anim(IniName, "TrailAnim", TrailAnim);
+    CloseEnoughFactor = ini.Get_Float(IniName, "CloseEnoughFactor", CloseEnoughFactor);
+    Type = TGet_Class(ini, IniName, "Type", Type);
+    Warhead = TGet_Class(ini, IniName, "Warhead", Warhead);
+    EliteWarhead = TGet_Class(ini, IniName, "EliteWarhead", EliteWarhead);
+    TakeoffAnim = TGet_Class(ini, IniName, "TakeoffAnim", TakeoffAnim);
+    TrailAnim = TGet_Class(ini, IniName, "TrailAnim", TrailAnim);
     TrailSpawnDelay = ini.Get_Int(IniName, "TrailSpawnDelay", TrailSpawnDelay);
     TrailAppearDelay = ini.Get_Int(IniName, "TrailAppearDelay", TrailAppearDelay);
     Inaccuracy = ini.Get_Int(IniName, "Inaccuracy", Inaccuracy);

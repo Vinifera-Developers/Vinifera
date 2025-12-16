@@ -52,6 +52,19 @@
     _asm { mov esp, ebp } \
     _asm { pop ebp }
 
+/**
+ *  Create a stack frame for our naked hook.
+ */
+#define MAKE_STACK_FRAME(size) \
+    _asm { pushad } \
+    _asm { push ebp } \
+    _asm { mov ebp, esp } \
+    _asm { sub esp, size }
+
+#define END_STACK_FRAME() \
+    _asm { mov esp, ebp } \
+    _asm { pop ebp } \
+    _asm { popad } \
 
 /**
  *  Jumps
@@ -133,7 +146,7 @@
 /**
  *  Get stack value to a variable
  */
-#define GET_STACK(type, dst, reg, off) type dst; _asm { mov eax, [reg+off] } _asm { mov dst, eax }
+//#define GET_STACK(type, dst, reg, off) type dst; _asm { mov eax, [reg+off] } _asm { mov dst, eax }
 #define GET_STACK_STATIC(type, dst, reg, off) static type dst; _asm { mov eax, [reg+off] } _asm { mov dst, eax }
 #define LEA_STACK_STATIC(type, dst, reg, off) static type dst; _asm { lea eax, [reg+off] } _asm { mov dst, eax }
 #define GET_STACK_STATIC8(type, dst, reg, off) static type dst; _asm { mov al, byte ptr [reg+off] } _asm { mov dst, al }

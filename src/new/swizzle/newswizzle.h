@@ -8,7 +8,7 @@
  *
  *  @author        CCHyper
  *
- *  @contributors  tomsons26
+ *  @contributors  tomsons26, ZivDero
  *
  *  @brief         Replacement pointer swizzling interface for debugging save load issues.
  *
@@ -31,177 +31,106 @@
 
 #include "always.h"
 #include "iswizzle.h"
-#include "vector.h"
 #include "tibsun_defines.h"
+#include "vector.h"
 #include "vinifera_defines.h"
 #include <cstdio>
+#include <string>
+#include <unordered_map>
 
-
-#ifdef VINIFERA_USE_NEW_SWIZZLE_MANAGER
 
 /**
- *  Reimplementation of SwizzleManagerClass.
- * 
- *  #WARNING: Do not add any additional members to the class, we much match
- *            expected class size otherwise everything will break!
+ *  Replacement of SwizzleManagerClass.
  */
 class ViniferaSwizzleManagerClass : public ISwizzle
 {
-    private:
-        struct SwizzlePointerStruct
+private:
+    struct SwizzlePointerStruct {
+        SwizzlePointerStruct() : ID(-1), Pointer(nullptr), Line(-1) {}
+
+        SwizzlePointerStruct(LONG id, void* pointer, const char* file = nullptr, const int line = -1, const char* func = nullptr, const char* var = nullptr) : ID(id), Pointer(pointer), Line(line)
         {
-            SwizzlePointerStruct() :
-                ID(-1), Pointer(nullptr), File(nullptr), Line(-1), Function(nullptr), Variable(nullptr)
-            {}
-
-            SwizzlePointerStruct(LONG id, void *pointer, const char *file = nullptr, const int line = -1, const char *func = nullptr, const char *var = nullptr) :
-                ID(id), Pointer(pointer), File(nullptr), Line(line), Function(nullptr), Variable(nullptr)
-            {
-                if (file != nullptr) {
-                    File = new char[strlen(file) + 1];
-                    strcpy(File, file);
-                }
-
-                if (func != nullptr) {
-                    Function = new char[strlen(func) + 1];
-                    strcpy(Function, func);
-                }
-
-                if (var != nullptr) {
-                    Variable = new char[strlen(var) + 1];
-                    strcpy(Variable, var);
-                }
+            if (file != nullptr) {
+                File = file;
             }
 
-            ~SwizzlePointerStruct()
-            {
-                if (File) {
-                    delete File;
-                    File = nullptr;
-                }
-
-                if (Function) {
-                    delete Function;
-                    Function = nullptr;
-                }
-
-                if (Variable) {
-                    delete Variable;
-                    Variable = nullptr;
-                }
+            if (func != nullptr) {
+                Function = func;
             }
 
-            void operator=(const SwizzlePointerStruct &that)
-            {
-                ID = that.ID;
-                Pointer = that.Pointer;
-
-                if (File) {
-                    delete File;
-                    File = nullptr;
-                }
-
-                if (that.File != nullptr) {
-                    File = new char[strlen(that.File) + 1];
-                    strcpy(File, that.File);
-                }
-
-                Line = that.Line;
-
-                if (Function) {
-                    delete Function;
-                    Function = nullptr;
-                }
-
-                if (that.Function != nullptr) {
-                    Function = new char[strlen(that.Function) + 1];
-                    strcpy(Function, that.Function);
-                }
-
-                if (Variable) {
-                    delete Variable;
-                    Variable = nullptr;
-                }
-
-                if (that.Variable != nullptr) {
-                    Variable = new char[strlen(that.Variable) + 1];
-                    strcpy(Variable, that.Variable);
-                }
+            if (var != nullptr) {
+                Variable = var;
             }
-
-            bool operator==(const SwizzlePointerStruct &that) const { return ID == that.ID; }
-            bool operator!=(const SwizzlePointerStruct &that) const { return ID != that.ID; }
-            bool operator<(const SwizzlePointerStruct &that) const { return ID < that.ID; }
-            bool operator>(const SwizzlePointerStruct &that) const { return ID > that.ID; }
-
-            /**
-             *  The id of the pointer to remap.
-             */
-            LONG ID;
-
-            /**
-             *  The pointer to fixup.
-             */
-            void *Pointer;
-            
-            /**
-             *  Debugging information.
-             */
-            char *File;
-            /*const*/ int Line;
-            char *Function;
-            char *Variable;
-        };
-
-    public:
-        /**
-         *  IUnknown
-         */
-        STDMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObj) override;
-        STDMETHOD_(ULONG, AddRef)() override;
-        STDMETHOD_(ULONG, Release)() override;
+        }
 
         /**
-         *  ISwizzle
+         *  Enable move semantics.
          */
-        STDMETHOD_(LONG, Reset)() override;
-        STDMETHOD_(LONG, Swizzle)(void **pointer) override;
-        STDMETHOD_(LONG, Fetch_Swizzle_ID)(void *pointer, LONG *id) override;
-        STDMETHOD_(LONG, Here_I_Am)(LONG id, void *pointer) override;
-        STDMETHOD(Save_Interface)(IStream *stream, IUnknown *pointer) override;
-        STDMETHOD(Load_Interface)(IStream *stream, CLSID *riid, void **pointer) override;
-        STDMETHOD_(LONG, Get_Save_Size)(LONG *size) override;
+        SwizzlePointerStruct(SwizzlePointerStruct&&) noexcept = default;
+        SwizzlePointerStruct& operator=(SwizzlePointerStruct&&) noexcept = default;
 
         /**
-         *  New debug routines.
+         *  The id of the pointer to remap.
          */
-        STDMETHOD_(LONG, Swizzle_Dbg)(void **pointer, const char *file, const int line, const char *func = nullptr, const char *var = nullptr);
-        STDMETHOD_(LONG, Fetch_Swizzle_ID_Dbg)(void *pointer, LONG *id, const char *file, const int line, const char *func = nullptr, const char *var = nullptr);
-        STDMETHOD_(LONG, Here_I_Am_Dbg)(LONG id, void *pointer, const char *file, const int line, const char *func = nullptr, const char *var = nullptr);
-
-    public:
-        ViniferaSwizzleManagerClass();
-        ~ViniferaSwizzleManagerClass();
-
-    private:
-        void Sort_Tables();
-        void Process_Tables();
-
-    private:
-        /**
-         *  List of all the pointers that need remapping.
-         */
-        DynamicVectorClass<SwizzlePointerStruct> RequestTable;
+        LONG ID;
 
         /**
-         *  List of all the new pointers.
+         *  The pointer to fixup.
          */
-        DynamicVectorClass<SwizzlePointerStruct> PointerTable;
+        void* Pointer;
 
-    private:
-        static int __cdecl ptr_compare_func(const void *ptr1, const void *ptr2);
+        /**
+         *  Debugging information.
+         */
+        std::string File;
+        int Line;
+        std::string Function;
+        std::string Variable;
+    };
+
+public:
+    /**
+     *  IUnknown
+     */
+    STDMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) override;
+    STDMETHOD_(ULONG, AddRef)() override;
+    STDMETHOD_(ULONG, Release)() override;
+
+    /**
+     *  ISwizzle
+     */
+    STDMETHOD_(LONG, Reset)() override;
+    STDMETHOD_(LONG, Swizzle)(void** pointer) override;
+    STDMETHOD_(LONG, Fetch_Swizzle_ID)(void* pointer, LONG* id) override;
+    STDMETHOD_(LONG, Here_I_Am)(LONG id, void* pointer) override;
+    STDMETHOD(Save_Interface)(IStream* stream, IUnknown* pointer) override;
+    STDMETHOD(Load_Interface)(IStream* stream, CLSID* riid, void** pointer) override;
+    STDMETHOD_(LONG, Get_Save_Size)(LONG* size) override;
+
+    /**
+     *  New debug routines.
+     */
+    STDMETHOD_(LONG, Swizzle_Dbg)(void** pointer, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+    STDMETHOD_(LONG, Fetch_Swizzle_ID_Dbg)(void* pointer, LONG* id, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+    STDMETHOD_(LONG, Here_I_Am_Dbg)(LONG id, void* pointer, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+
+public:
+    ViniferaSwizzleManagerClass();
+    ~ViniferaSwizzleManagerClass();
+
+private:
+    void Process_Tables();
+
+private:
+    /**
+     *  List of all the pointers that need remapping.
+     */
+    std::vector<SwizzlePointerStruct> RequestTable;
+
+    /**
+     *  List of all the new pointers.
+     */
+    std::unordered_map<LONG, SwizzlePointerStruct> PointerTable;
 };
 
-//extern ViniferaSwizzleManagerClass ViniferaSwizzleManager;
-
-#endif
+extern ViniferaSwizzleManagerClass ViniferaSwizzleManager;

@@ -175,7 +175,7 @@ class WaveClassExtension;
 // class TagClassExtension;
 // class TagTypeClassExtension;
 class TiberiumClassExtension;
-// class TActionClassExtension;
+class TActionClassExtension;
 // class TEventClassExtension;
 class WeaponTypeClassExtension;
 class WarheadTypeClassExtension;
@@ -417,8 +417,8 @@ MAKE_EXTENSION_PAIR(SmudgeClass);
 MAKE_EXTENSION_PAIR(SmudgeTypeClass);
 MAKE_EXTENSION_PAIR(SuperWeaponTypeClass);
 //MAKE_EXTENSION_PAIR(TaskForceClass);                                  // Not yet implemented
-//MAKE_EXTENSION_PAIR(TeamClass);                                       // Not yet implemented
-//MAKE_EXTENSION_PAIR(TeamTypeClass);                                   // Not yet implemented
+MAKE_EXTENSION_PAIR(TeamClass);
+MAKE_EXTENSION_PAIR(TeamTypeClass);
 MAKE_EXTENSION_PAIR(TerrainClass);
 MAKE_EXTENSION_PAIR(TerrainTypeClass);
 //MAKE_EXTENSION_PAIR(TriggerClass);                                    // Not yet implemented
@@ -430,7 +430,7 @@ MAKE_EXTENSION_PAIR(WaveClass);
 //MAKE_EXTENSION_PAIR(TagClass);                                        // Not yet implemented
 //MAKE_EXTENSION_PAIR(TagTypeClass);                                    // Not yet implemented
 MAKE_EXTENSION_PAIR(TiberiumClass);
-//MAKE_EXTENSION_PAIR(TActionClass);                                    // Not yet implemented
+MAKE_EXTENSION_PAIR(TActionClass);
 //MAKE_EXTENSION_PAIR(TEventClass);                                     // Not yet implemented
 MAKE_EXTENSION_PAIR(WeaponTypeClass);
 MAKE_EXTENSION_PAIR(WarheadTypeClass);

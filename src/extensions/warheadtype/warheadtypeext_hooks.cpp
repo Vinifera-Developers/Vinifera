@@ -53,7 +53,7 @@ static const WarheadTypeClass* _Find_Or_Make(const char* name)
         return wptr;
     }
 
-    return WarheadTypeClass::As_Pointer(warhead);
+    return Warheads[warhead];
 }
 
 

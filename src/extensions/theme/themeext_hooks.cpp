@@ -41,7 +41,6 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
@@ -96,8 +95,8 @@ bool ThemeClassExt::_Is_Allowed(ThemeType index) const
      *  @author: CCHyper
      */
     ThemeControlExtension *themectrlext = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(Themes[index], ThemeControlExtensions);
-    if (themectrlext->RequiredAddon != ADDON_NONE) {
-        if (!Is_Addon_Enabled(themectrlext->RequiredAddon)) {
+    if (themectrlext->RequiredAddon != ADDON_BASE_GAME) {
+        if (!Addon_Enabled(themectrlext->RequiredAddon)) {
             return false;
         }
     }

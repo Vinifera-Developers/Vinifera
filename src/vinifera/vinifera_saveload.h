@@ -33,7 +33,6 @@
 #include "debughandler.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
-#include "wstring.h"
 #include "swizzle.h"
 #include "newswizzle.h"
 
@@ -44,50 +43,32 @@ struct IStream;
 /**
  *  Wrappers for the new swizzle manager for providing debug information.
  */
-#ifdef VINIFERA_USE_NEW_SWIZZLE_MANAGER
-
 #define VINIFERA_SWIZZLE_RESET(func) \
     { \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Reset(); \
+        ViniferaSwizzleManager.Reset(); \
     }
 
 #define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(pointer, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&pointer, __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        ViniferaSwizzleManager.Swizzle_Dbg((void**)&pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
     }
 
 #define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
         for (int __i = 0; __i < vector.Count(); ++__i) { \
-            ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&vector[__i], __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+            ViniferaSwizzleManager.Swizzle_Dbg((void**)&vector[__i], __FILE__, __LINE__, __FUNCTION__##"()", variable); \
         } \
     }
 
 #define VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(pointer, id, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Fetch_Swizzle_ID_Dbg((void *)pointer, (LONG *)&id, __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        ViniferaSwizzleManager.Fetch_Swizzle_ID_Dbg((void*)pointer, (LONG*)&id, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
     }
 
 #define VINIFERA_SWIZZLE_REGISTER_POINTER(id, pointer, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        ViniferaSwizzleManager.Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
     }
-
-#else
-#define VINIFERA_SWIZZLE_RESET(func)                                      SWIZZLE_RESET(func);
-#define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(pointer, variable)         SWIZZLE_REQUEST_POINTER_REMAP(pointer);
-#define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable)     SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable)
-#define VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(pointer, id, variable)          SWIZZLE_FETCH_POINTER_ID(pointer, id);
-#define VINIFERA_SWIZZLE_REGISTER_POINTER(id, pointer, variable)          SWIZZLE_REGISTER_POINTER(id, pointer);
-#endif
 
 
 extern unsigned ViniferaGameVersion;
@@ -192,7 +173,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 template<class T>
 HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    // DEBUG_INFO("Loading %s...\n", heap_name); disabled due to excessive logging
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);

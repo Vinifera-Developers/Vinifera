@@ -29,6 +29,9 @@
 #include "debughlp.h"
 #include <Windows.h>
 #include <eh.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
  
 
 #define PRIPTRSIZE "08"
@@ -47,7 +50,7 @@
 static bool StripFilenamePaths = true;
 
 
-static void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigned *linenumber, uintptr_t *address)
+void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigned *linenumber, uintptr_t *address)
 {
     char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64) + STACK_SYMNAME_MAX];
     IMAGEHLP_SYMBOL64 *const symbol_bufferp = reinterpret_cast<IMAGEHLP_SYMBOL64 *>(symbol_buffer);
@@ -100,6 +103,10 @@ static void Get_Function_Details(void *pointer, char *funcname, char *filename, 
                 std::strcat(funcname, "();");
             }
 
+            if (address != nullptr) {
+                *address = symbol_bufferp->Address;
+            }
+
             //if (SymGetLineFromAddrPtr != nullptr) {
                 IMAGEHLP_LINE64 line;
                 line.Key = 0;
@@ -134,10 +141,6 @@ static void Get_Function_Details(void *pointer, char *funcname, char *filename, 
 
                     if (linenumber != nullptr) {
                         *linenumber = line.LineNumber;
-                    }
-
-                    if (address != nullptr) {
-                        *address = line.Address;
                     }
                 }
             //}

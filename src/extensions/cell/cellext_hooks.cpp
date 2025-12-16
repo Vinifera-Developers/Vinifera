@@ -39,17 +39,23 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
-#include "building.h"
+#include "cellext.h"
 #include "extension.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "house.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"
 #include "overlaytype.h"
+#include "overlaytypeext.h"
+#include "syringe.h"
+#include "rulesext.h"
 #include "terrain.h"
 #include "terraintype.h"
 #include "tiberium.h"
+#include "tiberiumext.h"
+#include "tactical.h"
+#include "theatertype.h"
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -62,7 +68,11 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(CellClass)
 {
 public:
     bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
+    bool _Can_Tiberium_Spread();
     bool _Can_Place_Veins() const;
+    bool _Spread_Tiberium(bool forced);
+    void _Recalc_Passability();
+    int _Reduce_Tiberium(int levels);
 };
 
 
@@ -101,8 +111,34 @@ bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
 
         auto ittype_ext = Extension::Fetch(ittype);
 
-        if (ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(const_cast<TiberiumClass*>(tiberium))) return false;
+        if (tiberium != nullptr && ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(tiberium->HeapID)) return false;
     }
+
+    return true;
+}
+
+
+/**
+ *  Re-implementation of CellClass::Can_Tiberium_Spread.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+bool CellClassExt::_Can_Tiberium_Spread()
+{
+    if (!Scen->Special.IsTSpread) return false;
+
+    TiberiumType tiberium = Tiberium_Type_Here();
+
+    if (tiberium == TIBERIUM_NONE) return false;
+
+    /**
+     *  Use the new setting as the minimum stage to spread.
+     */
+    if (OverlayData < Extension::Fetch(Tiberiums[tiberium])->MinSpreadStage) return false;
+
+    if (Tiberiums[tiberium]->SpreadPercentage < 0.00001) return false;
+
+    if (Cell_Occupier() != nullptr) return false;
 
     return true;
 }
@@ -147,49 +183,143 @@ bool CellClassExt::_Can_Place_Veins() const
 
 
 /**
- *  #issue-381
- * 
- *  Hardcodes shroud and fog to circumvent cheating in multiplayer games.
- * 
- *  @author: CCHyper
+ *  Proxy for CellClassExt::Spread_Tiberium.
+ *
+ *  @author: ZivDero
  */
-DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
+bool CellClassExt::_Spread_Tiberium(bool forced)
 {
-    static bool _shroud_one_time = false;
-    static const ShapeSet *_shroud_shape;
-    static const ShapeSet *_fog_shape;
+    return CellClassExtension::Spread_Tiberium(this, forced);
+}
 
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { sub esp, 0x34 }
 
-    /**
-     *  Perform a one-time load of the shroud and fog shape data.
-     */
-    if (!_shroud_one_time) {
-        _shroud_shape = (const ShapeSet *)MFCD::Retrieve("SHROUD.SHP");
-        _fog_shape = (const ShapeSet *)MFCD::Retrieve("FOG.SHP");
-        _shroud_one_time = true;
+/**
+ *  Re-implementation of CellClass::Recalc_Passability.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void CellClassExt::_Recalc_Passability()
+{
+    if (!Map.In_Local_Radar(CellID)) {
+        Passability = PASSABLE_OUTSIDE;
+        return;
     }
 
-    /**
-     *  If we are playing a multiplayer game, use the hardcoded shape data.
-     */
-    if (!Session.Singleplayer_Game()) {
-        Cell_ShroudShape = (const ShapeSet *)&ShroudShapeBinary;
-        Cell_FogShape = (const ShapeSet *)&FogShapeBinary;
-
-    } else {
-        Cell_ShroudShape = _shroud_shape;
-        Cell_FogShape = _fog_shape;
+    if (Overlay != OVERLAY_NONE) {
+        OverlayTypeClass const* overlay = OverlayTypes[Overlay];
+        if (Land == LAND_TUNNEL && Extension::Fetch(overlay)->IsWaterTunnel) {
+            Passability = PASSABLE_WATER;
+            return;
+        }
+        if (overlay->IsCrushable) {
+            Passability = PASSABLE_CRUSH;
+            return;
+        }
+        if (overlay->IsWall) {
+            Passability = PASSABLE_BLOCKED;
+            return;
+        }
+        if (Ground[overlay->Land].Cost[SPEED_WHEEL] == 0) {
+            Passability = PASSABLE_NO;
+            return;
+        }
     }
 
-    /**
-     *  Continues function flow.
-     */
-continue_function:
-    JMP(0x00454E91);
+    if (Land == LAND_BEACH) {
+        if (RuleExtension->IsBeachIsCrush) {
+            Passability = PASSABLE_CRUSH;
+        } else {
+            Passability = PASSABLE_WATER;
+        }
+        return;
+    }
+
+    if (Land == LAND_WATER || (Land == LAND_TUNNEL && ITType != ISOTILE_NONE && Extension::Fetch(IsoTileTypes[ITType])->IsWaterTunnel)) {
+        Passability = PASSABLE_WATER;
+        return;
+    }
+
+    if (Ground[Land].Cost[SPEED_WHEEL] <= 0.01) {
+        Passability = PASSABLE_NO;
+        return;
+    }
+
+    ObjectClass* occupier = OccupierPtr;
+    while (occupier != nullptr) {
+        switch (occupier->RTTI) {
+        case RTTI_BUILDING:
+            if (static_cast<BuildingClass*>(occupier)->Class->IsFirestormWall) {
+                if (static_cast<BuildingClass*>(occupier)->House->IsFirestormActive) {
+                    Passability = PASSABLE_NO;
+                    return;
+                }
+            } else if (static_cast<BuildingClass*>(occupier)->Class->IsLaserFence) {
+                if (static_cast<BuildingClass*>(occupier)->LaserFenceFrame != 12 && static_cast<BuildingClass*>(occupier)->LaserFenceFrame != 8) {
+                    Passability = PASSABLE_NO;
+                }
+            }
+            break;
+
+        case RTTI_TERRAIN:
+            if ((!TheaterTypeClass::Is_Arctic(Scen->Theater) && static_cast<TerrainClass*>(occupier)->Class->TemperateOccupationBits != 7) || (TheaterTypeClass::Is_Arctic(Scen->Theater) && static_cast<TerrainClass*>(occupier)->Class->SnowOccupationBits != 7)) {
+                Passability = PASSABLE_PARTIALLY_BLOCKED;
+                return;
+            }
+
+            Passability = PASSABLE_BLOCKED;
+            return;
+        }
+        occupier = occupier->Next;
+    }
+
+    Passability = PASSABLE_LAND;
+}
+
+
+/**
+ *  Re-implementation of CellClass::Reduce_Tiberium.
+ *
+ *  @author: ZivDero
+ */
+int CellClassExt::_Reduce_Tiberium(int levels)
+{
+    Rect dirty = Union(Overlay_Render_Rect(), Overlay_Shadow_Render_Rect());
+    dirty.Y -= TacticalRect.Y;
+
+    TiberiumType tibtype = Tiberium_Type_Here();
+    int reducer = levels;
+
+    if (levels > 0 && tibtype != TIBERIUM_NONE) {
+        TiberiumClass* tiberium = Tiberiums[tibtype];
+        if (OverlayData == tiberium->FrameCount - 1) {
+            tiberium->Queue_Growth(CellID);
+        }
+        if (OverlayData + 1 > levels) {
+            OverlayData -= levels;
+            reducer = levels;
+        } else {
+            PassabilityType passability = Passability;
+            Overlay = OVERLAY_NONE;
+            reducer = OverlayData;
+            OverlayData = 0;
+            Recalc_Attributes();
+            if (passability != Passability) {
+                Map.Update_Cell_Zone(CellID);
+                Map.Update_Cell_Subzones(CellID);
+            }
+            Map.Flag_Background_Update(CellID);
+            tiberium->Clear_Spread_State(CellID);
+            for (int facing = FACING_FIRST; facing < FACING_COUNT; facing++) {
+                Cell adjacent = ::Adjacent_Cell(CellID, static_cast<FacingType>(facing));
+                if (Map.In_Radar(adjacent) && !Extension::Fetch(tiberium)->SpreadState[Map_Cell_Index(adjacent)]) {
+                    tiberium->Queue_Spread(adjacent);
+                }
+            }
+        }
+        TacticalMap->Register_Dirty_Area(dirty);
+        return reducer;
+    }
+    return 0;
 }
 
 
@@ -200,21 +330,57 @@ continue_function:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
+DEFINE_HOOK(0x00454E60, _CellClass_Draw_Shroud_Fog_Patch, 5)
+{
+    static bool _shroud_one_time = false;
+    static const ShapeSet *_shroud_shape;
+    static const ShapeSet *_fog_shape;
+
+    /**
+     *  Perform a one-time load of the shroud and fog shape data.
+     */
+    if (!_shroud_one_time) {
+        _shroud_shape = static_cast<const ShapeSet*>(MFCD::Retrieve("SHROUD.SHP"));
+        _fog_shape = static_cast<const ShapeSet*>(MFCD::Retrieve("FOG.SHP"));
+        _shroud_one_time = true;
+    }
+
+    /**
+     *  If we are playing a multiplayer game, use the hardcoded shape data.
+     */
+    if (!Session.Singleplayer_Game()) {
+        Cell_ShroudShape = reinterpret_cast<const ShapeSet*>(&ShroudShapeBinary);
+        Cell_FogShape = reinterpret_cast<const ShapeSet*>(&FogShapeBinary);
+
+    } else {
+        Cell_ShroudShape = _shroud_shape;
+        Cell_FogShape = _fog_shape;
+    }
+
+    /**
+     *  Continues function flow.
+     */
+    return 0;
+}
+
+
+/**
+ *  #issue-381
+ * 
+ *  Hardcodes shroud and fog to circumvent cheating in multiplayer games.
+ * 
+ *  @author: CCHyper
+ */
+DEFINE_HOOK(0x00455130, _CellClass_Draw_Fog_Patch, 5)
 {
     static bool _fog_one_time = false;
     static const ShapeSet *_fog_shape;
     
     /**
-     *  Stolen bytes/code.
-     */
-    _asm { sub esp, 0x2C }
-    
-    /**
      *  Perform a one-time load of the fog shape data.
      */
     if (!_fog_one_time) {
-        _fog_shape = (const ShapeSet *)MFCD::Retrieve("FOG.SHP");
+        _fog_shape = static_cast<const ShapeSet*>(MFCD::Retrieve("FOG.SHP"));
         _fog_one_time = true;
     }
 
@@ -222,7 +388,7 @@ DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
      *  If we are playing a multiplayer game, use the hardcoded shape data.
      */
     if (!Session.Singleplayer_Game()) {
-        Cell_FixupFogShape = (const ShapeSet *)&FogShapeBinary;
+        Cell_FixupFogShape = reinterpret_cast<const ShapeSet*>(&FogShapeBinary);
 
     } else {
         Cell_FixupFogShape = _fog_shape;
@@ -231,10 +397,8 @@ DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
     /**
      *  Continues function flow.
      */
-continue_function:
-    _asm { mov eax, Cell_FixupFogShape }
-    _asm { mov eax, [eax] }
-    JMP_REG(ecx, 0x00455159);
+    R->EAX(Cell_FixupFogShape);
+    return 0;
 }
 
 
@@ -247,7 +411,7 @@ continue_function:
  * 
  *  @author: CCHyper (based on research by Rampastring)
  */
-DECLARE_PATCH(_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch)
+DEFINE_HOOK(0x00457EAB, _CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch, 0)
 {
     /**
      *  Random crates are only thing in multiplayer.
@@ -268,7 +432,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch)
      *  Continues function flow.
      */
 continue_function:
-    JMP_REG(ecx, 0x00457ECE);
+    return 0x00457ECE;
 }
 
 
@@ -280,11 +444,9 @@ continue_function:
  * 
  *  @author: CCHyper (based on research by Iran)
  */
-DECLARE_PATCH(_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch)
+DEFINE_HOOK(0x0045882C, _CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch, 0)
 {
-    GET_REGISTER_STATIC(ObjectClass *, object, ecx);
-    static TechnoClass *techno;
-    static TechnoTypeClass *technotype;
+    GET(ObjectClass *, object, ECX);
 
     /**
      *  Make sure the ground layer object is a techno.
@@ -296,8 +458,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch)
     /**
      *  Is this object trainable? If so, grant it the bonus.
      */
-    techno = reinterpret_cast<TechnoClass *>(object);
-    if (techno->TClass->IsTrainable) {
+    if (object->TClass->IsTrainable) {
         goto passes_check;
     }
 
@@ -305,13 +466,13 @@ DECLARE_PATCH(_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch)
      *  Continues the loop over the ground layer objects.
      */
 continue_loop:
-    JMP(0x0045894E);
+    return 0x0045894E;
 
     /**
      *  Continue to grant the veterancy bonus.
      */
 passes_check:
-    JMP(0x00458839);
+    return 0x00458839;
 }
 
 
@@ -320,38 +481,31 @@ passes_check:
  * 
  *  Author: Rampastring
  */
-DECLARE_PATCH(_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch)
+DEFINE_HOOK(0x004531E4, _CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, esi);
-    static BuildingTypeClassExtension* buildingtypeext;
+    GET(BuildingClass*, building, ESI);
 
     /**
      *  Stolen bytes/code.
      *  Skip the building if it is not active.
      */
     if (!building->IsActive) {
-        JMP(0x0045321C);
+        return 0x0045321C;
     }
 
-    buildingtypeext = Extension::Fetch(building->Class);
+    auto buildingtypeext = Extension::Fetch(building->Class);
 
     /**
      *  Skip the building if it cannot claim walls.
      */
     if (!buildingtypeext->IsWallOwner) {
-        JMP(0x0045321C);
+        return 0x0045321C;
     }
-
-    /**
-     *  Restore value of "this" pointer to ecx register just in case the compiler
-     *  decided to use it above.
-     */
-    _asm { mov  ecx, [esp] }
 
     /**
      *  Continue to further checks in the wall claiming logic.
      */
-    JMP(0x004531EB);
+    return 0x004531EB;
 }
 
 
@@ -360,11 +514,10 @@ DECLARE_PATCH(_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_
  */
 void CellClassExtension_Hooks()
 {
-    Patch_Jump(0x0045882C, &_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch);
-    Patch_Jump(0x00457EAB, &_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch);
-    Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
-    Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
+    Patch_Jump(0x00459300, &CellClassExt::_Can_Tiberium_Spread);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
-    Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
+    Patch_Jump(0x004594D0, &CellClassExt::_Spread_Tiberium);
+    Patch_Jump(0x00459A00, &CellClassExt::_Recalc_Passability);
+    Patch_Jump(0x00456BF0, &CellClassExt::_Reduce_Tiberium);
 }

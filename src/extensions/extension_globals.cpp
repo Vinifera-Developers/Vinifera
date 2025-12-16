@@ -52,6 +52,8 @@ DynamicVectorClass<SmudgeClassExtension *> SmudgeExtensions;
 DynamicVectorClass<SmudgeTypeClassExtension *> SmudgeTypeExtensions;
 DynamicVectorClass<SuperClassExtension *> SuperExtensions;
 DynamicVectorClass<SuperWeaponTypeClassExtension *> SuperWeaponTypeExtensions;
+DynamicVectorClass<TeamClassExtension*> TeamExtensions;
+DynamicVectorClass<TeamTypeClassExtension*> TeamTypeExtensions;
 DynamicVectorClass<TerrainClassExtension *> TerrainExtensions;
 DynamicVectorClass<TerrainTypeClassExtension *> TerrainTypeExtensions;
 DynamicVectorClass<TiberiumClassExtension *> TiberiumExtensions;
@@ -60,12 +62,14 @@ DynamicVectorClass<VoxelAnimTypeClassExtension *> VoxelAnimTypeExtensions;
 DynamicVectorClass<WarheadTypeClassExtension *> WarheadTypeExtensions;
 DynamicVectorClass<WaveClassExtension *> WaveExtensions;
 DynamicVectorClass<WeaponTypeClassExtension *> WeaponTypeExtensions;
+DynamicVectorClass<TEventClassExtension*> TEventExtensions;
+DynamicVectorClass<TActionClassExtension*> TActionExtensions;
 
 TacticalExtension *TacticalMapExtension = nullptr;
 
 RulesClassExtension *RuleExtension = nullptr;
 ScenarioClassExtension *ScenExtension = nullptr;
-SidebarClassExtension* SidebarExtension = nullptr;
+SidebarClassExtension *SidebarExtension = nullptr;
 SessionClassExtension *SessionExtension = nullptr;
 OptionsClassExtension *OptionsExtension = nullptr;
 

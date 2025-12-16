@@ -41,7 +41,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -51,17 +51,15 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
+DEFINE_HOOK(0x0048706A, _Dropship_Draw_Info_Text_ArmorName_Patch, 0)
 {
-    GET_REGISTER_STATIC(ArmorType, armor, edx);
-    static const char* armor_name;
-    _asm push ecx
+    GET(ArmorType, armor, EDX);
+    GET(char*, dest, ECX)
 
-    armor_name = ArmorTypeClass::Name_From(armor);
+    std::sprintf(dest, "Armor: %s", ArmorTypeClass::Name_From(armor));
 
-    _asm mov eax, armor_name
-    _asm pop ecx
-    JMP_REG(edx, 0x00487071);
+    R->ESP(R->ESP() - 0xC); // Fix up the stack from the removed printf call.
+    return 0x0048707D;
 }
 
 
@@ -73,13 +71,13 @@ DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
+DEFINE_HOOK(0x005DB3BB, _Start_Scenario_Dropship_Loadout_Show_Mouse_Patch, 0)
 {
     /**
      *  issue-284
-     * 
+     *
      *  Play a background theme during the loadout menu.
-     * 
+     *
      *  @author: CCHyper
      */
     if (!Theme.Still_Playing()) {
@@ -96,19 +94,19 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
         Theme.Play_Song(theme);
     }
 
-    WWMouse->Release_Mouse();
-    WWMouse->Show_Mouse();
+    MouseCursor->Release_Mouse();
+    Show_Mouse();
 
     Dropship_Loadout();
 
-    WWMouse->Hide_Mouse();
-    WWMouse->Capture_Mouse();
+    Hide_Mouse();
+    MouseCursor->Capture_Mouse();
 
     if (Theme.Still_Playing()) {
         Theme.Stop(true); // Smoothly fade out the track.
     }
 
-    JMP(0x005DB3C0);
+    return 0x005DB3C0;
 }
 
 
@@ -119,7 +117,7 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
  * 
  *  @author: CCHyper
  */
-static void Draw_Dropship_Loadout_Help_Text(XSurface *surface)
+static void Draw_Dropship_Loadout_Help_Text(Surface *surface)
 {
     #define TEXT_PRESS_SPACE "Press SPACE to start the mission"
 
@@ -130,17 +128,17 @@ static void Draw_Dropship_Loadout_Help_Text(XSurface *surface)
     Rect surfrect = surface->Get_Rect();
 
     TextPrintType style = (TPF_CENTER|TPF_FULLSHADOW|TPF_6PT_GRAD);
-    ColorScheme *color_white = ColorScheme::As_Pointer("White");
+    ColorScheme *color_white = Fetch_Scheme_By_Name("White");
     ColorType back_color = COLOR_TBLACK;
 
     Point2D text_pos;
     text_pos.X = surfrect.Width/2;
     text_pos.Y = (surfrect.Height/2)+185;
 
-    Fancy_Text_Print(TEXT_PRESS_SPACE, surface, &surfrect, &text_pos, color_white, back_color, style);
+    Fancy_Text_Print(TEXT_PRESS_SPACE, *surface, surfrect, text_pos, color_white, back_color, style);
 }
 
-DECLARE_PATCH(_Dropship_Loadout_Help_Text_Patch)
+DEFINE_HOOK(0x004868FB, _Dropship_Loadout_Help_Text_Patch, 6)
 {
     Draw_Dropship_Loadout_Help_Text(HiddenSurface);
 
@@ -149,16 +147,7 @@ DECLARE_PATCH(_Dropship_Loadout_Help_Text_Patch)
      */
     Vinifera_Draw_Version_Text(HiddenSurface);
 
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-    GScreenClass::Blit(true, HiddenSurface);
-
-    _asm { mov ebx, Scen }
-    _asm { mov ebx, [ebx] } // Second dereference required due to the global reference in TS++.
-
-    JMP(0x00486910);
+    return 0;
 }
 
 
@@ -167,7 +156,5 @@ original_code:
  */
 void DropshipExtension_Hooks()
 {
-    Patch_Jump(0x004868FB, &_Dropship_Loadout_Help_Text_Patch);
-    Patch_Jump(0x005DB3BB, &_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch);
-    Patch_Jump(0x0048706A, &_Dropship_Draw_Info_Text_ArmorName_Patch);
+
 }

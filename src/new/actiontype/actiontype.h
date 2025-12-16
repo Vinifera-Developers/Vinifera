@@ -29,7 +29,7 @@
 
 #include "always.h"
 #include "iomap.h"
-#include "wstring.h"
+#include "vinifera_defines.h"
 
 
 class CCINIClass;
@@ -53,10 +53,6 @@ class ActionTypeClass
         static bool Write_Default_INI(CCINIClass &ini);
 #endif
 
-        static const ActionTypeClass *As_Pointer(ActionType type);
-        static const ActionTypeClass *As_Pointer(const char *name);
-        static const ActionTypeClass &As_Reference(ActionType type);
-        static const ActionTypeClass &As_Reference(const char *name);
         static ActionType From_Name(const char *name);
         static const char *Name_From(ActionType type);
 
@@ -64,11 +60,7 @@ class ActionTypeClass
         static ActionTypeClass *Find_Or_Make(const char *name);
 
     private:
-        Wstring Name;
+        std::string Name;
         MouseType Mouse;
         MouseType ShadowMouse;
-
-    private:
-        static ActionTypeClass ActionControl[ACTION_COUNT];
-        static const char *ActionNames[ACTION_COUNT];
 };

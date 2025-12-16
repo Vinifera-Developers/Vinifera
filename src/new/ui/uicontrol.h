@@ -32,7 +32,10 @@
 #include "point.h"
 #include "typelist.h"
 
+#include <string>
 
+
+class RGBClass;
 struct IStream;
 class CCINIClass;
 class NoInitClass;
@@ -188,7 +191,7 @@ class UIControlsClass
         /**
          *  Two tint colors, interpolated between based on the current ambient light level.
          */
-        TypeList<RGBStruct> BandBoxTintColors;
+        TypeList<RGBClass> BandBoxTintColors;
 
         /**
          *  Should action lines remain visible continuously, instead of disappearing after some time?
@@ -309,6 +312,28 @@ class UIControlsClass
          *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
          */
         bool IsCenterSidebarButtonsOnRadar;
+
+        /**
+         *  Beacon animations are not tied to game FPS, this is the FPS at which they play.
+         */
+        int BeaconAnimFramesPerSecond;
+        int RadarBeaconAnimFramesPerSecond;
+
+        /**
+         *  The offset at which beacon text is drawn (on actual beacons, and during preview).
+         */
+        int BeaconTextOffset;
+        int BeaconPreviewTextOffset;
+
+        /**
+         *  Text presets for beacons when holding modifier keys when placing.
+         */
+        std::string BeaconText[7];
+
+        /**
+         *  Text presets for beacons *shown as a tooltip* when holding modifier keys when placing.
+         */
+        std::string BeaconPreviewText[7];
 };
 
 extern UIControlsClass *UIControls;

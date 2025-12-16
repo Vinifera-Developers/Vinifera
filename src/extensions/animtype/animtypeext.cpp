@@ -31,9 +31,11 @@
 #include "tibsun_defines.h"
 #include "vinifera_saveload.h"
 #include "wwcrc.h"
+#include "particletype.h"
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "findmake.h"
 
 
 /**
@@ -47,7 +49,7 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     IsForceBigCraters(false),
     ZAdjust(0),
     AttachLayer(LAYER_NONE),
-    ParticleToSpawn(PARTICLE_NONE),
+    ParticleToSpawn(nullptr),
     NumberOfParticles(0),
     ParticleSpawnOffset(0, 0, 0),
     StartAnims(),
@@ -190,10 +192,11 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
     EndAnimsDelay.Load(pStm);
     MiddleFrames.Load(pStm);
 
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ParticleToSpawn, "ParticleToSpawn");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(EndAnims, "EndAnims");
-    
+
     return hr;
 }
 
@@ -323,8 +326,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      * 
      *  Reload the RandomRate value and correctly fix up negative and back to front values.
      */
-    TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
-    if (random_rate.X != -1) {
+    if (ini.Is_Present(ini_name, "RandomRate")) {
+        TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
+
         if (random_rate.X == 0) {
             DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'Low' value!\n", This()->Name());
         } else {
@@ -333,8 +337,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
             }
             random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
         }
-    }
-    if (random_rate.Y != -1) {
+
         if (random_rate.Y == 0) {
             DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'High' value!\n", This()->Name());
         } else {
@@ -343,12 +346,13 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
             }
             random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
         }
+
+        if (random_rate.X > random_rate.Y) {
+            std::swap(random_rate.X, random_rate.Y);
+        }
+        This()->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
+        This()->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
     }
-    if ((random_rate.X != -1 && random_rate.Y != -1) && random_rate.X > random_rate.Y) {
-        std::swap(random_rate.X, random_rate.Y);
-    }
-    This()->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
-    This()->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
 
     /**
      *  #issue-646
@@ -363,15 +367,15 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     IsForceBigCraters = ini.Get_Bool(ini_name, "ForceBigCraters", IsForceBigCraters);
     ZAdjust = ini.Get_Int(ini_name, "ZAdjust", ZAdjust);
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
-    ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
+    ParticleToSpawn = TGet_Class(ini, ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
     ParticleSpawnOffset = ini.Get_Point(ini_name, "SpawnsParticleOffset", ParticleSpawnOffset);
 
-    StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
-    StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);
-    StartAnimsMinimum = ini.Get_Integers(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
-    StartAnimsMaximum = ini.Get_Integers(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
-    StartAnimsDelay = ini.Get_Integers(ini_name, "StartAnimsDelay", StartAnimsDelay);
+    StartAnims = TGet_TypeList(ini, ini_name, "StartAnims", StartAnims);
+    StartAnimsCount = ini.Get_IntList(ini_name, "StartAnimsCount", StartAnimsCount);
+    StartAnimsMinimum = ini.Get_IntList(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
+    StartAnimsMaximum = ini.Get_IntList(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
+    StartAnimsDelay = ini.Get_IntList(ini_name, "StartAnimsDelay", StartAnimsDelay);
 
     if (!StartAnimsCount.Count()) {
         FILL_TYPELIST(StartAnimsMinimum, StartAnims.Count(), 1);
@@ -383,11 +387,11 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
     FILL_TYPELIST(StartAnimsDelay, StartAnims.Count(), 0);
 
-    MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
-    MiddleAnimsCount = ini.Get_Integers(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
-    MiddleAnimsMinimum = ini.Get_Integers(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
-    MiddleAnimsMaximum = ini.Get_Integers(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
-    MiddleAnimsDelay = ini.Get_Integers(ini_name, "MiddleAnimsDelay", MiddleAnimsDelay);
+    MiddleAnims = TGet_TypeList(ini, ini_name, "MiddleAnims", MiddleAnims);
+    MiddleAnimsCount = ini.Get_IntList(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
+    MiddleAnimsMinimum = ini.Get_IntList(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
+    MiddleAnimsMaximum = ini.Get_IntList(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
+    MiddleAnimsDelay = ini.Get_IntList(ini_name, "MiddleAnimsDelay", MiddleAnimsDelay);
 
     if (!MiddleAnimsCount.Count()) {
         FILL_TYPELIST(MiddleAnimsMinimum, MiddleAnims.Count(), 1);
@@ -399,11 +403,11 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
     FILL_TYPELIST(MiddleAnimsDelay, MiddleAnims.Count(), 0);
 
-    EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
-    EndAnimsCount = ini.Get_Integers(ini_name, "EndAnimsCount", EndAnimsCount);
-    EndAnimsMinimum = ini.Get_Integers(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
-    EndAnimsMaximum = ini.Get_Integers(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
-    EndAnimsDelay = ini.Get_Integers(ini_name, "EndAnimsDelay", EndAnimsDelay);
+    EndAnims = TGet_TypeList(ini, ini_name, "EndAnims", EndAnims);
+    EndAnimsCount = ini.Get_IntList(ini_name, "EndAnimsCount", EndAnimsCount);
+    EndAnimsMinimum = ini.Get_IntList(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
+    EndAnimsMaximum = ini.Get_IntList(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
+    EndAnimsDelay = ini.Get_IntList(ini_name, "EndAnimsDelay", EndAnimsDelay);
 
     if (!EndAnimsCount.Count()) {
         FILL_TYPELIST(EndAnimsMinimum, EndAnims.Count(), 1);
@@ -429,7 +433,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      *  A special value of "-1" will set the biggest frame to the actual middle frame
      *  of the shape file. This behavior was observed in Red Alert 2.
      */
-    MiddleFrames = ini.Get_Integers(ini_name, "MiddleFrame", MiddleFrames);
+    MiddleFrames = ini.Get_IntList(ini_name, "MiddleFrame", MiddleFrames);
     for (int& frame : MiddleFrames) {
         frame = std::clamp(frame, -1, ((This()->Image != nullptr) ? (This()->Image->Get_Count() - 1) : 0));
     }

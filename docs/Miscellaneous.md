@@ -11,7 +11,9 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Harvesters used to drop their cargo as Tiberium Riparius on death. They will now drop the Tiberium types they are carrying, instead.
 - It is no longer required to list all Tiberiums in a map to override some Tiberium's properties.
 - `FreeUnit` or `PadAircraft` would in some cases affect the cost of a building. This functionality has been removed.
-- Allow pre-placed units to have missions in multiplayer (by Rampastring)
+- Pre-placed units can now have missions in multiplayer.
+- Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
+- Improve alternative factory selection when the primary factory is blocked.
 
 ## Quality of Life
 
@@ -20,6 +22,33 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera changes the default value of `IsScoreShuffle` to true.
 - Vinifera changes the default value of `AllowHiResModes` to true.
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction.
+
+### DirectDraw replacement
+
+- Vinifera replaced the old DirectDraw (`ddraw.dll`) API with SDL. As a result, DirectDraw wrappers are no longer necessary for the game to run properly, and may even be harmful.
+- Accordingly, some new video settings are available in `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Video]
+Windowed=no         ; boolean, should the game start in a window
+WindowWidth=-1      ; integer, if positive and Windowed=true, sets the window width override
+WindowHeight=-1     ; integer, if positive and Windowed=true, sets the window height override
+ScaleMode=PixelArt  ; scale mode, valid options are "Linear", "Nearest" and "PixelArt"
+CursorScale=0       ; integer, cursor scale factor override
+VSync=no            ; boolean, is vertical synchronization on?
+```
+
+```{note}
+`CursorScale` options:
+- `<0` - disable scaling
+- `0` - scale automatically
+- `>0` - explicit scale value
+```
+
+```{warning}
+Fullscreen mode uses a borderless window; exclusive fullscreen is not supported. To disable the windowed mode entirely, set `Windowed` to `false`.
+```
 
 ### Starting Unit Placement
 
@@ -155,6 +184,43 @@ In `RULES.INI`:
 ```ini
 [General]
 TiberiumStorage=yes  ; boolean, does the player need storage (silos) to collect Tiberium?
+```
+
+## Water Movement Zone
+
+- Red Alert 2 adds a few new movement zones, among them is the `Water` movement zone, used for ships.
+
+- Unfortunately, it is not trivial to add new movement zones to Tiberian Sun. However, Vinifera allows overriding any of the existing movement zones with a copy of the RA2 `Water` movement zone.
+
+```ini
+[General]
+WaterMovementZoneOverride=  ; MZoneType, the name of the movement zone which will be replaced with Water.
+```
+
+```{note}
+Movement zone `Normal` cannot be overridden this way.
+```
+
+```{note}
+Once a movement zone is replaced with water, it cannot be reverted.
+```
+
+- Introducing a `Water` movement zone comes with a nuance. By default, lands `Water` and `Beach` are considered water-passable. This allows amphibious units to path through water and beaches, while preventing land units from doing so. However, introducing a `Water` movement zone makes ships attempt to path over `Beach`, where they get stuck because their `Speed` typically disallows moving onto beaches.
+
+- Unfortunately, it is not currently possible to fix this neatly. However, as a workaround, Vinifera allows marking beaches as "requiring crushing" for passability purposes. This will allow movement zones `AmphibiousDestroyer` and `AmphibiousCrusher` to move over beaches, while preventing `Amphibious`, as well as the `Water` override from doing so.
+
+```ini
+[General]
+BeachIsCrush=  ; boolean, are beaches considered as requiring crushing for pathfinding purposes?
+```
+
+## Building Catching on Fire Timeout
+
+- When a building enters a damaged state, it spawns flame animations that may deal damage. If the building rapidly switches between damage states, it may end up spawning many instance of flame animations, taking large amount of damage. You can now specify a timeout during which buildings do not get flames spawned on them on damage state change after once catching fire.
+
+```ini
+[CombatDamage]
+BuildingFlameSpawnBlockFrames=  ; integer, for how many frames buildings do not get flames spawned on them on damage state change after once catching fire.
 ```
 
 ## File System

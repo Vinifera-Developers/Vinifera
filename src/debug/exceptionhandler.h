@@ -29,7 +29,7 @@
 
 #include "always.h"
 #include "getreg.h"
-#include "fixedstring.h"
+#include "stringid.h"
 #include <Windows.h>
 
 

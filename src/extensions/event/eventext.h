@@ -39,6 +39,8 @@
  */
 class EventClassExt
 {
+    friend void EventClassExtension_Hooks();
+
 public:
     EventClassExt() { Type = EVENT_EMPTY; }
     EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags);
@@ -55,9 +57,8 @@ public:
 
     void Execute();
 
-    // We don't yet have new events, implement when necessary
-    //static const char* Event_Name(EventType event);
-    //static unsigned char Event_Length(EventType event);
+    static const char* Event_Name(EventType event) { return event >= EVENT_EMPTY && event < EXT_EVENT_COUNT ? EventNames[event] : ""; }
+    static unsigned char Event_Length(EventType event) { return event >= EVENT_EMPTY && event < EXT_EVENT_COUNT ? EventLength[event] : 0; }
 
 #pragma pack(1) // We need this so bools/bits are not aligned.
 public:
@@ -82,6 +83,10 @@ public:
         char Padding[sizeof(EventClass::Data)];
     } Data;
 #pragma pack()
+
+private:
+    static unsigned char EventLength[EXT_EVENT_COUNT];
+    static char const* EventNames[EXT_EVENT_COUNT];
 };
 
 /**
