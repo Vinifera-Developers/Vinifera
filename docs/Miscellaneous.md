@@ -56,11 +56,11 @@ Avoid recursive includes. Vinifera does not provide circular reference protectio
 Sections can now inherit entries from one or more "parent" sections using the `$Inherits` key. This allows for shared configuration templates and reduced redundancy within INI files.
 
 ### Technical Rules
-* **Fallback Logic:** If a key is missing or has no value in the current section, the game looks up the value in the specified parent sections. If the value is still not found, it falls back to the hardcoded engine default.
-* **Override Priority:** The current (child) section always takes precedence.
-* **Multiple Parents:** You can list multiple parents separated by commas. The lookup follows a **left-to-right** priority:
+* If a key is missing or has no value in the current section, the game looks up the value in the specified parent sections. If the value is still not found, it falls back to the hardcoded engine default.
+* The current (child) section always takes precedence.
+* You can list multiple parents separated by commas. The lookup follows a **left-to-right** priority:
   `$Inherits=ParentA, ParentB` (The engine checks ParentA first, then ParentB).
-* **Recursion:** Inheritance is **depth-first**. If ParentA inherits from ParentX, Vinifera will fully resolve ParentA's hierarchy before checking ParentB.
+* Inheritance is **depth-first**. If ParentA inherits from ParentX, ParentA's hierarchy will be fully resolved before ParentB is checked.
 
 In any `INI` file:
 ```ini
