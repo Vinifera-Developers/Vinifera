@@ -51,6 +51,10 @@ In any `INI` file:
 Avoid recursive includes. Vinifera does not provide circular reference protection; self-referencing files will cause the game to stop responding.
 ```
 
+```{note}
+Included/inherited files **MUST** be present. Failure to find such a file will cause the game to exit for security reasons.
+```
+
 ### Section inheritance
 
 Sections can now inherit entries from one or more "parent" sections using the `$Inherits` key. This allows for shared configuration templates and reduced redundancy within INI files.
