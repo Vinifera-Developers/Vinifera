@@ -126,10 +126,10 @@ std::string Extract_Section_Name(std::string_view line)
 void INIClassExt::Inherit_File(INIClass const& ini)
 {
     for (const INISection* section = ini.SectionList.First(); section; section = section->Next_Valid() ? section->Next() : nullptr) {
+        if (strcmp(section->Section, "$Inherit") == 0 || strcmp(section->Section, "$Include") == 0) {
+            continue;
+        }
         for (const INIEntry* entry = section->EntryList.First(); entry; entry = entry->Next_Valid() ? entry->Next() : nullptr) {
-            if (strcmp(entry->Entry, "$Inherit") == 0 || strcmp(entry->Entry, "$Include") == 0) {
-                continue;
-            }
             if (Is_Present(section->Section, entry->Entry)) {
                 continue;
             }
@@ -147,10 +147,10 @@ void INIClassExt::Inherit_File(INIClass const& ini)
 void INIClassExt::Include_File(INIClass const& ini)
 {
     for (const INISection* section = ini.SectionList.First(); section; section = section->Next_Valid() ? section->Next() : nullptr) {
+        if (strcmp(section->Section, "$Inherit") == 0 || strcmp(section->Section, "$Include") == 0) {
+            continue;
+        }
         for (const INIEntry* entry = section->EntryList.First(); entry; entry = entry->Next_Valid() ? entry->Next() : nullptr) {
-            if (strcmp(entry->Entry, "$Inherit") == 0 || strcmp(entry->Entry, "$Include") == 0) {
-                continue;
-            }
             Put_String(section->Section, entry->Entry, entry->Value);
         }
     }
