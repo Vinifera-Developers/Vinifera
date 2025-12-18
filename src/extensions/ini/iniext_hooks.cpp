@@ -323,7 +323,7 @@ int INIClassExt::_Get_String(char const* section, char const* entry, char const*
             for (const std::string& inherited_section : InheritedSections[sectionptr]) {
                 int count = Get_String(inherited_section.c_str(), entry, "", buffer, size);
                 if (count > 0) {
-                    DEBUG_INFO("Fetched [%s]->%s from %s\n", section, entry, inherited_section.c_str());
+                    //DEBUG_INFO("Fetched [%s]->%s from %s\n", section, entry, inherited_section.c_str());
                     return count;
                 }
             }
