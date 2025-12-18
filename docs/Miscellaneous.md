@@ -48,7 +48,7 @@ In any `INI` file:
 ```
 
 ```{caution}
-Avoid recursive includes. Vinifera does not provide circular reference protection; self-referencing files will cause the game to stop responding.
+Avoid recursive includes. Vinifera does not provide circular reference protection; self-referencing files will cause the game to crash.
 ```
 
 ```{note}
@@ -83,7 +83,7 @@ Owner=GDI
 ```
 
 ```{caution}
-There are no internal guards against recursive inheritance. If Section A inherits from Section B, and Section B inherits from Section A, the game will hang in an infinite loop.
+There are no internal guards against recursive inheritance. If Section A inherits from Section B, and Section B inherits from Section A, the game will crash.
 ```
 
 ```{caution}
