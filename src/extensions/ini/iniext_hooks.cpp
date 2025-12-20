@@ -299,10 +299,6 @@ int INIClassExt::_Get_String(char const* section, char const* entry, char const*
      */
     if (buffer == nullptr || size < 2 || section == nullptr || entry == nullptr) return 0;
 
-    if (std::string_view(section) == "E1") {
-        DEBUG_INFO("E1: Fetching [%s]->%s\n", section, entry);
-    }
-
     /**
      *  Fetch the entry string if it is present.
      */
