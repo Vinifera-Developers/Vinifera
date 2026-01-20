@@ -126,7 +126,7 @@ public:
     /**
      *  The refund value for the unit when it is sold at a Service Depot.
      */
-    unsigned SoylentValue;
+    int SoylentValue;
 
     /**
      *  This is the sound effect to play when a passenger enters this unit.

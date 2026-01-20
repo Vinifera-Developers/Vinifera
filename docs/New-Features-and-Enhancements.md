@@ -943,7 +943,7 @@ LeaveTransportSound=<none>  ; VocType, the sound effect to play when a passenger
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]  ; TechnoType
-Soylent=0     ; unsigned integer, the refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. 0 uses normal refund amount logic.
+Soylent=-1    ; integer, the refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. -1 uses normal refund amount logic.
 ```
 
 ### New Voice Responses

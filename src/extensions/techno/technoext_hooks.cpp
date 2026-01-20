@@ -2121,7 +2121,7 @@ int TechnoClassExt::_Refund_Amount() const
     /**
      *  If the object has a soylent value defined, return it.
      */
-    if (technotypext->SoylentValue > 0) {
+    if (technotypext->SoylentValue >= 0) {
         return technotypext->SoylentValue;
     }
 

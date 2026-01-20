@@ -64,7 +64,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     ShakePixelXHi(0),
     ShakePixelXLo(0),
     UnloadingClass(nullptr),
-    SoylentValue(0),
+    SoylentValue(-1),
     EnterTransportSound(VOC_NONE),
     LeaveTransportSound(VOC_NONE),
     VoiceCapture(),
