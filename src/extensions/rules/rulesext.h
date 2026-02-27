@@ -137,6 +137,9 @@ public:
      */
     int AINavalYardAdjacency;
 
+    /**
+     *  Should the AI automatically repair buildings built as Base Nodes?
+     */
     bool AIRepairBaseNodes;
 
     /**

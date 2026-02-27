@@ -77,6 +77,18 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 
 ![Score screen colors in DTA:CR](https://github.com/user-attachments/assets/bc901430-abfc-4b8e-9648-107d07b7eafe)
 
+### AI Repair Base Nodes
+
+- You can now customize whether the AI can repair structures created as base nodes. 
+- Applies globally to all AI houses, and only affects non-skirmish games. 
+- Can be set and overridden at either game (Rules.ini) or map level.
+
+In a scenario file:
+```ini
+[AI]
+AIRepairBaseNodes=no   ; boolean, can theAI can repair structures created as base nodes?
+```
+
 ## Pre-placed units
 
 - Pre-placed units could not have missions in multiplayer maps, regardless of who they belonged to. Vinifera lifts this limitation.

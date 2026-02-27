@@ -2439,6 +2439,12 @@ DEFINE_HOOK(0x0042CAB9, _BuildingClass_Exit_Object_Factory_Busy_Customized_Alter
     return 0x0042CB16;
 }
 
+/**
+ *  Allows AI to repair Base Nodes by enabling the IsToRepair flag on those buildings.
+ *  Only applies in campaign, and only if the AIRepairBaseNodes under [AI] is set to yes/true. 
+ *
+ *  @author: JoyfulShush
+ */
 DEFINE_HOOK(0x0042A3D1, _BuildingClass_AI_Repair_Base_Nodes, 5)
 {
     GET(BuildingClass*, this_ptr, ESI);
