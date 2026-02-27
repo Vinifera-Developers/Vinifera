@@ -2445,7 +2445,7 @@ DEFINE_HOOK(0x0042CAB9, _BuildingClass_Exit_Object_Factory_Busy_Customized_Alter
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x0042A3D1, _BuildingClass_AI_Repair_Base_Nodes, 5)
+DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
