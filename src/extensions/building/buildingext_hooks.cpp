@@ -2439,6 +2439,17 @@ DEFINE_HOOK(0x0042CAB9, _BuildingClass_Exit_Object_Factory_Busy_Customized_Alter
     return 0x0042CB16;
 }
 
+DEFINE_HOOK(0x0042A3D1, _BuildingClass_AI_Repair_Base_Nodes, 5)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    if (Session.Type == GAME_NORMAL && !this_ptr->House->Is_Human_Player() && RuleExtension->AIRepairBaseNodes) {
+        this_ptr->IsToRepair = true;
+    }
+    
+    return 0;
+}
+
 
 /**
  *  Main function for patching the hooks.

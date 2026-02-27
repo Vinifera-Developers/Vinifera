@@ -137,6 +137,8 @@ public:
      */
     int AINavalYardAdjacency;
 
+    bool AIRepairBaseNodes;
+
     /**
      *  The "double penalty" or "half penalty". Multiply this by the power
      *  units you are short of to get the actual penalty to the build speed.
