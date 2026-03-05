@@ -280,7 +280,7 @@ New:
 - Allow customizing which Tiberiums can grow on a tile (by ZivDero)
 - Allow customizing which Smudges can appear on a tile (by ZivDero)
 - Allow customizing if Veins can grow on a tile (by ZivDero)
-
+- Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -361,4 +361,3 @@ Vanilla fixes:
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
 
 :::
-

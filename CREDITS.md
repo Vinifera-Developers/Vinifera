@@ -146,6 +146,8 @@ This page lists all the individual contributions to the project by their author.
   - Replace DirectDraw with SDL.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
+- **JoyfulShush**:
+  - Allow customizing self healing cap and rate game-wide and per-unit.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:

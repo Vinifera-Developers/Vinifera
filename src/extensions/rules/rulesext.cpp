@@ -103,6 +103,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     PlaceBeaconSound(VOC_NONE),
     PlaceBeaconVoice(VOX_NONE),
     DetectBeaconVoice(VOX_NONE),
+    SelfHealingCap(-1),
+    SelfHealingRate(-1),
     IsBeachIsCrush(false),
     BuildingFlameSpawnBlockFrames(0)
 {
@@ -670,6 +672,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
     IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
+    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
+    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

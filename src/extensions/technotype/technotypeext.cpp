@@ -110,7 +110,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     WakeAnim(nullptr),
     WakeAnimRate(10),                   // Default DriveLocomotion value.
     IdleWakeAnim(nullptr),
-    IsHideWakeWhenCloaked(false)
+    IsHideWakeWhenCloaked(false),
+    SelfHealingCap(-1),
+    SelfHealingRate(-1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -302,6 +304,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsOpportunityFire);
     crc(WakeAnimRate);
     crc(IsHideWakeWhenCloaked);
+    crc(SelfHealingCap);
+    crc(SelfHealingRate);
 }
 
 
@@ -445,6 +449,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     WakeAnimRate = ArtINI.Get_Int(graphic_name, "WakeAnimRate", WakeAnimRate);
     IdleWakeAnim = TGet_Class(ArtINI, graphic_name, "IdleWakeAnim", IdleWakeAnim);
     IsHideWakeWhenCloaked = ArtINI.Get_Bool(graphic_name, "HideWakeWhenCloaked", IsHideWakeWhenCloaked);
+
+    SelfHealingCap = ini.Get_Float(ini_name, "SelfHealingCap", SelfHealingCap);
+    SelfHealingRate = ini.Get_Float(ini_name, "SelfHealingRate", SelfHealingRate);
 
     return true;
 }

@@ -272,6 +272,16 @@ public:
     TargetZoneScanType TargetZoneScan;
 
     /**
+     *  Defines the health cap (in precentages) that this techno can self-heal up to
+     */
+    float SelfHealingCap;
+
+    /**
+     *  Defines the rate (in minutes) that this techno will self-heal
+     */
+    float SelfHealingRate;
+
+    /**
      *  Does this object need to decloak before firing?
      */
     bool IsDecloakToFire;
