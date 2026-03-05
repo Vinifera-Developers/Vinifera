@@ -1236,7 +1236,9 @@ Vanilla prerequisite groups always exist by default. If you re-define them in `[
 
 ### Self Healing
 - Vinifera adds the ability to control the Self Healing mechanism for all technos, allowing to control both the maximum healing capacity and healing rate, both game-wide and per techno.
-- Techno-specific values apply first. If not specified, then game-wide values apply. If both are not specified, then Vinifera falls back to the original values used by the game, which depends on the attribute:
+- Techno-specific values apply first.
+- If not specified, then game-wide values apply.
+- If both are not specified, then Vinifera falls back to the original values used by the game, which depends on the attribute:
   - Self Healing Cap: based on `ConditionYellow`.
   - Self Healing Rate: based on `RepairRate`.
 
