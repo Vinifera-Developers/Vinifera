@@ -1475,6 +1475,13 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
     if (target == nullptr) {
 
         /*
+        **  Abandon the spawn manager's target if there is one.
+        */
+        if (extension->SpawnManager) {
+            extension->SpawnManager->Queue_Target(nullptr);
+        }
+
+        /*
         **  If we've got no target and didn't have one to begin with, reset burst now.
         */
         if (old_target == nullptr && !extension->IsToResetBurst) {
@@ -2617,25 +2624,6 @@ DEFINE_HOOK(0x006324FF, _TechnoClass_Captured_Spawn_Manager_Patch, 0)
     }
 
     return 0x00632518;
-}
-
-
-/**
- *  Patch to assign the target to the spawner.
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 6)
-{
-    GET(TechnoClass*, this_ptr, ESI);
-
-    TechnoClassExtension* extension = Extension::Fetch(this_ptr);
-
-    if (extension->SpawnManager) {
-        extension->SpawnManager->Queue_Target(nullptr);
-    }
-
-    return 0;
 }
 
 
