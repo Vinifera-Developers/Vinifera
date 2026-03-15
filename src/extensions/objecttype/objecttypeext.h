@@ -30,6 +30,8 @@
 #include "abstracttypeext.h"
 #include "objecttype.h"
 
+#include "wstring.h"
+
 
 class ObjectTypeClassExtension : public AbstractTypeClassExtension
 {
@@ -92,4 +94,10 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
          */
         VoxelObject WaterVoxel;
         VoxelIndexClass WaterVoxelIndex;
+
+        /**
+         *  The ambient sound effect type to play while this object is active.
+         */
+        VocType AmbientSound;
+        //std::string AmbientSoundName;
 };

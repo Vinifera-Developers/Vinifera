@@ -45,6 +45,14 @@
 
 
 /**
+ *
+ *  #NOTE: Any changes made to ThemeClass need to be reflected in
+ *         the new audio manager ThemeClass implemention!
+ *
+ */
+
+
+/**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  * 

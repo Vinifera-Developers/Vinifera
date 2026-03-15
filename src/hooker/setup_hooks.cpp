@@ -33,8 +33,10 @@
 #include "crt_hooks.h"
 #include "debug_hooks.h"
 #include "vinifera_hooks.h"
+#include "vinifera_globals.h"
 #include "newswizzle_hooks.h"
 #include "extension_hooks.h"
+#include "audio_hooks.h"
 #include "cncnet4_hooks.h"
 #include "cncnet5_hooks.h"
 #include "sidebarext_hooks.h"
@@ -57,5 +59,7 @@ void Setup_Hooks()
  */
 void Setup_Conditional_Hooks()
 {
+    Audio_Hooks();
+
     SidebarClassExtension_Conditional_Hooks();
 }

@@ -34,16 +34,24 @@
 #include "special.h"
 #include "playmovie.h"
 #include "cd.h"
+#include "ccfile.h"
+#include "ccini.h"
 #include "newmenu.h"
 #include "addon.h"
 #include "command.h"
 #include "theme.h"
+#include "voc.h"
 #include "session.h"
 #include "iomap.h"
 #include "dsaudio.h"
 #include "vinifera_gitinfo.h"
 #include "tspp_gitinfo.h"
 #include "resource.h"
+#include "audio_manager.h"
+#include "audio_util.h"
+#include "audio_voc.h"
+#include "audio_vox.h"
+#include "audio_theme.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 #include <Windows.h>
@@ -183,6 +191,7 @@ static bool CCFile_Validate_Is_Available(const char *filename, int size)
 static bool Vinifera_Play_Startup_Movies()
 {
     static const int VINIFERA_VQA_SIZE = 704889;
+    static const int MINIAUD_VQA_SIZE = 84135;
     static const int WWLOGO_VQA_SIZE = 2415362;
 
     if (Special.IsFromInstall) {
@@ -197,7 +206,11 @@ static bool Vinifera_Play_Startup_Movies()
         } else {
             Play_Movie("VINIFERA.VQA");
         }
-        
+        if (!CCFile_Validate_Is_Available("MINIAUD.VQA", MINIAUD_VQA_SIZE)) {
+            DEBUG_INFO("Failed to find MINIAUD.VQA!\n");
+        } else {
+            Play_Movie("MINIAUD.VQA");
+        }
         if (!CCFile_Validate_Is_Available("WWLOGO.VQA", WWLOGO_VQA_SIZE)) {
             DEBUG_INFO("Failed to find WWLOGO.VQA!\n");
         } else {
@@ -268,6 +281,7 @@ static bool Vinifera_Detect_Addons()
 }
 #endif
 
+extern bool ImGui_Create_Main_Window(HINSTANCE hInstance);
 
 /**
  *  Creates the main window for Tiberian Sun
@@ -480,6 +494,8 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
     GameInFocus = true;
 
     //DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
+
+    //ImGui_Create_Main_Window(hInstance);
 }
 
 
@@ -780,7 +796,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" SCORES.MIX\n", buffer);
     }
 	ScoresPresent = true;
-	Theme.Scan();
+    ViniferaTheme.Scan();
 
     /**
      *  #issue-513

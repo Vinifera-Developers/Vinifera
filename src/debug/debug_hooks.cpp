@@ -33,10 +33,16 @@
 #include "vinifera_globals.h"
 #include "tspp_assert.h"
 #include "winutil.h"
+#include <comdef.h>  // Declares _com_raise_error and _com_error
+#include "stackdump.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include <string>
 #include <stdarg.h>
+
+
+// Extern as we don't want to pull in tibsun_globals.h
+extern HWND& MainWindow;
 
 
 /**
@@ -583,12 +589,137 @@ static void Assert_Handler_Hooks()
  */
 static LONG __stdcall _Top_Level_Exception_Filter(EXCEPTION_POINTERS *e_info)
 {
-    return Vinifera_Exception_Handler(e_info->ExceptionRecord->ExceptionCode, e_info);
+    DWORD code = ExceptionInfo->ExceptionRecord->ExceptionCode;
+    DEBUG_ERROR("EH caught exception: 0x%08X\n", code);
+    return Vinifera_Exception_Handler(code, e_info);
+}
+
+static LONG __stdcall _Vectored_Exception_Filter(EXCEPTION_POINTERS *e_info)
+{
+    DWORD code = ExceptionInfo->ExceptionRecord->ExceptionCode;
+    DEBUG_ERROR("VEH caught exception: 0x%08X\n", code);
+
+    // Common harmless exceptions � let them pass
+    if (code == 0x4001000A ||              // DBG_PRINTEXCEPTION_C
+        code == EXCEPTION_BREAKPOINT ||    // 0x80000003
+        code == EXCEPTION_SINGLE_STEP)     // 0x80000004
+    {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    // Handle specific exceptions you want
+    if (code == EXCEPTION_ACCESS_VIOLATION) {
+        DEBUG_ERROR("Access violation at address: 0x%p\n", ExceptionInfo->ExceptionRecord->ExceptionAddress);
+        return EXCEPTION_CONTINUE_EXECUTION; // Only if you can fix the state!
+    }
+
+    // Pass everything else along the chain
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 static void __cdecl _Structured_Exception_Translator(unsigned int code, EXCEPTION_POINTERS *e_info)
 {
+    DEBUG_ERROR("SEH caught exception: 0x%08X\n", code);
     Vinifera_Exception_Handler(code, e_info);
+}
+
+
+/**
+ *  Working buffer if the file has not been opened.
+ */
+static FixedString<65536> StackBuffer;
+
+/**
+ *  Callback for the stack dumping routine.
+ */
+static void __cdecl Vinifera_COM_StackCallback(const char *buffer)
+{
+    StackBuffer += buffer;
+}
+
+std::string HResultToString(HRESULT hr) {
+    LPWSTR wbuffer {nullptr};
+
+    DWORD flags {
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS |
+        FORMAT_MESSAGE_ALLOCATE_BUFFER
+    };
+
+    DWORD wlen {FormatMessageW(
+        flags,
+        nullptr,
+        static_cast<DWORD>(hr),
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        reinterpret_cast<LPWSTR>(&wbuffer),
+        0,
+        nullptr
+    )};
+
+    if (wlen == 0 || wbuffer == nullptr) {
+        return std::string("Unknown HRESULT");
+    }
+
+    int utf8Len {WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        wbuffer,
+        static_cast<int>(wlen),
+        nullptr,
+        0,
+        nullptr,
+        nullptr
+    )};
+
+    if (utf8Len <= 0) {
+        LocalFree(wbuffer);
+        return std::string("Conversion failed");
+    }
+
+    std::string result;
+    result.resize(static_cast<size_t>(utf8Len));
+
+    WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        wbuffer,
+        static_cast<int>(wlen),
+        (char *)result.data(),
+        utf8Len,
+        nullptr,
+        nullptr
+    );
+
+    LocalFree(wbuffer);
+
+    return result;
+}
+
+void __stdcall Vinifera_com_issue_error(HRESULT hr)
+{
+    Stack_Dump(Vinifera_COM_StackCallback, 1);
+
+    DEBUG_ERROR("[COM] _com_issue_error triggered! HRESULT = 0x%08X\n", hr);
+
+    static char buffer[4096];
+    std::snprintf(buffer, sizeof(buffer),
+        "_com_raise_error called!\n\nHRESULT = 0x%08X\n%s\n%s", hr, HResultToString(hr).c_str(), StackBuffer.c_str());
+
+    MessageBoxA(
+        MainWindow,
+        buffer,
+        "COM Error!",
+        MB_OK|MB_ICONEXCLAMATION
+    );
+
+    /**
+     *  Trigger a break so the debugger can catch it if one is attached.
+     */
+    if (IsDebuggerPresent()) {
+        __debugbreak();
+    }
+
+    _com_raise_error(hr);
 }
 
 
@@ -608,9 +739,15 @@ void Debug_Hooks()
      */
     SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)&_Top_Level_Exception_Filter);
     _set_se_translator((_se_translator_function)&_Structured_Exception_Translator);
+    //AddVectoredExceptionHandler(1, (LPTOP_LEVEL_EXCEPTION_FILTER)&_Vectored_Exception_Filter);
     Hook_Function(0x005FF7D0, &_Top_Level_Exception_Filter);
     Hook_Function(0x00496350, &Vinifera_Exception_Handler);
     //ASM_Hook_Function(0x00495610, Dump_Exception_Info);
+    
+    /**
+     *  Hook _com_issue_error intercept. We don't need to _com_raise_error.
+     */
+    Hook_Function(0x006C61E0, &Vinifera_com_issue_error);
 
     /**
      *  Change the exception dialog to use the developer dialog.

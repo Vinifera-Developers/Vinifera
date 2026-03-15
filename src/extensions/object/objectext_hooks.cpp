@@ -40,6 +40,8 @@
 #include "colorscheme.h"
 #include "extension.h"
 
+#include "audio_voc.h"
+
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "house.h"
@@ -146,6 +148,48 @@ bool ObjectClassExt::_Paradrop(Coord const& coord)
     return false;
 }
 
+/**
+ *  Patch to stop the ambient sound when an object enters limbo.
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_ObjectClass_Limbo_AmbientSound_Patch)
+{
+    GET_REGISTER_STATIC(ObjectClass *, this_ptr, esi);
+    static ObjectClassExtension *this_ext;
+
+    this_ext = Extension::Fetch(this_ptr);
+
+    this_ext->AmbientSound->Stop();
+
+    //JMP();
+}
+
+
+/**
+ *  Patch to update the ambient sound position during the object's AI processing.
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_ObjectClass_AI_AmbientSound_Patch)
+{
+    GET_REGISTER_STATIC(ObjectClass *, this_ptr, esi);
+    static ObjectClassExtension *this_ext;
+
+    this_ext = Extension::Fetch(this_ptr);
+
+    /**
+     *  Only update the ambient sound position if the object is not in limbo.
+     */
+    if (!this_ptr->IsInLimbo) {
+        if (this_ext->AmbientSound) {
+            this_ext->AmbientSound->Update_Position(this_ptr->PositionCoord);
+        }
+    }
+
+    //JMP();
+}
+
 
 /**
  *  Main function for patching the hooks.
@@ -153,4 +197,5 @@ bool ObjectClassExt::_Paradrop(Coord const& coord)
 void ObjectClassExtension_Hooks()
 {
     Patch_Jump(0x005864C0, &ObjectClassExt::_Paradrop);
+    //Patch_Jump(0x00584C18, &_ObjectClass_AI_AmbientSound_Patch);
 }

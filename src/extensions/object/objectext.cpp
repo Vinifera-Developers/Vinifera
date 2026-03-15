@@ -4,7 +4,7 @@
  *
  *  @project       Vinifera
  *
- *  @file          OBJECTEXT.H
+ *  @file          OBJECTEXT.CPP
  *
  *  @author        CCHyper
  *
@@ -29,6 +29,7 @@
 
 #include "objectext.h"
 #include "objecttype.h"
+#include "audio_voc.h"
 
 
 /**
@@ -37,7 +38,8 @@
  *  @author: CCHyper
  */
 ObjectClassExtension::ObjectClassExtension(const ObjectClass *this_ptr) :
-    AbstractClassExtension(this_ptr)
+    AbstractClassExtension(this_ptr),
+    AmbientSound(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectClassExtension::ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -63,6 +65,10 @@ ObjectClassExtension::ObjectClassExtension(const NoInitClass &noinit) :
 ObjectClassExtension::~ObjectClassExtension()
 {
     //EXT_DEBUG_TRACE("ObjectClassExtension::~ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (AmbientSound) {
+        AmbientSound->Stop();
+    }
 }
 
 

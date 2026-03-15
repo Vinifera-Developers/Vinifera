@@ -32,6 +32,7 @@
 #include "options.h"
 #include "ccini.h"
 #include "rawfile.h"
+#include "audio_manager.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "vinifera_globals.h"
@@ -158,7 +159,14 @@ void OptionsClassExtension::Object_CRC(CRCEngine &crc) const
 void OptionsClassExtension::Load_Settings()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
-    
+
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, This()->ScoreVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_AMBIENT, This()->ScoreVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_SPEECH, This()->VoiceVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_SFX, This()->SoundVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, This()->SoundVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, This()->SoundVolume);
+
     RawFileClass file("SUN.INI");
     CCINIClass sun_ini;
 
@@ -256,4 +264,11 @@ void OptionsClassExtension::Save_Settings()
 void OptionsClassExtension::Set()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Set - 0x%08X\n", (uintptr_t)(This()));
+
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, This()->ScoreVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_AMBIENT, This()->ScoreVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_SPEECH, This()->VoiceVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_SFX, This()->SoundVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, This()->SoundVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, This()->SoundVolume);
 }

@@ -28,13 +28,16 @@
 #include "optionsext_hooks.h"
 #include "optionsext_init.h"
 #include "optionsext.h"
+#include "options.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "rawfile.h"
-
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
+#include "audio_voc.h"
 
 /**
  *  Patches Hotkey_Dialog_Proc to use RawFileClass when deleting Keyboard.INI to ensure only
@@ -56,6 +59,24 @@ DECLARE_PATCH(_Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch)
 
 
 /**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+static int Options_SoundVolume_To_Int() { return Options.SoundVolume * 255; }
+DECLARE_PATCH(_OptionsClass_Set_Sound_Volume_Patch)
+{
+    AudioVocClass::Set_Volume(Options_SoundVolume_To_Int());
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { pop esi }
+    _asm { ret 8 }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void OptionsClassExtension_Hooks()
@@ -66,4 +87,5 @@ void OptionsClassExtension_Hooks()
     OptionsClassExtension_Init();
 
     Patch_Jump(0x0058AA18, &_Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch);
+    Patch_Jump(0x00589B68, &_OptionsClass_Set_Sound_Volume_Patch);
 }

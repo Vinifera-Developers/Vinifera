@@ -27,6 +27,11 @@
  ******************************************************************************/
 #include "debughlp.h"
 #include "debughandler.h"
+#include "tspp.h"
+
+
+// Extern as we don't want to pull in tibsun_globals.h
+extern HINSTANCE &ProgramInstance;
 
 
 /**
@@ -178,9 +183,32 @@ bool __cdecl Init_Symbol_Info()
          *  name of the target binary. The DLL's debug database contains all our debug info. So use the string
          *  literal of the dll name defined by the build system.
          */
-        if (SymInitializePtr != nullptr && SymInitializePtr(SymbolProcess, VINIFERA_DLL, TRUE)) {
-            return true;
+        if (SymInitializePtr == nullptr || SymInitializePtr(SymbolProcess, VINIFERA_DLL, TRUE) == FALSE) {
+            return false;
         }
+
+        // Set the folder where the game's PDB is located.
+        if (ProgramInstance != GetCurrentProcess()) {
+            SymSetSearchPath(GetCurrentProcess(), ".\\");
+        }
+        SymSetSearchPath(ProgramInstance, ".\\");
+
+        // Load the symbol module manually for the target game exe.
+        SymLoadModuleEx(
+            ProgramInstance,                              // HANDLE to the process — usually GetCurrentProcess()
+            NULL,                                           // No file handle needed
+            NULL,                                        // No image path; symbol engine will use search path
+            "GAME",                                     // Friendly module name — fine to use here
+            (DWORD64)GetModuleHandleA(NULL),  // Base address where the EXE is loaded in memory
+            0,                                            // Size can be 0; DbgHelp will figure it out
+            NULL,                                           // No special data
+            0                                                    // No flags needed
+        );
+
+        TSPP_AutoSymbolRegister::Sort();
+        TSPP_ModuleRegister::Sort();
+
+        return true;
     }
 
     return false;

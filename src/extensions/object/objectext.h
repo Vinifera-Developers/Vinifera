@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          BUILDINGEXT.H
+ *  @file          OBJECTEXT.H
  *
  *  @author        CCHyper
  *
- *  @brief         Extended AircraftClass class.
+ *  @brief         Extended ObjectClass class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@
 
 class AircraftClass;
 class HouseClass;
+class AudioVocClass;
 
 
 class ObjectClassExtension : public AbstractClassExtension
@@ -59,4 +60,8 @@ class ObjectClassExtension : public AbstractClassExtension
         virtual const ObjectClass *This_Const() const override { return reinterpret_cast<const ObjectClass *>(AbstractClassExtension::This_Const()); }
 
     public:
+        /**
+         *  The looping ambient sound effect attached to this object instance.
+         */
+        AudioVocClass * AmbientSound;
 };

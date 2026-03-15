@@ -42,7 +42,10 @@
 #include "rulesext.h"
 #include "technotypeext.h"
 #include "unittypeext.h"
+#include "vinifera_globals.h"
 
+#include "audio_sample.h"
+#include "voc.h"
 
 /**
  *  Class constructor.
@@ -58,8 +61,8 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
     NoSpawnVoxelIndex(),
     WaterAlt(false),
     WaterVoxel(),
-    WaterVoxelIndex()
-
+    WaterVoxelIndex(),
+    AmbientSound(VOC_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -202,6 +205,8 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
         Fetch_Voxel_Image(Graphic_Name());
     }
     
+    AmbientSound = ini.Get_VocType(ini_name, "AmbientSound", AmbientSound);
+
     return true;
 }
 
