@@ -195,7 +195,7 @@ SDLSurface* SDLSurface::Create_Primary(void*)
 {
     DEBUG_INFO("SDLSurface::Create_Primary\n");
 
-    AllowStretchBlits = false;
+    AllowStretchBlits = true;
     AllowHWFill = false;
 
     DEBUG_INFO("SDLSurface::Create_Primary - Creating surface\n");
