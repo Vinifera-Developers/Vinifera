@@ -101,6 +101,7 @@ Vinifera fixes:
 - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
 - Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
 - Fix a bug where new local/global variable trigger events wouldn't reset their timers correctly (by ZivDero)
+- Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued (by ZivDero)
 
 
 Vanilla fixes:

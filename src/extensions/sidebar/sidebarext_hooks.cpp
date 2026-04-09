@@ -2624,8 +2624,10 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     if (factory->Has_Completed()) {
 
                         TechnoClass* pending = factory->Get_Object();
-                        if (!pending && factory->Get_Special_Item()) {
-                            Map.TargettingType = SUPER_ANY;
+                        if (!pending) {
+                            if (factory->Get_Special_Item() != -1) {
+                                Map.TargettingType = SUPER_ANY;
+                            }
                         } else {
                             BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
                             if (!builder) {
@@ -2667,6 +2669,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                             Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
                             TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
                     }
+
                 } else {
 
                     /*
@@ -2675,8 +2678,13 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     **  ignore the click.
                     */
                     factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
-                    if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE) {
-                        Speak(VOX_NO_FACTORY);
+                    bool produce = false;
+                    if (factory != nullptr && (factory->Is_Building() || factory->Has_Production_Target())) {
+                        if (otype == RTTI_BUILDINGTYPE) {
+                            Speak(VOX_NO_FACTORY);
+                        } else {
+                            produce = true;
+                        }
                     } else {
 
                         /*
@@ -2688,12 +2696,13 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                         } else {
                             Speak(VOX_BUILDING);
                         }
+                        produce = true;
+                    }
+                    if (produce) {
                         const int count_to_produce = Key_Down(VK_SHIFT) ? 5 : 1;
                         for (int i = 0; i < count_to_produce; i++) {
-                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
-                                TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID, TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
                         }
-
                     }
                 }
             }

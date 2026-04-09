@@ -320,3 +320,4 @@ This page lists all the individual contributions to the project by their author.
   - Implement INI inheritance/includes.
   - Fix a bug where the last line of an INI file would not be parsed.
   - Fix incorrect merging of sections and keys in INI files.
+  - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued.
