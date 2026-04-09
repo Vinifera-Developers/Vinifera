@@ -26,24 +26,18 @@
  *
  ******************************************************************************/
 
-#include "tibsun_globals.h"
+#include "always.h"
 
 #include "colorscheme.h"
 #include "dsurface.h"
-#include "extension_globals.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
 #include "rgb.h"
 #include "scenarioext.h"
 #include "sideext.h"
-
-
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
 
 
 /**

@@ -29,9 +29,8 @@
  *                 https://github.com/TheAssemblyArmada/Thyme/
  *
  ******************************************************************************/
-#pragma once
 
-#include "always.h"
+#pragma once
 
 
 class MapViewOfFileClass

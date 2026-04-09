@@ -25,9 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "surfacescale.h"
-#include "vinifera_util.h"
+
 #include "Surface.h"
+#include "vinifera_util.h"
 #include "vnImagine.h"
 
 
@@ -37,9 +41,9 @@
  */
 
 
-/** 
+/**
  *  Scales an input surface to fit the destination surface using the Image-Resampler library.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Scale_Surface_ImageResampler(Surface *src, Surface *dst, VN_IMAGE_KERNEL_TYPE kernel)

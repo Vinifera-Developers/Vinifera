@@ -25,39 +25,42 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "houseext.h"
 
-#include <algorithm>
-#include "house.h"
-#include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "factory.h"
-#include "mouse.h"
-#include "saveload.h"
-#include "sidebarext.h"
-#include "vinifera_saveload.h"
-#include "storageext.h"
-#include "tibsun_functions.h"
-#include "utracker.h"
 #include "building.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "factory.h"
 #include "factoryext.h"
+#include "house.h"
+#include "mouse.h"
 #include "overlaytype.h"
 #include "prerequisitegroup.h"
 #include "rules.h"
+#include "saveload.h"
 #include "session.h"
+#include "sidebarext.h"
+#include "storageext.h"
 #include "team.h"
 #include "teamtype.h"
+#include "tibsun_functions.h"
 #include "unit.h"
 #include "unittypeext.h"
+#include "utracker.h"
+#include "vinifera_saveload.h"
 #include "voc.h"
 #include "vox.h"
+
+#include <algorithm>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :

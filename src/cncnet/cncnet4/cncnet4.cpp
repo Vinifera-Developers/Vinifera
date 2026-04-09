@@ -25,18 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "cncnet4.h"
-#include "cncnet4_net.h"
-#include "cncnet4_globals.h"
-#include "rawfile.h"
-#include "ini.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
-#include <windows.h>
-#include <cstdio>
-#include <cstdio>
+#include "always.h"
+
+#include "cncnet4.h"
+
+#include "cncnet4_globals.h"
+#include "cncnet4_net.h"
+#include "debughandler.h"
+#include "ini.h"
+#include "rawfile.h"
+
 #include <ctime>
+#include <windows.h>
 #include <wsipx.h>
 
 

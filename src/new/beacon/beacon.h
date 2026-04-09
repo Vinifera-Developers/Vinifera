@@ -25,10 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "coord.h"
-#include "point.h"
 #include "rect.h"
 
 #include <map>

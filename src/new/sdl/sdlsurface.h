@@ -25,11 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "palette.h"
-#include "dsurface.h"
 #include "SDL3/SDL_surface.h"
+#include "dsurface.h"
 
 
 enum SDLSurfaceColorMode {

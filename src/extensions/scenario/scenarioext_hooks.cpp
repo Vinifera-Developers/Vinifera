@@ -25,30 +25,31 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "scenarioext_hooks.h"
-#include "scenarioext_init.h"
-#include "scenarioext.h"
-#include "tibsun_functions.h"
-#include "tibsun_globals.h"
-#include "multiscore.h"
-#include "scenario.h"
-#include "session.h"
-#include "rules.h"
-#include "ccfile.h"
-#include "ccini.h"
-#include "environment.h"
+
 #include "addon.h"
 #include "aircrafttracker.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
-#include "environmentext_hooks.h"
-
+#include "ccfile.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "fatal.h"
 #include "hooker.h"
 #include "houseext.h"
 #include "kamikazetracker.h"
 #include "mouse.h"
+#include "multiscore.h"
+#include "rules.h"
+#include "scenario.h"
+#include "scenarioext.h"
+#include "scenarioext_init.h"
+#include "session.h"
 #include "syringe.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "vinifera_globals.h"
 
 

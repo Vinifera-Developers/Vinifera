@@ -25,27 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "animext.h"
-#include "animtypeext.h"
-#include "anim.h"
-#include "animtype.h"
-#include "fatal.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "anim.h"
+#include "animext.h"
+#include "animtype.h"
+#include "animtypeext.h"
+#include "debughandler.h"
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x00413C79, _AnimClass_Constructor_Patch, 7)

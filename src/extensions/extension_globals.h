@@ -25,12 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "vinifera_defines.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 class AbstractClass;

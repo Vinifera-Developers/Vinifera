@@ -25,14 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "radioext_hooks.h"
-#include "radio.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
-#include "hooker.h"
+#include "always.h"
+
+#include "radioext_hooks.h"
 
 
 /**

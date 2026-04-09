@@ -25,16 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "weapontypeext_hooks.h"
-#include "weapontypeext_init.h"
-#include "weapontypeext.h"
-#include "weapontype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+
 #include "animtype.h"
 #include "findmake.h"
 #include "syringe.h"
+#include "weapontype.h"
+#include "weapontypeext_init.h"
 
 
 /**

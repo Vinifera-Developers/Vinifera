@@ -25,25 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
+
+#include "always.h"
+
+#include "actiontype.h"
+#include "armortype.h"
 #include "ccini.h"
+#include "hooker.h"
 #include "housetype.h"
 #include "theatertype.h"
-#include "armortype.h"
-#include "actiontype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
-#include "syringe.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

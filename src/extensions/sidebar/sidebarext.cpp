@@ -25,34 +25,35 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sidebarext.h"
-#include "sidebarext.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
+
 #include "ccini.h"
-#include "noinit.h"
-#include "swizzle.h"
-#include "scenarioext.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
 #include "debughandler.h"
 #include "drawshape.h"
-#include "language.h"
-#include "tooltip.h"
-#include "mouse.h"
-#include "house.h"
-#include "super.h"
 #include "event.h"
 #include "eventext.h"
-#include "object.h"
 #include "factory.h"
+#include "house.h"
 #include "houseext.h"
+#include "housetype.h"
+#include "language.h"
+#include "mouse.h"
+#include "noinit.h"
+#include "object.h"
+#include "scenarioext.h"
+#include "sideext.h"
+#include "super.h"
+#include "techno.h"
+#include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tooltip.h"
+#include "vinifera_saveload.h"
 #include "vox.h"
 #include "wwmouse.h"
-#include "techno.h"
-#include "sideext.h"
-#include "housetype.h"
 
 
 GadgetClass* SidebarClassExtension::LastHovered;

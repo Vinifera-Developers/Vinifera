@@ -25,14 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "radioext.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 RadioClassExtension::RadioClassExtension(const RadioClass *this_ptr) :

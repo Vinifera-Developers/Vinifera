@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "footext.h"
 #include "aircraft.h"
+#include "footext.h"
 
 
 class AircraftClass;

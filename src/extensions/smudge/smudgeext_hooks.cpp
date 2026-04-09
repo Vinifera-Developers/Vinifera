@@ -25,15 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "smudgeext_hooks.h"
-#include "smudgeext_init.h"
-#include "smudgeext.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
-#include "hooker.h"
+#include "always.h"
+
+#include "smudgeext_hooks.h"
+
+#include "smudgeext_init.h"
 
 
 /**

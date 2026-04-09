@@ -25,16 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "abstractext.h"
 #include "extension.h"
-#include "tactical.h"
-#include "ttimer.h"
-#include "stimer.h"
 #include "point.h"
+#include "stimer.h"
+#include "tactical.h"
 #include "textprint.h"
-#include <objidl.h>
+#include "ttimer.h"
 
 
 class HouseClass;

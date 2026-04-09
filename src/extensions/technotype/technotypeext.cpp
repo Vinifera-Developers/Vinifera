@@ -25,29 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "technotypeext.h"
 
 #include "aircrafttype.h"
 #include "animtype.h"
-#include "unittype.h"
-#include "technotype.h"
-#include "ccini.h"
-#include "filepng.h"
-#include "swizzle.h"
 #include "bsurface.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "spritecollection.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
+#include "ccini.h"
 #include "debughandler.h"
 #include "findmake.h"
 #include "rules.h"
+#include "technotype.h"
+#include "tibsun_globals.h"
+#include "unittype.h"
+#include "vinifera_saveload.h"
+#include "vinifera_util.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_ptr) :

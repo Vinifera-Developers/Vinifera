@@ -25,17 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "particlesystypeext.h"
-#include "particlesystype.h"
+
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "particlesystype.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ParticleSystemTypeClassExtension::ParticleSystemTypeClassExtension(const ParticleSystemTypeClass *this_ptr) :

@@ -25,21 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "optionsext.h"
-#include "options.h"
-#include "tibsun_globals.h"
+
+#include "ccini.h"
 #include "noinit.h"
 #include "options.h"
-#include "ccini.h"
 #include "rawfile.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "tibsun_globals.h"
 #include "vinifera_globals.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :

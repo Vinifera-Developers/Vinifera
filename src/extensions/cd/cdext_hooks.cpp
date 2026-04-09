@@ -25,12 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "cdext_hooks.h"
-#include "cd.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "cdext_hooks.h"
+
+#include "cd.h"
 #include "hooker.h"
 
 

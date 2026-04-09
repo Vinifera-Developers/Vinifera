@@ -25,10 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "eventext.h"
-#include "extension.h"
-#include "asserthandler.h"
+
 #include "debughandler.h"
+#include "extension.h"
 #include "houseext.h"
 
 

@@ -25,17 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "campaignext.h"
+
 #include "campaign.h"
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :

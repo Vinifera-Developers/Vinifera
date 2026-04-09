@@ -25,34 +25,35 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "initext_hooks.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "special.h"
-#include "playmovie.h"
-#include "cd.h"
-#include "newmenu.h"
+
 #include "addon.h"
-#include "command.h"
-#include "theme.h"
-#include "session.h"
-#include "iomap.h"
-#include "dsaudio.h"
 #include "asserthandler.h"
 #include "ccini.h"
+#include "cd.h"
 #include "debughandler.h"
-#include "optionsext.h"
-#include "sdl_functions.h"
-#include <Windows.h>
-#include <commctrl.h>
-#include <tlhelp32.h>
-#include <bcrypt.h>
-
+#include "dsaudio.h"
 #include "hooker.h"
+#include "iomap.h"
+#include "newmenu.h"
+#include "optionsext.h"
+#include "playmovie.h"
 #include "scenarioext.h"
+#include "sdl_functions.h"
+#include "session.h"
+#include "special.h"
 #include "syringe.h"
+#include "theme.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
+
+#include <bcrypt.h>
+#include <windows.h>
+#include <tlhelp32.h> // must be after windows.h
 
 
 extern HMODULE DLLInstance;

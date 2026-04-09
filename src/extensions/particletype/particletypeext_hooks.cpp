@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "particletypeext_hooks.h"
+
 #include "particletypeext_init.h"
-#include "particletypeext.h"
-#include "particletype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

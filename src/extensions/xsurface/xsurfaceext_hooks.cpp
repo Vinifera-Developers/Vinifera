@@ -25,11 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 
-#include	"xsurfaceext_hooks.h"
-#include	"xsurface.h"
-#include	"hooker.h"
+#include "always.h"
+
+#include "xsurfaceext_hooks.h"
+
+#include "hooker.h"
+#include "xsurface.h"
 
 
 typedef int OutCode;

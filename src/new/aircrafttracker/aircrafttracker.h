@@ -25,15 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "vector.h"
-#include <unknwn.h>
 #include "tibsun_defines.h"
+#include "vector.h"
 
 class AbstractClass;
 class FootClass;
 class CellClass;
+struct IStream;
 
 
 class AircraftTrackerClass {

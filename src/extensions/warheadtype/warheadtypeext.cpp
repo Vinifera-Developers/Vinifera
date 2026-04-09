@@ -25,27 +25,30 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "warheadtypeext.h"
-#include "warheadtype.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "armortype.h"
-#include "rules.h"
-#include "ccini.h"
-#include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+
 #include "animtype.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
 #include "findmake.h"
 #include "miscutil.h"
+#include "tibsun_globals.h"
 #include "verses.h"
+#include "vinifera_globals.h"
 #include "vinifera_saveload.h"
+#include "warheadtype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *this_ptr) :

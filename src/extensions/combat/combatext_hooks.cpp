@@ -25,47 +25,46 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "combatext_hooks.h"
-#include "tibsun_inline.h"
-#include "buildingext_hooks.h"
-#include <algorithm>
-#include <unordered_set>
-#include "aircraft.h"
+
 #include "aircrafttracker.h"
 #include "anim.h"
 #include "animtype.h"
-#include "vinifera_globals.h"
-#include "combat.h"
-#include "cell.h"
-#include "overlaytype.h"
-#include "rulesext.h"
-#include "scenarioext.h"
-#include "warheadtype.h"
-#include "warheadtypeext.h"
 #include "armortype.h"
-#include "extension.h"
-#include "fatal.h"
 #include "asserthandler.h"
 #include "building.h"
+#include "cell.h"
+#include "combat.h"
 #include "coord.h"
-#include "debughandler.h"
+#include "extension.h"
 #include "hooker.h"
 #include "infantry.h"
-#include "infantrytype.h"
+#include "jumpjetlocomotion.h"
 #include "mouse.h"
+#include "overlaytype.h"
 #include "particlesys.h"
 #include "particlesystype.h"
+#include "rulesext.h"
+#include "scenarioext.h"
+#include "smudgetype.h"
+#include "syringe.h"
 #include "tactical.h"
 #include "team.h"
 #include "teamtype.h"
-#include "unit.h"
+#include "tibsun_inline.h"
 #include "unittype.h"
 #include "veinholemonster.h"
 #include "verses.h"
+#include "vinifera_globals.h"
 #include "voxelanim.h"
-#include "jumpjetlocomotion.h"
-#include "smudgetype.h"
-#include "syringe.h"
+#include "warheadtype.h"
+#include "warheadtypeext.h"
+
+#include <algorithm>
+#include <unordered_set>
 
 
 template <typename T>

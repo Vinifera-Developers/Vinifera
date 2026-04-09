@@ -25,25 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "campaignext_hooks.h"
-#include "campaignext_init.h"
+
+#include "addon.h"
 #include "campaign.h"
 #include "campaignext.h"
-#include "addon.h"
-#include "extension.h"
-#include "fatal.h"
+#include "campaignext_init.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
 
 
 /**
  *  #issue-723
- * 
+ *
  *  Patches in support for checking IsDebugOnly when loading campaigns.
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)

@@ -25,37 +25,34 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "infantryext_hooks.h"
 
 #include "animtype.h"
-#include "infantryext_init.h"
-#include "infantry.h"
-#include "infantrytype.h"
-#include "infantrytypeext.h"
-#include "technotype.h"
-#include "technotypeext.h"
+#include "asserthandler.h"
 #include "building.h"
 #include "buildingtype.h"
-#include "tagtype.h"
-#include "house.h"
-#include "housetype.h"
-#include "target.h"
-#include "voc.h"
-#include "tibsun_globals.h"
 #include "extension.h"
+#include "hooker.h"
+#include "house.h"
+#include "infantry.h"
+#include "infantryext_init.h"
+#include "infantrytype.h"
+#include "infantrytypeext.h"
 #include "options.h"
 #include "rules.h"
-#include "wwkeyboard.h"
-#include "tiberium.h"
-#include "tiberiumext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "tibsun_inline.h"
-
-#include "hooker.h"
 #include "sideext.h"
 #include "syringe.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "tiberium.h"
+#include "tiberiumext.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
+#include "voc.h"
+#include "wwkeyboard.h"
 
 
 /**

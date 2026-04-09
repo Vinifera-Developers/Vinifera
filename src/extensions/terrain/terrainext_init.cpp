@@ -25,25 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "terrainext.h"
-#include "terrain.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "terrain.h"
+#include "terrainext.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x0063F88C, _TerrainClass_Default_Constructor_Patch, 5)

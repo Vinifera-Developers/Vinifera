@@ -25,16 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "themeext.h"
-#include "theme.h"
+
 #include "ccini.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "theme.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ThemeControlExtension::ThemeControlExtension(const ThemeClass::ThemeControl *this_ptr) :

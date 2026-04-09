@@ -25,30 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingtypeext_hooks.h"
 
-#include "buildingtypeext_init.h"
-#include "buildingtypeext.h"
-#include "buildingtype.h"
-#include "bullettype.h"
-#include "warheadtype.h"
-#include "weapontype.h"
-#include "rules.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
+#include "buildingtypeext_init.h"
+#include "bullettype.h"
+#include "debughandler.h"
 #include "extension.h"
-
 #include "hooker.h"
+#include "rules.h"
 #include "syringe.h"
 #include "tibsun_globals.h"
 #include "verses.h"
-#include "warheadtypeext.h"
+#include "weapontype.h"
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

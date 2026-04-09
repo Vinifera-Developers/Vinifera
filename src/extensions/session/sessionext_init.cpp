@@ -25,25 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "sessionext_hooks.h"
-#include "sessionext.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
+
+#include "always.h"
+
 #include "extension.h"
 #include "extension_globals.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
+#include "sessionext.h"
 #include "syringe.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x005ED1AA, _SessionClass_Constructor_Patch, 5)

@@ -25,27 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "bulletext_hooks.h"
+
+#include "anim.h"
+#include "asserthandler.h"
+#include "building.h"
+#include "bullet.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
-#include "bullet.h"
-#include "anim.h"
-#include "animtype.h"
-#include "building.h"
+#include "extension.h"
+#include "hooker.h"
 #include "house.h"
 #include "infantry.h"
+#include "iomap.h"
 #include "overlaytype.h"
+#include "syringe.h"
 #include "techno.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
-#include "iomap.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
-#include "syringe.h"
 
 
 /**

@@ -27,15 +27,12 @@
  ******************************************************************************/
 
 #include "always.h"
-#include "sdlsurface.h"
 
-#include <algorithm>
+#include "sdlsurface.h"
 
 #include "debughandler.h"
 #include "dsurface.h"
-#include "options.h"
 #include "sdl_functions.h"
-#include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 

@@ -25,24 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "isotiletypeext.h"
-#include "isotiletype.h"
-#include "tibsun_globals.h"
-#include "scenario.h"
-#include "theatertype.h"
+
 #include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
 #include "debughandler.h"
-#include "tiberium.h"
-#include "smudgetype.h"
-#include "vinifera_saveload.h"
+#include "extension.h"
 #include "findmake.h"
+#include "isotiletype.h"
+#include "scenario.h"
+#include "smudgetype.h"
+#include "theatertype.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const IsometricTileTypeClass *this_ptr) :

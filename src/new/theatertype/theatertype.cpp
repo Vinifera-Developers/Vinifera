@@ -25,13 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "theatertype.h"
-#include "vinifera_globals.h"
+
+#include "asserthandler.h"
 #include "ccini.h"
 #include "colorscheme.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-#include <string>
+#include "vinifera_globals.h"
 
 
 /**

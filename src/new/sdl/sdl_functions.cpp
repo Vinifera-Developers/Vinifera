@@ -25,8 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sdl_functions.h"
-#include <algorithm>
+
+#include "SDL3/SDL_init.h"
+#include "SDL3/SDL_oldnames.h"
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
 #include "cctooltip.h"
 #include "cdctrl.h"
 #include "command.h"
@@ -45,10 +52,7 @@
 #include "windialog.h"
 #include "wsproto.h"
 #include "wwmouse.h"
-#include "SDL3/SDL_init.h"
-#include "SDL3/SDL_oldnames.h"
-#include "SDL3/SDL_render.h"
-#include "SDL3/SDL_video.h"
+
 #include <windowsx.h>
 
 

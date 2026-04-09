@@ -25,41 +25,39 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "tacticalext_hooks.h"
-#include "tacticalext_init.h"
-#include "tacticalext.h"
-#include "tactical.h"
-#include "mouse.h"
-#include "tibsun_globals.h"
-#include "scenario.h"
-#include "convert.h"
-#include "voc.h"
-#include "laserdraw.h"
-#include "ebolt.h"
-#include "buildingtype.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "extension_globals.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "optionsext.h"
-#include "object.h"
-#include "house.h"
-#include "technotype.h"
+
 #include "building.h"
 #include "buildingtype.h"
-
-#include <timeapi.h>
-
 #include "clipline.h"
+#include "convert.h"
+#include "debughandler.h"
+#include "ebolt.h"
+#include "extension_globals.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
+#include "laserdraw.h"
+#include "mouse.h"
+#include "object.h"
+#include "optionsext.h"
+#include "rulesext.h"
+#include "scenario.h"
 #include "syringe.h"
+#include "tactical.h"
+#include "tacticalext.h"
+#include "tacticalext_init.h"
+#include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_globals.h"
 #include "uicontrol.h"
+#include "vinifera_globals.h"
+#include "voc.h"
+
+#include <timeapi.h>
 
 
 /**

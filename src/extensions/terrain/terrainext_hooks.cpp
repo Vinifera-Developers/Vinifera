@@ -25,24 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "terrainext_hooks.h"
-#include "terrainext_init.h"
-#include "terrainext.h"
-#include "terraintypeext.h"
-#include "terrain.h"
-#include "terraintype.h"
-#include "lightsource.h"
-#include "vinifera_util.h"
-#include "extension.h"
-#include "scenario.h"
-#include "mouse.h"
-#include "fatal.h"
-#include "rules.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "terrainext_hooks.h"
+
+#include "asserthandler.h"
+#include "extension.h"
+#include "fatal.h"
 #include "hooker.h"
+#include "lightsource.h"
+#include "mouse.h"
+#include "rules.h"
+#include "scenario.h"
 #include "syringe.h"
+#include "terrain.h"
+#include "terrainext.h"
+#include "terrainext_init.h"
+#include "terraintype.h"
+#include "terraintypeext.h"
 
 
 /**

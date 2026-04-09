@@ -25,27 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "optionsext_hooks.h"
-#include "optionsext.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
+
+#include "always.h"
+
 #include "extension.h"
 #include "extension_globals.h"
-#include "options.h"
-#include "techno.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
+#include "options.h"
+#include "optionsext.h"
 #include "syringe.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x00589A12, _OptionsClass_Constructor_Patch, 1)

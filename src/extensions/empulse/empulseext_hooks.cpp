@@ -25,18 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "buildingtypeext.h"
-#include "technotype.h"
-#include "techno.h"
-#include "building.h"
-#include "foot.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "buildingtypeext.h"
+#include "extension.h"
+#include "foot.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "techno.h"
+#include "technotype.h"
 
 /**
  *  #issue-181

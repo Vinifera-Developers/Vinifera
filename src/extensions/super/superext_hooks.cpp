@@ -25,21 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "superext_hooks.h"
-#include "superext_init.h"
-#include "superext.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+
+#include "building.h"
 #include "extension.h"
-#include "unit.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
 #include "sideext.h"
-#include "building.h"
-
-#include "hooker.h"
+#include "superext.h"
+#include "superext_init.h"
 #include "syringe.h"
+#include "unit.h"
 
 
 /**

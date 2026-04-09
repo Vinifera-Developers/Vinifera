@@ -25,13 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cncnet5_wspudp.h"
+
 #include "debughandler.h"
 
 
 /**
  *  CnCNet5UDPInterfaceClass constructor.
- * 
+ *
  *  @author: CCHyper
  */
 CnCNet5UDPInterfaceClass::CnCNet5UDPInterfaceClass(unsigned short id, unsigned long ip, unsigned short port, bool port_hack) :

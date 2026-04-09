@@ -25,28 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "sideext_hooks.h"
+
+#include "always.h"
+
+#include "hooker.h"
+#include "scenario.h"
+#include "session.h"
+#include "syringe.h"
 #include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
-#include "scenario.h"
-#include "session.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
-#include "syringe.h"
 
 
 /**
  *  #issue-299
- * 
+ *
  *  Fixes the issue with the current difficulty not being checked
  *  when enabling triggers.
- * 
+ *
  *  @see: TriggerTypeClass and TActionClass for the other parts of this fix.
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x00649171, _TriggerClass_Constructor_Enabled_For_Difficulty_Patch, 0)

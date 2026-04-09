@@ -25,21 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "initext_hooks.h"
-#include "vinifera_globals.h"
-#include "tibsun_functions.h"
-#include "tibsun_globals.h"
+
+#include "always.h"
+
+#include "addon.h"
+#include "cd.h"
+#include "debughandler.h"
+#include "hooker.h"
 #include "iomap.h"
 #include "newmenu.h"
 #include "session.h"
-#include "cd.h"
-#include "addon.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
 #include "syringe.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
 
 
 /**

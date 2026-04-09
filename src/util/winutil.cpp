@@ -25,15 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "winutil.h"
+
 #include "debughandler.h"
-#include <windows.h>
+
 #include <Tlhelp32.h>
+#include <algorithm>
+#include <codecvt>
+#include <locale>
 #include <shlwapi.h> // for PathFindExtension
 #include <string>
-#include <locale>
-#include <codecvt>
-#include <algorithm>
+#include <windows.h>
 
 
 const char *Get_Module_File_Name()

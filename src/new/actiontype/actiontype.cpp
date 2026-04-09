@@ -25,12 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/ }.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "actiontype.h"
-#include "mousetype.h"
-#include "ccini.h"
-#include "vinifera_globals.h"
+
 #include "asserthandler.h"
+#include "ccini.h"
 #include "debughandler.h"
+#include "mousetype.h"
+#include "vinifera_globals.h"
 
 
 /**

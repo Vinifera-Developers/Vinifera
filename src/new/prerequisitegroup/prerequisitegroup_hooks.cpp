@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "prerequisitegroup_hooks.h"
 
 #include "ccini.h"

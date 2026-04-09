@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "voxelanimtypeext_hooks.h"
+
 #include "voxelanimtypeext_init.h"
-#include "voxelanimtypeext.h"
-#include "supertype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

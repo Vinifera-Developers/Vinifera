@@ -25,10 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "environmentext_hooks.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "asserthandler.h"
 #include "hooker.h"
 
 

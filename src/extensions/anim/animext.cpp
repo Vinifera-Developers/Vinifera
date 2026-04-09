@@ -25,21 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animext.h"
+
 #include "anim.h"
 #include "animtype.h"
 #include "animtypeext.h"
-#include "tibsun_inline.h"
-#include "wwcrc.h"
-#include "extension.h"
 #include "asserthandler.h"
-#include "debughandler.h"
+#include "extension.h"
 #include "options.h"
+#include "tibsun_inline.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :

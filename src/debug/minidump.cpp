@@ -25,21 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "minidump.h"
-#include "winutil.h"
-#include "miscutil.h"
+
 #include "critsection.h"
-#include "debughlp.h"
 #include "debughandler.h"
+#include "debughlp.h"
+#include "miscutil.h"
 #include "vinifera_globals.h"
-#include <Windows.h>
+
 #include <dbghelp.h>
-#include <tlhelp32.h> // Must be after Windows.h!
-#include <time.h>
+#include <windows.h>
+#include <tlhelp32.h> // Must be after windows.h!
 
 
 // Link dbhhelp.lib!
-//#pragma comment(lib, "dbghelp.lib")
+// #pragma comment(lib, "dbghelp.lib")
 
 
 extern int Execute_Day;

@@ -25,18 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "aircraftext.h"
+
 #include "aircraft.h"
-#include "wwcrc.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 #include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 AircraftClassExtension::AircraftClassExtension(const AircraftClass *this_ptr) :

@@ -25,23 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "aircraft.h"
-#include "building.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
-#include "particlesysext_hooks.h"
 #include "particlesys.h"
 #include "rules.h"
 #include "scenario.h"
-#include "unit.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
 #include "syringe.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
+#include "unit.h"
 
 
 UnitClass* Create_Visceroid(ObjectClass* destroyedobject)

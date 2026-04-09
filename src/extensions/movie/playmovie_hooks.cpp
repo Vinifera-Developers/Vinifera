@@ -25,28 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "playmovie_hooks.h"
-#include "tibsun_globals.h"
-#include "options.h"
+
 #include "campaign.h"
 #include "campaignext.h"
-#include "scenario.h"
-#include "vqa.h"
-#include "movie.h"
-#include "playmovie.h"
 #include "cd.h"
-#include "extension.h"
-#include "fatal.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-
+#include "extension.h"
 #include "hooker.h"
+#include "movie.h"
+#include "options.h"
+#include "playmovie.h"
+#include "scenario.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
+#include "vqa.h"
 
 
 /**
  *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio = false)

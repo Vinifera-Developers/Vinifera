@@ -25,26 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "teamtypeext_hooks.h"
-#include "teamtypeext.h"
-#include "teamtype.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "teamtype.h"
+#include "teamtypeext.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: Rampastring
  */
 DEFINE_HOOK(0x00627ED4, _TeamTypeClass_Constructor_Patch, 5)

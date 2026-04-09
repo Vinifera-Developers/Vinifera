@@ -25,28 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "overlaytypeext_hooks.h"
-#include "overlaytypeext_init.h"
-#include "overlaytypeext.h"
-#include "overlaytype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "overlaytypeext_hooks.h"
+
+#include "debughandler.h"
 #include "hooker.h"
+#include "overlaytype.h"
+#include "overlaytypeext.h"
+#include "overlaytypeext_init.h"
 #include "syringe.h"
 
 
 /**
  *  Write to the debug log when freeing up pre-loaded buildup images.
- * 
+ *
  *  #NOTE:
  *  These patches are also done to remove the incorrect freeing
  *  of memory the game does not actually allocate, and as a result
  *  of this, Vinifera's new memory management triggers an assertion
  *  because this is not allowed. The original game silently failed
  *  when doing this.
- * 
+ *
  *  @author: CCHyper
  */
 static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)

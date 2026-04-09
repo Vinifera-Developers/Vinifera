@@ -25,23 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "terrainext.h"
-#include "terrain.h"
-#include "lightsource.h"
-#include "wwcrc.h"
-#include "extension.h"
-#include "tiberium.h"
-#include "mouse.h"
+
 #include "cellext.h"
+#include "extension.h"
+#include "lightsource.h"
+#include "mouse.h"
+#include "terrain.h"
 #include "terraintypeext.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "tiberium.h"
+#include "wwcrc.h"
+
 #include <random>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TerrainClassExtension::TerrainClassExtension(const TerrainClass *this_ptr) :

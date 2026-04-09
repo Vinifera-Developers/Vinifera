@@ -25,15 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "tibsun_defines.h"
-
 #include <string_view>
-#include <windows.h>
 #include <time.h>
 #include <vector>
+#include <windows.h>
 
 
 struct VoxelObject;

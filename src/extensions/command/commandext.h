@@ -25,11 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "command.h"
 #include "tibsun_defines.h"
-#include "vinifera_globals.h"
 
 
 /**

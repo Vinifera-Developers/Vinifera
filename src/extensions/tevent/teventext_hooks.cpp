@@ -25,31 +25,30 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "teventext_hooks.h"
-#include "tibsun_globals.h"
-#include "tibsun_inline.h"
-#include "tevent.h"
-#include "scenario.h"
-#include "scenarioext.h"
-#include "voc.h"
-#include "tibsun_defines.h"
-#include "vinifera_defines.h"
-#include "house.h"
-#include "object.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
 #include "building.h"
-#include "session.h"
 #include "hooker.h"
+#include "house.h"
 #include "mouse.h"
-#include "rules.h"
+#include "object.h"
+#include "scenario.h"
+#include "scenarioext.h"
 #include "syringe.h"
 #include "tag.h"
 #include "team.h"
 #include "teamtype.h"
+#include "tevent.h"
 #include "teventext.h"
 #include "teventext_init.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
+#include "vinifera_defines.h"
+#include "voc.h"
 
 // warning C4063: case '#' is not a valid value for switch of enum 'TActionType'
 #pragma warning(disable : 4063)

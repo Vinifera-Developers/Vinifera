@@ -27,10 +27,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cpudetect.h"
-#include "systimer.h"
+
 #include "strtrim.h"
-#include <Windows.h>
+#include "systimer.h"
+
+#include <windows.h>
 #include <cstdio>
 #include <cstring>
 

@@ -25,15 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "testlocomotion.h"
-#include "tibsun_inline.h"
-#include "tibsun_globals.h"
-#include "iomap.h"
+
 #include "cell.h"
-#include "foot.h"
-#include "tactical.h"
-#include "wwmath.h"
 #include "debughandler.h"
+#include "foot.h"
+#include "iomap.h"
+#include "tactical.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
+#include "wwmath.h"
 
 
 /**

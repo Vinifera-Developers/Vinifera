@@ -25,7 +25,9 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
+
 #include "rect.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"

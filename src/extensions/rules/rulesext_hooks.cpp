@@ -25,28 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "rulesext_hooks.h"
-#include "rulesext_init.h"
-#include "rulesext.h"
-#include "rules.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "sessionext.h"
-#include "ccini.h"
-#include "vector.h"
-#include "addon.h"
-#include "wwmouse.h"
-#include "windialog.h"
-#include "extension_globals.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include <resource.h>
 
-#include "armortype.h"
+#include "always.h"
+
+#include "rulesext_hooks.h"
+
+#include "addon.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension_globals.h"
 #include "hooker.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "rulesext_init.h"
+#include "sessionext.h"
 #include "syringe.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "vector.h"
+#include "windialog.h"
+#include "wwmouse.h"
+
+#include <resource.h>
 
 
 extern HMODULE DLLInstance;

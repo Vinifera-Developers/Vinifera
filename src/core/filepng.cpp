@@ -25,21 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "filepng.h"
-#include "ccfile.h"
-#include "surface.h"
-#include "bsurface.h"
-#include "dsurface.h"
-#include "buff.h"
-#include "stristr.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
+#include "bsurface.h"
+#include "buff.h"
+#include "ccfile.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "stristr.h"
+#include "surface.h"
+
 #include <lodepng.h>
 
 
-/** 
+/**
  *  Writes the contents of a graphic surface as PNG to a file instance.
- * 
+ *
  *  @author: CCHyper
  */
 bool Write_PNG_File(FileClass *name, Surface &pic, const PaletteClass *palette, bool greyscale)

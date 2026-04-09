@@ -25,15 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "extension.h"
 #include "objecttypeext.h"
 #include "techno.h"
 #include "technotype.h"
-#include "typelist.h"
 #include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "typelist.h"
 
 
 class AircraftTypeClass;

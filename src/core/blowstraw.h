@@ -32,10 +32,11 @@
  *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "straw.h"
 #include "blowfish.h"
+#include "straw.h"
 
 
 class BlowStraw : public Straw

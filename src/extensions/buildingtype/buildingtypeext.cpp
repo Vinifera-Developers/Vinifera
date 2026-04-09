@@ -25,20 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingtypeext.h"
+
 #include "buildingtype.h"
-#include "tibsun_defines.h"
 #include "ccini.h"
-#include "wwcrc.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 #include "scenario.h"
+#include "tibsun_defines.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *this_ptr) :

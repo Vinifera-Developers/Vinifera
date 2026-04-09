@@ -25,45 +25,42 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "unitext_hooks.h"
 
-#include <algorithm>
-#include "unitext_init.h"
-#include "tibsun_inline.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "tag.h"
-#include "unittypeext.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "warheadtype.h"
-#include "weapontype.h"
-#include "weapontypeext.h"
-#include "unit.h"
-#include "unitext.h"
-#include "unittype.h"
-#include "unittypeext.h"
-#include "tag.h"
-#include "target.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "iomap.h"
-#include "infantry.h"
-#include "voc.h"
-#include "extension.h"
-#include "unitext.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
-
+#include "extension.h"
 #include "hooker.h"
 #include "house.h"
+#include "infantry.h"
+#include "iomap.h"
+#include "rules.h"
+#include "rulesext.h"
 #include "spawnmanager.h"
 #include "syringe.h"
+#include "tag.h"
+#include "target.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
+#include "unit.h"
+#include "unitext.h"
+#include "unitext_init.h"
+#include "unittype.h"
+#include "unittypeext.h"
 #include "verses.h"
+#include "vinifera_globals.h"
+#include "voc.h"
+#include "warheadtype.h"
 #include "warheadtypeext.h"
 #include "weapontype.h"
+#include "weapontypeext.h"
+
+#include <algorithm>
 
 
 /**

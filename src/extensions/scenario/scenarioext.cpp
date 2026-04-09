@@ -25,38 +25,43 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "scenarioext.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
-#include "ccini.h"
-#include "unit.h"
-#include "building.h"
-#include "unittype.h"
-#include "buildingtype.h"
-#include "infantrytype.h"
-#include "house.h"
-#include "housetype.h"
-#include "rules.h"
-#include "language.h"
-#include "session.h"
-#include "sessionext.h"
-#include "waypoint.h"
-#include "iomap.h"
-#include "noinit.h"
-#include "swizzle.h"
-#include "vinifera_saveload.h"
+
 #include "asserthandler.h"
 #include "beacon.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "ccini.h"
 #include "debughandler.h"
+#include "house.h"
 #include "houseext.h"
+#include "housetype.h"
+#include "infantrytype.h"
+#include "iomap.h"
+#include "language.h"
+#include "noinit.h"
+#include "rules.h"
+#include "session.h"
+#include "sessionext.h"
 #include "tacticalext.h"
 #include "tag.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
+#include "unit.h"
+#include "unittype.h"
+#include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+#include "waypoint.h"
+
 #include <regex>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :

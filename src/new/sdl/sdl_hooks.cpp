@@ -25,8 +25,9 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "bsurface.h"
-#include "dsurface.h"
+
+#include "always.h"
+
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "sdl_functions.h"
@@ -36,9 +37,9 @@
 #include "vinifera_globals.h"
 #include "winuser.h"
 #include "xmouse.h"
-#include "SDL3/SDL_timer.h"
-#include <dsound.h>
+
 #include <algorithm>
+#include <dsound.h>
 
 
 /**

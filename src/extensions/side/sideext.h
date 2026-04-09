@@ -25,12 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "abstracttypeext.h"
-#include "side.h"
 #include "house.h"
 #include "housetype.h"
+#include "side.h"
 #include "tibsun_globals.h"
 
 

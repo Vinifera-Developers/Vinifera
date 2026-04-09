@@ -25,23 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tooltipext_hooks.h"
-#include "vinifera_globals.h"
-#include "tooltip.h"
-#include "cctooltip.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
-#include "hooker.h"
+#include "always.h"
+
+#include "tooltipext_hooks.h"
+
 #include "syringe.h"
+#include "tooltip.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch to kill the tooltip timer when the developer option is enabled.
- * 
+ *
  *  @see: CursorPositionCommandClass.
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x006473D4, _ToolTipManager_Message_Handler_CursorPosition_Patch, 0)

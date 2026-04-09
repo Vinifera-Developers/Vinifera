@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "objecttypeext.h"
 #include "bullettype.h"
+#include "objecttypeext.h"
 
 
 class DECLSPEC_UUID(UUID_BULLETTYPE_EXTENSION)
