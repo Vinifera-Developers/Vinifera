@@ -1195,50 +1195,49 @@ bool HouseClassExt::_AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVe
 
 
 /**
- *  Fixes a bug where the player is flagged as losing the game when
- *  one of their allies is flagged to win the game.
- *
- *  NOTE: Typically only one house (the last opponent to be defeated) is flagged
- *  to win/lose at game end, that house is then used to figure out whether the
- *  local player won or lost.
+ *  Fixes a bug where the local player could be considered "lost" (Do_Lose was called)
+ *  when a multiplayer match ended with the last enemy getting defeated.
  *
  *  Author: Rampastring
  */
-DEFINE_HOOK(0x004BC78D, _HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win, 0)
+DEFINE_HOOK(0x004BF8BD, _HouseClass_MPlayer_Defeated_Flag_Win_Or_Lose, 0)
 {
-    GET(HouseClass*, this_ptr, ESI);
+    // The match has ended due to player defeat because there is only one team left.
+    // Consider the player as having won if they are not defeated, OR in case of multiplayer,
+    // if they have any human allies left alive.
+    // This allows the player to be considered a winner if their team wins in a team game,
+    // even if the player itself is defeated.
 
-    if (!PlayerPtr->Is_Ally(this_ptr)) {
-        PlayerLoses = true;
-    } else {
-        PlayerWins = true;
+    bool localplayerwon = !PlayerPtr->IsDefeated;
+
+    if (!localplayerwon && Session.Type != GAME_SKIRMISH) {
+
+        DEBUG_INFO("MPlayer_Defeated: Local player is defeated, looking for allies.\n");
+
+        for (int i = 0; i < Houses.Count(); i++) {
+
+            /*
+            **	Get a pointer to this house
+            */
+            HouseClass* hptr = Houses[i];
+            if (!hptr || hptr->IsDefeated || !hptr->IsHuman || hptr->Class->IsMultiplayPassive) continue;
+
+            if (PlayerPtr->Is_Ally(hptr)) {
+                localplayerwon = true;
+                break;
+            }
+        }
     }
 
-    return 0x004BC7AA;
-}
-
-
-/**
- *  Fixes a bug where the player is flagged as winning the game when
- *  one of their allies is flagged to lose the game.
- *
- *  NOTE: Typically only one house (the last opponent to be defeated) is flagged
- *  to win/lose at game end, that house is then used to figure out whether the
- *  local player won or lost.
- *
- *  Author: Rampastring
- */
-DEFINE_HOOK(0x004BC855, _HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose, 0)
-{
-    GET(HouseClass*, this_ptr, ESI);
-
-    if (PlayerPtr->Is_Ally(this_ptr)) {
-        PlayerLoses = true;
+    if (localplayerwon) {
+        DEBUG_INFO("MPlayer_Defeated: Flagging local player as victorious.\n");
+        PlayerPtr->Flag_To_Win(false);
     } else {
-        PlayerWins = true;
+        DEBUG_INFO("MPlayer_Defeated: Flagging local player as lost.\n");
+        PlayerPtr->Flag_To_Lose(false);
     }
 
-    return 0x004BC872;
+    return 0x004BF8E3;
 }
 
 
