@@ -852,16 +852,15 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     if (weapon->IsSonic && Wave) return FIRE_BUSY;
 
     /**
+     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
+     */
+    if (techno && !Verses::Get_ForceFire(techno->TClass->Armor, weapon->WarheadPtr)) return FIRE_ILLEGAL;
+
+    /**
      *  The target must be within range in order to allow firing.
      */
     if (!In_Range_Of(target, which))
         return FIRE_RANGE;
-
-    /**
-     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
-     */
-    if (techno && !Verses::Get_ForceFire(techno->TClass->Armor, weapon->WarheadPtr))
-        return FIRE_ILLEGAL;
 
     /**
      *  If there is no ammo left, then it can't fire.

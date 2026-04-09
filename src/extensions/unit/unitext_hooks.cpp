@@ -226,7 +226,7 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
         cache = &Class->VoxelIndex;
     }
 
-    Draw_Voxel(*voxel, frame, key, *cache, rect, point, matrix, color, flags);
+    Draw_Voxel(*voxel, frame, key, cache, rect, point, matrix, color, flags);
 }
 
 

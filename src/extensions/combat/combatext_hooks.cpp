@@ -634,7 +634,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
          */
         if ((warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(explosion_coord)
             && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)) {
-            Map.PendingIceCells.Clear();
+            Map.DirtyIceCells.Clear();
             if (Map.Crack_Ice(*cellptr, nullptr)) {
                 Map.Recalc_Ice();
             }
