@@ -159,6 +159,7 @@
 #include "swizzle.h"
 
 #include "hooker.h"
+#include "iniext_hooks.h"
 #include "objectext_hooks.h"
 #include "prerequisitegroup_hooks.h"
 #include "sdl_hooks.h"
@@ -288,6 +289,7 @@ void Extension_Hooks()
     CDExtension_Hooks();
     PlayMovieExtension_Hooks();
     VQAExtension_Hooks();
+    INIClassExtension_Hooks();
     CCINIClassExtension_Hooks();
     RawFileClassExtension_Hooks();
     CCFileClassExtension_Hooks();

@@ -80,6 +80,7 @@ New:
 - Add "Adjust House Modifier" trigger action (by Rampstring)
 - Add "Only Harvesters" quarry (by Rampastring)
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
+- Implement INI inheritance/includes (by ZivDero)
 
 
 Vinifera fixes:
@@ -128,6 +129,8 @@ Vanilla fixes:
 - Teams attacking a BwP now take zones into account (by Rampastring) 
 - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building (by Rampastring)
 - Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
+- Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
+- Fix incorrect merging of sections and keys in INI files (by ZivDero)
 
 :::
 

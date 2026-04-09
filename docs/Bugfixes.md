@@ -96,3 +96,5 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Teams attacking a BwP now take zones into account.
 - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
 - Fix a bug where the player's army wouldn't fire at armed civilians.
+- Fix a bug where the last line of an INI file would not be parsed.
+- Fix incorrect merging of sections and keys in INI files.
