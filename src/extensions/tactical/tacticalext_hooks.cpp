@@ -945,8 +945,16 @@ void TacticalExt::_Draw_Screen_Text(char const* text)
             Point2D point = Point2D(TacticalRect.Width / 2, TacticalRect.Height / 2);
             SetBkMode(hdc, TRANSPARENT);
             SetTextAlign(hdc, TA_CENTER);
+
+            // Draw a shadow
+            SetTextColor(hdc, RGB(0, 0, 0));
+            TextOut(hdc, rect.X + point.X + 3, rect.Y + point.Y + 3, text, strlen(text));
+
+            // Draw the main text
             SetTextColor(hdc, RGB(255, 255, 255));
             TextOut(hdc, rect.X + point.X, rect.Y + point.Y, text, strlen(text));
+
+            // Cleanup
             SelectObject(hdc, h);
             DeleteObject(font);
             static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
