@@ -128,6 +128,18 @@ EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity che
                                    ; For buildings with ConstructionYard=yes this defaults to yes, otherwise it defaults to no.
 ```
 
+### AI Repair Base Nodes
+
+- You can now customize whether the AI can repair structures created as base nodes. 
+- Applies globally to all AI houses, and only affects non-skirmish games. 
+- Can be set and overridden at either game (Rules.ini) or map level.
+
+In a scenario file:
+```ini
+[AI]
+AIRepairBaseNodes=no   ; boolean, can the AI can repair structures created as base nodes?
+```
+
 ## Window Title, Cursor and Icon
 
 - The game's Window title, Cursor and Icon can be overridden. These controls are loaded from a new INI file, `VINIFERA.INI`.
