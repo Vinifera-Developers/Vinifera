@@ -35,13 +35,11 @@
 #include "colorscheme.h"
 #include "debughandler.h"
 #include "textprint.h"
-#include "options.h"
 #include "dsurface.h"
 #include "filepng.h"
 #include "minidump.h"
 #include "msgbox.h"
 #include "spritecollection.h"
-#include "textprint.h"
 #include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_const.h"
@@ -773,27 +771,8 @@ BSurface *Vinifera_Get_Image_Surface(const char *filename)
  * 
  *  @author: CCHyper
  */
-bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio, bool clamp)
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio)
 {
-    /**
-     *  No need to scale the rect if it is larger than the max width/height
-     */
-    //bool smaller = rect.Width < area_width && rect.Height < area_height;
-    //if (!smaller) {
-    //    return false;
-    //}
-
-    /**
-     *  This is a workaround for edge case issues with some versions
-     *  of cnc-ddraw. This ensures the available draw area is actually
-     *  the resolution the user defines, not what the cnc-ddraw forces
-     *  the primary surface to.
-     */
-    if (clamp) {
-        area_width = std::clamp(HiddenSurface->Width, 0, Options.ScreenWidth);
-        area_height = std::clamp(HiddenSurface->Height, 0, Options.ScreenHeight);
-    }
-
     if (maintain_ratio) {
 
         double dSurfaceWidth = area_width;

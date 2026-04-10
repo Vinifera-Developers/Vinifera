@@ -43,6 +43,7 @@
 #include "optionsext.h"
 #include "playmovie.h"
 #include "rect.h"
+#include "sdl_movie.h"
 #include "sdlmouse.h"
 #include "sdlsurface.h"
 #include "tibsun_functions.h"
@@ -301,7 +302,9 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         **  Refresh the window.
         */
     case WM_PAINT:
-        if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
+        if (Vinifera_ModernMoviePlaying) {
+            SDL_Movie_Repaint();
+        } else if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
             if (ScenarioStarted == true) {
                 Update_Visible_Surface(MouseCursor->Is_Captured(), CompositeSurface);
                 Map.Blit_Sidebar(true);

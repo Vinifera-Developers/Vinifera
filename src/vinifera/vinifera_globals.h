@@ -52,13 +52,6 @@ struct SDL_Renderer;
 struct SDL_Texture;
 
 
-/**
- *  Externs to various Vinifera functions.
- */
-extern void Vinifera_Play_Movie(const char *, ThemeType = THEME_NONE, bool = true, bool = true, bool = true);
-extern bool Vinifera_Is_Movie_Available(const char *);
-
-
 extern bool Vinifera_DeveloperMode;
 
 extern bool Vinifera_PerformingLoad;
@@ -108,6 +101,7 @@ extern SDL_Renderer* SDLWindowRenderer;
 extern SDL_Texture* SDLWindowTexture;
 extern int SDLWindowWidth;
 extern int SDLWindowHeight;
+extern bool Vinifera_ModernMoviePlaying;
 
 
 /**

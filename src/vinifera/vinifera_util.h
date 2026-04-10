@@ -28,14 +28,12 @@
 
 #pragma once
 
+#include "rect.h"
 #include "vector.h"
 
 
 class Surface;
 class BSurface;
-class Rect;
-
-
 const char *Vinifera_Version_String();
 const char *Vinifera_Build_Type_String();
 const char *TSpp_Version_String();
@@ -69,4 +67,4 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
 #endif
 
 BSurface *Vinifera_Get_Image_Surface(const char *filename);
-bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio = false, bool clamp = true);
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio = false);
