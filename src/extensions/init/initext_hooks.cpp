@@ -146,9 +146,9 @@ static bool Vinifera_Play_Startup_Movies()
     if (!NewMenuClass::Get()) {
         DEBUG_INFO("Playing title movie.\n");
         if (CCFile_Is_Available("FS_TITLE.VQA")) {
-            Play_Movie("FS_TITLE.VQA");
+            Play_Movie("FS_TITLE.VQA", THEME_NONE, true, false, true);
         } else {
-            Play_Movie("STARTUP.VQA");
+            Play_Movie("STARTUP.VQA", THEME_NONE, true, false, true);
         }
     }
 
