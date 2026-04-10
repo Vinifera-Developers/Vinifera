@@ -603,7 +603,7 @@ bool TechnoClassExtension::Can_Opportunity_Fire() const
  */
 bool TechnoClassExtension::Opportunity_Fire()
 {
-    if (Can_Opportunity_Fire()) {
+    if (Can_Opportunity_Fire() && This()->TarCom == nullptr) {
         AbstractClass* old_target = This()->TarCom;
         bool result = This()->Target_Something_Nearby(This()->Center_Coord(), THREAT_RANGE);
         if (result && This()->TarCom != old_target) {

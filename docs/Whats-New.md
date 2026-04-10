@@ -102,6 +102,7 @@ Vinifera fixes:
 - Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
 - Fix a bug where new local/global variable trigger events wouldn't reset their timers correctly (by ZivDero)
 - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued (by ZivDero)
+- Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving (by ZivDero)
 
 
 Vanilla fixes:

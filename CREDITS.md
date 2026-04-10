@@ -321,3 +321,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the last line of an INI file would not be parsed.
   - Fix incorrect merging of sections and keys in INI files.
   - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued.
+  - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
