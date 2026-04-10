@@ -25,19 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "weapontypeext.h"
-#include "weapontype.h"
-#include "ebolt.h"
+
 #include "ccini.h"
-#include "wwcrc.h"
+#include "ebolt.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "weapontype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_ptr) :

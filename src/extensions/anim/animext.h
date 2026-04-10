@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "objectext.h"
 #include "anim.h"
 #include "animtype.h"
-#include "ttimer.h"
-#include "ftimer.h"
+#include "objectext.h"
 #include "typelist.h"
 
 

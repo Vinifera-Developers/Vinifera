@@ -25,15 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
+
 #include "extension.h"
 #include "mouse.h"
-#include "sidebar.h"
-#include "vinifera_globals.h"
 #include "shapeset.h"
+#include "sidebar.h"
 #include "technotypeext.h"
+#include "vinifera_globals.h"
 
 
 class SidebarClassExtension final : public GlobalExtensionClass<SidebarClass>

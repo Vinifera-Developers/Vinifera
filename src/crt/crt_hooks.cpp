@@ -25,15 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "crt_hooks.h"
-#include <fenv.h>
+
 #include "asserthandler.h"
 #include "debughandler.h"
-#include <cstring>
-#include <crtdbg.h>
-
 #include "hooker.h"
 #include "hooker_macros.h"
+
+#include <crtdbg.h>
+#include <cstring>
+#include <fenv.h>
 
 
 /**

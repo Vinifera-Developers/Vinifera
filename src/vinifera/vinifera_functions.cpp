@@ -25,44 +25,42 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_functions.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
+
+#include "actiontype.h"
+#include "aircrafttracker.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "ccfile.h"
+#include "ccini.h"
+#include "cd.h"
 #include "cncnet4.h"
 #include "cncnet4_globals.h"
 #include "cncnet5_globals.h"
-#include "rulesext.h"
-#include "ccfile.h"
-#include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
 #include "filestraw.h"
-#include "readline.h"
-#include "cd.h"
-#include "ebolt.h"
+#include "kamikazetracker.h"
+#include "mousetype.h"
+#include "newjumpjetlocomotion.h"
 #include "optionsext.h"
-#include "rulesext.h"
-#include "sessionext.h"
-#include "scenarioext.h"
-#include "tacticalext.h"
+#include "prerequisitegroup.h"
+#include "readline.h"
+#include "rocketlocomotion.h"
+#include "setup_hooks.h"
+#include "spawnmanager.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
-#include "kamikazetracker.h"
-#include "spawnmanager.h"
-#include "extension.h"
 #include "theatertype.h"
-#include "armortype.h"
-#include "uicontrol.h"
-#include "mousetype.h"
-#include "actiontype.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include <string>
-
-#include "aircrafttracker.h"
-#include "rocketlocomotion.h"
-#include "newjumpjetlocomotion.h"
-#include "prerequisitegroup.h"
-#include "setup_hooks.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "uicontrol.h"
+#include "vinifera_globals.h"
+
+#include <string>
 
 
 static DynamicVectorClass<std::string> ViniferaSearchPaths;
@@ -110,7 +108,7 @@ bool Vinifera_Load_INI()
         ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     }
 #else
-    ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, "", sizeof(Vinifera_ProjectVersion));
+    ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
 #endif
 
     Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';

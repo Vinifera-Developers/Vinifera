@@ -25,41 +25,40 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "tacticalext_hooks.h"
-#include "tacticalext_init.h"
-#include "tacticalext.h"
-#include "tactical.h"
-#include "mouse.h"
-#include "tibsun_globals.h"
-#include "scenario.h"
-#include "convert.h"
-#include "voc.h"
-#include "laserdraw.h"
-#include "ebolt.h"
-#include "buildingtype.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "extension_globals.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "optionsext.h"
-#include "object.h"
-#include "house.h"
-#include "technotype.h"
+
 #include "building.h"
 #include "buildingtype.h"
-
-#include <timeapi.h>
-
 #include "clipline.h"
+#include "convert.h"
+#include "debughandler.h"
+#include "ebolt.h"
+#include "extension_globals.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
+#include "laserdraw.h"
+#include "mouse.h"
+#include "object.h"
+#include "optionsext.h"
+#include "rulesext.h"
+#include "scenario.h"
+#include "sdlsurface.h"
 #include "syringe.h"
+#include "tactical.h"
+#include "tacticalext.h"
+#include "tacticalext_init.h"
+#include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_globals.h"
 #include "uicontrol.h"
+#include "vinifera_globals.h"
+#include "voc.h"
+
+#include <timeapi.h>
 
 
 /**
@@ -79,6 +78,7 @@ public:
     void _Draw_Rally_Points(bool blit);
     bool _Clamp_To_Tactical_Rect(Point2D& pixel);
     HRESULT STDMETHODCALLTYPE _Save(IStream* stream, BOOL cleardirty);
+    void _Draw_Screen_Text(char const* text);
 
 public:
 
@@ -332,54 +332,56 @@ static bool Has_NonCombatants_Selected()
  *
  *  @author: ZivDero
  */
-void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* obj))
+void TacticalExt::_Select_These(Rect& rect, void (*select_callback)(ObjectClass* obj))
 {
     SelectionContainsNonCombatants = Has_NonCombatants_Selected();
     SelectedCount = CurrentObjects.Count();
     FilterSelection = false;
 
-    AllowVoice = true;
+    AllowVoice = false;
+    
+    if (rect.Is_Valid()) {
 
-    if (rect.Width > 0 && rect.Height > 0 && DirtyObjectCount > 0)
-    {
-        for (int i = 0; i < DirtyObjectCount; i++)
-        {
-            const auto dirty = SelectableObjects[i];
-            if (dirty.Object && dirty.Object->IsActive)
-            {
-                Point2D position = dirty.Position - field_5C;
-                if (rect.Is_Point_Within(position))
-                {
-                    if (selection_func)
-                    {
-                        selection_func(dirty.Object);
-                    }
-                    else
-                    {
-                        bool is_selectable_building = false;
-                        if (dirty.Object->RTTI == RTTI_BUILDING)
-                        {
-                            const auto bclass = static_cast<BuildingClass*>(dirty.Object)->Class;
-                            if (bclass->UndeploysInto && !bclass->IsConstructionYard && !bclass->IsMobileWar)
-                            {
-                                is_selectable_building = true;
-                            }
-                        }
+        /**
+         *  Sweep through all selectable objects and select the ones within the
+         *  bounding box.
+         */
+        for (int index = 0; index < DirtyObjectCount; index++) {
+            SelectData& sel = SelectableObjects[index];
+            ObjectClass* obj = sel.Object;
 
-                        HouseClass* owner = dirty.Object->Owner_HouseClass();
-                        if (owner && owner->Is_Player_Control())
-                        {
-                            if (dirty.Object->Class_Of()->IsSelectable)
-                            {
-                                if (dirty.Object->RTTI != RTTI_BUILDING || is_selectable_building)
-                                {
-                                    if (dirty.Object->Select())
-                                        AllowVoice = false;
-                                }
-                            }
-                        }
+            if (obj == nullptr || !obj->IsActive) {
+                continue;
+            }
+
+            Point2D pos = sel.Position - field_5C;
+            if (!rect.Is_Point_Within(pos)) {
+                continue;
+            }
+
+            if (select_callback == nullptr) {
+
+                bool force = false;
+
+                if (obj->RTTI == RTTI_BUILDING) {
+                    BuildingTypeClass* type = static_cast<BuildingClass*>(obj)->Class;
+                    if (type->UndeploysInto && !type->IsConstructionYard && !type->IsMobileWar) {
+                        force = true;
                     }
                 }
+
+                /**
+                 *  Only try to select objects that are owned by the player, are allowed to be
+                 *  selected.
+                 */
+                HouseClass* hptr = obj->Owner_HouseClass();
+                if (hptr != nullptr && hptr->Is_Player_Control() && obj->Class_Of()->IsSelectable && (obj->RTTI != RTTI_BUILDING || force)) {
+                    if (obj->Select()) {
+                        //AllowVoice = false;
+                    }
+                }
+            } else {
+                select_callback(sel.Object);
             }
         }
     }
@@ -388,10 +390,21 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
      *  If player-controlled units are non-additively selected,
      *  remove non-combatants if they aren't the only types of units selected
      */
-    if (FilterSelection)
+    if (FilterSelection) {
         Filter_Selection();
+    }
 
     AllowVoice = true;
+
+    /**
+     *  Play the selection voiceline.
+     */
+    for (auto& obj : CurrentObjects) {
+        if (obj->Is_Techno()) {
+            static_cast<TechnoClass*>(obj)->Response_Select();
+            break;
+        }
+    }
 }
 
 
@@ -910,6 +923,39 @@ CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender8_Patch, ebp, eax, 0x00610FB7)
 
 
 /**
+ *  Tactical::Draw_Screen_Text re-implementation to fix direct DDraw surface
+ *  access that is invalid because of SDL.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void TacticalExt::_Draw_Screen_Text(char const* text)
+{
+    if (Debug_Map) {
+        return;
+    }
+    if (text == nullptr || !strlen(text)) {
+        return;
+    }
+    if (CompositeSurface->Is_Direct_Draw()) {
+        HDC hdc = static_cast<SDLSurface*>(CompositeSurface)->GetDC();
+        Rect rect = TacticalRect;
+        if (hdc != nullptr) {
+            HFONT font = CreateFont(48, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_RASTER_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY, FF_SWISS | DEFAULT_PITCH, NULL);
+            HGDIOBJ h = SelectObject(hdc, font);
+            Point2D point = Point2D(TacticalRect.Width / 2, TacticalRect.Height / 2);
+            SetBkMode(hdc, TRANSPARENT);
+            SetTextAlign(hdc, TA_CENTER);
+            SetTextColor(hdc, RGB(255, 255, 255));
+            TextOut(hdc, rect.X + point.X, rect.Y + point.Y, text, strlen(text));
+            SelectObject(hdc, h);
+            DeleteObject(font);
+            static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
+        }
+    }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TacticalExtension_Hooks()
@@ -925,6 +971,7 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00614EC0, &TacticalExt::_Clamp_To_Tactical_Rect);
     Patch_Jump(0x00617F80, &TacticalExt::_Save);
     Patch_Jump(0x00479150, &Vinifera_Bandbox_Select);
+    Patch_Jump(0x00611C60, &TacticalExt::_Draw_Screen_Text);
 
     /**
      *  #issue-351

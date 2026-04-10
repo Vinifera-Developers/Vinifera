@@ -25,23 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sessionext.h"
-#include "tibsun_globals.h"
-#include "noinit.h"
-#include "options.h"
+
 #include "ccini.h"
-#include "rawfile.h"
-#include "voc.h"
-#include "rules.h"
-#include "swizzle.h"
+#include "noinit.h"
 #include "vinifera_saveload.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "voc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :

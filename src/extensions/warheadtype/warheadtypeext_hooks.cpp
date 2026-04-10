@@ -25,15 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "warheadtypeext_hooks.h"
-#include "warheadtypeext_init.h"
-#include "warheadtypeext.h"
-#include "unittype.h"
-#include "fatal.h"
+
 #include "debughandler.h"
-#include "asserthandler.h"
 #include "hooker.h"
+#include "unittype.h"
 #include "verses.h"
+#include "warheadtypeext.h"
+#include "warheadtypeext_init.h"
 
 
 static const WarheadTypeClass* _Find_Or_Make(const char* name)

@@ -4,12 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          HOOKER_CRT.CPP
+ *  @file          INIEXT_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Hooks for CRT functions to ensure the project calls the same
- *                 versions as the original for functions that maintain state.
+ *  @brief         Contains the hooks for the extended INIClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -26,4 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "hooker_crt.h"
+
+#pragma once
+
+
+void INIClassExtension_Hooks();

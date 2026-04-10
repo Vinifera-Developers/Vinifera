@@ -25,14 +25,14 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "fetchres_hooks.h"
-#include "fetchres.h"
-#include "vinifera_util.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "fetchres_hooks.h"
+
+#include "fetchres.h"
 #include "hooker.h"
+#include "vinifera_util.h"
 
 
 extern HMODULE DLLInstance;

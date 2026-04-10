@@ -29,7 +29,11 @@
  *                 https://github.com/TheAssemblyArmada/Thyme/
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "mapview.h"
+
 #include <iterator>
 
 

@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "objecttypeext.h"
 #include "isotiletype.h"
+#include "objecttypeext.h"
 #include "typelist.h"
 
 

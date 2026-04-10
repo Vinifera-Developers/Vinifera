@@ -25,22 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "debughandler.h"
-#include "critsection.h"
+
 #include "cpudetect.h"
-#include "rawfile.h"
+#include "critsection.h"
 #include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
+
+#include <windows.h> // For OutputDebugString().
+#include <conio.h>
 #include <cstdio>
 #include <cstring>
-#include <conio.h>
+#include <fstream>
 #include <iostream>
 #include <wincon.h>
-#include <Windows.h> // For OutputDebugString().
-#include <fstream>
 
 
 /**
@@ -48,30 +52,30 @@
  */
 
 // The escape character that begins all VT sequences
-#define AICLI_VT_ESCAPE     "\x1b"
+#define AICLI_VT_ESCAPE "\x1b"
 
 // The beginning of a Control Sequence Introducer
-#define AICLI_VT_CSI        AICLI_VT_ESCAPE "["
+#define AICLI_VT_CSI AICLI_VT_ESCAPE "["
 
 // The beginning of an Operating system command
-#define AICLI_VT_OSC        AICLI_VT_ESCAPE "]"
+#define AICLI_VT_OSC AICLI_VT_ESCAPE "]"
 
 // Define a text formatting sequence with an integer id
-#define AICLI_VT_TEXTFORMAT(_id_)       AICLI_VT_CSI #_id_ "m"
+#define AICLI_VT_TEXTFORMAT(_id_) AICLI_VT_CSI #_id_ "m"
 
 // Color and format defines.
 // https://superuser.com/questions/413073/windows-console-with-ansi-colors-handling
-#define AICLI_STRONG_RED        AICLI_VT_TEXTFORMAT(91)
-#define AICLI_STRONG_GREEN      AICLI_VT_TEXTFORMAT(92)
-#define AICLI_STRONG_YELLOW     AICLI_VT_TEXTFORMAT(93)
-#define AICLI_STRONG_BLUE       AICLI_VT_TEXTFORMAT(94)
-#define AICLI_STRONG_MAGENTA    AICLI_VT_TEXTFORMAT(95)
-#define AICLI_STRONG_CYAN       AICLI_VT_TEXTFORMAT(96)
-#define AICLI_STRONG_WHITE      AICLI_VT_TEXTFORMAT(97)
+#define AICLI_STRONG_RED     AICLI_VT_TEXTFORMAT(91)
+#define AICLI_STRONG_GREEN   AICLI_VT_TEXTFORMAT(92)
+#define AICLI_STRONG_YELLOW  AICLI_VT_TEXTFORMAT(93)
+#define AICLI_STRONG_BLUE    AICLI_VT_TEXTFORMAT(94)
+#define AICLI_STRONG_MAGENTA AICLI_VT_TEXTFORMAT(95)
+#define AICLI_STRONG_CYAN    AICLI_VT_TEXTFORMAT(96)
+#define AICLI_STRONG_WHITE   AICLI_VT_TEXTFORMAT(97)
 
-#define AICLI_BOLD              AICLI_VT_TEXTFORMAT(1)
-#define AICLI_UNDERLINE         AICLI_VT_TEXTFORMAT(4)
-#define AICLI_INVERSE           AICLI_VT_TEXTFORMAT(7)
+#define AICLI_BOLD      AICLI_VT_TEXTFORMAT(1)
+#define AICLI_UNDERLINE AICLI_VT_TEXTFORMAT(4)
+#define AICLI_INVERSE   AICLI_VT_TEXTFORMAT(7)
 
 
 extern int Execute_Day;

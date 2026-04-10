@@ -25,15 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "extension.h"
 #include "objecttypeext.h"
 #include "techno.h"
 #include "technotype.h"
-#include "typelist.h"
 #include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "typelist.h"
 
 
 class AircraftTypeClass;
@@ -126,7 +127,7 @@ public:
     /**
      *  The refund value for the unit when it is sold at a Service Depot.
      */
-    unsigned SoylentValue;
+    int SoylentValue;
 
     /**
      *  This is the sound effect to play when a passenger enters this unit.

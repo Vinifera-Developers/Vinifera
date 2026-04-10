@@ -25,28 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "themeext_hooks.h"
-#include "themeext_init.h"
-#include "themeext.h"
-#include "theme.h"
-#include "tibsun_globals.h"
-#include "house.h"
-#include "housetype.h"
-#include "session.h"
-#include "scenario.h"
+
 #include "addon.h"
 #include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
+#include "house.h"
+#include "housetype.h"
+#include "scenario.h"
+#include "session.h"
+#include "theme.h"
+#include "themeext.h"
+#include "themeext_init.h"
+#include "tibsun_globals.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

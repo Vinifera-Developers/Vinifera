@@ -26,10 +26,10 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "verses.h"
 
-#include "armortype.h"
-#include "asserthandler.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"

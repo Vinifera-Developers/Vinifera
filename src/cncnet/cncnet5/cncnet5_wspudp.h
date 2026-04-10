@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "wspudp.h"
 #include "tibsun_defines.h"
+#include "wspudp.h"
 
 
 typedef struct TunnelAddress

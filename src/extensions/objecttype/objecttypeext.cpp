@@ -25,28 +25,30 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objecttypeext.h"
-#include "objecttype.h"
-#include "ccini.h"
+
 #include "asserthandler.h"
 #include "building.h"
 #include "buildingtypeext.h"
-#include "ccfile.h"
-#include "debughandler.h"
+#include "ccini.h"
 #include "extension_globals.h"
 #include "house.h"
-#include "voxellib.h"
-#include "motionlib.h"
 #include "miscutil.h"
+#include "motionlib.h"
+#include "objecttype.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "technotypeext.h"
 #include "unittypeext.h"
+#include "voxellib.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_ptr) :

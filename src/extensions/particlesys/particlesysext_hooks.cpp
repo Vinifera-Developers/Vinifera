@@ -25,20 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "particlesysext_hooks.h"
-#include "particlesys.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "particlesys.h"
 
 
 /**
  *  Fixes a bug (observed by comparing with Red Alert 2) where spawned
  *  particles have an invalid particle system.
- * 
+ *
  *  @author: CCHyper, tomsons26
  */
 DECLARE_PATCH(_ParticleSystemClass_Spawn_Particle_Particle_System_Patch)

@@ -25,10 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "conquerext_hooks.h"
 
 #include "beacon.h"
-#include "extension_globals.h"
+#include "debughandler.h"
 #include "hooker.h"
 #include "house.h"
 #include "ipxmgr.h"

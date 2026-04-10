@@ -25,35 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "mapext_hooks.h"
+
+#include "cell.h"
+#include "extension.h"
+#include "hooker.h"
 #include "map.h"
-#include "mouseext_hooks.h"
-#include "mouse.h"
-#include "mousetype.h"
 #include "object.h"
 #include "objecttype.h"
-#include "vinifera_globals.h"
-#include "wwmouse.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "extension.h"
-#include "weapontype.h"
-#include "cell.h"
-
-#include "hooker.h"
 #include "sidebarext.h"
-#include "techno.h"
 #include "tibsun_functions.h"
-#include "weapontypeext.h"
+#include "vinifera_globals.h"
 
 
- /**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or destructor!
-  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
-  */
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
 static class MapClassExt final : public MapClass
 {
 public:

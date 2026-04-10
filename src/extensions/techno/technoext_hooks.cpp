@@ -25,69 +25,67 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "spawnmanager.h"
+
+#include "always.h"
+
 #include "technoext_hooks.h"
 
-#include <vector>
-
-#include "unit.h"
-#include "unittype.h"
+#include "aircraft.h"
+#include "asserthandler.h"
+#include "buildingext.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
-#include "technoext.h"
-#include "techno.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "teamtype.h"
-#include "team.h"
-#include "tibsun_inline.h"
-#include "weapontype.h"
-#include "weapontypeext.h"
-#include "warheadtype.h"
-#include "warheadtypeext.h"
+#include "cell.h"
+#include "clipline.h"
+#include "debughandler.h"
+#include "drawshape.h"
+#include "extension.h"
+#include "fatal.h"
+#include "fetchres.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "tiberium.h"
-#include "uicontrol.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
-#include "voc.h"
-#include "tactical.h"
-#include "clipline.h"
-#include "mouse.h"
-#include "vinifera_util.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "buildingext.h"
-#include "debughandler.h"
-#include "drawshape.h"
-#include "cell.h"
-#include "fetchres.h"
-#include "wwkeyboard.h"
-#include "options.h"
-#include "hooker.h"
-#include "language.h"
 #include "ionstorm.h"
-#include "storageext.h"
+#include "language.h"
+#include "mouse.h"
+#include "options.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "session.h"
+#include "sideext.h"
+#include "spawnmanager.h"
+#include "syringe.h"
+#include "tactical.h"
+#include "tag.h"
+#include "team.h"
+#include "teamtype.h"
+#include "techno.h"
+#include "technoext.h"
+#include "technotype.h"
+#include "technotypeext.h"
 #include "textprint.h"
+#include "tiberium.h"
 #include "tiberiumext.h"
+#include "tibsun_inline.h"
+#include "uicontrol.h"
+#include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
-#include "verses.h"
-#include "session.h"
-#include "mouse.h"
-#include "sideext.h"
-#include "tag.h"
-#include "tibsun_functions.h"
 #include "utracker.h"
-#include "aircraft.h"
-#include "houseext.h"
-#include "syringe.h"
+#include "verses.h"
+#include "vinifera_util.h"
+#include "voc.h"
 #include "vox.h"
+#include "warheadtype.h"
+#include "warheadtypeext.h"
+#include "weapontype.h"
+#include "weapontypeext.h"
+#include "wwkeyboard.h"
+
+#include <vector>
 
 
 /**
@@ -852,16 +850,15 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     if (weapon->IsSonic && Wave) return FIRE_BUSY;
 
     /**
+     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
+     */
+    if (techno && !Verses::Get_ForceFire(techno->TClass->Armor, weapon->WarheadPtr)) return FIRE_ILLEGAL;
+
+    /**
      *  The target must be within range in order to allow firing.
      */
     if (!In_Range_Of(target, which))
         return FIRE_RANGE;
-
-    /**
-     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
-     */
-    if (techno && !Verses::Get_ForceFire(techno->TClass->Armor, weapon->WarheadPtr))
-        return FIRE_ILLEGAL;
 
     /**
      *  If there is no ammo left, then it can't fire.
@@ -1473,6 +1470,13 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
     TarCom = target;
 
     if (target == nullptr) {
+
+        /*
+        **  Abandon the spawn manager's target if there is one.
+        */
+        if (extension->SpawnManager) {
+            extension->SpawnManager->Queue_Target(nullptr);
+        }
 
         /*
         **  If we've got no target and didn't have one to begin with, reset burst now.
@@ -2121,7 +2125,7 @@ int TechnoClassExt::_Refund_Amount() const
     /**
      *  If the object has a soylent value defined, return it.
      */
-    if (technotypext->SoylentValue > 0) {
+    if (technotypext->SoylentValue >= 0) {
         return technotypext->SoylentValue;
     }
 
@@ -2617,25 +2621,6 @@ DEFINE_HOOK(0x006324FF, _TechnoClass_Captured_Spawn_Manager_Patch, 0)
     }
 
     return 0x00632518;
-}
-
-
-/**
- *  Patch to assign the target to the spawner.
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 6)
-{
-    GET(TechnoClass*, this_ptr, ESI);
-
-    TechnoClassExtension* extension = Extension::Fetch(this_ptr);
-
-    if (extension->SpawnManager) {
-        extension->SpawnManager->Queue_Target(nullptr);
-    }
-
-    return 0;
 }
 
 

@@ -25,13 +25,14 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "command.h"
 #include "tibsun_defines.h"
 #include "vinifera_globals.h"
+
 #include <map>
-#include <algorithm>
 
 
 /**
@@ -605,6 +606,14 @@ public:
 
 
 /**
+ *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2
+ */
+typedef int (*Classify_Function)(TechnoClass*);
+
+extern std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
+
+
+/**
  *  Cycles through green/veteran/elite units among the initially selected group.
  */
 class VeterancyFilterCommandClass : public ViniferaCommandClass
@@ -683,107 +692,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-};
-
-
-/**
- *  Promote selected units.
- */
-class VeterancyPromoteCommandClass : public ViniferaCommandClass
-{
-    public:
-        VeterancyPromoteCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~VeterancyPromoteCommandClass() {}
-
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT | KN_Y); }
-};
-
-
-/**
- *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2
- */
-typedef int (*Classify_Function)(TechnoClass*);
-
-extern std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
-
-/**
- *  Cycles through green/veteran/elite units among the initially selected group 
- */
-class VeterancyFilterCommandClass : public ViniferaCommandClass
-{
-    public:
-        VeterancyFilterCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~VeterancyFilterCommandClass() {}
-
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
-
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_Y); }
-};
-
-
-/**
- *  Cycles through red/yellow/green health units among the initially selected group 
- */
-class HealthFilterCommandClass : public ViniferaCommandClass
-{
-    public:
-        HealthFilterCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~HealthFilterCommandClass() {}
-
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
-
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_U); }
-};
-
-
-/**
- *  Adds lower-ranked units to already filtered veterans 
- */
-class VeterancyFilterAddNextCommandClass : public ViniferaCommandClass
-{
-    public:
-        VeterancyFilterAddNextCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~VeterancyFilterAddNextCommandClass() {}
-
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
-
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_Y | KN_SHIFT_BIT); }
-};
-
-
-/**
- *  Adds units from the next health group (yellow, green) to already filtered veterans 
- */
-class HealthFilterAddNextCommandClass : public ViniferaCommandClass
-{
-    public:
-        HealthFilterAddNextCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~HealthFilterAddNextCommandClass() {}
-
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
-
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_U | KN_SHIFT_BIT); }
 };
 
 

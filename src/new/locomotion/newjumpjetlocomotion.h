@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "locomotion.h"
 #include "facing.h"
+#include "locomotion.h"
 #include "vinifera_defines.h"
 
 

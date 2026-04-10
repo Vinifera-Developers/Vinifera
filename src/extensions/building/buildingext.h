@@ -25,12 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "technoext.h"
 #include "building.h"
-#include "ttimer.h"
 #include "ftimer.h"
+#include "technoext.h"
+#include "ttimer.h"
 
 
 class BuildingClass;

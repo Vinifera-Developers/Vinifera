@@ -25,7 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cncnet4_globals.h"
+
 #include "cncnet4.h"
 
 

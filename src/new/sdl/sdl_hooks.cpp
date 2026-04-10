@@ -25,20 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "bsurface.h"
-#include "dsurface.h"
+
+#include "always.h"
+
+#include "gscreen.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "movie.h"
 #include "sdl_functions.h"
 #include "syringe.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
 #include "vinifera_globals.h"
+#include "vqa.h"
 #include "winuser.h"
 #include "xmouse.h"
-#include "SDL3/SDL_timer.h"
-#include <dsound.h>
+
 #include <algorithm>
+#include <dsound.h>
 
 
 /**
@@ -57,40 +61,23 @@ DEFINE_HOOK(0x004B9A42, _Update_Visible_Surface_SDL_Update_Window_Patch, 5)
 /**
  *  Update the window after updating the visible surface when drawing a movie frame.
  * 
- *  @author: CCHyper
+ *  @author: tomsons26, ZivDero
  */
-DECLARE_PATCH(_Movie_Blit_To_Screen_SDL_Update_Window_Patch)
+void SDL_Movie_Blit_To_Screen()
 {
-    // VisibleSurface (ecx) -> Blit_From
-    _asm { call [edx + 0x8] }
-
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-
-    SDL_Update_Screen(VisibleSurface);
-    
-    JMP(0x005640D3);
+    if (!VQA_Get_Option(OPTION_NO_STRETCH)) {
+        VisibleSurface->Blit_From(CurrentVQ->StretchRect, *CurrentVQ->DrawSurface, CurrentVQ->InitialRect);
+        SDL_Update_Screen(VisibleSurface);
+    }
 }
 
-
-/**
- *  Update the window after updating the visible surface when drawing movie frame.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch)
+void SDL_Movie_Update_Visible_Surface()
 {
-    // VisibleSurface (ecx) -> Blit_From
-    _asm { call [edx + 0x8] }
-
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-
-    SDL_Update_Screen(VisibleSurface);
-    
-    JMP(0x0056478D);
+    if (CurrentVQ != nullptr) {
+        AlternateSurface->Fill(0);
+        Update_Visible_Surface(false, AlternateSurface);
+        SDL_Movie_Blit_To_Screen();
+    }
 }
 
 
@@ -421,17 +408,9 @@ void SDL_Hooks()
     /**
      *  Update the window surface when the game updates its VisibleSurface.
      */
-    Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch);             // VQA
-    Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch);    // VQA
-    //Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);                 // MSEngine
-    //Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);                // MSEngine
-    //Patch_Jump(0x005E6468, &_ScoreClass_Call_Back_Delay_SDL_Update_Window_Patch);       // ScoreClass
-    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);                             // Windows controls
-    //Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);                              // Window sliding animation
-    //Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);                              // Window sliding animation
-    //Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);                              // Window sliding animation
-    //Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);                              // Window sliding animation
-    //Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);           // Most other cases
+    Patch_Jump(0x00564050, &SDL_Movie_Blit_To_Screen);
+    Patch_Jump(0x005646E0, &SDL_Movie_Update_Visible_Surface);
+    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy); // Windows controls
 
     /**
      *  Call Set_Video_Mode even when windowed.

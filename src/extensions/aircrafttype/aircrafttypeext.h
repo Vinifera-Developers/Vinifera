@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "technotypeext.h"
 #include "aircrafttype.h"
+#include "technotypeext.h"
 
 
 class DECLSPEC_UUID(UUID_AIRCRAFTTYPE_EXTENSION)

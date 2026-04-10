@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "infantrytypeext_hooks.h"
+
 #include "infantrytypeext_init.h"
-#include "infantrytypeext.h"
-#include "infantrytype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

@@ -25,20 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "technotypeext_hooks.h"
-#include "technotypeext.h"
-#include "objecttypeext.h"
-#include "technotype.h"
-#include "house.h"
-#include "rules.h"
-#include "tibsun_defines.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
+#include "extension.h"
 #include "extension_globals.h"
 #include "hooker.h"
+#include "house.h"
 #include "rulesext.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "tibsun_defines.h"
 
 
 /**

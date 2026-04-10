@@ -25,24 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animtypeext_hooks.h"
-#include "animtypeext_init.h"
+
 #include "animtype.h"
 #include "animtypeext.h"
-#include "supertype.h"
-#include "fatal.h"
-#include "debughandler.h"
+#include "animtypeext_init.h"
 #include "asserthandler.h"
+#include "debughandler.h"
 #include "extension.h"
-
 #include "hooker.h"
+#include "supertype.h"
 #include "syringe.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

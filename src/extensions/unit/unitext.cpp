@@ -25,19 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "unitext.h"
-#include "unit.h"
+
 #include "building.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "unit.h"
 #include "vinifera_saveload.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(const UnitClass *this_ptr) :

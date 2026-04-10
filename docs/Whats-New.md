@@ -80,6 +80,7 @@ New:
 - Add "Adjust House Modifier" trigger action (by Rampstring)
 - Add "Only Harvesters" quarry (by Rampastring)
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
+- Implement INI inheritance/includes (by ZivDero)
 
 
 Vinifera fixes:
@@ -100,6 +101,8 @@ Vinifera fixes:
 - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
 - Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
 - Fix a bug where new local/global variable trigger events wouldn't reset their timers correctly (by ZivDero)
+- Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued (by ZivDero)
+- Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving (by ZivDero)
 
 
 Vanilla fixes:
@@ -128,6 +131,9 @@ Vanilla fixes:
 - Teams attacking a BwP now take zones into account (by Rampastring) 
 - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building (by Rampastring)
 - Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
+- Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
+- Fix incorrect merging of sections and keys in INI files (by ZivDero)
+- Fix game end text being stretched horizontally (by ZivDero)
 
 :::
 

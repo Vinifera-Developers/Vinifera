@@ -25,11 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "footext.h"
-#include "aircraft.h"
 #include "event.h"
+#include "footext.h"
 
 
 /**

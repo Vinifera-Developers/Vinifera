@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "aircrafttypeext_hooks.h"
+
 #include "aircrafttypeext_init.h"
-#include "aircrafttypeext.h"
-#include "aircrafttype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

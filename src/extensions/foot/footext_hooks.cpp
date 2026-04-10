@@ -25,38 +25,34 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "footext_hooks.h"
 
 #include "aircrafttracker.h"
-#include "foot.h"
-#include "technoext.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "tibsun_inline.h"
-#include "tibsun_globals.h"
-#include "tactical.h"
-#include "textprint.h"
+#include "asserthandler.h"
 #include "clipline.h"
-#include "convert.h"
+#include "extension.h"
+#include "foot.h"
+#include "hooker.h"
 #include "house.h"
 #include "iomap.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "session.h"
-#include "unit.h"
-#include "unitext.h"
-#include "unittype.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
 #include "ionstorm.h"
 #include "levitatelocomotion.h"
 #include "radarevent.h"
+#include "session.h"
 #include "syringe.h"
+#include "tactical.h"
+#include "technoext.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "uicontrol.h"
+#include "unit.h"
+#include "unitext.h"
+#include "unittype.h"
 #include "vinifera_globals.h"
 #include "vox.h"
 
@@ -64,7 +60,7 @@
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

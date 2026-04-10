@@ -25,28 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "buildingext.h"
-#include "buildingtypeext.h"
-#include "building.h"
-#include "buildingtype.h"
-#include "house.h"
-#include "housetype.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "building.h"
+#include "buildingext.h"
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x00426615, _BuildingClass_Constructor_Patch, 5)

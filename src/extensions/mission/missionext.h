@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "objectext.h"
 #include "mission.h"
+#include "objectext.h"
 
 
 class MissionClassExtension : public ObjectClassExtension

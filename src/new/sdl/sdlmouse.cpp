@@ -25,18 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "sdlmouse.h"
+
 #include "always.h"
+
+#include "sdlmouse.h"
+
+#include "SDL3/SDL_hints.h"
+#include "SDL3/SDL_mouse.h"
 #include "convert.h"
-#include "drawshape.h"
 #include "optionsext.h"
 #include "sdl_functions.h"
 #include "sdlsurface.h"
 #include "shapeset.h"
-#include "wwmouse.h"
-#include "SDL3/SDL_hints.h"
-#include "SDL3/SDL_mouse.h"
-#include <cassert>
 
 /**
  *  Persistent mouse object pointer that is used to facilitate access to the mouse

@@ -25,8 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "beacon.h"
+
 #include "always.h"
+
+#include "beacon.h"
+
 #include "debughandler.h"
 #include "drawshape.h"
 #include "dsurface.h"
@@ -38,7 +41,6 @@
 #include "mouse.h"
 #include "radarevent.h"
 #include "rawfile.h"
-#include "rules.h"
 #include "rulesext.h"
 #include "session.h"
 #include "shapeset.h"
@@ -49,7 +51,6 @@
 #include "vinifera_defines.h"
 #include "voc.h"
 #include "vox.h"
-#include <cstring>
 
 
 /**

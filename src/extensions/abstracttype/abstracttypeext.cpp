@@ -25,9 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "abstracttypeext.h"
+
 #include "abstracttype.h"
 #include "ccini.h"
 #include "extension.h"
@@ -35,7 +37,7 @@
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 AbstractTypeClassExtension::AbstractTypeClassExtension(const AbstractTypeClass *this_ptr) :

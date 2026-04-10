@@ -25,24 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "asserthandler.h"
+
+#include "always.h"
+
 #include "building.h"
-#include "debughandler.h"
-#include "fatal.h"
+#include "hooker.h"
 #include "house.h"
-#include "housetype.h"
 #include "mouse.h"
 #include "particlesys.h"
-#include "particlesysext_hooks.h"
-#include "rules.h"
-#include "scenario.h"
+#include "syringe.h"
 #include "techno.h"
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
-#include "unit.h"
-
-#include "hooker.h"
-#include "syringe.h"
 
 
 bool Passes_Cloak_Check(TechnoClass* techno)

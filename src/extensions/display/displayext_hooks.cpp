@@ -25,39 +25,36 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "displayext_hooks.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_util.h"
-#include "display.h"
-#include "iomap.h"
-#include "cell.h"
+
+#include "actiontype.h"
 #include "building.h"
-#include "buildingtype.h"
 #include "buildingtypeext.h"
-#include "techno.h"
-#include "technotype.h"
+#include "cell.h"
+#include "display.h"
+#include "extension.h"
+#include "hooker.h"
 #include "house.h"
-#include "housetype.h"
+#include "iomap.h"
 #include "layer.h"
 #include "session.h"
 #include "sessionext.h"
-#include "wwmouse.h"
-#include "mousetype.h"
-#include "actiontype.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
 #include "syringe.h"
+#include "techno.h"
+#include "technotype.h"
+#include "tibsun_globals.h"
+#include "tibsun_util.h"
+#include "vinifera_globals.h"
+#include "wwmouse.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

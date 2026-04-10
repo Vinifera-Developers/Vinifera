@@ -25,21 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "vinifera_defines.h"
-#include "extension_globals.h"
+
 #include "abstract.h"
 #include "abstractext.h"
-#include "swizzle.h"
-#include "noinit.h"
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "extension_globals.h"
+#include "swizzle.h"
+#include "vinifera_defines.h"
 
-#include <unknwn.h> // for IStream
-#include <typeinfo>
 #include <string>
+#include <typeinfo>
+#include <unknwn.h> // for IStream
 
 
 class EventClass;

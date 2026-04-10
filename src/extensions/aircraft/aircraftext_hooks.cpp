@@ -25,34 +25,34 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "aircraftext_hooks.h"
-#include "aircraftext_init.h"
+
 #include "aircraft.h"
 #include "aircraftext.h"
+#include "aircraftext_init.h"
 #include "aircrafttype.h"
 #include "aircrafttypeext.h"
-#include "object.h"
-#include "target.h"
-#include "unit.h"
-#include "unittype.h"
-#include "unittypeext.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "weapontype.h"
-#include "extension.h"
-#include "voc.h"
-#include "mouse.h"
-#include "team.h"
-#include "building.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
-
+#include "building.h"
+#include "extension.h"
 #include "hooker.h"
 #include "house.h"
+#include "mouse.h"
+#include "object.h"
 #include "rules.h"
 #include "syringe.h"
+#include "team.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "unit.h"
 #include "unitext.h"
+#include "unittype.h"
+#include "unittypeext.h"
+#include "voc.h"
+#include "weapontype.h"
 
 
 /**

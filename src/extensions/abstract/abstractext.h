@@ -25,14 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "tibsun_defines.h"
 #include "vinifera_defines.h"
-#include "noinit.h"
-
-#include <unknwn.h> // for IStream
 
 
 class AbstractClass;

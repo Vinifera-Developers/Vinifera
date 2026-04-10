@@ -25,17 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "cncnet4_hooks.h"
-#include "cncnet4_globals.h"
-#include "cncnet4.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "wspudp.h"
-#include "wspipx.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "cncnet4_hooks.h"
+
+#include "cncnet4.h"
+#include "cncnet4_globals.h"
+#include "debughandler.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "session.h"
+#include "tibsun_globals.h"
+#include "wspipx.h"
+#include "wspudp.h"
 
 
 static int __stdcall bind_intercept(SOCKET s, const struct sockaddr *name, int namelen)

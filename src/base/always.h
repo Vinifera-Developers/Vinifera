@@ -25,12 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "intrinsics.h"
 #include "macros.h"
-#include <inttypes.h>
 
+#include <inttypes.h>
 #include <windows.h>
 #define NAME_MAX FILENAME_MAX
 
@@ -49,21 +50,21 @@
 /**
  *  Alias the ICU unicode functions when not building against it.
  */
-#define u_strlen wcslen
-#define u_strcpy wcscpy
-#define u_strcat wcscat
-#define u_vsnprintf_u vswprintf
-#define u_strcmp wcscmp
-#define u_strcasecmp(x, y, z) _wcsicmp(x, y)
-#define u_isspace iswspace
-#define u_tolower towlower
+#define u_strlen                   wcslen
+#define u_strcpy                   wcscpy
+#define u_strcat                   wcscat
+#define u_vsnprintf_u              vswprintf
+#define u_strcmp                   wcscmp
+#define u_strcasecmp(x, y, z)      _wcsicmp(x, y)
+#define u_isspace                  iswspace
+#define u_tolower                  towlower
 #define U_COMPARE_CODE_POINT_ORDER 0x8000
 
 
 /**
  *  Define some stuff here for cross platform consistency.
  */
-#define strcasecmp _stricmp
+#define strcasecmp  _stricmp
 #define strncasecmp _strnicmp
 
 

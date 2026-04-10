@@ -25,13 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "optionsext_hooks.h"
-#include "optionsext_init.h"
-#include "optionsext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+
 #include "hooker.h"
+#include "optionsext_init.h"
 #include "rawfile.h"
 #include "syringe.h"
 

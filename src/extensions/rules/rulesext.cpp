@@ -25,54 +25,54 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "rulesext.h"
-#include "ccini.h"
-#include "rules.h"
-#include "tiberium.h"
-#include "weapontype.h"
-#include "buildingtype.h"
-#include "housetype.h"
-#include "side.h"
-#include "armortype.h"
-#include "rockettype.h"
-#include "wwcrc.h"
-#include "noinit.h"
-#include "swizzle.h"
+
 #include "addon.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "housetypeext.h"
-#include "supertypeext.h"
-#include "animtypeext.h"
-#include "buildingtypeext.h"
 #include "aircrafttypeext.h"
-#include "unittypeext.h"
-#include "infantrytypeext.h"
-#include "weapontypeext.h"
+#include "animtypeext.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
 #include "bullettypeext.h"
-#include "warheadtypeext.h"
-#include "terraintypeext.h"
-#include "smudgetypeext.h"
-#include "overlaytypeext.h"
-#include "particletypeext.h"
-#include "particlesystypeext.h"
-#include "voxelanimtypeext.h"
-#include "tiberiumext.h"
-#include "sideext.h"
-
+#include "ccini.h"
+#include "debughandler.h"
 #include "extension.h"
 #include "extension_globals.h"
+#include "housetype.h"
+#include "housetypeext.h"
+#include "infantrytypeext.h"
 #include "mission.h"
+#include "noinit.h"
+#include "overlaytypeext.h"
+#include "particlesystypeext.h"
+#include "particletypeext.h"
 #include "prerequisitegroup.h"
+#include "rockettype.h"
+#include "rules.h"
+#include "side.h"
+#include "sideext.h"
+#include "smudgetypeext.h"
+#include "supertypeext.h"
+#include "terraintypeext.h"
+#include "tiberium.h"
+#include "tiberiumext.h"
+#include "unittypeext.h"
 #include "verses.h"
+#include "voxelanimtypeext.h"
 #include "voxelinit.h"
+#include "warheadtypeext.h"
+#include "weapontype.h"
+#include "weapontypeext.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :

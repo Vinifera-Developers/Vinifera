@@ -25,12 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "fatal.h"
-#include <intrinsics.h>
 #include <cstdlib>
+#include <intrinsics.h>
 
 
 extern bool IgnoreAllAsserts;

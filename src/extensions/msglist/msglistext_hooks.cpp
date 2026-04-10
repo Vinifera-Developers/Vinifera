@@ -25,11 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "msglistext_hooks.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "msglistext_hooks.h"
+
+#include "asserthandler.h"
 #include "hooker.h"
 
 

@@ -25,28 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "drivelocomotionext_hooks.h"
+
+#include "anim.h"
+#include "cell.h"
 #include "drivelocomotion.h"
+#include "extension.h"
 #include "foot.h"
 #include "footext.h"
+#include "hooker.h"
+#include "rules.h"
+#include "syringe.h"
 #include "technotype.h"
 #include "technotypeext.h"
-#include "cell.h"
-#include "rules.h"
-#include "anim.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
-#include "syringe.h"
 
 
 /**
  *  Re-implements the section of code that spawns the wake animation as a
  *  unit moves across water.
- * 
+ *
  *  @author: CCHyper
  */
 static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *this_ptr)

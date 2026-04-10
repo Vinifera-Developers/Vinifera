@@ -25,11 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once 
 
-#include "always.h"
-#include "vector.h"
+#pragma once
+
 #include "tibsun_defines.h"
+#include "vector.h"
 
 
 class CCINIClass;

@@ -25,18 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "smudgetypeext_hooks.h"
-#include "smudgetypeext_init.h"
-#include "smudgetypeext.h"
-#include "smudgetype.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
+#include "debughandler.h"
 #include "extension.h"
 #include "hooker.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"
 #include "mouse.h"
+#include "smudgetype.h"
+#include "smudgetypeext.h"
+#include "smudgetypeext_init.h"
 
 
 /**

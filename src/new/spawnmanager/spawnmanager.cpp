@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "spawnmanager.h"
 
 #include "aircraft.h"
@@ -39,14 +41,13 @@
 #include "hoverlocomotion.h"
 #include "ionstorm.h"
 #include "kamikazetracker/kamikazetracker.h"
-#include "tibsun_inline.h"
+#include "rockettype.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "vinifera_globals.h"
+#include "vinifera_saveload.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
-#include "rockettype.h"
-#include "vinifera_saveload.h"
-#include "mouse.h"
 
 
 /**

@@ -25,25 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "ebolt.h"
-#include "vinifera_globals.h"
+
+#include "asserthandler.h"
+#include "clipline.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "extension.h"
+#include "particlesys.h"
+#include "rgb.h"
+#include "rules.h"
+#include "tactical.h"
+#include "techno.h"
+#include "technoext.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
-#include "technoext.h"
-#include "techno.h"
-#include "particlesys.h"
+#include "vinifera_globals.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
-#include "tactical.h"
-#include "rgb.h"
-#include "dsurface.h"
-#include "rules.h"
-#include "random.h"
 #include "wwmath.h"
-#include "clipline.h"
-#include "extension.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

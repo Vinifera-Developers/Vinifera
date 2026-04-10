@@ -25,12 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include <winsock2.h>
-#include <windows.h>
-#include <wsipx.h>
 #include <stdint.h>
+#include <winsock2.h>
+#include <wsipx.h>
 
 
 #define NET_BUF_SIZE 2048

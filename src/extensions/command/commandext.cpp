@@ -25,79 +25,78 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "commandext.h"
-#include <map>
-#include <iostream>
-#include <algorithm>
-#include "tibsun_globals.h"
-#include "tibsun_util.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "iomap.h"
-#include "tactical.h"
-#include "tacticalext.h"
-#include "theme.h"
-#include "dsurface.h"
-#include "wwmouse.h"
-#include "rules.h"
-#include "house.h"
-#include "housetype.h"
-#include "base.h"
-#include "super.h"
-#include "factory.h"
-#include "anim.h"
-#include "animtype.h"
-#include "voxelanim.h"
-#include "voxelanimtype.h"
-#include "unit.h"
-#include "unittype.h"
-#include "infantry.h"
-#include "infantrytype.h"
-#include "building.h"
-#include "buildingtype.h"
+
 #include "aircraft.h"
 #include "aircrafttype.h"
-#include "weapontype.h"
-#include "warheadtype.h"
-#include "session.h"
-#include "ionstorm.h"
-#include "ionblast.h"
-#include "tiberium.h"
+#include "anim.h"
+#include "animtype.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "base.h"
+#include "beacon.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "bullettype.h"
 #include "combat.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "event.h"
+#include "eventext.h"
+#include "extension.h"
+#include "factory.h"
+#include "fatal.h"
+#include "filepng.h"
+#include "house.h"
+#include "houseext.h"
+#include "housetype.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "ionblast.h"
+#include "ionstorm.h"
+#include "language.h"
+#include "minidump.h"
+#include "miscutil.h"
+#include "overlaytype.h"
+#include "particlesystype.h"
+#include "particletype.h"
+#include "queue.h"
+#include "rockettype.h"
+#include "rules.h"
 #include "scenario.h"
+#include "scenarioext.h"
+#include "session.h"
 #include "sidebarext.h"
+#include "smudgetype.h"
+#include "super.h"
+#include "tactical.h"
+#include "tacticalext.h"
 #include "tag.h"
 #include "tagtype.h"
 #include "terraintype.h"
+#include "theme.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "tibsun_util.h"
 #include "trigger.h"
 #include "triggertype.h"
-#include "smudgetype.h"
-#include "overlaytype.h"
-#include "armortype.h"
+#include "unit.h"
+#include "unittype.h"
+#include "vinifera_globals.h"
+#include "voxelanim.h"
 #include "voxelanimtype.h"
-#include "particletype.h"
-#include "particlesystype.h"
-#include "rockettype.h"
-#include "vox.h"
-#include "event.h"
-#include "queue.h"
-#include "language.h"
-#include "wwcrc.h"
-#include "filepcx.h"
-#include "filepng.h"
-#include "extension.h"
-#include "fatal.h"
-#include "minidump.h"
-#include "winutil.h"
-#include "miscutil.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "beacon.h"
-#include "bullettype.h"
-#include "eventext.h"
-#include "houseext.h"
-#include "scenarioext.h"
+#include "warheadtype.h"
 #include "waypointpath.h"
+#include "weapontype.h"
+#include "winutil.h"
+#include "wwcrc.h"
+#include "wwmouse.h"
+
+#include <algorithm>
+#include <map>
 
 
 /**
@@ -108,7 +107,7 @@
 
 /**
  *  Skips to the previous available music track allowed.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Prev_Theme_Command()
@@ -1995,17 +1994,15 @@ bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pr
     /**
      *  Each classify_function has its own last_full_selection and last_selection arrays.
      */
-    
-    if (UnitFilterLastFullSelectionByClassifiers.size() == 0)
-    {
+    if (UnitFilterLastFullSelectionByClassifiers.empty()) {
         UnitFilterLastFullSelectionByClassifiers[Get_Veterancy_Level] = new TechnoList();
         UnitFilterLastFullSelectionByClassifiers[Get_Health_Level] = new TechnoList();
     }
 
     /**
      *  We fetch the last full selection for the given classify_function.
-    TechnoList& last_full_selection = *(UnitFilterLastFullSelectionByClassifiers[classify_function]);
      */
+    TechnoList& last_full_selection = *(UnitFilterLastFullSelectionByClassifiers[classify_function]);
     TechnoList last_selection[3]; 
 
     /**

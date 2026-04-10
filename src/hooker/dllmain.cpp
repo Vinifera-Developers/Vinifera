@@ -25,16 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include <windows.h>
-#include <cstdarg>
-#include <cstdio>
-#include <ctime>
+
+#include "always.h"
 
 #include "hooker.h"
-#include "setup_hooks.h"
-
 #include "miscutil.h"
+#include "setup_hooks.h"
 #include "vinifera_util.h"
+
+#include <cstdio>
+#include <windows.h>
 
 
 /**

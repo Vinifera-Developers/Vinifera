@@ -25,27 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
+#include "extension.h"
+#include "hooker.h"
+#include "infantry.h"
 #include "infantryext.h"
 #include "infantrytypeext.h"
-#include "infantry.h"
-#include "infantrytype.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
 #include "syringe.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x004D21E1, _InfantryClass_Constructor_Patch, 5)

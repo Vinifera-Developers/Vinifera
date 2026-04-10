@@ -25,28 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "overlayext_hooks.h"
-#include "overlayext_init.h"
-#include "overlayext.h"
-#include "extension.h"
+
 #include "bsurface.h"
 #include "buffpipe.h"
 #include "buffstraw.h"
 #include "ccini.h"
-#include "lcwpipe.h"
-#include "lcwstraw.h"
-#include "session.h"
-#include "overlaytype.h"
+#include "extension.h"
+#include "hooker.h"
 #include "lcwpipe.h"
 #include "lcwstraw.h"
 #include "mouse.h"
+#include "overlayext.h"
+#include "overlayext_init.h"
+#include "overlaytype.h"
 #include "session.h"
 #include "tracker.h"
-
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "hooker.h"
 
 
 /**
