@@ -46,6 +46,7 @@
 #include "optionsext.h"
 #include "rulesext.h"
 #include "scenario.h"
+#include "sdlsurface.h"
 #include "syringe.h"
 #include "tactical.h"
 #include "tacticalext.h"
@@ -77,6 +78,7 @@ public:
     void _Draw_Rally_Points(bool blit);
     bool _Clamp_To_Tactical_Rect(Point2D& pixel);
     HRESULT STDMETHODCALLTYPE _Save(IStream* stream, BOOL cleardirty);
+    void _Draw_Screen_Text(char const* text);
 
 public:
 
@@ -921,6 +923,39 @@ CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender8_Patch, ebp, eax, 0x00610FB7)
 
 
 /**
+ *  Tactical::Draw_Screen_Text re-implementation to fix direct DDraw surface
+ *  access that is invalid because of SDL.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void TacticalExt::_Draw_Screen_Text(char const* text)
+{
+    if (Debug_Map) {
+        return;
+    }
+    if (text == nullptr || !strlen(text)) {
+        return;
+    }
+    if (CompositeSurface->Is_Direct_Draw()) {
+        HDC hdc = static_cast<SDLSurface*>(CompositeSurface)->GetDC();
+        Rect rect = TacticalRect;
+        if (hdc != nullptr) {
+            HFONT font = CreateFont(48, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_RASTER_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY, FF_SWISS | DEFAULT_PITCH, NULL);
+            HGDIOBJ h = SelectObject(hdc, font);
+            Point2D point = Point2D(TacticalRect.Width / 2, TacticalRect.Height / 2);
+            SetBkMode(hdc, TRANSPARENT);
+            SetTextAlign(hdc, TA_CENTER);
+            SetTextColor(hdc, RGB(255, 255, 255));
+            TextOut(hdc, rect.X + point.X, rect.Y + point.Y, text, strlen(text));
+            SelectObject(hdc, h);
+            DeleteObject(font);
+            static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
+        }
+    }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TacticalExtension_Hooks()
@@ -936,6 +971,7 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00614EC0, &TacticalExt::_Clamp_To_Tactical_Rect);
     Patch_Jump(0x00617F80, &TacticalExt::_Save);
     Patch_Jump(0x00479150, &Vinifera_Bandbox_Select);
+    Patch_Jump(0x00611C60, &TacticalExt::_Draw_Screen_Text);
 
     /**
      *  #issue-351

@@ -133,6 +133,7 @@ Vanilla fixes:
 - Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
 - Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
 - Fix incorrect merging of sections and keys in INI files (by ZivDero)
+- Fix game end text being stretched horizontally (by ZivDero)
 
 :::
 
