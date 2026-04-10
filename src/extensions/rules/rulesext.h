@@ -199,13 +199,13 @@ public:
      *  Defines the game-wide cap (in percentages) that technos can self-heal.
      *  This is the default used by technos that don't have this key explicitly specified for them.
      */
-    float SelfHealingCap;
+    double SelfHealingCap;
 
     /**
      *  Defines the game-wide rate (in minutes) that technos will self-heal.
      *  This is the default used by technos that don't have this key explicitly specified for them.
      */
-    float SelfHealingRate;
+    double SelfHealingRate;
 
     /**
      *  Is LandType Beach considered as "requires crushing" for passability purposes, as opposed to water?
