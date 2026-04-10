@@ -183,8 +183,16 @@ namespace
 
     Rect Build_Destination_Rect(const MovieVideoFrame &frame, bool allow_stretch)
     {
-        int area_width = SDLWindowWidth;
-        int area_height = SDLWindowHeight;
+        int area_width;
+        int area_height;
+
+        if (allow_stretch && Options.StretchMovies) {
+            area_width = SDLWindowWidth;
+            area_height = SDLWindowHeight;
+        } else {
+            area_width = 640;
+            area_height = 400;
+        }
 
         if (SDLWindow) {
             SDL_GetWindowSize(SDLWindow, &area_width, &area_height);
@@ -192,9 +200,10 @@ namespace
 
         Rect destination(0, 0, frame.Width, frame.Height);
 
-        if (allow_stretch) {
+        if (allow_stretch && Options.StretchMovies) {
             Scale_Video_Rect(destination, area_width, area_height, true);
         } else {
+            Scale_Video_Rect(destination, area_width, area_height, true);
             destination.X = std::max((area_width - frame.Width) / 2, 0);
             destination.Y = std::max((area_height - frame.Height) / 2, 0);
             destination.Width = frame.Width;
