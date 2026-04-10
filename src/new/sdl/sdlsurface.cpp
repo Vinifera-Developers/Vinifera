@@ -33,6 +33,7 @@
 #include "debughandler.h"
 #include "dsurface.h"
 #include "sdl_functions.h"
+#include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 
@@ -242,7 +243,46 @@ bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface 
 {
     if (!dcliprect.Is_Valid() || !scliprect.Is_Valid() || !destrect.Is_Valid() || !sourcerect.Is_Valid()) return false;
 
-    return XSurface::Blit_From(destrect, ssource, sourcerect, trans, true);
+    bool use_xsurface = false;
+
+    /**
+     *  For non-SDL surfaces, or if a trans blit is requested, let vanilla
+     *  blitters handle the blit.
+     */
+    if (!ssource.Is_Direct_Draw() == true || trans == true) {
+        use_xsurface = true;
+    } else {
+        if (Bytes_Per_Pixel() != ssource.Bytes_Per_Pixel()) {
+            use_xsurface = true;
+        }
+    }
+
+    if (use_xsurface == true) {
+        return XSurface::Blit_From(destrect, ssource, sourcerect, trans, true);
+    }
+
+    Rect drect = destrect;
+    Rect srect = sourcerect;
+
+    Rect swindow = Intersect(scliprect, ssource.Get_Rect());
+    Rect dwindow = Intersect(dcliprect, Get_Rect());
+
+    if (!Blit_Clip(drect, dwindow, srect, swindow)) {
+        return false;
+    }
+
+    SDL_Surface* src_surf = static_cast<SDLSurface const&>(ssource).Get_SDL_Surface();
+    SDL_Surface* dst_surf = this->Get_SDL_Surface();
+
+    if (!src_surf || !dst_surf) {
+        return false;
+    }
+
+    SDL_Rect src {srect.X + swindow.X, srect.Y + swindow.Y, srect.Width, srect.Height};
+    SDL_Rect dst {drect.X + dwindow.X, drect.Y + dwindow.Y, drect.Width, drect.Height};
+
+    SDL_SetSurfaceBlendMode(src_surf, SDL_BLENDMODE_NONE);
+    return SDL_BlitSurfaceScaled(src_surf, &src, dst_surf, &dst, SDL_SCALEMODE_LINEAR);
 }
 
 
