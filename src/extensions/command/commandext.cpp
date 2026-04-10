@@ -1867,6 +1867,7 @@ bool VeterancyPromoteCommandClass::Process()
  */
 using TechnoList = DynamicVectorClass<TechnoClass*>;
 
+std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
 
 /**
  *  Checks if two lists are equal, meaning they contain the same TechnoClass pointers.
@@ -1989,24 +1990,20 @@ void Classify(const Classify_Function &classify_function, TechnoList &current_se
  *  otherwise the selection will be replaced with the next tier.
  */
 bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
-{
-    if (Session.Players.Count() > 1) {
-        return false;
-    }
-
+{    
     /**
      *  Each classify_function has its own last_full_selection and last_selection arrays.
      */
-    static std::map<Classify_Function, TechnoList*> last_full_selection_by_classifiers = {
-        { Get_Veterancy_Level, new TechnoList() },
-        { Get_Health_Level, new TechnoList() }
-    };
-    
+    if (UnitFilterLastFullSelectionByClassifiers.empty()) {
+        UnitFilterLastFullSelectionByClassifiers[Get_Veterancy_Level] = new TechnoList();
+        UnitFilterLastFullSelectionByClassifiers[Get_Health_Level] = new TechnoList();
+    }
+
     /**
      *  We fetch the last full selection for the given classify_function.
      */
-    TechnoList &last_full_selection = *(last_full_selection_by_classifiers[classify_function]);
-    TechnoList last_selection[3];
+    TechnoList& last_full_selection = *(UnitFilterLastFullSelectionByClassifiers[classify_function]);
+    TechnoList last_selection[3]; 
 
     /**
      *  Then we classify the last full selection into three tiers.

@@ -30,6 +30,9 @@
 
 #include "command.h"
 #include "tibsun_defines.h"
+#include "vinifera_globals.h"
+
+#include <map>
 
 
 /**
@@ -600,6 +603,14 @@ public:
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
 };
+
+
+/**
+ *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2
+ */
+typedef int (*Classify_Function)(TechnoClass*);
+
+extern std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
 
 
 /**

@@ -35,6 +35,7 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "ccini.h"
+#include "commandext.h"
 #include "debughandler.h"
 #include "house.h"
 #include "houseext.h"
@@ -201,7 +202,7 @@ void ScenarioClassExtension::Init_Clear()
 
     {
         /**
-         *  Clear the any previously loaded tutorial messages in preperation for
+         *  Clear the any previously loaded tutorial messages in preparation for
          *  reloading the TUTORIAL.INI as they might contain scenario overrides.
          */
         Vinifera_TutorialText.clear();
@@ -229,6 +230,11 @@ void ScenarioClassExtension::Init_Clear()
         LocalFlags[index].VariableName[0] = '\0';
         Set_Local_To(index, 0);
     }
+
+    /* 
+     * Erase unit all filter hotkey states as their unit objects are invalid now 
+     */
+    UnitFilterLastFullSelectionByClassifiers.clear();
 }
 
 
