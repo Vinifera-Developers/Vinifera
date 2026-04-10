@@ -126,6 +126,7 @@ public:
     bool _Can_Deploy_Now() const;
     int _Refund_Amount() const;
     bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
+    bool _Should_Self_Heal_Now() const;
 };
 
 
@@ -2748,6 +2749,75 @@ static bool Is_Valid_Target_Zone(const TechnoClass* techno, AbstractClass * targ
 
 
 /**
+ *  #discussions-1450 
+ *  Patch that allows customizing repair cap and repair rate across technos,
+ *  rather than relying on values that have other side effects.
+ *  Technos can have individual repair cap and rates specified for them.
+ *  If they don't have those keys, then those values fall back to the game-wide customizable keys.
+ *  If those also aren't specified either, then the game falls back to the keys it used in vanilla.
+ *
+ *  @author: JoyfulShush
+ */
+bool TechnoClassExt::_Should_Self_Heal_Now() const
+{    
+    auto technotypeext = Extension::Fetch(TClass);
+
+    /**
+     *  Prevents overhealing - allowing Strength to get above 100%.
+     */
+    if (Get_Health_Ratio() >= 1) {
+        return false;
+    }
+
+    if (!TClass->IsSelfHealing) {
+        if (!Has_Ability(ABILITY_SELF_HEAL)) {
+            return false;
+        }
+    }
+
+    /**
+     *  Determine the repair rate of this techno. 
+     *  If the techno has its own repair rate, it is used. 
+     *  Otherwise, the game-wide repair rate is used.
+     *  If both are not specified, then the game falls back to the original RepairRate key used by this function in vanilla.     
+     */
+    double repair_rate;
+
+    if (technotypeext->SelfHealingRate != -1) {
+        repair_rate = technotypeext->SelfHealingRate;
+    } else if (RuleExtension->SelfHealingRate != -1) {
+        repair_rate = RuleExtension->SelfHealingRate;
+    } else {
+        repair_rate = Rule->RepairRate;
+    }
+
+    int repair_interval = std::max(1, (int)(repair_rate * TICKS_PER_MINUTE));
+
+    if ((Frame % repair_interval) != 0) {
+        return false;
+    }
+
+    /**
+     *  Determines the repair cap (in percentage) of this techno. A techno cannot repair itself beyond its repair cap.
+     *  If the techno has its own repair cap, it is used.
+     *  Otherwise, the game-wide repair cap is used.
+     *  If both are not specified, then the game falls back to the original ConditionYellow key used by this function in vanilla.
+     */
+    float repair_cap;
+    
+    if (technotypeext->SelfHealingCap != -1) {
+        repair_cap = technotypeext->SelfHealingCap;
+    } else if (RuleExtension->SelfHealingCap != -1) {
+        repair_cap = RuleExtension->SelfHealingCap;
+    } else {
+        repair_cap = Rule->ConditionYellow;
+    }
+    
+    return repair_cap > HealthRatio;
+}
+
+
+/**
  *  Custom Evaluate_Object implementation to allow player-owned defenses to target
  *  enemy defenses without ignoring weaponless objects.
  *
@@ -3116,7 +3186,6 @@ DEFINE_HOOK(0x0062AB5E, _TechnoClass_Revealed_Look_For_Allies_Patch, 0)
 }
 
 
-
 /**
  *  Main function for patching the hooks.
  */
@@ -3147,4 +3216,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
     Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
     Patch_Jump(0x0062D0F0, &TechnoClassExt::_Evaluate_Object);
+    Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
 }
