@@ -251,10 +251,6 @@ bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface 
      */
     if (!ssource.Is_Direct_Draw() == true || trans == true) {
         use_xsurface = true;
-    } else {
-        if (Bytes_Per_Pixel() != ssource.Bytes_Per_Pixel()) {
-            use_xsurface = true;
-        }
     }
 
     if (use_xsurface == true) {
