@@ -87,6 +87,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsRecheckPrerequisites(false),
     IsMultiMCV(false),
     AINavalYardAdjacency(20),
+    AIRepairBaseNodes(false),
     LowPowerPenaltyModifier(1.0f),
     MultipleFactoryCap(0),
     VoxelLightAzimuth(0),
@@ -241,6 +242,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsRecheckPrerequisites);
     crc(IsMultiMCV);
     crc(AINavalYardAdjacency);
+    crc(AIRepairBaseNodes);
     crc(BuildingFlameSpawnBlockFrames);
 }
 
@@ -766,6 +768,7 @@ bool RulesClassExtension::AI(CCINIClass& ini)
     }
 
     AINavalYardAdjacency = ini.Get_Int(AI, "AINavalYardAdjacency", AINavalYardAdjacency);
+    AIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", AIRepairBaseNodes);
 
     return true;
 }
