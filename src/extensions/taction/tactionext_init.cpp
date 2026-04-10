@@ -25,25 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tactionext.h"
-#include "taction.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "taction.h"
+#include "tactionext.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: ZivDero
  */
 DEFINE_HOOK(0x00618CDC, _TActionClass_Constructor_Patch, 5)

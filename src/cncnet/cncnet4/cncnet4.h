@@ -25,10 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include <winsock2.h>
-#include <windows.h>
 
 
 namespace CnCNet4 {

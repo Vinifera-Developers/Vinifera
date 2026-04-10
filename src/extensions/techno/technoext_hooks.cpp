@@ -25,69 +25,67 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "spawnmanager.h"
+
+#include "always.h"
+
 #include "technoext_hooks.h"
 
-#include <vector>
-
-#include "unit.h"
-#include "unittype.h"
+#include "aircraft.h"
+#include "asserthandler.h"
+#include "buildingext.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
-#include "technoext.h"
-#include "techno.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "teamtype.h"
-#include "team.h"
-#include "tibsun_inline.h"
-#include "weapontype.h"
-#include "weapontypeext.h"
-#include "warheadtype.h"
-#include "warheadtypeext.h"
+#include "cell.h"
+#include "clipline.h"
+#include "debughandler.h"
+#include "drawshape.h"
+#include "extension.h"
+#include "fatal.h"
+#include "fetchres.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "tiberium.h"
-#include "uicontrol.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
-#include "voc.h"
-#include "tactical.h"
-#include "clipline.h"
-#include "mouse.h"
-#include "vinifera_util.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "buildingext.h"
-#include "debughandler.h"
-#include "drawshape.h"
-#include "cell.h"
-#include "fetchres.h"
-#include "wwkeyboard.h"
-#include "options.h"
-#include "hooker.h"
-#include "language.h"
 #include "ionstorm.h"
-#include "storageext.h"
+#include "language.h"
+#include "mouse.h"
+#include "options.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "session.h"
+#include "sideext.h"
+#include "spawnmanager.h"
+#include "syringe.h"
+#include "tactical.h"
+#include "tag.h"
+#include "team.h"
+#include "teamtype.h"
+#include "techno.h"
+#include "technoext.h"
+#include "technotype.h"
+#include "technotypeext.h"
 #include "textprint.h"
+#include "tiberium.h"
 #include "tiberiumext.h"
+#include "tibsun_inline.h"
+#include "uicontrol.h"
+#include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
-#include "verses.h"
-#include "session.h"
-#include "mouse.h"
-#include "sideext.h"
-#include "tag.h"
-#include "tibsun_functions.h"
 #include "utracker.h"
-#include "aircraft.h"
-#include "houseext.h"
-#include "syringe.h"
+#include "verses.h"
+#include "vinifera_util.h"
+#include "voc.h"
 #include "vox.h"
+#include "warheadtype.h"
+#include "warheadtypeext.h"
+#include "weapontype.h"
+#include "weapontypeext.h"
+#include "wwkeyboard.h"
+
+#include <vector>
 
 
 /**
@@ -128,6 +126,7 @@ public:
     bool _Can_Deploy_Now() const;
     int _Refund_Amount() const;
     bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
+    bool _Should_Self_Heal_Now() const;
 };
 
 
@@ -852,16 +851,15 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     if (weapon->IsSonic && Wave) return FIRE_BUSY;
 
     /**
+     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
+     */
+    if (techno && !Verses::Get_ForceFire(techno->TClass->Armor, weapon->WarheadPtr)) return FIRE_ILLEGAL;
+
+    /**
      *  The target must be within range in order to allow firing.
      */
     if (!In_Range_Of(target, which))
         return FIRE_RANGE;
-
-    /**
-     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
-     */
-    if (techno && !Verses::Get_ForceFire(techno->TClass->Armor, weapon->WarheadPtr))
-        return FIRE_ILLEGAL;
 
     /**
      *  If there is no ammo left, then it can't fire.
@@ -1473,6 +1471,13 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
     TarCom = target;
 
     if (target == nullptr) {
+
+        /*
+        **  Abandon the spawn manager's target if there is one.
+        */
+        if (extension->SpawnManager) {
+            extension->SpawnManager->Queue_Target(nullptr);
+        }
 
         /*
         **  If we've got no target and didn't have one to begin with, reset burst now.
@@ -2621,25 +2626,6 @@ DEFINE_HOOK(0x006324FF, _TechnoClass_Captured_Spawn_Manager_Patch, 0)
 
 
 /**
- *  Patch to assign the target to the spawner.
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 6)
-{
-    GET(TechnoClass*, this_ptr, ESI);
-
-    TechnoClassExtension* extension = Extension::Fetch(this_ptr);
-
-    if (extension->SpawnManager) {
-        extension->SpawnManager->Queue_Target(nullptr);
-    }
-
-    return 0;
-}
-
-
-/**
  *  Patch to pass the fire command to the spawner.
  *
  *  @author: ZivDero
@@ -2759,6 +2745,75 @@ static bool Is_Valid_Target_Zone(const TechnoClass* techno, AbstractClass * targ
     // For some reason the target zone scan type was invalid. Something is wrong.
     Fatal("Invalid TargetZoneScanType for techno type %s", technotype->IniName.c_str());
     return false;
+}
+
+
+/**
+ *  #discussions-1450 
+ *  Patch that allows customizing repair cap and repair rate across technos,
+ *  rather than relying on values that have other side effects.
+ *  Technos can have individual repair cap and rates specified for them.
+ *  If they don't have those keys, then those values fall back to the game-wide customizable keys.
+ *  If those also aren't specified either, then the game falls back to the keys it used in vanilla.
+ *
+ *  @author: JoyfulShush
+ */
+bool TechnoClassExt::_Should_Self_Heal_Now() const
+{    
+    auto technotypeext = Extension::Fetch(TClass);
+
+    /**
+     *  Prevents overhealing - allowing Strength to get above 100%.
+     */
+    if (Get_Health_Ratio() >= 1) {
+        return false;
+    }
+
+    if (!TClass->IsSelfHealing) {
+        if (!Has_Ability(ABILITY_SELF_HEAL)) {
+            return false;
+        }
+    }
+
+    /**
+     *  Determine the repair rate of this techno. 
+     *  If the techno has its own repair rate, it is used. 
+     *  Otherwise, the game-wide repair rate is used.
+     *  If both are not specified, then the game falls back to the original RepairRate key used by this function in vanilla.     
+     */
+    double repair_rate;
+
+    if (technotypeext->SelfHealingRate != -1) {
+        repair_rate = technotypeext->SelfHealingRate;
+    } else if (RuleExtension->SelfHealingRate != -1) {
+        repair_rate = RuleExtension->SelfHealingRate;
+    } else {
+        repair_rate = Rule->RepairRate;
+    }
+
+    int repair_interval = std::max(1, (int)(repair_rate * TICKS_PER_MINUTE));
+
+    if ((Frame % repair_interval) != 0) {
+        return false;
+    }
+
+    /**
+     *  Determines the repair cap (in percentage) of this techno. A techno cannot repair itself beyond its repair cap.
+     *  If the techno has its own repair cap, it is used.
+     *  Otherwise, the game-wide repair cap is used.
+     *  If both are not specified, then the game falls back to the original ConditionYellow key used by this function in vanilla.
+     */
+    float repair_cap;
+    
+    if (technotypeext->SelfHealingCap != -1) {
+        repair_cap = technotypeext->SelfHealingCap;
+    } else if (RuleExtension->SelfHealingCap != -1) {
+        repair_cap = RuleExtension->SelfHealingCap;
+    } else {
+        repair_cap = Rule->ConditionYellow;
+    }
+    
+    return repair_cap > HealthRatio;
 }
 
 
@@ -3131,7 +3186,6 @@ DEFINE_HOOK(0x0062AB5E, _TechnoClass_Revealed_Look_For_Allies_Patch, 0)
 }
 
 
-
 /**
  *  Main function for patching the hooks.
  */
@@ -3162,4 +3216,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
     Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
     Patch_Jump(0x0062D0F0, &TechnoClassExt::_Evaluate_Object);
+    Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
 }

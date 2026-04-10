@@ -25,18 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "bullettypeext.h"
+
 #include "bullettype.h"
-#include "tibsun_globals.h"
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "tibsun_globals.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BulletTypeClassExtension::BulletTypeClassExtension(const BulletTypeClass *this_ptr) :

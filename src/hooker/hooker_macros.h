@@ -25,8 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 
+#pragma once
 
 #include <cstdio>
 

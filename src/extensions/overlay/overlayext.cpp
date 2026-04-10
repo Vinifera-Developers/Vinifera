@@ -25,19 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "overlayext.h"
+
+#include "extension.h"
 #include "overlay.h"
 #include "overlaytype.h"
 #include "overlaytypeext.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 OverlayClassExtension::OverlayClassExtension(const OverlayClass *this_ptr) :

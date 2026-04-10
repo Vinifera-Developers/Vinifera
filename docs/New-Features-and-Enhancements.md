@@ -1234,6 +1234,30 @@ Prerequisite=GROUPNAME
 Vanilla prerequisite groups always exist by default. If you re-define them in `[PrerequisiteGroups]`, values from `[PrerequisiteGroups]` will overwrite the values from `[General]`.
 ```
 
+### Self Healing
+- Vinifera adds the ability to control the Self Healing mechanism for all technos, allowing to control both the maximum healing capacity and healing rate, both game-wide and per techno.
+- Techno-specific values apply first.
+- If not specified, then game-wide values apply.
+- If both are not specified, then Vinifera falls back to the original values used by the game, which depends on the attribute:
+  - Self Healing Cap: based on `ConditionYellow`.
+  - Self Healing Rate: based on `RepairRate`.
+
+Game-wide definition:
+In `RULES.INI`:
+```ini
+[General]
+SelfHealingCap=50% ; % or float, determines the maximum amount of strength technos can automatically regenerate. Caps at 100%. Only used for technos that do not have this key defined for them.
+SelfHealingRate=.016 ; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. Only used for technos that do not have this key defined for them. The lower the value, the faster technos will heal.
+```
+
+Techno-specific definition:
+In `RULES.INI`:
+```ini
+[SOMETECHNO]
+SelfHealingCap=50% ; % or float, determines the maximum amount of strength this techno can automatically regenerate. Caps at 100%.
+SelfHealingRate=.016 ; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. The lower the value, the faster this techno will heal.
+```
+
 ## Terrain
 
 ### Light Sources

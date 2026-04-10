@@ -25,12 +25,14 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "eventext_hooks.h"
+
+#include "debughandler.h"
 #include "event.h"
 #include "eventext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 #include "hooker.h"
 #include "house.h"
 #include "session.h"

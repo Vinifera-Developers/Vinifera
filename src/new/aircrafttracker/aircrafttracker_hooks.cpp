@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "aircrafttracker_hooks.h"
 
 #include "aircrafttracker.h"
@@ -34,12 +36,11 @@
 #include "footext.h"
 #include "hooker.h"
 #include "jumpjetlocomotion.h"
+#include "levitatelocomotion.h"
 #include "spawnmanager.h"
+#include "syringe.h"
 #include "techno.h"
 #include "technotype.h"
-#include "kamikazetracker.h"
-#include "levitatelocomotion.h"
-#include "syringe.h"
 #include "tibsun_globals.h"
 #include "veinholemonster.h"
 #include "vinifera_globals.h"

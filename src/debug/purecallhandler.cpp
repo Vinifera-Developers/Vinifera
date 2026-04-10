@@ -25,17 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "purecallhandler.h"
-#include "stackdump.h"
-#include "textfile.h"
-#include "fatal.h"
+
 #include "debughandler.h"
+#include "fatal.h"
+#include "stackdump.h"
 #include "stringid.h"
+#include "textfile.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
-#include <Windows.h>
-#include <string>
+
+#include <windows.h>
 
 
 extern int Execute_Day;

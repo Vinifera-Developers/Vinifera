@@ -25,12 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "vector.h"
 #include "ccfile.h"
 #include "extension_globals.h"
+#include "vector.h"
+
 #include <unordered_map>
 
 

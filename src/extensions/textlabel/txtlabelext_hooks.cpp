@@ -25,24 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "txtlabelext_hooks.h"
-#include "txtlabel.h"
-#include "tibsun_globals.h"
-#include "colorscheme.h"
-#include "wwfont.h"
-#include "uicontrol.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "vinifera_util.h"
 
+#include "always.h"
+
+#include "txtlabelext_hooks.h"
+
+#include "colorscheme.h"
 #include "hooker.h"
+#include "tibsun_globals.h"
+#include "txtlabel.h"
+#include "uicontrol.h"
+#include "wwfont.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

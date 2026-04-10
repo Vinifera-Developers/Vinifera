@@ -25,20 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "multiscoreext_hooks.h"
 
-#include <algorithm>
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "tibsun_globals.h"
-#include "house.h"
-#include "vector.h"
-
 #include "hooker.h"
+#include "house.h"
 #include "scenario.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
+#include "vector.h"
 #include "vinifera_globals.h"
+
+#include <algorithm>
 
 
 /**

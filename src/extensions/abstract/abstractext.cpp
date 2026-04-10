@@ -25,21 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "abstractext.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "swizzle.h"
-#include "vinifera_saveload.h"
-#include "extension.h"
+
 #include "debughandler.h"
-#include "asserthandler.h"
+#include "extension.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor
- * 
+ *
  *  @author: CCHyper
  */
 AbstractClassExtension::AbstractClassExtension(const AbstractClass *this_ptr) :

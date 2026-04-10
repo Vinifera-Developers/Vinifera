@@ -25,17 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "infantryext.h"
-#include "infantry.h"
-#include "wwcrc.h"
+
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "infantry.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 InfantryClassExtension::InfantryClassExtension(const InfantryClass *this_ptr) :

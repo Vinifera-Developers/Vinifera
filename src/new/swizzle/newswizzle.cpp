@@ -27,12 +27,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "newswizzle.h"
+
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "fatal.h"
 #include "tibsun_globals.h"
-#include "vinifera_util.h"
 
 
 extern void Clear_All_Surfaces();

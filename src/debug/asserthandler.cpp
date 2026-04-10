@@ -25,21 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "asserthandler.h"
+
 #include "critsection.h"
 #include "debughandler.h"
 #include "stackdump.h"
-#include "textfile.h"
 #include "stringid.h"
+#include "textfile.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include <Windows.h>
+
+#include <windows.h>
 #include <cstdio>
 #include <cstring>
-#include <cassert>
-
-#include "tspp_assert.h"
 
 
 /**

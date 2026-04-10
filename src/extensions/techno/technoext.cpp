@@ -25,41 +25,43 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "technoext.h"
-#include <algorithm>
+
+#include "anim.h"
+#include "buildingtype.h"
+#include "debughandler.h"
+#include "ebolt.h"
+#include "extension.h"
+#include "extension_globals.h"
+#include "house.h"
+#include "houseext.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "saveload.h"
+#include "spawnmanager.h"
+#include "storageext.h"
+#include "tactical.h"
+#include "team.h"
+#include "teamtype.h"
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
-#include "house.h"
-#include "housetype.h"
-#include "building.h"
-#include "buildingtype.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "voc.h"
-#include "ebolt.h"
-#include "tactical.h"
-#include "tibsun_inline.h"
 #include "tibsun_globals.h"
-#include "extension_globals.h"
-#include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "houseext.h"
-#include "saveload.h"
-#include "vinifera_saveload.h"
-#include "storageext.h"
-#include "spawnmanager.h"
-#include "team.h"
-#include "teamtype.h"
+#include "tibsun_inline.h"
 #include "unit.h"
-#include "anim.h"
+#include "vinifera_saveload.h"
+#include "voc.h"
+#include "wwcrc.h"
+
+#include <algorithm>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
@@ -601,7 +603,7 @@ bool TechnoClassExtension::Can_Opportunity_Fire() const
  */
 bool TechnoClassExtension::Opportunity_Fire()
 {
-    if (Can_Opportunity_Fire()) {
+    if (Can_Opportunity_Fire() && This()->TarCom == nullptr) {
         AbstractClass* old_target = This()->TarCom;
         bool result = This()->Target_Something_Nearby(This()->Center_Coord(), THREAT_RANGE);
         if (result && This()->TarCom != old_target) {

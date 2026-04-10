@@ -25,37 +25,38 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cellext_hooks.h"
-#include "cellext_const.h"
-#include "tibsun_globals.h"
+
+#include "asserthandler.h"
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
-#include "session.h"
-#include "rules.h"
-#include "iomap.h"
-#include "techno.h"
-#include "technotype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 #include "cellext.h"
+#include "cellext_const.h"
 #include "extension.h"
-
 #include "hooker.h"
 #include "house.h"
+#include "iomap.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"
 #include "overlaytype.h"
 #include "overlaytypeext.h"
-#include "syringe.h"
+#include "rules.h"
 #include "rulesext.h"
+#include "session.h"
+#include "syringe.h"
+#include "tactical.h"
+#include "techno.h"
+#include "technotype.h"
 #include "terrain.h"
 #include "terraintype.h"
+#include "theatertype.h"
 #include "tiberium.h"
 #include "tiberiumext.h"
-#include "tactical.h"
-#include "theatertype.h"
+#include "tibsun_globals.h"
 
 /**
  *  A fake class for implementing new member functions which allow

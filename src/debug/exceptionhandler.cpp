@@ -25,37 +25,36 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "exceptionhandler.h"
-#include "stackdump.h"
-#include "minidump.h"
-#include "cpudetect.h"
-#include "buildnum.h"
-#include "winutil.h"
-#include "miscutil.h"
-#include "crc32.h"
+
 #include "cdctrl.h"
-#include "version.h"
-#include "dsurface.h"
-#include "textfile.h"
-#include "debughlp.h"
-#include "wwmouse.h"
+#include "cpudetect.h"
+#include "crc32.h"
 #include "debughandler.h"
-#include "asserthandler.h"
+#include "debughlp.h"
+#include "dsurface.h"
+#include "minidump.h"
+#include "miscutil.h"
 #include "resource.h"
-#include "fetchres.h"
+#include "stackdump.h"
 #include "stringid.h"
 #include "syringe.h"
+#include "textfile.h"
 #include "tibsun_functions.h"
-#include "windialog.h"
+#include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
-#include "tibsun_globals.h"
-#include <Windows.h>
+#include "windialog.h"
+#include "winutil.h"
+
 #include <dbghelp.h>
 #include <eh.h>
-#include <string>
+#include <windows.h>
 
 
 extern HMODULE DLLInstance;

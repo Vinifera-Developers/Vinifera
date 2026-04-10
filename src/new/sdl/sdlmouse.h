@@ -25,11 +25,14 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "actiontype.h"
-#include "xmouse.h"
 #include "SDL3/SDL_mouse.h"
+#include "xmouse.h"
+
+#include <mmsystem.h>
+#include <vector>
 
 class SDLSurface;
 class ShapeSet;

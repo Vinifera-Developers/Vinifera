@@ -25,14 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
+#include "always.h"
 
 #include "cncnet4_net.h"
 
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "debughandler.h"
+#include "fatal.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 
 static struct sockaddr_in net_local;

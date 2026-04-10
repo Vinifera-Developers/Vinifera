@@ -25,25 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "theatertype_hooks.h"
-#include "theatertype.h"
-#include "ccini.h"
-#include "tibsun_globals.h"
-#include "vinifera_globals.h"
+
 #include "animtype.h"
 #include "buildingtype.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "hooker.h"
+#include "iomap.h"
 #include "overlaytype.h"
 #include "smudgetype.h"
-#include "terrain.h"
-#include "terraintype.h"
-#include "isotiletype.h"
-#include "iomap.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
 #include "syringe.h"
+#include "theatertype.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
 
 
 /**

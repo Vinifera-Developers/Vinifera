@@ -25,45 +25,45 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animext_hooks.h"
-#include "tibsun_globals.h"
-#include "tibsun_inline.h"
+
 #include "anim.h"
 #include "animext.h"
 #include "animext_init.h"
 #include "animtype.h"
 #include "animtypeext.h"
-#include "smudgetype.h"
-#include "particle.h"
-#include "particletype.h"
-#include "particlesys.h"
-#include "target.h"
-#include "cell.h"
-#include "rules.h"
-#include "scenario.h"
-#include "voc.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "cell.h"
 #include "combat.h"
 #include "coord.h"
 #include "drawshape.h"
-#include "mouse.h"
-#include "voc.h"
-#include "overlaytype.h"
-#include "overlay.h"
-#include "tactical.h"
-#include "tiberium.h"
-
+#include "extension.h"
 #include "hooker.h"
+#include "mouse.h"
+#include "overlay.h"
+#include "overlaytype.h"
+#include "particle.h"
+#include "particlesys.h"
+#include "particletype.h"
+#include "rules.h"
+#include "scenario.h"
+#include "smudgetype.h"
 #include "syringe.h"
+#include "tactical.h"
+#include "target.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
+#include "voc.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

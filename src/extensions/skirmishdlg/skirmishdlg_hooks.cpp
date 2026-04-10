@@ -25,28 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "skirmishdlg_hooks.h"
-#include "tibsun_defines.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
-#include <Commctrl.h>
+#include "always.h"
+
+#include "skirmishdlg_hooks.h"
 
 #include "hooker.h"
+#include "session.h"
 #include "syringe.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
+
+#include <Commctrl.h>
 
 
 /**
  *  #issue-346
- * 
+ *
  *  Fixes a limitation where returning to the Skirmish dialog after a game
  *  clamps the chosen side between 0 (GDI) and 1 (NOD). This means the player
  *  would be forced back to index 1 (NOD) on the combo box if they played as
  *  a new side which was added in a mod for example.
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x005F7812, _SkirmishDialog_InitDialog_RestoreSideIndex_Patch, 0)

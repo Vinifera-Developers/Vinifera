@@ -25,23 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "tiberiumext.h"
-#include "tiberium.h"
+
 #include "ccini.h"
-#include "overlaytype.h"
-#include "extension.h"
-#include "asserthandler.h"
 #include "cellext.h"
-#include "debughandler.h"
+#include "extension.h"
 #include "findmake.h"
 #include "mouse.h"
+#include "overlaytype.h"
+#include "tiberium.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :

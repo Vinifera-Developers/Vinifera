@@ -25,25 +25,30 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_util.h"
-#include "vinifera_gitinfo.h"
+
+#include "bsurface.h"
+#include "cncnet4_globals.h"
+#include "colorscheme.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "filepng.h"
+#include "minidump.h"
+#include "msgbox.h"
+#include "spritecollection.h"
+#include "textprint.h"
+#include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_const.h"
+#include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "colorscheme.h"
-#include "textprint.h"
-#include "dsurface.h"
-#include "bsurface.h"
-#include "spritecollection.h"
-#include "filepng.h"
-#include "filepcx.h"
-#include "cncnet4_globals.h"
-#include "wwfont.h"
-#include "msgbox.h"
-#include "minidump.h"
 #include "winutil.h"
+#include "wwfont.h"
 #include "xzip.h"
+
 #include <cstdio>
 
 

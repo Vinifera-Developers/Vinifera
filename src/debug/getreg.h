@@ -26,9 +26,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 
-#include "always.h"
+#pragma once
 
 
 typedef uint32_t register_t;

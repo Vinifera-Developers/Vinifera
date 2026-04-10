@@ -50,8 +50,28 @@ SpacesInCStyleCastParentheses: 'false'
 SpacesInContainerLiterals: 'false'
 SpacesInParentheses: 'false'
 SpacesInSquareBrackets: 'false'
-Standard: Cpp11
+Standard: c++20
 TabWidth: '4'
 UseTab: Never
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeIsMainRegex: '([-_](test|unittest))?$'
+
+IncludeCategories:
+  # 1. always.h
+  - Regex: '^"always\.h"$'
+    Priority: -1
+
+  # 2. other ".h"
+  - Regex: '^".*\.h"$'
+    Priority: 2
+
+  # 3. ".hh"
+  - Regex: '^".*\.hh"$'
+    Priority: 3
+
+  # 4. system / STL
+  - Regex: '^<.*>$'
+    Priority: 4
 
 ...

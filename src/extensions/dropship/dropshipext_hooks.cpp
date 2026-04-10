@@ -25,30 +25,30 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "dropshipext_hooks.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
+
+#include "armortype.h"
+#include "colorscheme.h"
 #include "dropship.h"
 #include "dsurface.h"
 #include "gscreen.h"
-#include "theme.h"
-#include "colorscheme.h"
-#include "textprint.h"
-#include "armortype.h"
-#include "fatal.h"
-#include "wwmouse.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
 #include "syringe.h"
+#include "textprint.h"
+#include "theme.h"
+#include "tibsun_globals.h"
+#include "vinifera_util.h"
+#include "wwmouse.h"
 
 
 /**
  *  #issue-107
- * 
+ *
  *  Patches the Dropship screen to display new armor types' names.
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x0048706A, _Dropship_Draw_Info_Text_ArmorName_Patch, 0)

@@ -27,15 +27,17 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "spawnmanager_hooks.h"
 
 #include "extension.h"
 #include "hooker.h"
+#include "kamikazetracker.h"
 #include "spawnmanager.h"
+#include "syringe.h"
 #include "techno.h"
 #include "technoext.h"
-#include "kamikazetracker.h"
-#include "syringe.h"
 #include "veinholemonster.h"
 #include "vinifera_globals.h"
 

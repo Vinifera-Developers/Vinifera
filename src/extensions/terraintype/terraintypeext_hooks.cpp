@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "terraintypeext_hooks.h"
+
 #include "terraintypeext_init.h"
-#include "terraintypeext.h"
-#include "terraintype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

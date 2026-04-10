@@ -32,8 +32,14 @@
  *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "blowstraw.h"
+
 #include "asserthandler.h"
+#include "fatal.h"
+
 #include <cstring>
 
 

@@ -25,14 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "missionext_hooks.h"
-#include "mission.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
-#include "hooker.h"
+#include "always.h"
+
+#include "missionext_hooks.h"
 
 
 /**

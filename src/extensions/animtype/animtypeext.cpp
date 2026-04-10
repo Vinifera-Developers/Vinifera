@@ -25,22 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animtypeext.h"
+
 #include "animtype.h"
+#include "asserthandler.h"
 #include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "findmake.h"
+#include "particletype.h"
 #include "tibsun_defines.h"
 #include "vinifera_saveload.h"
 #include "wwcrc.h"
-#include "particletype.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "findmake.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :

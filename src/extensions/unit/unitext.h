@@ -25,11 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
+#include "building.h"
 #include "footext.h"
 #include "unit.h"
-#include "building.h"
 
 
 class DECLSPEC_UUID(UUID_UNIT_EXTENSION)

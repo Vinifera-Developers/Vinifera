@@ -25,11 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "palette.h"
-#include "dsurface.h"
 #include "SDL3/SDL_surface.h"
+#include "dsurface.h"
 
 
 enum SDLSurfaceColorMode {
@@ -91,9 +91,9 @@ public:
     int Stride() const override;
 
     /**
-     *  Verifies that this is not a direct draw enabled surface.
+     *  Abusing this to signal that this is an SDL surface.
      */
-    bool Is_Direct_Draw() const override { return false; }
+    bool Is_Direct_Draw() const override { return true; }
 
     bool Can_Blit() const override;
     SDL_Surface* Get_SDL_Surface() const { return SDLSurfacePtr; }

@@ -25,26 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cncnet5_hooks.h"
+
 #include "cncnet5_globals.h"
 #include "cncnet5_wspudp.h"
-#include "wsproto.h"
-#include "wspipx.h"
-#include "wspudp.h"
-#include "tibsun_globals.h"
-#include "session.h"
 #include "debughandler.h"
-#include "asserthandler.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "session.h"
+#include "tibsun_globals.h"
+#include "wspipx.h"
+#include "wsproto.h"
+#include "wspudp.h"
 
 
 /**
  *  #issue-69
- * 
+ *
  *  Create the CnCNet5 UDP interface or standard UDP interface depending
  *  on if the CnCNet5 system has been enabled.
- * 
+ *
  *  @author: CCHyper
  */
 static void Create_PacketTransport()

@@ -25,24 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "factoryext_hooks.h"
-#include "tibsun_globals.h"
-#include "vinifera_globals.h"
-#include "house.h"
-#include "factory.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
+#include "debughandler.h"
 #include "extension_globals.h"
+#include "factory.h"
 #include "factoryext_init.h"
-#include "techno.h"
-#include "technotype.h"
 #include "hooker.h"
+#include "house.h"
 #include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"
 #include "sidebarext.h"
+#include "techno.h"
+#include "technotype.h"
+#include "tibsun_globals.h"
 #include "unittypeext.h"
+#include "vinifera_globals.h"
 
 
 /**

@@ -25,16 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "triggertypeext_hooks.h"
-#include "triggertype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "extension.h"
 
+#include "always.h"
+
+#include "triggertypeext_hooks.h"
+
+#include "asserthandler.h"
+#include "debughandler.h"
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
 #include "tevent.h"
+#include "triggertype.h"
 #include "vinifera_defines.h"
 
 

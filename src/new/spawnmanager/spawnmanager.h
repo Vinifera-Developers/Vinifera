@@ -25,11 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "vinifera_defines.h"
 #include "foot.h"
 #include "ttimer.h"
+#include "vinifera_defines.h"
 
 class SpawnManagerClass;
 class AircraftTypeClass;

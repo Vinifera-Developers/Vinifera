@@ -25,20 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "rawfileext_hooks.h"
-#include "vinifera_globals.h"
-#include "rawfile.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "rawfileext_hooks.h"
+
+#include "asserthandler.h"
+#include "debughandler.h"
+#include "fatal.h"
 #include "hooker.h"
+#include "rawfile.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

@@ -26,15 +26,17 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "kamikazetracker.h"
 
 #include "aircraft.h"
 #include "aircrafttypeext.h"
 #include "cell.h"
 #include "extension.h"
-#include "tibsun_inline.h"
-#include "tibsun_globals.h"
 #include "mouse.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 

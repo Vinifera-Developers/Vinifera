@@ -25,22 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sideext.h"
-#include "side.h"
+
 #include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
 #include "colorscheme.h"
-#include "rules.h"
 #include "debughandler.h"
+#include "extension.h"
 #include "findmake.h"
+#include "rules.h"
+#include "side.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :

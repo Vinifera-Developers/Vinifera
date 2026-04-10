@@ -26,17 +26,10 @@
  *
  ******************************************************************************/
 
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
-
-#include "wwfont.h"
-
-
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#include "always.h"
 
 #include "hooker.h"
+#include "wwfont.h"
 
 
 /**

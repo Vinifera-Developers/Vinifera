@@ -26,17 +26,18 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "aircrafttracker.h"
 
-#include <algorithm>
-
-#include "foot.h"
-#include "swizzle.h"
 #include "cell.h"
 #include "extension.h"
+#include "foot.h"
 #include "footext.h"
 #include "mouse.h"
 #include "vinifera_saveload.h"
+
+#include <algorithm>
 
 
 /**

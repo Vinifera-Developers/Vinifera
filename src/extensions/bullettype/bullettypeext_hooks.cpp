@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "bullettypeext_hooks.h"
+
 #include "bullettypeext_init.h"
-#include "bullettypeext.h"
-#include "bullettype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

@@ -25,13 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "teventext.h"
+
+#include "extension.h"
 #include "tevent.h"
 #include "vinifera_saveload.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 TEventClass::EventDescriptionStruct TEventClassExtension::ExtActionDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST] = {

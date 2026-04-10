@@ -25,19 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "tiberiumext_hooks.h"
-#include "tiberiumext_init.h"
-#include "tiberiumext.h"
-#include "tiberium.h"
-#include "overlaytype.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
 #include "cell.h"
+#include "debughandler.h"
 #include "extension.h"
 #include "hooker.h"
-#include "debughandler.h"
+#include "overlaytype.h"
 #include "syringe.h"
+#include "tiberium.h"
+#include "tiberiumext.h"
+#include "tiberiumext_init.h"
 #include "tibsun_inline.h"
 
 

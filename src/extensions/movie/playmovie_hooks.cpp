@@ -25,28 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "playmovie_hooks.h"
-#include "tibsun_globals.h"
-#include "options.h"
+
 #include "campaign.h"
 #include "campaignext.h"
-#include "scenario.h"
-#include "vqa.h"
-#include "movie.h"
-#include "playmovie.h"
 #include "cd.h"
-#include "extension.h"
-#include "fatal.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-
+#include "extension.h"
 #include "hooker.h"
+#include "movie.h"
+#include "options.h"
+#include "playmovie.h"
+#include "scenario.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
+#include "vqa.h"
 
 
 /**
  *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio = false)
@@ -117,12 +118,16 @@ static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool mai
 
 
 /**
- *  Helper function to avoid trashing the esi register in _Play_Movie_Scale_By_Ratio_Patch.
+ *  #issue-292
  *
- *  @author: CCHyper, Rampastring
+ *  Videos stretch to the whole screen size and ignore the video aspect ratio.
+ *
+ *  @author: CCHyper
  */
-void Scale_Movie_Helper(VQHandle* this_ptr)
+DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
 {
+    GET(VQHandle*, this_ptr, ESI);
+
     /**
      *  Calculate the stretched rect for this video, maintaining the video ratio.
      */
@@ -134,24 +139,9 @@ void Scale_Movie_Helper(VQHandle* this_ptr)
          */
         this_ptr->StretchRect = stretched_rect;
 
-        DEBUG_INFO("Stretching movie - InitialRect: %d,%d -> StretchRect: %d,%d\n",
-            this_ptr->InitialRect.Width, this_ptr->InitialRect.Height,
-            this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
+        DEBUG_INFO("Stretching movie - InitialRect: %d,%d -> StretchRect: %d,%d\n", this_ptr->InitialRect.Width, this_ptr->InitialRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
     }
-}
 
-
-/**
- *  #issue-292
- *
- *  Videos stretch to the whole screen size and ignore the video aspect ratio.
- *
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
-{
-    GET(VQHandle*, this_ptr, ESI);
-    Scale_Movie_Helper(this_ptr);
     return 0x00563805;
 }
 

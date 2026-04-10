@@ -25,33 +25,33 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objectext_hooks.h"
 
 #include "anim.h"
 #include "animtype.h"
-#include "objectext.h"
-#include "object.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
 #include "cell.h"
 #include "colorscheme.h"
 #include "extension.h"
-
 #include "hooker.h"
 #include "house.h"
 #include "mouse.h"
+#include "object.h"
+#include "objectext.h"
 #include "rules.h"
 #include "techno.h"
+#include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

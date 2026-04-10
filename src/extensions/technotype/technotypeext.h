@@ -25,15 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "extension.h"
 #include "objecttypeext.h"
 #include "techno.h"
 #include "technotype.h"
-#include "typelist.h"
 #include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "typelist.h"
 
 
 class AircraftTypeClass;
@@ -270,6 +271,16 @@ public:
      *  Defines how the techno treats targets outside of its zone when scanning for targets.
      */
     TargetZoneScanType TargetZoneScan;
+
+    /**
+     *  Defines the health cap (in precentages) that this techno can self-heal up to
+     */
+    float SelfHealingCap;
+
+    /**
+     *  Defines the rate (in minutes) that this techno will self-heal
+     */
+    float SelfHealingRate;
 
     /**
      *  Does this object need to decloak before firing?

@@ -25,28 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
+#include "asserthandler.h"
+#include "ccini.h"
 #include "commandext.h"
-#include "vinifera_globals.h"
+#include "debughandler.h"
+#include "hooker.h"
+#include "object.h"
+#include "session.h"
+#include "syringe.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
-#include "session.h"
-#include "ccfile.h"
-#include "ccini.h"
-#include "object.h"
 #include "unit.h"
 #include "unittype.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
-#include "syringe.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  This function reimplements the chunk of code that populates the keyboard
  *  command list box. This allows us to enforce limits on what commands
  *  to show depending on the current game mode.
- * 
+ *
  *  @author: CCHyper
  */
 static void Populate_Command_Categories(HWND hWnd, const char *category)

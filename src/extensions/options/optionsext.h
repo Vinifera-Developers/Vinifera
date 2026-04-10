@@ -25,10 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "SDL3/SDL_surface.h"
-#include "always.h"
 #include "extension.h"
 #include "options.h"
 

@@ -25,18 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "teamtypeext.h"
-#include "teamtype.h"
+
 #include "ccini.h"
-#include "wwcrc.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "teamtype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: Rampastring
  */
 TeamTypeClassExtension::TeamTypeClassExtension(const TeamTypeClass *this_ptr) :

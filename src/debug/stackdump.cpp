@@ -25,14 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "stackdump.h"
+
 #include "debughlp.h"
-#include <Windows.h>
-#include <eh.h>
+
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
- 
+#include <eh.h>
+#include <windows.h>
+
 
 #define PRIPTRSIZE "08"
 
@@ -41,7 +46,7 @@
  *  Options for the stack walker.
  */
 #define STACK_SYMNAME_MAX 512
-#define STACK_DEPTH_MAX 30
+#define STACK_DEPTH_MAX   30
 
 
 /**

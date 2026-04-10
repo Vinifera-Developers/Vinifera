@@ -25,25 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "houseext_hooks.h"
-#include "tibsun_globals.h"
+
+#include "always.h"
+
+#include "ccini.h"
+#include "debughandler.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
-#include "ccini.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
 #include "vinifera_defines.h"
 
 
 /**
  *  #issue-496
- * 
+ *
  *  Sanity check to make sure HouseType "Neutral" exists before using it.
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x0054E7DE, _MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix, 0)

@@ -25,43 +25,45 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "mainloopext_hooks.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "command.h"
-#include "uicontrol.h"
-#include "rules.h"
-#include "iomap.h"
-#include "tactical.h"
-#include "house.h"
-#include "ccfile.h"
+
 #include "addon.h"
-#include "ccini.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
 #include "beacon.h"
+#include "ccfile.h"
+#include "ccini.h"
+#include "command.h"
+#include "debughandler.h"
 #include "event.h"
-#include "fetchres.h"
+#include "fatal.h"
+#include "hooker.h"
+#include "house.h"
+#include "iomap.h"
 #include "ipxmgr.h"
-#include "language.h"
 #include "netdlg.h"
 #include "nullmgr.h"
 #include "optionsext.h"
+#include "rules.h"
 #include "rulesext.h"
-#include "sessionext.h"
-#include "hooker.h"
-#include "syringe.h"
 #include "sdlsurface.h"
+#include "sessionext.h"
+#include "syringe.h"
+#include "tactical.h"
 #include "tacticalext.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "uicontrol.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  This patch stops EVENT_OPTIONS from being created when frame step
  *  mode is enabled. This is because we need to handle it differently
  *  due to us not processing any event while in frame step mode.
- * 
+ *
  *  @author: CCHyper
  */
 bool _Queue_Options()

@@ -25,26 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "warheadtypeext_hooks.h"
-#include "warheadtypeext.h"
-#include "warheadtype.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "vinifera_globals.h"
+#include "warheadtype.h"
+#include "warheadtypeext.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x0066EEF4, _WarheadTypeClass_Constructor_Patch, 7)

@@ -25,21 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingext.h"
+
+#include "asserthandler.h"
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "extension.h"
 #include "house.h"
 #include "housetype.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :

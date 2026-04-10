@@ -25,9 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once 
 
-#include <vector>
+#pragma once
 
 #include "armortype.h"
 #include "asserthandler.h"
@@ -35,6 +34,8 @@
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "warheadtype.h"
+
+#include <vector>
 
 
 class Verses

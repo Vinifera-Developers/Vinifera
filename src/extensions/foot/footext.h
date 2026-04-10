@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "technoext.h"
 #include "foot.h"
+#include "technoext.h"
 
 
 class FootClassExtension : public TechnoClassExtension

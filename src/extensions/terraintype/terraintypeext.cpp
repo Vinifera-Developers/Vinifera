@@ -25,18 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "terraintypeext.h"
-#include "terraintype.h"
+
 #include "ccini.h"
-#include "wwcrc.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "terraintype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* this_ptr) :

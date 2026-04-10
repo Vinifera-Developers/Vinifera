@@ -25,21 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vqaext_hooks.h"
-#include "vqa.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 #include "hooker.h"
 #include "syringe.h"
+#include "vqa.h"
 
 
 /**
  *  #issue-87
- * 
+ *
  *  Patch to use CCFileClass instead of MixFileClass when loading VQA files. This
  *  allows VQA files to be loaded from the games root directory.
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x0066C0FD, _VQA_Mix_File_Handler_Use_CCFileClass_Patch, 0)

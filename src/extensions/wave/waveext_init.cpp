@@ -25,29 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "waveext.h"
-#include "wave.h"
-#include "techno.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
+#include "vinifera_globals.h"
+#include "wave.h"
+#include "waveext.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  We need do this before the wave values are initialised otherwise finding
  *  extension data will fail.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DEFINE_HOOK(0x00670189, _WaveClass_Default_Constructor_Patch, 5)

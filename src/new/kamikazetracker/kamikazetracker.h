@@ -25,16 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "abstract.h"
 #include "ftimer.h"
 #include "ttimer.h"
 #include "vector.h"
 
 class AircraftClass;
+class AbstractClass;
 class CellClass;
 class KamikazeTrackerClass;
+struct IStream;
 
 
 class KamikazeTrackerClass {

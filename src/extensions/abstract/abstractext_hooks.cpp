@@ -25,14 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "abstractext_hooks.h"
-#include "abstractext_init.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
-#include "hooker.h"
+#include "always.h"
+
+#include "abstractext_hooks.h"
+
+#include "abstractext_init.h"
 
 
 /**

@@ -25,36 +25,35 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objecttypeext_hooks.h"
-#include "objecttypeext.h"
-#include "objecttype.h"
-#include "theatertype.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "house.h"
-#include "housetype.h"
-#include "scenario.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
 #include "building.h"
-#include "buildingtypeext.h"
+#include "debughandler.h"
 #include "extension.h"
-#include "voxellib.h"
-#include "motionlib.h"
-
 #include "hooker.h"
+#include "house.h"
+#include "housetype.h"
 #include "miscutil.h"
-#include "rulesext.h"
+#include "objecttype.h"
+#include "objecttypeext.h"
+#include "scenario.h"
 #include "syringe.h"
+#include "theatertype.h"
+#include "tibsun_globals.h"
 #include "unit.h"
 #include "unittypeext.h"
+#include "vinifera_globals.h"
+#include "voxellib.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

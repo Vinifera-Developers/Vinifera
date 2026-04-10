@@ -25,9 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 
-#include "always.h"
+#pragma once
 
 
 bool Vinifera_Parse_Command_Line(int argc, char *argv[]);

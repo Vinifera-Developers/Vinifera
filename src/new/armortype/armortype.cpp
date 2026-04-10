@@ -25,12 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "armortype.h"
-#include "ccini.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
+
 #include "asserthandler.h"
+#include "ccini.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 
 

@@ -25,18 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cargoext_hooks.h"
-#include "tibsun_globals.h"
+
 #include "cargo.h"
 #include "foot.h"
-#include "scenario.h"
-#include "session.h"
-#include "techno.h"
-
-#include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
+#include "techno.h"
 
 
 /**

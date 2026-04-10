@@ -32,10 +32,11 @@
  *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "pipe.h"
 #include "blowfish.h"
+#include "pipe.h"
 
 
 class BlowPipe : public Pipe

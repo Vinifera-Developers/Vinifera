@@ -25,13 +25,14 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "abstractext_init.h"
-#include "abstract.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "abstractext_init.h"
+
+#include "abstract.h"
+#include "asserthandler.h"
+#include "extension.h"
 #include "hooker.h"
 #include "syringe.h"
 
@@ -39,9 +40,9 @@
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor.
- * 
+ *
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
  */
