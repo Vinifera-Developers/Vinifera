@@ -34,6 +34,8 @@
 
 class Surface;
 class BSurface;
+
+
 const char *Vinifera_Version_String();
 const char *Vinifera_Build_Type_String();
 const char *TSpp_Version_String();
