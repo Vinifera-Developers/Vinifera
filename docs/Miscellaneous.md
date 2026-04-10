@@ -14,6 +14,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Pre-placed units can now have missions in multiplayer.
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
 - Improve alternative factory selection when the primary factory is blocked.
+- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
 
 ## INI
 

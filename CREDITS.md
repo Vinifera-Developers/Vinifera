@@ -325,4 +325,5 @@ This page lists all the individual contributions to the project by their author.
   - Fix incorrect merging of sections and keys in INI files.
   - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued.
   - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
-- Fix game end text being stretched horizontally.
+  - Fix game end text being stretched horizontally.
+  - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
