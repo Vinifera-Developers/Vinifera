@@ -31,8 +31,6 @@
 #include "ccfile.h"
 #include "extension_globals.h"
 #include "vector.h"
-#include "ccfile.h"
-#include "tibsun_defines.h"
 
 #include <unordered_map>
 
