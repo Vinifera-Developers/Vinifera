@@ -31,6 +31,8 @@
 #include "displayext_hooks.h"
 
 #include "actiontype.h"
+#include "building.h"
+#include "buildingtypeext.h"
 #include "cell.h"
 #include "display.h"
 #include "extension.h"
@@ -39,6 +41,7 @@
 #include "iomap.h"
 #include "layer.h"
 #include "session.h"
+#include "sessionext.h"
 #include "syringe.h"
 #include "techno.h"
 #include "technotype.h"

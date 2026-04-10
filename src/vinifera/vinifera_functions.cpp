@@ -108,7 +108,7 @@ bool Vinifera_Load_INI()
         ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     }
 #else
-    ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, "", sizeof(Vinifera_ProjectVersion));
+    ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
 #endif
 
     Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
