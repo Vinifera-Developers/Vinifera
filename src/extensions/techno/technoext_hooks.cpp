@@ -2788,39 +2788,45 @@ bool TechnoClassExt::_Should_Self_Heal_Now() const
         }
     }    
 
-    // Determine the repair rate of this techno. 
-    // If the techno has its own repair rate, it is used. 
-    // Otherwise, the game-wide repair rate is used.
-    // If both are not specified, then the game falls back to the original RepairRate key used by this function in vanilla.
-    float repairRate;
+    /**
+     * Determine the repair rate of this techno. 
+     * If the techno has its own repair rate, it is used. 
+     * Otherwise, the game-wide repair rate is used.
+     * If both are not specified, then the game falls back to the original RepairRate key used by this function in vanilla.     
+     */    
+    float repair_rate;
 
     if (technotypeext->SelfHealingRate != -1) {
-        repairRate = technotypeext->SelfHealingRate;      
+        repair_rate = technotypeext->SelfHealingRate;
     } else if (RuleExtension->SelfHealingRate != -1) {
-        repairRate = RuleExtension->SelfHealingRate;
+        repair_rate = RuleExtension->SelfHealingRate;
     } else {
-        repairRate = Rule->RepairRate;
+        repair_rate = Rule->RepairRate;
     }
 
-    if ((Frame % (int)(std::ceil(repairRate * TICKS_PER_MINUTE))) != 0) {
+    int repair_interval = std::max(1, (int)(repair_rate * TICKS_PER_MINUTE));
+
+    if ((Frame % repair_interval) != 0) {
         return false;
     }
 
-    // Determines the repair cap (in percentage) of this techno. A techno cannot repair itself beyond its repair cap.
-    // If the techno has its own repair cap, it is used.
-    // Otherwise, the game-wide repair cap is used.
-    // If both are not specified, then the game falls back to the original ConditionYellow key used by this function in vanilla.
-    float repairCap;
+    /**
+     * Determines the repair cap (in percentage) of this techno. A techno cannot repair itself beyond its repair cap.
+     * If the techno has its own repair cap, it is used.
+     * Otherwise, the game-wide repair cap is used.
+     * If both are not specified, then the game falls back to the original ConditionYellow key used by this function in vanilla.
+     */
+    float repair_cap;
     
     if (technotypeext->SelfHealingCap != -1) {
-        repairCap = technotypeext->SelfHealingCap;
+        repair_cap = technotypeext->SelfHealingCap;
     } else if (RuleExtension->SelfHealingCap != -1) {
-        repairCap = RuleExtension->SelfHealingCap;
+        repair_cap = RuleExtension->SelfHealingCap;
     } else {
-        repairCap = Rule->ConditionYellow;
+        repair_cap = Rule->ConditionYellow;
     }
     
-    return repairCap > HealthRatio;
+    return repair_cap > HealthRatio;
 }
 
 
