@@ -39,6 +39,12 @@ static bool Vinifera_Play_Movie(const char *name, ThemeType theme, bool clear_be
 }
 
 
+static bool Vinifera_Play_Ingame_Movie(const char *name)
+{
+    return MoviePlayback_Play_Ingame(name);
+}
+
+
 DEFINE_HOOK(0x00563677, _Play_Movie_Intercept_Patch, 5)
 {
     GET(const char *, name, ECX);
@@ -49,6 +55,84 @@ DEFINE_HOOK(0x00563677, _Play_Movie_Intercept_Patch, 5)
 
     if (Vinifera_Play_Movie(name, theme, clear_before, stretch_allowed, clear_after)) {
         return 0x00563891;
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00563AE7, _Play_Ingame_Movie_Create_Intercept_Patch, 5)
+{
+    GET(const char *, name, ECX);
+
+    if (Vinifera_Play_Ingame_Movie(name)) {
+        R->ESP(R->ESP() + 0x28);
+        return 0x00563AF7;
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00563C21, _Play_Ingame_Movie_VQType_Create_Intercept_Patch, 5)
+{
+    GET(const char *, name, ECX);
+
+    if (Vinifera_Play_Ingame_Movie(name)) {
+        R->ESP(R->ESP() + 0x28);
+        return 0x00563C31;
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x005645D0, _Movie_Advance_Frame_Modern_Ingame_Patch, 5)
+{
+    GET(VQHandle *, handle, ECX);
+    GET(bool *, done_ptr, EDX);
+    bool &done = *done_ptr;
+
+    const MoviePlaybackIngameAdvanceResult result = MoviePlayback_Advance_Ingame(handle, done);
+    if (result != MOVIEPLAYBACK_INGAME_NOT_HANDLED) {
+        R->AL(result == MOVIEPLAYBACK_INGAME_FRAME_ADVANCED ? 1 : 0);
+        return 0x005645DB;
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00564473, _Movie_Destroy_Modern_Ingame_Patch, 5)
+{
+    GET(VQHandle *, handle, ECX);
+
+    if (MoviePlayback_Destroy_Ingame(handle)) {
+        return 0x005644A4;
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00564610, _Movie_Pause_Modern_Ingame_Patch, 5)
+{
+    GET(VQHandle *, handle, ECX);
+
+    if (MoviePlayback_Pause_Ingame(handle)) {
+        return 0x0056461F;
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00564620, _Movie_Resume_Modern_Ingame_Patch, 5)
+{
+    GET(VQHandle *, handle, ECX);
+
+    if (MoviePlayback_Resume_Ingame(handle)) {
+        return 0x0056462F;
     }
 
     return 0;

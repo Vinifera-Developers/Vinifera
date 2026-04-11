@@ -13,10 +13,27 @@
 
 #include "tibsun_defines.h"
 
+#include <cstdint>
 #include <string>
+
+
+struct VQHandle;
+
+
+enum MoviePlaybackIngameAdvanceResult
+{
+    MOVIEPLAYBACK_INGAME_NOT_HANDLED = -1,
+    MOVIEPLAYBACK_INGAME_NO_FRAME = 0,
+    MOVIEPLAYBACK_INGAME_FRAME_ADVANCED = 1,
+};
 
 
 std::string Normalize_Movie_Basename(const char *name);
 
 bool MoviePlayback_Is_Available(const char *basename);
 bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before, bool stretch_allowed, bool clear_after);
+bool MoviePlayback_Play_Ingame(const char *basename);
+MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, bool &done);
+bool MoviePlayback_Destroy_Ingame(VQHandle *handle);
+bool MoviePlayback_Pause_Ingame(VQHandle *handle);
+bool MoviePlayback_Resume_Ingame(VQHandle *handle);

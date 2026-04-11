@@ -17,7 +17,9 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "debughandler.h"
+#include "options.h"
 #include "optionsext.h"
+#include "sdl_functions.h"
 #include "vinifera_globals.h"
 
 
@@ -142,6 +144,8 @@ static bool Ensure_Movie_Audio_Stream(int sample_rate, int channels, MovieSample
         return false;
     }
 
+    SDL_SetAudioStreamGain(MovieAudioStream, Options.SoundVolume);
+
     MovieAudioRate = sample_rate;
     MovieAudioChannels = channels;
     MovieAudioFormat = format;
@@ -235,6 +239,26 @@ bool SDL_Movie_Queue_Audio(const void *data, int data_length, int sample_rate, i
     }
 
     return true;
+}
+
+
+bool SDL_Movie_Pause_Audio()
+{
+    if (!MovieAudioStream) {
+        return true;
+    }
+
+    return SDL_PauseAudioStreamDevice(MovieAudioStream);
+}
+
+
+bool SDL_Movie_Resume_Audio()
+{
+    if (!MovieAudioStream) {
+        return true;
+    }
+
+    return SDL_ResumeAudioStreamDevice(MovieAudioStream);
 }
 
 

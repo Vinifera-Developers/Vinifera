@@ -96,6 +96,8 @@ class IMovieDecoderBackend
         virtual void Resume() = 0;
         virtual void Stop() = 0;
         virtual bool IsFinished() const = 0;
+        virtual int GetVideoWidth() const = 0;
+        virtual int GetVideoHeight() const = 0;
         virtual const char *GetName() const = 0;
 };
 

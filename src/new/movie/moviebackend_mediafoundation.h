@@ -24,6 +24,8 @@ class MediaFoundationMovieBackend final : public IMovieDecoderBackend
         void Resume() override;
         void Stop() override;
         bool IsFinished() const override;
+        int GetVideoWidth() const override;
+        int GetVideoHeight() const override;
         const char *GetName() const override;
 
     private:

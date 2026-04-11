@@ -311,6 +311,8 @@ class MediaFoundationMovieBackend::Impl
         void Resume();
         void Stop();
         bool IsFinished() const;
+        int GetVideoWidth() const;
+        int GetVideoHeight() const;
         void Reset();
 
     private:
@@ -395,6 +397,18 @@ void MediaFoundationMovieBackend::Stop()
 bool MediaFoundationMovieBackend::IsFinished() const
 {
     return !Implementation || Implementation->IsFinished();
+}
+
+
+int MediaFoundationMovieBackend::GetVideoWidth() const
+{
+    return Implementation ? Implementation->GetVideoWidth() : 0;
+}
+
+
+int MediaFoundationMovieBackend::GetVideoHeight() const
+{
+    return Implementation ? Implementation->GetVideoHeight() : 0;
 }
 
 
@@ -835,6 +849,18 @@ void MediaFoundationMovieBackend::Impl::Stop()
 bool MediaFoundationMovieBackend::Impl::IsFinished() const
 {
     return Finished;
+}
+
+
+int MediaFoundationMovieBackend::Impl::GetVideoWidth() const
+{
+    return static_cast<int>(VideoWidth);
+}
+
+
+int MediaFoundationMovieBackend::Impl::GetVideoHeight() const
+{
+    return static_cast<int>(VideoHeight);
 }
 
 
