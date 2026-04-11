@@ -574,19 +574,44 @@ bool MediaFoundationMovieBackend::Impl::Configure_Audio_Stream()
         return false;
     }
 
+    ComPtr<IMFMediaType> native_type;
+    hr = Reader->GetNativeMediaType(AudioStreamIndex, 0, &native_type);
+    if (FAILED(hr)) {
+        DEBUG_INFO("Media Foundation backend could not read the native audio type. Error code: 0x%08x.\n", hr);
+        Reader->SetStreamSelection(AudioStreamIndex, FALSE);
+        return false;
+    }
+
+    UINT32 native_rate = 0;
+    UINT32 native_channels = 0;
+    native_type->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &native_rate);
+    native_type->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &native_channels);
+
+    if (!native_rate || !native_channels) {
+        DEBUG_INFO("Media Foundation backend native audio type is incomplete.\n");
+        Reader->SetStreamSelection(AudioStreamIndex, FALSE);
+        return false;
+    }
+
     ComPtr<IMFMediaType> output_type;
     hr = MFCreateMediaType(&output_type);
     if (FAILED(hr)) {
-        Reader->SetStreamSelection(MF_SOURCE_READER_FIRST_AUDIO_STREAM, FALSE);
+        Reader->SetStreamSelection(AudioStreamIndex, FALSE);
         return false;
     }
 
     output_type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
     output_type->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+    output_type->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, 16);
+    output_type->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, native_channels);
+    output_type->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, native_rate);
+    output_type->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, native_channels * 2);
+    output_type->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, native_rate * native_channels * 2);
+    output_type->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
 
     hr = Reader->SetCurrentMediaType(AudioStreamIndex, nullptr, output_type.Get());
     if (FAILED(hr)) {
-        DEBUG_INFO("Media Foundation backend could not negotiate PCM audio. Error code: 0x%08x.\n", hr);
+        DEBUG_INFO("Media Foundation backend could not negotiate 16-bit PCM audio. Error code: 0x%08x.\n", hr);
         Reader->SetStreamSelection(AudioStreamIndex, FALSE);
         return false;
     }
