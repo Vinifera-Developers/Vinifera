@@ -16,6 +16,9 @@
 #include <vector>
 
 
+/**
+ *  PCM sample formats supported by the movie audio pipeline.
+ */
 enum MovieSampleFormat
 {
     MOVIE_SAMPLE_INVALID = -1,
@@ -25,6 +28,9 @@ enum MovieSampleFormat
 };
 
 
+/**
+ *  Pixel formats supported by the movie video pipeline.
+ */
 enum MovieVideoPixelFormat
 {
     MOVIE_VIDEO_INVALID = -1,
@@ -32,6 +38,11 @@ enum MovieVideoPixelFormat
 };
 
 
+/**
+ *  A single decoded video frame with timestamp and plane data. NV12
+ *  frames carry luma (Y) in Pixels and interleaved chroma (UV) in
+ *  SecondaryPixels.
+ */
 struct MovieVideoFrame
 {
     std::int64_t TimestampMs = 0;
@@ -45,6 +56,9 @@ struct MovieVideoFrame
 };
 
 
+/**
+ *  A decoded audio chunk with timestamp and raw PCM sample data.
+ */
 struct MovieAudioChunk
 {
     std::int64_t TimestampMs = 0;
@@ -55,6 +69,10 @@ struct MovieAudioChunk
 };
 
 
+/**
+ *  Output produced by a single IMovieDecoderBackend::Pump call.
+ *  At most one video frame and one audio chunk are returned per call.
+ */
 struct MovieDecodeOutput
 {
     bool HasVideoFrame = false;
@@ -70,6 +88,11 @@ struct MovieDecodeOutput
 };
 
 
+/**
+ *  Abstract interface for movie decoder backends. An implementation opens
+ *  a file and decodes it into video frames and audio chunks one pump
+ *  at a time.
+ */
 class IMovieDecoderBackend
 {
 public:

@@ -20,6 +20,10 @@
 struct VQHandle;
 
 
+/**
+ *  Return values from MoviePlayback_Advance_Ingame indicating whether
+ *  the handle is managed by this system and whether a frame was produced.
+ */
 enum MoviePlaybackIngameAdvanceResult
 {
     MOVIEPLAYBACK_INGAME_NOT_HANDLED = -1,

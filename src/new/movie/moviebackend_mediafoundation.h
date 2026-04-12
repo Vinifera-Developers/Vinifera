@@ -19,6 +19,10 @@
 class CCFileClass;
 
 
+/**
+ *  Movie decoder backend built on Windows Media Foundation. Decodes
+ *  video to NV12 and audio to 16-bit PCM via the IMFSourceReader API.
+ */
 class MediaFoundationMovieBackend final : public IMovieDecoderBackend
 {
     public:

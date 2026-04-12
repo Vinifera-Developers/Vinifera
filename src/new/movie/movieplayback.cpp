@@ -39,6 +39,10 @@
 #include <vector>
 
 
+/**
+ *  Strips any file extension and uppercases the name for consistent
+ *  lookups regardless of how the caller spelled the basename.
+ */
 std::string Normalize_Movie_Basename(const char *basename)
 {
     if (!basename) {
@@ -59,6 +63,11 @@ std::string Normalize_Movie_Basename(const char *basename)
 }
 
 
+/**
+ *  Fake VQAClass placed at VQHandle::VQA for modern in-game movie handles.
+ *  Only the IsPaused field is read by the game, so the padding is sized
+ *  to match VQAClass::IsPaused at offset 0x544.
+ */
 struct ModernIngameDummyVQA
 {
     std::uint8_t Padding[0x544] = {};
@@ -67,6 +76,10 @@ struct ModernIngameDummyVQA
 };
 
 
+/**
+ *  Presentation clock that tracks wall-clock playback time relative to
+ *  the first decoded timestamp, with accumulated pause duration subtracted.
+ */
 struct MoviePlaybackClock
 {
     bool Started = false;
@@ -121,6 +134,11 @@ struct MoviePlaybackClock
 };
 
 
+/**
+ *  Drives a single decode session: owns the backend, presentation clock
+ *  and latest decode output. Propagates pause/resume to all subsystems
+ *  and handles the ESC breakout from Update_Playback_State.
+ */
 struct MoviePlayer
 {
     std::unique_ptr<IMovieDecoderBackend> Backend;
@@ -213,6 +231,10 @@ struct MoviePlayer
 };
 
 
+/**
+ *  Searches for a playable movie file by trying each supported container
+ *  extension in turn against the game's file system.
+ */
 static std::string Resolve_Movie_Filename(const char *basename)
 {
     static constexpr std::array<const char *, 4> Extensions = { ".MP4", ".WMV", ".MPG", ".AVI" };
@@ -235,6 +257,11 @@ static std::string Resolve_Movie_Filename(const char *basename)
 }
 
 
+/**
+ *  Pumps the Windows message loop, synchronises pause state with window
+ *  focus and checks for an ESC keypress. Returns false if playback
+ *  should stop.
+ */
 bool MoviePlayer::Update_Playback_State()
 {
     if (!VQA_Movie_Message_Loop()) {
@@ -261,6 +288,10 @@ bool MoviePlayer::Update_Playback_State()
 }
 
 
+/**
+ *  Spins in short sleeps until the presentation clock reaches timestamp_ms.
+ *  Returns false if Update_Playback_State signals a stop.
+ */
 bool MoviePlayer::Wait_Until_Timestamp(std::int64_t timestamp_ms)
 {
     if (!Clock.Started) {
@@ -290,6 +321,10 @@ bool MoviePlayer::Wait_Until_Timestamp(std::int64_t timestamp_ms)
 }
 
 
+/**
+ *  Computes the destination rect for a video frame: stretched to fill the
+ *  window when allowed, otherwise letterboxed inside 640x400 and centred.
+ */
 static Rect Build_Destination_Rect(const MovieVideoFrame &frame, bool allow_stretch)
 {
     int area_width = SDLWindowWidth;
@@ -353,6 +388,11 @@ static int Audio_Bytes_Per_Second(const MovieAudioChunk &chunk)
 }
 
 
+/**
+ *  Waits for the SDL audio device to finish draining all queued samples,
+ *  keeping the playback state updated. Ensures audio finishes before the
+ *  screen is cleared.
+ */
 bool MoviePlayer::Drain_Audio()
 {
     if (!SDL_Movie_Has_Audio()) {
@@ -378,6 +418,11 @@ bool MoviePlayer::Drain_Audio()
 }
 
 
+/**
+ *  Active playback context for a single in-game (radar area) movie.
+ *  Decodes via MoviePlayer and blits each frame into DrawSurface at
+ *  DestinationRect, converting NV12 to RGB565 via two cached surfaces.
+ */
 struct IngameMoviePlayback
 {
     ~IngameMoviePlayback()
@@ -434,6 +479,10 @@ static void Remove_Ingame_Movie(VQHandle *handle)
 }
 
 
+/**
+ *  Converts a decoded NV12 frame to RGB565 and blits it scaled into
+ *  the sidebar surface at DestinationRect.
+ */
 bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
 {
     if (frame.Format != MOVIE_VIDEO_NV12 || frame.Width <= 0 || frame.Height <= 0 || !DestinationRect.Is_Valid()) {
@@ -446,7 +495,9 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
         return false;
     }
 
-    // Reallocate cached surfaces only when frame dimensions change.
+    /**
+     *  Reallocate cached surfaces only when frame dimensions change.
+     */
     if (CachedFrameWidth != frame.Width || CachedFrameHeight != frame.Height) {
         SDL_DestroySurface(CachedNV12Surface);
         SDL_DestroySurface(CachedRGB565Surface);
@@ -468,7 +519,9 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
         }
     }
 
-    // Copy Y and UV planes into the pre-allocated NV12 surface.
+    /**
+     *  Copy Y and UV planes into the pre-allocated NV12 surface.
+     */
     SDL_Surface *nv12 = CachedNV12Surface;
     const int uv_rows = (frame.Height + 1) / 2;
     auto *buf = static_cast<std::uint8_t *>(nv12->pixels);
@@ -486,7 +539,9 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
                     frame.Width);
     }
 
-    // Convert NV12 → RGB565 directly into the pre-allocated surface (no allocation).
+    /**
+     *  Convert NV12 to RGB565 directly into the pre-allocated surface (no allocation).
+     */
     if (!SDL_ConvertPixels(
             frame.Width, frame.Height,
             SDL_PIXELFORMAT_NV12, nv12->pixels, nv12->pitch,
@@ -508,6 +563,11 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
 }
 
 
+/**
+ *  Pumps the decoder and presents the next due video frame. Sets done
+ *  when the stream ends and all queued audio has drained. Returns true
+ *  if a frame was presented this tick.
+ */
 bool IngameMoviePlayback::Advance(bool &done)
 {
     done = false;
@@ -589,6 +649,10 @@ bool MoviePlayback_Is_Available(const char *basename)
 }
 
 
+/**
+ *  Plays a fullscreen modern movie by basename, blocking until it finishes
+ *  or ESC is pressed. Optionally queues a theme song alongside the video.
+ */
 bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before, bool stretch_allowed, bool clear_after)
 {
     const std::string filename = Resolve_Movie_Filename(basename);
@@ -698,6 +762,11 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
 }
 
 
+/**
+ *  Begins in-game movie playback in the radar area. Creates a VQHandle
+ *  with a DummyVQA and registers it via Movie_Queue_Ingame so the
+ *  existing radar bookkeeping still works with the new backend.
+ */
 bool MoviePlayback_Play_Ingame(const char *basename)
 {
     const std::string filename = Resolve_Movie_Filename(basename);
@@ -735,16 +804,21 @@ bool MoviePlayback_Play_Ingame(const char *basename)
     state->Handle->field_18 = 1;
     state->Handle->field_1C = 0;
     state->Handle->field_20 = 0;
-    // Set InitialRect to the radar movie display size (140x110).
-    // Movie_Queue_Ingame will overwrite X/Y with RadX+RadOffX, RadY+RadOffY
-    // (SidebarSurface-local coordinates) while keeping Width/Height.
+    /**
+     *  Set InitialRect to the radar movie display size (140x110).
+     *  Movie_Queue_Ingame will overwrite X/Y with RadX+RadOffX, RadY+RadOffY
+     *  (SidebarSurface-local coordinates) while keeping Width/Height.
+     */
     state->Handle->InitialRect = Rect(0, 0, 140, 110);
     state->Handle->StretchRect = state->Handle->InitialRect;
     state->Handle->field_44 = false;
     state->Handle->field_45 = true;
 
     Movie_Queue_Ingame(state->Handle);
-    // After Movie_Queue_Ingame, InitialRect = {RadX+RadOffX, RadY+RadOffY, RadWidth, RadHeight}
+
+    /**
+     *  After Movie_Queue_Ingame, InitialRect = {RadX+RadOffX, RadY+RadOffY, RadWidth, RadHeight}.
+     */
     state->DestinationRect = state->Handle->InitialRect;
 
     DEBUG_INFO("MoviePlayback_Play_Ingame \"%s\" with %s.\n", filename.c_str(), state->Player.Backend->Get_Name());
@@ -753,6 +827,11 @@ bool MoviePlayback_Play_Ingame(const char *basename)
 }
 
 
+/**
+ *  Called by the radar draw code each frame. Pumps and presents the next
+ *  frame for handle, setting done when playback is complete. Returns
+ *  MOVIEPLAYBACK_INGAME_NOT_HANDLED if the handle is not managed here.
+ */
 MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, bool &done)
 {
     IngameMoviePlayback *state = Find_Ingame_Movie(handle);
@@ -773,6 +852,10 @@ MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, 
 }
 
 
+/**
+ *  Stops playback, releases SDL resources and removes the state
+ *  associated with handle.
+ */
 bool MoviePlayback_Destroy_Ingame(VQHandle *handle)
 {
     IngameMoviePlayback *state = Find_Ingame_Movie(handle);

@@ -65,6 +65,10 @@ static SDL_PixelFormat Movie_To_SDL_Texture_Format(MovieVideoPixelFormat format)
 }
 
 
+/**
+ *  Creates or reuses the streaming SDL texture for video output.
+ *  Recreates whenever the frame dimensions or pixel format change.
+ */
 static bool Ensure_Movie_Texture(int width, int height, MovieVideoPixelFormat format)
 {
     if (!SDLWindowRenderer) {
@@ -104,6 +108,10 @@ static bool Ensure_Movie_Texture(int width, int height, MovieVideoPixelFormat fo
 }
 
 
+/**
+ *  Opens or reuses the SDL audio device stream. Recreates it when the
+ *  sample rate, channel count or format changes.
+ */
 static bool Ensure_Movie_Audio_Stream(int sample_rate, int channels, MovieSampleFormat format)
 {
     if (MovieAudioStream
@@ -154,6 +162,10 @@ static bool Ensure_Movie_Audio_Stream(int sample_rate, int channels, MovieSample
 }
 
 
+/**
+ *  Uploads the NV12 frame to the movie texture, renders it at
+ *  destination_rect and presents the renderer.
+ */
 bool SDL_Movie_Present_Frame(const MovieVideoFrame &frame, const Rect &destination_rect)
 {
     if (!Ensure_Movie_Texture(frame.Width, frame.Height, frame.Format)) {
@@ -195,6 +207,10 @@ bool SDL_Movie_Present_Frame(const MovieVideoFrame &frame, const Rect &destinati
 }
 
 
+/**
+ *  Re-renders the last presented frame without decoding a new one.
+ *  Used to restore the movie image after a window repaint event.
+ */
 bool SDL_Movie_Repaint()
 {
     if (!SDLWindowRenderer) {

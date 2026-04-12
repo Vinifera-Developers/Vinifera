@@ -25,6 +25,10 @@ using Microsoft::WRL::ComPtr;
 
 namespace
 {
+    /**
+     *  Carries the byte count from a completed synchronous read back
+     *  through IMFAsyncResult so EndRead can report bytes_read to the caller.
+     */
     class AsyncReadState final : public IUnknown
     {
         public:
@@ -74,6 +78,11 @@ namespace
     };
 
 
+    /**
+     *  IMFByteStream adapter over a CCFileClass. BeginRead performs the
+     *  read synchronously and completes the async result inline, which is
+     *  valid for local file I/O where blocking on disk is acceptable.
+     */
     class MovieByteStream final : public IMFByteStream
     {
         public:
@@ -337,6 +346,10 @@ void MediaFoundationMovieBackend::Reset()
 }
 
 
+/**
+ *  Initialises COM and Media Foundation, opens the file and configures
+ *  video and audio decode streams. Returns false on any failure.
+ */
 bool MediaFoundationMovieBackend::Open(const char *filename)
 {
     Reset();
@@ -400,6 +413,10 @@ bool MediaFoundationMovieBackend::Open(const char *filename)
 }
 
 
+/**
+ *  Iterates the source reader's streams to find the first one whose major
+ *  type matches major_type, returning its zero-based index in stream_index.
+ */
 bool MediaFoundationMovieBackend::Find_Stream_Index(const GUID &major_type, DWORD &stream_index) const
 {
     stream_index = DWORD(-1);
@@ -430,6 +447,10 @@ bool MediaFoundationMovieBackend::Find_Stream_Index(const GUID &major_type, DWOR
 }
 
 
+/**
+ *  Selects the video stream, negotiates NV12 output, then reads back the
+ *  final frame size and stride from the configured media type.
+ */
 bool MediaFoundationMovieBackend::Configure_Video_Stream()
 {
     if (!Find_Stream_Index(MFMediaType_Video, VideoStreamIndex)) {
@@ -487,6 +508,10 @@ bool MediaFoundationMovieBackend::Configure_Video_Stream()
 }
 
 
+/**
+ *  Selects the audio stream and negotiates 16-bit PCM output at the native
+ *  sample rate and channel count. Disables the audio stream on any failure.
+ */
 bool MediaFoundationMovieBackend::Configure_Audio_Stream()
 {
     if (!Find_Stream_Index(MFMediaType_Audio, AudioStreamIndex)) {
@@ -583,6 +608,10 @@ bool MediaFoundationMovieBackend::All_Streams_Finished() const
 }
 
 
+/**
+ *  Extracts NV12 Y and UV planes from an IMFSample buffer into
+ *  output.VideoFrame, accounting for codec alignment padding.
+ */
 bool MediaFoundationMovieBackend::Decode_Video_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output)
 {
     ComPtr<IMFMediaBuffer> buffer;
@@ -640,6 +669,9 @@ bool MediaFoundationMovieBackend::Decode_Video_Sample(IMFSample *sample, LONGLON
 }
 
 
+/**
+ *  Copies raw PCM bytes from an IMFSample buffer into output.AudioChunk.
+ */
 bool MediaFoundationMovieBackend::Decode_Audio_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output)
 {
     ComPtr<IMFMediaBuffer> buffer;
@@ -672,6 +704,10 @@ bool MediaFoundationMovieBackend::Decode_Audio_Sample(IMFSample *sample, LONGLON
 }
 
 
+/**
+ *  Reads the next sample from the source reader, producing at most one
+ *  video frame or one audio chunk per call. Returns false on a read error.
+ */
 bool MediaFoundationMovieBackend::Pump(MovieDecodeOutput &output)
 {
     output.Reset();
