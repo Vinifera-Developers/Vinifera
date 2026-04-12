@@ -614,21 +614,41 @@ bool MediaFoundationMovieBackend::All_Streams_Finished() const
  */
 bool MediaFoundationMovieBackend::Decode_Video_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output)
 {
-    ComPtr<IMFMediaBuffer> buffer;
-    HRESULT hr = sample->ConvertToContiguousBuffer(&buffer);
+    ComPtr<IMFMediaBuffer> media_buffer;
+    HRESULT hr = sample->ConvertToContiguousBuffer(&media_buffer);
     if (FAILED(hr)) {
         DEBUG_ERROR("Media Foundation backend failed to flatten a video sample! Error code: 0x%08x.\n", hr);
         return false;
     }
 
+    /**
+     *  Prefer the 2D buffer interface to obtain the actual stride, which
+     *  may differ from the media type's default stride when the codec
+     *  applies internal alignment padding.
+     */
     BYTE *source = nullptr;
-    DWORD max_length = 0;
+    int source_stride = 0;
     DWORD current_length = 0;
+    bool locked_2d = false;
+    ComPtr<IMF2DBuffer> buffer_2d;
 
-    hr = buffer->Lock(&source, &max_length, &current_length);
-    if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed to lock a video sample! Error code: 0x%08x.\n", hr);
-        return false;
+    if (SUCCEEDED(media_buffer.As(&buffer_2d))) {
+        LONG stride = 0;
+        if (SUCCEEDED(buffer_2d->Lock2D(&source, &stride))) {
+            source_stride = std::abs(static_cast<int>(stride));
+            locked_2d = true;
+            media_buffer->GetCurrentLength(&current_length);
+        }
+    }
+
+    if (!locked_2d) {
+        DWORD max_length = 0;
+        hr = media_buffer->Lock(&source, &max_length, &current_length);
+        if (FAILED(hr)) {
+            DEBUG_ERROR("Media Foundation backend failed to lock a video sample! Error code: 0x%08x.\n", hr);
+            return false;
+        }
+        source_stride = std::abs(VideoStride) > 0 ? std::abs(VideoStride) : static_cast<int>(VideoWidth);
     }
 
     output.VideoFrame.TimestampMs = timestamp / 10000;
@@ -636,34 +656,56 @@ bool MediaFoundationMovieBackend::Decode_Video_Sample(IMFSample *sample, LONGLON
     output.VideoFrame.Height = static_cast<int>(VideoHeight);
     output.VideoFrame.Format = MOVIE_VIDEO_NV12;
 
-    const int source_pitch = std::abs(VideoStride) > 0 ? std::abs(VideoStride) : static_cast<int>(VideoWidth);
-    const int uv_height = (output.VideoFrame.Height + 1) / 2;
-    const std::size_t y_bytes = static_cast<std::size_t>(source_pitch) * static_cast<std::size_t>(output.VideoFrame.Height);
-    const std::size_t uv_bytes = static_cast<std::size_t>(source_pitch) * static_cast<std::size_t>(uv_height);
+    const int display_width = static_cast<int>(VideoWidth);
+    const int display_height = static_cast<int>(VideoHeight);
+    const int uv_height = (display_height + 1) / 2;
 
     /**
      *  The coded frame height may be larger than the display height due to
      *  codec macroblock alignment (e.g. height 360 is padded to 368). The
      *  UV plane starts after the full coded Y plane, not after the display
-     *  height rows. For NV12: total = pitch * coded_h * 3/2, so the UV
+     *  height rows. For NV12: total = stride * coded_h * 3/2, so the UV
      *  plane begins at total * 2/3.
      */
     const std::size_t uv_offset = (static_cast<std::size_t>(current_length) * 2) / 3;
 
-    if (current_length < y_bytes + uv_bytes || uv_offset + uv_bytes > current_length) {
-        buffer->Unlock();
+    const std::size_t last_y_byte = static_cast<std::size_t>(display_height - 1) * source_stride + display_width;
+    const std::size_t last_uv_byte = uv_offset + static_cast<std::size_t>(uv_height - 1) * source_stride + display_width;
+
+    if (current_length == 0 || last_y_byte > current_length || last_uv_byte > current_length) {
+        if (locked_2d) buffer_2d->Unlock2D(); else media_buffer->Unlock();
         DEBUG_ERROR("Media Foundation backend produced a short NV12 sample.\n");
         return false;
     }
 
-    output.VideoFrame.Pitch = source_pitch;
-    output.VideoFrame.SecondaryPitch = source_pitch;
-    output.VideoFrame.Pixels.resize(y_bytes);
-    output.VideoFrame.SecondaryPixels.resize(uv_bytes);
-    std::memcpy(output.VideoFrame.Pixels.data(), source, y_bytes);
-    std::memcpy(output.VideoFrame.SecondaryPixels.data(), source + uv_offset, uv_bytes);
+    /**
+     *  Copy Y and UV planes row by row into tightly-packed output buffers,
+     *  stripping any stride padding the codec may have added.
+     */
+    output.VideoFrame.Pitch = display_width;
+    output.VideoFrame.SecondaryPitch = display_width;
+    output.VideoFrame.Pixels.resize(static_cast<std::size_t>(display_width) * display_height);
+    output.VideoFrame.SecondaryPixels.resize(static_cast<std::size_t>(display_width) * uv_height);
 
-    buffer->Unlock();
+    for (int row = 0; row < display_height; ++row) {
+        std::memcpy(output.VideoFrame.Pixels.data() + static_cast<std::size_t>(row) * display_width,
+                    source + static_cast<std::size_t>(row) * source_stride,
+                    display_width);
+    }
+
+    const BYTE *uv_source = source + uv_offset;
+    for (int row = 0; row < uv_height; ++row) {
+        std::memcpy(output.VideoFrame.SecondaryPixels.data() + static_cast<std::size_t>(row) * display_width,
+                    uv_source + static_cast<std::size_t>(row) * source_stride,
+                    display_width);
+    }
+
+    if (locked_2d) {
+        buffer_2d->Unlock2D();
+    } else {
+        media_buffer->Unlock();
+    }
+
     output.HasVideoFrame = true;
     return true;
 }
