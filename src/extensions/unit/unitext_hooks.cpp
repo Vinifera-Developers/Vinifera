@@ -259,9 +259,8 @@ DEFINE_HOOK(0x006527B1, _UnitClass_Draw_Voxel_Patch, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 0)
+DEFINE_HOOK(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 6)
 {
-    GET(UnitClass *, this_ptr, ESI);
     GET(WeaponTypeClass *, weapon, EBX);
 
     auto weapontypeext = Extension::Fetch(weapon);
@@ -270,24 +269,13 @@ DEFINE_HOOK(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 0)
      *  Do we need to perform a turn to face the target before firing?
      */
     if (weapontypeext->IsOmniFire) {
-        goto locomotor_Can_Fire;
+        return 0x00657030;
     }
 
     /**
-     *  Stolen bytes/code.
+     *  Continue the other normal checks.
      */
-    if (this_ptr->Class->IsLargeVisceroid) {
-        goto locomotor_Can_Fire;
-    }
-
-continue_facing_check:
-    return 0x00656FA7;
-
-    /**
-     *  Final check to make sure the locomotor allows firing.
-     */
-locomotor_Can_Fire:
-    return 0x00656FA7;
+    return 0;
 }
 
 
