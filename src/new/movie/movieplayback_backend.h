@@ -65,22 +65,7 @@ struct MovieDecodeOutput
 
     void Reset()
     {
-        HasVideoFrame = false;
-        HasAudioChunk = false;
-        EndOfStream = false;
-        VideoFrame.TimestampMs = 0;
-        VideoFrame.Width = 0;
-        VideoFrame.Height = 0;
-        VideoFrame.Format = MOVIE_VIDEO_INVALID;
-        VideoFrame.Pitch = 0;
-        VideoFrame.SecondaryPitch = 0;
-        VideoFrame.Pixels.clear();
-        VideoFrame.SecondaryPixels.clear();
-        AudioChunk.TimestampMs = 0;
-        AudioChunk.SampleRate = 0;
-        AudioChunk.Channels = 0;
-        AudioChunk.Format = MOVIE_SAMPLE_INVALID;
-        AudioChunk.Samples.clear();
+        *this = MovieDecodeOutput{};
     }
 };
 
@@ -100,6 +85,3 @@ class IMovieDecoderBackend
         virtual int GetVideoHeight() const = 0;
         virtual const char *GetName() const = 0;
 };
-
-
-std::unique_ptr<IMovieDecoderBackend> Create_MediaFoundationMovieBackend();

@@ -17,10 +17,7 @@
 #include <algorithm>
 #include <mfapi.h>
 #include <mferror.h>
-#include <mfidl.h>
-#include <mfreadwrite.h>
 #include <mutex>
-#include <wrl/client.h>
 
 
 using Microsoft::WRL::ComPtr;
@@ -302,123 +299,22 @@ namespace
 }
 
 
-class MediaFoundationMovieBackend::Impl
-{
-    public:
-        bool Open(const char *filename);
-        bool Pump(MovieDecodeOutput &output);
-        void Pause();
-        void Resume();
-        void Stop();
-        bool IsFinished() const;
-        int GetVideoWidth() const;
-        int GetVideoHeight() const;
-        void Reset();
-
-    private:
-        bool Find_Stream_Index(const GUID &major_type, DWORD &stream_index) const;
-        bool Configure_Video_Stream();
-        bool Configure_Audio_Stream();
-        bool Decode_Video_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output);
-        bool Decode_Audio_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output);
-        bool All_Streams_Finished() const;
-
-    private:
-        std::unique_ptr<CCFileClass> File;
-        ComPtr<IMFByteStream> ByteStream;
-        ComPtr<IMFSourceReader> Reader;
-        bool Paused = false;
-        bool Finished = false;
-        bool HasVideoStream = false;
-        bool HasAudioStream = false;
-        bool VideoStreamFinished = false;
-        bool AudioStreamFinished = false;
-        DWORD VideoStreamIndex = DWORD(-1);
-        DWORD AudioStreamIndex = DWORD(-1);
-        UINT32 VideoWidth = 0;
-        UINT32 VideoHeight = 0;
-        LONG VideoStride = 0;
-        UINT32 AudioRate = 0;
-        UINT32 AudioChannels = 0;
-        UINT32 AudioBits = 0;
-        MovieSampleFormat AudioFormat = MOVIE_SAMPLE_INVALID;
-};
-
-
-MediaFoundationMovieBackend::MediaFoundationMovieBackend() :
-    Implementation(new (std::nothrow) Impl())
-{
-}
+MediaFoundationMovieBackend::MediaFoundationMovieBackend() = default;
 
 
 MediaFoundationMovieBackend::~MediaFoundationMovieBackend()
 {
-    delete Implementation;
-    Implementation = nullptr;
-}
+    if (MediaFoundationStarted) {
+        MFShutdown();
+    }
 
-
-bool MediaFoundationMovieBackend::Open(const char *filename)
-{
-    return Implementation && Implementation->Open(filename);
-}
-
-
-bool MediaFoundationMovieBackend::Pump(MovieDecodeOutput &output)
-{
-    return Implementation && Implementation->Pump(output);
-}
-
-
-void MediaFoundationMovieBackend::Pause()
-{
-    if (Implementation) {
-        Implementation->Pause();
+    if (ComInitialized) {
+        CoUninitialize();
     }
 }
 
 
-void MediaFoundationMovieBackend::Resume()
-{
-    if (Implementation) {
-        Implementation->Resume();
-    }
-}
-
-
-void MediaFoundationMovieBackend::Stop()
-{
-    if (Implementation) {
-        Implementation->Stop();
-    }
-}
-
-
-bool MediaFoundationMovieBackend::IsFinished() const
-{
-    return !Implementation || Implementation->IsFinished();
-}
-
-
-int MediaFoundationMovieBackend::GetVideoWidth() const
-{
-    return Implementation ? Implementation->GetVideoWidth() : 0;
-}
-
-
-int MediaFoundationMovieBackend::GetVideoHeight() const
-{
-    return Implementation ? Implementation->GetVideoHeight() : 0;
-}
-
-
-const char *MediaFoundationMovieBackend::GetName() const
-{
-    return "Media Foundation";
-}
-
-
-void MediaFoundationMovieBackend::Impl::Reset()
+void MediaFoundationMovieBackend::Reset()
 {
     Reader.Reset();
     ByteStream.Reset();
@@ -441,13 +337,29 @@ void MediaFoundationMovieBackend::Impl::Reset()
 }
 
 
-bool MediaFoundationMovieBackend::Impl::Open(const char *filename)
+bool MediaFoundationMovieBackend::Open(const char *filename)
 {
     Reset();
 
     if (!filename) {
         return false;
     }
+
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (SUCCEEDED(hr) || hr == S_FALSE) {
+        ComInitialized = true;
+    } else if (hr != RPC_E_CHANGED_MODE) {
+        DEBUG_ERROR("Media Foundation backend failed to initialize COM! Error code: 0x%08x.\n", hr);
+        return false;
+    }
+
+    hr = MFStartup(MF_VERSION, MFSTARTUP_FULL);
+    if (FAILED(hr)) {
+        DEBUG_ERROR("Media Foundation backend failed to initialize Media Foundation! Error code: 0x%08x.\n", hr);
+        return false;
+    }
+
+    MediaFoundationStarted = true;
 
     File = std::make_unique<CCFileClass>(filename);
     if (!File->Open(FILE_ACCESS_READ)) {
@@ -461,7 +373,7 @@ bool MediaFoundationMovieBackend::Impl::Open(const char *filename)
     }
 
     ComPtr<IMFAttributes> attributes;
-    HRESULT hr = MFCreateAttributes(&attributes, 1);
+    hr = MFCreateAttributes(&attributes, 1);
     if (FAILED(hr)) {
         DEBUG_ERROR("Media Foundation backend failed to create source reader attributes! Error code: 0x%08x.\n", hr);
         return false;
@@ -488,7 +400,7 @@ bool MediaFoundationMovieBackend::Impl::Open(const char *filename)
 }
 
 
-bool MediaFoundationMovieBackend::Impl::Find_Stream_Index(const GUID &major_type, DWORD &stream_index) const
+bool MediaFoundationMovieBackend::Find_Stream_Index(const GUID &major_type, DWORD &stream_index) const
 {
     stream_index = DWORD(-1);
 
@@ -518,7 +430,7 @@ bool MediaFoundationMovieBackend::Impl::Find_Stream_Index(const GUID &major_type
 }
 
 
-bool MediaFoundationMovieBackend::Impl::Configure_Video_Stream()
+bool MediaFoundationMovieBackend::Configure_Video_Stream()
 {
     if (!Find_Stream_Index(MFMediaType_Video, VideoStreamIndex)) {
         return false;
@@ -575,7 +487,7 @@ bool MediaFoundationMovieBackend::Impl::Configure_Video_Stream()
 }
 
 
-bool MediaFoundationMovieBackend::Impl::Configure_Audio_Stream()
+bool MediaFoundationMovieBackend::Configure_Audio_Stream()
 {
     if (!Find_Stream_Index(MFMediaType_Audio, AudioStreamIndex)) {
         DEBUG_INFO("Media Foundation backend found no audio stream.\n");
@@ -663,7 +575,7 @@ bool MediaFoundationMovieBackend::Impl::Configure_Audio_Stream()
 }
 
 
-bool MediaFoundationMovieBackend::Impl::All_Streams_Finished() const
+bool MediaFoundationMovieBackend::All_Streams_Finished() const
 {
     const bool video_finished = !HasVideoStream || VideoStreamFinished;
     const bool audio_finished = !HasAudioStream || AudioStreamFinished;
@@ -671,7 +583,7 @@ bool MediaFoundationMovieBackend::Impl::All_Streams_Finished() const
 }
 
 
-bool MediaFoundationMovieBackend::Impl::Decode_Video_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output)
+bool MediaFoundationMovieBackend::Decode_Video_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output)
 {
     ComPtr<IMFMediaBuffer> buffer;
     HRESULT hr = sample->ConvertToContiguousBuffer(&buffer);
@@ -728,7 +640,7 @@ bool MediaFoundationMovieBackend::Impl::Decode_Video_Sample(IMFSample *sample, L
 }
 
 
-bool MediaFoundationMovieBackend::Impl::Decode_Audio_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output)
+bool MediaFoundationMovieBackend::Decode_Audio_Sample(IMFSample *sample, LONGLONG timestamp, MovieDecodeOutput &output)
 {
     ComPtr<IMFMediaBuffer> buffer;
     HRESULT hr = sample->ConvertToContiguousBuffer(&buffer);
@@ -760,7 +672,7 @@ bool MediaFoundationMovieBackend::Impl::Decode_Audio_Sample(IMFSample *sample, L
 }
 
 
-bool MediaFoundationMovieBackend::Impl::Pump(MovieDecodeOutput &output)
+bool MediaFoundationMovieBackend::Pump(MovieDecodeOutput &output)
 {
     output.Reset();
 
@@ -824,19 +736,19 @@ bool MediaFoundationMovieBackend::Impl::Pump(MovieDecodeOutput &output)
 }
 
 
-void MediaFoundationMovieBackend::Impl::Pause()
+void MediaFoundationMovieBackend::Pause()
 {
     Paused = true;
 }
 
 
-void MediaFoundationMovieBackend::Impl::Resume()
+void MediaFoundationMovieBackend::Resume()
 {
     Paused = false;
 }
 
 
-void MediaFoundationMovieBackend::Impl::Stop()
+void MediaFoundationMovieBackend::Stop()
 {
     Finished = true;
 
@@ -846,21 +758,27 @@ void MediaFoundationMovieBackend::Impl::Stop()
 }
 
 
-bool MediaFoundationMovieBackend::Impl::IsFinished() const
+bool MediaFoundationMovieBackend::IsFinished() const
 {
     return Finished;
 }
 
 
-int MediaFoundationMovieBackend::Impl::GetVideoWidth() const
+int MediaFoundationMovieBackend::GetVideoWidth() const
 {
     return static_cast<int>(VideoWidth);
 }
 
 
-int MediaFoundationMovieBackend::Impl::GetVideoHeight() const
+int MediaFoundationMovieBackend::GetVideoHeight() const
 {
     return static_cast<int>(VideoHeight);
+}
+
+
+const char *MediaFoundationMovieBackend::GetName() const
+{
+    return "Media Foundation";
 }
 
 
