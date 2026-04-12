@@ -144,6 +144,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
+  - Groundwork for implementing modern movie playback.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
@@ -327,3 +328,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
   - Fix game end text being stretched horizontally.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+  - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.

@@ -82,6 +82,7 @@ New:
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
 - Implement INI inheritance/includes (by ZivDero)
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
+- Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies (by ZivDero, CCHyper)
 
 
 Vinifera fixes:

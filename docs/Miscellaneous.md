@@ -16,6 +16,20 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Improve alternative factory selection when the primary factory is blocked.
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
 
+## Modern Video Playback
+
+Vinifera adds support for modern video formats as replacements for the original VQA movies. If a file with the same basename as a VQA is found with one of the supported extensions (`.MP4`, `.WMV`, `.MPG`, `.AVI`), it will be used in place of the VQA.
+
+This applies to both fullscreen cutscene movies and in-game movies played in the radar area.
+
+```{note}
+Modern movies respect the `[Video]->StretchMovies` key in `SUN.INI`. if `StretchMovies=no`, movies will be played at 640x400 (preserving the aspect ratio).
+```
+
+```{note}
+While in-game movies are scaled to play at the size of the radar, it is recommended that they be `140x100` in size. Due to technical reasons they have to be processed in software, and excessively large movies may decrease performance at no benefit.
+```
+
 ## INI
 
 ### INI Inclusion and Inheritance
