@@ -23,7 +23,7 @@ Vinifera adds support for modern video formats as replacements for the original 
 This applies to both fullscreen cutscene movies and in-game movies played in the radar area.
 
 ```{note}
-Modern movies respect the `[Video]->StretchMovies` key in `SUN.INI`. if `StretchMovies=no`, movies will be played at 640x400 (preserving the aspect ratio).
+Modern movies respect the `[Video]->StretchMovies` key in `SUN.INI`. If `StretchMovies=no`, movies will be played at 640x400 (preserving the aspect ratio).
 ```
 
 ```{note}
