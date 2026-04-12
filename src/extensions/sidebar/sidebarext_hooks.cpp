@@ -2454,7 +2454,7 @@ DEFINE_HOOK(0x005F5120, _StripClass_Draw_It_Fetch_Factory_Patch1, 0)
 
 DEFINE_HOOK(0x005F537C, _StripClass_Draw_It_Fetch_Factory_Patch2, 0)
 {
-    GET_STACK_STATIC(TechnoTypeClass*, ttype, esp, 0x18);
+    GET(TechnoTypeClass*, ttype, ECX);
 
     FactoryClass*  factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
