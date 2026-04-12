@@ -396,7 +396,6 @@ struct IngameMoviePlaybackState
 
 
 static std::vector<std::unique_ptr<IngameMoviePlaybackState>> IngameMoviePlaybackStates;
-static auto const Movie_Queue_Ingame_Function = reinterpret_cast<void (__fastcall *)(VQHandle *)>(0x00564630);
 
 
 static_assert(offsetof(VQHandle, field_45) == 0x45, "Unexpected VQHandle::field_45 offset.");
@@ -738,7 +737,7 @@ bool MoviePlayback_Play_Ingame(const char *basename)
     state->Handle->field_44 = false;
     state->Handle->field_45 = true;
 
-    Movie_Queue_Ingame_Function(state->Handle);
+    Movie_Queue_Ingame(state->Handle);
     // After Movie_Queue_Ingame, InitialRect = {RadX+RadOffX, RadY+RadOffY, RadWidth, RadHeight}
     state->DestinationRect = state->Handle->InitialRect;
 
