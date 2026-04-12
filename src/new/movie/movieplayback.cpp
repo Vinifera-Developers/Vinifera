@@ -15,13 +15,13 @@
 #include "SDL3/SDL_video.h"
 #include "ccfile.h"
 #include "debughandler.h"
-#include "sdlsurface.h"
 #include "iomap.h"
 #include "movie.h"
 #include "moviebackend_mediafoundation.h"
 #include "playmovie.h"
 #include "sdl_functions.h"
 #include "sdl_movie.h"
+#include "sdlsurface.h"
 #include "session.h"
 #include "theme.h"
 #include "tibsun_functions.h"
@@ -76,7 +76,7 @@ struct MoviePlaybackClock
     Uint64 PauseStartedMs = 0;
     Uint64 PausedMs = 0;
 
-    void StartIfNeeded(std::int64_t timestamp_ms)
+    void Start_If_Needed(std::int64_t timestamp_ms)
     {
         if (!Started) {
             Started = true;
@@ -85,12 +85,12 @@ struct MoviePlaybackClock
         }
     }
 
-    Uint64 ElapsedMs() const
+    Uint64 Elapsed_Ms() const
     {
         return SDL_GetTicks() - BaseTicksMs - PausedMs;
     }
 
-    void OnPause()
+    void On_Pause()
     {
         if (!Paused) {
             Paused = true;
@@ -98,7 +98,7 @@ struct MoviePlaybackClock
         }
     }
 
-    void OnResume()
+    void On_Resume()
     {
         if (Paused) {
             Paused = false;
@@ -109,14 +109,14 @@ struct MoviePlaybackClock
         }
     }
 
-    bool IsFrameDue(std::int64_t timestamp_ms) const
+    bool Is_Frame_Due(std::int64_t timestamp_ms) const
     {
         if (!Started) {
             return true;
         }
 
         const Uint64 target_ms = static_cast<Uint64>(std::max<std::int64_t>(0, timestamp_ms - BaseTimestampMs));
-        return ElapsedMs() >= target_ms;
+        return Elapsed_Ms() >= target_ms;
     }
 };
 
@@ -139,7 +139,7 @@ struct MoviePlayer
         return false;
     }
 
-    bool PumpOnce()
+    bool Pump_Once()
     {
         Output.Reset();
 
@@ -158,7 +158,7 @@ struct MoviePlayer
         }
 
         if (Output.HasAudioChunk) {
-            Clock.StartIfNeeded(Output.AudioChunk.TimestampMs);
+            Clock.Start_If_Needed(Output.AudioChunk.TimestampMs);
 
             if (!SDL_Movie_Queue_Audio(
                     Output.AudioChunk.Samples.data(),
@@ -171,7 +171,7 @@ struct MoviePlayer
         }
 
         if (Output.HasVideoFrame) {
-            Clock.StartIfNeeded(Output.VideoFrame.TimestampMs);
+            Clock.Start_If_Needed(Output.VideoFrame.TimestampMs);
         }
 
         return true;
@@ -179,7 +179,7 @@ struct MoviePlayer
 
     void Pause()
     {
-        Clock.OnPause();
+        Clock.On_Pause();
         if (Backend) {
             Backend->Pause();
         }
@@ -188,7 +188,7 @@ struct MoviePlayer
 
     void Resume()
     {
-        Clock.OnResume();
+        Clock.On_Resume();
         if (Backend) {
             Backend->Resume();
         }
@@ -202,10 +202,14 @@ struct MoviePlayer
         }
     }
 
-    bool IsFinished() const
+    bool Is_Finished() const
     {
-        return EndOfStream || !Backend || Backend->IsFinished();
+        return EndOfStream || !Backend || Backend->Is_Finished();
     }
+
+    bool Update_Playback_State();
+    bool Wait_Until_Timestamp(std::int64_t timestamp_ms);
+    bool Drain_Audio();
 };
 
 
@@ -231,23 +235,23 @@ static std::string Resolve_Movie_Filename(const char *basename)
 }
 
 
-static bool Update_Playback_State(MoviePlayer &player)
+bool MoviePlayer::Update_Playback_State()
 {
     if (!VQA_Movie_Message_Loop()) {
-        player.Stop();
+        Stop();
         return false;
     }
 
-    if (!GameInFocus && !player.Clock.Paused) {
-        player.Pause();
-    } else if (GameInFocus && player.Clock.Paused) {
-        player.Resume();
+    if (!GameInFocus && !Clock.Paused) {
+        Pause();
+    } else if (GameInFocus && Clock.Paused) {
+        Resume();
     }
 
     if (Keyboard->Check()) {
         if (Keyboard->Get() == (KN_RLSE_BIT | KN_ESC)) {
-            DEBUG_INFO("%s: Breakout.\n", player.Backend->GetName());
-            player.Stop();
+            DEBUG_INFO("%s: Breakout.\n", Backend->Get_Name());
+            Stop();
             UpdateWindow(MainWindow);
             return false;
         }
@@ -257,30 +261,30 @@ static bool Update_Playback_State(MoviePlayer &player)
 }
 
 
-static bool Wait_Until_Timestamp(MoviePlayer &player, std::int64_t timestamp_ms)
+bool MoviePlayer::Wait_Until_Timestamp(std::int64_t timestamp_ms)
 {
-    if (!player.Clock.Started) {
-        player.Clock.StartIfNeeded(timestamp_ms);
+    if (!Clock.Started) {
+        Clock.Start_If_Needed(timestamp_ms);
         return true;
     }
 
-    const Uint64 target_ms = static_cast<Uint64>(std::max<std::int64_t>(0, timestamp_ms - player.Clock.BaseTimestampMs));
+    const Uint64 target_ms = static_cast<Uint64>(std::max<std::int64_t>(0, timestamp_ms - Clock.BaseTimestampMs));
 
     while (true) {
-        if (!Update_Playback_State(player)) {
+        if (!Update_Playback_State()) {
             return false;
         }
 
-        if (player.Clock.Paused) {
+        if (Clock.Paused) {
             SDL_Delay(33);
             continue;
         }
 
-        if (player.Clock.ElapsedMs() >= target_ms) {
+        if (Clock.Elapsed_Ms() >= target_ms) {
             return true;
         }
 
-        const Uint64 remaining = target_ms - player.Clock.ElapsedMs();
+        const Uint64 remaining = target_ms - Clock.Elapsed_Ms();
         SDL_Delay(static_cast<Uint32>(std::min<Uint64>(remaining, 2)));
     }
 }
@@ -349,7 +353,7 @@ static int Audio_Bytes_Per_Second(const MovieAudioChunk &chunk)
 }
 
 
-static bool Drain_Movie_Audio(MoviePlayer &player)
+bool MoviePlayer::Drain_Audio()
 {
     if (!SDL_Movie_Has_Audio()) {
         return true;
@@ -358,11 +362,11 @@ static bool Drain_Movie_Audio(MoviePlayer &player)
     SDL_Movie_Flush_Audio();
 
     while (SDL_Movie_Get_Queued_Audio_Size() > 0) {
-        if (!Update_Playback_State(player)) {
+        if (!Update_Playback_State()) {
             return false;
         }
 
-        if (player.Clock.Paused) {
+        if (Clock.Paused) {
             SDL_Delay(33);
             continue;
         }
@@ -374,9 +378,9 @@ static bool Drain_Movie_Audio(MoviePlayer &player)
 }
 
 
-struct IngameMoviePlaybackState
+struct IngameMoviePlayback
 {
-    ~IngameMoviePlaybackState()
+    ~IngameMoviePlayback()
     {
         SDL_DestroySurface(CachedNV12Surface);
         SDL_DestroySurface(CachedRGB565Surface);
@@ -392,19 +396,22 @@ struct IngameMoviePlaybackState
     SDL_Surface *CachedRGB565Surface = nullptr;
     int CachedFrameWidth = 0;
     int CachedFrameHeight = 0;
+
+    bool Present_Frame(const MovieVideoFrame &frame);
+    bool Advance(bool &done);
 };
 
 
-static std::vector<std::unique_ptr<IngameMoviePlaybackState>> IngameMoviePlaybackStates;
+static std::vector<std::unique_ptr<IngameMoviePlayback>> IngameMoviePlaybacks;
 
 
 static_assert(offsetof(VQHandle, field_45) == 0x45, "Unexpected VQHandle::field_45 offset.");
 static_assert(offsetof(ModernIngameDummyVQA, IsPaused) == 0x544, "Unexpected VQAClass::IsPaused offset.");
 
 
-static IngameMoviePlaybackState *Find_Ingame_Movie_State(VQHandle *handle)
+static IngameMoviePlayback *Find_Ingame_Movie(VQHandle *handle)
 {
-    for (const auto &state : IngameMoviePlaybackStates) {
+    for (const auto &state : IngameMoviePlaybacks) {
         if (state && state->Handle == handle) {
             return state.get();
         }
@@ -414,54 +421,55 @@ static IngameMoviePlaybackState *Find_Ingame_Movie_State(VQHandle *handle)
 }
 
 
-static void Remove_Ingame_Movie_State(VQHandle *handle)
+static void Remove_Ingame_Movie(VQHandle *handle)
 {
-    IngameMoviePlaybackStates.erase(
+    IngameMoviePlaybacks.erase(
         std::remove_if(
-            IngameMoviePlaybackStates.begin(),
-            IngameMoviePlaybackStates.end(),
-            [handle](const std::unique_ptr<IngameMoviePlaybackState> &state) {
+            IngameMoviePlaybacks.begin(),
+            IngameMoviePlaybacks.end(),
+            [handle](const std::unique_ptr<IngameMoviePlayback> &state) {
                 return !state || state->Handle == handle;
             }),
-        IngameMoviePlaybackStates.end());
+        IngameMoviePlaybacks.end());
 }
 
 
-static bool Present_Ingame_Frame(const MovieVideoFrame &frame, SDLSurface &surface, const Rect &destination_rect, IngameMoviePlaybackState &state)
+bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
 {
-    if (frame.Format != MOVIE_VIDEO_NV12 || frame.Width <= 0 || frame.Height <= 0 || !destination_rect.Is_Valid()) {
+    if (frame.Format != MOVIE_VIDEO_NV12 || frame.Width <= 0 || frame.Height <= 0 || !DestinationRect.Is_Valid()) {
         return false;
     }
 
+    auto &surface = static_cast<SDLSurface &>(*Handle->DrawSurface);
     SDL_Surface *dst_sdl = surface.Get_SDL_Surface();
     if (!dst_sdl) {
         return false;
     }
 
     // Reallocate cached surfaces only when frame dimensions change.
-    if (state.CachedFrameWidth != frame.Width || state.CachedFrameHeight != frame.Height) {
-        SDL_DestroySurface(state.CachedNV12Surface);
-        SDL_DestroySurface(state.CachedRGB565Surface);
+    if (CachedFrameWidth != frame.Width || CachedFrameHeight != frame.Height) {
+        SDL_DestroySurface(CachedNV12Surface);
+        SDL_DestroySurface(CachedRGB565Surface);
 
-        state.CachedNV12Surface = SDL_CreateSurface(frame.Width, frame.Height, SDL_PIXELFORMAT_NV12);
-        state.CachedRGB565Surface = SDL_CreateSurface(frame.Width, frame.Height, SDL_PIXELFORMAT_RGB565);
-        state.CachedFrameWidth = frame.Width;
-        state.CachedFrameHeight = frame.Height;
+        CachedNV12Surface = SDL_CreateSurface(frame.Width, frame.Height, SDL_PIXELFORMAT_NV12);
+        CachedRGB565Surface = SDL_CreateSurface(frame.Width, frame.Height, SDL_PIXELFORMAT_RGB565);
+        CachedFrameWidth = frame.Width;
+        CachedFrameHeight = frame.Height;
 
-        if (!state.CachedNV12Surface || !state.CachedRGB565Surface) {
+        if (!CachedNV12Surface || !CachedRGB565Surface) {
             DEBUG_ERROR("Present_Ingame_Frame: Failed to allocate cached surfaces: %s\n", SDL_GetError());
-            SDL_DestroySurface(state.CachedNV12Surface);
-            SDL_DestroySurface(state.CachedRGB565Surface);
-            state.CachedNV12Surface = nullptr;
-            state.CachedRGB565Surface = nullptr;
-            state.CachedFrameWidth = 0;
-            state.CachedFrameHeight = 0;
+            SDL_DestroySurface(CachedNV12Surface);
+            SDL_DestroySurface(CachedRGB565Surface);
+            CachedNV12Surface = nullptr;
+            CachedRGB565Surface = nullptr;
+            CachedFrameWidth = 0;
+            CachedFrameHeight = 0;
             return false;
         }
     }
 
     // Copy Y and UV planes into the pre-allocated NV12 surface.
-    SDL_Surface *nv12 = state.CachedNV12Surface;
+    SDL_Surface *nv12 = CachedNV12Surface;
     const int uv_rows = (frame.Height + 1) / 2;
     auto *buf = static_cast<std::uint8_t *>(nv12->pixels);
 
@@ -482,15 +490,15 @@ static bool Present_Ingame_Frame(const MovieVideoFrame &frame, SDLSurface &surfa
     if (!SDL_ConvertPixels(
             frame.Width, frame.Height,
             SDL_PIXELFORMAT_NV12, nv12->pixels, nv12->pitch,
-            SDL_PIXELFORMAT_RGB565, state.CachedRGB565Surface->pixels, state.CachedRGB565Surface->pitch)) {
+            SDL_PIXELFORMAT_RGB565, CachedRGB565Surface->pixels, CachedRGB565Surface->pitch)) {
         DEBUG_ERROR("Present_Ingame_Frame: SDL_ConvertPixels failed: %s\n", SDL_GetError());
         return false;
     }
 
-    SDL_SetSurfaceBlendMode(state.CachedRGB565Surface, SDL_BLENDMODE_NONE);
-    SDL_Rect dst_rect = { destination_rect.X, destination_rect.Y,
-                          destination_rect.Width, destination_rect.Height };
-    const bool ok = SDL_BlitSurfaceScaled(state.CachedRGB565Surface, nullptr, dst_sdl, &dst_rect, SDL_SCALEMODE_NEAREST);
+    SDL_SetSurfaceBlendMode(CachedRGB565Surface, SDL_BLENDMODE_NONE);
+    SDL_Rect dst_rect = { DestinationRect.X, DestinationRect.Y,
+                          DestinationRect.Width, DestinationRect.Height };
+    const bool ok = SDL_BlitSurfaceScaled(CachedRGB565Surface, nullptr, dst_sdl, &dst_rect, SDL_SCALEMODE_NEAREST);
 
     if (!ok) {
         DEBUG_ERROR("Present_Ingame_Frame: SDL_BlitSurfaceScaled failed: %s\n", SDL_GetError());
@@ -500,30 +508,28 @@ static bool Present_Ingame_Frame(const MovieVideoFrame &frame, SDLSurface &surfa
 }
 
 
-static bool Advance_Ingame_Movie(IngameMoviePlaybackState &state, bool &done)
+bool IngameMoviePlayback::Advance(bool &done)
 {
     done = false;
 
-    if (!state.Player.Backend || !state.Handle || !state.Handle->DrawSurface) {
+    if (!Player.Backend || !Handle || !Handle->DrawSurface) {
         done = true;
         return false;
     }
 
-    auto &sdl_surface = static_cast<SDLSurface &>(*state.Handle->DrawSurface);
-
-    if (state.HasPendingVideoFrame) {
-        if (!state.Player.Clock.IsFrameDue(state.PendingVideoFrame.TimestampMs)) {
+    if (HasPendingVideoFrame) {
+        if (!Player.Clock.Is_Frame_Due(PendingVideoFrame.TimestampMs)) {
             return false;
         }
 
-        if (!Present_Ingame_Frame(state.PendingVideoFrame, sdl_surface, state.DestinationRect, state)) {
+        if (!Present_Frame(PendingVideoFrame)) {
             done = true;
             return false;
         }
 
-        state.HasPendingVideoFrame = false;
+        HasPendingVideoFrame = false;
 
-        if (state.Player.EndOfStream && SDL_Movie_Get_Queued_Audio_Size() <= 0) {
+        if (Player.EndOfStream && SDL_Movie_Get_Queued_Audio_Size() <= 0) {
             done = true;
         }
 
@@ -534,42 +540,42 @@ static bool Advance_Ingame_Movie(IngameMoviePlaybackState &state, bool &done)
     int pump_count = 0;
     bool frame_presented = false;
 
-    while (!state.Player.EndOfStream && pump_count < MaxPumpsPerTick) {
+    while (!Player.EndOfStream && pump_count < MaxPumpsPerTick) {
         ++pump_count;
 
-        if (!state.Player.PumpOnce()) {
+        if (!Player.Pump_Once()) {
             done = true;
             return frame_presented;
         }
 
-        if (state.Player.EndOfStream) {
+        if (Player.EndOfStream) {
             break;
         }
 
-        if (state.Player.Output.HasVideoFrame) {
-            std::swap(state.PendingVideoFrame, state.Player.Output.VideoFrame);
-            state.HasPendingVideoFrame = true;
+        if (Player.Output.HasVideoFrame) {
+            std::swap(PendingVideoFrame, Player.Output.VideoFrame);
+            HasPendingVideoFrame = true;
 
-            if (!state.Player.Clock.IsFrameDue(state.PendingVideoFrame.TimestampMs)) {
+            if (!Player.Clock.Is_Frame_Due(PendingVideoFrame.TimestampMs)) {
                 return frame_presented;
             }
 
-            if (!Present_Ingame_Frame(state.PendingVideoFrame, sdl_surface, state.DestinationRect, state)) {
+            if (!Present_Frame(PendingVideoFrame)) {
                 done = true;
                 return false;
             }
 
-            state.HasPendingVideoFrame = false;
+            HasPendingVideoFrame = false;
             frame_presented = true;
             continue;
         }
 
-        if (!state.Player.Output.HasAudioChunk) {
+        if (!Player.Output.HasAudioChunk) {
             break;
         }
     }
 
-    if (state.Player.EndOfStream && SDL_Movie_Get_Queued_Audio_Size() <= 0) {
+    if (Player.EndOfStream && SDL_Movie_Get_Queued_Audio_Size() <= 0) {
         done = true;
     }
 
@@ -596,7 +602,7 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
         return false;
     }
 
-    DEBUG_INFO("Play_Movie \"%s\" with %s.\n", filename.c_str(), player.Backend->GetName());
+    DEBUG_INFO("Play_Movie \"%s\" with %s.\n", filename.c_str(), player.Backend->Get_Name());
 
     Keyboard->Clear();
     MouseCursor->Hide_Mouse();
@@ -613,8 +619,8 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
     bool aborted = false;
     bool success = true;
 
-    while (!player.IsFinished()) {
-        if (!Update_Playback_State(player)) {
+    while (!player.Is_Finished()) {
+        if (!player.Update_Playback_State()) {
             aborted = true;
             break;
         }
@@ -624,7 +630,7 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
             continue;
         }
 
-        if (!player.PumpOnce()) {
+        if (!player.Pump_Once()) {
             success = false;
             break;
         }
@@ -634,7 +640,7 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
         }
 
         if (player.Output.HasVideoFrame) {
-            if (!Wait_Until_Timestamp(player, player.Output.VideoFrame.TimestampMs)) {
+            if (!player.Wait_Until_Timestamp(player.Output.VideoFrame.TimestampMs)) {
                 aborted = true;
                 break;
             }
@@ -651,7 +657,7 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
             const int max_buffer = bytes_per_second > 0 ? bytes_per_second / 2 : 0;
 
             while (max_buffer > 0 && SDL_Movie_Get_Queued_Audio_Size() > max_buffer) {
-                if (!Update_Playback_State(player)) {
+                if (!player.Update_Playback_State()) {
                     aborted = true;
                     break;
                 }
@@ -674,7 +680,7 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
     }
 
     if (success && !aborted) {
-        Drain_Movie_Audio(player);
+        player.Drain_Audio();
     }
 
     if (clear_after) {
@@ -699,15 +705,15 @@ bool MoviePlayback_Play_Ingame(const char *basename)
         return false;
     }
 
-    auto state = std::make_unique<IngameMoviePlaybackState>();
+    auto state = std::make_unique<IngameMoviePlayback>();
 
     if (!state->Player.Open(filename.c_str())) {
         DEBUG_WARNING("Failed to open ingame movie \"%s\" with any modern movie backend.\n", filename.c_str());
         return false;
     }
 
-    const int width = state->Player.Backend->GetVideoWidth();
-    const int height = state->Player.Backend->GetVideoHeight();
+    const int width = state->Player.Backend->Get_Video_Width();
+    const int height = state->Player.Backend->Get_Video_Height();
     if (width <= 0 || height <= 0) {
         DEBUG_WARNING("Modern ingame movie \"%s\" reported invalid dimensions.\n", filename.c_str());
         return false;
@@ -741,15 +747,15 @@ bool MoviePlayback_Play_Ingame(const char *basename)
     // After Movie_Queue_Ingame, InitialRect = {RadX+RadOffX, RadY+RadOffY, RadWidth, RadHeight}
     state->DestinationRect = state->Handle->InitialRect;
 
-    DEBUG_INFO("Play_Ingame_Movie \"%s\" with %s.\n", filename.c_str(), state->Player.Backend->GetName());
-    IngameMoviePlaybackStates.push_back(std::move(state));
+    DEBUG_INFO("MoviePlayback_Play_Ingame \"%s\" with %s.\n", filename.c_str(), state->Player.Backend->Get_Name());
+    IngameMoviePlaybacks.push_back(std::move(state));
     return true;
 }
 
 
 MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, bool &done)
 {
-    IngameMoviePlaybackState *state = Find_Ingame_Movie_State(handle);
+    IngameMoviePlayback *state = Find_Ingame_Movie(handle);
     if (!state) {
         return MOVIEPLAYBACK_INGAME_NOT_HANDLED;
     }
@@ -760,7 +766,7 @@ MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, 
     }
 
     CurrentVQ = handle;
-    const bool advanced = Advance_Ingame_Movie(*state, done);
+    const bool advanced = state->Advance(done);
     CurrentVQ = nullptr;
 
     return advanced ? MOVIEPLAYBACK_INGAME_FRAME_ADVANCED : MOVIEPLAYBACK_INGAME_NO_FRAME;
@@ -769,7 +775,7 @@ MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, 
 
 bool MoviePlayback_Destroy_Ingame(VQHandle *handle)
 {
-    IngameMoviePlaybackState *state = Find_Ingame_Movie_State(handle);
+    IngameMoviePlayback *state = Find_Ingame_Movie(handle);
     if (!state) {
         return false;
     }
@@ -786,14 +792,14 @@ bool MoviePlayback_Destroy_Ingame(VQHandle *handle)
         handle->field_45 = false;
     }
 
-    Remove_Ingame_Movie_State(handle);
+    Remove_Ingame_Movie(handle);
     return true;
 }
 
 
 bool MoviePlayback_Pause_Ingame(VQHandle *handle)
 {
-    IngameMoviePlaybackState *state = Find_Ingame_Movie_State(handle);
+    IngameMoviePlayback *state = Find_Ingame_Movie(handle);
     if (!state) {
         return false;
     }
@@ -812,7 +818,7 @@ bool MoviePlayback_Pause_Ingame(VQHandle *handle)
 
 bool MoviePlayback_Resume_Ingame(VQHandle *handle)
 {
-    IngameMoviePlaybackState *state = Find_Ingame_Movie_State(handle);
+    IngameMoviePlayback *state = Find_Ingame_Movie(handle);
     if (!state) {
         return false;
     }

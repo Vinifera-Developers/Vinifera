@@ -72,16 +72,16 @@ struct MovieDecodeOutput
 
 class IMovieDecoderBackend
 {
-    public:
-        virtual ~IMovieDecoderBackend() = default;
+public:
+    virtual ~IMovieDecoderBackend() = default;
 
-        virtual bool Open(const char *filename) = 0;
-        virtual bool Pump(MovieDecodeOutput &output) = 0;
-        virtual void Pause() = 0;
-        virtual void Resume() = 0;
-        virtual void Stop() = 0;
-        virtual bool IsFinished() const = 0;
-        virtual int GetVideoWidth() const = 0;
-        virtual int GetVideoHeight() const = 0;
-        virtual const char *GetName() const = 0;
+    virtual bool Open(const char* filename) = 0;
+    virtual bool Pump(MovieDecodeOutput& output) = 0;
+    virtual void Pause() = 0;
+    virtual void Resume() = 0;
+    virtual void Stop() = 0;
+    virtual bool Is_Finished() const = 0;
+    virtual int Get_Video_Width() const = 0;
+    virtual int Get_Video_Height() const = 0;
+    virtual const char* Get_Name() const = 0;
 };

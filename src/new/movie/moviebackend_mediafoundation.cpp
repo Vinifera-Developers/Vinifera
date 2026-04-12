@@ -758,25 +758,25 @@ void MediaFoundationMovieBackend::Stop()
 }
 
 
-bool MediaFoundationMovieBackend::IsFinished() const
+bool MediaFoundationMovieBackend::Is_Finished() const
 {
     return Finished;
 }
 
 
-int MediaFoundationMovieBackend::GetVideoWidth() const
+int MediaFoundationMovieBackend::Get_Video_Width() const
 {
     return static_cast<int>(VideoWidth);
 }
 
 
-int MediaFoundationMovieBackend::GetVideoHeight() const
+int MediaFoundationMovieBackend::Get_Video_Height() const
 {
     return static_cast<int>(VideoHeight);
 }
 
 
-const char *MediaFoundationMovieBackend::GetName() const
+const char *MediaFoundationMovieBackend::Get_Name() const
 {
     return "Media Foundation";
 }

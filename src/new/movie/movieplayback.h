@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Declarations for the backend-agnostic movie playback service.
+ *  @brief  Backend-agnostic movie playback service.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -28,7 +28,7 @@ enum MoviePlaybackIngameAdvanceResult
 };
 
 
-std::string Normalize_Movie_Basename(const char *name);
+std::string Normalize_Movie_Basename(const char *basename);
 
 bool MoviePlayback_Is_Available(const char *basename);
 bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before, bool stretch_allowed, bool clear_after);
