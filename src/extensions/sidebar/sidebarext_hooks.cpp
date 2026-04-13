@@ -79,8 +79,6 @@
 #include "wwmouse.h"
 
 #include "battleui_component.h"
-#include "sidebar_tabbed_view.h"
-#include "cameo_button.h"
 
 #include <algorithm>
 
@@ -472,88 +470,6 @@ void StripClassExt::_Flag_To_Redraw()
     IsToRedraw = true;
     BattleUI.Get_Sidebar().Flag_Strip_To_Redraw();
     Request_Sidebar_Redraw(Map);
-}
-
-
-/**
- *  Reference to last gadget that the user has hovered their mouse cursor on.
- */
-static GadgetClass* LastHovered;
-
-
-/**
- *  Patch in GadgetClass::Input to handle hover effects for SelectClass.
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave, 0)
-{
-    GET(int, key, EAX);
-    GET(int, mousex, EBP);
-    GET(int, mousey, EBX);
-    GET(GadgetClass*, this_ptr, ESI);
-
-    GadgetClass* to_enter = this_ptr->Extract_Gadget_At_Mouse(mousex, mousey);
-    if (to_enter != LastHovered) {
-        if (LastHovered) {
-            if (auto select = dynamic_cast<CameoButtonClass*>(LastHovered)) {
-                select->On_Mouse_Leave();
-            } else if (auto tab_button = dynamic_cast<TabButtonClass*>(LastHovered)) {
-                tab_button->On_Mouse_Leave();
-            }
-
-            LastHovered = nullptr;
-        }
-
-        if (to_enter) {
-            if (auto select = dynamic_cast<CameoButtonClass*>(to_enter)) {
-                LastHovered = select;
-                select->On_Mouse_Enter();
-            } else if (auto tab_button = dynamic_cast<TabButtonClass*>(to_enter)) {
-                LastHovered = tab_button;
-                tab_button->On_Mouse_Enter();
-            }
-        }
-    }
-
-    // Stolen code
-
-    /**
-     *  Set the mouse button state flags. These will be passed to the individual
-     *  buttons so that they can determine what action to perform (if any).
-     */
-    unsigned flags = 0;
-    if (key) {
-        if (key == KN_LMOUSE) {
-            flags |= GadgetClass::LEFTPRESS;
-        }
-
-        if (key == KN_RMOUSE) {
-            flags |= GadgetClass::RIGHTPRESS;
-        }
-
-        if (key == (KN_LMOUSE | KN_RLSE_BIT)) {
-            flags |= GadgetClass::LEFTRELEASE;
-        }
-
-        if (key == (KN_RMOUSE | KN_RLSE_BIT)) {
-            flags |= GadgetClass::RIGHTRELEASE;
-        }
-
-        /**
-         *  If the mouse wasn't responsible for this key code, then it must be from
-         *  the keyboard. Flag this fact.
-         */
-        if (!flags) {
-            flags |= GadgetClass::KEYBOARD;
-        }
-
-        R->EDI(flags);
-        return 0x004A9F7F;
-    }
-
-    R->EDI(flags);
-    return 0x004A9F4D;
 }
 
 

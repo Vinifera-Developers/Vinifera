@@ -30,6 +30,7 @@
 #pragma once
 
 #include "gcntrl.h"
+#include "ihoverable_gadget.h"
 #include "shapeset.h"
 #include "sidebar_strip_view.h"
 #include "sidebar_view.h"
@@ -39,7 +40,7 @@
 /**
  *  A tab button for switching between sidebar categories.
  */
-class TabButtonClass : public ControlClass
+class TabButtonClass : public ControlClass, public IHoverableGadget
 {
 private:
     enum {

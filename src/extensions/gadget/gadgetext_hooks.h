@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CAMEO_BUTTON.H
+ *  @file          GADGETEXT_HOOKS.H
  *
  *  @author        ZivDero
  *
- *  @brief         Button class for sidebar cameo slots.
+ *  @brief         Contains the hooks for the extended GadgetClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,30 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "gcntrl.h"
-#include "ihoverable_gadget.h"
 
-
-class SidebarStripView;
-
-
-class CameoButtonClass : public ControlClass, public IHoverableGadget
-{
-public:
-    CameoButtonClass();
-    CameoButtonClass(const NoInitClass& x);
-
-    virtual bool Action(unsigned flags, KeyNumType& key) override;
-
-    virtual void On_Mouse_Enter();
-    virtual void On_Mouse_Leave();
-
-    void Set_Owner(SidebarStripView& strip, int index);
-
-public:
-    SidebarStripView* Strip;
-    int Index;
-    bool MousedOver;
-};
+void GadgetClassExtension_Hooks();
