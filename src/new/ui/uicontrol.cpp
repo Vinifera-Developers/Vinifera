@@ -33,6 +33,8 @@
 #include "asserthandler.h"
 #include "ccini.h"
 
+#include <cstring>
+
 
 UIControlsClass *UIControls = nullptr;
 
@@ -100,6 +102,7 @@ UIControlsClass::UIControlsClass() :
     NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
     NavComQueueLineDropShadowColor{ 0, 0, 0 },
     IsCenterSidebarButtonsOnRadar(false),
+    BattleSidebarViewType(SIDEBAR_CLASSIC),
     BeaconAnimFramesPerSecond(25),
     RadarBeaconAnimFramesPerSecond(25),
     BeaconTextOffset(32),
@@ -149,6 +152,15 @@ UIControlsClass::~UIControlsClass()
 bool UIControlsClass::Read_INI(CCINIClass &ini)
 {
     static char const * const INGAME = "Ingame";
+    static char const * const SIDEBAR = "Sidebar";
+
+    char sidebar_view[64];
+    ini.Get_String(SIDEBAR, "ViewType", "Classic", sidebar_view, sizeof(sidebar_view));
+    if (_stricmp(sidebar_view, "Tabbed") == 0) {
+        BattleSidebarViewType = SIDEBAR_TABBED;
+    } else {
+        BattleSidebarViewType = SIDEBAR_CLASSIC;
+    }
 
     UnitHealthBarDrawPos = ini.Get_Point(INGAME, "UnitHealthBarPos", UnitHealthBarDrawPos);
     InfantryHealthBarDrawPos = ini.Get_Point(INGAME, "InfantryHealthBarPos", InfantryHealthBarDrawPos);

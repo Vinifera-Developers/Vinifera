@@ -373,11 +373,8 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     **  Tell the sidebar that it needs to be redrawn because of this.
     */
     if (PlayerPtr == This()) {
-        Map.SidebarClass::IsToRedraw = true;
-        RedrawSidebar = true;
-        Map.Flag_To_Redraw();
-        Map.Column[0].Flag_To_Redraw();
-        Map.Column[1].Flag_To_Redraw();
+        BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(type, flags);
+        Map.Redraw_Sidebar();
     }
 
     return PROD_OK;
@@ -735,11 +732,11 @@ void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
                 if (factory->Object->TClass->Who_Can_Build_Me(true, true, true, This()) == nullptr) {
                     factory->Suspend(false);
                     if (PlayerPtr == This()) {
-                        Map.SidebarClass::IsToRedraw = true;
-                        RedrawSidebar = true;
-                        Map.Flag_To_Redraw();
-                        Map.Column[0].Flag_To_Redraw();
-                        Map.Column[1].Flag_To_Redraw();
+                        const TechnoTypeClass* suspended_type = factory->Object->TClass;
+                        BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(
+                            suspended_type->RTTI,
+                            TechnoTypeClassExtension::Get_Production_Flags(suspended_type));
+                        Map.Redraw_Sidebar();
                     }
                 } else {
                     if (factory->IsSuspended && !factory->IsOnHold) {

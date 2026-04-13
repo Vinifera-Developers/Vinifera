@@ -31,6 +31,7 @@
 
 #pragma once
 
+#include "shapebtn.h"
 #include "stage.h"
 #include "vector.h"
 #include "wwkeyboard.h"
@@ -59,6 +60,7 @@ public:
         OBJECT_HEIGHT = 51,
         OBJECT_WIDTH = 64,
         OBJECT_NAME_OFFSET = 41,
+        COLUMN_SPACING = 67,
         SCROLL_RATE = 51,
 
         TEXT_X_OFFSET = 30,
@@ -77,6 +79,7 @@ public:
     void Activate();
     void Deactivate();
     bool AI(KeyNumType& input, Point2D& xy);
+    bool Update_State();
     void Draw(Surface& surface, const Rect& rect, bool complete);
     bool Scroll(bool up);
     bool Scroll_Page(bool up);
@@ -86,7 +89,8 @@ public:
     BuildCategory* Get_Category() const { return Category; }
 
     bool Has_Ready() const;
-    int Max_Visible() const;
+    int Visible_Button_Count() const;
+    int Visible_Buttons_Per_Column() const;
 
     int Get_ID() const { return ID; }
     bool Is_Scrolling() const { return IsScrolling; }
@@ -108,8 +112,11 @@ public:
 
     BuildCategory* Category;
 
+    ShapeButtonClass UpButton;
+    ShapeButtonClass DownButton;
     DynamicVectorClass<CameoButtonClass*> SelectButtons;
 
 private:
+    void Allocate_Select_Buttons(int count);
     void Draw_Strip_Items(Surface& surface, const Rect& rect);
 };

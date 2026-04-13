@@ -115,9 +115,9 @@ public:
         COLUMN_Y = 54,
         COLUMN_X = 24,
 
-        UP_X_OFFSET = 1,
+        UP_X_OFFSET = COLUMN_X + 5,
         UP_Y_OFFSET = COLUMN_Y - 1,
-        DOWN_X_OFFSET = UP_X_OFFSET,
+        DOWN_X_OFFSET = COLUMN_X + 67 + 34,
         DOWN_Y_OFFSET = UP_Y_OFFSET,
 
         TAB_Y_OFFSET = 24,
@@ -151,7 +151,8 @@ public:
     virtual const char* Help_Text(int gadget_id) override;
     virtual void Flag_Current_Strip_To_Redraw() override;
     virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) override;
-    virtual int Max_Visible() const override;
+    virtual int Visible_Button_Count() const override;
+    virtual int Visible_Buttons_Per_Column() const override;
 
     virtual bool Change_Tab(int index) override;
     virtual void Action_Bar_AI(KeyNumType& key) override;

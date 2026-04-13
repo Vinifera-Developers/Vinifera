@@ -29,16 +29,24 @@
 #pragma once
 
 #include "point.h"
+#include "rgb.h"
 #include "tibsun_defines.h"
 #include "typelist.h"
 
 #include <string>
 
 
-class RGBClass;
 struct IStream;
 class CCINIClass;
 class NoInitClass;
+
+
+enum SidebarViewType {
+    SIDEBAR_CLASSIC,
+    SIDEBAR_TABBED,
+
+    SIDEBAR_COUNT
+};
 
 
 class UIControlsClass
@@ -312,6 +320,11 @@ class UIControlsClass
          *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
          */
         bool IsCenterSidebarButtonsOnRadar;
+
+        /**
+         *  Selected sidebar layout for the battle UI.
+         */
+        SidebarViewType BattleSidebarViewType;
 
         /**
          *  Beacon animations are not tied to game FPS, this is the FPS at which they play.

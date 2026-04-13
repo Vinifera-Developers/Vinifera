@@ -66,7 +66,8 @@ public:
     virtual const char* Help_Text(int gadget_id) { return nullptr; }
     virtual void Flag_Current_Strip_To_Redraw() {}
     virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) { (void)type; (void)flags; }
-    virtual int Max_Visible() const = 0;
+    virtual int Visible_Button_Count() const = 0;
+    virtual int Visible_Buttons_Per_Column() const = 0;
 
     virtual bool Change_Tab(int index) { return false; }
     virtual void Action_Bar_AI(KeyNumType& key) {}

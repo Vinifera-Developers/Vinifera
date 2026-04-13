@@ -47,7 +47,7 @@ public:
 
         UP_X_OFFSET = 5,
         UP_Y_OFFSET = 25,
-        DOWN_X_OFFSET = UP_X_OFFSET,
+        DOWN_X_OFFSET = 34,
         DOWN_Y_OFFSET = UP_Y_OFFSET,
     };
 
@@ -70,7 +70,8 @@ public:
     virtual const char* Help_Text(int gadget_id) override;
     virtual void Flag_Current_Strip_To_Redraw() override;
     virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) override;
-    virtual int Max_Visible() const override;
+    virtual int Visible_Button_Count() const override;
+    virtual int Visible_Buttons_Per_Column() const override;
 
     virtual void Action_Bar_AI(KeyNumType& key) override;
 

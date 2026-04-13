@@ -31,7 +31,7 @@
 
 #include "ibattleui_component.h"
 #include "sidebar_model.h"
-#include "sidebar_config.h"
+#include "uicontrol.h"
 #include "vinifera_defines.h"
 
 #include <objidl.h>
@@ -80,8 +80,8 @@ public:
     bool Change_Tab(int index);
     void Detach(AbstractClass* target);
     void Activate(int control);
-    int Max_Visible() const;
-    int Max_Visible(bool one_strip) const;
+    int Visible_Button_Count() const;
+    int Visible_Buttons_Per_Column() const;
     void Init_Strips();
 
     HRESULT Save(IStream* pStm) const override;

@@ -2373,10 +2373,12 @@ bool SpecialWeaponsCommandClass::Process()
         Map.Add(RTTI_SPECIAL, i);
 
         /**
-         *  Redraw the right column.
+         *  Redraw the specials strip.
          */
-        Map.Column[1].Flag_To_Redraw();
+        BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(RTTI_SPECIAL, PRODFLAG_NONE);
     }
+
+    Map.Redraw_Sidebar();
 
     return true;
 }

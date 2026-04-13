@@ -83,6 +83,8 @@ SidebarStripView::SidebarStripView() :
     LastSlid(0),
     MaxVisibleCount(0),
     Category(nullptr),
+    UpButton(),
+    DownButton(),
     SelectButtons()
 {
 }
@@ -150,47 +152,33 @@ void SidebarStripView::Init_IO(int id, int columns)
     ID = id;
     Columns = columns;
 
-    /**
-     *  Set up the scroll buttons. These are shared statics on StripClass —
-     *  in the new sidebar, they use index [0] since there's only one active
-     *  strip set at a time.
-     */
-    auto& up = SidebarClass::StripClass::UpButton[0];
-    up.IsSticky = true;
-    up.ID = BUTTON_UP;
-    up.DrawnOnSidebarSurface = true;
-    up.ShapeDrawer = SidebarDrawer;
-    up.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS
-             | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
 
-    auto& down = SidebarClass::StripClass::DownButton[0];
-    down.IsSticky = true;
-    down.ID = BUTTON_DOWN;
-    down.DrawnOnSidebarSurface = true;
-    down.ShapeDrawer = SidebarDrawer;
-    down.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS
-               | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
+    /**
+     *  Set up the strip-owned scroll buttons.
+     */
+    UpButton.IsSticky = true;
+    UpButton.ID = BUTTON_UP + id;
+    UpButton.DrawnOnSidebarSurface = true;
+    UpButton.ShapeDrawer = SidebarDrawer;
+    UpButton.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS
+                   | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
+
+    DownButton.IsSticky = true;
+    DownButton.ID = BUTTON_DOWN + id;
+    DownButton.DrawnOnSidebarSurface = true;
+    DownButton.ShapeDrawer = SidebarDrawer;
+    DownButton.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS
+                     | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
 
     /**
      *  Calculate the number of visible cameo slots.
      */
-    MaxVisibleCount = Max_Visible();
+    MaxVisibleCount = Visible_Button_Count();
 
     /**
      *  Allocate select buttons for the visible slots.
      */
-    for (int i = 0; i < SelectButtons.Count(); i++) {
-        delete SelectButtons[i];
-    }
-    SelectButtons.Clear();
-
-    for (int i = 0; i < MaxVisibleCount; i++) {
-        CameoButtonClass* btn = new CameoButtonClass();
-        btn->ID = BUTTON_SELECT;
-        btn->Width = OBJECT_WIDTH;
-        btn->Height = OBJECT_HEIGHT;
-        SelectButtons.Add(btn);
-    }
+    Allocate_Select_Buttons(MaxVisibleCount);
 }
 
 
@@ -201,11 +189,13 @@ void SidebarStripView::Init_IO(int id, int columns)
  */
 void SidebarStripView::Init_For_House(int id)
 {
-    SidebarClass::StripClass::UpButton[0].Set_Shape(MFCD::RetrieveT<ShapeSet>("R-UP.SHP"));
-    SidebarClass::StripClass::UpButton[0].ShapeDrawer = SidebarDrawer;
+    (void)id;
 
-    SidebarClass::StripClass::DownButton[0].Set_Shape(MFCD::RetrieveT<ShapeSet>("R-DN.SHP"));
-    SidebarClass::StripClass::DownButton[0].ShapeDrawer = SidebarDrawer;
+    UpButton.Set_Shape(MFCD::RetrieveT<ShapeSet>("R-UP.SHP"));
+    UpButton.ShapeDrawer = SidebarDrawer;
+
+    DownButton.Set_Shape(MFCD::RetrieveT<ShapeSet>("R-DN.SHP"));
+    DownButton.ShapeDrawer = SidebarDrawer;
 }
 
 
@@ -219,25 +209,14 @@ void SidebarStripView::Set_Dimensions(int column_x, int column_y)
     ColumnX = column_x;
     ColumnY = column_y;
 
-    int new_count = Max_Visible();
+    int new_count = Visible_Button_Count();
 
     /**
      *  If the visible count changed (resolution change), reallocate buttons.
      */
     if (new_count != MaxVisibleCount) {
-        for (int i = 0; i < SelectButtons.Count(); i++) {
-            delete SelectButtons[i];
-        }
-        SelectButtons.Clear();
-
         MaxVisibleCount = new_count;
-        for (int i = 0; i < MaxVisibleCount; i++) {
-            CameoButtonClass* btn = new CameoButtonClass();
-            btn->ID = BUTTON_SELECT;
-            btn->Width = OBJECT_WIDTH;
-            btn->Height = OBJECT_HEIGHT;
-            SelectButtons.Add(btn);
-        }
+        Allocate_Select_Buttons(MaxVisibleCount);
     }
 
     /**
@@ -249,10 +228,22 @@ void SidebarStripView::Set_Dimensions(int column_x, int column_y)
             btn->X = SidebarRect.X + ColumnX;
             btn->Y = SidebarRect.Y + ColumnY + i * OBJECT_HEIGHT;
         } else {
-            btn->X = SidebarRect.X + (i % 2 == 0 ? ColumnX : ColumnX + 67);
+            btn->X = SidebarRect.X + (i % 2 == 0 ? ColumnX : ColumnX + COLUMN_SPACING);
             btn->Y = SidebarRect.Y + ColumnY + (i / 2) * OBJECT_HEIGHT;
         }
     }
+
+    const int button_y = SidebarRect.Y + ColumnY + OBJECT_HEIGHT * (MaxVisibleCount / Columns) - 1;
+    const int up_x = SidebarRect.X + ColumnX + 5;
+    const int down_x = SidebarRect.X + ColumnX + (Columns == 1 ? 34 : COLUMN_SPACING + 34);
+
+    UpButton.Set_Position(up_x, button_y);
+    UpButton.Flag_To_Redraw();
+    UpButton.DrawX = -SidebarRect.X;
+
+    DownButton.Set_Position(down_x, button_y);
+    DownButton.Flag_To_Redraw();
+    DownButton.DrawX = -SidebarRect.X;
 }
 
 
@@ -263,11 +254,11 @@ void SidebarStripView::Set_Dimensions(int column_x, int column_y)
  */
 void SidebarStripView::Activate()
 {
-    SidebarClass::StripClass::UpButton[0].Zap();
-    Map.Add_A_Button(SidebarClass::StripClass::UpButton[0]);
+    UpButton.Zap();
+    Map.Add_A_Button(UpButton);
 
-    SidebarClass::StripClass::DownButton[0].Zap();
-    Map.Add_A_Button(SidebarClass::StripClass::DownButton[0]);
+    DownButton.Zap();
+    Map.Add_A_Button(DownButton);
 
     for (int i = 0; i < MaxVisibleCount; i++) {
         SelectButtons[i]->Zap();
@@ -283,8 +274,8 @@ void SidebarStripView::Activate()
  */
 void SidebarStripView::Deactivate()
 {
-    Map.Remove_A_Button(SidebarClass::StripClass::UpButton[0]);
-    Map.Remove_A_Button(SidebarClass::StripClass::DownButton[0]);
+    Map.Remove_A_Button(UpButton);
+    Map.Remove_A_Button(DownButton);
 
     for (int i = 0; i < MaxVisibleCount; i++) {
         Map.Remove_A_Button(*SelectButtons[i]);
@@ -299,6 +290,34 @@ void SidebarStripView::Deactivate()
  *  @author: ZivDero
  */
 bool SidebarStripView::AI(KeyNumType& input, Point2D& xy)
+{
+    if (Category == nullptr) {
+        return false;
+    }
+
+    (void)xy;
+
+    /**
+     *  Handle scroll button presses.
+     */
+    if (input == KeyNumType(UpButton.ID | KN_BUTTON)) {
+        UpButton.IsPressed = false;
+        if (!Scroll(true)) {
+            Sound_Effect(Rule->ScoldSound);
+        }
+    }
+    if (input == KeyNumType(DownButton.ID | KN_BUTTON)) {
+        DownButton.IsPressed = false;
+        if (!Scroll(false)) {
+            Sound_Effect(Rule->ScoldSound);
+        }
+    }
+
+    return Update_State();
+}
+
+
+bool SidebarStripView::Update_State()
 {
     if (Category == nullptr) {
         return false;
@@ -349,22 +368,6 @@ bool SidebarStripView::AI(KeyNumType& input, Point2D& xy)
                     }
                 }
             }
-        }
-    }
-
-    /**
-     *  Handle scroll button presses.
-     */
-    if (input == KeyNumType(SidebarClass::StripClass::UpButton[0].ID | KN_BUTTON)) {
-        SidebarClass::StripClass::UpButton[0].IsPressed = false;
-        if (!Scroll(true)) {
-            Sound_Effect(Rule->ScoldSound);
-        }
-    }
-    if (input == KeyNumType(SidebarClass::StripClass::DownButton[0].ID | KN_BUTTON)) {
-        SidebarClass::StripClass::DownButton[0].IsPressed = false;
-        if (!Scroll(false)) {
-            Sound_Effect(Rule->ScoldSound);
         }
     }
 
@@ -460,8 +463,8 @@ void SidebarStripView::Draw(Surface& surface, const Rect& rect, bool complete)
         /**
          *  Draw scroll buttons.
          */
-        SidebarClass::StripClass::UpButton[0].Draw_Me(true);
-        SidebarClass::StripClass::DownButton[0].Draw_Me(true);
+        UpButton.Draw_Me(true);
+        DownButton.Draw_Me(true);
 
         /**
          *  Draw all visible cameo items.
@@ -476,14 +479,14 @@ void SidebarStripView::Draw(Surface& surface, const Rect& rect, bool complete)
      *  Even if the strip didn't need full redraw, check if scroll
      *  buttons drew themselves and flag the sidebar for blit.
      */
-    if (SidebarClass::StripClass::UpButton[0].IsDrawn) {
+    if (UpButton.IsDrawn) {
         RedrawSidebar = true;
-        SidebarClass::StripClass::UpButton[0].IsDrawn = false;
+        UpButton.IsDrawn = false;
     }
 
-    if (SidebarClass::StripClass::DownButton[0].IsDrawn) {
+    if (DownButton.IsDrawn) {
         RedrawSidebar = true;
-        SidebarClass::StripClass::DownButton[0].IsDrawn = false;
+        DownButton.IsDrawn = false;
     }
 }
 
@@ -557,6 +560,23 @@ void SidebarStripView::Flag_To_Redraw()
     IsToRedraw = true;
 }
 
+void SidebarStripView::Allocate_Select_Buttons(int count)
+{
+    for (int i = 0; i < SelectButtons.Count(); i++) {
+        delete SelectButtons[i];
+    }
+    SelectButtons.Clear();
+
+    for (int i = 0; i < count; i++) {
+        CameoButtonClass* btn = new CameoButtonClass();
+        btn->ID = BUTTON_SELECT;
+        btn->Width = OBJECT_WIDTH;
+        btn->Height = OBJECT_HEIGHT;
+        btn->Set_Owner(*this, i);
+        SelectButtons.Add(btn);
+    }
+}
+
 
 /**
  *  Returns true if any item in the category has completed production.
@@ -580,18 +600,23 @@ bool SidebarStripView::Has_Ready() const
 
 
 /**
- *  Computes how many cameo slots fit in the sidebar area.
+ *  Computes how many cameo buttons fit in the strip.
  *
  *  @author: ZivDero
  */
-int SidebarStripView::Max_Visible() const
+int SidebarStripView::Visible_Button_Count() const
+{
+    return Visible_Buttons_Per_Column() * Columns;
+}
+
+
+int SidebarStripView::Visible_Buttons_Per_Column() const
 {
     if (SidebarSurface != nullptr && SidebarClass::SidebarShape != nullptr) {
-        int rows = (SidebarRect.Height
-                    - SidebarClass::SidebarBottomShape->Get_Height()
-                    - SidebarClass::SidebarShape->Get_Height())
-                   / SidebarClass::SidebarMiddleShape->Get_Height();
-        return rows * Columns;
+        return (SidebarRect.Height
+                - SidebarClass::SidebarBottomShape->Get_Height()
+                - SidebarClass::SidebarShape->Get_Height())
+               / SidebarClass::SidebarMiddleShape->Get_Height();
     }
 
     return SidebarClass::StripClass::MAX_VISIBLE;
@@ -617,7 +642,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
             x = ColumnX;
             y = ColumnY + i * OBJECT_HEIGHT;
         } else {
-            x = i % 2 == 0 ? ColumnX : ColumnX + 67;
+            x = i % 2 == 0 ? ColumnX : ColumnX + COLUMN_SPACING;
             y = ColumnY + (i / 2) * OBJECT_HEIGHT;
         }
 

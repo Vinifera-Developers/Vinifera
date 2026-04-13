@@ -130,7 +130,7 @@ void PowerView::Set_Dimensions()
         tt.Region.X = SidebarRect.X + POWER_X;
         tt.Region.Y = SidebarRect.Y + POWER_Y;
         tt.Region.Width = POWER_WIDTH;
-        tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Max_Visible();
+        tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Visible_Buttons_Per_Column();
 
         ToolTips->Remove(tt.ID);
         ToolTips->Add(&tt);
@@ -157,7 +157,27 @@ void PowerView::Flash_Power()
  */
 int PowerView::Max_Power_Height() const
 {
-    return SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Max_Visible() / POWER_PIP_HEIGHT;
+    return SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Visible_Buttons_Per_Column() / POWER_PIP_HEIGHT;
+}
+
+
+int PowerView::Current_Power() const
+{
+    if (Model != nullptr) {
+        return Model->Get_Power();
+    }
+
+    return PlayerPtr != nullptr ? PlayerPtr->Power : 0;
+}
+
+
+int PowerView::Current_Drain() const
+{
+    if (Model != nullptr) {
+        return Model->Get_Drain();
+    }
+
+    return PlayerPtr != nullptr ? PlayerPtr->Drain : 0;
 }
 
 
@@ -169,15 +189,8 @@ int PowerView::Max_Power_Height() const
 int PowerView::Desired_Power_Height() const
 {
     int max_pips = Max_Power_Height();
-    int drain = 0;
-    int power = 0;
-
-    for (int i = 0; i < Buildings.Count(); i++) {
-        if (Buildings[i]->House == PlayerPtr) {
-            drain += Buildings[i]->Class->Drain;
-            power += Buildings[i]->Class->Power;
-        }
-    }
+    int drain = Current_Drain();
+    int power = Current_Power();
 
     int empty_pips = static_cast<int>(400.0 / (drain + power + 400.0) * max_pips);
     empty_pips = std::max(empty_pips, 0);
@@ -220,8 +233,10 @@ int PowerView::Desired_Levels(int &green, int &yellow, int &red) const
 {
     int max_pips = Max_Power_Height();
     int desired_pips = Desired_Power_Height();
+    const double power = Current_Power();
+    const double drain = Current_Drain();
 
-    double power_delta = PlayerPtr->Power_Output() - PlayerPtr->Power_Drain();
+    double power_delta = power - drain;
 
     double green_power = 0.0;
     double yellow_power = 100.0;
@@ -240,10 +255,10 @@ int PowerView::Desired_Levels(int &green, int &yellow, int &red) const
     double green_fraction = 0.0;
     double yellow_fraction = 0.0;
 
-    double total_power = PlayerPtr->Power_Drain() + yellow_power + green_power;
+    double total_power = drain + yellow_power + green_power;
 
     if (total_power > 0.0) {
-        red_fraction = PlayerPtr->Power_Drain() / total_power;
+        red_fraction = drain / total_power;
         green_fraction = green_power / total_power;
         yellow_fraction = yellow_power / total_power;
     }
@@ -316,6 +331,10 @@ void PowerView::AI()
         return;
     }
 
+    const int current_drain = Current_Drain();
+    const int current_power = Current_Power();
+    const bool model_dirty = Model != nullptr && Model->Is_Dirty();
+
     if (!HasChanged && FlashCount > 0) {
         if (FlashTimer == 0) {
             IsToRedraw = true;
@@ -328,7 +347,7 @@ void PowerView::AI()
     /**
      *  If the recorded power or drain value has changed we need to adjust for it.
      */
-    if (PlayerPtr->Power_Drain() != RecordedDrain || PlayerPtr->Power_Output() != RecordedPower || HasChanged) {
+    if (current_drain != RecordedDrain || current_power != RecordedPower || model_dirty || HasChanged) {
 
         IsToRedraw = true;
         Map.Redraw_Sidebar();
@@ -336,13 +355,13 @@ void PowerView::AI()
         /**
          *  Flag to flash the top of the power bar if we're adjusting the bar height.
          */
-        if (PlayerPtr->Power_Drain() != RecordedDrain || PlayerPtr->Power_Output() != RecordedPower) {
+        if (current_drain != RecordedDrain || current_power != RecordedPower) {
             HasChanged = true;
             Flash_Power();
         }
 
-        RecordedDrain = PlayerPtr->Power_Drain();
-        RecordedPower = PlayerPtr->Power_Output();
+        RecordedDrain = current_drain;
+        RecordedPower = current_power;
 
         int green, yellow, red;
         Desired_Levels(green, yellow, red);
@@ -396,6 +415,10 @@ void PowerView::AI()
             if (HasChanged) {
                 UpdateTimer = Update_Delay();
             }
+        }
+
+        if (Model != nullptr) {
+            Model->Clear_Dirty();
         }
     }
 }
@@ -483,7 +506,7 @@ const char *PowerView::Help_Text(int gadget_id)
     static char _str[128];
 
     if (gadget_id == GADGET_POWER) {
-        std::sprintf(_str, Fetch_String(TXT_POWER_DRAIN), PlayerPtr->Power, PlayerPtr->Drain);
+        std::sprintf(_str, Fetch_String(TXT_POWER_DRAIN), Current_Power(), Current_Drain());
         return _str;
     }
 

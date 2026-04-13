@@ -240,35 +240,6 @@ void ClassicSidebarView::Set_Dimensions()
     Strip[1].Set_Dimensions(COLUMN_TWO_X, COLUMN_TWO_Y);
 
     /**
-     *  Position the scroll buttons.
-     */
-    int max_vis = Strip[0].Max_Visible();
-    auto& up0 = SidebarClass::StripClass::UpButton[0];
-    auto& down0 = SidebarClass::StripClass::DownButton[0];
-    auto& up1 = SidebarClass::StripClass::UpButton[1];
-    auto& down1 = SidebarClass::StripClass::DownButton[1];
-
-    up0.Set_Position(SidebarRect.X + COLUMN_ONE_X + UP_X_OFFSET,
-                     SidebarRect.Y + SidebarClass::StripClass::OBJECT_HEIGHT * max_vis + UP_Y_OFFSET);
-    up0.Flag_To_Redraw();
-    up0.DrawX = -SidebarRect.X;
-
-    down0.Set_Position(SidebarRect.X + COLUMN_ONE_X + DOWN_X_OFFSET,
-                       SidebarRect.Y + SidebarClass::StripClass::OBJECT_HEIGHT * max_vis + DOWN_Y_OFFSET);
-    down0.Flag_To_Redraw();
-    down0.DrawX = -SidebarRect.X;
-
-    up1.Set_Position(SidebarRect.X + COLUMN_TWO_X + UP_X_OFFSET,
-                     SidebarRect.Y + SidebarClass::StripClass::OBJECT_HEIGHT * max_vis + UP_Y_OFFSET);
-    up1.Flag_To_Redraw();
-    up1.DrawX = -SidebarRect.X;
-
-    down1.Set_Position(SidebarRect.X + COLUMN_TWO_X + DOWN_X_OFFSET,
-                       SidebarRect.Y + SidebarClass::StripClass::OBJECT_HEIGHT * max_vis + DOWN_Y_OFFSET);
-    down1.Flag_To_Redraw();
-    down1.DrawX = -SidebarRect.X;
-
-    /**
      *  Set up tooltips for the select buttons.
      */
     if (ToolTips) {
@@ -350,7 +321,7 @@ void ClassicSidebarView::Draw(bool complete)
             Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
             y += SidebarClass::SidebarShape->Get_Height();
 
-            int rows = Max_Visible();
+            int rows = Visible_Buttons_Per_Column();
             for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
                 xy = Point2D(0, y);
                 Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
@@ -412,11 +383,6 @@ void ClassicSidebarView::Draw(bool complete)
 
     Map.IsToRedraw = false;
     Map.IsToFullRedraw = false;
-
-    /**
-     *  Blit the assembled sidebar surface to the screen.
-     */
-    Blit(complete);
 
     LogicalSurface = oldsurface;
 }
@@ -567,11 +533,22 @@ const char* ClassicSidebarView::Help_Text(int gadget_id)
 
 
 /**
- *  Returns the number of visible rows (same for both columns).
+ *  Returns the total number of visible buttons across both classic columns.
  *
  *  @author: ZivDero
  */
-int ClassicSidebarView::Max_Visible() const
+int ClassicSidebarView::Visible_Button_Count() const
+{
+    return Visible_Buttons_Per_Column() * COLUMN_COUNT;
+}
+
+
+/**
+ *  Returns the number of visible buttons in one classic column.
+ *
+ *  @author: ZivDero
+ */
+int ClassicSidebarView::Visible_Buttons_Per_Column() const
 {
     if (SidebarSurface != nullptr && SidebarClass::SidebarShape != nullptr) {
         return (SidebarRect.Height

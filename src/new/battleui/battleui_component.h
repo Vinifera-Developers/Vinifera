@@ -29,7 +29,6 @@
 
 #pragma once
 
-#include "action_bar_component.h"
 #include "power_component.h"
 #include "sidebar_component.h"
 
@@ -62,11 +61,9 @@ public:
 
     SidebarComponent &Get_Sidebar() { return Sidebar; }
     const SidebarComponent &Get_Sidebar() const { return Sidebar; }
-    ActionBarComponent &Get_Action_Bar() { return ActionBar; }
     PowerComponent &Get_Power() { return Power; }
 
 private:
-    ActionBarComponent ActionBar;
     SidebarComponent Sidebar;
     PowerComponent Power;
 };

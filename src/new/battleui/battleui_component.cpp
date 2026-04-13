@@ -40,7 +40,6 @@ BattleUISystem::~BattleUISystem()
 
 void BattleUISystem::One_Time()
 {
-    ActionBar.One_Time();
     Sidebar.One_Time();
     Power.One_Time();
 }
@@ -48,7 +47,6 @@ void BattleUISystem::One_Time()
 
 void BattleUISystem::Init_Clear()
 {
-    ActionBar.Init_Clear();
     Sidebar.Init_Clear();
     Power.Init_Clear();
 }
@@ -56,7 +54,6 @@ void BattleUISystem::Init_Clear()
 
 void BattleUISystem::Init_IO()
 {
-    ActionBar.Init_IO();
     Sidebar.Init_IO();
     Power.Init_IO();
 }
@@ -64,7 +61,6 @@ void BattleUISystem::Init_IO()
 
 void BattleUISystem::Init_For_House()
 {
-    ActionBar.Init_For_House();
     Sidebar.Init_For_House();
     Power.Init_For_House();
 }
@@ -72,7 +68,6 @@ void BattleUISystem::Init_For_House()
 
 void BattleUISystem::AI(KeyNumType &key, Point2D &mouse)
 {
-    ActionBar.AI(key, mouse);
     Sidebar.AI(key, mouse);
     Power.AI(key, mouse);
 }
@@ -80,7 +75,6 @@ void BattleUISystem::AI(KeyNumType &key, Point2D &mouse)
 
 void BattleUISystem::Draw(bool complete)
 {
-    ActionBar.Draw(complete);
     Sidebar.Draw(complete);
     Power.Draw(complete);
 }
@@ -88,7 +82,6 @@ void BattleUISystem::Draw(bool complete)
 
 void BattleUISystem::Blit(bool complete)
 {
-    ActionBar.Blit(complete);
     Sidebar.Blit(complete);
     Power.Blit(complete);
 }
@@ -96,7 +89,6 @@ void BattleUISystem::Blit(bool complete)
 
 void BattleUISystem::Set_Dimensions()
 {
-    ActionBar.Set_Dimensions();
     Sidebar.Set_Dimensions();
     Power.Set_Dimensions();
 }
@@ -104,7 +96,6 @@ void BattleUISystem::Set_Dimensions()
 
 void BattleUISystem::Shutdown()
 {
-    ActionBar.Shutdown();
     Sidebar.Shutdown();
     Power.Shutdown();
 }
@@ -113,9 +104,6 @@ void BattleUISystem::Shutdown()
 const char *BattleUISystem::Help_Text(int gadget_id)
 {
     const char *text;
-
-    text = ActionBar.Help_Text(gadget_id);
-    if (text != nullptr) return text;
 
     text = Sidebar.Help_Text(gadget_id);
     if (text != nullptr) return text;
@@ -131,9 +119,6 @@ HRESULT BattleUISystem::Save(IStream *pStm) const
 {
     HRESULT hr;
 
-    hr = ActionBar.Save(pStm);
-    if (FAILED(hr)) return hr;
-
     hr = Sidebar.Save(pStm);
     if (FAILED(hr)) return hr;
 
@@ -147,9 +132,6 @@ HRESULT BattleUISystem::Save(IStream *pStm) const
 HRESULT BattleUISystem::Load(IStream *pStm)
 {
     HRESULT hr;
-
-    hr = ActionBar.Load(pStm);
-    if (FAILED(hr)) return hr;
 
     hr = Sidebar.Load(pStm);
     if (FAILED(hr)) return hr;

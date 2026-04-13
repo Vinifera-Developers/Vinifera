@@ -35,7 +35,7 @@
 
 
 class PowerModel;
-struct ShapeSet;
+class ShapeSet;
 
 
 /**
@@ -77,6 +77,8 @@ public:
     bool IsToRedraw;
 
 private:
+    int Current_Power() const;
+    int Current_Drain() const;
     int Max_Power_Height() const;
     int Desired_Power_Height() const;
     int Desired_Levels(int &green, int &yellow, int &red) const;

@@ -566,23 +566,6 @@ void TabbedSidebarView::Set_Dimensions()
     }
 
     /**
-     *  Position the scroll buttons (only one pair for the active strip).
-     */
-    int max_vis = Strip[0].Max_Visible() / 2;
-    auto& up0 = SidebarClass::StripClass::UpButton[0];
-    auto& down0 = SidebarClass::StripClass::DownButton[0];
-
-    up0.Set_Position(SidebarRect.X + UP_X_OFFSET,
-                     SidebarRect.Y + SidebarClass::StripClass::OBJECT_HEIGHT * max_vis + UP_Y_OFFSET);
-    up0.Flag_To_Redraw();
-    up0.DrawX = -SidebarRect.X;
-
-    down0.Set_Position(SidebarRect.X + DOWN_X_OFFSET,
-                       SidebarRect.Y + SidebarClass::StripClass::OBJECT_HEIGHT * max_vis + DOWN_Y_OFFSET);
-    down0.Flag_To_Redraw();
-    down0.DrawX = -SidebarRect.X;
-
-    /**
      *  Set up tooltips.
      */
     if (ToolTips) {
@@ -684,6 +667,8 @@ void TabbedSidebarView::AI(KeyNumType& input, Point2D& xy)
 
         if (i == TabIndex) {
             Strip[i].AI(input, xy);
+        } else {
+            Strip[i].Update_State();
         }
     }
 }
@@ -767,7 +752,7 @@ void TabbedSidebarView::Draw(bool complete)
             Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
             y += SidebarClass::SidebarShape->Get_Height();
 
-            int rows = Max_Visible();
+            int rows = Visible_Buttons_Per_Column();
             for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
                 xy = Point2D(0, y);
                 Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
@@ -840,8 +825,6 @@ void TabbedSidebarView::Draw(bool complete)
 
     Map.IsToRedraw = false;
     Map.IsToFullRedraw = false;
-
-    Blit(complete);
 
     LogicalSurface = oldsurface;
 }
@@ -1002,11 +985,22 @@ const char* TabbedSidebarView::Help_Text(int gadget_id)
 
 
 /**
- *  Returns the number of visible rows.
+ *  Returns the total number of visible buttons in the active tab.
  *
  *  @author: ZivDero
  */
-int TabbedSidebarView::Max_Visible() const
+int TabbedSidebarView::Visible_Button_Count() const
+{
+    return Visible_Buttons_Per_Column() * 2;
+}
+
+
+/**
+ *  Returns the number of visible buttons in one tab column.
+ *
+ *  @author: ZivDero
+ */
+int TabbedSidebarView::Visible_Buttons_Per_Column() const
 {
     if (SidebarSurface != nullptr && SidebarClass::SidebarShape != nullptr) {
         return (SidebarRect.Height

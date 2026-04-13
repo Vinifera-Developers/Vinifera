@@ -33,11 +33,11 @@
 #include "house.h"
 #include "object.h"
 #include "sidebar_classic_view.h"
-#include "sidebar_config.h"
 #include "sidebar_tabbed_view.h"
 #include "sidebar_view.h"
 #include "techno.h"
 #include "tibsun_globals.h"
+#include "uicontrol.h"
 
 #include "sidebar.h"
 
@@ -72,11 +72,16 @@ SidebarComponent::~SidebarComponent()
  */
 void SidebarComponent::One_Time()
 {
+    SidebarViewType view_type = SIDEBAR_CLASSIC;
+    if (UIControls != nullptr) {
+        view_type = UIControls->BattleSidebarViewType;
+    }
+
     /**
      *  Create the view based on configuration.
      */
     if (ActiveView == nullptr) {
-        switch (UIConfig.Sidebar.ViewType) {
+        switch (view_type) {
         case SIDEBAR_TABBED:
             Model.Init_Categories(4);
             ActiveView = new TabbedSidebarView(&Model);
@@ -151,6 +156,7 @@ void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
     }
 
     if (ActiveView) {
+        ActiveView->Action_Bar_AI(key);
         ActiveView->AI(key, mouse);
     }
 }
@@ -381,28 +387,30 @@ const char *SidebarComponent::Help_Text(int gadget_id)
 
 
 /**
- *  Returns the number of visible rows.
+ *  Returns the total number of visible sidebar buttons.
  *
  *  @author: ZivDero
  */
-int SidebarComponent::Max_Visible() const
+int SidebarComponent::Visible_Button_Count() const
 {
     if (ActiveView) {
-        return ActiveView->Max_Visible();
+        return ActiveView->Visible_Button_Count();
     }
-    return SidebarClass::StripClass::MAX_VISIBLE;
+    return SidebarClass::StripClass::MAX_VISIBLE * 2;
 }
 
 
 /**
- *  Returns the number of visible items for one strip or for both columns.
+ *  Returns the number of visible buttons in one column.
  *
  *  @author: ZivDero
  */
-int SidebarComponent::Max_Visible(bool one_strip) const
+int SidebarComponent::Visible_Buttons_Per_Column() const
 {
-    int rows = Max_Visible();
-    return one_strip ? rows : rows * 2;
+    if (ActiveView) {
+        return ActiveView->Visible_Buttons_Per_Column();
+    }
+    return SidebarClass::StripClass::MAX_VISIBLE;
 }
 
 

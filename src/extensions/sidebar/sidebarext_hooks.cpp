@@ -397,6 +397,7 @@ void SidebarClassExt::_Draw_It(bool complete)
     RadarClass::Draw_It(complete);
 
     BattleUI.Draw(complete);
+    BattleUI.Blit(complete);
 }
 
 
@@ -464,7 +465,7 @@ const char* SidebarClassExt::_Help_Text(int gadget_id)
  */
 int SidebarClassExt::_Max_Visible()
 {
-    return BattleUI.Get_Sidebar().Max_Visible();
+    return BattleUI.Get_Sidebar().Visible_Buttons_Per_Column();
 }
 
 
@@ -530,7 +531,7 @@ bool StripClassExt::_Recalc()
     }
 
     bool scroll = false;
-    int max_visible = BattleUI.Get_Sidebar().Max_Visible(false);
+    int max_visible = BattleUI.Get_Sidebar().Visible_Button_Count();
     BuildType* unshifted = new BuildType[max_visible];
 
     for (int i = 0; i < max_visible; i++) {
@@ -898,7 +899,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     **  logic handler. This might result in up or down scrolling.
     */
     if (!IsScrolling && Scroller) {
-        if (BuildableCount <= BattleUI.Get_Sidebar().Max_Visible(true)) {
+        if (BuildableCount <= BattleUI.Get_Sidebar().Visible_Buttons_Per_Column()) {
             Scroller = 0;
         } else {
 
@@ -919,7 +920,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
                 }
 
             } else {
-                if (TopIndex + BattleUI.Get_Sidebar().Max_Visible(true) >= BuildableCount) {
+                if (TopIndex + BattleUI.Get_Sidebar().Visible_Buttons_Per_Column() >= BuildableCount) {
                     Scroller = 0;
                 } else {
                     Scroller--;
