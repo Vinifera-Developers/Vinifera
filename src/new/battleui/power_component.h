@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "battleui_component.h"
+#include "ibattleui_component.h"
 #include "power_model.h"
 #include "power_view.h"
 
@@ -68,6 +68,3 @@ private:
     PowerModel Model;
     PowerView View;
 };
-
-
-extern PowerComponent PowerBar;

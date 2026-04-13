@@ -78,12 +78,9 @@
 #include "vox.h"
 #include "wwmouse.h"
 
-#include "action_bar_component.h"
-#include "sidebar_component.h"
+#include "battleui_component.h"
 #include "sidebar_tabbed_view.h"
 #include "cameo_button.h"
-#include "battleui_component.h"
-#include "power_component.h"
 
 #include <algorithm>
 
@@ -178,9 +175,7 @@ void SidebarClassExt::_One_Time()
 {
     RadarClass::One_Time();
 
-    ActionBar.One_Time();
-    Sidebar.One_Time();
-    PowerBar.One_Time();
+    BattleUI.One_Time();
 }
 
 
@@ -248,7 +243,7 @@ void SidebarClassExt::_Init_For_House()
  */
 void SidebarClassExt::_Init_Strips()
 {
-    Sidebar.Init_Strips();
+    BattleUI.Get_Sidebar().Init_Strips();
 }
 
 
@@ -259,7 +254,7 @@ void SidebarClassExt::_Init_Strips()
  */
 bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
 {
-    return Sidebar.Factory_Link(factory, type, id);
+    return BattleUI.Get_Sidebar().Factory_Link(factory, type, id);
 }
 
 
@@ -271,7 +266,7 @@ bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id
 bool SidebarClassExt::_Add(RTTIType type, int id)
 {
     if (!Debug_Map) {
-        if (Sidebar.Add(type, id)) {
+        if (BattleUI.Get_Sidebar().Add(type, id)) {
             Activate(1);
             IsToRedraw = true;
             Flag_To_Redraw(false);
@@ -314,18 +309,16 @@ bool SidebarClassExt::_Activate(int control)
             Set_Dimensions();
             IsToRedraw = true;
 
-            ActionBar.Activate(1);
             RadarButton.Zap();
             Add_A_Button(RadarButton);
 
-            Sidebar.Activate(1);
+            BattleUI.Get_Sidebar().Activate(1);
         } else {
             End_Ingame_Movie();
 
-            ActionBar.Deactivate();
             Remove_A_Button(RadarButton);
 
-            Sidebar.Activate(0);
+            BattleUI.Get_Sidebar().Activate(0);
         }
 
         Flag_To_Redraw(2);
@@ -346,7 +339,7 @@ bool SidebarClassExt::_Scroll(bool up, int column)
         return false;
     }
 
-    if (Sidebar.Scroll(up, column)) {
+    if (BattleUI.Get_Sidebar().Scroll(up, column)) {
         IsToRedraw = true;
         Flag_To_Redraw(false);
         return true;
@@ -364,7 +357,7 @@ bool SidebarClassExt::_Scroll(bool up, int column)
  */
 bool SidebarClassExt::_Scroll_Page(bool up, int column)
 {
-    if (Sidebar.Scroll_Page(up, column)) {
+    if (BattleUI.Get_Sidebar().Scroll_Page(up, column)) {
         IsToRedraw = true;
         Flag_To_Redraw(false);
         return true;
@@ -414,7 +407,7 @@ void SidebarClassExt::_Draw_It(bool complete)
  */
 void SidebarClassExt::_Recalc()
 {
-    Sidebar.Recalc();
+    BattleUI.Get_Sidebar().Recalc();
     IsToRedraw = true;
     Flag_To_Redraw();
 }
@@ -471,7 +464,7 @@ const char* SidebarClassExt::_Help_Text(int gadget_id)
  */
 int SidebarClassExt::_Max_Visible()
 {
-    return Sidebar.Max_Visible();
+    return BattleUI.Get_Sidebar().Max_Visible();
 }
 
 
@@ -482,7 +475,7 @@ int SidebarClassExt::_Max_Visible()
  */
 int SidebarClassExt::_Which_Column(RTTIType type)
 {
-    return Sidebar.Get_Model().Route_To_Category(type, 0);
+    return BattleUI.Get_Sidebar().Get_Model().Route_To_Category(type, 0);
 }
 
 
@@ -537,7 +530,7 @@ bool StripClassExt::_Recalc()
     }
 
     bool scroll = false;
-    int max_visible = Sidebar.Max_Visible(false);
+    int max_visible = BattleUI.Get_Sidebar().Max_Visible(false);
     BuildType* unshifted = new BuildType[max_visible];
 
     for (int i = 0; i < max_visible; i++) {
@@ -905,7 +898,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     **  logic handler. This might result in up or down scrolling.
     */
     if (!IsScrolling && Scroller) {
-        if (BuildableCount <= Sidebar.Max_Visible(true)) {
+        if (BuildableCount <= BattleUI.Get_Sidebar().Max_Visible(true)) {
             Scroller = 0;
         } else {
 
@@ -926,7 +919,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
                 }
 
             } else {
-                if (TopIndex + Sidebar.Max_Visible(true) >= BuildableCount) {
+                if (TopIndex + BattleUI.Get_Sidebar().Max_Visible(true) >= BuildableCount) {
                     Scroller = 0;
                 } else {
                     Scroller--;
@@ -1071,7 +1064,7 @@ bool StripClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
  */
 void StripClassExt::_Fake_Flag_To_Redraw_Special()
 {
-    Sidebar.Flag_Strip_To_Redraw(RTTI_SPECIAL, PRODFLAG_NONE);
+    BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(RTTI_SPECIAL, PRODFLAG_NONE);
 }
 
 
@@ -1082,7 +1075,7 @@ void StripClassExt::_Fake_Flag_To_Redraw_Special()
  */
 void StripClassExt::_Fake_Flag_To_Redraw_Current()
 {
-    Sidebar.Flag_Current_Strip_To_Redraw();
+    BattleUI.Get_Sidebar().Flag_Current_Strip_To_Redraw();
 }
 
 
@@ -1484,7 +1477,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     } else {
                         Speak(VOX_SUSPENDED);
                         OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
-                        Sidebar.Flag_Strip_To_Redraw(otype, TechnoTypeClassExtension::Get_Production_Flags(otype, oid));
+                        BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(otype, TechnoTypeClassExtension::Get_Production_Flags(otype, oid));
                         
                     }
                 } else {

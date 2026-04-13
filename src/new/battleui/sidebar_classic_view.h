@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include "shapebtn.h"
 #include "sidebar_strip_view.h"
 #include "sidebar_view.h"
 
@@ -71,6 +72,13 @@ public:
     virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) override;
     virtual int Max_Visible() const override;
 
+    virtual void Action_Bar_AI(KeyNumType& key) override;
+
 private:
     SidebarStripView Strip[COLUMN_COUNT];
+    ShapeButtonClass Repair;
+    ShapeButtonClass Sell;
+    ShapeButtonClass PowerBtn;
+    ShapeButtonClass Waypoint;
+    SidebarClass::SBGadgetClass Background;
 };

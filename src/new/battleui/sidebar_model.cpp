@@ -402,6 +402,20 @@ SidebarModel::SidebarModel() :
 
 
 /**
+ *  Initializes the model with the given number of build categories.
+ *
+ *  @author: ZivDero
+ */
+void SidebarModel::Init_Categories(int count)
+{
+    Categories.Resize(count);
+    for (int i = 0; i < count; i++) {
+        Categories.Add(BuildCategory());
+    }
+}
+
+
+/**
  *  Clears all categories and resets state.
  *
  *  @author: ZivDero
@@ -604,4 +618,89 @@ void SidebarModel::Detach(AbstractClass* target)
             }
         }
     }
+}
+
+
+/**
+ *  Saves the sidebar model state to the given stream.
+ *  Writes category count, then for each category: item count,
+ *  then each item's Type and ID. Factory pointers are not saved.
+ *
+ *  @author: ZivDero
+ */
+HRESULT SidebarModel::Save(IStream* pStm) const
+{
+    int cat_count = Categories.Count();
+    HRESULT hr = pStm->Write(&cat_count, sizeof(cat_count), nullptr);
+    if (FAILED(hr)) return hr;
+
+    for (int c = 0; c < cat_count; c++) {
+        const BuildCategory& cat = Categories[c];
+        int item_count = cat.Items.Count();
+        hr = pStm->Write(&item_count, sizeof(item_count), nullptr);
+        if (FAILED(hr)) return hr;
+
+        for (int i = 0; i < item_count; i++) {
+            int type = static_cast<int>(cat.Items[i].Type);
+            int id = cat.Items[i].ID;
+            hr = pStm->Write(&type, sizeof(type), nullptr);
+            if (FAILED(hr)) return hr;
+            hr = pStm->Write(&id, sizeof(id), nullptr);
+            if (FAILED(hr)) return hr;
+        }
+    }
+
+    return S_OK;
+}
+
+
+/**
+ *  Loads the sidebar model state from the given stream.
+ *  Reads category count and items, populating the existing categories.
+ *  Factory pointers are not loaded — they must be relinked post-load.
+ *
+ *  @author: ZivDero
+ */
+HRESULT SidebarModel::Load(IStream* pStm)
+{
+    int cat_count = 0;
+    HRESULT hr = pStm->Read(&cat_count, sizeof(cat_count), nullptr);
+    if (FAILED(hr)) return hr;
+
+    for (int c = 0; c < cat_count && c < Categories.Count(); c++) {
+        Categories[c].Clear();
+
+        int item_count = 0;
+        hr = pStm->Read(&item_count, sizeof(item_count), nullptr);
+        if (FAILED(hr)) return hr;
+
+        for (int i = 0; i < item_count; i++) {
+            int type = 0;
+            int id = 0;
+            hr = pStm->Read(&type, sizeof(type), nullptr);
+            if (FAILED(hr)) return hr;
+            hr = pStm->Read(&id, sizeof(id), nullptr);
+            if (FAILED(hr)) return hr;
+
+            Categories[c].Add(static_cast<RTTIType>(type), id);
+        }
+    }
+
+    /**
+     *  If the stream had more categories than we have, skip the extra data.
+     */
+    for (int c = Categories.Count(); c < cat_count; c++) {
+        int item_count = 0;
+        hr = pStm->Read(&item_count, sizeof(item_count), nullptr);
+        if (FAILED(hr)) return hr;
+
+        for (int i = 0; i < item_count; i++) {
+            int dummy[2];
+            hr = pStm->Read(dummy, sizeof(dummy), nullptr);
+            if (FAILED(hr)) return hr;
+        }
+    }
+
+    IsDirty = true;
+    return S_OK;
 }

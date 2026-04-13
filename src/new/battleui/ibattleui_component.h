@@ -4,12 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          ACTION_BAR_COMPONENT.H
+ *  @file          IBATTLEUI_COMPONENT.H
  *
  *  @author        ZivDero
  *
- *  @brief         Action bar component. Manages the Repair, Sell, Power,
- *                 Waypoint and Background sidebar buttons.
+ *  @brief         Lifecycle interface for battle UI components.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -29,31 +28,32 @@
 
 #pragma once
 
-#include "ibattleui_component.h"
+#include "point.h"
+#include "wwkeyboard.h"
+
+#include <objidl.h>
 
 
 /**
- *  Component that handles action button input processing and
- *  mode-state synchronization. The buttons themselves are owned
- *  by the active ISidebarView.
+ *  Lifecycle interface for battle UI components (sidebar, radar, etc.).
  */
-class ActionBarComponent : public IBattleUIComponent
+class IBattleUIComponent
 {
 public:
-    ActionBarComponent();
+    virtual ~IBattleUIComponent() = default;
 
-    /**
-     *  IBattleUIComponent
-     */
-    virtual void One_Time() override;
-    virtual void Init_Clear() override;
-    virtual void Init_IO() override;
-    virtual void Init_For_House() override;
-    virtual void AI(KeyNumType& key, Point2D& mouse) override;
-    virtual void Draw(bool complete) override;
-    virtual void Blit(bool complete) override;
-    virtual void Set_Dimensions() override;
-    virtual void Shutdown() override;
+    virtual void One_Time() = 0;
+    virtual void Init_Clear() = 0;
+    virtual void Init_IO() = 0;
+    virtual void Init_For_House() = 0;
+    virtual void AI(KeyNumType &key, Point2D &mouse) = 0;
+    virtual void Draw(bool complete) = 0;
+    virtual void Blit(bool complete) = 0;
+    virtual void Set_Dimensions() = 0;
+    virtual void Shutdown() = 0;
 
-    virtual const char* Help_Text(int gadget_id) override;
+    virtual const char *Help_Text(int gadget_id) { return nullptr; }
+
+    virtual HRESULT Save(IStream *pStm) const { return S_OK; }
+    virtual HRESULT Load(IStream *pStm) { return S_OK; }
 };

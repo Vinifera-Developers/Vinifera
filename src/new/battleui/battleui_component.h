@@ -29,31 +29,11 @@
 
 #pragma once
 
-#include "point.h"
-#include "vector.h"
-#include "wwkeyboard.h"
+#include "action_bar_component.h"
+#include "power_component.h"
+#include "sidebar_component.h"
 
-
-/**
- *  Lifecycle interface for battle UI components (sidebar, radar, etc.).
- */
-class IBattleUIComponent
-{
-public:
-    virtual ~IBattleUIComponent() = default;
-
-    virtual void One_Time() = 0;
-    virtual void Init_Clear() = 0;
-    virtual void Init_IO() = 0;
-    virtual void Init_For_House() = 0;
-    virtual void AI(KeyNumType &key, Point2D &mouse) = 0;
-    virtual void Draw(bool complete) = 0;
-    virtual void Blit(bool complete) = 0;
-    virtual void Set_Dimensions() = 0;
-    virtual void Shutdown() = 0;
-
-    virtual const char *Help_Text(int gadget_id) { return nullptr; }
-};
+#include <objidl.h>
 
 
 /**
@@ -64,9 +44,6 @@ class BattleUISystem
 public:
     BattleUISystem() = default;
     ~BattleUISystem();
-
-    void Register(IBattleUIComponent *component);
-    void Unregister(IBattleUIComponent *component);
 
     void One_Time();
     void Init_Clear();
@@ -80,8 +57,18 @@ public:
 
     const char *Help_Text(int gadget_id);
 
+    HRESULT Save(IStream *pStm) const;
+    HRESULT Load(IStream *pStm);
+
+    SidebarComponent &Get_Sidebar() { return Sidebar; }
+    const SidebarComponent &Get_Sidebar() const { return Sidebar; }
+    ActionBarComponent &Get_Action_Bar() { return ActionBar; }
+    PowerComponent &Get_Power() { return Power; }
+
 private:
-    DynamicVectorClass<IBattleUIComponent *> Components;
+    ActionBarComponent ActionBar;
+    SidebarComponent Sidebar;
+    PowerComponent Power;
 };
 
 

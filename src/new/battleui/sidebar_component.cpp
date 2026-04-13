@@ -29,15 +29,18 @@
 #include "sidebar_component.h"
 
 #include "abstract.h"
+#include "factory.h"
+#include "house.h"
+#include "object.h"
 #include "sidebar_classic_view.h"
 #include "sidebar_config.h"
 #include "sidebar_tabbed_view.h"
 #include "sidebar_view.h"
+#include "techno.h"
+#include "tibsun_globals.h"
 
 #include "sidebar.h"
 
-
-SidebarComponent Sidebar;
 
 
 /**
@@ -69,27 +72,19 @@ SidebarComponent::~SidebarComponent()
  */
 void SidebarComponent::One_Time()
 {
-    BattleUI.Register(this);
-
     /**
      *  Create the view based on configuration.
      */
     if (ActiveView == nullptr) {
         switch (UIConfig.Sidebar.ViewType) {
         case SIDEBAR_TABBED:
-            Model.Categories.Resize(4);
-            for (int i = 0; i < 4; i++) {
-                Model.Categories.Add(BuildCategory());
-            }
+            Model.Init_Categories(4);
             ActiveView = new TabbedSidebarView(&Model);
             break;
 
         case SIDEBAR_CLASSIC:
         default:
-            Model.Categories.Resize(2);
-            for (int i = 0; i < 2; i++) {
-                Model.Categories.Add(BuildCategory());
-            }
+            Model.Init_Categories(2);
             ActiveView = new ClassicSidebarView(&Model);
             break;
         }
@@ -151,7 +146,7 @@ void SidebarComponent::Init_For_House()
  */
 void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
 {
-    if (Model.IsDirty) {
+    if (Model.Needs_Recalc()) {
         Model.Recalc_All();
     }
 
@@ -327,9 +322,8 @@ void SidebarComponent::Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags
  */
 bool SidebarComponent::Change_Tab(int index)
 {
-    TabbedSidebarView* tabbed = dynamic_cast<TabbedSidebarView*>(ActiveView);
-    if (tabbed != nullptr) {
-        return tabbed->Change_Tab(static_cast<TabbedSidebarView::SidebarTabType>(index));
+    if (ActiveView != nullptr) {
+        return ActiveView->Change_Tab(index);
     }
     return false;
 }
@@ -422,4 +416,58 @@ void SidebarComponent::Init_Strips()
     if (ActiveView) {
         ActiveView->Init_IO();
     }
+}
+
+
+/**
+ *  Saves the sidebar model to the given stream.
+ *
+ *  @author: ZivDero
+ */
+HRESULT SidebarComponent::Save(IStream* pStm) const
+{
+    return Model.Save(pStm);
+}
+
+
+/**
+ *  Loads the sidebar model from the given stream.
+ *
+ *  @author: ZivDero
+ */
+HRESULT SidebarComponent::Load(IStream* pStm)
+{
+    return Model.Load(pStm);
+}
+
+
+/**
+ *  Relinks factory pointers to sidebar items after a game load. Iterates the
+ *  global Factories vector and reconnects each player-owned factory to the
+ *  matching sidebar item, then triggers a full recalc.
+ *
+ *  @author: ZivDero
+ */
+void SidebarComponent::Relink_Factories()
+{
+    for (int i = 0; i < Factories.Count(); i++) {
+        FactoryClass* factory = Factories[i];
+        if (factory == nullptr || factory->Get_House() != PlayerPtr) {
+            continue;
+        }
+
+        TechnoClass* object = factory->Get_Object();
+        if (object == nullptr) {
+            continue;
+        }
+
+        RTTIType rtti = object->Class_Of()->Fetch_RTTI();
+        int id = object->Class_Of()->Fetch_Heap_ID();
+
+        if (Model.Is_On_Sidebar(rtti, id)) {
+            Model.Link_Factory(factory, rtti, id);
+        }
+    }
+
+    Model.Recalc_All();
 }

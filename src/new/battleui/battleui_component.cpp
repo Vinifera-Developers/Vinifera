@@ -38,101 +38,124 @@ BattleUISystem::~BattleUISystem()
 }
 
 
-void BattleUISystem::Register(IBattleUIComponent *component)
-{
-    if (component && !Components.Is_Present(component)) {
-        Components.Add(component);
-    }
-}
-
-
-void BattleUISystem::Unregister(IBattleUIComponent *component)
-{
-    Components.Delete(component);
-}
-
-
 void BattleUISystem::One_Time()
 {
-    for (auto *component : Components) {
-        component->One_Time();
-    }
+    ActionBar.One_Time();
+    Sidebar.One_Time();
+    Power.One_Time();
 }
 
 
 void BattleUISystem::Init_Clear()
 {
-    for (auto *component : Components) {
-        component->Init_Clear();
-    }
+    ActionBar.Init_Clear();
+    Sidebar.Init_Clear();
+    Power.Init_Clear();
 }
 
 
 void BattleUISystem::Init_IO()
 {
-    for (auto *component : Components) {
-        component->Init_IO();
-    }
+    ActionBar.Init_IO();
+    Sidebar.Init_IO();
+    Power.Init_IO();
 }
 
 
 void BattleUISystem::Init_For_House()
 {
-    for (auto *component : Components) {
-        component->Init_For_House();
-    }
+    ActionBar.Init_For_House();
+    Sidebar.Init_For_House();
+    Power.Init_For_House();
 }
 
 
 void BattleUISystem::AI(KeyNumType &key, Point2D &mouse)
 {
-    for (auto *component : Components) {
-        component->AI(key, mouse);
-    }
+    ActionBar.AI(key, mouse);
+    Sidebar.AI(key, mouse);
+    Power.AI(key, mouse);
 }
 
 
 void BattleUISystem::Draw(bool complete)
 {
-    for (auto *component : Components) {
-        component->Draw(complete);
-    }
+    ActionBar.Draw(complete);
+    Sidebar.Draw(complete);
+    Power.Draw(complete);
 }
 
 
 void BattleUISystem::Blit(bool complete)
 {
-    for (auto *component : Components) {
-        component->Blit(complete);
-    }
+    ActionBar.Blit(complete);
+    Sidebar.Blit(complete);
+    Power.Blit(complete);
 }
 
 
 void BattleUISystem::Set_Dimensions()
 {
-    for (auto *component : Components) {
-        component->Set_Dimensions();
-    }
-}
-
-
-const char *BattleUISystem::Help_Text(int gadget_id)
-{
-    for (auto *component : Components) {
-        const char *text = component->Help_Text(gadget_id);
-        if (text != nullptr) {
-            return text;
-        }
-    }
-    return nullptr;
+    ActionBar.Set_Dimensions();
+    Sidebar.Set_Dimensions();
+    Power.Set_Dimensions();
 }
 
 
 void BattleUISystem::Shutdown()
 {
-    for (auto *component : Components) {
-        component->Shutdown();
-    }
+    ActionBar.Shutdown();
+    Sidebar.Shutdown();
+    Power.Shutdown();
+}
 
-    Components.Clear();
+
+const char *BattleUISystem::Help_Text(int gadget_id)
+{
+    const char *text;
+
+    text = ActionBar.Help_Text(gadget_id);
+    if (text != nullptr) return text;
+
+    text = Sidebar.Help_Text(gadget_id);
+    if (text != nullptr) return text;
+
+    text = Power.Help_Text(gadget_id);
+    if (text != nullptr) return text;
+
+    return nullptr;
+}
+
+
+HRESULT BattleUISystem::Save(IStream *pStm) const
+{
+    HRESULT hr;
+
+    hr = ActionBar.Save(pStm);
+    if (FAILED(hr)) return hr;
+
+    hr = Sidebar.Save(pStm);
+    if (FAILED(hr)) return hr;
+
+    hr = Power.Save(pStm);
+    if (FAILED(hr)) return hr;
+
+    return S_OK;
+}
+
+
+HRESULT BattleUISystem::Load(IStream *pStm)
+{
+    HRESULT hr;
+
+    hr = ActionBar.Load(pStm);
+    if (FAILED(hr)) return hr;
+
+    hr = Sidebar.Load(pStm);
+    if (FAILED(hr)) return hr;
+
+    hr = Power.Load(pStm);
+    if (FAILED(hr)) return hr;
+
+    return S_OK;
 }

@@ -29,10 +29,12 @@
 
 #pragma once
 
-#include "battleui_component.h"
+#include "ibattleui_component.h"
 #include "sidebar_model.h"
 #include "sidebar_config.h"
 #include "vinifera_defines.h"
+
+#include <objidl.h>
 
 
 class ISidebarView;
@@ -82,6 +84,10 @@ public:
     int Max_Visible(bool one_strip) const;
     void Init_Strips();
 
+    HRESULT Save(IStream* pStm) const override;
+    HRESULT Load(IStream* pStm) override;
+    void Relink_Factories();
+
     SidebarModel& Get_Model() { return Model; }
     const SidebarModel& Get_Model() const { return Model; }
     ISidebarView* Get_View() { return ActiveView; }
@@ -90,6 +96,3 @@ private:
     SidebarModel Model;
     ISidebarView* ActiveView;
 };
-
-
-extern SidebarComponent Sidebar;

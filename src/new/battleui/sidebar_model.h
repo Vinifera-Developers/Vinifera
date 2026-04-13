@@ -32,6 +32,8 @@
 #include "tibsun_defines.h"
 #include "vector.h"
 
+#include <objidl.h>
+
 class AbstractClass;
 class FactoryClass;
 
@@ -101,14 +103,23 @@ public:
     bool Is_On_Sidebar(RTTIType type, int id) const;
     void Detach(AbstractClass* target);
 
+    HRESULT Save(IStream* pStm) const;
+    HRESULT Load(IStream* pStm);
+
     int Category_Count() const { return Categories.Count(); }
     BuildCategory& Get_Category(int index) { return Categories[index]; }
     const BuildCategory& Get_Category(int index) const { return Categories[index]; }
 
-    bool IsDirty;
-    bool IsActive;
+    void Init_Categories(int count);
+    bool Needs_Recalc() const { return IsDirty; }
+    void Flag_Dirty() { IsDirty = true; }
+    bool Is_Active() const { return IsActive; }
 
     int Route_To_Category(RTTIType type, int id) const;
+
+private:
+    bool IsDirty;
+    bool IsActive;
 
     DynamicVectorClass<BuildCategory> Categories;
 };

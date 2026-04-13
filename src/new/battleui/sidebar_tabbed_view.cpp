@@ -380,14 +380,6 @@ void TabbedSidebarView::Init_IO()
         return;
     }
 
-    /**
-     *  Set up action buttons.
-     */
-    auto& Repair = SidebarClass::Repair;
-    auto& Sell = SidebarClass::Sell;
-    auto& PowerBtn = SidebarClass::Power;
-    auto& Waypoint = SidebarClass::Waypoint;
-
     Repair.X = TacticalRect.Width + TacticalRect.X;
     Sell.X = TacticalRect.Width + TacticalRect.X + 27;
     PowerBtn.X = TacticalRect.Width + TacticalRect.X + 54;
@@ -483,17 +475,17 @@ void TabbedSidebarView::Init_For_House()
     delete SidebarDrawer;
     SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
 
-    SidebarClass::Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
-    SidebarClass::Sell.ShapeDrawer = SidebarDrawer;
+    Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
+    Sell.ShapeDrawer = SidebarDrawer;
 
-    SidebarClass::Power.Set_Shape(MFCD::RetrieveT<ShapeSet>("POWER.SHP"));
-    SidebarClass::Power.ShapeDrawer = SidebarDrawer;
+    PowerBtn.Set_Shape(MFCD::RetrieveT<ShapeSet>("POWER.SHP"));
+    PowerBtn.ShapeDrawer = SidebarDrawer;
 
-    SidebarClass::Waypoint.Set_Shape(MFCD::RetrieveT<ShapeSet>("WAYP.SHP"));
-    SidebarClass::Waypoint.ShapeDrawer = SidebarDrawer;
+    Waypoint.Set_Shape(MFCD::RetrieveT<ShapeSet>("WAYP.SHP"));
+    Waypoint.ShapeDrawer = SidebarDrawer;
 
-    SidebarClass::Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>("REPAIR.SHP"));
-    SidebarClass::Repair.ShapeDrawer = SidebarDrawer;
+    Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>("REPAIR.SHP"));
+    Repair.ShapeDrawer = SidebarDrawer;
 
     SidebarClass::SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDE1.SHP");
     SidebarClass::SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDE2.SHP");
@@ -528,12 +520,6 @@ void TabbedSidebarView::Init_For_House()
  */
 void TabbedSidebarView::Set_Dimensions()
 {
-    auto& Repair = SidebarClass::Repair;
-    auto& Sell = SidebarClass::Sell;
-    auto& PowerBtn = SidebarClass::Power;
-    auto& Waypoint = SidebarClass::Waypoint;
-    auto& Background = SidebarClass::Background;
-
     Background.Set_Position(SidebarRect.X + 16, TacticalRect.Y);
     Background.Flag_To_Redraw();
 
@@ -799,10 +785,10 @@ void TabbedSidebarView::Draw(bool complete)
         /**
          *  Draw action buttons.
          */
-        SidebarClass::Repair.Draw_Me(true);
-        SidebarClass::Sell.Draw_Me(true);
-        SidebarClass::Power.Draw_Me(true);
-        SidebarClass::Waypoint.Draw_Me(true);
+        Repair.Draw_Me(true);
+        Sell.Draw_Me(true);
+        PowerBtn.Draw_Me(true);
+        Waypoint.Draw_Me(true);
 
         RedrawSidebar = true;
     }
@@ -824,21 +810,21 @@ void TabbedSidebarView::Draw(bool complete)
     /**
      *  Check if action buttons or tabs drew themselves.
      */
-    if (SidebarClass::Repair.IsDrawn) {
+    if (Repair.IsDrawn) {
         RedrawSidebar = true;
-        SidebarClass::Repair.IsDrawn = false;
+        Repair.IsDrawn = false;
     }
-    if (SidebarClass::Sell.IsDrawn) {
+    if (Sell.IsDrawn) {
         RedrawSidebar = true;
-        SidebarClass::Sell.IsDrawn = false;
+        Sell.IsDrawn = false;
     }
-    if (SidebarClass::Power.IsDrawn) {
+    if (PowerBtn.IsDrawn) {
         RedrawSidebar = true;
-        SidebarClass::Power.IsDrawn = false;
+        PowerBtn.IsDrawn = false;
     }
-    if (SidebarClass::Waypoint.IsDrawn) {
+    if (Waypoint.IsDrawn) {
         RedrawSidebar = true;
-        SidebarClass::Waypoint.IsDrawn = false;
+        Waypoint.IsDrawn = false;
     }
 
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
@@ -880,6 +866,17 @@ void TabbedSidebarView::Blit(bool complete)
 void TabbedSidebarView::Activate(int control)
 {
     if (control) {
+        Repair.Zap();
+        Map.Add_A_Button(Repair);
+        Sell.Zap();
+        Map.Add_A_Button(Sell);
+        PowerBtn.Zap();
+        Map.Add_A_Button(PowerBtn);
+        Waypoint.Zap();
+        Map.Add_A_Button(Waypoint);
+        Background.Zap();
+        Map.Add_A_Button(Background);
+
         Strip[TabIndex].Activate();
 
         for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
@@ -887,6 +884,12 @@ void TabbedSidebarView::Activate(int control)
             Map.Add_A_Button(TabButtons[i]);
         }
     } else {
+        Map.Remove_A_Button(Repair);
+        Map.Remove_A_Button(Sell);
+        Map.Remove_A_Button(PowerBtn);
+        Map.Remove_A_Button(Waypoint);
+        Map.Remove_A_Button(Background);
+
         for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
             Strip[i].Deactivate();
             Map.Remove_A_Button(TabButtons[i]);
@@ -1020,13 +1023,15 @@ int TabbedSidebarView::Max_Visible() const
  *
  *  @author: ZivDero
  */
-bool TabbedSidebarView::Change_Tab(SidebarTabType index)
+bool TabbedSidebarView::Change_Tab(int index)
 {
-    if (TabIndex == index) {
+    SidebarTabType tab = static_cast<SidebarTabType>(index);
+
+    if (TabIndex == tab) {
         return false;
     }
 
-    BuildCategory* cat = Strip[index].Get_Category();
+    BuildCategory* cat = Strip[tab].Get_Category();
     if (!cat || cat->Items.Count() < 1) {
         return false;
     }
@@ -1034,13 +1039,60 @@ bool TabbedSidebarView::Change_Tab(SidebarTabType index)
     Strip[TabIndex].Deactivate();
     TabButtons[TabIndex].Deselect();
 
-    TabIndex = index;
+    TabIndex = tab;
 
     Strip[TabIndex].Activate();
     TabButtons[TabIndex].Select();
 
     Map.IsToFullRedraw = true;
     return true;
+}
+
+
+/**
+ *  Handles action button input and synchronizes visual state with mode flags.
+ *
+ *  @author: ZivDero
+ */
+void TabbedSidebarView::Action_Bar_AI(KeyNumType& key)
+{
+    if (PlayerPtr->CurBuildings > 0) {
+        Map.Activate_Repair(true);
+    } else {
+        Map.Activate_Repair(false);
+    }
+
+    if (key == (SidebarClass::BUTTON_REPAIR | KN_BUTTON)) {
+        Map.Repair_Mode_Control(-1);
+    }
+
+    if (key == (SidebarClass::BUTTON_POWER | KN_BUTTON)) {
+        Map.Power_Mode_Control(-1);
+    }
+
+    if (key == (SidebarClass::BUTTON_WAYPOINT | KN_BUTTON)) {
+        Map.Waypoint_Mode_Control(-1, false);
+    }
+
+    if (key == (SidebarClass::BUTTON_SELL | KN_BUTTON)) {
+        Map.Sell_Mode_Control(-1);
+    }
+
+    if (!Map.IsRepairMode && Repair.IsOn) {
+        Repair.Turn_Off();
+    }
+
+    if (!Map.IsSellMode && Sell.IsOn) {
+        Sell.Turn_Off();
+    }
+
+    if (!Map.IsPowerMode && PowerBtn.IsOn) {
+        PowerBtn.Turn_Off();
+    }
+
+    if (!Map.IsWaypointMode && Waypoint.IsOn) {
+        Waypoint.Turn_Off();
+    }
 }
 
 

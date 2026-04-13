@@ -28,10 +28,6 @@
 
 #include "power_component.h"
 
-#include "battleui_component.h"
-
-
-PowerComponent PowerBar;
 
 
 /**
@@ -52,7 +48,6 @@ PowerComponent::PowerComponent()
  */
 void PowerComponent::One_Time()
 {
-    BattleUI.Register(this);
     View.One_Time();
 }
 

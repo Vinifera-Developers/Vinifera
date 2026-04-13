@@ -41,6 +41,7 @@
 #include "mouse.h"
 #include "sidebar.h"
 #include "sidebar_component.h"
+#include "battleui_component.h"
 #include "shapeset.h"
 #include "surface.h"
 #include "tibsun_globals.h"
@@ -129,7 +130,7 @@ void PowerView::Set_Dimensions()
         tt.Region.X = SidebarRect.X + POWER_X;
         tt.Region.Y = SidebarRect.Y + POWER_Y;
         tt.Region.Width = POWER_WIDTH;
-        tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * Sidebar.Max_Visible();
+        tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Max_Visible();
 
         ToolTips->Remove(tt.ID);
         ToolTips->Add(&tt);
@@ -156,7 +157,7 @@ void PowerView::Flash_Power()
  */
 int PowerView::Max_Power_Height() const
 {
-    return SidebarClass::StripClass::OBJECT_HEIGHT * Sidebar.Max_Visible() / POWER_PIP_HEIGHT;
+    return SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Max_Visible() / POWER_PIP_HEIGHT;
 }
 
 

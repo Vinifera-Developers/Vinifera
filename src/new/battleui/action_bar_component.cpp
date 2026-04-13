@@ -28,15 +28,8 @@
 
 #include "action_bar_component.h"
 
-#include "house.h"
-#include "mouse.h"
-#include "options.h"
-#include "radar.h"
-#include "sidebar.h"
-#include "tibsun_globals.h"
-
-
-ActionBarComponent ActionBar;
+#include "battleui_component.h"
+#include "sidebar_view.h"
 
 
 /**
@@ -44,8 +37,7 @@ ActionBarComponent ActionBar;
  *
  *  @author: ZivDero
  */
-ActionBarComponent::ActionBarComponent() :
-    IsActive(false)
+ActionBarComponent::ActionBarComponent()
 {
 }
 
@@ -57,13 +49,11 @@ ActionBarComponent::ActionBarComponent() :
  */
 void ActionBarComponent::One_Time()
 {
-    BattleUI.Register(this);
 }
 
 
 void ActionBarComponent::Init_Clear()
 {
-    IsActive = false;
 }
 
 
@@ -78,64 +68,18 @@ void ActionBarComponent::Init_For_House()
 
 
 /**
- *  Per-frame update. Handles button clicks and synchronizes button
- *  visual state with the current mode flags.
+ *  Per-frame update. Delegates action bar logic to the active view.
  *
  *  @author: ZivDero
  */
 void ActionBarComponent::AI(KeyNumType& key, Point2D& mouse)
 {
-    if (!IsActive) {
+    ISidebarView* view = BattleUI.Get_Sidebar().Get_View();
+    if (view == nullptr) {
         return;
     }
 
-    /**
-     *  Enable or disable the repair button based on whether
-     *  the player owns any buildings.
-     */
-    if (PlayerPtr->CurBuildings > 0) {
-        Map.Activate_Repair(true);
-    } else {
-        Map.Activate_Repair(false);
-    }
-
-    /**
-     *  Handle button clicks — toggle the corresponding mode.
-     */
-    if (key == (SidebarClass::BUTTON_REPAIR | KN_BUTTON)) {
-        Map.Repair_Mode_Control(-1);
-    }
-
-    if (key == (SidebarClass::BUTTON_POWER | KN_BUTTON)) {
-        Map.Power_Mode_Control(-1);
-    }
-
-    if (key == (SidebarClass::BUTTON_WAYPOINT | KN_BUTTON)) {
-        Map.Waypoint_Mode_Control(-1, false);
-    }
-
-    if (key == (SidebarClass::BUTTON_SELL | KN_BUTTON)) {
-        Map.Sell_Mode_Control(-1);
-    }
-
-    /**
-     *  Synchronize button visual state with the mode flags.
-     */
-    if (!Map.IsRepairMode && SidebarClass::Repair.IsOn) {
-        SidebarClass::Repair.Turn_Off();
-    }
-
-    if (!Map.IsSellMode && SidebarClass::Sell.IsOn) {
-        SidebarClass::Sell.Turn_Off();
-    }
-
-    if (!Map.IsPowerMode && SidebarClass::Power.IsOn) {
-        SidebarClass::Power.Turn_Off();
-    }
-
-    if (!Map.IsWaypointMode && SidebarClass::Waypoint.IsOn) {
-        SidebarClass::Waypoint.Turn_Off();
-    }
+    view->Action_Bar_AI(key);
 }
 
 
@@ -149,77 +93,17 @@ void ActionBarComponent::Blit(bool complete)
 }
 
 
-/**
- *  Positions the background gadget to fill the sidebar area
- *  below the radar panel.
- *
- *  @author: ZivDero
- */
 void ActionBarComponent::Set_Dimensions()
 {
-    SidebarClass::Background.Set_Position(
-        Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0,
-        RadarClass::RadarButton.Height + RadarClass::RadarButton.Y);
-    SidebarClass::Background.Set_Size(
-        SidebarSurface->Get_Width(),
-        SidebarSurface->Get_Height() - RadarClass::RadarButton.Height + RadarClass::RadarButton.Y);
 }
 
 
 void ActionBarComponent::Shutdown()
 {
-    Deactivate();
 }
 
 
 const char* ActionBarComponent::Help_Text(int gadget_id)
 {
     return nullptr;
-}
-
-
-/**
- *  Adds the action bar buttons to the input gadget chain.
- *
- *  @author: ZivDero
- */
-void ActionBarComponent::Activate(int control)
-{
-    if (IsActive) {
-        return;
-    }
-
-    SidebarClass::Repair.Zap();
-    Map.Add_A_Button(SidebarClass::Repair);
-    SidebarClass::Sell.Zap();
-    Map.Add_A_Button(SidebarClass::Sell);
-    SidebarClass::Power.Zap();
-    Map.Add_A_Button(SidebarClass::Power);
-    SidebarClass::Waypoint.Zap();
-    Map.Add_A_Button(SidebarClass::Waypoint);
-    SidebarClass::Background.Zap();
-    Map.Add_A_Button(SidebarClass::Background);
-
-    IsActive = true;
-}
-
-
-/**
- *  Removes the action bar buttons from the input gadget chain.
- *
- *  @author: ZivDero
- */
-void ActionBarComponent::Deactivate()
-{
-    if (!IsActive) {
-        return;
-    }
-
-    Map.Remove_A_Button(SidebarClass::Repair);
-    Map.Remove_A_Button(SidebarClass::Sell);
-    Map.Remove_A_Button(SidebarClass::Power);
-    Map.Remove_A_Button(SidebarClass::Waypoint);
-    Map.Remove_A_Button(SidebarClass::Background);
-
-    IsActive = false;
 }

@@ -70,7 +70,7 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
-#include "sidebar_component.h"
+#include "battleui_component.h"
 #include "sidebar_tabbed_view.h"
 #include "smudgetype.h"
 #include "super.h"
@@ -552,7 +552,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Sidebar.Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
         return false;
     }
 
@@ -622,7 +622,7 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Sidebar.Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
         return false;
     }
 
@@ -692,7 +692,7 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Sidebar.Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
         return false;
     }
 
@@ -762,7 +762,7 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Sidebar.Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
         return false;
     }
 
@@ -1197,7 +1197,7 @@ const char* SetStructureTabCommandClass::Get_Description() const
 bool SetStructureTabCommandClass::Process()
 {
     const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_STRUCTURE;
-    bool result = Sidebar.Change_Tab(newtab);
+    bool result = BattleUI.Get_Sidebar().Change_Tab(newtab);
 
     /**
      *  Enter the manual placement mode when a building is complete
@@ -1287,7 +1287,7 @@ const char* SetInfantryTabCommandClass::Get_Description() const
 bool SetInfantryTabCommandClass::Process()
 {
     const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_INFANTRY;
-    return Sidebar.Change_Tab(newtab);
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1319,7 +1319,7 @@ const char* SetUnitTabCommandClass::Get_Description() const
 bool SetUnitTabCommandClass::Process()
 {
     const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_UNIT;
-    return Sidebar.Change_Tab(newtab);
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1351,7 +1351,7 @@ const char* SetSpecialTabCommandClass::Get_Description() const
 bool SetSpecialTabCommandClass::Process()
 {
     const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_SPECIAL;
-    return Sidebar.Change_Tab(newtab);
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 

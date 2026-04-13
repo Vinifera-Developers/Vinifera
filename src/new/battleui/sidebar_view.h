@@ -31,9 +31,11 @@
 #pragma once
 
 #include "point.h"
+#include "sidebar.h"
 #include "tibsun_defines.h"
 #include "vinifera_defines.h"
 #include "wwkeyboard.h"
+
 class SidebarModel;
 
 
@@ -65,6 +67,9 @@ public:
     virtual void Flag_Current_Strip_To_Redraw() {}
     virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) { (void)type; (void)flags; }
     virtual int Max_Visible() const = 0;
+
+    virtual bool Change_Tab(int index) { return false; }
+    virtual void Action_Bar_AI(KeyNumType& key) {}
 
 protected:
     SidebarModel* Model;

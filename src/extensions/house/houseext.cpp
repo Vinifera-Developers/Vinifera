@@ -43,7 +43,7 @@
 #include "rules.h"
 #include "saveload.h"
 #include "session.h"
-#include "sidebar_component.h"
+#include "battleui_component.h"
 #include "storageext.h"
 #include "team.h"
 #include "teamtype.h"
@@ -453,7 +453,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
 
     if (result) {
         if (fptr->QueuedObjects.Count() && !resume && !skipset) {
-            Sidebar.Flag_Strip_To_Redraw(type, flags);
+            BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(type, flags);
         } else {
             fptr->Start(onhold);
 
@@ -512,7 +512,7 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     if (fptr->Queued_Object_Count() > 0 && id >= 0) {
         const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
         if (fptr->Remove_From_Queue(*technotype)) {
-            Sidebar.Flag_Strip_To_Redraw(type, flags);
+            BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(type, flags);
             return PROD_OK;
         }
     }
@@ -528,7 +528,7 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     **  Tell the sidebar that it needs to be redrawn because of this.
     */
     if (PlayerPtr == This()) {
-        Sidebar.Abandon_Production(type, id);
+        BattleUI.Get_Sidebar().Abandon_Production(type, id);
 
         if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
             Map.PendingObjectPtr = nullptr;

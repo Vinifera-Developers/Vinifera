@@ -121,7 +121,7 @@
 #include "weapontype.h"
 #include "windialog.h"
 
-#include "sidebar_component.h"
+#include "battleui_component.h"
 
 #include <atlbase.h>
 
@@ -388,6 +388,12 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
         return false;
     }
 
+    /**
+     *  Save the battle UI state.
+     */
+    DEBUG_INFO("Saving BattleUI...\n");
+    if (FAILED(BattleUI.Save(pStm))) { return false; }
+
     return true;
 }
 
@@ -635,6 +641,12 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         DEBUG_ERROR("\t***** FAILED!\n");
         return false;
     }
+
+    /**
+     *  Load the battle UI state.
+     */
+    DEBUG_INFO("Loading BattleUI...\n");
+    if (FAILED(BattleUI.Load(pStm))) { return false; }
 
     Map.Flag_To_Redraw(2);
 
@@ -939,24 +951,9 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Set_Dimensions();
 
     /**
-     *  Reconstruct the new sidebar model from the vanilla sidebar's saved state.
-     *  The vanilla SidebarClass::Load restores Column[].Buildables[], which we
-     *  walk here to populate the SidebarComponent's model and reconnect factories.
+     *  Relink factories to the sidebar model items.
      */
-    for (int col = 0; col < SidebarClass::COLUMNS; col++) {
-        for (int i = 0; i < Map.Column[col].BuildableCount; i++) {
-            RTTIType type = Map.Column[col].Buildables[i].BuildableType;
-            int id = Map.Column[col].Buildables[i].BuildableID;
-
-            Sidebar.Add(type, id);
-
-            FactoryClass* factory = Map.Column[col].Buildables[i].Factory;
-            if (factory != nullptr) {
-                Sidebar.Factory_Link(factory, type, id);
-            }
-        }
-    }
-    Sidebar.Recalc();
+    BattleUI.Get_Sidebar().Relink_Factories();
 
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
