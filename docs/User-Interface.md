@@ -24,7 +24,8 @@ NewSidebar=no                   ; boolean, whether the game should use the new s
 - The battle UI sidebar layout can be customized from `UI.INI` without changing the radar, credits area, or sidebar width.
 - All sidebar positions are relative to the internal sidebar area that starts at `SidebarRect`.
 - `VisibleRows=0` keeps the default auto-fit behavior for the current resolution.
-- `CenterSidebarButtonsOnRadar` has been superseded by explicit sidebar button positions.
+- Leave the optional scroll button position entries blank to auto-place them from the current strip layout.
+- `[Sidebar]` controls shared elements, `[SidebarClassic]` controls the two-column classic view, and `[SidebarTabbed]` controls the tabbed view.
 
 In `UI.INI`:
 ```ini

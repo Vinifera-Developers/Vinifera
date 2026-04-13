@@ -30,57 +30,28 @@
 
 #include "sidebarext_hooks.h"
 
-#include "bsurface.h"
+#include "battleui_component.h"
 #include "building.h"
-#include "buildingtype.h"
-#include "convert.h"
 #include "debughandler.h"
-#include "drawshape.h"
-#include "event.h"
-#include "eventext.h"
 #include "extension.h"
 #include "factory.h"
-#include "factoryext.h"
 #include "fatal.h"
-#include "fetchres.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
-#include "houseext.h"
-#include "housetype.h"
 #include "language.h"
-#include "miscutil.h"
 #include "mouse.h"
 #include "msgbox.h"
 #include "optionsext.h"
 #include "playmovie.h"
 #include "rules.h"
-#include "rulesext.h"
-#include "scenarioext.h"
 #include "session.h"
 #include "sidebar.h"
-#include "sideext.h"
-#include "spritecollection.h"
-#include "super.h"
-#include "supertype.h"
-#include "supertypeext.h"
-#include "syringe.h"
-#include "techno.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "textprint.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
-#include "uicontrol.h"
-#include "vinifera_globals.h"
 #include "voc.h"
 #include "vox.h"
 #include "wwmouse.h"
-
-#include "battleui_component.h"
-
-#include <algorithm>
 
 
 /**
@@ -128,14 +99,14 @@ public:
 };
 
 
-static int& SidebarDialogCount = Make_Global<int>(0x007E492C);
+static int& _dialog_count = Make_Global<int>(0x007E492C);
 
 
-static void Request_Sidebar_Redraw(SidebarClass& sidebar, int flags = 0)
+static void Request_Sidebar_Redraw(int flags = 0)
 {
-    sidebar.IsToRedraw = true;
+    Map.SidebarClass::IsToRedraw = true;
     RedrawSidebar = true;
-    sidebar.Flag_To_Redraw(flags);
+    Map.Flag_To_Redraw(flags);
 }
 
 
@@ -248,7 +219,7 @@ bool SidebarClassExt::_Add(RTTIType type, int id)
     if (!Debug_Map) {
         if (BattleUI.Get_Sidebar().Add(type, id)) {
             Activate(1);
-            Request_Sidebar_Redraw(*this);
+            Request_Sidebar_Redraw();
             return true;
         }
     }
@@ -314,12 +285,12 @@ bool SidebarClassExt::_Activate(int control)
  */
 bool SidebarClassExt::_Scroll(bool up, int column)
 {
-    if (SidebarDialogCount != 0) {
+    if (_dialog_count != 0) {
         return false;
     }
 
     if (BattleUI.Get_Sidebar().Scroll(up, column)) {
-        Request_Sidebar_Redraw(*this);
+        Request_Sidebar_Redraw();
         return true;
     }
 
@@ -336,7 +307,7 @@ bool SidebarClassExt::_Scroll(bool up, int column)
 bool SidebarClassExt::_Scroll_Page(bool up, int column)
 {
     if (BattleUI.Get_Sidebar().Scroll_Page(up, column)) {
-        Request_Sidebar_Redraw(*this);
+        Request_Sidebar_Redraw();
         return true;
     }
 
@@ -386,7 +357,7 @@ void SidebarClassExt::_Draw_It(bool complete)
 void SidebarClassExt::_Recalc()
 {
     BattleUI.Get_Sidebar().Recalc();
-    Request_Sidebar_Redraw(*this);
+    Request_Sidebar_Redraw();
 }
 
 
@@ -469,7 +440,7 @@ void StripClassExt::_Flag_To_Redraw()
 {
     IsToRedraw = true;
     BattleUI.Get_Sidebar().Flag_Strip_To_Redraw();
-    Request_Sidebar_Redraw(Map);
+    Request_Sidebar_Redraw();
 }
 
 

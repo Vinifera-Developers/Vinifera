@@ -102,7 +102,6 @@ UIControlsClass::UIControlsClass() :
     IsNavComQueueLineThick(false),
     NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
     NavComQueueLineDropShadowColor{ 0, 0, 0 },
-    IsCenterSidebarButtonsOnRadar(false),
     SidebarLayout(),
     ClassicSidebarLayoutConfig(),
     TabbedSidebarLayoutConfig(),
@@ -284,8 +283,6 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
         ini.Get_Point(SIDEBAR_TABBED_SECTION, "DownButtonPos", TabbedSidebarLayoutConfig.DownButtonPosition);
     TabbedSidebarLayoutConfig.UpButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "UpButtonVisible", TabbedSidebarLayoutConfig.UpButtonVisible);
     TabbedSidebarLayoutConfig.DownButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "DownButtonVisible", TabbedSidebarLayoutConfig.DownButtonVisible);
-
-    IsCenterSidebarButtonsOnRadar = ini.Get_Bool(INGAME, "CenterSidebarButtonsOnRadar", IsCenterSidebarButtonsOnRadar);
 
     BeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "BeaconAnimFramesPerSecond", BeaconAnimFramesPerSecond);
     RadarBeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "RadarBeaconAnimFramesPerSecond", RadarBeaconAnimFramesPerSecond);

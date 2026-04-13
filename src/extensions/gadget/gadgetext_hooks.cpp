@@ -29,9 +29,8 @@
 #include "gadgetext_hooks.h"
 
 #include "gadget.h"
-#include "hooker_macros.h"
 #include "ihoverable_gadget.h"
-#include "keyboard.h"
+#include "syringe.h"
 
 
 /**
