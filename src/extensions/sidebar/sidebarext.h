@@ -29,14 +29,13 @@
 #pragma once
 
 
-#include "extension.h"
 #include "mouse.h"
 #include "shapeset.h"
 #include "sidebar.h"
-#include "technotypeext.h"
+#include "vinifera_defines.h"
 
 
-class SidebarClassExtension final : public GlobalExtensionClass<SidebarClass>
+class SidebarClassExtension final
 {
 public:
     enum SidebarTabType
@@ -157,45 +156,7 @@ public:
     };
 
 public:
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
-
-public:
-        SidebarClassExtension(const SidebarClass *this_ptr);
-        SidebarClassExtension(const NoInitClass &noinit);
-        virtual ~SidebarClassExtension();
-
-        virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
-        virtual void Object_CRC(CRCEngine &crc) const override;
-
-        virtual const char *Name() const override { return "Sidebar"; }
-        virtual const char *Full_Name() const override { return "Sidebar"; }
-
-        void Init_Strips();
-        void Init_IO();
-        void Init_For_House();
-        void Set_Dimensions();
-        bool Change_Tab(SidebarTabType index);
-
-        SidebarClass::StripClass& Current_Tab() { return Column[TabIndex];}
-        SidebarClass::StripClass& Get_Tab(RTTIType type, ProductionFlags flags) { return Column[Which_Tab(type, flags)]; }
-        SidebarTabType First_Active_Tab();
-
-        bool Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags);
-
         static SidebarTabType Which_Tab(RTTIType type, ProductionFlags flags);
-
-        bool Is_On_Sidebar(RTTIType type, int id) const
-        {
-            const int column = Which_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id));
-            return Column[column].Is_On_Sidebar(type, id);
-        }
-
-        void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
-        {
-            Get_Tab(type, flags).Flag_To_Redraw();
-        }
 
         static int Max_Visible(bool one_strip = false)
         {
@@ -214,36 +175,6 @@ public:
                 return SidebarClass::StripClass::MAX_VISIBLE;
             }
         }
-
-        bool Is_On_Sidebar(RTTIType type, int id)
-        {
-            int tab = Which_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id));
-            return Column[tab].Is_On_Sidebar(type, id);
-        }
-
-    public:
-        /**
-         *  Index of the current sidebar tab.
-         */
-        SidebarTabType TabIndex;
-
-        /**
-         *  Replacement strips.
-         */
-        SidebarClass::StripClass Column[SIDEBAR_TAB_COUNT];
-
-        /**
-         *  Replacement select buttons.
-         *
-         *  We can't have this many buildables in a strip, but let's have more buttons so that we can support higher resolutions.
-         *  160 should be sufficient for 8K.
-         */
-        ViniferaSelectClass SelectButton[SIDEBAR_TAB_COUNT][160];
-
-        /**
-         *  Buttons for the tabs.
-         */
-        TabButtonClass TabButtons[SIDEBAR_TAB_COUNT];
 
         /**
          *  Reference to last gadget that the user has hovered their mouse cursor on.
