@@ -401,6 +401,18 @@ int SidebarComponent::Max_Visible() const
 
 
 /**
+ *  Returns the number of visible items for one strip or for both columns.
+ *
+ *  @author: ZivDero
+ */
+int SidebarComponent::Max_Visible(bool one_strip) const
+{
+    int rows = Max_Visible();
+    return one_strip ? rows : rows * 2;
+}
+
+
+/**
  *  Initializes the sidebar strips. Called during scenario init.
  *
  *  @author: ZivDero

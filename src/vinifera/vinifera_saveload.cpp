@@ -121,6 +121,8 @@
 #include "weapontype.h"
 #include "windialog.h"
 
+#include "sidebar_component.h"
+
 #include <atlbase.h>
 
 
@@ -935,6 +937,27 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();
+
+    /**
+     *  Reconstruct the new sidebar model from the vanilla sidebar's saved state.
+     *  The vanilla SidebarClass::Load restores Column[].Buildables[], which we
+     *  walk here to populate the SidebarComponent's model and reconnect factories.
+     */
+    for (int col = 0; col < SidebarClass::COLUMNS; col++) {
+        for (int i = 0; i < Map.Column[col].BuildableCount; i++) {
+            RTTIType type = Map.Column[col].Buildables[i].BuildableType;
+            int id = Map.Column[col].Buildables[i].BuildableID;
+
+            Sidebar.Add(type, id);
+
+            FactoryClass* factory = Map.Column[col].Buildables[i].Factory;
+            if (factory != nullptr) {
+                Sidebar.Factory_Link(factory, type, id);
+            }
+        }
+    }
+    Sidebar.Recalc();
+
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();

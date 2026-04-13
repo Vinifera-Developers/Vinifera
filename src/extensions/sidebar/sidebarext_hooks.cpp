@@ -59,7 +59,6 @@
 #include "scenarioext.h"
 #include "session.h"
 #include "sidebar.h"
-#include "sidebarext.h"
 #include "sideext.h"
 #include "spritecollection.h"
 #include "super.h"
@@ -79,8 +78,12 @@
 #include "vox.h"
 #include "wwmouse.h"
 
+#include "action_bar_component.h"
 #include "sidebar_component.h"
+#include "sidebar_tabbed_view.h"
+#include "cameo_button.h"
 #include "battleui_component.h"
+#include "power_component.h"
 
 #include <algorithm>
 
@@ -112,6 +115,7 @@ public:
     void _Set_Dimensions();
     const char* _Help_Text(int gadget_id);
     int _Max_Visible();
+    int _Which_Column(RTTIType type);
 };
 
 
@@ -173,7 +177,10 @@ public:
 void SidebarClassExt::_One_Time()
 {
     RadarClass::One_Time();
-    BattleUI.One_Time();
+
+    ActionBar.One_Time();
+    Sidebar.One_Time();
+    PowerBar.One_Time();
 }
 
 
@@ -307,16 +314,7 @@ bool SidebarClassExt::_Activate(int control)
             Set_Dimensions();
             IsToRedraw = true;
 
-            Repair.Zap();
-            Add_A_Button(Repair);
-            Sell.Zap();
-            Add_A_Button(Sell);
-            Power.Zap();
-            Add_A_Button(Power);
-            Waypoint.Zap();
-            Add_A_Button(Waypoint);
-            Background.Zap();
-            Add_A_Button(Background);
+            ActionBar.Activate(1);
             RadarButton.Zap();
             Add_A_Button(RadarButton);
 
@@ -324,11 +322,7 @@ bool SidebarClassExt::_Activate(int control)
         } else {
             End_Ingame_Movie();
 
-            Remove_A_Button(Repair);
-            Remove_A_Button(Sell);
-            Remove_A_Button(Power);
-            Remove_A_Button(Waypoint);
-            Remove_A_Button(Background);
+            ActionBar.Deactivate();
             Remove_A_Button(RadarButton);
 
             Sidebar.Activate(0);
@@ -390,46 +384,6 @@ void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
 {
     if (!Debug_Map) {
         Activate(1);
-    }
-
-    if (IsSidebarActive) {
-        if (PlayerPtr->CurBuildings > 0) {
-            Activate_Repair(true);
-        } else {
-            Activate_Repair(false);
-        }
-
-        if (input == (BUTTON_REPAIR | KN_BUTTON)) {
-            Repair_Mode_Control(-1);
-        }
-
-        if (input == (BUTTON_POWER | KN_BUTTON)) {
-            Power_Mode_Control(-1);
-        }
-
-        if (input == (BUTTON_WAYPOINT | KN_BUTTON)) {
-            Waypoint_Mode_Control(-1, false);
-        }
-
-        if (input == (BUTTON_SELL | KN_BUTTON)) {
-            Sell_Mode_Control(-1);
-        }
-    }
-
-    if (!IsRepairMode && Repair.IsOn) {
-        Repair.Turn_Off();
-    }
-
-    if (!IsSellMode && Sell.IsOn) {
-        Sell.Turn_Off();
-    }
-
-    if (!IsPowerMode && Power.IsOn) {
-        Power.Turn_Off();
-    }
-
-    if (!IsWaypointMode && Waypoint.IsOn) {
-        Waypoint.Turn_Off();
     }
 
     BattleUI.AI(input, xy);
@@ -496,9 +450,6 @@ void SidebarClassExt::_Set_Dimensions()
     RadarClass::Set_Dimensions();
 
     BattleUI.Set_Dimensions();
-
-    Background.Set_Position(Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0, RadarButton.Height + RadarButton.Y);
-    Background.Set_Size(SidebarSurface->Get_Width(), SidebarSurface->Get_Height() - RadarButton.Height + RadarButton.Y);
 }
 
 
@@ -521,6 +472,17 @@ const char* SidebarClassExt::_Help_Text(int gadget_id)
 int SidebarClassExt::_Max_Visible()
 {
     return Sidebar.Max_Visible();
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Which_Column function.
+ *
+ *  @author: ZivDero
+ */
+int SidebarClassExt::_Which_Column(RTTIType type)
+{
+    return Sidebar.Get_Model().Route_To_Category(type, 0);
 }
 
 
@@ -575,7 +537,7 @@ bool StripClassExt::_Recalc()
     }
 
     bool scroll = false;
-    int max_visible = SidebarClassExtension::Max_Visible(false);
+    int max_visible = Sidebar.Max_Visible(false);
     BuildType* unshifted = new BuildType[max_visible];
 
     for (int i = 0; i < max_visible; i++) {
@@ -943,7 +905,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     **  logic handler. This might result in up or down scrolling.
     */
     if (!IsScrolling && Scroller) {
-        if (BuildableCount <= SidebarClassExtension::Max_Visible(true)) {
+        if (BuildableCount <= Sidebar.Max_Visible(true)) {
             Scroller = 0;
         } else {
 
@@ -964,7 +926,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
                 }
 
             } else {
-                if (TopIndex + SidebarClassExtension::Max_Visible(true) >= BuildableCount) {
+                if (TopIndex + Sidebar.Max_Visible(true) >= BuildableCount) {
                     Scroller = 0;
                 } else {
                     Scroller--;
@@ -1125,6 +1087,53 @@ void StripClassExt::_Fake_Flag_To_Redraw_Current()
 
 
 /**
+ *  Reference to last gadget that the user has hovered their mouse cursor on.
+ */
+static GadgetClass* LastHovered;
+
+
+/**
+ *  Function for checking which gadget has been hovered over.
+ *
+ *  @author: ZivDero
+ */
+static void Check_Hover(GadgetClass* gadget, int mousex, int mousey)
+{
+    GadgetClass* to_enter = gadget->Extract_Gadget_At_Mouse(mousex, mousey);
+    if (to_enter != LastHovered)
+    {
+        if (LastHovered)
+        {
+            if (auto select = dynamic_cast<CameoButtonClass*>(LastHovered))
+            {
+                select->On_Mouse_Leave();
+            }
+            else if (auto tab_button = dynamic_cast<TabButtonClass*>(LastHovered))
+            {
+                tab_button->On_Mouse_Leave();
+            }
+
+            LastHovered = nullptr;
+        }
+
+        if (to_enter)
+        {
+            if (auto select = dynamic_cast<CameoButtonClass*>(to_enter))
+            {
+                LastHovered = select;
+                select->On_Mouse_Enter();
+            }
+            else if (auto tab_button = dynamic_cast<TabButtonClass*>(to_enter))
+            {
+                LastHovered = tab_button;
+                tab_button->On_Mouse_Enter();
+            }
+        }
+    }
+}
+
+
+/**
  *  Patch in GadgetClass::Input to handle hover effects for SelectClass.
  *
  *  @author: ZivDero
@@ -1139,7 +1148,7 @@ DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
 
     _asm push eax
     _asm push edx
-    SidebarClassExtension::Check_Hover(this_ptr, mousex, mousey);
+    Check_Hover(this_ptr, mousex, mousey);
     _asm pop edx
     _asm pop eax
 
@@ -1177,26 +1186,6 @@ DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
 
     _asm mov edi, flags
     JMP_REG(ecx, 0x004A9F4D);
-}
-
-
-/**
- *  Moves the power bar to accomodate for the taller SIDE1.SHP.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_PowerClass_Draw_It_Move_Power_Bar)
-{
-    static int y;
-    y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y - 1;
-    _asm mov esi, y
-
-    static int max_visible;
-    max_visible = SidebarClassExtension::Max_Visible(true);
-    _asm mov eax, max_visible
-    _asm mov ecx, max_visible
-
-    JMP_REG(ebx, 0x005AB4D9);
 }
 
 
@@ -1659,7 +1648,7 @@ void SidebarClassExtension_Conditional_Hooks()
     Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
     Patch_Jump(0x005F2900, &SidebarClassExt::_Init_For_House);
     Patch_Jump(0x005F2B00, &SidebarClassExt::_Init_Strips);
-    Patch_Jump(0x005F2C30, &SidebarClassExtension::Which_Tab);
+    Patch_Jump(0x005F2C30, &SidebarClassExt::_Which_Column);
     Patch_Jump(0x005F2C50, &SidebarClassExt::_Factory_Link);
     Patch_Jump(0x005F2E20, &SidebarClassExt::_Add);
     Patch_Jump(0x005F2E90, &SidebarClassExt::_Scroll);
@@ -1683,7 +1672,6 @@ void SidebarClassExtension_Conditional_Hooks()
     Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
 
     Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
-    Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
 
     // There are a bunch of calls to vanilla strips to redraw them.
     // We patch them to either redraw the supers' strip or the current strip.

@@ -581,7 +581,6 @@ bool SidebarStripView::Has_Ready() const
 
 /**
  *  Computes how many cameo slots fit in the sidebar area.
- *  Uses the same formula as the old SidebarClassExtension::Max_Visible.
  *
  *  @author: ZivDero
  */

@@ -4,12 +4,12 @@
  *
  *  @project       Vinifera
  *
- *  @file          SIDEBAR_COMPONENT.H
+ *  @file          ACTION_BAR_COMPONENT.H
  *
  *  @author        ZivDero
  *
- *  @brief         Sidebar component. Orchestrates the sidebar model, power
- *                 model, and active view implementation.
+ *  @brief         Action bar component. Manages the Repair, Sell, Power,
+ *                 Waypoint and Background sidebar buttons.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -30,23 +30,17 @@
 #pragma once
 
 #include "battleui_component.h"
-#include "sidebar_model.h"
-#include "sidebar_config.h"
-#include "vinifera_defines.h"
-
-
-class ISidebarView;
 
 
 /**
- *  Top-level sidebar component. Owns the data models and the active view,
- *  and implements the IBattleUIComponent lifecycle interface.
+ *  Component that owns the sidebar action buttons (Repair, Sell, Power,
+ *  Waypoint) and Background, handling their registration, input processing,
+ *  and mode-state synchronization.
  */
-class SidebarComponent : public IBattleUIComponent
+class ActionBarComponent : public IBattleUIComponent
 {
 public:
-    SidebarComponent();
-    ~SidebarComponent();
+    ActionBarComponent();
 
     /**
      *  IBattleUIComponent
@@ -61,35 +55,17 @@ public:
     virtual void Set_Dimensions() override;
     virtual void Shutdown() override;
 
-    virtual const char *Help_Text(int gadget_id) override;
+    virtual const char* Help_Text(int gadget_id) override;
 
     /**
-     *  Sidebar-specific interface.
+     *  ActionBar-specific interface.
      */
-    bool Add(RTTIType type, int id);
-    bool Scroll(bool up, int column);
-    bool Scroll_Page(bool up, int column);
-    void Recalc();
-    bool Factory_Link(FactoryClass* factory, RTTIType type, int id);
-    bool Abandon_Production(RTTIType type, int id);
-    bool Is_On_Sidebar(RTTIType type, int id) const;
-    void Flag_Current_Strip_To_Redraw();
-    void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags);
-    bool Change_Tab(int index);
-    void Detach(AbstractClass* target);
     void Activate(int control);
-    int Max_Visible() const;
-    int Max_Visible(bool one_strip) const;
-    void Init_Strips();
-
-    SidebarModel& Get_Model() { return Model; }
-    const SidebarModel& Get_Model() const { return Model; }
-    ISidebarView* Get_View() { return ActiveView; }
+    void Deactivate();
 
 private:
-    SidebarModel Model;
-    ISidebarView* ActiveView;
+    bool IsActive;
 };
 
 
-extern SidebarComponent Sidebar;
+extern ActionBarComponent ActionBar;
