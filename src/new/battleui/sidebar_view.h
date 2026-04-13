@@ -31,20 +31,21 @@
 #pragma once
 
 #include "point.h"
+#include "tibsun_defines.h"
+#include "vinifera_defines.h"
 #include "wwkeyboard.h"
 class SidebarModel;
-class PowerModel;
 
 
 /**
  *  Abstract interface for sidebar views. A view is responsible for all
  *  rendering and input handling of the sidebar UI. The data it displays
- *  comes from SidebarModel and PowerModel references.
+ *  comes from the SidebarModel reference.
  */
 class ISidebarView
 {
 public:
-    ISidebarView(SidebarModel* model, PowerModel* power) : Model(model), Power(power) {}
+    ISidebarView(SidebarModel* model) : Model(model) {}
     virtual ~ISidebarView() = default;
 
     virtual void One_Time() = 0;
@@ -60,9 +61,11 @@ public:
     virtual bool Scroll(bool up, int column) = 0;
     virtual bool Scroll_Page(bool up, int column) = 0;
 
+    virtual const char* Help_Text(int gadget_id) { return nullptr; }
+    virtual void Flag_Current_Strip_To_Redraw() {}
+    virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) { (void)type; (void)flags; }
     virtual int Max_Visible() const = 0;
 
 protected:
     SidebarModel* Model;
-    PowerModel* Power;
 };

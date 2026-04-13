@@ -28,6 +28,7 @@
 
 #include "sidebar_component.h"
 
+#include "abstract.h"
 #include "sidebar_classic_view.h"
 #include "sidebar_config.h"
 #include "sidebar_tabbed_view.h"
@@ -68,6 +69,8 @@ SidebarComponent::~SidebarComponent()
  */
 void SidebarComponent::One_Time()
 {
+    BattleUI.Register(this);
+
     /**
      *  Create the view based on configuration.
      */
@@ -78,7 +81,7 @@ void SidebarComponent::One_Time()
             for (int i = 0; i < 4; i++) {
                 Model.Categories.Add(BuildCategory());
             }
-            ActiveView = new TabbedSidebarView(&Model, &Power);
+            ActiveView = new TabbedSidebarView(&Model);
             break;
 
         case SIDEBAR_CLASSIC:
@@ -87,7 +90,7 @@ void SidebarComponent::One_Time()
             for (int i = 0; i < 2; i++) {
                 Model.Categories.Add(BuildCategory());
             }
-            ActiveView = new ClassicSidebarView(&Model, &Power);
+            ActiveView = new ClassicSidebarView(&Model);
             break;
         }
     }
@@ -106,7 +109,6 @@ void SidebarComponent::One_Time()
 void SidebarComponent::Init_Clear()
 {
     Model.Init_Clear();
-    Power.Init_Clear();
 
     if (ActiveView) {
         ActiveView->Init_Clear();
@@ -149,8 +151,6 @@ void SidebarComponent::Init_For_House()
  */
 void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
 {
-    Power.AI();
-
     if (Model.IsDirty) {
         Model.Recalc_All();
     }
@@ -295,6 +295,58 @@ bool SidebarComponent::Is_On_Sidebar(RTTIType type, int id) const
 
 
 /**
+ *  Flags the currently active strip for redraw.
+ *
+ *  @author: ZivDero
+ */
+void SidebarComponent::Flag_Current_Strip_To_Redraw()
+{
+    if (ActiveView != nullptr) {
+        ActiveView->Flag_Current_Strip_To_Redraw();
+    }
+}
+
+
+/**
+ *  Flags the strip that owns the specified production type for redraw.
+ *
+ *  @author: ZivDero
+ */
+void SidebarComponent::Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
+{
+    if (ActiveView != nullptr) {
+        ActiveView->Flag_Strip_To_Redraw(type, flags);
+    }
+}
+
+
+/**
+ *  Changes the active tab in the tabbed view, if active.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarComponent::Change_Tab(int index)
+{
+    TabbedSidebarView* tabbed = dynamic_cast<TabbedSidebarView*>(ActiveView);
+    if (tabbed != nullptr) {
+        return tabbed->Change_Tab(static_cast<TabbedSidebarView::SidebarTabType>(index));
+    }
+    return false;
+}
+
+
+/**
+ *  Nullifies factory pointers for any BuildItem whose Factory matches target.
+ *
+ *  @author: ZivDero
+ */
+void SidebarComponent::Detach(AbstractClass* target)
+{
+    Model.Detach(target);
+}
+
+
+/**
  *  Activates or deactivates the sidebar.
  *
  *  @author: ZivDero
@@ -317,6 +369,20 @@ void SidebarComponent::Set_Dimensions()
     if (ActiveView) {
         ActiveView->Set_Dimensions();
     }
+}
+
+
+/**
+ *  Returns help text for a gadget id, or nullptr.
+ *
+ *  @author: ZivDero
+ */
+const char *SidebarComponent::Help_Text(int gadget_id)
+{
+    if (ActiveView != nullptr) {
+        return ActiveView->Help_Text(gadget_id);
+    }
+    return nullptr;
 }
 
 

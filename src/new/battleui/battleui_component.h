@@ -49,7 +49,10 @@ public:
     virtual void AI(KeyNumType &key, Point2D &mouse) = 0;
     virtual void Draw(bool complete) = 0;
     virtual void Blit(bool complete) = 0;
+    virtual void Set_Dimensions() = 0;
     virtual void Shutdown() = 0;
+
+    virtual const char *Help_Text(int gadget_id) { return nullptr; }
 };
 
 
@@ -72,7 +75,10 @@ public:
     void AI(KeyNumType &key, Point2D &mouse);
     void Draw(bool complete);
     void Blit(bool complete);
+    void Set_Dimensions();
     void Shutdown();
+
+    const char *Help_Text(int gadget_id);
 
 private:
     DynamicVectorClass<IBattleUIComponent *> Components;

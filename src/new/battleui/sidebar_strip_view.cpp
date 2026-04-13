@@ -28,6 +28,7 @@
 
 #include "sidebar_strip_view.h"
 
+#include "cameo_button.h"
 #include "sidebar_model.h"
 #include "sidebar_render_utils.h"
 
@@ -59,28 +60,6 @@
 #include "tibsun_globals.h"
 #include "voc.h"
 #include "vox.h"
-
-
-/**
- *  CameoSelectClass hover enter callback.
- *
- *  @author: ZivDero
- */
-void CameoSelectClass::On_Mouse_Enter()
-{
-    MousedOver = true;
-}
-
-
-/**
- *  CameoSelectClass hover leave callback.
- *
- *  @author: ZivDero
- */
-void CameoSelectClass::On_Mouse_Leave()
-{
-    MousedOver = false;
-}
 
 
 /**
@@ -206,7 +185,7 @@ void SidebarStripView::Init_IO(int id, int columns)
     SelectButtons.Clear();
 
     for (int i = 0; i < MaxVisibleCount; i++) {
-        CameoSelectClass* btn = new CameoSelectClass();
+        CameoButtonClass* btn = new CameoButtonClass();
         btn->ID = BUTTON_SELECT;
         btn->Width = OBJECT_WIDTH;
         btn->Height = OBJECT_HEIGHT;
@@ -253,7 +232,7 @@ void SidebarStripView::Set_Dimensions(int column_x, int column_y)
 
         MaxVisibleCount = new_count;
         for (int i = 0; i < MaxVisibleCount; i++) {
-            CameoSelectClass* btn = new CameoSelectClass();
+            CameoButtonClass* btn = new CameoButtonClass();
             btn->ID = BUTTON_SELECT;
             btn->Width = OBJECT_WIDTH;
             btn->Height = OBJECT_HEIGHT;
@@ -265,7 +244,7 @@ void SidebarStripView::Set_Dimensions(int column_x, int column_y)
      *  Update button positions for each visible slot.
      */
     for (int i = 0; i < MaxVisibleCount; i++) {
-        CameoSelectClass* btn = SelectButtons[i];
+        CameoButtonClass* btn = SelectButtons[i];
         if (Columns == 1) {
             btn->X = SidebarRect.X + ColumnX;
             btn->Y = SidebarRect.Y + ColumnY + i * OBJECT_HEIGHT;
@@ -693,11 +672,11 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
                     factory = item.Factory;
                     if (factory != nullptr) {
                         production = true;
-                        completed = factory->Has_Completed();
+                        completed = item.Is_Completed();
                         if (completed) {
                             state = Fetch_String(TXT_READY);
                         }
-                        stage = factory->Completion();
+                        stage = item.Completion_Percent();
                         darken = false;
                     } else {
                         production = false;
@@ -787,7 +766,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
                     /**
                      *  Display "HOLD" text if production is paused.
                      */
-                    if (factory != nullptr && !factory->Is_Building()) {
+                    if (factory != nullptr && item.Is_On_Hold()) {
                         Point2D hp(x, y + TEXT_Y_OFFSET);
                         Draw_Hold_Text(surface, rect, hp, OBJECT_WIDTH, has_queue_count);
                     }

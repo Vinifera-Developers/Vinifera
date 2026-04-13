@@ -32,6 +32,7 @@
 #include "tibsun_defines.h"
 #include "vector.h"
 
+class AbstractClass;
 class FactoryClass;
 
 
@@ -98,6 +99,7 @@ public:
     void Recalc_All();
 
     bool Is_On_Sidebar(RTTIType type, int id) const;
+    void Detach(AbstractClass* target);
 
     int Category_Count() const { return Categories.Count(); }
     BuildCategory& Get_Category(int index) { return Categories[index]; }

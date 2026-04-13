@@ -28,7 +28,9 @@
 
 #include "sidebar_classic_view.h"
 
+#include "cameo_button.h"
 #include "sidebar_model.h"
+#include "sidebar_render_utils.h"
 #include "power_model.h"
 
 #include "convert.h"
@@ -51,8 +53,8 @@
  *
  *  @author: ZivDero
  */
-ClassicSidebarView::ClassicSidebarView(SidebarModel* model, PowerModel* power) :
-    ISidebarView(model, power),
+ClassicSidebarView::ClassicSidebarView(SidebarModel* model) :
+    ISidebarView(model),
     Strip()
 {
 }
@@ -292,7 +294,7 @@ void ClassicSidebarView::Set_Dimensions()
 
         for (int col = 0; col < COLUMN_COUNT; col++) {
             for (int i = 0; i < Strip[col].MaxVisibleCount; i++) {
-                CameoSelectClass* btn = Strip[col].SelectButtons[i];
+                CameoButtonClass* btn = Strip[col].SelectButtons[i];
                 tooltip.Region = Rect(btn->X, btn->Y, btn->Width, btn->Height);
                 tooltip.ID = 1000 + col * Strip[col].MaxVisibleCount + i;
                 tooltip.Text = TXT_NONE;
@@ -489,6 +491,75 @@ bool ClassicSidebarView::Scroll_Page(bool up, int column)
         return Strip[column].Scroll_Page(up);
     }
     return false;
+}
+
+
+/**
+ *  Flags the active strips for redraw.
+ *
+ *  @author: ZivDero
+ */
+void ClassicSidebarView::Flag_Current_Strip_To_Redraw()
+{
+    for (int i = 0; i < COLUMN_COUNT; i++) {
+        Strip[i].Flag_To_Redraw();
+    }
+}
+
+
+/**
+ *  Flags the routed classic column for redraw.
+ *
+ *  @author: ZivDero
+ */
+void ClassicSidebarView::Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
+{
+    (void)flags;
+
+    int column = 1;
+    if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
+        column = 0;
+    }
+
+    if (column >= 0 && column < COLUMN_COUNT) {
+        Strip[column].Flag_To_Redraw();
+    }
+}
+
+
+/**
+ *  Returns tooltip text for a cameo slot in classic layout.
+ *
+ *  @author: ZivDero
+ */
+const char* ClassicSidebarView::Help_Text(int gadget_id)
+{
+    int offset = gadget_id - 1000;
+    if (offset < 0) {
+        return nullptr;
+    }
+
+    for (int column = 0; column < COLUMN_COUNT; column++) {
+        SidebarStripView& strip = Strip[column];
+        if (offset >= strip.MaxVisibleCount) {
+            offset -= strip.MaxVisibleCount;
+            continue;
+        }
+
+        BuildCategory* category = strip.Get_Category();
+        if (category == nullptr) {
+            return nullptr;
+        }
+
+        int item_index = strip.TopIndex + offset;
+        if (item_index < 0 || item_index >= category->Items.Count()) {
+            return nullptr;
+        }
+
+        return Format_Cameo_Tooltip(category->Items[item_index]);
+    }
+
+    return nullptr;
 }
 
 

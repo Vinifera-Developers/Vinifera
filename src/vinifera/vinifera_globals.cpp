@@ -113,6 +113,4 @@ bool Vinifera_SkipToCampaign = false;
 bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
 
-bool Vinifera_NewSidebar = false;
-
 DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;

@@ -28,8 +28,10 @@
 
 #include "sidebar_tabbed_view.h"
 
+#include "cameo_button.h"
 #include "power_model.h"
 #include "sidebar_model.h"
+#include "sidebar_render_utils.h"
 
 #include "colorscheme.h"
 #include "convert.h"
@@ -324,8 +326,8 @@ void TabButtonClass::Deselect()
  *
  *  @author: ZivDero
  */
-TabbedSidebarView::TabbedSidebarView(SidebarModel* model, PowerModel* power) :
-    ISidebarView(model, power),
+TabbedSidebarView::TabbedSidebarView(SidebarModel* model) :
+    ISidebarView(model),
     TabIndex(SIDEBAR_TAB_STRUCTURE),
     Strip(),
     TabButtons()
@@ -605,7 +607,7 @@ void TabbedSidebarView::Set_Dimensions()
         }
 
         for (int i = 0; i < Strip[TabIndex].MaxVisibleCount; i++) {
-            CameoSelectClass* btn = Strip[TabIndex].SelectButtons[i];
+            CameoButtonClass* btn = Strip[TabIndex].SelectButtons[i];
             tooltip.Region = Rect(btn->X, btn->Y, btn->Width, btn->Height);
             tooltip.ID = 1000 + i;
             tooltip.Text = TXT_NONE;
@@ -912,6 +914,87 @@ bool TabbedSidebarView::Scroll(bool up, int column)
 bool TabbedSidebarView::Scroll_Page(bool up, int column)
 {
     return Strip[TabIndex].Scroll_Page(up);
+}
+
+
+/**
+ *  Flags the active tab strip for redraw.
+ *
+ *  @author: ZivDero
+ */
+void TabbedSidebarView::Flag_Current_Strip_To_Redraw()
+{
+    Strip[TabIndex].Flag_To_Redraw();
+}
+
+
+/**
+ *  Flags the routed tab strip for redraw.
+ *
+ *  @author: ZivDero
+ */
+void TabbedSidebarView::Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
+{
+    SidebarTabType tab = SIDEBAR_TAB_SPECIAL;
+
+    switch (type) {
+    case RTTI_BUILDINGTYPE:
+    case RTTI_BUILDING:
+        tab = SIDEBAR_TAB_STRUCTURE;
+        break;
+
+    case RTTI_INFANTRYTYPE:
+    case RTTI_INFANTRY:
+        tab = SIDEBAR_TAB_INFANTRY;
+        break;
+
+    case RTTI_UNITTYPE:
+    case RTTI_UNIT:
+        tab = (flags & PRODFLAG_NAVAL) ? SIDEBAR_TAB_SPECIAL : SIDEBAR_TAB_UNIT;
+        break;
+
+    case RTTI_AIRCRAFTTYPE:
+    case RTTI_AIRCRAFT:
+    case RTTI_SUPERWEAPONTYPE:
+    case RTTI_SUPERWEAPON:
+    case RTTI_SPECIAL:
+    default:
+        tab = SIDEBAR_TAB_SPECIAL;
+        break;
+    }
+
+    Strip[tab].Flag_To_Redraw();
+}
+
+
+/**
+ *  Returns tooltip text for a cameo slot in the active tab.
+ *
+ *  @author: ZivDero
+ */
+const char* TabbedSidebarView::Help_Text(int gadget_id)
+{
+    int slot = gadget_id - 1000;
+    if (slot < 0) {
+        return nullptr;
+    }
+
+    SidebarStripView& strip = Strip[TabIndex];
+    if (slot >= strip.MaxVisibleCount) {
+        return nullptr;
+    }
+
+    BuildCategory* category = strip.Get_Category();
+    if (category == nullptr) {
+        return nullptr;
+    }
+
+    int item_index = strip.TopIndex + slot;
+    if (item_index < 0 || item_index >= category->Items.Count()) {
+        return nullptr;
+    }
+
+    return Format_Cameo_Tooltip(category->Items[item_index]);
 }
 
 

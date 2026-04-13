@@ -31,7 +31,6 @@
 
 #pragma once
 
-#include "sidebar.h"
 #include "stage.h"
 #include "vector.h"
 #include "wwkeyboard.h"
@@ -40,24 +39,8 @@
 #include "rect.h"
 
 class BuildCategory;
+class CameoButtonClass;
 class Surface;
-
-
-/**
- *  SelectClass with hover tracking for cameo highlight.
- */
-class CameoSelectClass : public SidebarClass::StripClass::SelectClass
-{
-public:
-    CameoSelectClass() : SelectClass(), MousedOver(false) {}
-    CameoSelectClass(const NoInitClass& x) : SelectClass(x), MousedOver(false) {}
-
-    virtual void On_Mouse_Enter();
-    virtual void On_Mouse_Leave();
-
-public:
-    bool MousedOver;
-};
 
 
 /**
@@ -125,7 +108,7 @@ public:
 
     BuildCategory* Category;
 
-    DynamicVectorClass<CameoSelectClass*> SelectButtons;
+    DynamicVectorClass<CameoButtonClass*> SelectButtons;
 
 private:
     void Draw_Strip_Items(Surface& surface, const Rect& rect);

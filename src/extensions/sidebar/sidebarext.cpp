@@ -383,11 +383,7 @@ SidebarClassExtension::SidebarTabType SidebarClassExtension::First_Active_Tab()
  */
 bool SidebarClassExtension::Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags)
 {
-    if (Vinifera_NewSidebar) {
-        return SidebarExtension->Get_Tab(type, flags).Abandon_Production(factory);
-    } else {
-        return Map.Column[Map.Which_Column(type)].Abandon_Production(factory);
-    }
+    return Get_Tab(type, flags).Abandon_Production(factory);
 }
 
 

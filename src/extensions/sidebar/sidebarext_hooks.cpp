@@ -80,6 +80,7 @@
 #include "wwmouse.h"
 
 #include "sidebar_component.h"
+#include "battleui_component.h"
 
 #include <algorithm>
 
@@ -138,7 +139,6 @@ public:
     const char* _Help_Text(int gadget_id);
     void _Draw_It(bool complete);
     bool _Factory_Link(FactoryClass* factory, RTTIType type, int id);
-    void _Tab_Button_AI();
     void _Fake_Flag_To_Redraw_Special();
     void _Fake_Flag_To_Redraw_Current();
 };
@@ -165,43 +165,6 @@ public:
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x005F23A6, _SidebarClass_Constructor_Patch, 6)
-{
-    GET(SidebarClass*, this_ptr, ESI); // "this" pointer.
-
-    /**
-     *  Set the SidebarClass vtable. Syringe will do this after our hook,
-     *  but do it now manually to be safe.
-     */
-    *reinterpret_cast<uintptr_t*>(this_ptr) = 0x006D68B0;
-
-    /**
-     *  Create the extended class instance.
-     */
-    SidebarExtension = Extension::Singleton::Make<SidebarClass, SidebarClassExtension>(this_ptr);
-
-    return 0;
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- *
- *  @warning: Do not touch this unless you know what you are doing!
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x005B8B7D, _SidebarClass_Destructor_Patch, 5)
-{
-    /**
-     *  Remove the extended class instance.
-     */
-    Extension::Singleton::Destroy<SidebarClass, SidebarClassExtension>(SidebarExtension);
-
-    return 0;
-}
-
-
 /**
  *  Reimplements the entire SidebarClass::One_Time function.
  *
@@ -209,8 +172,8 @@ DEFINE_HOOK(0x005B8B7D, _SidebarClass_Destructor_Patch, 5)
  */
 void SidebarClassExt::_One_Time()
 {
-    PowerClass::One_Time();
-    Sidebar.One_Time();
+    RadarClass::One_Time();
+    BattleUI.One_Time();
 }
 
 
@@ -221,13 +184,13 @@ void SidebarClassExt::_One_Time()
  */
 void SidebarClassExt::_Init_Clear()
 {
-    PowerClass::Init_Clear();
+    RadarClass::Init_Clear();
 
     IsToRedraw = true;
     IsRepairActive = false;
     IsUpgradeActive = false;
 
-    Sidebar.Init_Clear();
+    BattleUI.Init_Clear();
 
     Activate(0);
 }
@@ -240,7 +203,7 @@ void SidebarClassExt::_Init_Clear()
  */
 void SidebarClassExt::_Init_IO()
 {
-    PowerClass::Init_IO();
+    RadarClass::Init_IO();
 
     SidebarRect.X = TacticalRect.Width + TacticalRect.X;
     SidebarRect.Y = 148;
@@ -248,8 +211,8 @@ void SidebarClassExt::_Init_IO()
     SidebarRect.Height = TacticalRect.Height + TacticalRect.Y - SidebarRect.Y;
 
     if (!Debug_Map) {
-        Sidebar.Init_IO();
-        Set_Dimensions();
+        BattleUI.Init_IO();
+        BattleUI.Set_Dimensions();
 
         if (IsSidebarActive) {
             IsSidebarActive = false;
@@ -266,8 +229,8 @@ void SidebarClassExt::_Init_IO()
  */
 void SidebarClassExt::_Init_For_House()
 {
-    PowerClass::Init_For_House();
-    Sidebar.Init_For_House();
+    RadarClass::Init_For_House();
+    BattleUI.Init_For_House();
 }
 
 
@@ -469,9 +432,9 @@ void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
         Waypoint.Turn_Off();
     }
 
-    Sidebar.AI(input, xy);
+    BattleUI.AI(input, xy);
 
-    PowerClass::AI(input, xy);
+    RadarClass::AI(input, xy);
 }
 
 
@@ -484,9 +447,9 @@ void SidebarClassExt::_Draw_It(bool complete)
 {
     complete |= IsToFullRedraw;
     Map.LastDrawRect = Rect(0, 0, 0, 0);
-    PowerClass::Draw_It(complete);
+    RadarClass::Draw_It(complete);
 
-    Sidebar.Draw(complete);
+    BattleUI.Draw(complete);
 }
 
 
@@ -530,9 +493,9 @@ void SidebarClassExt::_Set_Dimensions()
     SidebarRect.Width = 168;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - 148;
 
-    PowerClass::Set_Dimensions();
+    RadarClass::Set_Dimensions();
 
-    Sidebar.Set_Dimensions();
+    BattleUI.Set_Dimensions();
 
     Background.Set_Position(Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0, RadarButton.Height + RadarButton.Y);
     Background.Set_Size(SidebarSurface->Get_Width(), SidebarSurface->Get_Height() - RadarButton.Height + RadarButton.Y);
@@ -546,15 +509,7 @@ void SidebarClassExt::_Set_Dimensions()
  */
 const char* SidebarClassExt::_Help_Text(int gadget_id)
 {
-    const char* text = PowerClass::Help_Text(gadget_id);
-    if (text != nullptr) {
-        return text;
-    }
-
-    /**
-     *  TODO: Implement help text lookup through the new sidebar view.
-     */
-    return nullptr;
+    return BattleUI.Help_Text(gadget_id);
 }
 
 
@@ -576,7 +531,7 @@ int SidebarClassExt::_Max_Visible()
  */
 void StripClassExt::_One_Time(int id)
 {
-    DarkenShape = MFCD::RetrieveT<ShapeSet>("DARKEN.SHP");
+    (void)id;
 }
 
 
@@ -587,31 +542,7 @@ void StripClassExt::_One_Time(int id)
  */
 void StripClassExt::_Init_IO(int id)
 {
-    ID = id;
-
-    UpButton[0].IsSticky = true;
-    UpButton[0].ID = BUTTON_UP;
-    UpButton[0].DrawnOnSidebarSurface = true;
-    UpButton[0].ShapeDrawer = SidebarDrawer;
-    UpButton[0].Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
-
-    DownButton[0].IsSticky = true;
-    DownButton[0].ID = BUTTON_DOWN;
-    DownButton[0].DrawnOnSidebarSurface = true;
-    DownButton[0].ShapeDrawer = SidebarDrawer;
-    DownButton[0].Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
-
-    int max_visible = SidebarClassExtension::Max_Visible();
-    for (int index = 0; index < max_visible; index++)
-    {
-        SelectClass& g = SidebarExtension->SelectButton[ID][index];
-        g.ID = BUTTON_SELECT;
-        g.X = SidebarRect.X + (index % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
-        g.Y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + index / 2 * OBJECT_HEIGHT;
-        g.Width = OBJECT_WIDTH;
-        g.Height = OBJECT_HEIGHT;
-        g.Set_Owner(*this, index);
-    }
+    (void)id;
 }
 
 
@@ -644,7 +575,7 @@ bool StripClassExt::_Recalc()
     }
 
     bool scroll = false;
-    int max_visible = SidebarClassExtension::Max_Visible(!Vinifera_NewSidebar);
+    int max_visible = SidebarClassExtension::Max_Visible(false);
     BuildType* unshifted = new BuildType[max_visible];
 
     for (int i = 0; i < max_visible; i++) {
@@ -740,18 +671,6 @@ bool StripClassExt::_Recalc()
  */
 void StripClassExt::_Activate()
 {
-    UpButton[0].Zap();
-    Map.Add_A_Button(UpButton[0]);
-
-    DownButton[0].Zap();
-    Map.Add_A_Button(DownButton[0]);
-
-    int max_visible = SidebarClassExtension::Max_Visible();
-    for (int index = 0; index < max_visible; index++)
-    {
-        SidebarExtension->SelectButton[ID][index].Zap();
-        Map.Add_A_Button(SidebarExtension->SelectButton[ID][index]);
-    }
 }
 
 
@@ -941,14 +860,6 @@ bool StripClassExt::_Add(RTTIType type, int id)
  */
 void StripClassExt::_Deactivate()
 {
-    Map.Remove_A_Button(UpButton[0]);
-    Map.Remove_A_Button(DownButton[0]);
-
-    int max_visible = SidebarClassExtension::Max_Visible();
-    for (int index = 0; index < max_visible; index++)
-    {
-        Map.Remove_A_Button(SidebarExtension->SelectButton[ID][index]);
-    }
 }
 
 
@@ -959,20 +870,8 @@ void StripClassExt::_Deactivate()
  */
 bool StripClassExt::_Scroll(bool up)
 {
-    if (up)
-    {
-        if (!TopIndex)
-            return false;
-        Scroller--;
-    }
-    else
-    {
-        if (TopIndex + SidebarClassExtension::Max_Visible() >= BuildableCount + BuildableCount % 2)
-            return false;
-        Scroller++;
-    }
-
-    return true;
+    (void)up;
+    return false;
 }
 
 
@@ -983,19 +882,8 @@ bool StripClassExt::_Scroll(bool up)
  */
 bool StripClassExt::_Scroll_Page(bool up)
 {
-    if (up)
-    {
-        if (!TopIndex)
-            return false;
-        Scroller -= SidebarClassExtension::Max_Visible(true);
-    }
-    else
-    {
-        if (TopIndex + SidebarClassExtension::Max_Visible() >= BuildableCount + BuildableCount % 2)
-            return false;
-        Scroller += SidebarClassExtension::Max_Visible(true);
-    }
-    return true;
+    (void)up;
+    return false;
 }
 
 
@@ -1006,185 +894,8 @@ bool StripClassExt::_Scroll_Page(bool up)
  */
 bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
 {
-    bool redraw = false;
-
-    _Tab_Button_AI();
-
-    /**
-     *  Handle any building clock animation logic.
-     */
-    if (IsBuilding)
-    {
-        for (int index = 0; index < BuildableCount; index++)
-        {
-            FactoryClass* factory = Buildables[index].Factory;
-            if (factory && (factory->Has_Changed() || Extension::Fetch(factory)->IsHoldingExit))
-            {
-                redraw = true;
-                if (factory->Has_Completed())
-                {
-                    /**
-                     *  Construction has been completed. Announce this fact to the player and
-                     *  try to get the object to automatically leave the factory. Buildings are
-                     *  the main exception to the ability to leave the factory under their own
-                     *  power.
-                     */
-                    TechnoClass* pending = factory->Get_Object();
-                    if (pending != nullptr)
-                    {
-                        switch (pending->RTTI)
-                        {
-                        case RTTI_UNIT:
-                        case RTTI_INFANTRY:
-                        case RTTI_AIRCRAFT:
-                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            break;
-
-                        case RTTI_BUILDING:
-                            SidebarExtension->TabButtons[ID].Start_Flashing();
-                            Speak(VOX_CONSTRUCTION);
-                            break;
-
-                        default:
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     *  If this is not the currently active tab, return and do not redraw.
-     */
-    if (SidebarExtension->TabIndex != ID)
-        return false;
-
-    /**
-     *  If this is scroll button for this side strip, then scroll the strip as
-     *  indicated.
-     */
-    if (input == (UpButton[0].ID | KN_BUTTON))
-    {
-        UpButton[0].IsPressed = false;
-        if (!Scroll(true))
-            Sound_Effect(Rule->ScoldSound);
-    }
-    if (input == (DownButton[0].ID | KN_BUTTON))
-    {
-        DownButton[0].IsPressed = false;
-        if (!Scroll(false))
-            Sound_Effect(Rule->ScoldSound);
-    }
-
-    /**
-     *  Reflect the scroll desired direction/value into the scroll
-     *  logic handler. This might result in up or down scrolling.
-     */
-    if (!IsScrolling && Scroller)
-    {
-        if (BuildableCount <= SidebarClassExtension::Max_Visible())
-        {
-            Scroller = 0;
-        }
-        else
-        {
-            /**
-             *  Top of list is moving toward lower ordered entries in the object list. It looks like
-             *  the "window" to the object list is moving up even though the actual object images are
-             *  scrolling downward.
-             */
-            if (Scroller < 0)
-            {
-                if (TopIndex <= 0)
-                {
-                    TopIndex = 0;
-                    Scroller = 0;
-                }
-                else
-                {
-                    Scroller++;
-                    IsScrollingDown = false;
-                    IsScrolling = true;
-                    TopIndex -= 2;
-                    Slid = 0;
-                }
-
-            }
-            else
-            {
-                if (TopIndex + SidebarClassExtension::Max_Visible() > BuildableCount)
-                {
-                    Scroller = 0;
-                }
-                else
-                {
-                    Scroller--;
-                    Slid = OBJECT_HEIGHT;
-                    IsScrollingDown = true;
-                    IsScrolling = true;
-                }
-            }
-        }
-    }
-
-    /**
-     *  Scroll logic is handled here.
-     */
-    if (IsScrolling)
-    {
-        if (IsScrollingDown)
-        {
-            Slid -= SCROLL_RATE;
-            if (Slid <= 0)
-            {
-                IsScrolling = false;
-                Slid = 0;
-                TopIndex += 2;
-            }
-        }
-        else
-        {
-            Slid += SCROLL_RATE;
-            if (Slid >= OBJECT_HEIGHT)
-            {
-                IsScrolling = false;
-                Slid = 0;
-            }
-        }
-        redraw = true;
-    }
-
-    /**
-     *  Handle any flashing logic. Flashing occurs when the player selects an object
-     *  and provides the visual feedback of a recognized and legal selection.
-     */
-    if (Flasher != -1)
-    {
-        if (Graphic_Logic())
-        {
-            redraw = true;
-            if (Fetch_Stage() >= 7)
-            {
-                Set_Rate(0);
-                Set_Stage(0);
-                Flasher = -1;
-            }
-        }
-    }
-
-    /**
-     *  If any of the logic determined that this side strip needs to be redrawn, then
-     *  set the redraw flag for this side strip.
-     */
-    if (redraw)
-    {
-        IsToRedraw = true;
-        Flag_To_Redraw();
-        RedrawSidebar = true;
-    }
-
-    return redraw;
+    (void)input;
+    return false;
 }
 
 
@@ -1362,60 +1073,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
  */
 const char* StripClassExt::_Help_Text(int gadget_id)
 {
-    static char _buffer[512];
-
-    int i = gadget_id + TopIndex;
-
-    if (GameActive)
-    {
-        if (i < BuildableCount && BuildableCount < MAX_BUILDABLES)
-        {
-            if (Buildables[i].BuildableType == RTTI_SPECIAL) {
-                const SuperWeaponTypeClass* swtype = SuperWeaponTypes[Buildables[i].BuildableID];
-                const SuperWeaponTypeClassExtension* swtypeext = Extension::Fetch(swtype);
-                const char* description = swtypeext->Description;
-
-                if (description[0] == '\0')
-                {
-                    // If there is no extended description, then simply show the name and price.
-                    return swtype->Full_Name();
-                }
-
-                // If there is an extended description, then show the name and the description.
-                std::snprintf(_buffer, sizeof(_buffer), "%s@@%s", swtype->Full_Name(), swtypeext->Description);
-                return _buffer;
-            }
-
-            const TechnoTypeClass* ttype = Fetch_Techno_Type(Buildables[i].BuildableType, Buildables[i].BuildableID);
-
-            // Bugfix from YR.
-            if (!ttype)
-                return nullptr;
-
-            /**
-             *  Adds support for extended sidebar tooltips.
-             *
-             *  @author: Rampastring
-             */
-            const TechnoTypeClassExtension* technotypeext = Extension::Fetch(ttype);
-            const char* description = technotypeext->Description;
-
-            if (description[0] == '\0')
-            {
-                // If there is no extended description, then simply show the name and price.
-                std::snprintf(_buffer, sizeof(_buffer), "%s@$%d", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr));
-            }
-            else
-            {
-                // If there is an extended description, then show the name, price, and the description.
-                std::snprintf(_buffer, sizeof(_buffer), "%s@$%d@@%s", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr), technotypeext->Description);
-            }
-
-            return _buffer;
-        }
-    }
-
-    return nullptr;
+    return BattleUI.Help_Text(gadget_id);
 }
 
 
@@ -1426,295 +1084,7 @@ const char* StripClassExt::_Help_Text(int gadget_id)
  */
 void StripClassExt::_Draw_It(bool complete)
 {
-    if (IsToRedraw || complete)
-    {
-        IsToRedraw = false;
-        RedrawSidebar = true;
-
-        Rect rect = Rect(0, SidebarRect.Y, SidebarRect.Width, SidebarRect.Height);
-
-        /**
-         *  Redraw the scroll buttons.
-         */
-        UpButton[0].Draw_Me(true);
-        DownButton[0].Draw_Me(true);
-
-        int maxvisible = SidebarClassExtension::Max_Visible();
-
-        /**
-         *  Loop through all the buildable objects that are visible in the strip and render
-         *  them. Their Y offset may be adjusted if the strip is in the process of scrolling.
-         */
-        for (int i = 0; i < maxvisible + (IsScrolling ? 1 : 0); i++)
-        {
-            bool production = false;
-            bool completed = false;
-            int  stage = 0;
-            bool darken = false;
-            ShapeSet const* shapefile = nullptr;
-            BSurface* image_surface = nullptr;
-            FactoryClass* factory = nullptr;
-            int index = i + TopIndex;
-            int x = i % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X;
-            int y = SidebarClassExtension::COLUMN_Y + i / 2 * OBJECT_HEIGHT;
-
-            bool isready = false;
-            const char* state = nullptr;
-            const char* name = nullptr;
-            TechnoTypeClass const* obj = nullptr;
-
-            /**
-             *  If the strip is scrolling, then the offset is adjusted accordingly.
-             */
-            if (IsScrolling)
-            {
-                y -= OBJECT_HEIGHT - Slid;
-            }
-
-            /**
-             *  Fetch the shape number for the object type located at this current working
-             *  slot. This shape pointer is used to draw the underlying graphic there.
-             */
-            if (index < BuildableCount)
-            {
-                SuperWeaponType spc = SUPER_NONE;
-
-                if (Buildables[index].BuildableType != RTTI_SPECIAL)
-                {
-                    obj = Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID);
-                    if (obj != nullptr)
-                    {
-                        name = obj->GivenName.c_str();
-                        darken = false;
-
-                        /**
-                         *  If there is already a factory producing a building, then all
-                         *  buildings are displayed in a disabled state.
-                         */
-                        if (obj->RTTI == RTTI_BUILDINGTYPE)
-                        {
-                            darken = Extension::Fetch(PlayerPtr)->Fetch_Factory(Buildables[index].BuildableType, TechnoTypeClassExtension::Get_Production_Flags(obj)) != nullptr;
-                        }
-
-                        /**
-                         *  If there is no factory that can produce this, or the factory that
-                         *  can produce this is currently busy,
-                         *  objects of this type are displayed in a disabled state.
-                         */
-                        if (!obj->Who_Can_Build_Me(true, true, true, PlayerPtr)
-                            || (!darken && PlayerPtr->Can_Build(Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID), false, false) == -1))
-                        {
-                            darken = true;
-                        }
-
-                        shapefile = obj->Get_Cameo_Data();
-                        auto technotypeext = Extension::Fetch(obj);
-                        if (technotypeext->CameoImageSurface != nullptr)
-                            image_surface = technotypeext->CameoImageSurface;
-
-                        factory = Buildables[index].Factory;
-                        if (factory != nullptr)
-                        {
-                            production = true;
-                            completed = factory->Has_Completed();
-                            if (completed)
-                            {
-                                /**
-                                 *  Display text showing that the object is ready to place.
-                                 */
-                                state = Fetch_String(TXT_READY);
-                            }
-                            stage = factory->Completion();
-                            darken = false;
-                        }
-                        else
-                        {
-                            production = false;
-                        }
-                    }
-                    else
-                    {
-                        shapefile = LogoShape;
-                    }
-
-                }
-                else
-                {
-                    spc = (SuperWeaponType)Buildables[index].BuildableID;
-
-                    name = SuperWeaponTypes[spc]->GivenName.c_str();
-                    shapefile = Get_Special_Cameo(spc);
-                    auto supertypeext = Extension::Fetch(PlayerPtr->SuperWeapon[spc]->Class);
-                    if (supertypeext->CameoImageSurface != nullptr)
-                        image_surface = supertypeext->CameoImageSurface;
-
-                    production = true;
-                    completed = !PlayerPtr->SuperWeapon[spc]->Needs_Redraw();
-                    isready = PlayerPtr->SuperWeapon[spc]->Can_Place();
-                    state = PlayerPtr->SuperWeapon[spc]->Ready_String();
-                    stage = PlayerPtr->SuperWeapon[spc]->Anim_Stage();
-                    darken = false;
-
-                    if (spc == SUPER_NONE)
-                    {
-                        shapefile = LogoShape;
-                    }
-                }
-            }
-            else
-            {
-                shapefile = LogoShape;
-                production = false;
-            }
-
-            /**
-             *  Now that the shape of the object at the current working slot has been found,
-             *  draw it and any graphic overlays as necessary.
-             */
-            if (shapefile != LogoShape)
-            {
-                Point2D drawpoint(x, y);
-
-                /**
-                 *  #issue-487
-                 *
-                 *  Adds support for PCX/PNG cameo icons.
-                 *
-                 *  @author: CCHyper
-                  */
-                if (image_surface != nullptr)
-                {
-                    Rect pcxrect(rect.X + drawpoint.X, rect.Y + drawpoint.Y, image_surface->Get_Width(), image_surface->Get_Height());
-                    SpriteCollection.Draw(pcxrect, *SidebarSurface, *image_surface);
-                }
-                else if (shapefile != nullptr)
-                {
-                    Draw_Shape(*SidebarSurface,* CameoDrawer, shapefile, 0, drawpoint, rect, SHAPE_WIN_REL);
-                }
-
-
-                /**
-                 *  Draw a selection box around the cameo if we're currently hovering over it
-                 *  and it is available.
-                 */
-                bool overbutton = SidebarExtension->SelectButton[ID][index - TopIndex].MousedOver;
-
-                if (overbutton && !Scen->InputLock && !darken)
-                {
-                    Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
-                    const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::Build_Hicolor_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
-                }
-
-
-                /**
-                 *  Darken this object because it cannot be produced or is otherwise
-                 *  unavailable.
-                 */
-                if (darken)
-                {
-                    Draw_Shape(*SidebarSurface, *SidebarDrawer, DarkenShape, 0, drawpoint, rect, SHAPE_WIN_REL | SHAPE_DARKEN);
-                }
-            }
-
-            if (name != nullptr)
-            {
-                Point2D drawpoint(x, y + OBJECT_NAME_OFFSET);
-                Print_Cameo_Text(name, drawpoint, rect, OBJECT_WIDTH);
-            }
-
-            /**
-             *  Draw the number of queued objects
-             */
-            bool hasqueuecount = false;
-            if (obj != nullptr)
-            {
-                RTTIType rtti = obj->RTTI;
-                FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(obj));
-
-                if (factory != nullptr)
-                {
-                    int total = factory->Total_Queued(*obj);
-                    if (total > 1 ||
-                        total > 0 && (factory->Object == nullptr ||
-                            factory->Object->TClass != nullptr && factory->Object->TClass != obj))
-                    {
-                        Point2D drawpoint(x + QUEUE_COUNT_X_OFFSET, y + TEXT_Y_OFFSET);
-                        Fancy_Text_Print("%d", *SidebarSurface, rect, drawpoint, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
-                        hasqueuecount = true;
-                    }
-                }
-            }
-
-            /**
-             *  Draw the overlapping clock shape if this is object is being constructed.
-             *  If the object is completed, then display "Ready" with no clock shape.
-             */
-            if (production)
-            {
-                if (state != nullptr)
-                {
-                    Point2D drawpoint(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
-                    Fancy_Text_Print(state, *SidebarSurface, rect, drawpoint, Fetch_Scheme_By_Name("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
-                }
-
-                if (!completed)
-                {
-                    int shapenum;
-                    const ShapeSet* shape;
-                    Point2D drawpoint;
-
-                    if (isready)
-                    {
-                        shapenum = stage + 1;
-                        drawpoint = Point2D(x, y);
-                        shape = RechargeClockShape;
-                    }
-                    else
-                    {
-                        shapenum = stage + 1;
-                        drawpoint = Point2D(x, y);
-                        shape = ClockShape;
-                    }
-
-                    Draw_Shape(*SidebarSurface,* SidebarDrawer, shape, shapenum, drawpoint, rect, SHAPE_WIN_REL | SHAPE_TRANS50);
-
-                    /**
-                     *  Display text showing that the construction is temporarily on hold.
-                     */
-                    if (factory && !factory->Is_Building())
-                    {
-                        if (hasqueuecount)
-                        {
-                            Point2D drawpoint2(x, y + TEXT_Y_OFFSET);
-                            Fancy_Text_Print(TXT_HOLD, *SidebarSurface, rect, drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
-                        }
-                        else
-                        {
-                            Point2D drawpoint2(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
-                            Fancy_Text_Print(TXT_HOLD, *SidebarSurface, rect, drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
-                        }
-                    }
-                }
-            }
-
-        }
-
-        LastSlid = Slid;
-        return;
-    }
-
-    if (UpButton[0].IsDrawn)
-    {
-        RedrawSidebar = true;
-        UpButton[0].IsDrawn = false;
-    }
-
-    if (DownButton[0].IsDrawn)
-    {
-        RedrawSidebar = true;
-        DownButton[0].IsDrawn = false;
-    }
+    (void)complete;
 }
 
 
@@ -1725,73 +1095,10 @@ void StripClassExt::_Draw_It(bool complete)
  */
 bool StripClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
 {
-    for (int i = 0; i < BuildableCount; i++)
-    {
-        if (Buildables[i].BuildableType == type &&
-            Buildables[i].BuildableID == id)
-        {
-            Buildables[i].Factory = factory;
-            IsBuilding = true;
-            /**
-             *  Flag that all the icons on this strip need to be redrawn
-             */
-            Flag_To_Redraw();
-            return true;
-        }
-    }
-
+    (void)factory;
+    (void)type;
+    (void)id;
     return false;
-}
-
-
-/**
- *  Handles the state of this strip's tab button.
- *
- *  @author: ZivDero
- */
-void StripClassExt::_Tab_Button_AI()
-{
-    if (BuildableCount > 0)
-    {
-        if (!SidebarExtension->TabButtons[ID].Is_Enabled())
-            SidebarExtension->TabButtons[ID].Enable();
-
-        int building_tab = SidebarClassExtension::Which_Tab(RTTI_BUILDINGTYPE, PRODFLAG_NONE);
-        if (ID == building_tab)
-        {
-            if (SidebarExtension->TabButtons[ID].IsFlashing)
-            {
-                FactoryClass* fptr = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
-                if (fptr == nullptr || !fptr->Has_Completed())
-                    SidebarExtension->TabButtons[ID].Stop_Flashing();
-            }
-        }
-
-        int special_tab = SidebarClassExtension::Which_Tab(RTTI_SPECIAL, PRODFLAG_NONE);
-        if (ID == special_tab)
-        {
-            bool ready_sw = false;
-            for (int i = 0; i < PlayerPtr->SuperWeapon.Count(); i++)
-            {
-                SuperClass* sw = PlayerPtr->SuperWeapon[i];
-                if (sw->Can_Place() && !sw->Class->IsUseChargeDrain) // Firestorm is always "ready", so don't flash for it.
-                {
-                    ready_sw = true;
-                    break;
-                }
-            }
-
-            if (ready_sw && !SidebarExtension->TabButtons[ID].IsFlashing)
-                SidebarExtension->TabButtons[ID].Start_Flashing();
-            else if (!ready_sw && SidebarExtension->TabButtons[ID].IsFlashing)
-                SidebarExtension->TabButtons[ID].Stop_Flashing();
-        }
-    }
-    else
-    {
-        if (SidebarExtension->TabButtons[ID].Is_Enabled())
-            SidebarExtension->TabButtons[ID].Disable();
-    }
 }
 
 
@@ -1802,7 +1109,7 @@ void StripClassExt::_Tab_Button_AI()
  */
 void StripClassExt::_Fake_Flag_To_Redraw_Special()
 {
-    SidebarExtension->Get_Tab(RTTI_SPECIAL, PRODFLAG_NONE).Flag_To_Redraw();
+    Sidebar.Flag_Strip_To_Redraw(RTTI_SPECIAL, PRODFLAG_NONE);
 }
 
 
@@ -1813,7 +1120,7 @@ void StripClassExt::_Fake_Flag_To_Redraw_Special()
  */
 void StripClassExt::_Fake_Flag_To_Redraw_Current()
 {
-    SidebarExtension->Current_Tab().Flag_To_Redraw();
+    Sidebar.Flag_Current_Strip_To_Redraw();
 }
 
 
@@ -2188,7 +1495,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     } else {
                         Speak(VOX_SUSPENDED);
                         OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
-                        SidebarExtension->Get_Tab(otype, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).Flag_To_Redraw();
+                        Sidebar.Flag_Strip_To_Redraw(otype, TechnoTypeClassExtension::Get_Production_Flags(otype, oid));
                         
                     }
                 } else {
@@ -2347,56 +1654,54 @@ void SidebarClassExtension_Hooks()
  */
 void SidebarClassExtension_Conditional_Hooks()
 {
-    if (Vinifera_NewSidebar) {
-        Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
-        Patch_Jump(0x005F2660, &SidebarClassExt::_Init_Clear);
-        Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
-        Patch_Jump(0x005F2900, &SidebarClassExt::_Init_For_House);
-        Patch_Jump(0x005F2B00, &SidebarClassExt::_Init_Strips);
-        Patch_Jump(0x005F2C30, &SidebarClassExtension::Which_Tab);
-        Patch_Jump(0x005F2C50, &SidebarClassExt::_Factory_Link);
-        Patch_Jump(0x005F2E20, &SidebarClassExt::_Add);
-        Patch_Jump(0x005F2E90, &SidebarClassExt::_Scroll);
-        Patch_Jump(0x005F30F0, &SidebarClassExt::_Scroll_Page);
-        Patch_Jump(0x005F3560, &SidebarClassExt::_Draw_It);
-        Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
-        Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
-        Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
-        Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
-        Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
-        Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
+    Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
+    Patch_Jump(0x005F2660, &SidebarClassExt::_Init_Clear);
+    Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
+    Patch_Jump(0x005F2900, &SidebarClassExt::_Init_For_House);
+    Patch_Jump(0x005F2B00, &SidebarClassExt::_Init_Strips);
+    Patch_Jump(0x005F2C30, &SidebarClassExtension::Which_Tab);
+    Patch_Jump(0x005F2C50, &SidebarClassExt::_Factory_Link);
+    Patch_Jump(0x005F2E20, &SidebarClassExt::_Add);
+    Patch_Jump(0x005F2E90, &SidebarClassExt::_Scroll);
+    Patch_Jump(0x005F30F0, &SidebarClassExt::_Scroll_Page);
+    Patch_Jump(0x005F3560, &SidebarClassExt::_Draw_It);
+    Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
+    Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
+    Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
+    Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
+    Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
+    Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
 
-        Patch_Jump(0x005F4210, &StripClassExt::_One_Time);
-        Patch_Jump(0x005F42A0, &StripClassExt::_Init_IO);
-        Patch_Jump(0x005F4450, &StripClassExt::_Activate);
-        Patch_Jump(0x005F4560, &StripClassExt::_Deactivate);
-        Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
-        Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
-        Patch_Jump(0x005F4910, &StripClassExt::_AI);
-        Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
-        Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
+    Patch_Jump(0x005F4210, &StripClassExt::_One_Time);
+    Patch_Jump(0x005F42A0, &StripClassExt::_Init_IO);
+    Patch_Jump(0x005F4450, &StripClassExt::_Activate);
+    Patch_Jump(0x005F4560, &StripClassExt::_Deactivate);
+    Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
+    Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
+    Patch_Jump(0x005F4910, &StripClassExt::_AI);
+    Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
+    Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
 
-        Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
-        Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
+    Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
+    Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
 
-        // There are a bunch of calls to vanilla strips to redraw them.
-        // We patch them to either redraw the supers' strip or the current strip
-        Patch_Call(0x00458ADB, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-        Patch_Call(0x004BD32D, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-        Patch_Call(0x004CB585, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-        Patch_Call(0x004CB6F8, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-        Patch_Call(0x00619F9A, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-        Patch_Call(0x0061C09C, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-        Patch_Call(0x0061C0FD, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    // There are a bunch of calls to vanilla strips to redraw them.
+    // We patch them to either redraw the supers' strip or the current strip.
+    Patch_Call(0x00458ADB, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x004BD32D, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x004CB585, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x004CB6F8, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x00619F9A, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x0061C09C, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x0061C0FD, &StripClassExt::_Fake_Flag_To_Redraw_Special);
 
-        Patch_Call(0x004BD1E0, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-        Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-        Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-        Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004BD1E0, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
 
-        Patch_Jump(0x004E5C70, 0x004E5D4A); // Don't add LSidebarUpCommandClass and RSidebarUpCommandClass
-        Patch_Jump(0x004E5DB7, 0x004E5E91); // Don't add LSidebarDownCommandClass and RSidebarDownCommandClass
-        Patch_Jump(0x004E5EFE, 0x004E5FD8); // Don't add LSidebarPageUpCommandClass and RSidebarPageUpCommandClass
-        Patch_Jump(0x004E6045, 0x004E611F); // Don't add LSidebarPageDownCommandClass and RSidebarPageDownCommandClass
-    }
+    Patch_Jump(0x004E5C70, 0x004E5D4A); // Don't add LSidebarUpCommandClass and RSidebarUpCommandClass
+    Patch_Jump(0x004E5DB7, 0x004E5E91); // Don't add LSidebarDownCommandClass and RSidebarDownCommandClass
+    Patch_Jump(0x004E5EFE, 0x004E5FD8); // Don't add LSidebarPageUpCommandClass and RSidebarPageUpCommandClass
+    Patch_Jump(0x004E6045, 0x004E611F); // Don't add LSidebarPageDownCommandClass and RSidebarPageDownCommandClass
 }

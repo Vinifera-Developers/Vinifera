@@ -28,6 +28,7 @@
 
 #include "sidebar_model.h"
 
+#include "abstract.h"
 #include "buildingtype.h"
 #include "extension.h"
 #include "factory.h"
@@ -586,4 +587,21 @@ bool SidebarModel::Is_On_Sidebar(RTTIType type, int id) const
         }
     }
     return false;
+}
+
+
+/**
+ *  Nullifies factory pointers for any BuildItem whose Factory matches target.
+ *
+ *  @author: ZivDero
+ */
+void SidebarModel::Detach(AbstractClass* target)
+{
+    for (auto& category : Categories) {
+        for (auto& item : category.Items) {
+            if (item.Factory == target) {
+                item.Factory = nullptr;
+            }
+        }
+    }
 }

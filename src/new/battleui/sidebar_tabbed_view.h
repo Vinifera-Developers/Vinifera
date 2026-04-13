@@ -131,7 +131,7 @@ public:
         BUTTON_TAB_4,
     };
 
-    TabbedSidebarView(SidebarModel* model, PowerModel* power);
+    TabbedSidebarView(SidebarModel* model);
     virtual ~TabbedSidebarView() override = default;
 
     virtual void One_Time() override;
@@ -147,6 +147,9 @@ public:
     virtual bool Scroll(bool up, int column) override;
     virtual bool Scroll_Page(bool up, int column) override;
 
+    virtual const char* Help_Text(int gadget_id) override;
+    virtual void Flag_Current_Strip_To_Redraw() override;
+    virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) override;
     virtual int Max_Visible() const override;
 
     bool Change_Tab(SidebarTabType index);

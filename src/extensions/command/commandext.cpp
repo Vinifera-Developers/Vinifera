@@ -60,6 +60,7 @@
 #include "language.h"
 #include "minidump.h"
 #include "miscutil.h"
+#include "mouse.h"
 #include "overlaytype.h"
 #include "particlesystype.h"
 #include "particletype.h"
@@ -69,17 +70,20 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
-#include "sidebarext.h"
+#include "sidebar_component.h"
+#include "sidebar_tabbed_view.h"
 #include "smudgetype.h"
 #include "super.h"
 #include "tactical.h"
 #include "tacticalext.h"
 #include "tag.h"
 #include "tagtype.h"
+#include "technotypeext.h"
 #include "terraintype.h"
 #include "theme.h"
 #include "tiberium.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "tibsun_util.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -548,7 +552,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+    if (!Sidebar.Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
         return false;
     }
 
@@ -618,7 +622,7 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+    if (!Sidebar.Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
         return false;
     }
 
@@ -688,7 +692,7 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+    if (!Sidebar.Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
         return false;
     }
 
@@ -758,7 +762,7 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+    if (!Sidebar.Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
         return false;
     }
 
@@ -1192,8 +1196,8 @@ const char* SetStructureTabCommandClass::Get_Description() const
 
 bool SetStructureTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
-    bool result = SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_STRUCTURE;
+    bool result = Sidebar.Change_Tab(newtab);
 
     /**
      *  Enter the manual placement mode when a building is complete
@@ -1282,8 +1286,8 @@ const char* SetInfantryTabCommandClass::Get_Description() const
 
 bool SetInfantryTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_INFANTRY;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_INFANTRY;
+    return Sidebar.Change_Tab(newtab);
 }
 
 
@@ -1314,8 +1318,8 @@ const char* SetUnitTabCommandClass::Get_Description() const
 
 bool SetUnitTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_UNIT;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_UNIT;
+    return Sidebar.Change_Tab(newtab);
 }
 
 
@@ -1346,8 +1350,8 @@ const char* SetSpecialTabCommandClass::Get_Description() const
 
 bool SetSpecialTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_SPECIAL;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_SPECIAL;
+    return Sidebar.Change_Tab(newtab);
 }
 
 

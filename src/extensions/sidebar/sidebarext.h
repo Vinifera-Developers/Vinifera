@@ -34,7 +34,6 @@
 #include "shapeset.h"
 #include "sidebar.h"
 #include "technotypeext.h"
-#include "vinifera_globals.h"
 
 
 class SidebarClassExtension final : public GlobalExtensionClass<SidebarClass>
@@ -195,10 +194,7 @@ public:
 
         void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
         {
-            if (Vinifera_NewSidebar)
-                Get_Tab(type, flags).Flag_To_Redraw();
-            else
-                Map.Column[Map.Which_Column(type)].Flag_To_Redraw();
+            Get_Tab(type, flags).Flag_To_Redraw();
         }
 
         static int Max_Visible(bool one_strip = false)
@@ -221,9 +217,6 @@ public:
 
         bool Is_On_Sidebar(RTTIType type, int id)
         {
-            if (!Vinifera_NewSidebar)
-                return Map.Is_On_Sidebar(type, id);
-
             int tab = Which_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id));
             return Column[tab].Is_On_Sidebar(type, id);
         }

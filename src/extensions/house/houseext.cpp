@@ -43,7 +43,7 @@
 #include "rules.h"
 #include "saveload.h"
 #include "session.h"
-#include "sidebarext.h"
+#include "sidebar_component.h"
 #include "storageext.h"
 #include "team.h"
 #include "teamtype.h"
@@ -51,6 +51,7 @@
 #include "unit.h"
 #include "unittypeext.h"
 #include "utracker.h"
+#include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 #include "voc.h"
 #include "vox.h"
@@ -452,7 +453,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
 
     if (result) {
         if (fptr->QueuedObjects.Count() && !resume && !skipset) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, flags);
+            Sidebar.Flag_Strip_To_Redraw(type, flags);
         } else {
             fptr->Start(onhold);
 
@@ -511,7 +512,7 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     if (fptr->Queued_Object_Count() > 0 && id >= 0) {
         const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
         if (fptr->Remove_From_Queue(*technotype)) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, flags);
+            Sidebar.Flag_Strip_To_Redraw(type, flags);
             return PROD_OK;
         }
     }
@@ -527,7 +528,7 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     **  Tell the sidebar that it needs to be redrawn because of this.
     */
     if (PlayerPtr == This()) {
-        SidebarExtension->Abandon_Production(type, fptr, flags);
+        Sidebar.Abandon_Production(type, id);
 
         if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
             Map.PendingObjectPtr = nullptr;

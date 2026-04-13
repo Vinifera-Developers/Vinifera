@@ -50,6 +50,8 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 
+#include <cstdio>
+
 
 /**
  *  Draws a cameo icon for a build item. Supports PCX/PNG custom
@@ -195,4 +197,48 @@ void Draw_Cameo_Name(Surface& surface, const Rect& rect, const Point2D& point, c
         Rect r = rect;
         Print_Cameo_Text(name, pt, r, object_width);
     }
+}
+
+
+/**
+ *  Formats sidebar tooltip text for a build item.
+ *
+ *  @author: ZivDero
+ */
+const char* Format_Cameo_Tooltip(const BuildItem& item)
+{
+    static char buffer[512];
+
+    if (item.Type == RTTI_SPECIAL) {
+        const SuperWeaponTypeClass* swtype = SuperWeaponTypes[item.ID];
+        if (swtype == nullptr) {
+            return nullptr;
+        }
+
+        const SuperWeaponTypeClassExtension* swtypeext = Extension::Fetch(swtype);
+        const char* description = swtypeext->Description;
+
+        if (description[0] == '\0') {
+            return swtype->Full_Name();
+        }
+
+        std::snprintf(buffer, sizeof(buffer), "%s@@%s", swtype->Full_Name(), description);
+        return buffer;
+    }
+
+    const TechnoTypeClass* ttype = Fetch_Techno_Type(item.Type, item.ID);
+    if (ttype == nullptr) {
+        return nullptr;
+    }
+
+    const TechnoTypeClassExtension* technotypeext = Extension::Fetch(ttype);
+    const char* description = technotypeext->Description;
+
+    if (description[0] == '\0') {
+        std::snprintf(buffer, sizeof(buffer), "%s@$%d", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr));
+    } else {
+        std::snprintf(buffer, sizeof(buffer), "%s@$%d@@%s", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr), description);
+    }
+
+    return buffer;
 }

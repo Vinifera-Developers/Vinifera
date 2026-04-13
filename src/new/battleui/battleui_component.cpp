@@ -108,6 +108,26 @@ void BattleUISystem::Blit(bool complete)
 }
 
 
+void BattleUISystem::Set_Dimensions()
+{
+    for (auto *component : Components) {
+        component->Set_Dimensions();
+    }
+}
+
+
+const char *BattleUISystem::Help_Text(int gadget_id)
+{
+    for (auto *component : Components) {
+        const char *text = component->Help_Text(gadget_id);
+        if (text != nullptr) {
+            return text;
+        }
+    }
+    return nullptr;
+}
+
+
 void BattleUISystem::Shutdown()
 {
     for (auto *component : Components) {

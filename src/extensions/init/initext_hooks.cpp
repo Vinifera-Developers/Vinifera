@@ -346,13 +346,11 @@ bool Vinifera_Prep_For_Side(SideType side)
     /**
      *  New Vinifera sidebar (Tabs) side-specific mix.
      */
-    if (Vinifera_NewSidebar) {
-        std::snprintf(name, sizeof(name), "SIDECT%02d.MIX", id);
-        if (CCFileClass(name).Is_Available()) {
-            DEBUG_INFO("     Initializing %s\n", name);
-            SideCTMix = new MFCD(name, &FastKey);
-            SideCTMix->Cache();
-        }
+    std::snprintf(name, sizeof(name), "SIDECT%02d.MIX", id);
+    if (CCFileClass(name).Is_Available()) {
+        DEBUG_INFO("     Initializing %s\n", name);
+        SideCTMix = new MFCD(name, &FastKey);
+        SideCTMix->Cache();
     }
 
     /**

@@ -49,7 +49,6 @@
 #include "rules.h"
 #include "rulesext.h"
 #include "session.h"
-#include "sidebarext.h"
 #include "sideext.h"
 #include "super.h"
 #include "syringe.h"

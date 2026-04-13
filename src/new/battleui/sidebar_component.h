@@ -30,9 +30,9 @@
 #pragma once
 
 #include "battleui_component.h"
-#include "power_model.h"
 #include "sidebar_model.h"
 #include "sidebar_config.h"
+#include "vinifera_defines.h"
 
 
 class ISidebarView;
@@ -58,7 +58,10 @@ public:
     virtual void AI(KeyNumType& key, Point2D& mouse) override;
     virtual void Draw(bool complete) override;
     virtual void Blit(bool complete) override;
+    virtual void Set_Dimensions() override;
     virtual void Shutdown() override;
+
+    virtual const char *Help_Text(int gadget_id) override;
 
     /**
      *  Sidebar-specific interface.
@@ -70,20 +73,20 @@ public:
     bool Factory_Link(FactoryClass* factory, RTTIType type, int id);
     bool Abandon_Production(RTTIType type, int id);
     bool Is_On_Sidebar(RTTIType type, int id) const;
+    void Flag_Current_Strip_To_Redraw();
+    void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags);
+    bool Change_Tab(int index);
+    void Detach(AbstractClass* target);
     void Activate(int control);
-    void Set_Dimensions();
     int Max_Visible() const;
     void Init_Strips();
 
     SidebarModel& Get_Model() { return Model; }
     const SidebarModel& Get_Model() const { return Model; }
-    PowerModel& Get_Power() { return Power; }
-    const PowerModel& Get_Power() const { return Power; }
     ISidebarView* Get_View() { return ActiveView; }
 
 private:
     SidebarModel Model;
-    PowerModel Power;
     ISidebarView* ActiveView;
 };
 

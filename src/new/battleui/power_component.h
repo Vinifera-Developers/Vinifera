@@ -4,12 +4,12 @@
  *
  *  @project       Vinifera
  *
- *  @file          SIDEBAR_CLASSIC_VIEW.H
+ *  @file          POWER_COMPONENT.H
  *
  *  @author        ZivDero
  *
- *  @brief         Classic sidebar view — two single-column strips side by
- *                 side, matching the vanilla Tiberian Sun layout.
+ *  @brief         Power bar component. Owns the power data model and view,
+ *                 and implements the IBattleUIComponent lifecycle interface.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -29,48 +29,45 @@
 
 #pragma once
 
-#include "sidebar_strip_view.h"
-#include "sidebar_view.h"
+#include "battleui_component.h"
+#include "power_model.h"
+#include "power_view.h"
 
 
-class ClassicSidebarView : public ISidebarView
+/**
+ *  Power bar component. Owns the data model and view for the power bar
+ *  and registers with BattleUISystem for lifecycle management.
+ */
+class PowerComponent : public IBattleUIComponent
 {
 public:
-    enum ClassicEnums {
-        COLUMN_COUNT = 2,
+    PowerComponent();
+    ~PowerComponent() = default;
 
-        COLUMN_ONE_X = 24,
-        COLUMN_ONE_Y = 26,
-        COLUMN_TWO_X = 92,
-        COLUMN_TWO_Y = 26,
-
-        UP_X_OFFSET = 5,
-        UP_Y_OFFSET = 25,
-        DOWN_X_OFFSET = UP_X_OFFSET,
-        DOWN_Y_OFFSET = UP_Y_OFFSET,
-    };
-
-    ClassicSidebarView(SidebarModel* model);
-    virtual ~ClassicSidebarView() override = default;
-
+    /**
+     *  IBattleUIComponent
+     */
     virtual void One_Time() override;
     virtual void Init_Clear() override;
     virtual void Init_IO() override;
     virtual void Init_For_House() override;
-    virtual void Set_Dimensions() override;
-    virtual void AI(KeyNumType& input, Point2D& xy) override;
+    virtual void AI(KeyNumType &key, Point2D &mouse) override;
     virtual void Draw(bool complete) override;
     virtual void Blit(bool complete) override;
-    virtual void Activate(int control) override;
+    virtual void Set_Dimensions() override;
+    virtual void Shutdown() override;
 
-    virtual bool Scroll(bool up, int column) override;
-    virtual bool Scroll_Page(bool up, int column) override;
+    virtual const char *Help_Text(int gadget_id) override;
 
-    virtual const char* Help_Text(int gadget_id) override;
-    virtual void Flag_Current_Strip_To_Redraw() override;
-    virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) override;
-    virtual int Max_Visible() const override;
+    void Flash_Power();
+
+    PowerModel &Get_Model() { return Model; }
+    const PowerModel &Get_Model() const { return Model; }
 
 private:
-    SidebarStripView Strip[COLUMN_COUNT];
+    PowerModel Model;
+    PowerView View;
 };
+
+
+extern PowerComponent PowerBar;
