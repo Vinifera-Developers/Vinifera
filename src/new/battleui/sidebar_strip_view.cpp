@@ -35,10 +35,8 @@
 #include "bsurface.h"
 #include "drawshape.h"
 #include "dsurface.h"
-#include "eventext.h"
 #include "extension.h"
 #include "factory.h"
-#include "factoryext.h"
 #include "fetchres.h"
 #include "house.h"
 #include "houseext.h"
@@ -59,7 +57,6 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "voc.h"
-#include "vox.h"
 
 
 /**
@@ -74,7 +71,6 @@ SidebarStripView::SidebarStripView() :
     ColumnX(0),
     ColumnY(0),
     IsToRedraw(true),
-    IsBuilding(false),
     IsScrollingDown(false),
     IsScrolling(false),
     TopIndex(0),
@@ -129,7 +125,6 @@ void SidebarStripView::Init_Clear()
 {
     IsScrollingDown = false;
     IsScrolling = false;
-    IsBuilding = false;
     IsToRedraw = true;
     TopIndex = 0;
     Scroller = 0;
@@ -284,8 +279,7 @@ void SidebarStripView::Deactivate()
 
 
 /**
- *  Per-frame logic. Handles scroll animation, production completion
- *  announcements, and flash feedback.
+ *  Per-frame logic. Handles scroll button input and strip state updates.
  *
  *  @author: ZivDero
  */
@@ -325,51 +319,6 @@ bool SidebarStripView::Update_State()
 
     bool redraw = false;
     int item_count = Category->Items.Count();
-
-    /**
-     *  Check if any item has an active factory — this drives the building
-     *  animation checks below.
-     */
-    IsBuilding = false;
-    for (int i = 0; i < item_count; i++) {
-        if (Category->Items[i].Factory != nullptr) {
-            IsBuilding = true;
-            break;
-        }
-    }
-
-    /**
-     *  Handle building clock animation logic — check each item's factory
-     *  for completed production or state changes.
-     */
-    if (IsBuilding) {
-        for (int i = 0; i < item_count; i++) {
-            BuildItem& item = Category->Items[i];
-            FactoryClass* factory = item.Factory;
-            if (factory != nullptr && (factory->Has_Changed() || Extension::Fetch(factory)->IsHoldingExit)) {
-                redraw = true;
-                if (factory->Has_Completed()) {
-                    TechnoClass* pending = factory->Get_Object();
-                    if (pending != nullptr) {
-                        switch (pending->RTTI) {
-                        case RTTI_UNIT:
-                        case RTTI_INFANTRY:
-                        case RTTI_AIRCRAFT:
-                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            break;
-
-                        case RTTI_BUILDING:
-                            Speak(VOX_CONSTRUCTION);
-                            break;
-
-                        default:
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     /**
      *  Reflect the scroll desired direction/value into the scroll
@@ -559,6 +508,36 @@ void SidebarStripView::Flag_To_Redraw()
 {
     IsToRedraw = true;
 }
+
+BuildItem* SidebarStripView::Get_Visible_Item(int slot)
+{
+    if (Category == nullptr || slot < 0) {
+        return nullptr;
+    }
+
+    const int item_index = TopIndex + slot;
+    if (item_index < 0 || item_index >= Category->Items.Count()) {
+        return nullptr;
+    }
+
+    return &Category->Items[item_index];
+}
+
+
+const BuildItem* SidebarStripView::Get_Visible_Item(int slot) const
+{
+    if (Category == nullptr || slot < 0) {
+        return nullptr;
+    }
+
+    const int item_index = TopIndex + slot;
+    if (item_index < 0 || item_index >= Category->Items.Count()) {
+        return nullptr;
+    }
+
+    return &Category->Items[item_index];
+}
+
 
 void SidebarStripView::Allocate_Select_Buttons(int count)
 {

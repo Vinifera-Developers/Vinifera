@@ -822,17 +822,12 @@ const char* TabbedSidebarView::Help_Text(int gadget_id)
         return nullptr;
     }
 
-    BuildCategory* category = strip.Get_Category();
-    if (category == nullptr) {
+    const BuildItem* item = strip.Get_Visible_Item(slot);
+    if (item == nullptr) {
         return nullptr;
     }
 
-    int item_index = strip.TopIndex + slot;
-    if (item_index < 0 || item_index >= category->Items.Count()) {
-        return nullptr;
-    }
-
-    return Format_Cameo_Tooltip(category->Items[item_index]);
+    return Format_Cameo_Tooltip(*item);
 }
 
 

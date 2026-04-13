@@ -367,17 +367,12 @@ const char* ClassicSidebarView::Help_Text(int gadget_id)
             continue;
         }
 
-        BuildCategory* category = strip.Get_Category();
-        if (category == nullptr) {
+        const BuildItem* item = strip.Get_Visible_Item(offset);
+        if (item == nullptr) {
             return nullptr;
         }
 
-        int item_index = strip.TopIndex + offset;
-        if (item_index < 0 || item_index >= category->Items.Count()) {
-            return nullptr;
-        }
-
-        return Format_Cameo_Tooltip(category->Items[item_index]);
+        return Format_Cameo_Tooltip(*item);
     }
 
     return nullptr;

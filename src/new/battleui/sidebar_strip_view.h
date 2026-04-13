@@ -40,6 +40,7 @@
 #include "rect.h"
 
 class BuildCategory;
+struct BuildItem;
 class CameoButtonClass;
 class Surface;
 
@@ -87,6 +88,8 @@ public:
 
     void Set_Category(BuildCategory* cat) { Category = cat; }
     BuildCategory* Get_Category() const { return Category; }
+    BuildItem* Get_Visible_Item(int slot);
+    const BuildItem* Get_Visible_Item(int slot) const;
 
     bool Has_Ready() const;
     int Visible_Button_Count() const;
@@ -101,7 +104,6 @@ public:
     int ColumnX;
     int ColumnY;
     bool IsToRedraw;
-    bool IsBuilding;
     bool IsScrollingDown;
     bool IsScrolling;
     int TopIndex;

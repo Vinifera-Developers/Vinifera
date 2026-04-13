@@ -29,25 +29,308 @@
 #include "sidebar_component.h"
 
 #include "abstract.h"
+#include "building.h"
 #include "convert.h"
 #include "eventext.h"
 #include "extension.h"
 #include "factory.h"
 #include "factoryext.h"
 #include "house.h"
+#include "houseext.h"
+#include "miscutil.h"
+#include "mouse.h"
 #include "object.h"
 #include "palette.h"
 #include "sidebar_classic_view.h"
+#include "sidebar_strip_view.h"
 #include "sidebar_tabbed_view.h"
 #include "sidebar_view.h"
+#include "super.h"
+#include "supertype.h"
 #include "techno.h"
+#include "technotype.h"
 #include "technotypeext.h"
 #include "tibsun_globals.h"
+#include "tibsun_functions.h"
 #include "uicontrol.h"
 #include "voc.h"
 #include "vox.h"
 
 #include "sidebar.h"
+
+#include <algorithm>
+
+namespace
+{
+struct ResolvedCameoAction
+{
+    RTTIType Type;
+    int ID;
+    ProductionFlags Flags;
+    FactoryClass* LinkedFactory;
+    const TechnoTypeClass* Choice;
+    SuperWeaponType SuperType;
+};
+
+
+bool Resolve_Cameo_Action(BuildItem& item, ResolvedCameoAction& resolved)
+{
+    resolved.Type = item.Type;
+    resolved.ID = item.ID;
+    resolved.Flags = TechnoTypeClassExtension::Get_Production_Flags(item.Type, item.ID);
+    resolved.LinkedFactory = item.Factory;
+    resolved.Choice = nullptr;
+    resolved.SuperType = SUPER_NONE;
+
+    if (item.Type == RTTI_SPECIAL) {
+        resolved.SuperType = static_cast<SuperWeaponType>(item.ID);
+        return true;
+    }
+
+    resolved.Choice = Fetch_Techno_Type(item.Type, item.ID);
+    return resolved.Choice != nullptr;
+}
+
+
+FactoryClass* Fetch_Player_Factory(RTTIType type, ProductionFlags flags)
+{
+    return Extension::Fetch(PlayerPtr)->Fetch_Factory(type, flags);
+}
+
+
+int Count_Queued_Abandon(FactoryClass& factory, const TechnoTypeClass& choice)
+{
+    if (Key_Down(VK_SHIFT)) {
+        return factory.Total_Queued(choice);
+    }
+
+    if (Key_Down(VK_CONTROL)) {
+        return std::min(5, factory.Total_Queued(choice));
+    }
+
+    return 1;
+}
+
+
+void Clear_Pending_Techno_Placement()
+{
+    if (Map.PendingObjectPtr && Map.PendingObjectPtr->Is_Techno()) {
+        Map.PendingObjectPtr = nullptr;
+        Map.PendingObject = nullptr;
+        Map.PendingHouse = HOUSE_NONE;
+        Map.Set_Cursor_Shape(nullptr);
+    }
+}
+
+
+void Speak_Produce_Voice(RTTIType type)
+{
+    Speak(type == RTTI_INFANTRYTYPE ? VOX_TRAINING : VOX_BUILDING);
+}
+
+
+void Queue_Produce_Event(RTTIType type, int id, ProductionFlags flags, int count)
+{
+    for (int i = 0; i < count; ++i) {
+        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, type, id, flags).As_Event());
+    }
+}
+
+
+void Queue_Abandon_Event(RTTIType type, int id, ProductionFlags flags, int count)
+{
+    for (int i = 0; i < count; ++i) {
+        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, type, id, flags).As_Event());
+    }
+}
+
+
+void Queue_Suspend_Event(RTTIType type, int id, ProductionFlags flags)
+{
+    OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, type, id, flags).As_Event());
+}
+
+
+void Queue_Place_Event(int owner, RTTIType type, ProductionFlags flags)
+{
+    OutList.Add(EventClassExt(owner, EVENT_PLACE, type, CELL_NONE, flags).As_Event());
+}
+
+
+void Handle_Superweapon_Action(const ResolvedCameoAction& action, unsigned flags)
+{
+    if (action.SuperType == SUPER_NONE) {
+        return;
+    }
+
+    if (flags & GadgetClass::RIGHTPRESS) {
+        Map.TargettingType = SUPER_NONE;
+    }
+
+    if (!(flags & GadgetClass::LEFTPRESS) || action.SuperType >= PlayerPtr->SuperWeapon.Count()) {
+        return;
+    }
+
+    SuperClass* super = PlayerPtr->SuperWeapon[action.SuperType];
+    if (super == nullptr) {
+        return;
+    }
+
+    if (!super->Can_Place()) {
+        super->Impatient_Click();
+        return;
+    }
+
+    if (super->Class->Action != ACTION_NONE) {
+        Map.TargettingType = action.SuperType;
+        Unselect_All();
+        Speak(VOX_SELECT_TARGET);
+        return;
+    }
+
+    OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, super->Class->HeapID, CELL_NONE));
+}
+
+
+void Handle_Techno_Right_Press(SidebarComponent& sidebar, const ResolvedCameoAction& action)
+{
+    FactoryClass* factory = action.LinkedFactory;
+
+    if (factory != nullptr) {
+        Clear_Pending_Techno_Placement();
+
+        if (!factory->Is_Building()) {
+            Speak(VOX_CANCELED);
+            Queue_Abandon_Event(action.Type, action.ID, action.Flags, Count_Queued_Abandon(*factory, *action.Choice));
+        } else {
+            Speak(VOX_SUSPENDED);
+            Queue_Suspend_Event(action.Type, action.ID, action.Flags);
+            sidebar.Flag_Strip_To_Redraw(action.Type, action.Flags);
+        }
+        return;
+    }
+
+    factory = Fetch_Player_Factory(action.Type, action.Flags);
+    if (factory != nullptr && factory->Is_Queued(*action.Choice)) {
+        Queue_Abandon_Event(action.Type, action.ID, action.Flags, Count_Queued_Abandon(*factory, *action.Choice));
+    }
+}
+
+
+void Handle_Completed_Factory_Output(const ResolvedCameoAction& action, FactoryClass& factory)
+{
+    TechnoClass* pending = factory.Get_Object();
+    if (pending == nullptr) {
+        if (factory.Get_Special_Item() != -1) {
+            Map.TargettingType = SUPER_ANY;
+        }
+        return;
+    }
+
+    BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
+    if (builder == nullptr) {
+        Queue_Abandon_Event(action.Type, action.ID, action.Flags, 1);
+        Speak(VOX_NO_FACTORY);
+        return;
+    }
+
+    if (pending->Fetch_RTTI() == RTTI_BUILDING) {
+        PlayerPtr->Manual_Place(builder, static_cast<BuildingClass*>(pending));
+        return;
+    }
+
+    Queue_Place_Event(pending->Owner(), action.Type, TechnoTypeClassExtension::Get_Production_Flags(pending));
+}
+
+
+void Handle_Techno_Left_Press(const ResolvedCameoAction& action)
+{
+    FactoryClass* factory = action.LinkedFactory;
+    if (factory != nullptr && !factory->Is_Building() && !Extension::Fetch(factory)->IsHoldingExit) {
+        if (factory->Has_Completed()) {
+            Handle_Completed_Factory_Output(action, *factory);
+        } else {
+            Speak_Produce_Voice(action.Type);
+            Queue_Produce_Event(action.Type, action.ID, action.Flags, 1);
+        }
+        return;
+    }
+
+    factory = Fetch_Player_Factory(action.Type, action.Flags);
+
+    bool produce = false;
+    if (factory != nullptr && (factory->Is_Building() || factory->Has_Production_Target())) {
+        if (action.Type == RTTI_BUILDINGTYPE) {
+            Speak(VOX_NO_FACTORY);
+        } else {
+            produce = true;
+        }
+    } else {
+        Speak_Produce_Voice(action.Type);
+        produce = true;
+    }
+
+    if (produce) {
+        Queue_Produce_Event(action.Type, action.ID, action.Flags, Key_Down(VK_SHIFT) ? 5 : 1);
+    }
+}
+
+
+bool Should_Process_Factory_Change(FactoryClass& factory)
+{
+    return factory.Has_Changed() || Extension::Fetch(&factory)->IsHoldingExit;
+}
+
+
+ProductionFlags Resolve_Redraw_Flags(const BuildItem& item, FactoryClass& factory)
+{
+    if (TechnoClass* object = factory.Get_Object()) {
+        return TechnoTypeClassExtension::Get_Production_Flags(object);
+    }
+
+    return TechnoTypeClassExtension::Get_Production_Flags(item.Type, item.ID);
+}
+
+
+void Notify_Completed_Factory_Output(FactoryClass& factory)
+{
+    if (!factory.Has_Changed() || !factory.Has_Completed()) {
+        return;
+    }
+
+    TechnoClass* pending = factory.Get_Object();
+    if (pending == nullptr) {
+        return;
+    }
+
+    switch (pending->RTTI) {
+    case RTTI_UNIT:
+    case RTTI_INFANTRY:
+    case RTTI_AIRCRAFT:
+        Queue_Place_Event(pending->Owner(), pending->RTTI, TechnoTypeClassExtension::Get_Production_Flags(pending));
+        break;
+
+    case RTTI_BUILDING:
+        Speak(VOX_CONSTRUCTION);
+        break;
+
+    default:
+        break;
+    }
+}
+
+
+void Update_Item_Production_State(SidebarComponent& sidebar, BuildItem& item)
+{
+    FactoryClass* factory = item.Factory;
+    if (factory == nullptr || !Should_Process_Factory_Change(*factory)) {
+        return;
+    }
+
+    sidebar.Flag_Strip_To_Redraw(item.Type, Resolve_Redraw_Flags(item, *factory));
+    Notify_Completed_Factory_Output(*factory);
+}
+}
 
 
 
@@ -305,6 +588,53 @@ bool SidebarComponent::Abandon_Production(RTTIType type, int id)
 
 
 /**
+ *  Routes a cameo button click through the shared sidebar interaction rules.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarComponent::Handle_Cameo_Action(SidebarStripView& strip, int slot, unsigned& flags)
+{
+    BuildItem* item = strip.Get_Visible_Item(slot);
+    if (item == nullptr) {
+        flags = 0;
+        return false;
+    }
+
+    ResolvedCameoAction action{};
+    if (!Resolve_Cameo_Action(*item, action)) {
+        flags = 0;
+        return false;
+    }
+
+    Map.Override_Mouse_Shape(MOUSE_NORMAL);
+
+    if (flags & GadgetClass::LEFTUP) {
+        flags &= ~GadgetClass::LEFTUP;
+    }
+
+    if (action.SuperType != SUPER_NONE) {
+        Handle_Superweapon_Action(action, flags);
+        return true;
+    }
+
+    if (action.Choice == nullptr) {
+        flags = 0;
+        return false;
+    }
+
+    if (flags & GadgetClass::RIGHTPRESS) {
+        Handle_Techno_Right_Press(*this, action);
+    }
+
+    if (flags & GadgetClass::LEFTPRESS) {
+        Handle_Techno_Left_Press(action);
+    }
+
+    return true;
+}
+
+
+/**
  *  Checks if an item is on the sidebar.
  *
  *  @author: ZivDero
@@ -522,50 +852,7 @@ void SidebarComponent::Update_Production_State()
         BuildCategory& category = Model.Get_Category(category_index);
 
         for (int item_index = 0; item_index < category.Items.Count(); ++item_index) {
-            BuildItem& item = category.Items[item_index];
-            FactoryClass* factory = item.Factory;
-            if (factory == nullptr) {
-                continue;
-            }
-
-            auto* factory_ext = Extension::Fetch(factory);
-            const bool changed = factory->Has_Changed();
-            const bool holding_exit = factory_ext->IsHoldingExit;
-
-            if (!changed && !holding_exit) {
-                continue;
-            }
-
-            ProductionFlags flags = TechnoTypeClassExtension::Get_Production_Flags(item.Type, item.ID);
-            if (TechnoClass* object = factory->Get_Object()) {
-                flags = TechnoTypeClassExtension::Get_Production_Flags(object);
-            }
-
-            Flag_Strip_To_Redraw(item.Type, flags);
-
-            if (!changed || !factory->Has_Completed()) {
-                continue;
-            }
-
-            TechnoClass* pending = factory->Get_Object();
-            if (pending == nullptr) {
-                continue;
-            }
-
-            switch (pending->RTTI) {
-            case RTTI_UNIT:
-            case RTTI_INFANTRY:
-            case RTTI_AIRCRAFT:
-                OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                break;
-
-            case RTTI_BUILDING:
-                Speak(VOX_CONSTRUCTION);
-                break;
-
-            default:
-                break;
-            }
+            Update_Item_Production_State(*this, category.Items[item_index]);
         }
     }
 }
