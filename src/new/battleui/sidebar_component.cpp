@@ -305,14 +305,14 @@ bool SidebarComponent::Is_On_Sidebar(RTTIType type, int id) const
 
 
 /**
- *  Flags the currently active strip for redraw.
+ *  Flags the currently visible strip set for redraw.
  *
  *  @author: ZivDero
  */
-void SidebarComponent::Flag_Current_Strip_To_Redraw()
+void SidebarComponent::Flag_Strip_To_Redraw()
 {
     if (ActiveView != nullptr) {
-        ActiveView->Flag_Current_Strip_To_Redraw();
+        ActiveView->Flag_Strip_To_Redraw();
     }
 }
 

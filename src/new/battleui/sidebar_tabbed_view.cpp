@@ -763,11 +763,11 @@ bool TabbedSidebarView::Scroll_Page(bool up, int column)
 
 
 /**
- *  Flags the active tab strip for redraw.
+ *  Flags the visible tab strip for redraw.
  *
  *  @author: ZivDero
  */
-void TabbedSidebarView::Flag_Current_Strip_To_Redraw()
+void TabbedSidebarView::Flag_Strip_To_Redraw()
 {
     Strip[TabIndex].Flag_To_Redraw();
 }

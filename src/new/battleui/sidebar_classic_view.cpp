@@ -323,11 +323,11 @@ bool ClassicSidebarView::Scroll_Page(bool up, int column)
 
 
 /**
- *  Flags the active strips for redraw.
+ *  Flags the visible classic strips for redraw.
  *
  *  @author: ZivDero
  */
-void ClassicSidebarView::Flag_Current_Strip_To_Redraw()
+void ClassicSidebarView::Flag_Strip_To_Redraw()
 {
     for (int i = 0; i < COLUMN_COUNT; i++) {
         Strip[i].Flag_To_Redraw();

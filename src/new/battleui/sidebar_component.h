@@ -76,7 +76,7 @@ public:
     bool Factory_Link(FactoryClass* factory, RTTIType type, int id);
     bool Abandon_Production(RTTIType type, int id);
     bool Is_On_Sidebar(RTTIType type, int id) const;
-    void Flag_Current_Strip_To_Redraw();
+    void Flag_Strip_To_Redraw();
     void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags);
     bool Change_Tab(int index);
     void Detach(AbstractClass* target);

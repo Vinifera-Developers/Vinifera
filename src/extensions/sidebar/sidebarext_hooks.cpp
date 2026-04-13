@@ -126,17 +126,7 @@ public:
 static class StripClassExt : public SidebarClass::StripClass
 {
 public:
-    void _One_Time(int id);
-    void _Init_IO(int id);
-    void _Activate();
-    void _Deactivate();
-    bool _Scroll(bool up);
-    bool _Scroll_Page(bool up);
-    bool _AI(KeyNumType& input, Point2D const& xy);
-    void _Draw_It(bool complete);
-    bool _Factory_Link(FactoryClass* factory, RTTIType type, int id);
-    void _Fake_Flag_To_Redraw_Special();
-    void _Fake_Flag_To_Redraw_Current();
+    void _Flag_To_Redraw();
 };
 
 
@@ -463,127 +453,21 @@ int SidebarClassExt::_Which_Column(RTTIType type)
 
 
 /**
- *  Reimplements the entire SidebarClass::StripClass::One_Time function.
+ *  Reimplements SidebarClass::StripClass::Flag_To_Redraw with simpler
+ *  battle UI redraw semantics.
+ *
+ *  Classic redraws all visible strips, while the tabbed view redraws only
+ *  the active strip.
  *
  *  @author: ZivDero
  */
-void StripClassExt::_One_Time(int id)
+void StripClassExt::_Flag_To_Redraw()
 {
-    (void)id;
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::Init_IO function.
- *
- *  @author: ZivDero
- */
-void StripClassExt::_Init_IO(int id)
-{
-    (void)id;
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::Activate function.
- *
- *  @author: ZivDero
- */
-void StripClassExt::_Activate()
-{
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::Deactivate function.
- *
- *  @author: ZivDero
- */
-void StripClassExt::_Deactivate()
-{
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::Scroll function.
- *
- *  @author: ZivDero
- */
-bool StripClassExt::_Scroll(bool up)
-{
-    (void)up;
-    return false;
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::Scroll_Page function.
- *
- *  @author: ZivDero
- */
-bool StripClassExt::_Scroll_Page(bool up)
-{
-    (void)up;
-    return false;
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::AI function.
- *
- *  @author: ZivDero
- */
-bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
-{
-    (void)input;
-    return false;
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::Draw_It function.
- *
- *  @author: ZivDero
- */
-void StripClassExt::_Draw_It(bool complete)
-{
-    (void)complete;
-}
-
-
-/**
- *  Reimplements the entire SidebarClass::StripClass::Factory_Link function.
- *
- *  @author: ZivDero
- */
-bool StripClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
-{
-    (void)factory;
-    (void)type;
-    (void)id;
-    return false;
-}
-
-
-/**
- *  Fake function to patch calls to redraw a specific vanilla strip.
- *
- *  @author: ZivDero
- */
-void StripClassExt::_Fake_Flag_To_Redraw_Special()
-{
-    BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(RTTI_SPECIAL, PRODFLAG_NONE);
-}
-
-
-/**
- *  Fake function to patch calls to redraw a specific vanilla strip.
- *
- *  @author: ZivDero
- */
-void StripClassExt::_Fake_Flag_To_Redraw_Current()
-{
-    BattleUI.Get_Sidebar().Flag_Current_Strip_To_Redraw();
+    IsToRedraw = true;
+    BattleUI.Get_Sidebar().Flag_Strip_To_Redraw();
+    Map.SidebarClass::IsToRedraw = true;
+    RedrawSidebar = true;
+    Map.Flag_To_Redraw();
 }
 
 
@@ -713,33 +597,9 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
     Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
     Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
-
-    Patch_Jump(0x005F4210, &StripClassExt::_One_Time);
-    Patch_Jump(0x005F42A0, &StripClassExt::_Init_IO);
-    Patch_Jump(0x005F4450, &StripClassExt::_Activate);
-    Patch_Jump(0x005F4560, &StripClassExt::_Deactivate);
-    Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
-    Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
-    Patch_Jump(0x005F4910, &StripClassExt::_AI);
-    Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
-    Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
+    Patch_Jump(0x005F48F0, &StripClassExt::_Flag_To_Redraw);
 
     Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
-
-    // There are a bunch of calls to vanilla strips to redraw them.
-    // We patch them to either redraw the supers' strip or the current strip.
-    Patch_Call(0x00458ADB, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004BD32D, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004CB585, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004CB6F8, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x00619F9A, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x0061C09C, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x0061C0FD, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-
-    Patch_Call(0x004BD1E0, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
 
     // NOP away tooltip length check for formatting
     Patch_Byte(0x0044E486, 0x90);
