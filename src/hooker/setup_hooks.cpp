@@ -52,11 +52,3 @@ void Setup_Hooks()
     //CnCNet4_Hooks();
     //CnCNet5_Hooks();
 }
-
-/**
- *  Contains hooks that need to be set after we load VINIFERA.INI.
- */
-void Setup_Conditional_Hooks()
-{
-    SidebarClassExtension_Conditional_Hooks();
-}

@@ -556,9 +556,6 @@ bool Vinifera_Startup()
 #endif
     }
 
-    DEBUG_INFO("Setting up conditional hooks.\n");
-    Setup_Conditional_Hooks();
-
     /**
      *  Current path (perhaps set set with -CD) should go next.
      */

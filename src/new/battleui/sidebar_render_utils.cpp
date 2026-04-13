@@ -55,9 +55,10 @@
 
 /**
  *  Draws a cameo icon for a build item. Supports PCX/PNG custom
- *  cameo images as well as standard shape-based cameos.
+ *  cameo images as well as standard shape-based cameos. Ported from
+ *  the old sidebar hook patches.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, CCHyper
  */
 void Draw_Cameo(Surface& surface, const Rect& rect, const BuildItem& item, const Point2D& point)
 {
@@ -201,9 +202,10 @@ void Draw_Cameo_Name(Surface& surface, const Rect& rect, const Point2D& point, c
 
 
 /**
- *  Formats sidebar tooltip text for a build item.
+ *  Formats sidebar tooltip text for a build item. Ported from the
+ *  extended sidebar tooltip hook.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 const char* Format_Cameo_Tooltip(const BuildItem& item)
 {
