@@ -40,8 +40,6 @@
 #include "language.h"
 #include "mouse.h"
 #include "sidebar.h"
-#include "sidebar_component.h"
-#include "battleui_component.h"
 #include "shapeset.h"
 #include "surface.h"
 #include "tibsun_globals.h"
@@ -68,9 +66,8 @@ PowerView::PowerView() :
     GreenPipCount(0),
     YellowPipCount(0),
     RedPipCount(0),
-    HasChanged(false),
-    RecordedDrain(-1),
-    RecordedPower(-1)
+    VisibleButtonsPerColumn(SidebarClass::StripClass::MAX_VISIBLE),
+    HasChanged(false)
 {
 }
 
@@ -92,14 +89,13 @@ void PowerView::One_Time()
  */
 void PowerView::Init_Clear()
 {
-    RecordedDrain = -1;
-    RecordedPower = -1;
     FlashTimer = 0;
     FlashCount = 0;
     UpdateTimer = 0;
     GreenPipCount = 0;
     YellowPipCount = 0;
     RedPipCount = 0;
+    VisibleButtonsPerColumn = SidebarClass::StripClass::MAX_VISIBLE;
     HasChanged = false;
     IsToRedraw = false;
 }
@@ -130,10 +126,21 @@ void PowerView::Set_Dimensions()
         tt.Region.X = SidebarRect.X + POWER_X;
         tt.Region.Y = SidebarRect.Y + POWER_Y;
         tt.Region.Width = POWER_WIDTH;
-        tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Visible_Buttons_Per_Column();
+        tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn;
 
         ToolTips->Remove(tt.ID);
         ToolTips->Add(&tt);
+    }
+}
+
+
+void PowerView::Set_Visible_Buttons_Per_Column(int count)
+{
+    count = std::max(1, count);
+    if (VisibleButtonsPerColumn != count) {
+        VisibleButtonsPerColumn = count;
+        HasChanged = true;
+        IsToRedraw = true;
     }
 }
 
@@ -157,7 +164,7 @@ void PowerView::Flash_Power()
  */
 int PowerView::Max_Power_Height() const
 {
-    return SidebarClass::StripClass::OBJECT_HEIGHT * BattleUI.Get_Sidebar().Visible_Buttons_Per_Column() / POWER_PIP_HEIGHT;
+    return SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn / POWER_PIP_HEIGHT;
 }
 
 
@@ -331,8 +338,6 @@ void PowerView::AI()
         return;
     }
 
-    const int current_drain = Current_Drain();
-    const int current_power = Current_Power();
     const bool model_dirty = Model != nullptr && Model->Is_Dirty();
 
     if (!HasChanged && FlashCount > 0) {
@@ -347,7 +352,7 @@ void PowerView::AI()
     /**
      *  If the recorded power or drain value has changed we need to adjust for it.
      */
-    if (current_drain != RecordedDrain || current_power != RecordedPower || model_dirty || HasChanged) {
+    if (model_dirty || HasChanged) {
 
         IsToRedraw = true;
         Map.Redraw_Sidebar();
@@ -355,13 +360,10 @@ void PowerView::AI()
         /**
          *  Flag to flash the top of the power bar if we're adjusting the bar height.
          */
-        if (current_drain != RecordedDrain || current_power != RecordedPower) {
+        if (model_dirty) {
             HasChanged = true;
             Flash_Power();
         }
-
-        RecordedDrain = current_drain;
-        RecordedPower = current_power;
 
         int green, yellow, red;
         Desired_Levels(green, yellow, red);

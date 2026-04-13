@@ -129,6 +129,12 @@ void PowerComponent::Set_Dimensions()
 }
 
 
+void PowerComponent::Set_Visible_Buttons_Per_Column(int count)
+{
+    View.Set_Visible_Buttons_Per_Column(count);
+}
+
+
 /**
  *  Shuts down the power component.
  *

@@ -83,7 +83,7 @@ public:
     void Activate(int control);
     int Visible_Button_Count() const;
     int Visible_Buttons_Per_Column() const;
-    void Init_Strips();
+    void Reload_Layout();
 
     HRESULT Save(IStream* pStm) const override;
     HRESULT Load(IStream* pStm) override;
@@ -94,6 +94,9 @@ public:
     ISidebarView* Get_View() { return ActiveView; }
 
 private:
+    void Prepare_Drawer();
+    void Update_Production_State();
+
     ActionBarView ActionBar;
     SidebarModel Model;
     ISidebarView* ActiveView;

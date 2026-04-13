@@ -29,15 +29,23 @@
 #include "sidebar_component.h"
 
 #include "abstract.h"
+#include "convert.h"
+#include "eventext.h"
+#include "extension.h"
 #include "factory.h"
+#include "factoryext.h"
 #include "house.h"
 #include "object.h"
+#include "palette.h"
 #include "sidebar_classic_view.h"
 #include "sidebar_tabbed_view.h"
 #include "sidebar_view.h"
 #include "techno.h"
+#include "technotypeext.h"
 #include "tibsun_globals.h"
 #include "uicontrol.h"
+#include "voc.h"
+#include "vox.h"
 
 #include "sidebar.h"
 
@@ -141,6 +149,8 @@ void SidebarComponent::Init_For_House()
 {
     Model.Init_For_House();
 
+    Prepare_Drawer();
+
     if (ActiveView) {
         ActiveView->Init_For_House();
     }
@@ -160,6 +170,7 @@ void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
         Model.Recalc_All();
     }
 
+    Update_Production_State();
     ActionBar.AI(key);
 
     if (ActiveView) {
@@ -428,15 +439,13 @@ int SidebarComponent::Visible_Buttons_Per_Column() const
 
 
 /**
- *  Initializes the sidebar strips. Called during scenario init.
+ *  Reloads the sidebar layout after legacy sidebar setup paths fire.
  *
  *  @author: ZivDero
  */
-void SidebarComponent::Init_Strips()
+void SidebarComponent::Reload_Layout()
 {
-    if (ActiveView) {
-        ActiveView->Init_IO();
-    }
+    Set_Dimensions();
 }
 
 
@@ -491,4 +500,72 @@ void SidebarComponent::Relink_Factories()
     }
 
     Model.Recalc_All();
+}
+
+
+void SidebarComponent::Prepare_Drawer()
+{
+    if (Debug_Map) {
+        return;
+    }
+
+    PaletteClass pal("SIDEBAR.PAL");
+
+    delete SidebarDrawer;
+    SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
+}
+
+
+void SidebarComponent::Update_Production_State()
+{
+    for (int category_index = 0; category_index < Model.Category_Count(); ++category_index) {
+        BuildCategory& category = Model.Get_Category(category_index);
+
+        for (int item_index = 0; item_index < category.Items.Count(); ++item_index) {
+            BuildItem& item = category.Items[item_index];
+            FactoryClass* factory = item.Factory;
+            if (factory == nullptr) {
+                continue;
+            }
+
+            auto* factory_ext = Extension::Fetch(factory);
+            const bool changed = factory->Has_Changed();
+            const bool holding_exit = factory_ext->IsHoldingExit;
+
+            if (!changed && !holding_exit) {
+                continue;
+            }
+
+            ProductionFlags flags = TechnoTypeClassExtension::Get_Production_Flags(item.Type, item.ID);
+            if (TechnoClass* object = factory->Get_Object()) {
+                flags = TechnoTypeClassExtension::Get_Production_Flags(object);
+            }
+
+            Flag_Strip_To_Redraw(item.Type, flags);
+
+            if (!changed || !factory->Has_Completed()) {
+                continue;
+            }
+
+            TechnoClass* pending = factory->Get_Object();
+            if (pending == nullptr) {
+                continue;
+            }
+
+            switch (pending->RTTI) {
+            case RTTI_UNIT:
+            case RTTI_INFANTRY:
+            case RTTI_AIRCRAFT:
+                OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                break;
+
+            case RTTI_BUILDING:
+                Speak(VOX_CONSTRUCTION);
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
 }

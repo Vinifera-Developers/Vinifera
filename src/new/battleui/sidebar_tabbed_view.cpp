@@ -34,7 +34,6 @@
 #include "sidebar_render_utils.h"
 
 #include "colorscheme.h"
-#include "convert.h"
 #include "drawshape.h"
 #include "extension.h"
 #include "factory.h"
@@ -45,7 +44,6 @@
 #include "language.h"
 #include "mouse.h"
 #include "options.h"
-#include "palette.h"
 #include "power.h"
 #include "scenario.h"
 #include "sidebar.h"
@@ -420,11 +418,6 @@ void TabbedSidebarView::Init_IO()
  */
 void TabbedSidebarView::Init_For_House()
 {
-    PaletteClass pal("SIDEBAR.PAL");
-
-    delete SidebarDrawer;
-    SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
-
     SidebarClass::SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDE1.SHP");
     SidebarClass::SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDE2.SHP");
     SidebarClass::SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDE3.SHP");

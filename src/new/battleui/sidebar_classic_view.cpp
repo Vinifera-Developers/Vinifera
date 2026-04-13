@@ -33,14 +33,12 @@
 #include "sidebar_render_utils.h"
 #include "power_model.h"
 
-#include "convert.h"
 #include "drawshape.h"
 #include "fetchres.h"
 #include "house.h"
 #include "language.h"
 #include "mouse.h"
 #include "options.h"
-#include "palette.h"
 #include "power.h"
 #include "sidebar.h"
 #include "tibsun_globals.h"
@@ -129,11 +127,6 @@ void ClassicSidebarView::Init_IO()
  */
 void ClassicSidebarView::Init_For_House()
 {
-    PaletteClass pal("SIDEBAR.PAL");
-
-    delete SidebarDrawer;
-    SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
-
     SidebarClass::SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDE1.SHP");
     SidebarClass::SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDE2.SHP");
     SidebarClass::SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDE3.SHP");

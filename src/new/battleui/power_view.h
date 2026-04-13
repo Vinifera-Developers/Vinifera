@@ -66,6 +66,7 @@ public:
     void Init_Clear();
     void Init_For_House();
     void Set_Dimensions();
+    void Set_Visible_Buttons_Per_Column(int count);
     void AI();
     void Draw(bool complete);
     void Flash_Power();
@@ -95,11 +96,9 @@ private:
     int GreenPipCount;
     int YellowPipCount;
     int RedPipCount;
+    int VisibleButtonsPerColumn;
 
     bool HasChanged;
-
-    int RecordedDrain;
-    int RecordedPower;
 
     static const ShapeSet *PowerPipShape;
 };

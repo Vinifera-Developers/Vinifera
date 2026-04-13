@@ -130,6 +130,17 @@ public:
 };
 
 
+static int& SidebarDialogCount = Make_Global<int>(0x007E492C);
+
+
+static void Request_Sidebar_Redraw(SidebarClass& sidebar, int flags = 0)
+{
+    sidebar.IsToRedraw = true;
+    RedrawSidebar = true;
+    sidebar.Flag_To_Redraw(flags);
+}
+
+
 /**
  *  Patch for including the extended class members in the creation process.
  *
@@ -214,7 +225,7 @@ void SidebarClassExt::_Init_For_House()
  */
 void SidebarClassExt::_Init_Strips()
 {
-    BattleUI.Get_Sidebar().Init_Strips();
+    BattleUI.Get_Sidebar().Reload_Layout();
 }
 
 
@@ -239,8 +250,7 @@ bool SidebarClassExt::_Add(RTTIType type, int id)
     if (!Debug_Map) {
         if (BattleUI.Get_Sidebar().Add(type, id)) {
             Activate(1);
-            IsToRedraw = true;
-            Flag_To_Redraw(false);
+            Request_Sidebar_Redraw(*this);
             return true;
         }
     }
@@ -306,14 +316,12 @@ bool SidebarClassExt::_Activate(int control)
  */
 bool SidebarClassExt::_Scroll(bool up, int column)
 {
-    static int& _dialog_count = Make_Global<int>(0x007E492C);
-    if (_dialog_count != 0) {
+    if (SidebarDialogCount != 0) {
         return false;
     }
 
     if (BattleUI.Get_Sidebar().Scroll(up, column)) {
-        IsToRedraw = true;
-        Flag_To_Redraw(false);
+        Request_Sidebar_Redraw(*this);
         return true;
     }
 
@@ -330,8 +338,7 @@ bool SidebarClassExt::_Scroll(bool up, int column)
 bool SidebarClassExt::_Scroll_Page(bool up, int column)
 {
     if (BattleUI.Get_Sidebar().Scroll_Page(up, column)) {
-        IsToRedraw = true;
-        Flag_To_Redraw(false);
+        Request_Sidebar_Redraw(*this);
         return true;
     }
 
@@ -381,8 +388,7 @@ void SidebarClassExt::_Draw_It(bool complete)
 void SidebarClassExt::_Recalc()
 {
     BattleUI.Get_Sidebar().Recalc();
-    IsToRedraw = true;
-    Flag_To_Redraw();
+    Request_Sidebar_Redraw(*this);
 }
 
 
@@ -465,9 +471,7 @@ void StripClassExt::_Flag_To_Redraw()
 {
     IsToRedraw = true;
     BattleUI.Get_Sidebar().Flag_Strip_To_Redraw();
-    Map.SidebarClass::IsToRedraw = true;
-    RedrawSidebar = true;
-    Map.Flag_To_Redraw();
+    Request_Sidebar_Redraw(Map);
 }
 
 

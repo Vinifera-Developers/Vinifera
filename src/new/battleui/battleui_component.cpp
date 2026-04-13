@@ -90,6 +90,7 @@ void BattleUISystem::Blit(bool complete)
 void BattleUISystem::Set_Dimensions()
 {
     Sidebar.Set_Dimensions();
+    Power.Set_Visible_Buttons_Per_Column(Sidebar.Visible_Buttons_Per_Column());
     Power.Set_Dimensions();
 }
 
