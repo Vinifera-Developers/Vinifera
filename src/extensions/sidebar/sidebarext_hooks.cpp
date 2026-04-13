@@ -79,6 +79,8 @@
 #include "vox.h"
 #include "wwmouse.h"
 
+#include "sidebar_component.h"
+
 #include <algorithm>
 
 
@@ -208,15 +210,7 @@ DEFINE_HOOK(0x005B8B7D, _SidebarClass_Destructor_Patch, 5)
 void SidebarClassExt::_One_Time()
 {
     PowerClass::One_Time();
-
-    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-        SidebarExtension->Column[i].One_Time(i);
-
-    /**
-     *  Load the sidebar shapes in at this time.
-     */
-    StripClass::RechargeClockShape = MFCD::RetrieveT<ShapeSet>("RCLOCK2.SHP");
-    StripClass::ClockShape = MFCD::RetrieveT<ShapeSet>("GCLOCK2.SHP");
+    Sidebar.One_Time();
 }
 
 
@@ -232,12 +226,8 @@ void SidebarClassExt::_Init_Clear()
     IsToRedraw = true;
     IsRepairActive = false;
     IsUpgradeActive = false;
-    IsUpgradeActive = false;
 
-    SidebarExtension->TabIndex = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
-
-    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-        SidebarExtension->Column[i].Init_Clear();
+    Sidebar.Init_Clear();
 
     Activate(0);
 }
@@ -257,73 +247,11 @@ void SidebarClassExt::_Init_IO()
     SidebarRect.Width = 641 - (TacticalRect.Width + TacticalRect.X);
     SidebarRect.Height = TacticalRect.Height + TacticalRect.Y - SidebarRect.Y;
 
-    /**
-     * Add the sidebar's buttons only if we're not in editor mode.
-     */
-    if (!Debug_Map)
-    {
-        Repair.X = TacticalRect.Width + TacticalRect.X;
-        Sell.X = TacticalRect.Width + TacticalRect.X + 27;
-        Power.X = TacticalRect.Width + TacticalRect.X + 54;
-        Waypoint.X = TacticalRect.Width + TacticalRect.X + 81;
-
-        Repair.IsSticky = true;
-        Repair.ID = BUTTON_REPAIR;
-        Repair.Y = 148;
-        Repair.DrawX = -480;
-        Repair.DrawY = 3;
-        Repair.DrawnOnSidebarSurface = true;
-        Repair.ShapeDrawer = SidebarDrawer;
-        Repair.IsPressed = false;
-        Repair.IsToggleType = true;
-        Repair.ReflectButtonState = true;
-
-        Sell.IsSticky = true;
-        Sell.ID = BUTTON_SELL;
-        Sell.Y = 148;
-        Sell.DrawX = -480;
-        Sell.DrawY = 3;
-        Sell.DrawnOnSidebarSurface = true;
-        Sell.ShapeDrawer = SidebarDrawer;
-        Sell.IsPressed = false;
-        Sell.IsToggleType = true;
-        Sell.ReflectButtonState = true;
-
-        Power.IsSticky = true;
-        Power.ID = BUTTON_POWER;
-        Power.Y = 148;
-        Power.DrawX = -480;
-        Power.DrawY = 3;
-        Power.DrawnOnSidebarSurface = true;
-        Power.ShapeDrawer = SidebarDrawer;
-        Power.IsPressed = false;
-        Power.IsToggleType = true;
-        Power.ReflectButtonState = true;
-
-        Waypoint.IsSticky = true;
-        Waypoint.ID = BUTTON_WAYPOINT;
-        Waypoint.Y = 148;
-        Waypoint.DrawX = -480;
-        Waypoint.DrawY = 3;
-        Waypoint.DrawnOnSidebarSurface = true;
-        Waypoint.ShapeDrawer = SidebarDrawer;
-        Waypoint.IsPressed = false;
-        Waypoint.IsToggleType = true;
-        Waypoint.ReflectButtonState = true;
-        Waypoint.Enable();
-
-        SidebarExtension->Init_IO();
-
-        for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-            SidebarExtension->Column[i].Init_IO(i);
-
+    if (!Debug_Map) {
+        Sidebar.Init_IO();
         Set_Dimensions();
 
-        /**
-        **  If a game was loaded & the sidebar was enabled, pop it up now.
-        */
-        if (IsSidebarActive)
-        {
+        if (IsSidebarActive) {
             IsSidebarActive = false;
             Activate(1);
         }
@@ -339,33 +267,7 @@ void SidebarClassExt::_Init_IO()
 void SidebarClassExt::_Init_For_House()
 {
     PowerClass::Init_For_House();
-
-    PaletteClass pal("SIDEBAR.PAL");
-
-    delete SidebarDrawer;
-    SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
-
-    Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
-    Sell.ShapeDrawer = SidebarDrawer;
-
-    Power.Set_Shape(MFCD::RetrieveT<ShapeSet>("POWER.SHP"));
-    Power.ShapeDrawer = SidebarDrawer;
-
-    Waypoint.Set_Shape(MFCD::RetrieveT<ShapeSet>("WAYP.SHP"));
-    Waypoint.ShapeDrawer = SidebarDrawer;
-
-    Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>("REPAIR.SHP"));
-    Repair.ShapeDrawer = SidebarDrawer;
-
-    SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDE1.SHP");
-    SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDE2.SHP");
-    SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDE3.SHP");
-    SidebarAddonShape = MFCD::RetrieveT<ShapeSet>("ADDON.SHP");
-
-    SidebarExtension->Init_For_House();
-
-    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; ++i)
-        static_cast<StripClassExt*>(&SidebarExtension->Column[i])->_Init_For_House(i);
+    Sidebar.Init_For_House();
 }
 
 
@@ -376,7 +278,7 @@ void SidebarClassExt::_Init_For_House()
  */
 void SidebarClassExt::_Init_Strips()
 {
-    SidebarExtension->Init_Strips();
+    Sidebar.Init_Strips();
 }
 
 
@@ -387,7 +289,7 @@ void SidebarClassExt::_Init_Strips()
  */
 bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
 {
-    return SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Factory_Link(factory, type, id);
+    return Sidebar.Factory_Link(factory, type, id);
 }
 
 
@@ -398,10 +300,8 @@ bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id
  */
 bool SidebarClassExt::_Add(RTTIType type, int id)
 {
-    if (!Debug_Map)
-    {
-        if (SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Add(type, id))
-        {
+    if (!Debug_Map) {
+        if (Sidebar.Add(type, id)) {
             Activate(1);
             IsToRedraw = true;
             Flag_To_Redraw(false);
@@ -422,42 +322,28 @@ bool SidebarClassExt::_Activate(int control)
 {
     bool old = IsSidebarActive;
 
-    if (Session.Play && !Session.Singleplayer_Game())
+    if (Session.Play && !Session.Singleplayer_Game()) {
         return old;
+    }
 
-    /**
-     *  Determine the new state of the sidebar.
-     */
-    switch (control)
-    {
+    switch (control) {
     case -1:
         IsSidebarActive = IsSidebarActive == false;
         break;
-
     case 1:
         IsSidebarActive = true;
         break;
-
     default:
     case 0:
         IsSidebarActive = false;
         break;
     }
 
-    /**
-     *  Only if there is a change in the state of the sidebar will anything
-     *  be done to change it.
-     */
-    if (IsSidebarActive != old)
-    {
-        /**
-         *  If the sidebar is activated but was on the right side of the screen, then
-         *  activate it on the left side of the screen.
-         */
-        if (IsSidebarActive)
-        {
+    if (IsSidebarActive != old) {
+        if (IsSidebarActive) {
             Set_Dimensions();
             IsToRedraw = true;
+
             Repair.Zap();
             Add_A_Button(Repair);
             Sell.Zap();
@@ -466,37 +352,25 @@ bool SidebarClassExt::_Activate(int control)
             Add_A_Button(Power);
             Waypoint.Zap();
             Add_A_Button(Waypoint);
-            SidebarExtension->Current_Tab().Activate();
             Background.Zap();
             Add_A_Button(Background);
-            for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-            {
-                SidebarExtension->TabButtons[i].Zap();
-                Add_A_Button(SidebarExtension->TabButtons[i]);
-            }
             RadarButton.Zap();
             Add_A_Button(RadarButton);
-        }
-        else
-        {
+
+            Sidebar.Activate(1);
+        } else {
             End_Ingame_Movie();
+
             Remove_A_Button(Repair);
             Remove_A_Button(Sell);
             Remove_A_Button(Power);
             Remove_A_Button(Waypoint);
             Remove_A_Button(Background);
-            for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-            {
-                SidebarExtension->Column[i].Deactivate();
-                Remove_A_Button(SidebarExtension->TabButtons[i]);
-            }
             Remove_A_Button(RadarButton);
+
+            Sidebar.Activate(0);
         }
 
-        /**
-         *  Since the sidebar status has changed, update the map so that the graphics
-         *  will be rendered correctly.
-         */
         Flag_To_Redraw(2);
     }
 
@@ -511,13 +385,11 @@ bool SidebarClassExt::_Activate(int control)
  */
 bool SidebarClassExt::_Scroll(bool up, int column)
 {
-    if (*reinterpret_cast<int*>(0x007E492C))
+    if (*reinterpret_cast<int*>(0x007E492C)) {
         return false;
+    }
 
-    bool scr = SidebarExtension->Current_Tab().Scroll(up);
-
-    if (scr)
-    {
+    if (Sidebar.Scroll(up, column)) {
         IsToRedraw = true;
         Flag_To_Redraw(false);
         return true;
@@ -535,10 +407,7 @@ bool SidebarClassExt::_Scroll(bool up, int column)
  */
 bool SidebarClassExt::_Scroll_Page(bool up, int column)
 {
-    bool scr = SidebarExtension->Current_Tab().Scroll_Page(up);
-
-    if (scr)
-    {
+    if (Sidebar.Scroll_Page(up, column)) {
         IsToRedraw = true;
         Flag_To_Redraw(false);
         return true;
@@ -556,108 +425,51 @@ bool SidebarClassExt::_Scroll_Page(bool up, int column)
  */
 void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
 {
-    if (!Debug_Map)
-    {
+    if (!Debug_Map) {
         Activate(1);
-        // The original code deducts the X coordinate by 480 here. Why? No one knows, but let's do the same
-        // 480 also appears as the draw offset of the sidebar buttons
-        Point2D newpoint(xy.X - 480, xy.Y);
-        for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-            SidebarExtension->Column[i].AI(input, newpoint);
     }
 
-    if (IsSidebarActive)
-    {
-        /**
-         *  If there are any buildings in the player's inventory, then allow the repair
-         *  option.
-         */
-
-        if (PlayerPtr->CurBuildings > 0)
-        {
+    if (IsSidebarActive) {
+        if (PlayerPtr->CurBuildings > 0) {
             Activate_Repair(true);
-        }
-        else
-        {
+        } else {
             Activate_Repair(false);
         }
 
-        if (input == (BUTTON_REPAIR | KN_BUTTON))
-        {
+        if (input == (BUTTON_REPAIR | KN_BUTTON)) {
             Repair_Mode_Control(-1);
         }
 
-        if (input == (BUTTON_POWER | KN_BUTTON))
-        {
+        if (input == (BUTTON_POWER | KN_BUTTON)) {
             Power_Mode_Control(-1);
         }
 
-        if (input == (BUTTON_WAYPOINT | KN_BUTTON))
-        {
+        if (input == (BUTTON_WAYPOINT | KN_BUTTON)) {
             Waypoint_Mode_Control(-1, false);
         }
 
-        if (input == (BUTTON_SELL | KN_BUTTON))
-        {
+        if (input == (BUTTON_SELL | KN_BUTTON)) {
             Sell_Mode_Control(-1);
-        }
-
-        if (input == (SidebarClassExtension::BUTTON_TAB_1 | KN_BUTTON))
-        {
-            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_STRUCTURE);
-        }
-
-        if (input == (SidebarClassExtension::BUTTON_TAB_2 | KN_BUTTON))
-        {
-            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_INFANTRY);
-        }
-
-        if (input == (SidebarClassExtension::BUTTON_TAB_3 | KN_BUTTON))
-        {
-            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_UNIT);
-        }
-
-        if (input == (SidebarClassExtension::BUTTON_TAB_4 | KN_BUTTON))
-        {
-            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_SPECIAL);
         }
     }
 
-    if (!IsRepairMode && Repair.IsOn)
-    {
+    if (!IsRepairMode && Repair.IsOn) {
         Repair.Turn_Off();
     }
 
-    if (!IsSellMode && Sell.IsOn)
-    {
+    if (!IsSellMode && Sell.IsOn) {
         Sell.Turn_Off();
     }
 
-    if (!IsPowerMode && Power.IsOn)
-    {
+    if (!IsPowerMode && Power.IsOn) {
         Power.Turn_Off();
     }
 
-    if (!IsWaypointMode && Waypoint.IsOn)
-    {
+    if (!IsWaypointMode && Waypoint.IsOn) {
         Waypoint.Turn_Off();
     }
 
-    /**
-     *  If for some reason the current tab's button is not selected, select it
-     */
-    if (!SidebarExtension->TabButtons[SidebarExtension->TabIndex].IsSelected)
-        SidebarExtension->TabButtons[SidebarExtension->TabIndex].Select();
-
-    /**
-     *  If our current tab no longer has any buildables, try to change to one that has some
-     */
-    if (SidebarExtension->Current_Tab().BuildableCount < 1)
-    {
-        SidebarClassExtension::SidebarTabType newtab = SidebarExtension->First_Active_Tab();
-        if (newtab != SidebarClassExtension::SIDEBAR_TAB_NONE)
-            SidebarExtension->Change_Tab(newtab);
-    }
+    Sidebar.AI(input, xy);
 
     PowerClass::AI(input, xy);
 }
@@ -674,98 +486,7 @@ void SidebarClassExt::_Draw_It(bool complete)
     Map.LastDrawRect = Rect(0, 0, 0, 0);
     PowerClass::Draw_It(complete);
 
-    Surface* oldsurface = LogicalSurface;
-    LogicalSurface = SidebarSurface;
-
-    Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
-
-    if (IsSidebarActive && (IsToRedraw || complete) && !Debug_Map)
-    {
-        if (complete || SidebarExtension->Current_Tab().IsToRedraw)
-        {
-            Point2D xy(0, SidebarRect.Y);
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
-
-            int max_visible = SidebarClassExtension::Max_Visible(true);
-            int y = SidebarRect.Y + SidebarShape->Get_Height();
-
-            for (int i = 0; i < max_visible; i++, y += SidebarMiddleShape->Get_Height())
-            {
-                xy = Point2D(0, y);
-                Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
-            }
-
-            xy = Point2D(0, y);
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
-
-            xy = Point2D(0, y + SidebarBottomShape->Get_Height());
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
-
-            SidebarExtension->Current_Tab().IsToRedraw = true;
-        }
-
-        Repair.Draw_Me(true);
-        Sell.Draw_Me(true);
-        Power.Draw_Me(true);
-        Waypoint.Draw_Me(true);
-
-        RedrawSidebar = true;
-    }
-
-    /**
-     *  Since the tabs might be blinking, draw them all the time.
-     */
-    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-        SidebarExtension->TabButtons[i].Draw_Me(true);
-
-    /**
-     *  Draw the side strip elements by calling their respective draw functions.
-     */
-    if (IsSidebarActive)
-    {
-        SidebarExtension->Current_Tab().Draw_It(complete);
-    }
-
-    if (Repair.IsDrawn)
-    {
-        RedrawSidebar = true;
-        Repair.IsDrawn = false;
-    }
-
-    if (Sell.IsDrawn)
-    {
-        RedrawSidebar = true;
-        Sell.IsDrawn = false;
-    }
-
-    if (Power.IsDrawn)
-    {
-        RedrawSidebar = true;
-        Power.IsDrawn = false;
-    }
-
-    if (Waypoint.IsDrawn)
-    {
-        RedrawSidebar = true;
-        Waypoint.IsDrawn = false;
-    }
-
-    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-    {
-        if (SidebarExtension->TabButtons[i].IsDrawn)
-        {
-            RedrawSidebar = true;
-            SidebarExtension->TabButtons[i].IsDrawn = false;
-        }
-    }
-
-    if (ToolTips)
-        ToolTips->Force_Redraw(true);
-
-    IsToRedraw = false;
-    IsToFullRedraw = false;
-    Blit_Sidebar(complete);
-    LogicalSurface = oldsurface;
+    Sidebar.Draw(complete);
 }
 
 
@@ -776,15 +497,9 @@ void SidebarClassExt::_Draw_It(bool complete)
  */
 void SidebarClassExt::_Recalc()
 {
-    bool redraw = false;
-    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
-        redraw |= SidebarExtension->Column[i].Recalc();
-
-    if (redraw)
-    {
-        IsToRedraw = true;
-        Flag_To_Redraw();
-    }
+    Sidebar.Recalc();
+    IsToRedraw = true;
+    Flag_To_Redraw();
 }
 
 
@@ -810,10 +525,6 @@ bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
  */
 void SidebarClassExt::_Set_Dimensions()
 {
-    /**
-     *  Position the sidebar itself.
-     */
-
     SidebarRect.X = Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0;
     SidebarRect.Y = 148;
     SidebarRect.Width = 168;
@@ -821,102 +532,7 @@ void SidebarClassExt::_Set_Dimensions()
 
     PowerClass::Set_Dimensions();
 
-    if (!SidebarShape)
-    {
-        SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDEGDI1.SHP");
-        SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDEGDI2.SHP");
-        SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDEGDI3.SHP");
-    }
-
-    /**
-     *  Position the sidebar's buttons.
-     */
-
-    Background.Set_Position(SidebarRect.X + 16, TacticalRect.Y);
-    Background.Flag_To_Redraw();
-
-    Repair.Set_Position(SidebarRect.X + (UIControls->IsCenterSidebarButtonsOnRadar ? SidebarClass::BUTTON_REPAIR_X_OFFSET : SidebarClassExtension::BUTTON_REPAIR_X_OFFSET), SidebarRect.Y + BUTTON_REPAIR_Y_OFFSET);
-    Repair.Flag_To_Redraw();
-    Repair.DrawX = -SidebarRect.X;
-
-    Sell.Set_Position(Repair.X + BUTTON_SELL_X_OFFSET, Repair.Y);
-    Sell.Flag_To_Redraw();
-    Sell.DrawX = -SidebarRect.X;
-
-    Power.Set_Position(Sell.X + BUTTON_POWER_X_OFFSET, Sell.Y);
-    Power.Flag_To_Redraw();
-    Power.DrawX = -SidebarRect.X;
-
-    Waypoint.Set_Position(Power.X + BUTTON_WAYPOINT_X_OFFSET, Power.Y);
-    Waypoint.Flag_To_Redraw();
-    Waypoint.DrawX = -SidebarRect.X;
-
-    SidebarExtension->Set_Dimensions();
-
-    /**
-     *  Create the tooltips for the sidebar.
-     */
-
-    if (ToolTips)
-    {
-        ToolTip tooltip;
-
-        for (int i = 0; i < 100; i++)
-        {
-            ToolTips->Remove(1000 + i);
-        }
-
-        int max_visible = SidebarClassExtension::Max_Visible();
-
-        StripClass::UpButton[0].Set_Position(SidebarRect.X + SidebarClassExtension::COLUMN_ONE_X + SidebarClassExtension::UP_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::UP_Y_OFFSET);
-        StripClass::UpButton[0].Flag_To_Redraw();
-        StripClass::UpButton[0].DrawX = -SidebarRect.X;
-        StripClass::DownButton[0].Set_Position(SidebarRect.X + SidebarClassExtension::COLUMN_TWO_X + SidebarClassExtension::DOWN_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::DOWN_Y_OFFSET);
-        StripClass::DownButton[0].Flag_To_Redraw();
-        StripClass::DownButton[0].DrawX = -SidebarRect.X;
-
-        for (int tab = 0; tab < SidebarClassExtension::SIDEBAR_TAB_COUNT; tab++)
-        {
-            for (int i = 0; i < max_visible; i++)
-            {
-                const int x = SidebarRect.X + (i % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
-                const int y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + i / 2 * StripClass::OBJECT_HEIGHT;
-                SidebarExtension->SelectButton[tab][i].Set_Position(x, y);
-            }
-        }
-
-        for (int i = 0; i < max_visible; i++)
-        {
-            tooltip.Region = Rect(SidebarExtension->SelectButton[0][i].X, SidebarExtension->SelectButton[0][i].Y, SidebarExtension->SelectButton[0][i].Width, SidebarExtension->SelectButton[0][i].Height);
-            tooltip.ID = 1000 + i;
-            tooltip.Text = TXT_NONE;
-            ToolTips->Add(&tooltip);
-        }
-
-        tooltip.Region = Rect(Repair.X, Repair.Y, Repair.Width, Repair.Height);
-        tooltip.ID = BUTTON_REPAIR;
-        tooltip.Text = TXT_REPAIR_MODE;
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-
-        tooltip.Region = Rect(Power.X, Power.Y, Power.Width, Power.Height);
-        tooltip.ID = BUTTON_POWER;
-        tooltip.Text = TXT_POWER_MODE;
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-
-        tooltip.Region = Rect(Sell.X, Sell.Y, Sell.Width, Sell.Height);
-        tooltip.ID = BUTTON_SELL;
-        tooltip.Text = TXT_SELL_MODE;
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-
-        tooltip.Region = Rect(Waypoint.X, Waypoint.Y, Waypoint.Width, Waypoint.Height);
-        tooltip.ID = BUTTON_WAYPOINT;
-        tooltip.Text = TXT_WAYPOINTMODE;
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-    }
+    Sidebar.Set_Dimensions();
 
     Background.Set_Position(Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0, RadarButton.Height + RadarButton.Y);
     Background.Set_Size(SidebarSurface->Get_Width(), SidebarSurface->Get_Height() - RadarButton.Height + RadarButton.Y);
@@ -931,33 +547,14 @@ void SidebarClassExt::_Set_Dimensions()
 const char* SidebarClassExt::_Help_Text(int gadget_id)
 {
     const char* text = PowerClass::Help_Text(gadget_id);
-    if (text == nullptr)
-    {
-        /**
-         *  New help text for sidebar tabs gets returned here
-         */
-        switch (gadget_id)
-        {
-        case SidebarClassExtension::BUTTON_TAB_1:
-            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_STRUCTURE].Is_Enabled() ? "Structures Tab" : "Structures Tab@(Disabled)";
-        case SidebarClassExtension::BUTTON_TAB_2:
-            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_INFANTRY].Is_Enabled() ? "Infantry Tab" : "Infantry Tab@(Disabled)";
-        case SidebarClassExtension::BUTTON_TAB_3:
-            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_UNIT].Is_Enabled() ? "Vehicles Tab" : "Vehicles Tab@(Disabled)";
-        case SidebarClassExtension::BUTTON_TAB_4:
-            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_SPECIAL].Is_Enabled() ? "Specials Tab" : "Specials Tab@(Disabled)";
-        default:
-            break;
-        }
-
-        /**
-         *  If it's a SelectClass, get the help text for the buildable
-         */
-        const int id = gadget_id - 1000;
-        if (id >= 0 && id < SidebarExtension->Current_Tab().BuildableCount)
-            return SidebarExtension->Current_Tab().Help_Text(gadget_id - 1000);
+    if (text != nullptr) {
+        return text;
     }
-    return text;
+
+    /**
+     *  TODO: Implement help text lookup through the new sidebar view.
+     */
+    return nullptr;
 }
 
 
@@ -968,7 +565,7 @@ const char* SidebarClassExt::_Help_Text(int gadget_id)
  */
 int SidebarClassExt::_Max_Visible()
 {
-    return SidebarClassExtension::Max_Visible(true);
+    return Sidebar.Max_Visible();
 }
 
 

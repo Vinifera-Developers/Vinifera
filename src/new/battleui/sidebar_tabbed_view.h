@@ -1,0 +1,165 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          SIDEBAR_TABBED_VIEW.H
+ *
+ *  @author        ZivDero
+ *
+ *  @brief         Tabbed sidebar view. Four tabs (Structure / Infantry /
+ *                 Unit / Special) with a single 2-column strip per tab.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+
+#pragma once
+
+#include "gcntrl.h"
+#include "shapeset.h"
+#include "sidebar_strip_view.h"
+#include "sidebar_view.h"
+#include "ttimer.h"
+
+
+/**
+ *  A tab button for switching between sidebar categories.
+ */
+class TabButtonClass : public ControlClass
+{
+private:
+    enum {
+        FRAME_NORMAL,
+        FRAME_SELECTED,
+        FRAME_DISABLED,
+
+        FLASH_TIME = 60,
+        FLASH_FRAME_COUNT = 2,
+        FLASH_FRAME_MIN = FRAME_DISABLED + 1,
+        FLASH_FRAME_MAX = FLASH_FRAME_MIN + (FLASH_FRAME_COUNT - 1),
+        FLASH_FRAME_START = FLASH_FRAME_MIN,
+        FLASH_RATE = FLASH_TIME / FLASH_FRAME_COUNT,
+    };
+
+public:
+    TabButtonClass();
+    TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y,
+                   ConvertClass* drawer = nullptr, int w = 0, int h = 0);
+    virtual ~TabButtonClass() override = default;
+
+    virtual bool Action(unsigned flags, KeyNumType& key) override;
+    virtual void Disable() override;
+    virtual void Enable() override;
+    virtual bool Draw_Me(bool forced = false) override;
+
+    virtual void On_Mouse_Enter();
+    virtual void On_Mouse_Leave();
+
+    void Set_Shape(const ShapeSet* data, int width = 0, int height = 0);
+    const ShapeSet* Get_Shape_Data() const { return ShapeData; }
+
+    void Start_Flashing();
+    void Stop_Flashing();
+    void Select();
+    void Deselect();
+
+public:
+    int DrawX;
+    int DrawY;
+    ConvertClass* ShapeDrawer;
+    const ShapeSet* ShapeData;
+
+    bool IsFlashing;
+    CDTimerClass<SystemTimerClass> FlashTimer;
+    int FlashFrame;
+
+    bool IsSelected;
+    bool IsDrawn;
+    bool MousedOver;
+};
+
+
+/**
+ *  Tabbed sidebar view — four production tabs with a shared 2-column
+ *  cameo grid. Only the active tab's strip is displayed.
+ */
+class TabbedSidebarView : public ISidebarView
+{
+public:
+    enum SidebarTabType {
+        SIDEBAR_TAB_STRUCTURE,
+        SIDEBAR_TAB_INFANTRY,
+        SIDEBAR_TAB_UNIT,
+        SIDEBAR_TAB_SPECIAL,
+
+        SIDEBAR_TAB_COUNT,
+        SIDEBAR_TAB_NONE = -1,
+    };
+
+    enum TabbedEnums {
+        COLUMN_Y = 54,
+        COLUMN_X = 24,
+
+        UP_X_OFFSET = 1,
+        UP_Y_OFFSET = COLUMN_Y - 1,
+        DOWN_X_OFFSET = UP_X_OFFSET,
+        DOWN_Y_OFFSET = UP_Y_OFFSET,
+
+        TAB_Y_OFFSET = 24,
+        TAB_ONE_X_OFFSET = 20,
+        TAB_TWO_X_OFFSET = TAB_ONE_X_OFFSET + 35,
+        TAB_THREE_X_OFFSET = TAB_TWO_X_OFFSET + 35,
+        TAB_FOUR_X_OFFSET = TAB_THREE_X_OFFSET + 35,
+
+        BUTTON_TAB_1 = 115,
+        BUTTON_TAB_2,
+        BUTTON_TAB_3,
+        BUTTON_TAB_4,
+    };
+
+    TabbedSidebarView(SidebarModel* model, PowerModel* power);
+    virtual ~TabbedSidebarView() override = default;
+
+    virtual void One_Time() override;
+    virtual void Init_Clear() override;
+    virtual void Init_IO() override;
+    virtual void Init_For_House() override;
+    virtual void Set_Dimensions() override;
+    virtual void AI(KeyNumType& input, Point2D& xy) override;
+    virtual void Draw(bool complete) override;
+    virtual void Blit(bool complete) override;
+    virtual void Activate(int control) override;
+
+    virtual bool Scroll(bool up, int column) override;
+    virtual bool Scroll_Page(bool up, int column) override;
+
+    virtual int Max_Visible() const override;
+
+    bool Change_Tab(SidebarTabType index);
+    SidebarTabType First_Active_Tab() const;
+
+    SidebarStripView& Current_Strip() { return Strip[TabIndex]; }
+    const SidebarStripView& Current_Strip() const { return Strip[TabIndex]; }
+
+private:
+    void Tab_Button_AI(int tab_index);
+
+public:
+    SidebarTabType TabIndex;
+    SidebarStripView Strip[SIDEBAR_TAB_COUNT];
+    TabButtonClass TabButtons[SIDEBAR_TAB_COUNT];
+};
