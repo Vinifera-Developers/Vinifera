@@ -57,6 +57,52 @@
 #include "wwmouse.h"
 
 
+namespace
+{
+const SidebarTabbedLayout& Get_Tabbed_Layout()
+{
+    static const SidebarTabbedLayout default_layout;
+    return UIControls != nullptr ? UIControls->TabbedSidebarLayoutConfig : default_layout;
+}
+
+
+int Sidebar_Background_Row_Count()
+{
+    if (SidebarSurface != nullptr
+        && SidebarClass::SidebarShape != nullptr
+        && SidebarClass::SidebarMiddleShape != nullptr
+        && SidebarClass::SidebarBottomShape != nullptr) {
+        return (SidebarRect.Height
+                - SidebarClass::SidebarBottomShape->Get_Height()
+                - SidebarClass::SidebarShape->Get_Height())
+               / SidebarClass::SidebarMiddleShape->Get_Height();
+    }
+
+    return SidebarClass::StripClass::MAX_VISIBLE;
+}
+
+
+SidebarStripView::StripLayout Build_Tabbed_Strip_Layout()
+{
+    const SidebarTabbedLayout& layout = Get_Tabbed_Layout();
+    SidebarStripView::StripLayout strip_layout;
+
+    strip_layout.Position = layout.StripPosition;
+    strip_layout.VisibleRows = layout.VisibleRows;
+    strip_layout.RowPitch = layout.RowPitch;
+    strip_layout.ColumnSpacing = layout.ColumnSpacing;
+    strip_layout.UpButtonPosition = layout.UpButtonPosition;
+    strip_layout.DownButtonPosition = layout.DownButtonPosition;
+    strip_layout.UpButtonVisible = layout.UpButtonVisible;
+    strip_layout.DownButtonVisible = layout.DownButtonVisible;
+    strip_layout.HasCustomUpButtonPosition = layout.HasCustomUpButtonPosition;
+    strip_layout.HasCustomDownButtonPosition = layout.HasCustomDownButtonPosition;
+
+    return strip_layout;
+}
+}
+
+
 /***************************************************************************
 **  TabButtonClass
 ***************************************************************************/
@@ -454,30 +500,34 @@ void TabbedSidebarView::Set_Dimensions()
     Background.Set_Position(SidebarRect.X + 16, TacticalRect.Y);
     Background.Flag_To_Redraw();
 
+    const SidebarTabbedLayout& layout = Get_Tabbed_Layout();
+
     /**
      *  Position the tab buttons.
      */
-    TabButtons[0].Set_Position(SidebarRect.X + TAB_ONE_X_OFFSET, SidebarRect.Y + TAB_Y_OFFSET);
+    TabButtons[0].Set_Position(SidebarRect.X + layout.TabButtonPosition[0].X, SidebarRect.Y + layout.TabButtonPosition[0].Y);
     TabButtons[0].Flag_To_Redraw();
     TabButtons[0].DrawX = -SidebarRect.X;
 
-    TabButtons[1].Set_Position(SidebarRect.X + TAB_TWO_X_OFFSET, TabButtons[0].Y);
+    TabButtons[1].Set_Position(SidebarRect.X + layout.TabButtonPosition[1].X, SidebarRect.Y + layout.TabButtonPosition[1].Y);
     TabButtons[1].Flag_To_Redraw();
     TabButtons[1].DrawX = -SidebarRect.X;
 
-    TabButtons[2].Set_Position(SidebarRect.X + TAB_THREE_X_OFFSET, TabButtons[1].Y);
+    TabButtons[2].Set_Position(SidebarRect.X + layout.TabButtonPosition[2].X, SidebarRect.Y + layout.TabButtonPosition[2].Y);
     TabButtons[2].Flag_To_Redraw();
     TabButtons[2].DrawX = -SidebarRect.X;
 
-    TabButtons[3].Set_Position(SidebarRect.X + TAB_FOUR_X_OFFSET, TabButtons[2].Y);
+    TabButtons[3].Set_Position(SidebarRect.X + layout.TabButtonPosition[3].X, SidebarRect.Y + layout.TabButtonPosition[3].Y);
     TabButtons[3].Flag_To_Redraw();
     TabButtons[3].DrawX = -SidebarRect.X;
 
     /**
      *  Position the active strip. All strips share the same position.
      */
+    const SidebarStripView::StripLayout strip_layout = Build_Tabbed_Strip_Layout();
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
-        Strip[i].Set_Dimensions(COLUMN_X, COLUMN_Y);
+        Strip[i].Set_Layout(strip_layout);
+        Strip[i].Set_Dimensions();
     }
 
     /**
@@ -644,7 +694,7 @@ void TabbedSidebarView::Draw(bool complete)
             Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
             y += SidebarClass::SidebarShape->Get_Height();
 
-            int rows = Visible_Buttons_Per_Column();
+            int rows = Sidebar_Background_Row_Count();
             for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
                 xy = Point2D(0, y);
                 Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
@@ -838,7 +888,7 @@ const char* TabbedSidebarView::Help_Text(int gadget_id)
  */
 int TabbedSidebarView::Visible_Button_Count() const
 {
-    return Visible_Buttons_Per_Column() * 2;
+    return Current_Strip().Visible_Button_Count();
 }
 
 
@@ -849,13 +899,7 @@ int TabbedSidebarView::Visible_Button_Count() const
  */
 int TabbedSidebarView::Visible_Buttons_Per_Column() const
 {
-    if (SidebarSurface != nullptr && SidebarClass::SidebarShape != nullptr) {
-        return (SidebarRect.Height
-                - SidebarClass::SidebarBottomShape->Get_Height()
-                - SidebarClass::SidebarShape->Get_Height())
-               / SidebarClass::SidebarMiddleShape->Get_Height();
-    }
-    return SidebarClass::StripClass::MAX_VISIBLE;
+    return Current_Strip().Visible_Buttons_Per_Column();
 }
 
 

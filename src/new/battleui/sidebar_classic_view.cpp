@@ -46,6 +46,62 @@
 #include "uicontrol.h"
 
 
+namespace
+{
+const SidebarClassicLayout& Get_Classic_Layout()
+{
+    static const SidebarClassicLayout default_layout;
+    return UIControls != nullptr ? UIControls->ClassicSidebarLayoutConfig : default_layout;
+}
+
+
+int Sidebar_Background_Row_Count()
+{
+    if (SidebarSurface != nullptr
+        && SidebarClass::SidebarShape != nullptr
+        && SidebarClass::SidebarMiddleShape != nullptr
+        && SidebarClass::SidebarBottomShape != nullptr) {
+        return (SidebarRect.Height
+                - SidebarClass::SidebarBottomShape->Get_Height()
+                - SidebarClass::SidebarShape->Get_Height())
+               / SidebarClass::SidebarMiddleShape->Get_Height();
+    }
+
+    return SidebarClass::StripClass::MAX_VISIBLE;
+}
+
+
+SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
+{
+    const SidebarClassicLayout& layout = Get_Classic_Layout();
+    SidebarStripView::StripLayout strip_layout;
+
+    strip_layout.Position = left_strip ? layout.LeftStripPosition : layout.RightStripPosition;
+    strip_layout.VisibleRows = layout.VisibleRows;
+    strip_layout.RowPitch = layout.RowPitch;
+    strip_layout.ColumnSpacing = SidebarStripView::COLUMN_SPACING;
+
+    if (left_strip) {
+        strip_layout.UpButtonPosition = layout.LeftUpButtonPosition;
+        strip_layout.DownButtonPosition = layout.LeftDownButtonPosition;
+        strip_layout.UpButtonVisible = layout.LeftUpButtonVisible;
+        strip_layout.DownButtonVisible = layout.LeftDownButtonVisible;
+        strip_layout.HasCustomUpButtonPosition = layout.HasCustomLeftUpButtonPosition;
+        strip_layout.HasCustomDownButtonPosition = layout.HasCustomLeftDownButtonPosition;
+    } else {
+        strip_layout.UpButtonPosition = layout.RightUpButtonPosition;
+        strip_layout.DownButtonPosition = layout.RightDownButtonPosition;
+        strip_layout.UpButtonVisible = layout.RightUpButtonVisible;
+        strip_layout.DownButtonVisible = layout.RightDownButtonVisible;
+        strip_layout.HasCustomUpButtonPosition = layout.HasCustomRightUpButtonPosition;
+        strip_layout.HasCustomDownButtonPosition = layout.HasCustomRightDownButtonPosition;
+    }
+
+    return strip_layout;
+}
+}
+
+
 /**
  *  ClassicSidebarView constructor.
  *
@@ -151,8 +207,10 @@ void ClassicSidebarView::Set_Dimensions()
     /**
      *  Position the two strips — vanilla layout: buildings left, units right.
      */
-    Strip[0].Set_Dimensions(COLUMN_ONE_X, COLUMN_ONE_Y);
-    Strip[1].Set_Dimensions(COLUMN_TWO_X, COLUMN_TWO_Y);
+    Strip[0].Set_Layout(Build_Classic_Strip_Layout(true));
+    Strip[0].Set_Dimensions();
+    Strip[1].Set_Layout(Build_Classic_Strip_Layout(false));
+    Strip[1].Set_Dimensions();
 
     /**
      *  Set up tooltips for the select buttons.
@@ -213,7 +271,7 @@ void ClassicSidebarView::Draw(bool complete)
             Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
             y += SidebarClass::SidebarShape->Get_Height();
 
-            int rows = Visible_Buttons_Per_Column();
+            int rows = Sidebar_Background_Row_Count();
             for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
                 xy = Point2D(0, y);
                 Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
@@ -386,7 +444,7 @@ const char* ClassicSidebarView::Help_Text(int gadget_id)
  */
 int ClassicSidebarView::Visible_Button_Count() const
 {
-    return Visible_Buttons_Per_Column() * COLUMN_COUNT;
+    return Strip[0].Visible_Button_Count() + Strip[1].Visible_Button_Count();
 }
 
 
@@ -397,13 +455,7 @@ int ClassicSidebarView::Visible_Button_Count() const
  */
 int ClassicSidebarView::Visible_Buttons_Per_Column() const
 {
-    if (SidebarSurface != nullptr && SidebarClass::SidebarShape != nullptr) {
-        return (SidebarRect.Height
-                - SidebarClass::SidebarBottomShape->Get_Height()
-                - SidebarClass::SidebarShape->Get_Height())
-               / SidebarClass::SidebarMiddleShape->Get_Height();
-    }
-    return SidebarClass::StripClass::MAX_VISIBLE;
+    return Strip[0].Visible_Buttons_Per_Column();
 }
 
 

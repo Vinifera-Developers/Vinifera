@@ -21,12 +21,52 @@ In `VINIFERA.INI`:
 NewSidebar=no                   ; boolean, whether the game should use the new sidebar.
 ```
 
-- Optionally, sidebar buttons like repair, etc. can be centered on the radar, like in vanilla, as opposed to being centered on the tab buttons.
+- The battle UI sidebar layout can be customized from `UI.INI` without changing the radar, credits area, or sidebar width.
+- All sidebar positions are relative to the internal sidebar area that starts at `SidebarRect`.
+- `VisibleRows=0` keeps the default auto-fit behavior for the current resolution.
+- `CenterSidebarButtonsOnRadar` has been superseded by explicit sidebar button positions.
 
 In `UI.INI`:
 ```ini
-[Ingame]
-CenterSidebarButtonsOnRadar=no  ; boolean, should the repair, etc. buttons be centered to the radar, instead of the tab buttons/cameo strips?
+[Sidebar]
+ViewType=Classic          ; string, Classic or Tabbed.
+RepairButtonPos=31,-9     ; point, repair button position.
+RepairButtonVisible=yes   ; boolean, show the repair button.
+SellButtonPos=58,-9       ; point, sell button position.
+SellButtonVisible=yes     ; boolean, show the sell button.
+PowerButtonPos=85,-9      ; point, power button position.
+PowerButtonVisible=yes    ; boolean, show the power button.
+WaypointButtonPos=112,-9  ; point, waypoint button position.
+WaypointButtonVisible=yes ; boolean, show the waypoint button.
+PowerBarPos=8,25          ; point, power bar position.
+
+[SidebarClassic]
+LeftStripPos=24,26          ; point, left strip origin.
+RightStripPos=92,26         ; point, right strip origin.
+VisibleRows=0               ; integer, visible rows per strip, 0 = auto-fit.
+RowPitch=51                 ; integer, vertical spacing between cameos.
+LeftUpButtonPos=            ; point, optional explicit left up button position.
+LeftUpButtonVisible=yes     ; boolean, show the left up button.
+LeftDownButtonPos=          ; point, optional explicit left down button position.
+LeftDownButtonVisible=yes   ; boolean, show the left down button.
+RightUpButtonPos=           ; point, optional explicit right up button position.
+RightUpButtonVisible=yes    ; boolean, show the right up button.
+RightDownButtonPos=         ; point, optional explicit right down button position.
+RightDownButtonVisible=yes  ; boolean, show the right down button.
+
+[SidebarTabbed]
+Tab1Pos=20,24            ; point, Structure tab position.
+Tab2Pos=55,24            ; point, Infantry tab position.
+Tab3Pos=90,24            ; point, Unit tab position.
+Tab4Pos=125,24           ; point, Special tab position.
+StripPos=24,54           ; point, 2-column strip origin.
+VisibleRows=0            ; integer, visible rows in the tab strip, 0 = auto-fit.
+RowPitch=51              ; integer, vertical spacing between cameo rows.
+ColumnSpacing=67         ; integer, horizontal spacing between the two strip columns.
+UpButtonPos=             ; point, optional explicit up button position.
+UpButtonVisible=yes      ; boolean, show the up button.
+DownButtonPos=           ; point, optional explicit down button position.
+DownButtonVisible=yes    ; boolean, show the down button.
 ```
 
 - When `NewSidebar=yes` is set, the game loads an additional mix file `SIDECT##.MIX`, where `##` is `side index + 1`. Files found in `SIDECT##.MIX` override files from other side mixes.

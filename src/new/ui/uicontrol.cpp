@@ -33,7 +33,34 @@
 #include "asserthandler.h"
 #include "ccini.h"
 
+#include <algorithm>
 #include <cstring>
+
+
+namespace
+{
+bool Has_INI_Entry(CCINIClass& ini, const char* section, const char* entry)
+{
+    char buffer[256];
+    return ini.Get_String(section, entry, "", buffer, sizeof(buffer)) > 0;
+}
+
+
+void Read_Button_Layout(CCINIClass& ini, const char* section, const char* pos_key, const char* visible_key,
+                        const SidebarButtonLayout& defaults, SidebarButtonLayout& layout)
+{
+    layout.Position = ini.Get_Point(section, pos_key, defaults.Position);
+    layout.Visible = ini.Get_Bool(section, visible_key, defaults.Visible);
+}
+
+
+void Read_Optional_Point(CCINIClass& ini, const char* section, const char* entry,
+                         const TPoint2D<int>& defaults, TPoint2D<int>& point, bool& has_custom_point)
+{
+    has_custom_point = Has_INI_Entry(ini, section, entry);
+    point = has_custom_point ? ini.Get_Point(section, entry, defaults) : defaults;
+}
+}
 
 
 UIControlsClass *UIControls = nullptr;
@@ -102,6 +129,9 @@ UIControlsClass::UIControlsClass() :
     NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
     NavComQueueLineDropShadowColor{ 0, 0, 0 },
     IsCenterSidebarButtonsOnRadar(false),
+    SidebarLayout(),
+    ClassicSidebarLayoutConfig(),
+    TabbedSidebarLayoutConfig(),
     BattleSidebarViewType(SIDEBAR_CLASSIC),
     BeaconAnimFramesPerSecond(25),
     RadarBeaconAnimFramesPerSecond(25),
@@ -152,10 +182,16 @@ UIControlsClass::~UIControlsClass()
 bool UIControlsClass::Read_INI(CCINIClass &ini)
 {
     static char const * const INGAME = "Ingame";
-    static char const * const SIDEBAR = "Sidebar";
+    static char const * const SIDEBAR_SECTION = "Sidebar";
+    static char const * const SIDEBAR_CLASSIC_SECTION = "SidebarClassic";
+    static char const * const SIDEBAR_TABBED_SECTION = "SidebarTabbed";
+
+    const SidebarSharedLayout default_sidebar_layout;
+    const SidebarClassicLayout default_classic_layout;
+    const SidebarTabbedLayout default_tabbed_layout;
 
     char sidebar_view[64];
-    ini.Get_String(SIDEBAR, "ViewType", "Classic", sidebar_view, sizeof(sidebar_view));
+    ini.Get_String(SIDEBAR_SECTION, "ViewType", "Classic", sidebar_view, sizeof(sidebar_view));
     if (_stricmp(sidebar_view, "Tabbed") == 0) {
         BattleSidebarViewType = SIDEBAR_TABBED;
     } else {
@@ -222,6 +258,48 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     IsNavComQueueLineThick = ini.Get_Bool(INGAME, "NavComQueueLineThick", IsNavComQueueLineThick);
     NavComQueueLineColor = ini.Get_RGBColor(INGAME, "NavComQueueLineColor", NavComQueueLineColor);
     NavComQueueLineDropShadowColor = ini.Get_RGBColor(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
+
+    Read_Button_Layout(ini, SIDEBAR_SECTION, "RepairButtonPos", "RepairButtonVisible",
+        default_sidebar_layout.RepairButton, SidebarLayout.RepairButton);
+    Read_Button_Layout(ini, SIDEBAR_SECTION, "SellButtonPos", "SellButtonVisible",
+        default_sidebar_layout.SellButton, SidebarLayout.SellButton);
+    Read_Button_Layout(ini, SIDEBAR_SECTION, "PowerButtonPos", "PowerButtonVisible",
+        default_sidebar_layout.PowerButton, SidebarLayout.PowerButton);
+    Read_Button_Layout(ini, SIDEBAR_SECTION, "WaypointButtonPos", "WaypointButtonVisible",
+        default_sidebar_layout.WaypointButton, SidebarLayout.WaypointButton);
+    SidebarLayout.PowerBarPosition = ini.Get_Point(SIDEBAR_SECTION, "PowerBarPos", default_sidebar_layout.PowerBarPosition);
+
+    ClassicSidebarLayoutConfig.LeftStripPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftStripPos", default_classic_layout.LeftStripPosition);
+    ClassicSidebarLayoutConfig.RightStripPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightStripPos", default_classic_layout.RightStripPosition);
+    ClassicSidebarLayoutConfig.VisibleRows = ini.Get_Int(SIDEBAR_CLASSIC_SECTION, "VisibleRows", default_classic_layout.VisibleRows);
+    ClassicSidebarLayoutConfig.RowPitch = std::max(1, ini.Get_Int(SIDEBAR_CLASSIC_SECTION, "RowPitch", default_classic_layout.RowPitch));
+    Read_Optional_Point(ini, SIDEBAR_CLASSIC_SECTION, "LeftUpButtonPos", default_classic_layout.LeftUpButtonPosition,
+        ClassicSidebarLayoutConfig.LeftUpButtonPosition, ClassicSidebarLayoutConfig.HasCustomLeftUpButtonPosition);
+    Read_Optional_Point(ini, SIDEBAR_CLASSIC_SECTION, "LeftDownButtonPos", default_classic_layout.LeftDownButtonPosition,
+        ClassicSidebarLayoutConfig.LeftDownButtonPosition, ClassicSidebarLayoutConfig.HasCustomLeftDownButtonPosition);
+    Read_Optional_Point(ini, SIDEBAR_CLASSIC_SECTION, "RightUpButtonPos", default_classic_layout.RightUpButtonPosition,
+        ClassicSidebarLayoutConfig.RightUpButtonPosition, ClassicSidebarLayoutConfig.HasCustomRightUpButtonPosition);
+    Read_Optional_Point(ini, SIDEBAR_CLASSIC_SECTION, "RightDownButtonPos", default_classic_layout.RightDownButtonPosition,
+        ClassicSidebarLayoutConfig.RightDownButtonPosition, ClassicSidebarLayoutConfig.HasCustomRightDownButtonPosition);
+    ClassicSidebarLayoutConfig.LeftUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftUpButtonVisible", default_classic_layout.LeftUpButtonVisible);
+    ClassicSidebarLayoutConfig.LeftDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftDownButtonVisible", default_classic_layout.LeftDownButtonVisible);
+    ClassicSidebarLayoutConfig.RightUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightUpButtonVisible", default_classic_layout.RightUpButtonVisible);
+    ClassicSidebarLayoutConfig.RightDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightDownButtonVisible", default_classic_layout.RightDownButtonVisible);
+
+    TabbedSidebarLayoutConfig.TabButtonPosition[0] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab1Pos", default_tabbed_layout.TabButtonPosition[0]);
+    TabbedSidebarLayoutConfig.TabButtonPosition[1] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab2Pos", default_tabbed_layout.TabButtonPosition[1]);
+    TabbedSidebarLayoutConfig.TabButtonPosition[2] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab3Pos", default_tabbed_layout.TabButtonPosition[2]);
+    TabbedSidebarLayoutConfig.TabButtonPosition[3] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab4Pos", default_tabbed_layout.TabButtonPosition[3]);
+    TabbedSidebarLayoutConfig.StripPosition = ini.Get_Point(SIDEBAR_TABBED_SECTION, "StripPos", default_tabbed_layout.StripPosition);
+    TabbedSidebarLayoutConfig.VisibleRows = ini.Get_Int(SIDEBAR_TABBED_SECTION, "VisibleRows", default_tabbed_layout.VisibleRows);
+    TabbedSidebarLayoutConfig.RowPitch = std::max(1, ini.Get_Int(SIDEBAR_TABBED_SECTION, "RowPitch", default_tabbed_layout.RowPitch));
+    TabbedSidebarLayoutConfig.ColumnSpacing = std::max(1, ini.Get_Int(SIDEBAR_TABBED_SECTION, "ColumnSpacing", default_tabbed_layout.ColumnSpacing));
+    Read_Optional_Point(ini, SIDEBAR_TABBED_SECTION, "UpButtonPos", default_tabbed_layout.UpButtonPosition,
+        TabbedSidebarLayoutConfig.UpButtonPosition, TabbedSidebarLayoutConfig.HasCustomUpButtonPosition);
+    Read_Optional_Point(ini, SIDEBAR_TABBED_SECTION, "DownButtonPos", default_tabbed_layout.DownButtonPosition,
+        TabbedSidebarLayoutConfig.DownButtonPosition, TabbedSidebarLayoutConfig.HasCustomDownButtonPosition);
+    TabbedSidebarLayoutConfig.UpButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "UpButtonVisible", default_tabbed_layout.UpButtonVisible);
+    TabbedSidebarLayoutConfig.DownButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "DownButtonVisible", default_tabbed_layout.DownButtonVisible);
 
     IsCenterSidebarButtonsOnRadar = ini.Get_Bool(INGAME, "CenterSidebarButtonsOnRadar", IsCenterSidebarButtonsOnRadar);
 

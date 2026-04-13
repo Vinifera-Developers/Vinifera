@@ -58,6 +58,8 @@
 #include "tibsun_globals.h"
 #include "voc.h"
 
+#include <algorithm>
+
 
 /**
  *  Default constructor for SidebarStripView.
@@ -71,6 +73,7 @@ SidebarStripView::SidebarStripView() :
     ColumnX(0),
     ColumnY(0),
     IsToRedraw(true),
+    IsActive(false),
     IsScrollingDown(false),
     IsScrolling(false),
     TopIndex(0),
@@ -79,6 +82,7 @@ SidebarStripView::SidebarStripView() :
     LastSlid(0),
     MaxVisibleCount(0),
     Category(nullptr),
+    Layout(),
     UpButton(),
     DownButton(),
     SelectButtons()
@@ -123,6 +127,7 @@ void SidebarStripView::One_Time(int id)
  */
 void SidebarStripView::Init_Clear()
 {
+    IsActive = false;
     IsScrollingDown = false;
     IsScrolling = false;
     IsToRedraw = true;
@@ -177,6 +182,12 @@ void SidebarStripView::Init_IO(int id, int columns)
 }
 
 
+void SidebarStripView::Set_Layout(const StripLayout& layout)
+{
+    Layout = layout;
+}
+
+
 /**
  *  Loads house-specific shapes for the scroll buttons.
  *
@@ -199,10 +210,15 @@ void SidebarStripView::Init_For_House(int id)
  *
  *  @author: ZivDero
  */
-void SidebarStripView::Set_Dimensions(int column_x, int column_y)
+void SidebarStripView::Set_Dimensions()
 {
-    ColumnX = column_x;
-    ColumnY = column_y;
+    const bool was_active = IsActive;
+    if (was_active) {
+        Deactivate();
+    }
+
+    ColumnX = Layout.Position.X;
+    ColumnY = Layout.Position.Y;
 
     int new_count = Visible_Button_Count();
 
@@ -221,24 +237,27 @@ void SidebarStripView::Set_Dimensions(int column_x, int column_y)
         CameoButtonClass* btn = SelectButtons[i];
         if (Columns == 1) {
             btn->X = SidebarRect.X + ColumnX;
-            btn->Y = SidebarRect.Y + ColumnY + i * OBJECT_HEIGHT;
+            btn->Y = SidebarRect.Y + ColumnY + i * Effective_Row_Pitch();
         } else {
-            btn->X = SidebarRect.X + (i % 2 == 0 ? ColumnX : ColumnX + COLUMN_SPACING);
-            btn->Y = SidebarRect.Y + ColumnY + (i / 2) * OBJECT_HEIGHT;
+            btn->X = SidebarRect.X + (i % 2 == 0 ? ColumnX : ColumnX + Effective_Column_Spacing());
+            btn->Y = SidebarRect.Y + ColumnY + (i / 2) * Effective_Row_Pitch();
         }
     }
 
-    const int button_y = SidebarRect.Y + ColumnY + OBJECT_HEIGHT * (MaxVisibleCount / Columns) - 1;
-    const int up_x = SidebarRect.X + ColumnX + 5;
-    const int down_x = SidebarRect.X + ColumnX + (Columns == 1 ? 34 : COLUMN_SPACING + 34);
+    const Point2D up_position = Resolve_Up_Button_Position();
+    const Point2D down_position = Resolve_Down_Button_Position();
 
-    UpButton.Set_Position(up_x, button_y);
+    UpButton.Set_Position(SidebarRect.X + up_position.X, SidebarRect.Y + up_position.Y);
     UpButton.Flag_To_Redraw();
     UpButton.DrawX = -SidebarRect.X;
 
-    DownButton.Set_Position(down_x, button_y);
+    DownButton.Set_Position(SidebarRect.X + down_position.X, SidebarRect.Y + down_position.Y);
     DownButton.Flag_To_Redraw();
     DownButton.DrawX = -SidebarRect.X;
+
+    if (was_active) {
+        Activate();
+    }
 }
 
 
@@ -249,11 +268,17 @@ void SidebarStripView::Set_Dimensions(int column_x, int column_y)
  */
 void SidebarStripView::Activate()
 {
-    UpButton.Zap();
-    Map.Add_A_Button(UpButton);
+    IsActive = true;
 
-    DownButton.Zap();
-    Map.Add_A_Button(DownButton);
+    if (Layout.UpButtonVisible) {
+        UpButton.Zap();
+        Map.Add_A_Button(UpButton);
+    }
+
+    if (Layout.DownButtonVisible) {
+        DownButton.Zap();
+        Map.Add_A_Button(DownButton);
+    }
 
     for (int i = 0; i < MaxVisibleCount; i++) {
         SelectButtons[i]->Zap();
@@ -269,6 +294,8 @@ void SidebarStripView::Activate()
  */
 void SidebarStripView::Deactivate()
 {
+    IsActive = false;
+
     Map.Remove_A_Button(UpButton);
     Map.Remove_A_Button(DownButton);
 
@@ -344,7 +371,7 @@ bool SidebarStripView::Update_State()
                     Scroller = 0;
                 } else {
                     Scroller--;
-                    Slid = OBJECT_HEIGHT;
+                    Slid = Effective_Row_Pitch();
                     IsScrollingDown = true;
                     IsScrolling = true;
                 }
@@ -357,15 +384,15 @@ bool SidebarStripView::Update_State()
      */
     if (IsScrolling) {
         if (IsScrollingDown) {
-            Slid -= SCROLL_RATE;
+            Slid -= Scroll_Step();
             if (Slid <= 0) {
                 IsScrolling = false;
                 Slid = 0;
                 TopIndex += Columns;
             }
         } else {
-            Slid += SCROLL_RATE;
-            if (Slid >= OBJECT_HEIGHT) {
+            Slid += Scroll_Step();
+            if (Slid >= Effective_Row_Pitch()) {
                 IsScrolling = false;
                 Slid = 0;
             }
@@ -412,8 +439,17 @@ void SidebarStripView::Draw(Surface& surface, const Rect& rect, bool complete)
         /**
          *  Draw scroll buttons.
          */
-        UpButton.Draw_Me(true);
-        DownButton.Draw_Me(true);
+        if (Layout.UpButtonVisible) {
+            UpButton.Draw_Me(true);
+        } else {
+            UpButton.IsDrawn = false;
+        }
+
+        if (Layout.DownButtonVisible) {
+            DownButton.Draw_Me(true);
+        } else {
+            DownButton.IsDrawn = false;
+        }
 
         /**
          *  Draw all visible cameo items.
@@ -591,11 +627,14 @@ int SidebarStripView::Visible_Button_Count() const
 
 int SidebarStripView::Visible_Buttons_Per_Column() const
 {
-    if (SidebarSurface != nullptr && SidebarClass::SidebarShape != nullptr) {
-        return (SidebarRect.Height
-                - SidebarClass::SidebarBottomShape->Get_Height()
-                - SidebarClass::SidebarShape->Get_Height())
-               / SidebarClass::SidebarMiddleShape->Get_Height();
+    if (SidebarSurface != nullptr
+        && SidebarClass::SidebarShape != nullptr
+        && SidebarClass::SidebarBottomShape != nullptr) {
+        const int max_rows = std::max(1, Available_Content_Height() / Effective_Row_Pitch());
+        if (Layout.VisibleRows <= 0) {
+            return max_rows;
+        }
+        return std::clamp(Layout.VisibleRows, 1, max_rows);
     }
 
     return SidebarClass::StripClass::MAX_VISIBLE;
@@ -619,10 +658,10 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
 
         if (Columns == 1) {
             x = ColumnX;
-            y = ColumnY + i * OBJECT_HEIGHT;
+            y = ColumnY + i * Effective_Row_Pitch();
         } else {
-            x = i % 2 == 0 ? ColumnX : ColumnX + COLUMN_SPACING;
-            y = ColumnY + (i / 2) * OBJECT_HEIGHT;
+            x = i % 2 == 0 ? ColumnX : ColumnX + Effective_Column_Spacing();
+            y = ColumnY + (i / 2) * Effective_Row_Pitch();
         }
 
         bool production = false;
@@ -639,7 +678,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
          *  Adjust for smooth scrolling.
          */
         if (IsScrolling) {
-            y -= OBJECT_HEIGHT - Slid;
+            y -= Effective_Row_Pitch() - Slid;
         }
 
         /**
@@ -777,4 +816,51 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
             }
         }
     }
+}
+
+
+int SidebarStripView::Available_Content_Height() const
+{
+    return SidebarRect.Height
+        - SidebarClass::SidebarBottomShape->Get_Height()
+        - SidebarClass::SidebarShape->Get_Height();
+}
+
+
+int SidebarStripView::Effective_Row_Pitch() const
+{
+    return std::max(1, Layout.RowPitch);
+}
+
+
+int SidebarStripView::Effective_Column_Spacing() const
+{
+    return std::max(1, Layout.ColumnSpacing);
+}
+
+
+int SidebarStripView::Scroll_Step() const
+{
+    return std::min(static_cast<int>(SCROLL_RATE), Effective_Row_Pitch());
+}
+
+
+Point2D SidebarStripView::Resolve_Up_Button_Position() const
+{
+    if (Layout.HasCustomUpButtonPosition) {
+        return Point2D(Layout.UpButtonPosition.X, Layout.UpButtonPosition.Y);
+    }
+
+    return Point2D(ColumnX + 5, ColumnY + Visible_Buttons_Per_Column() * Effective_Row_Pitch() - 1);
+}
+
+
+Point2D SidebarStripView::Resolve_Down_Button_Position() const
+{
+    if (Layout.HasCustomDownButtonPosition) {
+        return Point2D(Layout.DownButtonPosition.X, Layout.DownButtonPosition.Y);
+    }
+
+    return Point2D(ColumnX + (Columns == 1 ? 34 : Effective_Column_Spacing() + 34),
+        ColumnY + Visible_Buttons_Per_Column() * Effective_Row_Pitch() - 1);
 }

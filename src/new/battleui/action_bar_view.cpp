@@ -36,10 +36,22 @@
 #include "sidebar.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
+#include "uicontrol.h"
+
+
+namespace
+{
+const SidebarSharedLayout& Get_Sidebar_Layout()
+{
+    static const SidebarSharedLayout default_layout;
+    return UIControls != nullptr ? UIControls->SidebarLayout : default_layout;
+}
+}
 
 
 void ActionBarView::Init_Clear()
 {
+    IsActive = false;
     Repair.IsPressed = false;
     Sell.IsPressed = false;
     PowerBtn.IsPressed = false;
@@ -58,54 +70,34 @@ void ActionBarView::Init_IO()
         return;
     }
 
-    Repair.X = TacticalRect.Width + TacticalRect.X;
-    Sell.X = TacticalRect.Width + TacticalRect.X + 27;
-    PowerBtn.X = TacticalRect.Width + TacticalRect.X + 54;
-    Waypoint.X = TacticalRect.Width + TacticalRect.X + 81;
+    ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+    const int button_ids[] = {
+        SidebarClass::BUTTON_REPAIR,
+        SidebarClass::BUTTON_SELL,
+        SidebarClass::BUTTON_POWER,
+        SidebarClass::BUTTON_WAYPOINT
+    };
+    const int button_x[] = {
+        TacticalRect.Width + TacticalRect.X,
+        TacticalRect.Width + TacticalRect.X + 27,
+        TacticalRect.Width + TacticalRect.X + 54,
+        TacticalRect.Width + TacticalRect.X + 81
+    };
 
-    Repair.IsSticky = true;
-    Repair.ID = SidebarClass::BUTTON_REPAIR;
-    Repair.Y = 148;
-    Repair.DrawX = -480;
-    Repair.DrawY = 3;
-    Repair.DrawnOnSidebarSurface = true;
-    Repair.ShapeDrawer = SidebarDrawer;
-    Repair.IsPressed = false;
-    Repair.IsToggleType = true;
-    Repair.ReflectButtonState = true;
+    for (int i = 0; i < 4; ++i) {
+        buttons[i]->X = button_x[i];
+        buttons[i]->Y = 148;
+        buttons[i]->IsSticky = true;
+        buttons[i]->ID = button_ids[i];
+        buttons[i]->DrawX = -480;
+        buttons[i]->DrawY = 3;
+        buttons[i]->DrawnOnSidebarSurface = true;
+        buttons[i]->ShapeDrawer = SidebarDrawer;
+        buttons[i]->IsPressed = false;
+        buttons[i]->IsToggleType = true;
+        buttons[i]->ReflectButtonState = true;
+    }
 
-    Sell.IsSticky = true;
-    Sell.ID = SidebarClass::BUTTON_SELL;
-    Sell.Y = 148;
-    Sell.DrawX = -480;
-    Sell.DrawY = 3;
-    Sell.DrawnOnSidebarSurface = true;
-    Sell.ShapeDrawer = SidebarDrawer;
-    Sell.IsPressed = false;
-    Sell.IsToggleType = true;
-    Sell.ReflectButtonState = true;
-
-    PowerBtn.IsSticky = true;
-    PowerBtn.ID = SidebarClass::BUTTON_POWER;
-    PowerBtn.Y = 148;
-    PowerBtn.DrawX = -480;
-    PowerBtn.DrawY = 3;
-    PowerBtn.DrawnOnSidebarSurface = true;
-    PowerBtn.ShapeDrawer = SidebarDrawer;
-    PowerBtn.IsPressed = false;
-    PowerBtn.IsToggleType = true;
-    PowerBtn.ReflectButtonState = true;
-
-    Waypoint.IsSticky = true;
-    Waypoint.ID = SidebarClass::BUTTON_WAYPOINT;
-    Waypoint.Y = 148;
-    Waypoint.DrawX = -480;
-    Waypoint.DrawY = 3;
-    Waypoint.DrawnOnSidebarSurface = true;
-    Waypoint.ShapeDrawer = SidebarDrawer;
-    Waypoint.IsPressed = false;
-    Waypoint.IsToggleType = true;
-    Waypoint.ReflectButtonState = true;
     Waypoint.Enable();
 }
 
@@ -136,23 +128,31 @@ void ActionBarView::Set_Dimensions()
         return;
     }
 
-    Repair.Set_Position(SidebarRect.X + SidebarClass::BUTTON_REPAIR_X_OFFSET, SidebarRect.Y + SidebarClass::BUTTON_REPAIR_Y_OFFSET);
-    Repair.Flag_To_Redraw();
-    Repair.DrawX = -SidebarRect.X;
+    const bool was_active = IsActive;
+    if (was_active) {
+        Activate(0);
+    }
 
-    Sell.Set_Position(Repair.X + SidebarClass::BUTTON_SELL_X_OFFSET, Repair.Y);
-    Sell.Flag_To_Redraw();
-    Sell.DrawX = -SidebarRect.X;
+    const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+    ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+    const SidebarButtonLayout* button_layouts[] = {
+        &layout.RepairButton,
+        &layout.SellButton,
+        &layout.PowerButton,
+        &layout.WaypointButton
+    };
 
-    PowerBtn.Set_Position(Sell.X + SidebarClass::BUTTON_POWER_X_OFFSET, Sell.Y);
-    PowerBtn.Flag_To_Redraw();
-    PowerBtn.DrawX = -SidebarRect.X;
-
-    Waypoint.Set_Position(PowerBtn.X + SidebarClass::BUTTON_WAYPOINT_X_OFFSET, PowerBtn.Y);
-    Waypoint.Flag_To_Redraw();
-    Waypoint.DrawX = -SidebarRect.X;
+    for (int i = 0; i < 4; ++i) {
+        buttons[i]->Set_Position(SidebarRect.X + button_layouts[i]->Position.X, SidebarRect.Y + button_layouts[i]->Position.Y);
+        buttons[i]->Flag_To_Redraw();
+        buttons[i]->DrawX = -SidebarRect.X;
+    }
 
     Register_Tooltips();
+
+    if (was_active) {
+        Activate(1);
+    }
 }
 
 
@@ -162,15 +162,26 @@ void ActionBarView::Activate(int control)
         return;
     }
 
+    IsActive = control != 0;
+
     if (control) {
-        Repair.Zap();
-        Map.Add_A_Button(Repair);
-        Sell.Zap();
-        Map.Add_A_Button(Sell);
-        PowerBtn.Zap();
-        Map.Add_A_Button(PowerBtn);
-        Waypoint.Zap();
-        Map.Add_A_Button(Waypoint);
+        const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+        ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+        const bool button_visible[] = {
+            layout.RepairButton.Visible,
+            layout.SellButton.Visible,
+            layout.PowerButton.Visible,
+            layout.WaypointButton.Visible
+        };
+
+        for (int i = 0; i < 4; ++i) {
+            if (!button_visible[i]) {
+                continue;
+            }
+
+            buttons[i]->Zap();
+            Map.Add_A_Button(*buttons[i]);
+        }
     } else {
         Map.Remove_A_Button(Repair);
         Map.Remove_A_Button(Sell);
@@ -231,11 +242,33 @@ void ActionBarView::Draw(bool complete)
     Surface* oldsurface = LogicalSurface;
     LogicalSurface = SidebarSurface;
 
+    const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+
     if (Map.IsToRedraw || complete) {
-        Repair.Draw_Me(true);
-        Sell.Draw_Me(true);
-        PowerBtn.Draw_Me(true);
-        Waypoint.Draw_Me(true);
+        if (layout.RepairButton.Visible) {
+            Repair.Draw_Me(true);
+        } else {
+            Repair.IsDrawn = false;
+        }
+
+        if (layout.SellButton.Visible) {
+            Sell.Draw_Me(true);
+        } else {
+            Sell.IsDrawn = false;
+        }
+
+        if (layout.PowerButton.Visible) {
+            PowerBtn.Draw_Me(true);
+        } else {
+            PowerBtn.IsDrawn = false;
+        }
+
+        if (layout.WaypointButton.Visible) {
+            Waypoint.Draw_Me(true);
+        } else {
+            Waypoint.IsDrawn = false;
+        }
+
         RedrawSidebar = true;
     }
 
@@ -266,29 +299,38 @@ void ActionBarView::Register_Tooltips()
         return;
     }
 
+    const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+    ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+    const SidebarButtonLayout* button_layouts[] = {
+        &layout.RepairButton,
+        &layout.SellButton,
+        &layout.PowerButton,
+        &layout.WaypointButton
+    };
+    const int button_ids[] = {
+        SidebarClass::BUTTON_REPAIR,
+        SidebarClass::BUTTON_SELL,
+        SidebarClass::BUTTON_POWER,
+        SidebarClass::BUTTON_WAYPOINT
+    };
+    const int tooltip_text[] = {
+        TXT_REPAIR_MODE,
+        TXT_SELL_MODE,
+        TXT_POWER_MODE,
+        TXT_WAYPOINTMODE
+    };
+
     ToolTip tooltip;
+    for (int i = 0; i < 4; ++i) {
+        tooltip.ID = button_ids[i];
+        ToolTips->Remove(tooltip.ID);
 
-    tooltip.Region = Rect(Repair.X, Repair.Y, Repair.Width, Repair.Height);
-    tooltip.ID = SidebarClass::BUTTON_REPAIR;
-    tooltip.Text = TXT_REPAIR_MODE;
-    ToolTips->Remove(tooltip.ID);
-    ToolTips->Add(&tooltip);
+        if (!button_layouts[i]->Visible) {
+            continue;
+        }
 
-    tooltip.Region = Rect(Sell.X, Sell.Y, Sell.Width, Sell.Height);
-    tooltip.ID = SidebarClass::BUTTON_SELL;
-    tooltip.Text = TXT_SELL_MODE;
-    ToolTips->Remove(tooltip.ID);
-    ToolTips->Add(&tooltip);
-
-    tooltip.Region = Rect(PowerBtn.X, PowerBtn.Y, PowerBtn.Width, PowerBtn.Height);
-    tooltip.ID = SidebarClass::BUTTON_POWER;
-    tooltip.Text = TXT_POWER_MODE;
-    ToolTips->Remove(tooltip.ID);
-    ToolTips->Add(&tooltip);
-
-    tooltip.Region = Rect(Waypoint.X, Waypoint.Y, Waypoint.Width, Waypoint.Height);
-    tooltip.ID = SidebarClass::BUTTON_WAYPOINT;
-    tooltip.Text = TXT_WAYPOINTMODE;
-    ToolTips->Remove(tooltip.ID);
-    ToolTips->Add(&tooltip);
+        tooltip.Region = Rect(buttons[i]->X, buttons[i]->Y, buttons[i]->Width, buttons[i]->Height);
+        tooltip.Text = tooltip_text[i];
+        ToolTips->Add(&tooltip);
+    }
 }

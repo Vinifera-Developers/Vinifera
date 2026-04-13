@@ -49,6 +49,113 @@ enum SidebarViewType {
 };
 
 
+struct SidebarButtonLayout
+{
+    SidebarButtonLayout(const TPoint2D<int>& position = TPoint2D<int>(0, 0), bool visible = true) :
+        Position(position),
+        Visible(visible)
+    {
+    }
+
+    TPoint2D<int> Position;
+    bool Visible;
+};
+
+
+struct SidebarSharedLayout
+{
+    SidebarSharedLayout() :
+        RepairButton(TPoint2D<int>(31, -9), true),
+        SellButton(TPoint2D<int>(58, -9), true),
+        PowerButton(TPoint2D<int>(85, -9), true),
+        WaypointButton(TPoint2D<int>(112, -9), true),
+        PowerBarPosition(8, 25)
+    {
+    }
+
+    SidebarButtonLayout RepairButton;
+    SidebarButtonLayout SellButton;
+    SidebarButtonLayout PowerButton;
+    SidebarButtonLayout WaypointButton;
+    TPoint2D<int> PowerBarPosition;
+};
+
+
+struct SidebarClassicLayout
+{
+    SidebarClassicLayout() :
+        LeftStripPosition(24, 26),
+        RightStripPosition(92, 26),
+        VisibleRows(0),
+        RowPitch(51),
+        LeftUpButtonPosition(0, 0),
+        LeftDownButtonPosition(0, 0),
+        RightUpButtonPosition(0, 0),
+        RightDownButtonPosition(0, 0),
+        LeftUpButtonVisible(true),
+        LeftDownButtonVisible(true),
+        RightUpButtonVisible(true),
+        RightDownButtonVisible(true),
+        HasCustomLeftUpButtonPosition(false),
+        HasCustomLeftDownButtonPosition(false),
+        HasCustomRightUpButtonPosition(false),
+        HasCustomRightDownButtonPosition(false)
+    {
+    }
+
+    TPoint2D<int> LeftStripPosition;
+    TPoint2D<int> RightStripPosition;
+    int VisibleRows;
+    int RowPitch;
+    TPoint2D<int> LeftUpButtonPosition;
+    TPoint2D<int> LeftDownButtonPosition;
+    TPoint2D<int> RightUpButtonPosition;
+    TPoint2D<int> RightDownButtonPosition;
+    bool LeftUpButtonVisible;
+    bool LeftDownButtonVisible;
+    bool RightUpButtonVisible;
+    bool RightDownButtonVisible;
+    bool HasCustomLeftUpButtonPosition;
+    bool HasCustomLeftDownButtonPosition;
+    bool HasCustomRightUpButtonPosition;
+    bool HasCustomRightDownButtonPosition;
+};
+
+
+struct SidebarTabbedLayout
+{
+    SidebarTabbedLayout() :
+        StripPosition(24, 54),
+        VisibleRows(0),
+        RowPitch(51),
+        ColumnSpacing(67),
+        UpButtonPosition(0, 0),
+        DownButtonPosition(0, 0),
+        UpButtonVisible(true),
+        DownButtonVisible(true),
+        HasCustomUpButtonPosition(false),
+        HasCustomDownButtonPosition(false)
+    {
+        TabButtonPosition[0] = TPoint2D<int>(20, 24);
+        TabButtonPosition[1] = TPoint2D<int>(55, 24);
+        TabButtonPosition[2] = TPoint2D<int>(90, 24);
+        TabButtonPosition[3] = TPoint2D<int>(125, 24);
+    }
+
+    TPoint2D<int> TabButtonPosition[4];
+    TPoint2D<int> StripPosition;
+    int VisibleRows;
+    int RowPitch;
+    int ColumnSpacing;
+    TPoint2D<int> UpButtonPosition;
+    TPoint2D<int> DownButtonPosition;
+    bool UpButtonVisible;
+    bool DownButtonVisible;
+    bool HasCustomUpButtonPosition;
+    bool HasCustomDownButtonPosition;
+};
+
+
 class UIControlsClass
 {
     public:
@@ -320,6 +427,10 @@ class UIControlsClass
          *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
          */
         bool IsCenterSidebarButtonsOnRadar;
+
+        SidebarSharedLayout SidebarLayout;
+        SidebarClassicLayout ClassicSidebarLayoutConfig;
+        SidebarTabbedLayout TabbedSidebarLayoutConfig;
 
         /**
          *  Selected sidebar layout for the battle UI.

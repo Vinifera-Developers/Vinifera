@@ -53,6 +53,34 @@ class Surface;
 class SidebarStripView : public StageClass
 {
 public:
+    struct StripLayout
+    {
+        StripLayout() :
+            Position(0, 0),
+            VisibleRows(0),
+            RowPitch(51),
+            ColumnSpacing(67),
+            UpButtonPosition(0, 0),
+            DownButtonPosition(0, 0),
+            UpButtonVisible(true),
+            DownButtonVisible(true),
+            HasCustomUpButtonPosition(false),
+            HasCustomDownButtonPosition(false)
+        {
+        }
+
+        TPoint2D<int> Position;
+        int VisibleRows;
+        int RowPitch;
+        int ColumnSpacing;
+        TPoint2D<int> UpButtonPosition;
+        TPoint2D<int> DownButtonPosition;
+        bool UpButtonVisible;
+        bool DownButtonVisible;
+        bool HasCustomUpButtonPosition;
+        bool HasCustomDownButtonPosition;
+    };
+
     enum StripEnums {
         BUTTON_UP = 200,
         BUTTON_DOWN = 210,
@@ -76,7 +104,8 @@ public:
     void Init_Clear();
     void Init_IO(int id, int columns = 2);
     void Init_For_House(int id);
-    void Set_Dimensions(int column_x, int column_y);
+    void Set_Layout(const StripLayout& layout);
+    void Set_Dimensions();
     void Activate();
     void Deactivate();
     bool AI(KeyNumType& input, Point2D& xy);
@@ -104,6 +133,7 @@ public:
     int ColumnX;
     int ColumnY;
     bool IsToRedraw;
+    bool IsActive;
     bool IsScrollingDown;
     bool IsScrolling;
     int TopIndex;
@@ -113,12 +143,19 @@ public:
     int MaxVisibleCount;
 
     BuildCategory* Category;
+    StripLayout Layout;
 
     ShapeButtonClass UpButton;
     ShapeButtonClass DownButton;
     DynamicVectorClass<CameoButtonClass*> SelectButtons;
 
 private:
+    int Available_Content_Height() const;
+    int Effective_Row_Pitch() const;
+    int Effective_Column_Spacing() const;
+    int Scroll_Step() const;
+    Point2D Resolve_Up_Button_Position() const;
+    Point2D Resolve_Down_Button_Position() const;
     void Allocate_Select_Buttons(int count);
     void Draw_Strip_Items(Surface& surface, const Rect& rect);
 };

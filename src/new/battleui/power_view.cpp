@@ -44,12 +44,26 @@
 #include "surface.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
+#include "uicontrol.h"
 
 #include <algorithm>
 #include <cstdio>
 
 
 const ShapeSet *PowerView::PowerPipShape = nullptr;
+
+
+namespace
+{
+TPoint2D<int> Get_Power_Bar_Position()
+{
+    if (UIControls != nullptr) {
+        return UIControls->SidebarLayout.PowerBarPosition;
+    }
+
+    return TPoint2D<int>(PowerView::POWER_X, PowerView::POWER_Y);
+}
+}
 
 
 /**
@@ -120,11 +134,12 @@ void PowerView::Init_For_House()
 void PowerView::Set_Dimensions()
 {
     if (ToolTips != nullptr) {
+        const TPoint2D<int> power_bar_position = Get_Power_Bar_Position();
         ToolTip tt;
         tt.Text = TXT_NONE;
         tt.ID = GADGET_POWER;
-        tt.Region.X = SidebarRect.X + POWER_X;
-        tt.Region.Y = SidebarRect.Y + POWER_Y;
+        tt.Region.X = SidebarRect.X + power_bar_position.X;
+        tt.Region.Y = SidebarRect.Y + power_bar_position.Y;
         tt.Region.Width = POWER_WIDTH;
         tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn;
 
@@ -449,8 +464,9 @@ void PowerView::Draw(bool complete)
     RedrawSidebar = true;
 
     Rect rect = SidebarSurface->Get_Rect();
-    int x = POWER_X;
-    int y = SidebarRect.Y + POWER_Y;
+    const TPoint2D<int> power_bar_position = Get_Power_Bar_Position();
+    int x = power_bar_position.X;
+    int y = SidebarRect.Y + power_bar_position.Y;
 
     int num = Max_Power_Height() - RedPipCount - YellowPipCount - GreenPipCount;
 

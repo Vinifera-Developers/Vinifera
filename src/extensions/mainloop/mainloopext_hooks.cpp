@@ -33,6 +33,7 @@
 #include "addon.h"
 #include "asserthandler.h"
 #include "beacon.h"
+#include "battleui_component.h"
 #include "ccfile.h"
 #include "ccini.h"
 #include "command.h"
@@ -184,6 +185,10 @@ static void After_Main_Loop()
             workingini.Clear();
             workingini.Load(workingfile, false);
             UIControls->Read_INI(workingini);
+            BattleUI.Set_Dimensions();
+            Map.IsToFullRedraw = true;
+            Map.Flag_To_Redraw(GS_REDRAW_ALL);
+            RedrawSidebar = true;
             DEBUG_INFO("Finished UIControls->Read_INI().\n");
         }
 

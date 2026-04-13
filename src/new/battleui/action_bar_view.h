@@ -36,7 +36,10 @@
 class ActionBarView
 {
 public:
-    ActionBarView() = default;
+    ActionBarView() :
+        IsActive(false)
+    {
+    }
 
     void Init_Clear();
     void Init_IO();
@@ -49,6 +52,7 @@ public:
 private:
     void Register_Tooltips();
 
+    bool IsActive;
     ShapeButtonClass Repair;
     ShapeButtonClass Sell;
     ShapeButtonClass PowerBtn;
