@@ -127,6 +127,7 @@ public:
     int _Refund_Amount() const;
     bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
     bool _Should_Self_Heal_Now() const;
+    TechnoClass* Find_Trainable_Ally(TechnoClass * source);
 };
 
 
@@ -1328,8 +1329,20 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         const auto source_typeext = Extension::Fetch(source->TClass);
 
         if (source->TClass->IsTrainable) {
-            source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
-
+            // pretend there's an if here for checking spreading experience
+            if (true) {
+                if (!source->Crew.IsElite) {
+                    source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
+                } else {
+                    TechnoClass* techno = Find_Trainable_Ally(source);
+                    if (techno) {
+                        techno->Crew.Made_A_Kill(techno->TClass->Cost_Of(House), points);
+                    }
+                }
+            } else {
+                // original behavior
+                source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
+            }
         } else if (source_typeext->IsMissileSpawn) {
 
             if (source_ext->SpawnOwner && source_ext->SpawnOwner->TClass->IsTrainable) {
@@ -3164,6 +3177,57 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     }
     value = 0;
     return false;
+}
+
+TechnoClass* TechnoClassExt::Find_Trainable_Ally(TechnoClass* source) {
+    ObjectClass* object; // Working object pointer
+
+    Coord coord = source->Center_Coord();
+    Cell cell = coord.As_Cell();
+    CellClass* cellptr = &Map[cell];
+
+    int range = 5 * CELL_LEPTON_W; // replace 5 with search range value from Rules
+
+    int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
+
+    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Height_GL(coord);
+
+    /**
+     *  Find an ally that can be trained from the nearby cells.
+     * The units can be lifted from the cell data directly.
+     */
+    for (int x = -cell_radius; x <= cell_radius; x++) {
+        for (int y = -cell_radius; y <= cell_radius; y++) {
+
+            Cell newcell = cell + Cell(x, y);
+
+            /**
+             *  Fetch a pointer to the cell to examine.
+             */
+            cellptr = &Map[newcell];
+
+
+            /**
+             *  Add all objects in this cell to the list of objects to possibly apply
+             *  damage to.
+             */
+            object = cellptr->Cell_Occupier(isbridge);
+            while (object) {
+                if (object != source) {
+                    TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
+                    if (techno) {
+                        if (techno->TClass->IsTrainable && !techno->Crew.IsElite && source->House->Is_Ally(techno) && techno->House->Is_Ally(source)) {
+                            return techno;
+                        }
+                    }
+                }
+
+                object = object->Next;
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 
