@@ -37,7 +37,7 @@ CameoButtonClass::CameoButtonClass() :
                  LEFTPRESS | RIGHTPRESS | LEFTUP),
     Strip(nullptr),
     Index(0),
-    MousedOver(false)
+    IsMousedOver(false)
 {
 }
 
@@ -46,7 +46,7 @@ CameoButtonClass::CameoButtonClass(const NoInitClass& x) :
     ControlClass(x),
     Strip(nullptr),
     Index(0),
-    MousedOver(false)
+    IsMousedOver(false)
 {
 }
 
@@ -71,13 +71,13 @@ bool CameoButtonClass::Action(unsigned flags, KeyNumType& key)
 
 void CameoButtonClass::On_Mouse_Enter()
 {
-    MousedOver = true;
+    IsMousedOver = true;
 }
 
 
 void CameoButtonClass::On_Mouse_Leave()
 {
-    MousedOver = false;
+    IsMousedOver = false;
 }
 
 

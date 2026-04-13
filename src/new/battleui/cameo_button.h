@@ -50,5 +50,5 @@ public:
 public:
     SidebarStripView* Strip;
     int Index;
-    bool MousedOver;
+    bool IsMousedOver;
 };

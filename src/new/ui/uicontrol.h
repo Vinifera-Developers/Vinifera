@@ -54,12 +54,12 @@ struct SidebarButtonLayout
 {
     SidebarButtonLayout(const TPoint2D<int>& position = TPoint2D<int>(0, 0), bool visible = true) :
         Position(position),
-        Visible(visible)
+        IsVisible(visible)
     {
     }
 
     TPoint2D<int> Position;
-    bool Visible;
+    bool IsVisible;
 };
 
 
@@ -93,10 +93,10 @@ struct SidebarClassicLayout
         LeftDownButtonPosition(INT_MIN, INT_MIN),
         RightUpButtonPosition(INT_MIN, INT_MIN),
         RightDownButtonPosition(INT_MIN, INT_MIN),
-        LeftUpButtonVisible(true),
-        LeftDownButtonVisible(true),
-        RightUpButtonVisible(true),
-        RightDownButtonVisible(true)
+        IsLeftUpButtonVisible(true),
+        IsLeftDownButtonVisible(true),
+        IsRightUpButtonVisible(true),
+        IsRightDownButtonVisible(true)
     {
     }
 
@@ -108,10 +108,10 @@ struct SidebarClassicLayout
     TPoint2D<int> LeftDownButtonPosition;
     TPoint2D<int> RightUpButtonPosition;
     TPoint2D<int> RightDownButtonPosition;
-    bool LeftUpButtonVisible;
-    bool LeftDownButtonVisible;
-    bool RightUpButtonVisible;
-    bool RightDownButtonVisible;
+    bool IsLeftUpButtonVisible;
+    bool IsLeftDownButtonVisible;
+    bool IsRightUpButtonVisible;
+    bool IsRightDownButtonVisible;
 };
 
 
@@ -124,8 +124,8 @@ struct SidebarTabbedLayout
         ColumnSpacing(67),
         UpButtonPosition(INT_MIN, INT_MIN),
         DownButtonPosition(INT_MIN, INT_MIN),
-        UpButtonVisible(true),
-        DownButtonVisible(true)
+        IsUpButtonVisible(true),
+        IsDownButtonVisible(true)
     {
         TabButtonPosition[0] = TPoint2D<int>(20, 24);
         TabButtonPosition[1] = TPoint2D<int>(55, 24);
@@ -140,8 +140,8 @@ struct SidebarTabbedLayout
     int ColumnSpacing;
     TPoint2D<int> UpButtonPosition;
     TPoint2D<int> DownButtonPosition;
-    bool UpButtonVisible;
-    bool DownButtonVisible;
+    bool IsUpButtonVisible;
+    bool IsDownButtonVisible;
 };
 
 

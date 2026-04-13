@@ -90,7 +90,7 @@ public:
 
     bool IsSelected;
     bool IsDrawn;
-    bool MousedOver;
+    bool IsMousedOver;
 };
 
 

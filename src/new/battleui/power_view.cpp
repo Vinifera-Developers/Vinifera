@@ -81,7 +81,7 @@ PowerView::PowerView() :
     YellowPipCount(0),
     RedPipCount(0),
     VisibleButtonsPerColumn(SidebarClass::StripClass::MAX_VISIBLE),
-    HasChanged(false)
+    IsChanged(false)
 {
 }
 
@@ -110,7 +110,7 @@ void PowerView::Init_Clear()
     YellowPipCount = 0;
     RedPipCount = 0;
     VisibleButtonsPerColumn = SidebarClass::StripClass::MAX_VISIBLE;
-    HasChanged = false;
+    IsChanged = false;
     IsToRedraw = false;
 }
 
@@ -154,7 +154,7 @@ void PowerView::Set_Visible_Buttons_Per_Column(int count)
     count = std::max(1, count);
     if (VisibleButtonsPerColumn != count) {
         VisibleButtonsPerColumn = count;
-        HasChanged = true;
+        IsChanged = true;
         IsToRedraw = true;
     }
 }
@@ -355,7 +355,7 @@ void PowerView::AI()
 
     const bool model_dirty = Model != nullptr && Model->Is_Dirty();
 
-    if (!HasChanged && FlashCount > 0) {
+    if (!IsChanged && FlashCount > 0) {
         if (FlashTimer == 0) {
             IsToRedraw = true;
             FlashCount--;
@@ -367,7 +367,7 @@ void PowerView::AI()
     /**
      *  If the recorded power or drain value has changed we need to adjust for it.
      */
-    if (model_dirty || HasChanged) {
+    if (model_dirty || IsChanged) {
 
         IsToRedraw = true;
         Map.Redraw_Sidebar();
@@ -376,7 +376,7 @@ void PowerView::AI()
          *  Flag to flash the top of the power bar if we're adjusting the bar height.
          */
         if (model_dirty) {
-            HasChanged = true;
+            IsChanged = true;
             Flash_Power();
         }
 
@@ -384,13 +384,13 @@ void PowerView::AI()
         Desired_Levels(green, yellow, red);
 
         if (UpdateTimer == 0) {
-            HasChanged = false;
+            IsChanged = false;
 
             /**
              *  If we need to move the red level height then do so.
              */
             if (RedPipCount != red) {
-                HasChanged = true;
+                IsChanged = true;
 
                 if (RedPipCount > red) {
                     RedPipCount--;
@@ -404,7 +404,7 @@ void PowerView::AI()
              *  If we need to move the green level height then do so.
              */
             } else if (GreenPipCount != green) {
-                HasChanged = true;
+                IsChanged = true;
 
                 if (GreenPipCount > green) {
                     GreenPipCount--;
@@ -418,7 +418,7 @@ void PowerView::AI()
              *  If we need to move the yellow level height then do so.
              */
             } else if (YellowPipCount != yellow) {
-                HasChanged = true;
+                IsChanged = true;
 
                 if (YellowPipCount > yellow) {
                     YellowPipCount--;
@@ -429,7 +429,7 @@ void PowerView::AI()
                 }
             }
 
-            if (HasChanged) {
+            if (IsChanged) {
                 UpdateTimer = Update_Delay();
             }
         }

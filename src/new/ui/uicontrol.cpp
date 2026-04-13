@@ -243,13 +243,13 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     NavComQueueLineDropShadowColor = ini.Get_RGBColor(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
 
     SidebarLayout.RepairButton.Position = ini.Get_Point(SIDEBAR_SECTION, "RepairButtonPos", SidebarLayout.RepairButton.Position);
-    SidebarLayout.RepairButton.Visible = ini.Get_Bool(SIDEBAR_SECTION, "RepairButtonVisible", SidebarLayout.RepairButton.Visible);
+    SidebarLayout.RepairButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "RepairButtonVisible", SidebarLayout.RepairButton.IsVisible);
     SidebarLayout.SellButton.Position = ini.Get_Point(SIDEBAR_SECTION, "SellButtonPos", SidebarLayout.SellButton.Position);
-    SidebarLayout.SellButton.Visible = ini.Get_Bool(SIDEBAR_SECTION, "SellButtonVisible", SidebarLayout.SellButton.Visible);
+    SidebarLayout.SellButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "SellButtonVisible", SidebarLayout.SellButton.IsVisible);
     SidebarLayout.PowerButton.Position = ini.Get_Point(SIDEBAR_SECTION, "PowerButtonPos", SidebarLayout.PowerButton.Position);
-    SidebarLayout.PowerButton.Visible = ini.Get_Bool(SIDEBAR_SECTION, "PowerButtonVisible", SidebarLayout.PowerButton.Visible);
+    SidebarLayout.PowerButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "PowerButtonVisible", SidebarLayout.PowerButton.IsVisible);
     SidebarLayout.WaypointButton.Position = ini.Get_Point(SIDEBAR_SECTION, "WaypointButtonPos", SidebarLayout.WaypointButton.Position);
-    SidebarLayout.WaypointButton.Visible = ini.Get_Bool(SIDEBAR_SECTION, "WaypointButtonVisible", SidebarLayout.WaypointButton.Visible);
+    SidebarLayout.WaypointButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "WaypointButtonVisible", SidebarLayout.WaypointButton.IsVisible);
     SidebarLayout.PowerBarPosition = ini.Get_Point(SIDEBAR_SECTION, "PowerBarPos", SidebarLayout.PowerBarPosition);
 
     ClassicSidebarLayoutConfig.LeftStripPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftStripPos", ClassicSidebarLayoutConfig.LeftStripPosition);
@@ -260,10 +260,10 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     ClassicSidebarLayoutConfig.LeftDownButtonPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftDownButtonPos", ClassicSidebarLayoutConfig.LeftDownButtonPosition);
     ClassicSidebarLayoutConfig.RightUpButtonPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightUpButtonPos", ClassicSidebarLayoutConfig.RightUpButtonPosition);
     ClassicSidebarLayoutConfig.RightDownButtonPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightDownButtonPos", ClassicSidebarLayoutConfig.RightDownButtonPosition);
-    ClassicSidebarLayoutConfig.LeftUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftUpButtonVisible", ClassicSidebarLayoutConfig.LeftUpButtonVisible);
-    ClassicSidebarLayoutConfig.LeftDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftDownButtonVisible", ClassicSidebarLayoutConfig.LeftDownButtonVisible);
-    ClassicSidebarLayoutConfig.RightUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightUpButtonVisible", ClassicSidebarLayoutConfig.RightUpButtonVisible);
-    ClassicSidebarLayoutConfig.RightDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightDownButtonVisible", ClassicSidebarLayoutConfig.RightDownButtonVisible);
+    ClassicSidebarLayoutConfig.IsLeftUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftUpButtonVisible", ClassicSidebarLayoutConfig.IsLeftUpButtonVisible);
+    ClassicSidebarLayoutConfig.IsLeftDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftDownButtonVisible", ClassicSidebarLayoutConfig.IsLeftDownButtonVisible);
+    ClassicSidebarLayoutConfig.IsRightUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightUpButtonVisible", ClassicSidebarLayoutConfig.IsRightUpButtonVisible);
+    ClassicSidebarLayoutConfig.IsRightDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightDownButtonVisible", ClassicSidebarLayoutConfig.IsRightDownButtonVisible);
 
     TabbedSidebarLayoutConfig.TabButtonPosition[0] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab1Pos", TabbedSidebarLayoutConfig.TabButtonPosition[0]);
     TabbedSidebarLayoutConfig.TabButtonPosition[1] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab2Pos", TabbedSidebarLayoutConfig.TabButtonPosition[1]);
@@ -275,8 +275,8 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     TabbedSidebarLayoutConfig.ColumnSpacing = std::max(1, ini.Get_Int(SIDEBAR_TABBED_SECTION, "ColumnSpacing", TabbedSidebarLayoutConfig.ColumnSpacing));
     TabbedSidebarLayoutConfig.UpButtonPosition = ini.Get_Point(SIDEBAR_TABBED_SECTION, "UpButtonPos", TabbedSidebarLayoutConfig.UpButtonPosition);
     TabbedSidebarLayoutConfig.DownButtonPosition = ini.Get_Point(SIDEBAR_TABBED_SECTION, "DownButtonPos", TabbedSidebarLayoutConfig.DownButtonPosition);
-    TabbedSidebarLayoutConfig.UpButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "UpButtonVisible", TabbedSidebarLayoutConfig.UpButtonVisible);
-    TabbedSidebarLayoutConfig.DownButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "DownButtonVisible", TabbedSidebarLayoutConfig.DownButtonVisible);
+    TabbedSidebarLayoutConfig.IsUpButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "UpButtonVisible", TabbedSidebarLayoutConfig.IsUpButtonVisible);
+    TabbedSidebarLayoutConfig.IsDownButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "DownButtonVisible", TabbedSidebarLayoutConfig.IsDownButtonVisible);
 
     BeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "BeaconAnimFramesPerSecond", BeaconAnimFramesPerSecond);
     RadarBeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "RadarBeaconAnimFramesPerSecond", RadarBeaconAnimFramesPerSecond);

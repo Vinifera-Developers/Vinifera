@@ -98,7 +98,7 @@ private:
     int RedPipCount;
     int VisibleButtonsPerColumn;
 
-    bool HasChanged;
+    bool IsChanged;
 
     static const ShapeSet *PowerPipShape;
 };

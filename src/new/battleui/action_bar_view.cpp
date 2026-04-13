@@ -168,10 +168,10 @@ void ActionBarView::Activate(int control)
         const SidebarSharedLayout& layout = Get_Sidebar_Layout();
         ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
         const bool button_visible[] = {
-            layout.RepairButton.Visible,
-            layout.SellButton.Visible,
-            layout.PowerButton.Visible,
-            layout.WaypointButton.Visible
+            layout.RepairButton.IsVisible,
+            layout.SellButton.IsVisible,
+            layout.PowerButton.IsVisible,
+            layout.WaypointButton.IsVisible
         };
 
         for (int i = 0; i < 4; ++i) {
@@ -245,25 +245,25 @@ void ActionBarView::Draw(bool complete)
     const SidebarSharedLayout& layout = Get_Sidebar_Layout();
 
     if (Map.IsToRedraw || complete) {
-        if (layout.RepairButton.Visible) {
+        if (layout.RepairButton.IsVisible) {
             Repair.Draw_Me(true);
         } else {
             Repair.IsDrawn = false;
         }
 
-        if (layout.SellButton.Visible) {
+        if (layout.SellButton.IsVisible) {
             Sell.Draw_Me(true);
         } else {
             Sell.IsDrawn = false;
         }
 
-        if (layout.PowerButton.Visible) {
+        if (layout.PowerButton.IsVisible) {
             PowerBtn.Draw_Me(true);
         } else {
             PowerBtn.IsDrawn = false;
         }
 
-        if (layout.WaypointButton.Visible) {
+        if (layout.WaypointButton.IsVisible) {
             Waypoint.Draw_Me(true);
         } else {
             Waypoint.IsDrawn = false;
@@ -325,7 +325,7 @@ void ActionBarView::Register_Tooltips()
         tooltip.ID = button_ids[i];
         ToolTips->Remove(tooltip.ID);
 
-        if (!button_layouts[i]->Visible) {
+        if (!button_layouts[i]->IsVisible) {
             continue;
         }
 

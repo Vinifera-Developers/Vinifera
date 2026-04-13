@@ -93,8 +93,8 @@ SidebarStripView::StripLayout Build_Tabbed_Strip_Layout()
     strip_layout.ColumnSpacing = layout.ColumnSpacing;
     strip_layout.UpButtonPosition = layout.UpButtonPosition;
     strip_layout.DownButtonPosition = layout.DownButtonPosition;
-    strip_layout.UpButtonVisible = layout.UpButtonVisible;
-    strip_layout.DownButtonVisible = layout.DownButtonVisible;
+    strip_layout.IsUpButtonVisible = layout.IsUpButtonVisible;
+    strip_layout.IsDownButtonVisible = layout.IsDownButtonVisible;
 
     return strip_layout;
 }
@@ -122,7 +122,7 @@ TabButtonClass::TabButtonClass() :
     FlashFrame(0),
     IsSelected(false),
     IsDrawn(false),
-    MousedOver(false)
+    IsMousedOver(false)
 {
 }
 
@@ -144,7 +144,7 @@ TabButtonClass::TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y
     FlashFrame(0),
     IsSelected(false),
     IsDrawn(false),
-    MousedOver(false)
+    IsMousedOver(false)
 {
 }
 
@@ -247,7 +247,7 @@ bool TabButtonClass::Draw_Me(bool forced)
     Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum,
                Point2D(X + DrawX, Y + DrawY), VisibleRect, SHAPE_NORMAL);
 
-    if (MousedOver && !Scen->InputLock && !IsDisabled && !IsSelected) {
+    if (IsMousedOver && !Scen->InputLock && !IsDisabled && !IsSelected) {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
         const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
         SidebarSurface->Draw_Rect(hover_rect,
@@ -266,7 +266,7 @@ bool TabButtonClass::Draw_Me(bool forced)
  */
 void TabButtonClass::On_Mouse_Enter()
 {
-    MousedOver = true;
+    IsMousedOver = true;
     Map.IsToFullRedraw = true;
     Map.Flag_To_Redraw();
     RedrawSidebar = true;
@@ -280,7 +280,7 @@ void TabButtonClass::On_Mouse_Enter()
  */
 void TabButtonClass::On_Mouse_Leave()
 {
-    MousedOver = false;
+    IsMousedOver = false;
     Map.IsToFullRedraw = true;
     Map.Flag_To_Redraw();
     RedrawSidebar = true;

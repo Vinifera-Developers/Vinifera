@@ -66,8 +66,8 @@ public:
             ColumnSpacing(67),
             UpButtonPosition(AUTO_POSITION, AUTO_POSITION),
             DownButtonPosition(AUTO_POSITION, AUTO_POSITION),
-            UpButtonVisible(true),
-            DownButtonVisible(true)
+            IsUpButtonVisible(true),
+            IsDownButtonVisible(true)
         {
         }
 
@@ -77,8 +77,8 @@ public:
         int ColumnSpacing;
         TPoint2D<int> UpButtonPosition;
         TPoint2D<int> DownButtonPosition;
-        bool UpButtonVisible;
-        bool DownButtonVisible;
+        bool IsUpButtonVisible;
+        bool IsDownButtonVisible;
     };
 
     enum StripEnums {

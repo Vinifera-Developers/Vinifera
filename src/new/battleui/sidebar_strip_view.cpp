@@ -270,12 +270,12 @@ void SidebarStripView::Activate()
 {
     IsActive = true;
 
-    if (Layout.UpButtonVisible) {
+    if (Layout.IsUpButtonVisible) {
         UpButton.Zap();
         Map.Add_A_Button(UpButton);
     }
 
-    if (Layout.DownButtonVisible) {
+    if (Layout.IsDownButtonVisible) {
         DownButton.Zap();
         Map.Add_A_Button(DownButton);
     }
@@ -439,13 +439,13 @@ void SidebarStripView::Draw(Surface& surface, const Rect& rect, bool complete)
         /**
          *  Draw scroll buttons.
          */
-        if (Layout.UpButtonVisible) {
+        if (Layout.IsUpButtonVisible) {
             UpButton.Draw_Me(true);
         } else {
             UpButton.IsDrawn = false;
         }
 
-        if (Layout.DownButtonVisible) {
+        if (Layout.IsDownButtonVisible) {
             DownButton.Draw_Me(true);
         } else {
             DownButton.IsDrawn = false;
@@ -746,7 +746,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
              *  Draw hover highlight if moused over and available.
              */
             if (i < SelectButtons.Count()) {
-                bool over = SelectButtons[i]->MousedOver;
+                bool over = SelectButtons[i]->IsMousedOver;
                 if (over && !Scen->InputLock && !darken) {
                     Rect cameo_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
                     Draw_Hover_Highlight(surface, cameo_rect);
