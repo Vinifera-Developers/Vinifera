@@ -30,7 +30,6 @@
 #pragma once
 
 #include "gcntrl.h"
-#include "shapebtn.h"
 #include "shapeset.h"
 #include "sidebar_strip_view.h"
 #include "sidebar_view.h"
@@ -155,7 +154,6 @@ public:
     virtual int Visible_Buttons_Per_Column() const override;
 
     virtual bool Change_Tab(int index) override;
-    virtual void Action_Bar_AI(KeyNumType& key) override;
 
     SidebarTabType First_Active_Tab() const;
 
@@ -169,9 +167,5 @@ public:
     SidebarTabType TabIndex;
     SidebarStripView Strip[SIDEBAR_TAB_COUNT];
     TabButtonClass TabButtons[SIDEBAR_TAB_COUNT];
-    ShapeButtonClass Repair;
-    ShapeButtonClass Sell;
-    ShapeButtonClass PowerBtn;
-    ShapeButtonClass Waypoint;
     SidebarClass::SBGadgetClass Background;
 };

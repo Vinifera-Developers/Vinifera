@@ -108,6 +108,7 @@ void SidebarComponent::One_Time()
  */
 void SidebarComponent::Init_Clear()
 {
+    ActionBar.Init_Clear();
     Model.Init_Clear();
 
     if (ActiveView) {
@@ -123,6 +124,8 @@ void SidebarComponent::Init_Clear()
  */
 void SidebarComponent::Init_IO()
 {
+    ActionBar.Init_IO();
+
     if (ActiveView) {
         ActiveView->Init_IO();
     }
@@ -141,6 +144,8 @@ void SidebarComponent::Init_For_House()
     if (ActiveView) {
         ActiveView->Init_For_House();
     }
+
+    ActionBar.Init_For_House();
 }
 
 
@@ -155,8 +160,9 @@ void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
         Model.Recalc_All();
     }
 
+    ActionBar.AI(key);
+
     if (ActiveView) {
-        ActiveView->Action_Bar_AI(key);
         ActiveView->AI(key, mouse);
     }
 }
@@ -172,6 +178,8 @@ void SidebarComponent::Draw(bool complete)
     if (ActiveView) {
         ActiveView->Draw(complete);
     }
+
+    ActionBar.Draw(complete);
 }
 
 
@@ -196,6 +204,7 @@ void SidebarComponent::Blit(bool complete)
 void SidebarComponent::Shutdown()
 {
     if (ActiveView != nullptr) {
+        Activate(0);
         delete ActiveView;
         ActiveView = nullptr;
     }
@@ -353,6 +362,8 @@ void SidebarComponent::Detach(AbstractClass* target)
  */
 void SidebarComponent::Activate(int control)
 {
+    ActionBar.Activate(control);
+
     if (ActiveView) {
         ActiveView->Activate(control);
     }
@@ -366,6 +377,8 @@ void SidebarComponent::Activate(int control)
  */
 void SidebarComponent::Set_Dimensions()
 {
+    ActionBar.Set_Dimensions();
+
     if (ActiveView) {
         ActiveView->Set_Dimensions();
     }

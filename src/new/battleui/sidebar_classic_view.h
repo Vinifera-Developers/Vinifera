@@ -29,7 +29,6 @@
 
 #pragma once
 
-#include "shapebtn.h"
 #include "sidebar_strip_view.h"
 #include "sidebar_view.h"
 
@@ -73,13 +72,7 @@ public:
     virtual int Visible_Button_Count() const override;
     virtual int Visible_Buttons_Per_Column() const override;
 
-    virtual void Action_Bar_AI(KeyNumType& key) override;
-
 private:
     SidebarStripView Strip[COLUMN_COUNT];
-    ShapeButtonClass Repair;
-    ShapeButtonClass Sell;
-    ShapeButtonClass PowerBtn;
-    ShapeButtonClass Waypoint;
     SidebarClass::SBGadgetClass Background;
 };

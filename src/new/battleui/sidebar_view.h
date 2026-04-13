@@ -70,7 +70,6 @@ public:
     virtual int Visible_Buttons_Per_Column() const = 0;
 
     virtual bool Change_Tab(int index) { return false; }
-    virtual void Action_Bar_AI(KeyNumType& key) {}
 
 protected:
     SidebarModel* Model;
