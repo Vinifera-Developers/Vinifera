@@ -847,7 +847,8 @@ int SidebarStripView::Scroll_Step() const
 
 Point2D SidebarStripView::Resolve_Up_Button_Position() const
 {
-    if (Layout.HasCustomUpButtonPosition) {
+    if (Layout.UpButtonPosition.X != StripLayout::AUTO_POSITION
+        || Layout.UpButtonPosition.Y != StripLayout::AUTO_POSITION) {
         return Point2D(Layout.UpButtonPosition.X, Layout.UpButtonPosition.Y);
     }
 
@@ -857,7 +858,8 @@ Point2D SidebarStripView::Resolve_Up_Button_Position() const
 
 Point2D SidebarStripView::Resolve_Down_Button_Position() const
 {
-    if (Layout.HasCustomDownButtonPosition) {
+    if (Layout.DownButtonPosition.X != StripLayout::AUTO_POSITION
+        || Layout.DownButtonPosition.Y != StripLayout::AUTO_POSITION) {
         return Point2D(Layout.DownButtonPosition.X, Layout.DownButtonPosition.Y);
     }
 

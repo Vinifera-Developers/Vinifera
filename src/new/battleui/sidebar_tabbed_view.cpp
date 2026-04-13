@@ -95,8 +95,6 @@ SidebarStripView::StripLayout Build_Tabbed_Strip_Layout()
     strip_layout.DownButtonPosition = layout.DownButtonPosition;
     strip_layout.UpButtonVisible = layout.UpButtonVisible;
     strip_layout.DownButtonVisible = layout.DownButtonVisible;
-    strip_layout.HasCustomUpButtonPosition = layout.HasCustomUpButtonPosition;
-    strip_layout.HasCustomDownButtonPosition = layout.HasCustomDownButtonPosition;
 
     return strip_layout;
 }

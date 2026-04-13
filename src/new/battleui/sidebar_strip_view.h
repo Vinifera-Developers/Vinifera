@@ -39,6 +39,8 @@
 #include "point.h"
 #include "rect.h"
 
+#include <climits>
+
 class BuildCategory;
 struct BuildItem;
 class CameoButtonClass;
@@ -55,17 +57,17 @@ class SidebarStripView : public StageClass
 public:
     struct StripLayout
     {
+        static constexpr int AUTO_POSITION = INT_MIN;
+
         StripLayout() :
             Position(0, 0),
             VisibleRows(0),
             RowPitch(51),
             ColumnSpacing(67),
-            UpButtonPosition(0, 0),
-            DownButtonPosition(0, 0),
+            UpButtonPosition(AUTO_POSITION, AUTO_POSITION),
+            DownButtonPosition(AUTO_POSITION, AUTO_POSITION),
             UpButtonVisible(true),
-            DownButtonVisible(true),
-            HasCustomUpButtonPosition(false),
-            HasCustomDownButtonPosition(false)
+            DownButtonVisible(true)
         {
         }
 
@@ -77,8 +79,6 @@ public:
         TPoint2D<int> DownButtonPosition;
         bool UpButtonVisible;
         bool DownButtonVisible;
-        bool HasCustomUpButtonPosition;
-        bool HasCustomDownButtonPosition;
     };
 
     enum StripEnums {

@@ -482,64 +482,39 @@ static GadgetClass* LastHovered;
 
 
 /**
- *  Function for checking which gadget has been hovered over.
+ *  Patch in GadgetClass::Input to handle hover effects for SelectClass.
  *
  *  @author: ZivDero
  */
-static void Check_Hover(GadgetClass* gadget, int mousex, int mousey)
+DEFINE_HOOK(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave, 0)
 {
-    GadgetClass* to_enter = gadget->Extract_Gadget_At_Mouse(mousex, mousey);
-    if (to_enter != LastHovered)
-    {
-        if (LastHovered)
-        {
-            if (auto select = dynamic_cast<CameoButtonClass*>(LastHovered))
-            {
+    GET(int, key, EAX);
+    GET(int, mousex, EBP);
+    GET(int, mousey, EBX);
+    GET(GadgetClass*, this_ptr, ESI);
+
+    GadgetClass* to_enter = this_ptr->Extract_Gadget_At_Mouse(mousex, mousey);
+    if (to_enter != LastHovered) {
+        if (LastHovered) {
+            if (auto select = dynamic_cast<CameoButtonClass*>(LastHovered)) {
                 select->On_Mouse_Leave();
-            }
-            else if (auto tab_button = dynamic_cast<TabButtonClass*>(LastHovered))
-            {
+            } else if (auto tab_button = dynamic_cast<TabButtonClass*>(LastHovered)) {
                 tab_button->On_Mouse_Leave();
             }
 
             LastHovered = nullptr;
         }
 
-        if (to_enter)
-        {
-            if (auto select = dynamic_cast<CameoButtonClass*>(to_enter))
-            {
+        if (to_enter) {
+            if (auto select = dynamic_cast<CameoButtonClass*>(to_enter)) {
                 LastHovered = select;
                 select->On_Mouse_Enter();
-            }
-            else if (auto tab_button = dynamic_cast<TabButtonClass*>(to_enter))
-            {
+            } else if (auto tab_button = dynamic_cast<TabButtonClass*>(to_enter)) {
                 LastHovered = tab_button;
                 tab_button->On_Mouse_Enter();
             }
         }
     }
-}
-
-
-/**
- *  Patch in GadgetClass::Input to handle hover effects for SelectClass.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
-{
-    GET_REGISTER_STATIC(int, key, EAX);
-    GET_REGISTER_STATIC(int, mousex, EBP);
-    GET_REGISTER_STATIC(int, mousey, EBX);
-    GET_REGISTER_STATIC(unsigned, flags, EDI);
-    GET_REGISTER_STATIC(GadgetClass*, this_ptr, ESI);
-
-    _asm push eax
-    _asm push edx
-    Check_Hover(this_ptr, mousex, mousey);
-    _asm pop edx
-    _asm pop eax
 
     // Stolen code
 
@@ -547,34 +522,38 @@ DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
      *  Set the mouse button state flags. These will be passed to the individual
      *  buttons so that they can determine what action to perform (if any).
      */
-    flags = 0;
-    if (key)
-    {
-        if (key == KN_LMOUSE)
+    unsigned flags = 0;
+    if (key) {
+        if (key == KN_LMOUSE) {
             flags |= GadgetClass::LEFTPRESS;
+        }
 
-        if (key == KN_RMOUSE)
+        if (key == KN_RMOUSE) {
             flags |= GadgetClass::RIGHTPRESS;
+        }
 
-        if (key == (KN_LMOUSE | KN_RLSE_BIT))
+        if (key == (KN_LMOUSE | KN_RLSE_BIT)) {
             flags |= GadgetClass::LEFTRELEASE;
+        }
 
-        if (key == (KN_RMOUSE | KN_RLSE_BIT))
+        if (key == (KN_RMOUSE | KN_RLSE_BIT)) {
             flags |= GadgetClass::RIGHTRELEASE;
+        }
 
         /**
          *  If the mouse wasn't responsible for this key code, then it must be from
          *  the keyboard. Flag this fact.
          */
-        if (!flags)
+        if (!flags) {
             flags |= GadgetClass::KEYBOARD;
+        }
 
-        _asm mov edi, flags
-        JMP_REG(ecx, 0x004A9F7F);
+        R->EDI(flags);
+        return 0x004A9F7F;
     }
 
-    _asm mov edi, flags
-    JMP_REG(ecx, 0x004A9F4D);
+    R->EDI(flags);
+    return 0x004A9F4D;
 }
 
 
@@ -602,8 +581,6 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
     Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
     Patch_Jump(0x005F48F0, &StripClassExt::_Flag_To_Redraw);
-
-    Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
 
     // NOP away tooltip length check for formatting
     Patch_Byte(0x0044E486, 0x90);

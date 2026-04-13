@@ -282,7 +282,7 @@ bool Should_Process_Factory_Change(FactoryClass& factory)
 }
 
 
-ProductionFlags Resolve_Redraw_Flags(const BuildItem& item, FactoryClass& factory)
+ProductionFlags Get_Production_Flags(const BuildItem& item, FactoryClass& factory)
 {
     if (TechnoClass* object = factory.Get_Object()) {
         return TechnoTypeClassExtension::Get_Production_Flags(object);
@@ -327,7 +327,7 @@ void Update_Item_Production_State(SidebarComponent& sidebar, BuildItem& item)
         return;
     }
 
-    sidebar.Flag_Strip_To_Redraw(item.Type, Resolve_Redraw_Flags(item, *factory));
+    sidebar.Flag_Strip_To_Redraw(item.Type, Get_Production_Flags(item, *factory));
     Notify_Completed_Factory_Output(*factory);
 }
 }

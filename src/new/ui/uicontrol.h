@@ -33,6 +33,7 @@
 #include "tibsun_defines.h"
 #include "typelist.h"
 
+#include <climits>
 #include <string>
 
 
@@ -88,18 +89,14 @@ struct SidebarClassicLayout
         RightStripPosition(92, 26),
         VisibleRows(0),
         RowPitch(51),
-        LeftUpButtonPosition(0, 0),
-        LeftDownButtonPosition(0, 0),
-        RightUpButtonPosition(0, 0),
-        RightDownButtonPosition(0, 0),
+        LeftUpButtonPosition(INT_MIN, INT_MIN),
+        LeftDownButtonPosition(INT_MIN, INT_MIN),
+        RightUpButtonPosition(INT_MIN, INT_MIN),
+        RightDownButtonPosition(INT_MIN, INT_MIN),
         LeftUpButtonVisible(true),
         LeftDownButtonVisible(true),
         RightUpButtonVisible(true),
-        RightDownButtonVisible(true),
-        HasCustomLeftUpButtonPosition(false),
-        HasCustomLeftDownButtonPosition(false),
-        HasCustomRightUpButtonPosition(false),
-        HasCustomRightDownButtonPosition(false)
+        RightDownButtonVisible(true)
     {
     }
 
@@ -115,10 +112,6 @@ struct SidebarClassicLayout
     bool LeftDownButtonVisible;
     bool RightUpButtonVisible;
     bool RightDownButtonVisible;
-    bool HasCustomLeftUpButtonPosition;
-    bool HasCustomLeftDownButtonPosition;
-    bool HasCustomRightUpButtonPosition;
-    bool HasCustomRightDownButtonPosition;
 };
 
 
@@ -129,12 +122,10 @@ struct SidebarTabbedLayout
         VisibleRows(0),
         RowPitch(51),
         ColumnSpacing(67),
-        UpButtonPosition(0, 0),
-        DownButtonPosition(0, 0),
+        UpButtonPosition(INT_MIN, INT_MIN),
+        DownButtonPosition(INT_MIN, INT_MIN),
         UpButtonVisible(true),
-        DownButtonVisible(true),
-        HasCustomUpButtonPosition(false),
-        HasCustomDownButtonPosition(false)
+        DownButtonVisible(true)
     {
         TabButtonPosition[0] = TPoint2D<int>(20, 24);
         TabButtonPosition[1] = TPoint2D<int>(55, 24);
@@ -151,8 +142,6 @@ struct SidebarTabbedLayout
     TPoint2D<int> DownButtonPosition;
     bool UpButtonVisible;
     bool DownButtonVisible;
-    bool HasCustomUpButtonPosition;
-    bool HasCustomDownButtonPosition;
 };
 
 

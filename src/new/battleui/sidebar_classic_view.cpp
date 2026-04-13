@@ -86,15 +86,11 @@ SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
         strip_layout.DownButtonPosition = layout.LeftDownButtonPosition;
         strip_layout.UpButtonVisible = layout.LeftUpButtonVisible;
         strip_layout.DownButtonVisible = layout.LeftDownButtonVisible;
-        strip_layout.HasCustomUpButtonPosition = layout.HasCustomLeftUpButtonPosition;
-        strip_layout.HasCustomDownButtonPosition = layout.HasCustomLeftDownButtonPosition;
     } else {
         strip_layout.UpButtonPosition = layout.RightUpButtonPosition;
         strip_layout.DownButtonPosition = layout.RightDownButtonPosition;
         strip_layout.UpButtonVisible = layout.RightUpButtonVisible;
         strip_layout.DownButtonVisible = layout.RightDownButtonVisible;
-        strip_layout.HasCustomUpButtonPosition = layout.HasCustomRightUpButtonPosition;
-        strip_layout.HasCustomDownButtonPosition = layout.HasCustomRightDownButtonPosition;
     }
 
     return strip_layout;
