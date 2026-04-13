@@ -256,14 +256,10 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     ClassicSidebarLayoutConfig.RightStripPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightStripPos", ClassicSidebarLayoutConfig.RightStripPosition);
     ClassicSidebarLayoutConfig.VisibleRows = ini.Get_Int(SIDEBAR_CLASSIC_SECTION, "VisibleRows", ClassicSidebarLayoutConfig.VisibleRows);
     ClassicSidebarLayoutConfig.RowPitch = std::max(1, ini.Get_Int(SIDEBAR_CLASSIC_SECTION, "RowPitch", ClassicSidebarLayoutConfig.RowPitch));
-    ClassicSidebarLayoutConfig.LeftUpButtonPosition =
-        ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftUpButtonPos", ClassicSidebarLayoutConfig.LeftUpButtonPosition);
-    ClassicSidebarLayoutConfig.LeftDownButtonPosition =
-        ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftDownButtonPos", ClassicSidebarLayoutConfig.LeftDownButtonPosition);
-    ClassicSidebarLayoutConfig.RightUpButtonPosition =
-        ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightUpButtonPos", ClassicSidebarLayoutConfig.RightUpButtonPosition);
-    ClassicSidebarLayoutConfig.RightDownButtonPosition =
-        ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightDownButtonPos", ClassicSidebarLayoutConfig.RightDownButtonPosition);
+    ClassicSidebarLayoutConfig.LeftUpButtonPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftUpButtonPos", ClassicSidebarLayoutConfig.LeftUpButtonPosition);
+    ClassicSidebarLayoutConfig.LeftDownButtonPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftDownButtonPos", ClassicSidebarLayoutConfig.LeftDownButtonPosition);
+    ClassicSidebarLayoutConfig.RightUpButtonPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightUpButtonPos", ClassicSidebarLayoutConfig.RightUpButtonPosition);
+    ClassicSidebarLayoutConfig.RightDownButtonPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightDownButtonPos", ClassicSidebarLayoutConfig.RightDownButtonPosition);
     ClassicSidebarLayoutConfig.LeftUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftUpButtonVisible", ClassicSidebarLayoutConfig.LeftUpButtonVisible);
     ClassicSidebarLayoutConfig.LeftDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "LeftDownButtonVisible", ClassicSidebarLayoutConfig.LeftDownButtonVisible);
     ClassicSidebarLayoutConfig.RightUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightUpButtonVisible", ClassicSidebarLayoutConfig.RightUpButtonVisible);
@@ -277,10 +273,8 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     TabbedSidebarLayoutConfig.VisibleRows = ini.Get_Int(SIDEBAR_TABBED_SECTION, "VisibleRows", TabbedSidebarLayoutConfig.VisibleRows);
     TabbedSidebarLayoutConfig.RowPitch = std::max(1, ini.Get_Int(SIDEBAR_TABBED_SECTION, "RowPitch", TabbedSidebarLayoutConfig.RowPitch));
     TabbedSidebarLayoutConfig.ColumnSpacing = std::max(1, ini.Get_Int(SIDEBAR_TABBED_SECTION, "ColumnSpacing", TabbedSidebarLayoutConfig.ColumnSpacing));
-    TabbedSidebarLayoutConfig.UpButtonPosition =
-        ini.Get_Point(SIDEBAR_TABBED_SECTION, "UpButtonPos", TabbedSidebarLayoutConfig.UpButtonPosition);
-    TabbedSidebarLayoutConfig.DownButtonPosition =
-        ini.Get_Point(SIDEBAR_TABBED_SECTION, "DownButtonPos", TabbedSidebarLayoutConfig.DownButtonPosition);
+    TabbedSidebarLayoutConfig.UpButtonPosition = ini.Get_Point(SIDEBAR_TABBED_SECTION, "UpButtonPos", TabbedSidebarLayoutConfig.UpButtonPosition);
+    TabbedSidebarLayoutConfig.DownButtonPosition = ini.Get_Point(SIDEBAR_TABBED_SECTION, "DownButtonPos", TabbedSidebarLayoutConfig.DownButtonPosition);
     TabbedSidebarLayoutConfig.UpButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "UpButtonVisible", TabbedSidebarLayoutConfig.UpButtonVisible);
     TabbedSidebarLayoutConfig.DownButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "DownButtonVisible", TabbedSidebarLayoutConfig.DownButtonVisible);
 
