@@ -149,6 +149,7 @@ This page lists all the individual contributions to the project by their author.
 - **JoyfulShush**:
   - Allow customizing self healing cap and rate game-wide and per-unit.
   - Allow customizing whether AI can repair buildings created as base nodes.
+  - Add the ability for Elite units to share experience they earn with nearby units.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:

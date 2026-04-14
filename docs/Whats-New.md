@@ -289,6 +289,7 @@ New:
 - Allow customizing if Veins can grow on a tile (by ZivDero)
 - Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
 - Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
+- Add the ability for Elite units to share experience they earn with nearby units (by JoyfulShush)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

@@ -362,6 +362,20 @@ Due to the nature of its use, this feature is only available when Vinifera is ru
 
 ![image](https://user-images.githubusercontent.com/73803386/129727642-8e929cc7-1b1c-4231-be44-abe4312ea265.png)
 
+### Experience Share
+
+- Elite units that destroys a target enemy can now give their experience to one of the nearby units in a range around them. This prevents the XP from being wasted and reduces the need to micromanage teams that have Elites units in them.
+- Allows customizing the range in which this XP is shared and the amount of XP that is shared when used this way.
+- Only grants XP to other units that are not Elite yet and that can gain XP (i.e. `Trainable=yes`).
+
+In Rules.ini:
+```ini
+[General]
+ExperienceShare=no ; boolean, is the Experience Share feature active?
+ExperienceShareRange=-1 ; integer, the amount of cells to search for a valid unit to give the experience to.
+ExperienceSharePercentage=100% ; % or float, the portion of the experience to grant a unit that was shared out of the original amount.
+```
+
 ### Command Line Options
 
 - Vinifera adds a number of command-line arguments allowing the user to skip the startup movies, or skip directly to a specific game mode and/or dialog.
