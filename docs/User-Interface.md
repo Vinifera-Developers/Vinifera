@@ -4,29 +4,28 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ## Sidebar
 
-### Tabs
+Vinifera replaces the vanilla Tiberian Sun sidebar with a new system designed for flexibility and modding.
 
 ```{note}
 You don't need to follow these instructions if you change the TS Client's update channel to `Vinifera Beta` (under the `Updater` tab of the `Options` menu) and then update to the latest version after the client has restarted. The TS Client will then enable the tabs for you. Do keep in mind that updating will cause the TS Client to undo any modifications that you might have already made.
 ```
 
-- Vinifera enhances the Tiberian Sun sidebar by introducing tabs similar to those found in Red Alert 2.
-- There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons, aircraft and naval units.
-- Vinifera also introduces new hotkeys for quick tab switching and placing the currently available building (in the case of the Structure tab).
-- The new sidebar feature must be enabled in `VINIFERA.INI`.
+The sidebar supports two layouts, switchable via a single INI key:
 
-In `VINIFERA.INI`:
-```ini
-[Features]
-NewSidebar=no                   ; boolean, whether the game should use the new sidebar.
-```
+- **Classic** — the vanilla-style 2-column layout, with independent left and right strips.
+- **Tabbed** — a 4-tab layout similar to Red Alert 2 (Structure, Infantry, Unit, Special). Since there is no defense queue, the "Defenses" tab is replaced by "Special", which contains Superweapons, aircraft and naval units.
 
-- The battle UI sidebar layout can be customized from `UI.INI` without changing the radar, credits area, or sidebar width.
-- All sidebar positions are relative to the internal sidebar area that starts at `SidebarRect`.
-- `VisibleRows=0` keeps the default auto-fit behavior for the current resolution.
-- Leave the optional scroll button position entries blank to auto-place them from the current strip layout.
-- `[Sidebar]` only selects the battle sidebar view. `[SidebarClassic]` and `[SidebarTabbed]` are both complete, self-contained configs for their respective views.
-- After `Vinifera_Prep_For_Side` mounts side-specific mixes, the game also reads `UIOVERRIDES.INI` if present. This file uses the same keys as `UI.INI` and layers on top of the already loaded base config, which allows side-specific battle UI overrides from `SIDECT##.MIX`.
+### Layout Configuration
+
+Nearly every aspect of the sidebar — positions, sizes, shapes, visibility — can be customized in `UI.INI` without changing the radar, credits area, or sidebar width.
+
+- All positions are relative to the internal sidebar area (under the radar).
+- `[Sidebar]` selects which layout to use. `[SidebarClassic]` and `[SidebarTabbed]` are self-contained configs for their respective layouts.
+- `VisibleRows=0` auto-fits to the current resolution.
+- Leaving scroll button position entries blank auto-places them from the strip layout.
+- After mounting side-specific mixes, the game also reads `UIOVERRIDES.INI` if present. This file uses the same keys as `UI.INI` and layers on top of the already loaded base config, allowing side-specific UI overrides.
+
+Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
 In `UI.INI`:
 ```ini
@@ -125,10 +124,6 @@ InfantryTabShape=TAB-INF.SHP
 UnitTabShape=TAB-UNT.SHP
 SpecialTabShape=TAB-SPC.SHP
 ```
-
-- When `NewSidebar=yes` is set, the game loads an additional mix file `SIDECT##.MIX`, where `##` is `side index + 1`. Files found in `SIDECT##.MIX` override files from other side mixes.
-
-- Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
 ### Cameo Sorting
 
