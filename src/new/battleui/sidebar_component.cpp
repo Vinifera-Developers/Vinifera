@@ -971,7 +971,37 @@ void SidebarComponent::Update_Production_State()
         BuildCategory& category = Model.Get_Category(category_index);
 
         for (int item_index = 0; item_index < category.Items.Count(); ++item_index) {
-            Update_Item_Production_State(*this, category.Items[item_index]);
+            BuildItem& item = category.Items[item_index];
+            FactoryClass* factory = item.Factory;
+            if (factory && (factory->Has_Changed() || Extension::Fetch(factory)->IsHoldingExit)) {
+                if (factory->Has_Completed()) {
+
+                    /**
+                     *  Construction has been completed. Announce this fact to the player and
+                     *  try to get the object to automatically leave the factory. Buildings are
+                     *  the main exception to the ability to leave the factory under their own
+                     *  power.
+                     */
+                    TechnoClass* pending = factory->Get_Object();
+                    if (pending != nullptr) {
+                        switch (pending->RTTI) {
+                        case RTTI_UNIT:
+                        case RTTI_INFANTRY:
+                        case RTTI_AIRCRAFT:
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                            break;
+
+                        case RTTI_BUILDING:
+                            //SidebarExtension->TabButtons[ID].Start_Flashing();
+                            Speak(VOX_CONSTRUCTION);
+                            break;
+
+                        default:
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 }
