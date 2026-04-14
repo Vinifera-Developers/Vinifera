@@ -65,6 +65,18 @@ TPoint2D<int> Get_Power_Bar_Position(SidebarViewType view_type)
 {
     return Get_Sidebar_Layout(view_type).PowerBarPosition;
 }
+
+
+int Get_Power_Bar_Width(SidebarViewType view_type)
+{
+    return Get_Sidebar_Layout(view_type).PowerBarWidth;
+}
+
+
+int Get_Power_Pip_Height(SidebarViewType view_type)
+{
+    return Get_Sidebar_Layout(view_type).PowerPipHeight;
+}
 }
 
 
@@ -144,7 +156,7 @@ void PowerView::Shift_Sidebar()
         tt.ID = GADGET_POWER;
         tt.Region.X = SidebarRect.X + power_bar_position.X;
         tt.Region.Y = SidebarRect.Y + power_bar_position.Y;
-        tt.Region.Width = POWER_WIDTH;
+        tt.Region.Width = Get_Power_Bar_Width(ViewType);
         tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn;
 
         ToolTips->Remove(tt.ID);
@@ -183,7 +195,7 @@ void PowerView::Flash_Power()
  */
 int PowerView::Max_Power_Height() const
 {
-    return SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn / POWER_PIP_HEIGHT;
+    return SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn / Get_Power_Pip_Height(ViewType);
 }
 
 
@@ -465,6 +477,7 @@ void PowerView::Draw()
 
     Rect rect = SidebarSurface->Get_Rect();
     const TPoint2D<int> power_bar_position = Get_Power_Bar_Position(ViewType);
+    const int power_pip_height = Get_Power_Pip_Height(ViewType);
     int x = power_bar_position.X;
     int y = SidebarRect.Y + power_bar_position.Y;
 
@@ -473,14 +486,14 @@ void PowerView::Draw()
     int index;
     for (index = 0; index < num; index++) {
         Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_EMPTY, Point2D(x, y), rect, SHAPE_WIN_REL);
-        y += POWER_PIP_HEIGHT;
+        y += power_pip_height;
     }
 
     index = 0;
     if (FlashCount > 0) {
         if ((FlashCount % 2) == 0) {
             Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_WHITE, Point2D(x, y), rect, SHAPE_WIN_REL);
-            y += POWER_PIP_HEIGHT;
+            y += power_pip_height;
             index++;
         }
     }
@@ -488,7 +501,7 @@ void PowerView::Draw()
     if (GreenPipCount > 0) {
         while (index < GreenPipCount) {
             Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_GREEN, Point2D(x, y), rect, SHAPE_WIN_REL);
-            y += POWER_PIP_HEIGHT;
+            y += power_pip_height;
             index++;
         }
         index = 0;
@@ -497,7 +510,7 @@ void PowerView::Draw()
     if (YellowPipCount > 0) {
         while (index < YellowPipCount) {
             Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_YELLOW, Point2D(x, y), rect, SHAPE_WIN_REL);
-            y += POWER_PIP_HEIGHT;
+            y += power_pip_height;
             index++;
         }
         index = 0;
@@ -506,7 +519,7 @@ void PowerView::Draw()
     if (RedPipCount > 0) {
         while (index < RedPipCount) {
             Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_RED, Point2D(x, y), rect, SHAPE_WIN_REL);
-            y += POWER_PIP_HEIGHT;
+            y += power_pip_height;
             index++;
         }
         index = 0;

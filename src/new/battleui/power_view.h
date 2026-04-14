@@ -50,10 +50,6 @@ class PowerView
 public:
     enum PowerEnums {
         GADGET_POWER = 999,
-        POWER_X = 8,
-        POWER_Y = 25,
-        POWER_WIDTH = 12,
-        POWER_PIP_HEIGHT = 4,
         POWER_PIP_EMPTY = 0,
         POWER_PIP_GREEN = 1,
         POWER_PIP_YELLOW = 2,

@@ -61,6 +61,8 @@ void BattleSidebarLayoutBase::Read_INI(CCINIClass const& ini, const char* sectio
     WaypointButton.Position = ini.Get_Point(section, "WaypointButtonPos", WaypointButton.Position);
     WaypointButton.IsVisible = ini.Get_Bool(section, "WaypointButtonVisible", WaypointButton.IsVisible);
     PowerBarPosition = ini.Get_Point(section, "PowerBarPos", PowerBarPosition);
+    PowerBarWidth = std::max(1, ini.Get_Int(section, "PowerBarWidth", PowerBarWidth));
+    PowerPipHeight = std::max(1, ini.Get_Int(section, "PowerPipHeight", PowerPipHeight));
     CameoSize = ini.Get_Point(section, "CameoSize", CameoSize);
     CameoSize.X = std::max(1, CameoSize.X);
     CameoSize.Y = std::max(1, CameoSize.Y);

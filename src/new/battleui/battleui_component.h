@@ -70,7 +70,6 @@ public:
      */
     SidebarComponent &Get_Sidebar() { return Sidebar; }
     const SidebarComponent &Get_Sidebar() const { return Sidebar; }
-    PowerComponent &Get_Power() { return Power; }
 
 private:
     /**
