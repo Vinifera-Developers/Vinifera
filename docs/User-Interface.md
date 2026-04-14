@@ -35,7 +35,7 @@ ViewType=Classic          ; string, Classic or Tabbed.
 
 [SidebarClassic]
 LeftStripPos=24,26          ; point, left strip origin.
-RightStripPos=92,26         ; point, right strip origin.
+RightStripPos=91,26         ; point, right strip origin.
 VisibleRows=0               ; integer, visible rows per strip, 0 = auto-fit.
 RowPitch=51                 ; integer, vertical spacing between cameos.
 CameoSize=64,51             ; point, cameo width,height.
@@ -65,6 +65,7 @@ WaypointButtonShape=WAYP.SHP
 PowerBarPos=8,25            ; point, power bar position.
 PowerBarWidth=12            ; integer, power bar draw/tooltip width.
 PowerPipHeight=4            ; integer, vertical spacing between power pips.
+PowerBarHeightAdjust=1      ; integer, vertical offset applied to the power bar height calculation.
 PowerPipShape=POWERP.SHP
 SidebarShape=SIDE1.SHP
 SidebarMiddleShape=SIDE2.SHP
@@ -84,7 +85,7 @@ Tab4Pos=125,24             ; point, Special tab position.
 StripPos=24,54             ; point, 2-column strip origin.
 VisibleRows=0              ; integer, visible rows in the tab strip, 0 = auto-fit.
 RowPitch=51                ; integer, vertical spacing between cameo rows.
-ColumnSpacing=67           ; integer, horizontal spacing between the two strip columns.
+ColumnSpacing=66           ; integer, horizontal spacing between the two strip columns.
 CameoSize=64,51            ; point, cameo width,height.
 CameoNameOffset=41         ; integer, Y offset for the cameo name.
 CameoTextOffset=30,2       ; point, READY/HOLD text offset.
@@ -108,6 +109,7 @@ WaypointButtonShape=WAYP.SHP
 PowerBarPos=8,25           ; point, power bar position.
 PowerBarWidth=12           ; integer, power bar draw/tooltip width.
 PowerPipHeight=4           ; integer, vertical spacing between power pips.
+PowerBarHeightAdjust=28    ; integer, vertical offset applied to the power bar height calculation.
 PowerPipShape=POWERP.SHP
 SidebarShape=SIDE1.SHP
 SidebarMiddleShape=SIDE2.SHP
@@ -445,7 +447,7 @@ BuildingWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for bu
 AircraftWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for aircraft with pips.
 
 UnitVeterancyPipOffset=10,6            ; Point2D, the veterancy pip offset for units.
-InfantryVeterancyPipOffset=5,4         ; Point2D, the veterancy pip offset for infantry.
+InfantryVeterancyPipOffset=5,2         ; Point2D, the veterancy pip offset for infantry.
 BuildingVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for buildings.
 AircraftVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for aircraft.
 
@@ -512,7 +514,7 @@ TargetLineThick=no                 ; boolean, should target lines be drawn with 
 TargetLineColor=173,0,0            ; RGB color, color to draw movement lines with.
 TargetLineDropShadowColor=0,0,0    ; RGB color, color to draw target lines' drop shadow with.
 
-TargetLaserDashed=no               ; boolean, should target lasers be drawn with dashes?
+TargetLaserDashed=yes              ; boolean, should target lasers be drawn with dashes?
 TargetLaserDropShadow=no           ; boolean, should target lasers be drawn with a drop shadow?
 TargetLaserThick=no                ; boolean, should target lasers be drawn with a thick line?
 TargetLaserColor=173,0,0           ; RGB color, color to draw the target lasers with.
