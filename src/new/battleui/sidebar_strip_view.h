@@ -94,7 +94,7 @@ public:
             Position(0, 0),
             VisibleRows(0),
             RowPitch(51),
-            ColumnSpacing(67),
+            ColumnSpacing(66),
             CameoSize(64, 51),
             CameoNameOffset(41),
             CameoTextOffset(30, 2),

@@ -95,7 +95,7 @@ struct SidebarClassicLayout : BattleSidebarLayoutBase
     void Read_INI(CCINIClass const& ini, const char* section) override;
 
     TPoint2D<int> LeftStripPosition = {24, 26};
-    TPoint2D<int> RightStripPosition = {92, 26};
+    TPoint2D<int> RightStripPosition = {91, 26};
     int VisibleRows = 0;
     int RowPitch = 51;
     TPoint2D<int> LeftUpButtonPosition = {INT_MIN, INT_MIN};
@@ -117,7 +117,7 @@ struct SidebarTabbedLayout : BattleSidebarLayoutBase
     TPoint2D<int> StripPosition = {24, 54};
     int VisibleRows = 0;
     int RowPitch = 51;
-    int ColumnSpacing = 67;
+    int ColumnSpacing = 66;
     TPoint2D<int> UpButtonPosition = {INT_MIN, INT_MIN};
     TPoint2D<int> DownButtonPosition = {INT_MIN, INT_MIN};
     bool IsUpButtonVisible = true;

@@ -49,9 +49,9 @@ public:
         COLUMN_TWO_X = 92,
         COLUMN_TWO_Y = 26,
 
-        UP_X_OFFSET = 5,
+        UP_X_OFFSET = 1,
         UP_Y_OFFSET = 25,
-        DOWN_X_OFFSET = 34,
+        DOWN_X_OFFSET = 30,
         DOWN_Y_OFFSET = UP_Y_OFFSET,
     };
 

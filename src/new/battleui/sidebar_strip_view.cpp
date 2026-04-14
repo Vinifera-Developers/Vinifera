@@ -1160,7 +1160,7 @@ Point2D SidebarStripView::Get_Up_Button_Position() const
         return Point2D(Layout.UpButtonPosition.X, Layout.UpButtonPosition.Y);
     }
 
-    return Point2D(ColumnX + 5, ColumnY + Visible_Buttons_Per_Column() * Row_Pitch() - 1);
+    return Point2D(ColumnX + 1, ColumnY + Visible_Buttons_Per_Column() * Row_Pitch() - 1);
 }
 
 
@@ -1176,6 +1176,6 @@ Point2D SidebarStripView::Get_Down_Button_Position() const
         return Point2D(Layout.DownButtonPosition.X, Layout.DownButtonPosition.Y);
     }
 
-    return Point2D(ColumnX + (Columns == 1 ? 34 : Column_Spacing() + 34),
+    return Point2D(ColumnX + (Columns == 1 ? 30 : Column_Spacing() + 30),
         ColumnY + Visible_Buttons_Per_Column() * Row_Pitch() - 1);
 }

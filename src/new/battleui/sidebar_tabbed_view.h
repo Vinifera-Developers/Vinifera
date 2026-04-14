@@ -127,9 +127,9 @@ public:
         COLUMN_Y = 54,
         COLUMN_X = 24,
 
-        UP_X_OFFSET = COLUMN_X + 5,
+        UP_X_OFFSET = COLUMN_X + 1,
         UP_Y_OFFSET = COLUMN_Y - 1,
-        DOWN_X_OFFSET = COLUMN_X + 67 + 34,
+        DOWN_X_OFFSET = COLUMN_X + 66 + 30,
         DOWN_Y_OFFSET = UP_Y_OFFSET,
 
         TAB_Y_OFFSET = 24,
