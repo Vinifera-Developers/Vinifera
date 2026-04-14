@@ -158,7 +158,7 @@ void ClassicSidebarView::Init_IO()
  */
 void ClassicSidebarView::Init_For_House()
 {
-    const SidebarClassicLayout& layout = Get_Classic_Layout();
+    const SidebarClassicLayout& layout = UIControls->ClassicSidebarLayoutConfig;
 
     BackgroundTopShape = MFCD::RetrieveT<ShapeSet>(layout.SidebarShape.c_str());
     BackgroundMiddleShape = MFCD::RetrieveT<ShapeSet>(layout.SidebarMiddleShape.c_str());

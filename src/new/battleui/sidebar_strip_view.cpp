@@ -63,6 +63,11 @@
 #include <algorithm>
 
 
+/***************************************************************************
+**  Lifecycle and setup
+***************************************************************************/
+
+
 /**
  *  Default constructor for SidebarStripView.
  *
@@ -180,6 +185,11 @@ void SidebarStripView::Init_IO(int id, int columns)
 }
 
 
+/**
+ *  Applies a precomputed layout configuration to this strip.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Set_Layout(const StripLayout& layout)
 {
     Layout = layout;
@@ -201,6 +211,11 @@ void SidebarStripView::Init_For_House()
 }
 
 
+/**
+ *  Applies the art set used by this strip while drawing.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Set_Art(const StripArt& art)
 {
     Art = art;
@@ -310,6 +325,11 @@ void SidebarStripView::Deactivate()
 }
 
 
+/***************************************************************************
+**  Runtime behavior
+***************************************************************************/
+
+
 /**
  *  Per-frame logic. Handles scroll button input and strip state updates.
  *
@@ -343,6 +363,11 @@ bool SidebarStripView::AI(KeyNumType& input, Point2D& xy)
 }
 
 
+/**
+ *  Advances scroll animation and selection flash state.
+ *
+ *  @author: ZivDero
+ */
 bool SidebarStripView::Update_State()
 {
     if (Category == nullptr) {
@@ -536,6 +561,12 @@ void SidebarStripView::Flag_To_Redraw()
     IsToRedraw = true;
 }
 
+
+/**
+ *  Returns the visible item mapped to the given slot, or nullptr.
+ *
+ *  @author: ZivDero
+ */
 BuildItem* SidebarStripView::Get_Visible_Item(int slot)
 {
     if (Category == nullptr || slot < 0) {
@@ -551,6 +582,11 @@ BuildItem* SidebarStripView::Get_Visible_Item(int slot)
 }
 
 
+/**
+ *  Returns the visible item mapped to the given slot, or nullptr.
+ *
+ *  @author: ZivDero
+ */
 const BuildItem* SidebarStripView::Get_Visible_Item(int slot) const
 {
     if (Category == nullptr || slot < 0) {
@@ -566,6 +602,11 @@ const BuildItem* SidebarStripView::Get_Visible_Item(int slot) const
 }
 
 
+/**
+ *  Allocates cameo selection buttons for the current visible slot count.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Allocate_Select_Buttons(int count)
 {
     for (int i = 0; i < SelectButtons.Count(); i++) {
@@ -582,6 +623,11 @@ void SidebarStripView::Allocate_Select_Buttons(int count)
         SelectButtons.Add(btn);
     }
 }
+
+
+/***************************************************************************
+**  Visibility and layout queries
+***************************************************************************/
 
 
 /**
@@ -616,6 +662,11 @@ int SidebarStripView::Visible_Button_Count() const
 }
 
 
+/**
+ *  Computes how many cameo rows fit in one strip column.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Visible_Buttons_Per_Column() const
 {
     if (SidebarSurface != nullptr && Art.BackgroundTopHeight > 0 && Art.BackgroundBottomHeight > 0) {
@@ -630,6 +681,16 @@ int SidebarStripView::Visible_Buttons_Per_Column() const
 }
 
 
+/***************************************************************************
+**  Item resolution helpers
+***************************************************************************/
+
+
+/**
+ *  Resolves the draw point for a visible slot, including scroll offset.
+ *
+ *  @author: ZivDero
+ */
 Point2D SidebarStripView::Get_Item_Point(int slot) const
 {
     int x = ColumnX;
@@ -650,6 +711,11 @@ Point2D SidebarStripView::Get_Item_Point(int slot) const
 }
 
 
+/**
+ *  Resolves all runtime draw state needed for one visible build item.
+ *
+ *  @author: ZivDero
+ */
 SidebarStripView::StripItemDrawState SidebarStripView::Get_Item_Draw_State(const BuildItem& item) const
 {
     StripItemDrawState state;
@@ -696,6 +762,11 @@ SidebarStripView::StripItemDrawState SidebarStripView::Get_Item_Draw_State(const
 }
 
 
+/**
+ *  Returns the displayed queue count for the specified techno type.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Get_Item_Queue_Count(const TechnoTypeClass& object) const
 {
     FactoryClass* queued_factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(object.RTTI, TechnoTypeClassExtension::Get_Production_Flags(&object));
@@ -717,6 +788,16 @@ int SidebarStripView::Get_Item_Queue_Count(const TechnoTypeClass& object) const
 }
 
 
+/***************************************************************************
+**  Draw primitives
+***************************************************************************/
+
+
+/**
+ *  Draws one strip overlay shape with the sidebar drawer.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Shape_Overlay(Surface& surface, const ShapeSet* shape, const Rect& rect, const Point2D& point, int frame, int flags)
 {
     if (shape != nullptr) {
@@ -725,6 +806,11 @@ void SidebarStripView::Draw_Shape_Overlay(Surface& surface, const ShapeSet* shap
 }
 
 
+/**
+ *  Draws the base cameo image or shape for a build item.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Cameo(Surface& surface, const Rect& rect, const BuildItem& item, const Point2D& point)
 {
     const ShapeSet* shapefile = nullptr;
@@ -765,24 +851,44 @@ void SidebarStripView::Draw_Cameo(Surface& surface, const Rect& rect, const Buil
 }
 
 
+/**
+ *  Draws the standard production clock overlay.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Clock_Overlay(Surface& surface, const Rect& rect, const Point2D& point, int stage)
 {
     Draw_Shape_Overlay(surface, Art.ClockShape, rect, point, stage + 1, SHAPE_TRANS50);
 }
 
 
+/**
+ *  Draws the superweapon recharge clock overlay.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Recharge_Clock(Surface& surface, const Rect& rect, const Point2D& point, int stage)
 {
     Draw_Shape_Overlay(surface, Art.RechargeClockShape, rect, point, stage + 1, SHAPE_TRANS50);
 }
 
 
+/**
+ *  Draws the unavailable-item darken overlay.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Darken_Overlay(Surface& surface, const Rect& rect, const Point2D& point)
 {
     Draw_Shape_Overlay(surface, Art.DarkenShape, rect, point, 0, SHAPE_DARKEN);
 }
 
 
+/**
+ *  Draws ready-state text centered on a cameo.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Ready_Text(Surface& surface, const Rect& rect, const Point2D& point, const char* text)
 {
     if (text == nullptr) {
@@ -793,6 +899,11 @@ void SidebarStripView::Draw_Ready_Text(Surface& surface, const Rect& rect, const
 }
 
 
+/**
+ *  Draws hold-state text for paused production.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Hold_Text(Surface& surface, const Rect& rect, const Point2D& point, bool has_queue_count)
 {
     if (has_queue_count) {
@@ -804,12 +915,22 @@ void SidebarStripView::Draw_Hold_Text(Surface& surface, const Rect& rect, const 
 }
 
 
+/**
+ *  Draws the queue count text for a cameo.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Queue_Count(Surface& surface, const Rect& rect, const Point2D& point, int count)
 {
     Fancy_Text_Print("%d", surface, rect, point, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, count);
 }
 
 
+/**
+ *  Draws the hover outline for a cameo slot.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Hover_Highlight(Surface& surface, const Rect& cameo_rect)
 {
     const ColorSchemeType colorscheme = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
@@ -817,6 +938,11 @@ void SidebarStripView::Draw_Hover_Highlight(Surface& surface, const Rect& cameo_
 }
 
 
+/**
+ *  Draws the cameo name text below the icon.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Cameo_Name(const Rect& rect, const Point2D& point, const char* name)
 {
     if (name != nullptr) {
@@ -825,6 +951,16 @@ void SidebarStripView::Draw_Cameo_Name(const Rect& rect, const Point2D& point, c
 }
 
 
+/***************************************************************************
+**  Per-item rendering
+***************************************************************************/
+
+
+/**
+ *  Draws production-specific overlays for a visible cameo slot.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, const Point2D& drawpoint, const StripItemDrawState& state)
 {
     if (!state.Production) {
@@ -850,7 +986,11 @@ void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, 
     }
 }
 
-
+/**
+ *  Draws one visible cameo slot and all of its overlays.
+ *
+ *  @author: ZivDero
+ */
 void SidebarStripView::Draw_Item(Surface& surface, const Rect& rect, int slot)
 {
     const BuildItem* item = Get_Visible_Item(slot);
@@ -902,6 +1042,16 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
 }
 
 
+/***************************************************************************
+**  Layout helpers
+***************************************************************************/
+
+
+/**
+ *  Returns the vertical draw space available to cameo content.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Available_Content_Height() const
 {
     return SidebarRect.Height
@@ -910,54 +1060,99 @@ int SidebarStripView::Available_Content_Height() const
 }
 
 
+/**
+ *  Returns the configured cameo width.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Object_Width() const
 {
     return std::max(1, Layout.CameoSize.X);
 }
 
 
+/**
+ *  Returns the configured cameo height.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Object_Height() const
 {
     return std::max(1, Layout.CameoSize.Y);
 }
 
 
+/**
+ *  Returns the configured Y offset for the cameo name.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Object_Name_Offset() const
 {
     return Layout.CameoNameOffset;
 }
 
 
+/**
+ *  Returns the configured per-row cameo pitch.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Row_Pitch() const
 {
     return std::max(1, Layout.RowPitch);
 }
 
 
+/**
+ *  Returns the configured spacing between strip columns.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Column_Spacing() const
 {
     return std::max(1, Layout.ColumnSpacing);
 }
 
 
+/**
+ *  Returns the current scroll animation step.
+ *
+ *  @author: ZivDero
+ */
 int SidebarStripView::Scroll_Step() const
 {
     return std::min(static_cast<int>(SCROLL_RATE), Row_Pitch());
 }
 
 
+/**
+ *  Returns the configured text offset used for state labels.
+ *
+ *  @author: ZivDero
+ */
 Point2D SidebarStripView::Text_Offset() const
 {
     return Point2D(Layout.CameoTextOffset.X, Layout.CameoTextOffset.Y);
 }
 
 
+/**
+ *  Returns the configured queue count text offset.
+ *
+ *  @author: ZivDero
+ */
 Point2D SidebarStripView::Queue_Count_Offset() const
 {
     return Point2D(Layout.QueueCountOffset.X, Layout.QueueCountOffset.Y);
 }
 
 
+/**
+ *  Resolves the up scroll button position for the current layout.
+ *
+ *  @author: ZivDero
+ */
 Point2D SidebarStripView::Get_Up_Button_Position() const
 {
     if (Layout.UpButtonPosition.X != StripLayout::AUTO_POSITION
@@ -969,6 +1164,11 @@ Point2D SidebarStripView::Get_Up_Button_Position() const
 }
 
 
+/**
+ *  Resolves the down scroll button position for the current layout.
+ *
+ *  @author: ZivDero
+ */
 Point2D SidebarStripView::Get_Down_Button_Position() const
 {
     if (Layout.DownButtonPosition.X != StripLayout::AUTO_POSITION

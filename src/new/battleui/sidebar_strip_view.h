@@ -58,6 +58,9 @@ class TechnoTypeClass;
 class SidebarStripView : public StageClass
 {
 public:
+    /**
+     *  Shared strip art handles and derived background metrics.
+     */
     struct StripArt
     {
         StripArt() :
@@ -80,6 +83,9 @@ public:
         int BackgroundBottomHeight;
     };
 
+    /**
+     *  Per-strip layout and positioning values.
+     */
     struct StripLayout
     {
         static constexpr int AUTO_POSITION = INT_MIN;
@@ -121,6 +127,9 @@ public:
         SCROLL_RATE = 51,
     };
 
+    /**
+     *  Lifecycle and setup.
+     */
     SidebarStripView();
     ~SidebarStripView();
 
@@ -133,6 +142,10 @@ public:
     void Shift_Sidebar();
     void Activate();
     void Deactivate();
+
+    /**
+     *  Runtime behavior.
+     */
     bool AI(KeyNumType& input, Point2D& xy);
     bool Update_State();
     void Draw(Surface& surface, const Rect& rect);
@@ -140,11 +153,17 @@ public:
     bool Scroll_Page(bool up);
     void Flag_To_Redraw();
 
+    /**
+     *  Category access.
+     */
     void Set_Category(BuildCategory* cat) { Category = cat; }
     BuildCategory* Get_Category() const { return Category; }
     BuildItem* Get_Visible_Item(int slot);
     const BuildItem* Get_Visible_Item(int slot) const;
 
+    /**
+     *  Visibility queries.
+     */
     bool Has_Ready() const;
     int Visible_Button_Count() const;
     int Visible_Buttons_Per_Column() const;
@@ -153,6 +172,9 @@ public:
     bool Is_Scrolling() const { return IsScrolling; }
 
 public:
+    /**
+     *  Public strip state retained for existing view integration.
+     */
     int ID;
     int Columns;
     int ColumnX;
@@ -176,6 +198,9 @@ public:
     DynamicVectorClass<CameoButtonClass*> SelectButtons;
 
 private:
+    /**
+     *  Transient resolved draw state for one visible item.
+     */
     struct StripItemDrawState
     {
         StripItemDrawState() :
@@ -204,6 +229,9 @@ private:
         int QueueCount;
     };
 
+    /**
+     *  Layout helpers.
+     */
     int Available_Content_Height() const;
     int Object_Width() const;
     int Object_Height() const;
@@ -215,9 +243,17 @@ private:
     Point2D Queue_Count_Offset() const;
     Point2D Get_Up_Button_Position() const;
     Point2D Get_Down_Button_Position() const;
+
+    /**
+     *  Item state helpers.
+     */
     Point2D Get_Item_Point(int slot) const;
     StripItemDrawState Get_Item_Draw_State(const BuildItem& item) const;
     int Get_Item_Queue_Count(const TechnoTypeClass& object) const;
+
+    /**
+     *  Draw primitives and per-item rendering.
+     */
     void Draw_Shape_Overlay(Surface& surface, const ShapeSet* shape, const Rect& rect, const Point2D& point, int frame, int flags);
     void Draw_Cameo(Surface& surface, const Rect& rect, const BuildItem& item, const Point2D& point);
     void Draw_Clock_Overlay(Surface& surface, const Rect& rect, const Point2D& point, int stage);
