@@ -51,7 +51,7 @@ public:
     void AI(KeyNumType &key, Point2D &mouse);
     void Draw();
     void Blit(bool complete);
-    void Set_Dimensions();
+    void Shift_Sidebar();
     void Shutdown();
 
     const char *Help_Text(int gadget_id);

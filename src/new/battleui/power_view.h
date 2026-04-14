@@ -66,7 +66,7 @@ public:
     void One_Time();
     void Init_Clear();
     void Init_For_House();
-    void Set_Dimensions();
+    void Shift_Sidebar();
     void Set_Visible_Buttons_Per_Column(int count);
     void AI();
     void Draw();

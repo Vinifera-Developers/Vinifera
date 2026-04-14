@@ -764,7 +764,7 @@ bool SDL_Change_Display_Mode(int width, int height)
     Map.Set_View_Dimensions(temp);
     Map.Init_IO();
     Map.Activate(1);
-    Map.Set_Dimensions();
+    Map.Shift_Sidebar();
     Map.Flag_To_Redraw(GS_REDRAW_ALL);
     Show_Mouse();
 

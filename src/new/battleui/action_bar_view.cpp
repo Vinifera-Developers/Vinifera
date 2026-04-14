@@ -123,7 +123,7 @@ void ActionBarView::Init_For_House()
 }
 
 
-void ActionBarView::Set_Dimensions()
+void ActionBarView::Shift_Sidebar()
 {
     if (Debug_Map) {
         return;

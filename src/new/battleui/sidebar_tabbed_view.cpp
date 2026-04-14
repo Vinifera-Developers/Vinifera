@@ -437,7 +437,6 @@ void TabbedSidebarView::Init_IO()
         }
     }
 
-    Set_Dimensions();
 }
 
 
@@ -489,11 +488,11 @@ void TabbedSidebarView::Init_For_House()
 
 
 /**
- *  Recalculates positions of all buttons, tabs, and the active strip.
+ *  Reflows the tabbed sidebar layout.
  *
  *  @author: ZivDero
  */
-void TabbedSidebarView::Set_Dimensions()
+void TabbedSidebarView::Shift_Sidebar()
 {
     Background.Set_Position(SidebarRect.X + 16, TacticalRect.Y);
     Background.Flag_To_Redraw();
@@ -525,7 +524,7 @@ void TabbedSidebarView::Set_Dimensions()
     const SidebarStripView::StripLayout strip_layout = Build_Tabbed_Strip_Layout();
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
         Strip[i].Set_Layout(strip_layout);
-        Strip[i].Set_Dimensions();
+        Strip[i].Shift_Sidebar();
     }
 
     /**

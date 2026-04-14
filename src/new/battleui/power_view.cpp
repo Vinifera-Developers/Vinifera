@@ -135,7 +135,7 @@ void PowerView::Init_For_House()
  *
  *  @author: ZivDero
  */
-void PowerView::Set_Dimensions()
+void PowerView::Shift_Sidebar()
 {
     if (ToolTips != nullptr) {
         const TPoint2D<int> power_bar_position = Get_Power_Bar_Position(ViewType);

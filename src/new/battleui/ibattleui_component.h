@@ -49,7 +49,7 @@ public:
     virtual void AI(KeyNumType &key, Point2D &mouse) = 0;
     virtual void Draw() = 0;
     virtual void Blit(bool complete) = 0;
-    virtual void Set_Dimensions() = 0;
+    virtual void Shift_Sidebar() = 0;
     virtual void Shutdown() = 0;
 
     virtual const char *Help_Text(int gadget_id) { return nullptr; }

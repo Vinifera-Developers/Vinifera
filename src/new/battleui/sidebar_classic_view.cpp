@@ -151,7 +151,6 @@ void ClassicSidebarView::Init_IO()
         Strip[1].Set_Category(&Model->Get_Category(1));
     }
 
-    Set_Dimensions();
 }
 
 
@@ -188,11 +187,11 @@ void ClassicSidebarView::Init_For_House()
 
 
 /**
- *  Recalculates positions of all buttons and strips.
+ *  Reflows the classic sidebar layout.
  *
  *  @author: ZivDero
  */
-void ClassicSidebarView::Set_Dimensions()
+void ClassicSidebarView::Shift_Sidebar()
 {
     Background.Set_Position(SidebarRect.X + 16, TacticalRect.Y);
     Background.Flag_To_Redraw();
@@ -201,9 +200,9 @@ void ClassicSidebarView::Set_Dimensions()
      *  Position the two strips — vanilla layout: buildings left, units right.
      */
     Strip[0].Set_Layout(Build_Classic_Strip_Layout(true));
-    Strip[0].Set_Dimensions();
+    Strip[0].Shift_Sidebar();
     Strip[1].Set_Layout(Build_Classic_Strip_Layout(false));
-    Strip[1].Set_Dimensions();
+    Strip[1].Shift_Sidebar();
 
     /**
      *  Set up tooltips for the select buttons.

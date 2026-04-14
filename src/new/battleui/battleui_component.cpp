@@ -88,11 +88,11 @@ void BattleUISystem::Blit(bool complete)
 }
 
 
-void BattleUISystem::Set_Dimensions()
+void BattleUISystem::Shift_Sidebar()
 {
-    Sidebar.Set_Dimensions();
+    Sidebar.Shift_Sidebar();
     Power.Set_Visible_Buttons_Per_Column(Sidebar.Visible_Buttons_Per_Column());
-    Power.Set_Dimensions();
+    Power.Shift_Sidebar();
 }
 
 

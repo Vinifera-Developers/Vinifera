@@ -129,7 +129,7 @@ public:
     void Init_For_House();
     void Set_Layout(const StripLayout& layout);
     void Set_Art(const StripArt& art);
-    void Set_Dimensions();
+    void Shift_Sidebar();
     void Activate();
     void Deactivate();
     bool AI(KeyNumType& input, Point2D& xy);

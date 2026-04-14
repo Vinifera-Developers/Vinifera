@@ -54,7 +54,7 @@ public:
     virtual void Init_Clear() = 0;
     virtual void Init_IO() = 0;
     virtual void Init_For_House() = 0;
-    virtual void Set_Dimensions() = 0;
+    virtual void Shift_Sidebar() = 0;
     virtual void AI(KeyNumType& input, Point2D& xy) = 0;
     virtual void Draw() = 0;
     virtual void Blit(bool complete) = 0;

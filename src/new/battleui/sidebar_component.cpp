@@ -713,16 +713,16 @@ void SidebarComponent::Activate(int control)
 
 
 /**
- *  Recalculates sidebar dimensions.
+ *  Reflows the sidebar layout.
  *
  *  @author: ZivDero
  */
-void SidebarComponent::Set_Dimensions()
+void SidebarComponent::Shift_Sidebar()
 {
-    ActionBar.Set_Dimensions();
+    ActionBar.Shift_Sidebar();
 
     if (ActiveView) {
-        ActiveView->Set_Dimensions();
+        ActiveView->Shift_Sidebar();
     }
 }
 
@@ -766,17 +766,6 @@ int SidebarComponent::Visible_Buttons_Per_Column() const
         return ActiveView->Visible_Buttons_Per_Column();
     }
     return SidebarClass::StripClass::MAX_VISIBLE;
-}
-
-
-/**
- *  Reloads the sidebar layout after legacy sidebar setup paths fire.
- *
- *  @author: ZivDero
- */
-void SidebarComponent::Reload_Layout()
-{
-    Set_Dimensions();
 }
 
 

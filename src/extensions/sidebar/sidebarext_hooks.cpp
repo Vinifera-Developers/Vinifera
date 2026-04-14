@@ -78,7 +78,7 @@ public:
     void _AI(KeyNumType& input, Point2D& xy);
     void _Recalc();
     bool _Abandon_Production(RTTIType type, FactoryClass* factory);
-    void _Set_Dimensions();
+    void _Shift_Sidebar();
     const char* _Help_Text(int gadget_id);
     int _Max_Visible();
     int _Which_Column(RTTIType type);
@@ -165,7 +165,7 @@ void SidebarClassExt::_Init_IO()
 
     if (!Debug_Map) {
         BattleUI.Init_IO();
-        BattleUI.Set_Dimensions();
+        BattleUI.Shift_Sidebar();
 
         if (IsSidebarActive) {
             IsSidebarActive = false;
@@ -194,7 +194,7 @@ void SidebarClassExt::_Init_For_House()
  */
 void SidebarClassExt::_Init_Strips()
 {
-    BattleUI.Get_Sidebar().Reload_Layout();
+    BattleUI.Get_Sidebar().Shift_Sidebar();
 }
 
 
@@ -256,7 +256,7 @@ bool SidebarClassExt::_Activate(int control)
 
     if (IsSidebarActive != old) {
         if (IsSidebarActive) {
-            Set_Dimensions();
+            Shift_Sidebar();
             IsToRedraw = true;
 
             RadarButton.Zap();
@@ -377,20 +377,20 @@ bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
 
 
 /**
- *  Reimplements the entire SidebarClass::Set_Dimensions function.
+ *  Reimplements the entire SidebarClass::Shift_Sidebar function.
  *
  *  @author: ZivDero
  */
-void SidebarClassExt::_Set_Dimensions()
+void SidebarClassExt::_Shift_Sidebar()
 {
     SidebarRect.X = Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0;
     SidebarRect.Y = 148;
     SidebarRect.Width = 168;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - 148;
 
-    RadarClass::Set_Dimensions();
+    RadarClass::Shift_Sidebar();
 
-    BattleUI.Set_Dimensions();
+    BattleUI.Shift_Sidebar();
 }
 
 
@@ -463,7 +463,7 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
     Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
     Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
-    Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
+    Patch_Jump(0x005F6080, &SidebarClassExt::_Shift_Sidebar);
     Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
     Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
     Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);

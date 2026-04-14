@@ -206,11 +206,11 @@ void SidebarStripView::Set_Art(const StripArt& art)
 
 
 /**
- *  Recalculates button positions from the given column origin.
+ *  Reflows the strip layout from the current column origin.
  *
  *  @author: ZivDero
  */
-void SidebarStripView::Set_Dimensions()
+void SidebarStripView::Shift_Sidebar()
 {
     const bool was_active = IsActive;
     if (was_active) {

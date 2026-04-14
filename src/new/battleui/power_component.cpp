@@ -119,13 +119,13 @@ void PowerComponent::Blit(bool complete)
 
 
 /**
- *  Recalculates power bar dimensions.
+ *  Reflows the power bar layout.
  *
  *  @author: ZivDero
  */
-void PowerComponent::Set_Dimensions()
+void PowerComponent::Shift_Sidebar()
 {
-    View.Set_Dimensions();
+    View.Shift_Sidebar();
 }
 
 

@@ -948,7 +948,7 @@ bool Vinifera_Load_Game(const char* file_name)
     Vinifera_Post_Load_Game();
     Map.Init_IO();
     Map.Activate(1);
-    Map.Set_Dimensions();
+    Map.Shift_Sidebar();
 
     /**
      *  Relink factories to the sidebar model items.

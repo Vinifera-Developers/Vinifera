@@ -59,7 +59,7 @@ public:
     virtual void Init_Clear() override;
     virtual void Init_IO() override;
     virtual void Init_For_House() override;
-    virtual void Set_Dimensions() override;
+    virtual void Shift_Sidebar() override;
     virtual void AI(KeyNumType& input, Point2D& xy) override;
     virtual void Draw() override;
     virtual void Blit(bool complete) override;

@@ -46,7 +46,7 @@ public:
     void Init_Clear();
     void Init_IO();
     void Init_For_House();
-    void Set_Dimensions();
+    void Shift_Sidebar();
     void Activate(int control);
     void AI(KeyNumType& key);
     void Draw();

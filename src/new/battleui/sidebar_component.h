@@ -62,7 +62,7 @@ public:
     virtual void AI(KeyNumType& key, Point2D& mouse) override;
     virtual void Draw() override;
     virtual void Blit(bool complete) override;
-    virtual void Set_Dimensions() override;
+    virtual void Shift_Sidebar() override;
     virtual void Shutdown() override;
 
     virtual const char *Help_Text(int gadget_id) override;
@@ -85,7 +85,6 @@ public:
     void Activate(int control);
     int Visible_Button_Count() const;
     int Visible_Buttons_Per_Column() const;
-    void Reload_Layout();
     SidebarViewType Get_View_Type() const { return ActiveViewType; }
 
     HRESULT Save(IStream* pStm) const override;
