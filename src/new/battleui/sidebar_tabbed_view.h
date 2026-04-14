@@ -124,20 +124,6 @@ public:
     };
 
     enum TabbedEnums {
-        COLUMN_Y = 54,
-        COLUMN_X = 24,
-
-        UP_X_OFFSET = COLUMN_X + 1,
-        UP_Y_OFFSET = COLUMN_Y - 1,
-        DOWN_X_OFFSET = COLUMN_X + 66 + 30,
-        DOWN_Y_OFFSET = UP_Y_OFFSET,
-
-        TAB_Y_OFFSET = 24,
-        TAB_ONE_X_OFFSET = 20,
-        TAB_TWO_X_OFFSET = TAB_ONE_X_OFFSET + 35,
-        TAB_THREE_X_OFFSET = TAB_TWO_X_OFFSET + 35,
-        TAB_FOUR_X_OFFSET = TAB_THREE_X_OFFSET + 35,
-
         BUTTON_TAB_1 = 115,
         BUTTON_TAB_2,
         BUTTON_TAB_3,

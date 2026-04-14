@@ -38,22 +38,7 @@ class ShapeSet;
 class ClassicSidebarView : public ISidebarView
 {
 public:
-    /**
-     *  Shared classic layout constants retained for compatibility.
-     */
-    enum ClassicEnums {
-        COLUMN_COUNT = 2,
-
-        COLUMN_ONE_X = 24,
-        COLUMN_ONE_Y = 26,
-        COLUMN_TWO_X = 92,
-        COLUMN_TWO_Y = 26,
-
-        UP_X_OFFSET = 1,
-        UP_Y_OFFSET = 25,
-        DOWN_X_OFFSET = 30,
-        DOWN_Y_OFFSET = UP_Y_OFFSET,
-    };
+    static constexpr int COLUMN_COUNT = 2;
 
     ClassicSidebarView(SidebarModel* model);
     virtual ~ClassicSidebarView() override = default;

@@ -157,7 +157,7 @@ void PowerView::Shift_Sidebar()
         tt.Region.X = SidebarRect.X + power_bar_position.X;
         tt.Region.Y = SidebarRect.Y + power_bar_position.Y;
         tt.Region.Width = Get_Power_Bar_Width(ViewType);
-        tt.Region.Height = SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn;
+        tt.Region.Height = Get_Sidebar_Layout(ViewType).CameoSize.Y * VisibleButtonsPerColumn;
 
         ToolTips->Remove(tt.ID);
         ToolTips->Add(&tt);
@@ -195,7 +195,7 @@ void PowerView::Flash_Power()
  */
 int PowerView::Max_Power_Height() const
 {
-    return SidebarClass::StripClass::OBJECT_HEIGHT * VisibleButtonsPerColumn / Get_Power_Pip_Height(ViewType);
+    return Get_Sidebar_Layout(ViewType).CameoSize.Y * VisibleButtonsPerColumn / Get_Power_Pip_Height(ViewType);
 }
 
 

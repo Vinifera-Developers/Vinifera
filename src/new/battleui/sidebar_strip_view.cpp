@@ -163,15 +163,13 @@ void SidebarStripView::Init_IO(int id, int columns)
     UpButton.ID = BUTTON_UP + id;
     UpButton.DrawnOnSidebarSurface = true;
     UpButton.ShapeDrawer = SidebarDrawer;
-    UpButton.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS
-                   | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
+    UpButton.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
 
     DownButton.IsSticky = true;
     DownButton.ID = BUTTON_DOWN + id;
     DownButton.DrawnOnSidebarSurface = true;
     DownButton.ShapeDrawer = SidebarDrawer;
-    DownButton.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS
-                     | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
+    DownButton.Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
 
     /**
      *  Calculate the number of visible cameo slots.
@@ -707,7 +705,7 @@ Point2D SidebarStripView::Get_Item_Point(int slot) const
         y -= Row_Pitch() - Slid;
     }
 
-    return Point2D(x, SidebarRect.Y + y);
+    return {x, SidebarRect.Y + y};
 }
 
 
@@ -1054,9 +1052,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
  */
 int SidebarStripView::Available_Content_Height() const
 {
-    return SidebarRect.Height
-        - Art.BackgroundBottomHeight
-        - Art.BackgroundTopHeight;
+    return SidebarRect.Height - Art.BackgroundBottomHeight - Art.BackgroundTopHeight;
 }
 
 
@@ -1133,7 +1129,7 @@ int SidebarStripView::Scroll_Step() const
  */
 Point2D SidebarStripView::Text_Offset() const
 {
-    return Point2D(Layout.CameoTextOffset.X, Layout.CameoTextOffset.Y);
+    return Layout.CameoTextOffset;
 }
 
 
@@ -1144,7 +1140,7 @@ Point2D SidebarStripView::Text_Offset() const
  */
 Point2D SidebarStripView::Queue_Count_Offset() const
 {
-    return Point2D(Layout.QueueCountOffset.X, Layout.QueueCountOffset.Y);
+    return Layout.QueueCountOffset;
 }
 
 
@@ -1155,12 +1151,11 @@ Point2D SidebarStripView::Queue_Count_Offset() const
  */
 Point2D SidebarStripView::Get_Up_Button_Position() const
 {
-    if (Layout.UpButtonPosition.X != StripLayout::AUTO_POSITION
-        || Layout.UpButtonPosition.Y != StripLayout::AUTO_POSITION) {
-        return Point2D(Layout.UpButtonPosition.X, Layout.UpButtonPosition.Y);
+    if (Layout.UpButtonPosition != Point2D { StripLayout::AUTO_POSITION, StripLayout::AUTO_POSITION }) {
+        return Layout.UpButtonPosition;
     }
 
-    return Point2D(ColumnX + 1, ColumnY + Visible_Buttons_Per_Column() * Row_Pitch() - 1);
+    return {ColumnX + 1, ColumnY + Visible_Buttons_Per_Column() * Row_Pitch() - 1};
 }
 
 
@@ -1171,11 +1166,9 @@ Point2D SidebarStripView::Get_Up_Button_Position() const
  */
 Point2D SidebarStripView::Get_Down_Button_Position() const
 {
-    if (Layout.DownButtonPosition.X != StripLayout::AUTO_POSITION
-        || Layout.DownButtonPosition.Y != StripLayout::AUTO_POSITION) {
-        return Point2D(Layout.DownButtonPosition.X, Layout.DownButtonPosition.Y);
+    if (Layout.DownButtonPosition != Point2D {StripLayout::AUTO_POSITION, StripLayout::AUTO_POSITION}) {
+        return Layout.DownButtonPosition;
     }
 
-    return Point2D(ColumnX + (Columns == 1 ? 30 : Column_Spacing() + 30),
-        ColumnY + Visible_Buttons_Per_Column() * Row_Pitch() - 1);
+    return {ColumnX + (Columns == 1 ? 30 : Column_Spacing() + 3), ColumnY + Visible_Buttons_Per_Column() * Row_Pitch() - 1};
 }
