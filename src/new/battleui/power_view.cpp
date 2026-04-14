@@ -446,12 +446,8 @@ void PowerView::AI()
  *
  *  @author: ZivDero
  */
-void PowerView::Draw(bool complete)
+void PowerView::Draw()
 {
-    if (!complete && !IsToRedraw) {
-        return;
-    }
-
     if (!Map.IsSidebarActive) {
         return;
     }

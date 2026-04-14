@@ -110,7 +110,7 @@ public:
     void Deactivate();
     bool AI(KeyNumType& input, Point2D& xy);
     bool Update_State();
-    void Draw(Surface& surface, const Rect& rect, bool complete);
+    void Draw(Surface& surface, const Rect& rect);
     bool Scroll(bool up);
     bool Scroll_Page(bool up);
     void Flag_To_Redraw();

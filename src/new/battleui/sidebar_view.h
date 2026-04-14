@@ -56,7 +56,7 @@ public:
     virtual void Init_For_House() = 0;
     virtual void Set_Dimensions() = 0;
     virtual void AI(KeyNumType& input, Point2D& xy) = 0;
-    virtual void Draw(bool complete) = 0;
+    virtual void Draw() = 0;
     virtual void Blit(bool complete) = 0;
     virtual void Activate(int control) = 0;
 

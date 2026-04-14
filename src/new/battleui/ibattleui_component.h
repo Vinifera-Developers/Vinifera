@@ -47,7 +47,7 @@ public:
     virtual void Init_IO() = 0;
     virtual void Init_For_House() = 0;
     virtual void AI(KeyNumType &key, Point2D &mouse) = 0;
-    virtual void Draw(bool complete) = 0;
+    virtual void Draw() = 0;
     virtual void Blit(bool complete) = 0;
     virtual void Set_Dimensions() = 0;
     virtual void Shutdown() = 0;

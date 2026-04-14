@@ -426,53 +426,39 @@ bool SidebarStripView::Update_State()
  *
  *  @author: ZivDero
  */
-void SidebarStripView::Draw(Surface& surface, const Rect& rect, bool complete)
+void SidebarStripView::Draw(Surface& surface, const Rect& rect)
 {
     if (Category == nullptr) {
         return;
     }
 
-    if (IsToRedraw || complete) {
-        IsToRedraw = false;
-        RedrawSidebar = true;
-
-        /**
-         *  Draw scroll buttons.
-         */
-        if (Layout.IsUpButtonVisible) {
-            UpButton.Draw_Me(true);
-        } else {
-            UpButton.IsDrawn = false;
-        }
-
-        if (Layout.IsDownButtonVisible) {
-            DownButton.Draw_Me(true);
-        } else {
-            DownButton.IsDrawn = false;
-        }
-
-        /**
-         *  Draw all visible cameo items.
-         */
-        Draw_Strip_Items(surface, rect);
-
-        LastSlid = Slid;
-        return;
-    }
+    IsToRedraw = false;
+    RedrawSidebar = true;
 
     /**
-     *  Even if the strip didn't need full redraw, check if scroll
-     *  buttons drew themselves and flag the sidebar for blit.
+     *  Draw scroll buttons.
      */
-    if (UpButton.IsDrawn) {
-        RedrawSidebar = true;
+    if (Layout.IsUpButtonVisible) {
+        UpButton.Draw_Me(true);
+    } else {
         UpButton.IsDrawn = false;
     }
 
-    if (DownButton.IsDrawn) {
-        RedrawSidebar = true;
+    if (Layout.IsDownButtonVisible) {
+        DownButton.Draw_Me(true);
+    } else {
         DownButton.IsDrawn = false;
     }
+
+    /**
+     *  Draw all visible cameo items.
+     */
+    Draw_Strip_Items(surface, rect);
+
+    LastSlid = Slid;
+
+    UpButton.IsDrawn = false;
+    DownButton.IsDrawn = false;
 }
 
 

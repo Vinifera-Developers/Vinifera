@@ -344,7 +344,7 @@ void SidebarClassExt::_Draw_It(bool complete)
     Map.LastDrawRect = Rect(0, 0, 0, 0);
     RadarClass::Draw_It(complete);
 
-    BattleUI.Draw(complete);
+    BattleUI.Draw();
     BattleUI.Blit(complete);
 }
 

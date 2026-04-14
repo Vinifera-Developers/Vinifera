@@ -675,40 +675,39 @@ void TabbedSidebarView::Tab_Button_AI(int tab_index)
  *
  *  @author: ZivDero
  */
-void TabbedSidebarView::Draw(bool complete)
+void TabbedSidebarView::Draw()
 {
+    if (!Map.IsSidebarActive || Debug_Map || SidebarSurface == nullptr) {
+        return;
+    }
+
     Surface* oldsurface = LogicalSurface;
     LogicalSurface = SidebarSurface;
 
     Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
 
-    if (Map.IsSidebarActive && (Map.IsToRedraw || complete) && !Debug_Map) {
-        if (complete || Strip[TabIndex].IsToRedraw) {
-            /**
-             *  Draw the sidebar background shapes.
-             */
-            int y = SidebarRect.Y;
-            Point2D xy(0, y);
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
-            y += SidebarClass::SidebarShape->Get_Height();
+    /**
+     *  Repaint the sidebar background every active frame so the surface is
+     *  fully refreshed before blitting.
+     */
+    int y = SidebarRect.Y;
+    Point2D xy(0, y);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
+    y += SidebarClass::SidebarShape->Get_Height();
 
-            int rows = Sidebar_Background_Row_Count();
-            for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
-                xy = Point2D(0, y);
-                Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
-            }
-
-            xy = Point2D(0, y);
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
-
-            xy = Point2D(0, y + SidebarClass::SidebarBottomShape->Get_Height());
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
-
-            Strip[TabIndex].IsToRedraw = true;
-        }
-
-        RedrawSidebar = true;
+    int rows = Sidebar_Background_Row_Count();
+    for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
+        xy = Point2D(0, y);
+        Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
     }
+
+    xy = Point2D(0, y);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
+
+    xy = Point2D(0, y + SidebarClass::SidebarBottomShape->Get_Height());
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
+
+    RedrawSidebar = true;
 
     /**
      *  Tab buttons always redraw (they might be flashing).
@@ -720,9 +719,7 @@ void TabbedSidebarView::Draw(bool complete)
     /**
      *  Draw the active strip only.
      */
-    if (Map.IsSidebarActive) {
-        Strip[TabIndex].Draw(*SidebarSurface, rect, complete);
-    }
+    Strip[TabIndex].Draw(*SidebarSurface, rect);
 
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
         if (TabButtons[i].IsDrawn) {

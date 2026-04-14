@@ -68,7 +68,7 @@ public:
     void Set_Dimensions();
     void Set_Visible_Buttons_Per_Column(int count);
     void AI();
-    void Draw(bool complete);
+    void Draw();
     void Flash_Power();
 
     const char *Help_Text(int gadget_id);

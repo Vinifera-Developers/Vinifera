@@ -250,49 +250,45 @@ void ClassicSidebarView::AI(KeyNumType& input, Point2D& xy)
  *
  *  @author: ZivDero
  */
-void ClassicSidebarView::Draw(bool complete)
+void ClassicSidebarView::Draw()
 {
+    if (!Map.IsSidebarActive || Debug_Map || SidebarSurface == nullptr) {
+        return;
+    }
+
     Surface* oldsurface = LogicalSurface;
     LogicalSurface = SidebarSurface;
 
     Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
 
-    if (Map.IsSidebarActive && (Map.IsToRedraw || complete) && !Debug_Map) {
-        if (complete || Strip[0].IsToRedraw || Strip[1].IsToRedraw) {
-            /**
-             *  Draw the sidebar background shapes.
-             */
-            int y = SidebarRect.Y;
-            Point2D xy(0, y);
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
-            y += SidebarClass::SidebarShape->Get_Height();
+    /**
+     *  Repaint the sidebar background every active frame so the surface is
+     *  fully refreshed before blitting.
+     */
+    int y = SidebarRect.Y;
+    Point2D xy(0, y);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
+    y += SidebarClass::SidebarShape->Get_Height();
 
-            int rows = Sidebar_Background_Row_Count();
-            for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
-                xy = Point2D(0, y);
-                Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
-            }
-
-            xy = Point2D(0, y);
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
-
-            xy = Point2D(0, y + SidebarClass::SidebarBottomShape->Get_Height());
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
-
-            Strip[0].IsToRedraw = true;
-            Strip[1].IsToRedraw = true;
-        }
-
-        RedrawSidebar = true;
+    int rows = Sidebar_Background_Row_Count();
+    for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
+        xy = Point2D(0, y);
+        Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
     }
+
+    xy = Point2D(0, y);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
+
+    xy = Point2D(0, y + SidebarClass::SidebarBottomShape->Get_Height());
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
+
+    RedrawSidebar = true;
 
     /**
      *  Draw the strips.
      */
-    if (Map.IsSidebarActive) {
-        for (int i = 0; i < COLUMN_COUNT; i++) {
-            Strip[i].Draw(*SidebarSurface, rect, complete);
-        }
+    for (int i = 0; i < COLUMN_COUNT; i++) {
+        Strip[i].Draw(*SidebarSurface, rect);
     }
 
     if (ToolTips) {

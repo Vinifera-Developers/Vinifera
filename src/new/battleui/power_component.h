@@ -52,7 +52,7 @@ public:
     virtual void Init_IO() override;
     virtual void Init_For_House() override;
     virtual void AI(KeyNumType &key, Point2D &mouse) override;
-    virtual void Draw(bool complete) override;
+    virtual void Draw() override;
     virtual void Blit(bool complete) override;
     virtual void Set_Dimensions() override;
     virtual void Shutdown() override;

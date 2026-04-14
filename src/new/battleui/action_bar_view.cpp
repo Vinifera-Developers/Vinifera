@@ -233,7 +233,7 @@ void ActionBarView::AI(KeyNumType& key)
 }
 
 
-void ActionBarView::Draw(bool complete)
+void ActionBarView::Draw()
 {
     if (!Map.IsSidebarActive || Debug_Map || SidebarSurface == nullptr) {
         return;
@@ -244,50 +244,36 @@ void ActionBarView::Draw(bool complete)
 
     const SidebarSharedLayout& layout = Get_Sidebar_Layout();
 
-    if (Map.IsToRedraw || complete) {
-        if (layout.RepairButton.IsVisible) {
-            Repair.Draw_Me(true);
-        } else {
-            Repair.IsDrawn = false;
-        }
-
-        if (layout.SellButton.IsVisible) {
-            Sell.Draw_Me(true);
-        } else {
-            Sell.IsDrawn = false;
-        }
-
-        if (layout.PowerButton.IsVisible) {
-            PowerBtn.Draw_Me(true);
-        } else {
-            PowerBtn.IsDrawn = false;
-        }
-
-        if (layout.WaypointButton.IsVisible) {
-            Waypoint.Draw_Me(true);
-        } else {
-            Waypoint.IsDrawn = false;
-        }
-
-        RedrawSidebar = true;
-    }
-
-    if (Repair.IsDrawn) {
-        RedrawSidebar = true;
+    if (layout.RepairButton.IsVisible) {
+        Repair.Draw_Me(true);
+    } else {
         Repair.IsDrawn = false;
     }
-    if (Sell.IsDrawn) {
-        RedrawSidebar = true;
+
+    if (layout.SellButton.IsVisible) {
+        Sell.Draw_Me(true);
+    } else {
         Sell.IsDrawn = false;
     }
-    if (PowerBtn.IsDrawn) {
-        RedrawSidebar = true;
+
+    if (layout.PowerButton.IsVisible) {
+        PowerBtn.Draw_Me(true);
+    } else {
         PowerBtn.IsDrawn = false;
     }
-    if (Waypoint.IsDrawn) {
-        RedrawSidebar = true;
+
+    if (layout.WaypointButton.IsVisible) {
+        Waypoint.Draw_Me(true);
+    } else {
         Waypoint.IsDrawn = false;
     }
+
+    RedrawSidebar = true;
+
+    Repair.IsDrawn = false;
+    Sell.IsDrawn = false;
+    PowerBtn.IsDrawn = false;
+    Waypoint.IsDrawn = false;
 
     LogicalSurface = oldsurface;
 }

@@ -102,9 +102,9 @@ void PowerComponent::AI(KeyNumType &key, Point2D &mouse)
  *
  *  @author: ZivDero
  */
-void PowerComponent::Draw(bool complete)
+void PowerComponent::Draw()
 {
-    View.Draw(complete);
+    View.Draw();
 }
 
 

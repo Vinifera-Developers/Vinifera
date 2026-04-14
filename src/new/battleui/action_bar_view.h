@@ -47,7 +47,7 @@ public:
     void Set_Dimensions();
     void Activate(int control);
     void AI(KeyNumType& key);
-    void Draw(bool complete);
+    void Draw();
 
 private:
     void Register_Tooltips();

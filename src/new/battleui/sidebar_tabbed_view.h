@@ -141,7 +141,7 @@ public:
     virtual void Init_For_House() override;
     virtual void Set_Dimensions() override;
     virtual void AI(KeyNumType& input, Point2D& xy) override;
-    virtual void Draw(bool complete) override;
+    virtual void Draw() override;
     virtual void Blit(bool complete) override;
     virtual void Activate(int control) override;
 

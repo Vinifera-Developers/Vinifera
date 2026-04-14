@@ -73,10 +73,10 @@ void BattleUISystem::AI(KeyNumType &key, Point2D &mouse)
 }
 
 
-void BattleUISystem::Draw(bool complete)
+void BattleUISystem::Draw()
 {
-    Sidebar.Draw(complete);
-    Power.Draw(complete);
+    Sidebar.Draw();
+    Power.Draw();
 }
 
 

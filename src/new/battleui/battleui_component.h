@@ -49,7 +49,7 @@ public:
     void Init_IO();
     void Init_For_House();
     void AI(KeyNumType &key, Point2D &mouse);
-    void Draw(bool complete);
+    void Draw();
     void Blit(bool complete);
     void Set_Dimensions();
     void Shutdown();

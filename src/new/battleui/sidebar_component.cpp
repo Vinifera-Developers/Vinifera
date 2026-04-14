@@ -467,13 +467,13 @@ void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
  *
  *  @author: ZivDero
  */
-void SidebarComponent::Draw(bool complete)
+void SidebarComponent::Draw()
 {
     if (ActiveView) {
-        ActiveView->Draw(complete);
+        ActiveView->Draw();
     }
 
-    ActionBar.Draw(complete);
+    ActionBar.Draw();
 }
 
 
