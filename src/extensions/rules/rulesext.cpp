@@ -174,7 +174,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
 
     new (this) RulesClassExtension(NoInitClass());
 
-    MaxPips.Load(pStm);
+    MaxPips.Load_Self(pStm);
     
     return hr;
 }
@@ -194,7 +194,7 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    MaxPips.Save(pStm);
+    MaxPips.Save_Self(pStm);
 
     return hr;
 }
