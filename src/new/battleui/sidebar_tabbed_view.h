@@ -62,6 +62,9 @@ public:
                    ConvertClass* drawer = nullptr, int w = 0, int h = 0);
     virtual ~TabButtonClass() override = default;
 
+    /**
+     *  ControlClass and hover behavior.
+     */
     virtual bool Action(unsigned flags, KeyNumType& key) override;
     virtual void Disable() override;
     virtual void Enable() override;
@@ -70,6 +73,9 @@ public:
     virtual void On_Mouse_Enter();
     virtual void On_Mouse_Leave();
 
+    /**
+     *  Tab button state transitions.
+     */
     void Set_Shape(const ShapeSet* data, int width = 0, int height = 0);
     const ShapeSet* Get_Shape_Data() const { return ShapeData; }
 
@@ -79,6 +85,9 @@ public:
     void Deselect();
 
 public:
+    /**
+     *  Public button state retained for existing sidebar integration.
+     */
     int DrawX;
     int DrawY;
     ConvertClass* ShapeDrawer;
@@ -101,6 +110,9 @@ public:
 class TabbedSidebarView : public ISidebarView
 {
 public:
+    /**
+     *  Sidebar tab identifiers.
+     */
     enum SidebarTabType {
         SIDEBAR_TAB_STRUCTURE,
         SIDEBAR_TAB_INFANTRY,
@@ -135,6 +147,9 @@ public:
     TabbedSidebarView(SidebarModel* model);
     virtual ~TabbedSidebarView() override = default;
 
+    /**
+     *  ISidebarView lifecycle and rendering.
+     */
     virtual void One_Time() override;
     virtual void Init_Clear() override;
     virtual void Init_IO() override;
@@ -156,16 +171,25 @@ public:
 
     virtual bool Change_Tab(int index) override;
 
+    /**
+     *  Tab and strip queries.
+     */
     SidebarTabType First_Active_Tab() const;
 
     SidebarStripView& Current_Strip() { return Strip[TabIndex]; }
     const SidebarStripView& Current_Strip() const { return Strip[TabIndex]; }
 
 private:
+    /**
+     *  Internal helpers.
+     */
     int Background_Row_Count() const;
     void Tab_Button_AI(int tab_index);
 
 public:
+    /**
+     *  Public tab/view state retained for existing sidebar integration.
+     */
     SidebarTabType TabIndex;
     SidebarStripView Strip[SIDEBAR_TAB_COUNT];
     TabButtonClass TabButtons[SIDEBAR_TAB_COUNT];

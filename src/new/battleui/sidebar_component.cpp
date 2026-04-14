@@ -62,6 +62,11 @@
 
 namespace
 {
+/***************************************************************************
+**  Cameo action resolution helpers
+***************************************************************************/
+
+
 struct ResolvedCameoAction
 {
     RTTIType Type;
@@ -73,6 +78,11 @@ struct ResolvedCameoAction
 };
 
 
+/**
+ *  Resolves action context for a clicked sidebar cameo.
+ *
+ *  @author: ZivDero
+ */
 bool Resolve_Cameo_Action(BuildItem& item, ResolvedCameoAction& resolved)
 {
     resolved.Type = item.Type;
@@ -92,12 +102,22 @@ bool Resolve_Cameo_Action(BuildItem& item, ResolvedCameoAction& resolved)
 }
 
 
+/**
+ *  Returns the player's factory for the given production type and flags.
+ *
+ *  @author: ZivDero
+ */
 FactoryClass* Fetch_Player_Factory(RTTIType type, ProductionFlags flags)
 {
     return Extension::Fetch(PlayerPtr)->Fetch_Factory(type, flags);
 }
 
 
+/**
+ *  Returns how many queued objects should be abandoned for the active modifiers.
+ *
+ *  @author: ZivDero
+ */
 int Count_Queued_Abandon(FactoryClass& factory, const TechnoTypeClass& choice)
 {
     if (Key_Down(VK_SHIFT)) {
@@ -112,6 +132,11 @@ int Count_Queued_Abandon(FactoryClass& factory, const TechnoTypeClass& choice)
 }
 
 
+/**
+ *  Clears pending placement state when it references a techno object.
+ *
+ *  @author: ZivDero
+ */
 void Clear_Pending_Techno_Placement()
 {
     if (Map.PendingObjectPtr && Map.PendingObjectPtr->Is_Techno()) {
@@ -123,12 +148,22 @@ void Clear_Pending_Techno_Placement()
 }
 
 
+/**
+ *  Plays the appropriate produce voice for the requested item type.
+ *
+ *  @author: ZivDero
+ */
 void Speak_Produce_Voice(RTTIType type)
 {
     Speak(type == RTTI_INFANTRYTYPE ? VOX_TRAINING : VOX_BUILDING);
 }
 
 
+/**
+ *  Queues one or more produce events for the specified item.
+ *
+ *  @author: ZivDero
+ */
 void Queue_Produce_Event(RTTIType type, int id, ProductionFlags flags, int count)
 {
     for (int i = 0; i < count; ++i) {
@@ -137,6 +172,11 @@ void Queue_Produce_Event(RTTIType type, int id, ProductionFlags flags, int count
 }
 
 
+/**
+ *  Queues one or more abandon events for the specified item.
+ *
+ *  @author: ZivDero
+ */
 void Queue_Abandon_Event(RTTIType type, int id, ProductionFlags flags, int count)
 {
     for (int i = 0; i < count; ++i) {
@@ -145,18 +185,38 @@ void Queue_Abandon_Event(RTTIType type, int id, ProductionFlags flags, int count
 }
 
 
+/**
+ *  Queues a suspend event for the specified item.
+ *
+ *  @author: ZivDero
+ */
 void Queue_Suspend_Event(RTTIType type, int id, ProductionFlags flags)
 {
     OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, type, id, flags).As_Event());
 }
 
 
+/**
+ *  Queues a placement event for a completed production output.
+ *
+ *  @author: ZivDero
+ */
 void Queue_Place_Event(int owner, RTTIType type, ProductionFlags flags)
 {
     OutList.Add(EventClassExt(owner, EVENT_PLACE, type, CELL_NONE, flags).As_Event());
 }
 
 
+/***************************************************************************
+**  Cameo action execution
+***************************************************************************/
+
+
+/**
+ *  Handles input for a superweapon cameo.
+ *
+ *  @author: ZivDero
+ */
 void Handle_Superweapon_Action(const ResolvedCameoAction& action, unsigned flags)
 {
     if (action.SuperType == SUPER_NONE) {
@@ -192,6 +252,11 @@ void Handle_Superweapon_Action(const ResolvedCameoAction& action, unsigned flags
 }
 
 
+/**
+ *  Handles right-click interaction on a techno cameo.
+ *
+ *  @author: ZivDero
+ */
 void Handle_Techno_Right_Press(SidebarComponent& sidebar, const ResolvedCameoAction& action)
 {
     FactoryClass* factory = action.LinkedFactory;
@@ -217,6 +282,11 @@ void Handle_Techno_Right_Press(SidebarComponent& sidebar, const ResolvedCameoAct
 }
 
 
+/**
+ *  Handles placement or release of a completed factory output.
+ *
+ *  @author: ZivDero
+ */
 void Handle_Completed_Factory_Output(const ResolvedCameoAction& action, FactoryClass& factory)
 {
     TechnoClass* pending = factory.Get_Object();
@@ -243,6 +313,11 @@ void Handle_Completed_Factory_Output(const ResolvedCameoAction& action, FactoryC
 }
 
 
+/**
+ *  Handles left-click interaction on a techno cameo.
+ *
+ *  @author: ZivDero
+ */
 void Handle_Techno_Left_Press(const ResolvedCameoAction& action)
 {
     FactoryClass* factory = action.LinkedFactory;
@@ -276,12 +351,27 @@ void Handle_Techno_Left_Press(const ResolvedCameoAction& action)
 }
 
 
+/***************************************************************************
+**  Production state update helpers
+***************************************************************************/
+
+
+/**
+ *  Returns whether a factory change should trigger sidebar updates.
+ *
+ *  @author: ZivDero
+ */
 bool Should_Process_Factory_Change(FactoryClass& factory)
 {
     return factory.Has_Changed() || Extension::Fetch(&factory)->IsHoldingExit;
 }
 
 
+/**
+ *  Resolves production flags for the current sidebar item and factory state.
+ *
+ *  @author: ZivDero
+ */
 ProductionFlags Get_Production_Flags(const BuildItem& item, FactoryClass& factory)
 {
     if (TechnoClass* object = factory.Get_Object()) {
@@ -292,6 +382,11 @@ ProductionFlags Get_Production_Flags(const BuildItem& item, FactoryClass& factor
 }
 
 
+/**
+ *  Queues follow-up state for a newly completed factory output.
+ *
+ *  @author: ZivDero
+ */
 void Notify_Completed_Factory_Output(FactoryClass& factory)
 {
     if (!factory.Has_Changed() || !factory.Has_Completed()) {
@@ -320,6 +415,11 @@ void Notify_Completed_Factory_Output(FactoryClass& factory)
 }
 
 
+/**
+ *  Updates redraw and placement state for one item linked to a changed factory.
+ *
+ *  @author: ZivDero
+ */
 void Update_Item_Production_State(SidebarComponent& sidebar, BuildItem& item)
 {
     FactoryClass* factory = item.Factory;
@@ -332,6 +432,10 @@ void Update_Item_Production_State(SidebarComponent& sidebar, BuildItem& item)
 }
 }
 
+
+/***************************************************************************
+**  Lifecycle and setup
+***************************************************************************/
 
 
 /**
@@ -443,6 +547,11 @@ void SidebarComponent::Init_For_House()
 }
 
 
+/***************************************************************************
+**  Runtime behavior
+***************************************************************************/
+
+
 /**
  *  Per-frame update. Updates models and forwards to active view.
  *
@@ -504,6 +613,11 @@ void SidebarComponent::Shutdown()
         ActiveView = nullptr;
     }
 }
+
+
+/***************************************************************************
+**  Sidebar interaction API
+***************************************************************************/
 
 
 /**
@@ -769,6 +883,11 @@ int SidebarComponent::Visible_Buttons_Per_Column() const
 }
 
 
+/***************************************************************************
+**  Persistence and internal helpers
+***************************************************************************/
+
+
 /**
  *  Saves the sidebar model to the given stream.
  *
@@ -823,6 +942,11 @@ void SidebarComponent::Relink_Factories()
 }
 
 
+/**
+ *  Recreates the sidebar palette conversion drawer used by sidebar art.
+ *
+ *  @author: ZivDero
+ */
 void SidebarComponent::Prepare_Drawer()
 {
     if (Debug_Map) {
@@ -836,6 +960,11 @@ void SidebarComponent::Prepare_Drawer()
 }
 
 
+/**
+ *  Updates production-driven redraw state across all sidebar items.
+ *
+ *  @author: ZivDero
+ */
 void SidebarComponent::Update_Production_State()
 {
     for (int category_index = 0; category_index < Model.Category_Count(); ++category_index) {

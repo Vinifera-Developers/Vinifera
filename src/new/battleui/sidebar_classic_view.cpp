@@ -48,6 +48,11 @@
 
 namespace
 {
+/**
+ *  Builds the configured strip layout for the left or right classic column.
+ *
+ *  @author: ZivDero
+ */
 SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
 {
     const SidebarClassicLayout& layout = UIControls->ClassicSidebarLayoutConfig;
@@ -76,6 +81,11 @@ SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
     return strip_layout;
 }
 }
+
+
+/***************************************************************************
+**  Lifecycle and layout
+***************************************************************************/
 
 
 /**
@@ -225,6 +235,11 @@ void ClassicSidebarView::Shift_Sidebar()
 }
 
 
+/***************************************************************************
+**  Runtime behavior
+***************************************************************************/
+
+
 /**
  *  Per-frame logic. Processes both strips and action button inputs.
  *
@@ -303,6 +318,11 @@ void ClassicSidebarView::Draw()
 }
 
 
+/**
+ *  Returns how many background middle rows fit in the current sidebar height.
+ *
+ *  @author: ZivDero
+ */
 int ClassicSidebarView::Background_Row_Count() const
 {
     if (SidebarSurface != nullptr
@@ -317,6 +337,11 @@ int ClassicSidebarView::Background_Row_Count() const
 
     return SidebarClass::StripClass::MAX_VISIBLE;
 }
+
+
+/***************************************************************************
+**  View queries and control
+***************************************************************************/
 
 
 /**

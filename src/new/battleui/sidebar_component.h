@@ -53,7 +53,7 @@ public:
     ~SidebarComponent();
 
     /**
-     *  IBattleUIComponent
+     *  IBattleUIComponent lifecycle.
      */
     virtual void One_Time() override;
     virtual void Init_Clear() override;
@@ -68,7 +68,7 @@ public:
     virtual const char *Help_Text(int gadget_id) override;
 
     /**
-     *  Sidebar-specific interface.
+     *  Sidebar-specific runtime interface.
      */
     bool Add(RTTIType type, int id);
     bool Scroll(bool up, int column);
@@ -87,18 +87,30 @@ public:
     int Visible_Buttons_Per_Column() const;
     SidebarViewType Get_View_Type() const { return ActiveViewType; }
 
+    /**
+     *  Persistence and relink helpers.
+     */
     HRESULT Save(IStream* pStm) const override;
     HRESULT Load(IStream* pStm) override;
     void Relink_Factories();
 
+    /**
+     *  Model and view access.
+     */
     SidebarModel& Get_Model() { return Model; }
     const SidebarModel& Get_Model() const { return Model; }
     ISidebarView* Get_View() { return ActiveView; }
 
 private:
+    /**
+     *  Internal update helpers.
+     */
     void Prepare_Drawer();
     void Update_Production_State();
 
+    /**
+     *  Owned models and active view state.
+     */
     ActionBarView ActionBar;
     SidebarModel Model;
     ISidebarView* ActiveView;

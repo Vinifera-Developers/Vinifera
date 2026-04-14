@@ -6,7 +6,7 @@
  *
  *  @file          ACTION_BAR_VIEW.CPP
  *
- *  @author        OpenAI
+ *  @author        ZivDero
  *
  *  @brief         Shared action bar view for sidebar-common buttons.
  *
@@ -41,6 +41,11 @@
 
 namespace
 {
+/**
+ *  Returns the active sidebar layout config for the selected view type.
+ *
+ *  @author: ZivDero
+ */
 const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 {
     return UIControls->Get_Battle_Sidebar_Config(view_type);
@@ -48,6 +53,16 @@ const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 }
 
 
+/***************************************************************************
+**  Lifecycle and layout
+***************************************************************************/
+
+
+/**
+ *  Resets action bar button state for a new scenario.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::Init_Clear()
 {
     IsActive = false;
@@ -63,6 +78,11 @@ void ActionBarView::Init_Clear()
 }
 
 
+/**
+ *  Initializes action bar button gadgets and baseline placement.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::Init_IO()
 {
     if (Debug_Map) {
@@ -101,6 +121,11 @@ void ActionBarView::Init_IO()
 }
 
 
+/**
+ *  Loads house-specific action bar button art.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::Init_For_House()
 {
     if (Debug_Map) {
@@ -123,6 +148,11 @@ void ActionBarView::Init_For_House()
 }
 
 
+/**
+ *  Reflows action bar button positions from the active layout config.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::Shift_Sidebar()
 {
     if (Debug_Map) {
@@ -157,6 +187,11 @@ void ActionBarView::Shift_Sidebar()
 }
 
 
+/**
+ *  Activates or deactivates the action bar gadgets.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::Activate(int control)
 {
     if (Debug_Map) {
@@ -192,6 +227,16 @@ void ActionBarView::Activate(int control)
 }
 
 
+/***************************************************************************
+**  Runtime behavior
+***************************************************************************/
+
+
+/**
+ *  Handles action bar button input and keeps toggle states in sync.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::AI(KeyNumType& key)
 {
     if (PlayerPtr->CurBuildings > 0) {
@@ -234,6 +279,11 @@ void ActionBarView::AI(KeyNumType& key)
 }
 
 
+/**
+ *  Draws the visible action bar buttons onto the sidebar surface.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::Draw()
 {
     if (!Map.IsSidebarActive || Debug_Map || SidebarSurface == nullptr) {
@@ -280,6 +330,11 @@ void ActionBarView::Draw()
 }
 
 
+/**
+ *  Registers tooltips for the currently visible action bar buttons.
+ *
+ *  @author: ZivDero
+ */
 void ActionBarView::Register_Tooltips()
 {
     if (ToolTips == nullptr) {

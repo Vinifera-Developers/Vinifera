@@ -32,12 +32,27 @@
 BattleUISystem BattleUI;
 
 
+/***************************************************************************
+**  Lifecycle and orchestration
+***************************************************************************/
+
+
+/**
+ *  Destroys the battle UI system and releases owned components.
+ *
+ *  @author: ZivDero
+ */
 BattleUISystem::~BattleUISystem()
 {
     Shutdown();
 }
 
 
+/**
+ *  Performs one-time startup for all battle UI components.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::One_Time()
 {
     Sidebar.One_Time();
@@ -46,6 +61,11 @@ void BattleUISystem::One_Time()
 }
 
 
+/**
+ *  Resets all battle UI components for a new scenario.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::Init_Clear()
 {
     Sidebar.Init_Clear();
@@ -53,6 +73,11 @@ void BattleUISystem::Init_Clear()
 }
 
 
+/**
+ *  Initializes battle UI IO gadgets.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::Init_IO()
 {
     Sidebar.Init_IO();
@@ -60,6 +85,11 @@ void BattleUISystem::Init_IO()
 }
 
 
+/**
+ *  Loads house-specific battle UI resources.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::Init_For_House()
 {
     Sidebar.Init_For_House();
@@ -67,6 +97,11 @@ void BattleUISystem::Init_For_House()
 }
 
 
+/**
+ *  Advances all battle UI components for the current frame.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::AI(KeyNumType &key, Point2D &mouse)
 {
     Sidebar.AI(key, mouse);
@@ -74,6 +109,11 @@ void BattleUISystem::AI(KeyNumType &key, Point2D &mouse)
 }
 
 
+/**
+ *  Draws all battle UI components.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::Draw()
 {
     Sidebar.Draw();
@@ -81,6 +121,11 @@ void BattleUISystem::Draw()
 }
 
 
+/**
+ *  Blits all battle UI components to the screen.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::Blit(bool complete)
 {
     Sidebar.Blit(complete);
@@ -88,6 +133,11 @@ void BattleUISystem::Blit(bool complete)
 }
 
 
+/**
+ *  Reflows sidebar-driven battle UI layout.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::Shift_Sidebar()
 {
     Sidebar.Shift_Sidebar();
@@ -96,6 +146,11 @@ void BattleUISystem::Shift_Sidebar()
 }
 
 
+/**
+ *  Shuts down all battle UI components.
+ *
+ *  @author: ZivDero
+ */
 void BattleUISystem::Shutdown()
 {
     Sidebar.Shutdown();
@@ -103,6 +158,16 @@ void BattleUISystem::Shutdown()
 }
 
 
+/***************************************************************************
+**  Queries and persistence
+***************************************************************************/
+
+
+/**
+ *  Returns help text for the specified battle UI gadget, if any.
+ *
+ *  @author: ZivDero
+ */
 const char *BattleUISystem::Help_Text(int gadget_id)
 {
     const char *text;
@@ -117,6 +182,11 @@ const char *BattleUISystem::Help_Text(int gadget_id)
 }
 
 
+/**
+ *  Saves all battle UI component state to the provided stream.
+ *
+ *  @author: ZivDero
+ */
 HRESULT BattleUISystem::Save(IStream *pStm) const
 {
     HRESULT hr;
@@ -131,6 +201,11 @@ HRESULT BattleUISystem::Save(IStream *pStm) const
 }
 
 
+/**
+ *  Loads all battle UI component state from the provided stream.
+ *
+ *  @author: ZivDero
+ */
 HRESULT BattleUISystem::Load(IStream *pStm)
 {
     HRESULT hr;

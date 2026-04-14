@@ -44,6 +44,9 @@ public:
     BattleUISystem() = default;
     ~BattleUISystem();
 
+    /**
+     *  Lifecycle and frame orchestration.
+     */
     void One_Time();
     void Init_Clear();
     void Init_IO();
@@ -54,16 +57,25 @@ public:
     void Shift_Sidebar();
     void Shutdown();
 
+    /**
+     *  Queries and persistence.
+     */
     const char *Help_Text(int gadget_id);
 
     HRESULT Save(IStream *pStm) const;
     HRESULT Load(IStream *pStm);
 
+    /**
+     *  Component access.
+     */
     SidebarComponent &Get_Sidebar() { return Sidebar; }
     const SidebarComponent &Get_Sidebar() const { return Sidebar; }
     PowerComponent &Get_Power() { return Power; }
 
 private:
+    /**
+     *  Owned battle UI components.
+     */
     SidebarComponent Sidebar;
     PowerComponent Power;
 };

@@ -40,6 +40,16 @@
 UIControlsClass *UIControls = nullptr;
 
 
+/***************************************************************************
+**  Battle sidebar layout config
+***************************************************************************/
+
+
+/**
+ *  Reads shared battle sidebar layout values from the given INI section.
+ *
+ *  @author: CCHyper
+ */
 void BattleSidebarLayoutBase::Read_INI(CCINIClass const& ini, const char* section)
 {
     RepairButton.Position = ini.Get_Point(section, "RepairButtonPos", RepairButton.Position);
@@ -75,6 +85,11 @@ void BattleSidebarLayoutBase::Read_INI(CCINIClass const& ini, const char* sectio
 }
 
 
+/**
+ *  Reads classic sidebar-specific layout values from the given INI section.
+ *
+ *  @author: CCHyper
+ */
 void SidebarClassicLayout::Read_INI(CCINIClass const& ini, const char* section)
 {
     BattleSidebarLayoutBase::Read_INI(ini, section);
@@ -94,6 +109,11 @@ void SidebarClassicLayout::Read_INI(CCINIClass const& ini, const char* section)
 }
 
 
+/**
+ *  Reads tabbed sidebar-specific layout values from the given INI section.
+ *
+ *  @author: CCHyper
+ */
 void SidebarTabbedLayout::Read_INI(CCINIClass const& ini, const char* section)
 {
     BattleSidebarLayoutBase::Read_INI(ini, section);
@@ -119,7 +139,7 @@ void SidebarTabbedLayout::Read_INI(CCINIClass const& ini, const char* section)
 
 /**
  *  Class destructor.
- *  
+ *
  *  @author: CCHyper
  */
 UIControlsClass::~UIControlsClass()
@@ -127,6 +147,16 @@ UIControlsClass::~UIControlsClass()
 }
 
 
+/***************************************************************************
+**  UI offset queries
+***************************************************************************/
+
+
+/**
+ *  Returns the group number offset for the given object type and pip state.
+ *
+ *  @author: CCHyper
+ */
 TPoint2D<int> UIControlsClass::Get_Group_Number_Offset(RTTIType type, bool has_pip) const
 {
     switch (type)
@@ -149,6 +179,11 @@ TPoint2D<int> UIControlsClass::Get_Group_Number_Offset(RTTIType type, bool has_p
 }
 
 
+/**
+ *  Returns the veterancy pip offset for the given object type.
+ *
+ *  @author: CCHyper
+ */
 TPoint2D<int> UIControlsClass::Get_Veterancy_Pip_Offset(RTTIType type) const
 {
     switch (type)
@@ -171,6 +206,11 @@ TPoint2D<int> UIControlsClass::Get_Veterancy_Pip_Offset(RTTIType type) const
 }
 
 
+/**
+ *  Returns the special pip offset for the given object type.
+ *
+ *  @author: CCHyper
+ */
 TPoint2D<int> UIControlsClass::Get_Special_Pip_Offset(RTTIType type) const
 {
     switch (type)
@@ -193,6 +233,16 @@ TPoint2D<int> UIControlsClass::Get_Special_Pip_Offset(RTTIType type) const
 }
 
 
+/***************************************************************************
+**  INI loading
+***************************************************************************/
+
+
+/**
+ *  Loads UI controls from an INI file on disk.
+ *
+ *  @author: CCHyper
+ */
 bool UIControlsClass::Read_INI_File(const char* filename, bool reset_to_defaults)
 {
     if (reset_to_defaults) {

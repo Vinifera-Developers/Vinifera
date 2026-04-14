@@ -38,6 +38,9 @@ class ShapeSet;
 class ClassicSidebarView : public ISidebarView
 {
 public:
+    /**
+     *  Shared classic layout constants retained for compatibility.
+     */
     enum ClassicEnums {
         COLUMN_COUNT = 2,
 
@@ -55,6 +58,9 @@ public:
     ClassicSidebarView(SidebarModel* model);
     virtual ~ClassicSidebarView() override = default;
 
+    /**
+     *  ISidebarView lifecycle and rendering.
+     */
     virtual void One_Time() override;
     virtual void Init_Clear() override;
     virtual void Init_IO() override;
@@ -75,8 +81,14 @@ public:
     virtual int Visible_Buttons_Per_Column() const override;
 
 private:
+    /**
+     *  Background layout helpers.
+     */
     int Background_Row_Count() const;
 
+    /**
+     *  Owned strip and background state.
+     */
     SidebarStripView Strip[COLUMN_COUNT];
     SidebarClass::SBGadgetClass Background;
     const ShapeSet* BackgroundTopShape;

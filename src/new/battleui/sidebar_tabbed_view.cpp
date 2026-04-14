@@ -59,12 +59,22 @@
 
 namespace
 {
+/**
+ *  Returns the active tabbed sidebar layout config.
+ *
+ *  @author: ZivDero
+ */
 const SidebarTabbedLayout& Get_Tabbed_Layout()
 {
     return UIControls->TabbedSidebarLayoutConfig;
 }
 
 
+/**
+ *  Builds the configured strip layout shared by all tabbed sidebar strips.
+ *
+ *  @author: ZivDero
+ */
 SidebarStripView::StripLayout Build_Tabbed_Strip_Layout()
 {
     const SidebarTabbedLayout& layout = Get_Tabbed_Layout();
@@ -350,6 +360,11 @@ void TabButtonClass::Deselect()
 ***************************************************************************/
 
 
+/***************************************************************************
+**  Lifecycle and layout
+***************************************************************************/
+
+
 /**
  *  TabbedSidebarView constructor.
  *
@@ -561,6 +576,11 @@ void TabbedSidebarView::Shift_Sidebar()
 }
 
 
+/***************************************************************************
+**  Runtime behavior
+***************************************************************************/
+
+
 /**
  *  Per-frame logic. Processes tab input, strip AI, and tab flash.
  *
@@ -750,6 +770,11 @@ void TabbedSidebarView::Draw()
 }
 
 
+/**
+ *  Returns how many background middle rows fit in the current sidebar height.
+ *
+ *  @author: ZivDero
+ */
 int TabbedSidebarView::Background_Row_Count() const
 {
     if (SidebarSurface != nullptr
@@ -764,6 +789,11 @@ int TabbedSidebarView::Background_Row_Count() const
 
     return SidebarClass::StripClass::MAX_VISIBLE;
 }
+
+
+/***************************************************************************
+**  View queries and control
+***************************************************************************/
 
 
 /**
