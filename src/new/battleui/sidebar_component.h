@@ -106,7 +106,7 @@ private:
      *  Internal update helpers.
      */
     void Prepare_Drawer();
-    void Update_Production_State();
+    void Production_AI();
 
     /**
      *  Owned models and active view state.

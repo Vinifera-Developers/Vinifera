@@ -349,87 +349,6 @@ void Handle_Techno_Left_Press(const ResolvedCameoAction& action)
         Queue_Produce_Event(action.Type, action.ID, action.Flags, Key_Down(VK_SHIFT) ? 5 : 1);
     }
 }
-
-
-/***************************************************************************
-**  Production state update helpers
-***************************************************************************/
-
-
-/**
- *  Returns whether a factory change should trigger sidebar updates.
- *
- *  @author: ZivDero
- */
-bool Should_Process_Factory_Change(FactoryClass& factory)
-{
-    return factory.Has_Changed() || Extension::Fetch(&factory)->IsHoldingExit;
-}
-
-
-/**
- *  Resolves production flags for the current sidebar item and factory state.
- *
- *  @author: ZivDero
- */
-ProductionFlags Get_Production_Flags(const BuildItem& item, FactoryClass& factory)
-{
-    if (TechnoClass* object = factory.Get_Object()) {
-        return TechnoTypeClassExtension::Get_Production_Flags(object);
-    }
-
-    return TechnoTypeClassExtension::Get_Production_Flags(item.Type, item.ID);
-}
-
-
-/**
- *  Queues follow-up state for a newly completed factory output.
- *
- *  @author: ZivDero
- */
-void Notify_Completed_Factory_Output(FactoryClass& factory)
-{
-    if (!factory.Has_Changed() || !factory.Has_Completed()) {
-        return;
-    }
-
-    TechnoClass* pending = factory.Get_Object();
-    if (pending == nullptr) {
-        return;
-    }
-
-    switch (pending->RTTI) {
-    case RTTI_UNIT:
-    case RTTI_INFANTRY:
-    case RTTI_AIRCRAFT:
-        Queue_Place_Event(pending->Owner(), pending->RTTI, TechnoTypeClassExtension::Get_Production_Flags(pending));
-        break;
-
-    case RTTI_BUILDING:
-        Speak(VOX_CONSTRUCTION);
-        break;
-
-    default:
-        break;
-    }
-}
-
-
-/**
- *  Updates redraw and placement state for one item linked to a changed factory.
- *
- *  @author: ZivDero
- */
-void Update_Item_Production_State(SidebarComponent& sidebar, BuildItem& item)
-{
-    FactoryClass* factory = item.Factory;
-    if (factory == nullptr || !Should_Process_Factory_Change(*factory)) {
-        return;
-    }
-
-    sidebar.Flag_Strip_To_Redraw(item.Type, Get_Production_Flags(item, *factory));
-    Notify_Completed_Factory_Output(*factory);
-}
 }
 
 
@@ -563,7 +482,7 @@ void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
         Model.Recalc_All();
     }
 
-    Update_Production_State();
+    Production_AI();
     ActionBar.AI(key);
 
     if (ActiveView) {
@@ -965,7 +884,7 @@ void SidebarComponent::Prepare_Drawer()
  *
  *  @author: ZivDero
  */
-void SidebarComponent::Update_Production_State()
+void SidebarComponent::Production_AI()
 {
     for (int category_index = 0; category_index < Model.Category_Count(); ++category_index) {
         BuildCategory& category = Model.Get_Category(category_index);
