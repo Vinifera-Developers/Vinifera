@@ -237,6 +237,9 @@ void SidebarStripView::Shift_Sidebar()
      */
     for (int i = 0; i < MaxVisibleCount; i++) {
         CameoButtonClass* btn = SelectButtons[i];
+        btn->Width = Object_Width();
+        btn->Height = Object_Height();
+
         if (Columns == 1) {
             btn->X = SidebarRect.X + ColumnX;
             btn->Y = SidebarRect.Y + ColumnY + i * Row_Pitch();
@@ -573,8 +576,8 @@ void SidebarStripView::Allocate_Select_Buttons(int count)
     for (int i = 0; i < count; i++) {
         CameoButtonClass* btn = new CameoButtonClass();
         btn->ID = BUTTON_SELECT;
-        btn->Width = OBJECT_WIDTH;
-        btn->Height = OBJECT_HEIGHT;
+        btn->Width = Object_Width();
+        btn->Height = Object_Height();
         btn->Set_Owner(*this, i);
         SelectButtons.Add(btn);
     }
@@ -795,7 +798,7 @@ void SidebarStripView::Draw_Hold_Text(Surface& surface, const Rect& rect, const 
     if (has_queue_count) {
         Fancy_Text_Print(TXT_HOLD, surface, rect, point, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
     } else {
-        Point2D centered(point.X + OBJECT_WIDTH / 2, point.Y);
+        Point2D centered(point.X + Object_Width() / 2, point.Y);
         Fancy_Text_Print(TXT_HOLD, surface, rect, centered, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
     }
 }
@@ -817,7 +820,7 @@ void SidebarStripView::Draw_Hover_Highlight(Surface& surface, const Rect& cameo_
 void SidebarStripView::Draw_Cameo_Name(const Rect& rect, const Point2D& point, const char* name)
 {
     if (name != nullptr) {
-        Print_Cameo_Text(name, point, rect, OBJECT_WIDTH);
+        Print_Cameo_Text(name, point, rect, Object_Width());
     }
 }
 
@@ -829,8 +832,7 @@ void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, 
     }
 
     if (state.StateText != nullptr) {
-        Point2D state_point(drawpoint.X + TEXT_X_OFFSET, drawpoint.Y + TEXT_Y_OFFSET);
-        Draw_Ready_Text(surface, rect, state_point, state.StateText);
+        Draw_Ready_Text(surface, rect, drawpoint + Text_Offset(), state.StateText);
     }
 
     if (state.Completed) {
@@ -844,8 +846,7 @@ void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, 
     }
 
     if (state.Factory != nullptr && state.IsOnHold) {
-        Point2D hold_point(drawpoint.X, drawpoint.Y + TEXT_Y_OFFSET);
-        Draw_Hold_Text(surface, rect, hold_point, state.QueueCount > 0);
+        Draw_Hold_Text(surface, rect, drawpoint + Point2D(0, Text_Offset().Y), state.QueueCount > 0);
     }
 }
 
@@ -865,7 +866,7 @@ void SidebarStripView::Draw_Item(Surface& surface, const Rect& rect, int slot)
     if (slot < SelectButtons.Count()) {
         const bool is_hovered = SelectButtons[slot]->IsMousedOver;
         if (is_hovered && !Scen->InputLock && !state.Darken) {
-            Rect cameo_rect(drawpoint.X, drawpoint.Y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
+            Rect cameo_rect(drawpoint.X, drawpoint.Y, Object_Width(), std::max(1, Object_Height() - 3));
             Draw_Hover_Highlight(surface, cameo_rect);
         }
     }
@@ -875,13 +876,11 @@ void SidebarStripView::Draw_Item(Surface& surface, const Rect& rect, int slot)
     }
 
     if (state.Name != nullptr) {
-        Point2D name_point(drawpoint.X, drawpoint.Y + OBJECT_NAME_OFFSET);
-        Draw_Cameo_Name(rect, name_point, state.Name);
+        Draw_Cameo_Name(rect, drawpoint + Point2D(0, Object_Name_Offset()), state.Name);
     }
 
     if (state.QueueCount > 0) {
-        Point2D queue_point(drawpoint.X + QUEUE_COUNT_X_OFFSET, drawpoint.Y + TEXT_Y_OFFSET);
-        Draw_Queue_Count(surface, rect, queue_point, state.QueueCount);
+        Draw_Queue_Count(surface, rect, drawpoint + Queue_Count_Offset(), state.QueueCount);
     }
 
     Draw_Item_Production(surface, rect, drawpoint, state);
@@ -911,6 +910,24 @@ int SidebarStripView::Available_Content_Height() const
 }
 
 
+int SidebarStripView::Object_Width() const
+{
+    return std::max(1, Layout.CameoSize.X);
+}
+
+
+int SidebarStripView::Object_Height() const
+{
+    return std::max(1, Layout.CameoSize.Y);
+}
+
+
+int SidebarStripView::Object_Name_Offset() const
+{
+    return Layout.CameoNameOffset;
+}
+
+
 int SidebarStripView::Row_Pitch() const
 {
     return std::max(1, Layout.RowPitch);
@@ -926,6 +943,18 @@ int SidebarStripView::Column_Spacing() const
 int SidebarStripView::Scroll_Step() const
 {
     return std::min(static_cast<int>(SCROLL_RATE), Row_Pitch());
+}
+
+
+Point2D SidebarStripView::Text_Offset() const
+{
+    return Point2D(Layout.CameoTextOffset.X, Layout.CameoTextOffset.Y);
+}
+
+
+Point2D SidebarStripView::Queue_Count_Offset() const
+{
+    return Point2D(Layout.QueueCountOffset.X, Layout.QueueCountOffset.Y);
 }
 
 

@@ -89,6 +89,10 @@ public:
             VisibleRows(0),
             RowPitch(51),
             ColumnSpacing(67),
+            CameoSize(64, 51),
+            CameoNameOffset(41),
+            CameoTextOffset(30, 2),
+            QueueCountOffset(60, 2),
             UpButtonPosition(AUTO_POSITION, AUTO_POSITION),
             DownButtonPosition(AUTO_POSITION, AUTO_POSITION),
             IsUpButtonVisible(true),
@@ -100,6 +104,10 @@ public:
         int VisibleRows;
         int RowPitch;
         int ColumnSpacing;
+        TPoint2D<int> CameoSize;
+        int CameoNameOffset;
+        TPoint2D<int> CameoTextOffset;
+        TPoint2D<int> QueueCountOffset;
         TPoint2D<int> UpButtonPosition;
         TPoint2D<int> DownButtonPosition;
         bool IsUpButtonVisible;
@@ -110,16 +118,7 @@ public:
         BUTTON_UP = 200,
         BUTTON_DOWN = 210,
         BUTTON_SELECT = 220,
-
-        OBJECT_HEIGHT = 51,
-        OBJECT_WIDTH = 64,
-        OBJECT_NAME_OFFSET = 41,
-        COLUMN_SPACING = 67,
         SCROLL_RATE = 51,
-
-        TEXT_X_OFFSET = 30,
-        TEXT_Y_OFFSET = 2,
-        QUEUE_COUNT_X_OFFSET = 60,
     };
 
     SidebarStripView();
@@ -206,11 +205,16 @@ private:
     };
 
     int Available_Content_Height() const;
+    int Object_Width() const;
+    int Object_Height() const;
+    int Object_Name_Offset() const;
     int Row_Pitch() const;
     int Column_Spacing() const;
     int Scroll_Step() const;
-    Point2D Get_Up_Button_Position() const;
-    Point2D Get_Down_Button_Position() const;
+    Point2D Text_Offset() const;
+    Point2D Queue_Count_Offset() const;
+    Point2D Resolve_Up_Button_Position() const;
+    Point2D Resolve_Down_Button_Position() const;
     Point2D Get_Item_Point(int slot) const;
     StripItemDrawState Get_Item_Draw_State(const BuildItem& item) const;
     int Get_Item_Queue_Count(const TechnoTypeClass& object) const;

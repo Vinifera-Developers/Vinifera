@@ -38,6 +38,10 @@ LeftStripPos=24,26          ; point, left strip origin.
 RightStripPos=92,26         ; point, right strip origin.
 VisibleRows=0               ; integer, visible rows per strip, 0 = auto-fit.
 RowPitch=51                 ; integer, vertical spacing between cameos.
+CameoSize=64,51             ; point, cameo width,height.
+CameoNameOffset=41          ; integer, Y offset for the cameo name.
+CameoTextOffset=30,2        ; point, READY/HOLD text offset.
+QueueCountOffset=60,2       ; point, queue count text offset.
 LeftUpButtonPos=            ; point, optional explicit left up button position.
 LeftUpButtonVisible=yes     ; boolean, show the left up button.
 LeftDownButtonPos=          ; point, optional explicit left down button position.
@@ -79,6 +83,10 @@ StripPos=24,54             ; point, 2-column strip origin.
 VisibleRows=0              ; integer, visible rows in the tab strip, 0 = auto-fit.
 RowPitch=51                ; integer, vertical spacing between cameo rows.
 ColumnSpacing=67           ; integer, horizontal spacing between the two strip columns.
+CameoSize=64,51            ; point, cameo width,height.
+CameoNameOffset=41         ; integer, Y offset for the cameo name.
+CameoTextOffset=30,2       ; point, READY/HOLD text offset.
+QueueCountOffset=60,2      ; point, queue count text offset.
 UpButtonPos=               ; point, optional explicit up button position.
 UpButtonVisible=yes        ; boolean, show the up button.
 DownButtonPos=             ; point, optional explicit down button position.

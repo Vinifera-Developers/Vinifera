@@ -51,6 +51,12 @@ void BattleSidebarLayoutBase::Read_INI(CCINIClass const& ini, const char* sectio
     WaypointButton.Position = ini.Get_Point(section, "WaypointButtonPos", WaypointButton.Position);
     WaypointButton.IsVisible = ini.Get_Bool(section, "WaypointButtonVisible", WaypointButton.IsVisible);
     PowerBarPosition = ini.Get_Point(section, "PowerBarPos", PowerBarPosition);
+    CameoSize = ini.Get_Point(section, "CameoSize", CameoSize);
+    CameoSize.X = std::max(1, CameoSize.X);
+    CameoSize.Y = std::max(1, CameoSize.Y);
+    CameoNameOffset = ini.Get_Int(section, "CameoNameOffset", CameoNameOffset);
+    CameoTextOffset = ini.Get_Point(section, "CameoTextOffset", CameoTextOffset);
+    QueueCountOffset = ini.Get_Point(section, "QueueCountOffset", QueueCountOffset);
 
     SidebarShape = ini.Get_String(section, "SidebarShape", SidebarShape);
     SidebarMiddleShape = ini.Get_String(section, "SidebarMiddleShape", SidebarMiddleShape);

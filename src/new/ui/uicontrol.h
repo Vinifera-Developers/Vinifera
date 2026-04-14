@@ -67,6 +67,10 @@ struct BattleSidebarLayoutBase
     SidebarButtonLayout PowerButton = { {85, -9} };
     SidebarButtonLayout WaypointButton = { {112, -9} };
     TPoint2D<int> PowerBarPosition = {8, 25};
+    TPoint2D<int> CameoSize = {64, 51};
+    int CameoNameOffset = 41;
+    TPoint2D<int> CameoTextOffset = {30, 2};
+    TPoint2D<int> QueueCountOffset = {60, 2};
     std::string SidebarShape = "SIDE1.SHP";
     std::string SidebarMiddleShape = "SIDE2.SHP";
     std::string SidebarBottomShape = "SIDE3.SHP";

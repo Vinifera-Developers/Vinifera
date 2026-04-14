@@ -74,6 +74,10 @@ SidebarStripView::StripLayout Build_Tabbed_Strip_Layout()
     strip_layout.VisibleRows = layout.VisibleRows;
     strip_layout.RowPitch = layout.RowPitch;
     strip_layout.ColumnSpacing = layout.ColumnSpacing;
+    strip_layout.CameoSize = layout.CameoSize;
+    strip_layout.CameoNameOffset = layout.CameoNameOffset;
+    strip_layout.CameoTextOffset = layout.CameoTextOffset;
+    strip_layout.QueueCountOffset = layout.QueueCountOffset;
     strip_layout.UpButtonPosition = layout.UpButtonPosition;
     strip_layout.DownButtonPosition = layout.DownButtonPosition;
     strip_layout.IsUpButtonVisible = layout.IsUpButtonVisible;

@@ -33,7 +33,7 @@
 
 
 CameoButtonClass::CameoButtonClass() :
-    ControlClass(0, 0, 0, SidebarStripView::OBJECT_WIDTH - 1, SidebarStripView::OBJECT_HEIGHT,
+    ControlClass(0, 0, 0, 0, 0,
                  LEFTPRESS | RIGHTPRESS | LEFTUP),
     Strip(nullptr),
     Index(0),
