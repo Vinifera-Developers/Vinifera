@@ -30,9 +30,9 @@
 
 #include "cameo_button.h"
 #include "sidebar_model.h"
-#include "sidebar_render_utils.h"
 
 #include "bsurface.h"
+#include "colorscheme.h"
 #include "drawshape.h"
 #include "dsurface.h"
 #include "extension.h"
@@ -45,6 +45,8 @@
 #include "rules.h"
 #include "scenario.h"
 #include "sidebar.h"
+#include "sideext.h"
+#include "spritecollection.h"
 #include "language.h"
 #include "super.h"
 #include "supertype.h"
@@ -712,6 +714,114 @@ int SidebarStripView::Get_Item_Queue_Count(const TechnoTypeClass& object) const
 }
 
 
+void SidebarStripView::Draw_Shape_Overlay(Surface& surface, const ShapeSet* shape, const Rect& rect, const Point2D& point, int frame, int flags)
+{
+    if (shape != nullptr) {
+        Draw_Shape(surface, *SidebarDrawer, shape, frame, point, rect, static_cast<ShapeFlags_Type>(SHAPE_WIN_REL | flags));
+    }
+}
+
+
+void SidebarStripView::Draw_Cameo(Surface& surface, const Rect& rect, const BuildItem& item, const Point2D& point)
+{
+    const ShapeSet* shapefile = nullptr;
+    BSurface* image_surface = nullptr;
+
+    if (item.Type != RTTI_SPECIAL) {
+        const TechnoTypeClass* object = Fetch_Techno_Type(item.Type, item.ID);
+        if (object != nullptr) {
+            shapefile = object->Get_Cameo_Data();
+
+            const auto* technoext = Extension::Fetch(object);
+            if (technoext->CameoImageSurface != nullptr) {
+                image_surface = technoext->CameoImageSurface;
+            }
+        } else {
+            shapefile = SidebarClass::StripClass::LogoShape;
+        }
+    } else {
+        const SuperWeaponType superweapon = static_cast<SuperWeaponType>(item.ID);
+        shapefile = Map.Column[0].Get_Special_Cameo(superweapon);
+
+        const auto* supertypeext = Extension::Fetch(PlayerPtr->SuperWeapon[superweapon]->Class);
+        if (supertypeext->CameoImageSurface != nullptr) {
+            image_surface = supertypeext->CameoImageSurface;
+        }
+
+        if (superweapon == SUPER_NONE) {
+            shapefile = SidebarClass::StripClass::LogoShape;
+        }
+    }
+
+    if (image_surface != nullptr) {
+        Rect image_rect(rect.X + point.X, rect.Y + point.Y, image_surface->Get_Width(), image_surface->Get_Height());
+        SpriteCollection.Draw(image_rect, surface, *image_surface);
+    } else if (shapefile != nullptr) {
+        Draw_Shape(surface, *CameoDrawer, shapefile, 0, point, rect, SHAPE_WIN_REL);
+    }
+}
+
+
+void SidebarStripView::Draw_Clock_Overlay(Surface& surface, const Rect& rect, const Point2D& point, int stage)
+{
+    Draw_Shape_Overlay(surface, Art.ClockShape, rect, point, stage + 1, SHAPE_TRANS50);
+}
+
+
+void SidebarStripView::Draw_Recharge_Clock(Surface& surface, const Rect& rect, const Point2D& point, int stage)
+{
+    Draw_Shape_Overlay(surface, Art.RechargeClockShape, rect, point, stage + 1, SHAPE_TRANS50);
+}
+
+
+void SidebarStripView::Draw_Darken_Overlay(Surface& surface, const Rect& rect, const Point2D& point)
+{
+    Draw_Shape_Overlay(surface, Art.DarkenShape, rect, point, 0, SHAPE_DARKEN);
+}
+
+
+void SidebarStripView::Draw_Ready_Text(Surface& surface, const Rect& rect, const Point2D& point, const char* text)
+{
+    if (text == nullptr) {
+        return;
+    }
+
+    Fancy_Text_Print(text, surface, rect, point, Fetch_Scheme_By_Name("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+}
+
+
+void SidebarStripView::Draw_Hold_Text(Surface& surface, const Rect& rect, const Point2D& point, bool has_queue_count)
+{
+    if (has_queue_count) {
+        Fancy_Text_Print(TXT_HOLD, surface, rect, point, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
+    } else {
+        Point2D centered(point.X + OBJECT_WIDTH / 2, point.Y);
+        Fancy_Text_Print(TXT_HOLD, surface, rect, centered, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+    }
+}
+
+
+void SidebarStripView::Draw_Queue_Count(Surface& surface, const Rect& rect, const Point2D& point, int count)
+{
+    Fancy_Text_Print("%d", surface, rect, point, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, count);
+}
+
+
+void SidebarStripView::Draw_Hover_Highlight(Surface& surface, const Rect& cameo_rect)
+{
+    const ColorSchemeType colorscheme = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
+    surface.Draw_Rect(cameo_rect, DSurface::Build_Hicolor_Pixel(ColorSchemes[colorscheme]->HSV.operator RGBClass()));
+}
+
+
+void SidebarStripView::Draw_Cameo_Name(const Rect& rect, const Point2D& point, const char* name)
+{
+    if (name != nullptr) {
+        Print_Cameo_Text(name, point, rect, OBJECT_WIDTH);
+    }
+}
+
+
 void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, const Point2D& drawpoint, const StripItemDrawState& state)
 {
     if (!state.Production) {
@@ -720,7 +830,7 @@ void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, 
 
     if (state.StateText != nullptr) {
         Point2D state_point(drawpoint.X + TEXT_X_OFFSET, drawpoint.Y + TEXT_Y_OFFSET);
-        Draw_Ready_Text(surface, rect, state_point, state.StateText, 0);
+        Draw_Ready_Text(surface, rect, state_point, state.StateText);
     }
 
     if (state.Completed) {
@@ -728,14 +838,14 @@ void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, 
     }
 
     if (state.IsReady) {
-        Draw_Recharge_Clock(surface, *SidebarDrawer, Art.RechargeClockShape, rect, drawpoint, state.Stage);
+        Draw_Recharge_Clock(surface, rect, drawpoint, state.Stage);
     } else {
-        Draw_Clock_Overlay(surface, *SidebarDrawer, Art.ClockShape, rect, drawpoint, state.Stage);
+        Draw_Clock_Overlay(surface, rect, drawpoint, state.Stage);
     }
 
     if (state.Factory != nullptr && state.IsOnHold) {
         Point2D hold_point(drawpoint.X, drawpoint.Y + TEXT_Y_OFFSET);
-        Draw_Hold_Text(surface, rect, hold_point, OBJECT_WIDTH, state.QueueCount > 0);
+        Draw_Hold_Text(surface, rect, hold_point, state.QueueCount > 0);
     }
 }
 
@@ -761,12 +871,12 @@ void SidebarStripView::Draw_Item(Surface& surface, const Rect& rect, int slot)
     }
 
     if (state.Darken) {
-        Draw_Darken_Overlay(surface, *SidebarDrawer, Art.DarkenShape, rect, drawpoint);
+        Draw_Darken_Overlay(surface, rect, drawpoint);
     }
 
     if (state.Name != nullptr) {
         Point2D name_point(drawpoint.X, drawpoint.Y + OBJECT_NAME_OFFSET);
-        Draw_Cameo_Name(rect, name_point, state.Name, OBJECT_WIDTH);
+        Draw_Cameo_Name(rect, name_point, state.Name);
     }
 
     if (state.QueueCount > 0) {
@@ -780,7 +890,7 @@ void SidebarStripView::Draw_Item(Surface& surface, const Rect& rect, int slot)
 
 /**
  *  Internal: renders all visible cameo items in the strip.
- *  Ported from StripClassExt::_Draw_It with shared render utilities.
+ *  Ported from StripClassExt::_Draw_It with strip-owned render helpers.
  *
  *  @author: ZivDero
  */

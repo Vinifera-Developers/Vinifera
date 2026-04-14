@@ -52,8 +52,8 @@ class TechnoTypeClass;
 
 /**
  *  A scrollable column of cameo icons. Reads items from a BuildCategory
- *  reference and renders them using the shared render utilities. Owns
- *  its own scroll buttons, select buttons, and scroll animation state.
+ *  reference and renders them directly. Owns its own scroll buttons,
+ *  select buttons, and scroll animation state.
  */
 class SidebarStripView : public StageClass
 {
@@ -209,11 +209,21 @@ private:
     int Row_Pitch() const;
     int Column_Spacing() const;
     int Scroll_Step() const;
-    Point2D Resolve_Up_Button_Position() const;
-    Point2D Resolve_Down_Button_Position() const;
+    Point2D Get_Up_Button_Position() const;
+    Point2D Get_Down_Button_Position() const;
     Point2D Get_Item_Point(int slot) const;
     StripItemDrawState Get_Item_Draw_State(const BuildItem& item) const;
     int Get_Item_Queue_Count(const TechnoTypeClass& object) const;
+    void Draw_Shape_Overlay(Surface& surface, const ShapeSet* shape, const Rect& rect, const Point2D& point, int frame, int flags);
+    void Draw_Cameo(Surface& surface, const Rect& rect, const BuildItem& item, const Point2D& point);
+    void Draw_Clock_Overlay(Surface& surface, const Rect& rect, const Point2D& point, int stage);
+    void Draw_Recharge_Clock(Surface& surface, const Rect& rect, const Point2D& point, int stage);
+    void Draw_Darken_Overlay(Surface& surface, const Rect& rect, const Point2D& point);
+    void Draw_Ready_Text(Surface& surface, const Rect& rect, const Point2D& point, const char* text);
+    void Draw_Hold_Text(Surface& surface, const Rect& rect, const Point2D& point, bool has_queue_count);
+    void Draw_Queue_Count(Surface& surface, const Rect& rect, const Point2D& point, int count);
+    void Draw_Hover_Highlight(Surface& surface, const Rect& cameo_rect);
+    void Draw_Cameo_Name(const Rect& rect, const Point2D& point, const char* name);
     void Allocate_Select_Buttons(int count);
     void Draw_Item(Surface& surface, const Rect& rect, int slot);
     void Draw_Item_Production(Surface& surface, const Rect& rect, const Point2D& drawpoint, const StripItemDrawState& state);
