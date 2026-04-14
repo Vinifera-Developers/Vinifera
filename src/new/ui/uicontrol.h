@@ -223,7 +223,7 @@ class UIControlsClass
             case RTTI_AIRCRAFTTYPE:
                 return has_pip ? AircraftWithPipGroupNumberOffset : AircraftGroupNumberOffset;
             default:
-                return TPoint2D<int>();
+                return TPoint2D<int>(0, 0);
             }
         }
 
@@ -247,7 +247,7 @@ class UIControlsClass
             case RTTI_AIRCRAFTTYPE:
                 return AircraftVeterancyPipOffset;
             default:
-                return TPoint2D<int>();
+                return TPoint2D<int>(0, 0);
             }
         }
 
@@ -271,7 +271,7 @@ class UIControlsClass
             case RTTI_AIRCRAFTTYPE:
                 return AircraftSpecialPipOffset;
             default:
-                return TPoint2D<int>();
+                return TPoint2D<int>(0, 0);
             }
         }
 
