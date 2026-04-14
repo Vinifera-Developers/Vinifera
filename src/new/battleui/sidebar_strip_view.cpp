@@ -613,9 +613,7 @@ int SidebarStripView::Visible_Button_Count() const
 
 int SidebarStripView::Visible_Buttons_Per_Column() const
 {
-    if (SidebarSurface != nullptr
-        && Art.BackgroundTopHeight > 0
-        && Art.BackgroundBottomHeight > 0) {
+    if (SidebarSurface != nullptr && Art.BackgroundTopHeight > 0 && Art.BackgroundBottomHeight > 0) {
         const int max_rows = std::max(1, Available_Content_Height() / Row_Pitch());
         if (Layout.VisibleRows <= 0) {
             return max_rows;
@@ -627,6 +625,159 @@ int SidebarStripView::Visible_Buttons_Per_Column() const
 }
 
 
+Point2D SidebarStripView::Get_Item_Point(int slot) const
+{
+    int x = ColumnX;
+    int y = ColumnY;
+
+    if (Columns == 1) {
+        y += slot * Row_Pitch();
+    } else {
+        x = slot % 2 == 0 ? ColumnX : ColumnX + Column_Spacing();
+        y += (slot / 2) * Row_Pitch();
+    }
+
+    if (IsScrolling) {
+        y -= Row_Pitch() - Slid;
+    }
+
+    return Point2D(x, SidebarRect.Y + y);
+}
+
+
+SidebarStripView::StripItemDrawState SidebarStripView::Get_Item_Draw_State(const BuildItem& item) const
+{
+    StripItemDrawState state;
+
+    if (item.Type == RTTI_SPECIAL) {
+        const SuperWeaponType superweapon = static_cast<SuperWeaponType>(item.ID);
+        state.Name = SuperWeaponTypes[superweapon]->GivenName.c_str();
+        state.Production = true;
+        state.Completed = !PlayerPtr->SuperWeapon[superweapon]->Needs_Redraw();
+        state.IsReady = PlayerPtr->SuperWeapon[superweapon]->Can_Place();
+        state.StateText = PlayerPtr->SuperWeapon[superweapon]->Ready_String();
+        state.Stage = PlayerPtr->SuperWeapon[superweapon]->Anim_Stage();
+
+        return state;
+    }
+
+    const TechnoTypeClass* object = Fetch_Techno_Type(item.Type, item.ID);
+    if (object == nullptr) {
+        return state;
+    }
+
+    state.Name = object->GivenName.c_str();
+
+    if (object->RTTI == RTTI_BUILDINGTYPE) {
+        state.Darken = Extension::Fetch(PlayerPtr)->Fetch_Factory(item.Type, TechnoTypeClassExtension::Get_Production_Flags(object)) != nullptr;
+    }
+
+    if (!object->Who_Can_Build_Me(true, true, true, PlayerPtr) || (!state.Darken && PlayerPtr->Can_Build(object, false, false) == -1)) {
+        state.Darken = true;
+    }
+
+    state.Factory = item.Factory;
+    if (state.Factory != nullptr) {
+        state.Production = true;
+        state.Completed = item.Is_Completed();
+        state.IsOnHold = item.Is_On_Hold();
+        state.Stage = item.Completion_Percent();
+        state.StateText = state.Completed ? Fetch_String(TXT_READY) : nullptr;
+        state.Darken = false;
+    }
+
+    state.QueueCount = Get_Item_Queue_Count(*object);
+    return state;
+}
+
+
+int SidebarStripView::Get_Item_Queue_Count(const TechnoTypeClass& object) const
+{
+    FactoryClass* queued_factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(object.RTTI, TechnoTypeClassExtension::Get_Production_Flags(&object));
+    if (queued_factory == nullptr) {
+        return 0;
+    }
+
+    const int total = queued_factory->Total_Queued(object);
+    if (total > 1) {
+        return total;
+    }
+
+    if (total > 0 && (queued_factory->Object == nullptr
+        || (queued_factory->Object->TClass != nullptr && queued_factory->Object->TClass != &object))) {
+        return total;
+    }
+
+    return 0;
+}
+
+
+void SidebarStripView::Draw_Item_Production(Surface& surface, const Rect& rect, const Point2D& drawpoint, const StripItemDrawState& state)
+{
+    if (!state.Production) {
+        return;
+    }
+
+    if (state.StateText != nullptr) {
+        Point2D state_point(drawpoint.X + TEXT_X_OFFSET, drawpoint.Y + TEXT_Y_OFFSET);
+        Draw_Ready_Text(surface, rect, state_point, state.StateText, 0);
+    }
+
+    if (state.Completed) {
+        return;
+    }
+
+    if (state.IsReady) {
+        Draw_Recharge_Clock(surface, *SidebarDrawer, Art.RechargeClockShape, rect, drawpoint, state.Stage);
+    } else {
+        Draw_Clock_Overlay(surface, *SidebarDrawer, Art.ClockShape, rect, drawpoint, state.Stage);
+    }
+
+    if (state.Factory != nullptr && state.IsOnHold) {
+        Point2D hold_point(drawpoint.X, drawpoint.Y + TEXT_Y_OFFSET);
+        Draw_Hold_Text(surface, rect, hold_point, OBJECT_WIDTH, state.QueueCount > 0);
+    }
+}
+
+
+void SidebarStripView::Draw_Item(Surface& surface, const Rect& rect, int slot)
+{
+    const BuildItem* item = Get_Visible_Item(slot);
+    if (item == nullptr) {
+        return;
+    }
+
+    const Point2D drawpoint = Get_Item_Point(slot);
+    const StripItemDrawState state = Get_Item_Draw_State(*item);
+
+    Draw_Cameo(surface, rect, *item, drawpoint);
+
+    if (slot < SelectButtons.Count()) {
+        const bool is_hovered = SelectButtons[slot]->IsMousedOver;
+        if (is_hovered && !Scen->InputLock && !state.Darken) {
+            Rect cameo_rect(drawpoint.X, drawpoint.Y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
+            Draw_Hover_Highlight(surface, cameo_rect);
+        }
+    }
+
+    if (state.Darken) {
+        Draw_Darken_Overlay(surface, *SidebarDrawer, Art.DarkenShape, rect, drawpoint);
+    }
+
+    if (state.Name != nullptr) {
+        Point2D name_point(drawpoint.X, drawpoint.Y + OBJECT_NAME_OFFSET);
+        Draw_Cameo_Name(rect, name_point, state.Name, OBJECT_WIDTH);
+    }
+
+    if (state.QueueCount > 0) {
+        Point2D queue_point(drawpoint.X + QUEUE_COUNT_X_OFFSET, drawpoint.Y + TEXT_Y_OFFSET);
+        Draw_Queue_Count(surface, rect, queue_point, state.QueueCount);
+    }
+
+    Draw_Item_Production(surface, rect, drawpoint, state);
+}
+
+
 /**
  *  Internal: renders all visible cameo items in the strip.
  *  Ported from StripClassExt::_Draw_It with shared render utilities.
@@ -635,174 +786,9 @@ int SidebarStripView::Visible_Buttons_Per_Column() const
  */
 void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
 {
-    int item_count = Category->Items.Count();
-    int visible = MaxVisibleCount + (IsScrolling ? Columns : 0);
-
-    for (int i = 0; i < visible; i++) {
-        int index = i + TopIndex;
-        int x, y;
-
-        if (Columns == 1) {
-            x = ColumnX;
-            y = ColumnY + i * Row_Pitch();
-        } else {
-            x = i % 2 == 0 ? ColumnX : ColumnX + Column_Spacing();
-            y = ColumnY + (i / 2) * Row_Pitch();
-        }
-
-        bool production = false;
-        bool completed = false;
-        int stage = 0;
-        bool darken = false;
-        FactoryClass* factory = nullptr;
-        bool isready = false;
-        const char* state = nullptr;
-        const char* name = nullptr;
-        const TechnoTypeClass* obj = nullptr;
-
-        /**
-         *  Adjust for smooth scrolling.
-         */
-        if (IsScrolling) {
-            y -= Row_Pitch() - Slid;
-        }
-
-        const int draw_y = SidebarRect.Y + y;
-
-        /**
-         *  Fetch the data for the object at this index.
-         */
-        if (index < item_count) {
-            BuildItem& item = Category->Items[index];
-
-            if (item.Type != RTTI_SPECIAL) {
-                obj = Fetch_Techno_Type(item.Type, item.ID);
-                if (obj != nullptr) {
-                    name = obj->GivenName.c_str();
-                    darken = false;
-
-                    /**
-                     *  If there is already a factory producing a building, then all
-                     *  buildings are displayed in a disabled state.
-                     */
-                    if (obj->RTTI == RTTI_BUILDINGTYPE) {
-                        darken = Extension::Fetch(PlayerPtr)->Fetch_Factory(item.Type, TechnoTypeClassExtension::Get_Production_Flags(obj)) != nullptr;
-                    }
-
-                    /**
-                     *  If there is no factory that can produce this, or the factory that
-                     *  can produce this is currently busy, objects of this type are
-                     *  displayed in a disabled state.
-                     */
-                    if (!obj->Who_Can_Build_Me(true, true, true, PlayerPtr)
-                        || (!darken && PlayerPtr->Can_Build(Fetch_Techno_Type(item.Type, item.ID), false, false) == -1)) {
-                        darken = true;
-                    }
-
-                    factory = item.Factory;
-                    if (factory != nullptr) {
-                        production = true;
-                        completed = item.Is_Completed();
-                        if (completed) {
-                            state = Fetch_String(TXT_READY);
-                        }
-                        stage = item.Completion_Percent();
-                        darken = false;
-                    } else {
-                        production = false;
-                    }
-                }
-            } else {
-                SuperWeaponType spc = static_cast<SuperWeaponType>(item.ID);
-
-                name = SuperWeaponTypes[spc]->GivenName.c_str();
-                production = true;
-                completed = !PlayerPtr->SuperWeapon[spc]->Needs_Redraw();
-                isready = PlayerPtr->SuperWeapon[spc]->Can_Place();
-                state = PlayerPtr->SuperWeapon[spc]->Ready_String();
-                stage = PlayerPtr->SuperWeapon[spc]->Anim_Stage();
-                darken = false;
-            }
-
-            /**
-             *  Draw the cameo icon.
-             */
-            Point2D drawpoint(x, draw_y);
-            Draw_Cameo(surface, rect, item, drawpoint);
-
-            /**
-             *  Draw hover highlight if moused over and available.
-             */
-            if (i < SelectButtons.Count()) {
-                bool over = SelectButtons[i]->IsMousedOver;
-                if (over && !Scen->InputLock && !darken) {
-                    Rect cameo_rect(x, draw_y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
-                    Draw_Hover_Highlight(surface, cameo_rect);
-                }
-            }
-
-            /**
-             *  Darken unavailable items.
-             */
-            if (darken) {
-                Point2D dp(x, draw_y);
-                Draw_Darken_Overlay(surface, *SidebarDrawer, Art.DarkenShape, rect, dp);
-            }
-
-            /**
-             *  Draw the cameo name.
-             */
-            if (name != nullptr) {
-                Point2D namepoint(x, draw_y + OBJECT_NAME_OFFSET);
-                Draw_Cameo_Name(rect, namepoint, name, OBJECT_WIDTH);
-            }
-
-            /**
-             *  Draw queue count.
-             */
-            bool has_queue_count = false;
-            if (obj != nullptr) {
-                RTTIType rtti = obj->RTTI;
-                FactoryClass* queued_factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(obj));
-                if (queued_factory != nullptr) {
-                    int total = queued_factory->Total_Queued(*obj);
-                    if (total > 1
-                        || (total > 0 && (queued_factory->Object == nullptr
-                            || (queued_factory->Object->TClass != nullptr && queued_factory->Object->TClass != obj)))) {
-                        Point2D qp(x + QUEUE_COUNT_X_OFFSET, draw_y + TEXT_Y_OFFSET);
-                        Draw_Queue_Count(surface, rect, qp, total);
-                        has_queue_count = true;
-                    }
-                }
-            }
-
-            /**
-             *  Draw production overlay: clock, ready text, hold text.
-             */
-            if (production) {
-                if (state != nullptr) {
-                    Point2D sp(x + TEXT_X_OFFSET, draw_y + TEXT_Y_OFFSET);
-                    Draw_Ready_Text(surface, rect, sp, state, 0);
-                }
-
-                if (!completed) {
-                    Point2D cp(x, draw_y);
-                    if (isready) {
-                        Draw_Recharge_Clock(surface, *SidebarDrawer, Art.RechargeClockShape, rect, cp, stage);
-                    } else {
-                        Draw_Clock_Overlay(surface, *SidebarDrawer, Art.ClockShape, rect, cp, stage);
-                    }
-
-                    /**
-                     *  Display "HOLD" text if production is paused.
-                     */
-                    if (factory != nullptr && item.Is_On_Hold()) {
-                        Point2D hp(x, draw_y + TEXT_Y_OFFSET);
-                        Draw_Hold_Text(surface, rect, hp, OBJECT_WIDTH, has_queue_count);
-                    }
-                }
-            }
-        }
+    const int visible_count = MaxVisibleCount + (IsScrolling ? Columns : 0);
+    for (int slot = 0; slot < visible_count; slot++) {
+        Draw_Item(surface, rect, slot);
     }
 }
 

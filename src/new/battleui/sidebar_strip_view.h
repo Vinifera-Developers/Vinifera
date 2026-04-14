@@ -44,8 +44,10 @@
 class BuildCategory;
 struct BuildItem;
 class CameoButtonClass;
+class FactoryClass;
 class Surface;
 class ShapeSet;
+class TechnoTypeClass;
 
 
 /**
@@ -175,12 +177,45 @@ public:
     DynamicVectorClass<CameoButtonClass*> SelectButtons;
 
 private:
+    struct StripItemDrawState
+    {
+        StripItemDrawState() :
+            Factory(nullptr),
+            Name(nullptr),
+            StateText(nullptr),
+            Production(false),
+            Completed(false),
+            Darken(false),
+            IsReady(false),
+            IsOnHold(false),
+            Stage(0),
+            QueueCount(0)
+        {
+        }
+
+        FactoryClass* Factory;
+        const char* Name;
+        const char* StateText;
+        bool Production;
+        bool Completed;
+        bool Darken;
+        bool IsReady;
+        bool IsOnHold;
+        int Stage;
+        int QueueCount;
+    };
+
     int Available_Content_Height() const;
     int Row_Pitch() const;
     int Column_Spacing() const;
     int Scroll_Step() const;
     Point2D Resolve_Up_Button_Position() const;
     Point2D Resolve_Down_Button_Position() const;
+    Point2D Get_Item_Point(int slot) const;
+    StripItemDrawState Get_Item_Draw_State(const BuildItem& item) const;
+    int Get_Item_Queue_Count(const TechnoTypeClass& object) const;
     void Allocate_Select_Buttons(int count);
+    void Draw_Item(Surface& surface, const Rect& rect, int slot);
+    void Draw_Item_Production(Surface& surface, const Rect& rect, const Point2D& drawpoint, const StripItemDrawState& state);
     void Draw_Strip_Items(Surface& surface, const Rect& rect);
 };
