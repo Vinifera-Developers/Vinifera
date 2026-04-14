@@ -372,6 +372,7 @@ void TabButtonClass::Deselect()
  */
 TabbedSidebarView::TabbedSidebarView(SidebarModel* model) :
     ISidebarView(model),
+    RegisteredTooltipCount(0),
     TabIndex(SIDEBAR_TAB_STRUCTURE),
     Strip(),
     TabButtons(),
@@ -406,6 +407,7 @@ void TabbedSidebarView::One_Time()
 void TabbedSidebarView::Init_Clear()
 {
     TabIndex = SIDEBAR_TAB_STRUCTURE;
+    RegisteredTooltipCount = 0;
 
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
         Strip[i].Init_Clear();
@@ -552,7 +554,7 @@ void TabbedSidebarView::Shift_Sidebar()
     if (ToolTips) {
         ToolTip tooltip;
 
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < RegisteredTooltipCount; i++) {
             ToolTips->Remove(1000 + i);
         }
 
@@ -563,6 +565,8 @@ void TabbedSidebarView::Shift_Sidebar()
             tooltip.Text = TXT_NONE;
             ToolTips->Add(&tooltip);
         }
+
+        RegisteredTooltipCount = Strip[TabIndex].MaxVisibleCount;
 
         for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
             tooltip.Region = Rect(TabButtons[i].X, TabButtons[i].Y, TabButtons[i].Width, TabButtons[i].Height);

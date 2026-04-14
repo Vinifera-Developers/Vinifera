@@ -87,6 +87,11 @@ private:
     int Background_Row_Count() const;
 
     /**
+     *  Number of cameo tooltip IDs registered during the last layout pass.
+     */
+    int RegisteredTooltipCount;
+
+    /**
      *  Owned strip and background state.
      */
     SidebarStripView Strip[COLUMN_COUNT];

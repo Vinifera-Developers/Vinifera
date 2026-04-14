@@ -186,6 +186,11 @@ private:
     int Background_Row_Count() const;
     void Tab_Button_AI(int tab_index);
 
+    /**
+     *  Number of cameo tooltip IDs registered during the last layout pass.
+     */
+    int RegisteredTooltipCount;
+
 public:
     /**
      *  Public tab/view state retained for existing sidebar integration.

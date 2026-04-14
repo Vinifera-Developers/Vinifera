@@ -95,6 +95,7 @@ SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
  */
 ClassicSidebarView::ClassicSidebarView(SidebarModel* model) :
     ISidebarView(model),
+    RegisteredTooltipCount(0),
     Strip(),
     BackgroundTopShape(nullptr),
     BackgroundMiddleShape(nullptr),
@@ -126,6 +127,8 @@ void ClassicSidebarView::One_Time()
  */
 void ClassicSidebarView::Init_Clear()
 {
+    RegisteredTooltipCount = 0;
+
     for (int i = 0; i < COLUMN_COUNT; i++) {
         Strip[i].Init_Clear();
     }
@@ -216,8 +219,9 @@ void ClassicSidebarView::Shift_Sidebar()
      */
     if (ToolTips) {
         ToolTip tooltip;
+        int tooltip_id = 1000;
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < RegisteredTooltipCount; i++) {
             ToolTips->Remove(1000 + i);
         }
 
@@ -225,12 +229,13 @@ void ClassicSidebarView::Shift_Sidebar()
             for (int i = 0; i < Strip[col].MaxVisibleCount; i++) {
                 CameoButtonClass* btn = Strip[col].SelectButtons[i];
                 tooltip.Region = Rect(btn->X, btn->Y, btn->Width, btn->Height);
-                tooltip.ID = 1000 + col * Strip[col].MaxVisibleCount + i;
+                tooltip.ID = tooltip_id++;
                 tooltip.Text = TXT_NONE;
                 ToolTips->Add(&tooltip);
             }
         }
 
+        RegisteredTooltipCount = tooltip_id - 1000;
     }
 }
 
