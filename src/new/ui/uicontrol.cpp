@@ -188,16 +188,10 @@ UIControlsClass::~UIControlsClass()
 }
 
 
-void UIControlsClass::Reset_To_Defaults()
-{
-    *this = UIControlsClass();
-}
-
-
 bool UIControlsClass::Read_INI_File(const char* filename, bool reset_to_defaults)
 {
     if (reset_to_defaults) {
-        Reset_To_Defaults();
+        *this = UIControlsClass();
     }
 
     if (filename == nullptr || filename[0] == '\0') {

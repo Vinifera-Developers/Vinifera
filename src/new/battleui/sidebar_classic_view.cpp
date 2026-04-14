@@ -50,7 +50,7 @@ namespace
 {
 const SidebarClassicLayout& Get_Classic_Layout()
 {
-    return UIControls->Get_Classic_Battle_Sidebar_Config();
+    return UIControls->ClassicSidebarLayoutConfig;
 }
 
 

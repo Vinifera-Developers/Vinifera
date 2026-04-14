@@ -196,27 +196,11 @@ class UIControlsClass
 
         bool Read_INI(CCINIClass &ini);
         bool Read_INI_File(const char *filename, bool reset_to_defaults = false);
-        void Reset_To_Defaults();
 
         const BattleSidebarLayoutBase& Get_Battle_Sidebar_Config(SidebarViewType view_type) const
         {
             return view_type == SIDEBAR_TABBED ? static_cast<const BattleSidebarLayoutBase&>(TabbedSidebarLayoutConfig)
                                                : static_cast<const BattleSidebarLayoutBase&>(ClassicSidebarLayoutConfig);
-        }
-
-        const BattleSidebarLayoutBase& Get_Active_Battle_Sidebar_Config() const
-        {
-            return Get_Battle_Sidebar_Config(BattleSidebarViewType);
-        }
-
-        const SidebarClassicLayout& Get_Classic_Battle_Sidebar_Config() const
-        {
-            return ClassicSidebarLayoutConfig;
-        }
-
-        const SidebarTabbedLayout& Get_Tabbed_Battle_Sidebar_Config() const
-        {
-            return TabbedSidebarLayoutConfig;
         }
 
         /**

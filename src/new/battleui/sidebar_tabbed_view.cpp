@@ -61,7 +61,7 @@ namespace
 {
 const SidebarTabbedLayout& Get_Tabbed_Layout()
 {
-    return UIControls->Get_Tabbed_Battle_Sidebar_Config();
+    return UIControls->TabbedSidebarLayoutConfig;
 }
 
 
