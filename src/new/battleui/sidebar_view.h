@@ -70,6 +70,7 @@ public:
     virtual int Visible_Buttons_Per_Column() const = 0;
 
     virtual bool Change_Tab(int index) { return false; }
+    virtual void Notify_Production_Complete(int category_index) { (void)category_index; }
 
 protected:
     SidebarModel* Model;

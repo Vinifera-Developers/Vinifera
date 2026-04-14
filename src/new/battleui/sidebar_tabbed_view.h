@@ -170,6 +170,7 @@ public:
     virtual int Visible_Buttons_Per_Column() const override;
 
     virtual bool Change_Tab(int index) override;
+    virtual void Notify_Production_Complete(int category_index) override;
 
     /**
      *  Tab and strip queries.

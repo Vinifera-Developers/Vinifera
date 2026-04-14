@@ -880,7 +880,7 @@ void SidebarComponent::Prepare_Drawer()
 
 
 /**
- *  Updates production-driven redraw state across all sidebar items.
+ *  Updates production state across all sidebar items.
  *
  *  @author: ZivDero
  */
@@ -911,8 +911,8 @@ void SidebarComponent::Production_AI()
                             break;
 
                         case RTTI_BUILDING:
-                            //SidebarExtension->TabButtons[ID].Start_Flashing();
                             Speak(VOX_CONSTRUCTION);
+                            if (ActiveView) ActiveView->Notify_Production_Complete(category_index);
                             break;
 
                         default:

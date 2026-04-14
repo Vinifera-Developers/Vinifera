@@ -991,6 +991,20 @@ bool TabbedSidebarView::Change_Tab(int index)
 
 
 /**
+ *  Notifies the view that production of a building in the given category
+ *  has completed, so the corresponding tab button starts flashing.
+ *
+ *  @author: ZivDero
+ */
+void TabbedSidebarView::Notify_Production_Complete(int category_index)
+{
+    if (category_index >= 0 && category_index < SIDEBAR_TAB_COUNT) {
+        TabButtons[category_index].Start_Flashing();
+    }
+}
+
+
+/**
  *  Returns the first tab that has buildable items, or SIDEBAR_TAB_NONE.
  *
  *  @author: ZivDero
