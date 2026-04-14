@@ -48,15 +48,9 @@
 
 namespace
 {
-const SidebarClassicLayout& Get_Classic_Layout()
-{
-    return UIControls->ClassicSidebarLayoutConfig;
-}
-
-
 SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
 {
-    const SidebarClassicLayout& layout = Get_Classic_Layout();
+    const SidebarClassicLayout& layout = UIControls->ClassicSidebarLayoutConfig;
     SidebarStripView::StripLayout strip_layout;
 
     strip_layout.Position = left_strip ? layout.LeftStripPosition : layout.RightStripPosition;

@@ -213,8 +213,8 @@ private:
     int Scroll_Step() const;
     Point2D Text_Offset() const;
     Point2D Queue_Count_Offset() const;
-    Point2D Resolve_Up_Button_Position() const;
-    Point2D Resolve_Down_Button_Position() const;
+    Point2D Get_Up_Button_Position() const;
+    Point2D Get_Down_Button_Position() const;
     Point2D Get_Item_Point(int slot) const;
     StripItemDrawState Get_Item_Draw_State(const BuildItem& item) const;
     int Get_Item_Queue_Count(const TechnoTypeClass& object) const;

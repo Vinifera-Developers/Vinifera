@@ -249,8 +249,8 @@ void SidebarStripView::Shift_Sidebar()
         }
     }
 
-    const Point2D up_position = Resolve_Up_Button_Position();
-    const Point2D down_position = Resolve_Down_Button_Position();
+    const Point2D up_position = Get_Up_Button_Position();
+    const Point2D down_position = Get_Down_Button_Position();
 
     UpButton.Set_Position(SidebarRect.X + up_position.X, SidebarRect.Y + up_position.Y);
     UpButton.Flag_To_Redraw();
@@ -958,7 +958,7 @@ Point2D SidebarStripView::Queue_Count_Offset() const
 }
 
 
-Point2D SidebarStripView::Resolve_Up_Button_Position() const
+Point2D SidebarStripView::Get_Up_Button_Position() const
 {
     if (Layout.UpButtonPosition.X != StripLayout::AUTO_POSITION
         || Layout.UpButtonPosition.Y != StripLayout::AUTO_POSITION) {
@@ -969,7 +969,7 @@ Point2D SidebarStripView::Resolve_Up_Button_Position() const
 }
 
 
-Point2D SidebarStripView::Resolve_Down_Button_Position() const
+Point2D SidebarStripView::Get_Down_Button_Position() const
 {
     if (Layout.DownButtonPosition.X != StripLayout::AUTO_POSITION
         || Layout.DownButtonPosition.Y != StripLayout::AUTO_POSITION) {
