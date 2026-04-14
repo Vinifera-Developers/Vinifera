@@ -28,6 +28,9 @@
 
 #include "battleui_component.h"
 
+#include "tibsun_globals.h"
+#include "tooltip.h"
+
 
 BattleUISystem BattleUI;
 
@@ -118,6 +121,10 @@ void BattleUISystem::Draw()
 {
     Sidebar.Draw();
     Power.Draw();
+
+    if (ToolTips != nullptr) {
+        ToolTips->Force_Redraw(true);
+    }
 }
 
 

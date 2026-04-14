@@ -270,7 +270,6 @@ void Handle_Techno_Right_Press(SidebarComponent& sidebar, const ResolvedCameoAct
         } else {
             Speak(VOX_SUSPENDED);
             Queue_Suspend_Event(action.Type, action.ID, action.Flags);
-            sidebar.Flag_Strip_To_Redraw(action.Type, action.Flags);
         }
         return;
     }
@@ -676,32 +675,6 @@ bool SidebarComponent::Handle_Cameo_Action(SidebarStripView& strip, int slot, un
 bool SidebarComponent::Is_On_Sidebar(RTTIType type, int id) const
 {
     return Model.Is_On_Sidebar(type, id);
-}
-
-
-/**
- *  Flags the currently visible strip set for redraw.
- *
- *  @author: ZivDero
- */
-void SidebarComponent::Flag_Strip_To_Redraw()
-{
-    if (ActiveView != nullptr) {
-        ActiveView->Flag_Strip_To_Redraw();
-    }
-}
-
-
-/**
- *  Flags the strip that owns the specified production type for redraw.
- *
- *  @author: ZivDero
- */
-void SidebarComponent::Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
-{
-    if (ActiveView != nullptr) {
-        ActiveView->Flag_Strip_To_Redraw(type, flags);
-    }
 }
 
 

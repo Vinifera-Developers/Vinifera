@@ -181,9 +181,7 @@ static void After_Main_Loop()
             UIControls->Read_INI_File("UI.INI", true);
             UIControls->Read_INI_File("UIOVERRIDES.INI");
             BattleUI.Shift_Sidebar();
-            Map.IsToFullRedraw = true;
             Map.Flag_To_Redraw(GS_REDRAW_ALL);
-            RedrawSidebar = true;
             DEBUG_INFO("Finished UIControls->Read_INI().\n");
         }
 

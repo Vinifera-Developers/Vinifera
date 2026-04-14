@@ -648,7 +648,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     DEBUG_INFO("Loading BattleUI...\n");
     if (FAILED(BattleUI.Load(pStm))) { return false; }
 
-    Map.Flag_To_Redraw(2);
+    Map.Flag_To_Redraw(GS_REDRAW_ALL);
 
     //Vinifera_Remap_Extension_Pointers();
 
@@ -958,8 +958,8 @@ bool Vinifera_Load_Game(const char* file_name)
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
-    TacticalViewActive = true;
-    ScenarioStarted = true;
+    ScenarioActive = true;
+    TacticalActive = true;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 
@@ -1000,8 +1000,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
         WinDialogClass::Display_Dialog(handle);
     }
 
-    TacticalViewActive = false;
-    ScenarioStarted = false;
+    ScenarioActive = false;
+    TacticalActive = false;
 
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);

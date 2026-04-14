@@ -28,6 +28,7 @@
 
 #include "sidebar_tabbed_view.h"
 
+#include "battleui_component.h"
 #include "cameo_button.h"
 #include "power_model.h"
 #include "sidebar_model.h"
@@ -263,9 +264,6 @@ bool TabButtonClass::Draw_Me(bool forced)
 void TabButtonClass::On_Mouse_Enter()
 {
     IsMousedOver = true;
-    Map.IsToFullRedraw = true;
-    Map.Flag_To_Redraw();
-    RedrawSidebar = true;
 }
 
 
@@ -277,9 +275,6 @@ void TabButtonClass::On_Mouse_Enter()
 void TabButtonClass::On_Mouse_Leave()
 {
     IsMousedOver = false;
-    Map.IsToFullRedraw = true;
-    Map.Flag_To_Redraw();
-    RedrawSidebar = true;
 }
 
 
@@ -741,8 +736,6 @@ void TabbedSidebarView::Draw()
     xy = Point2D(0, y + BackgroundBottomShape->Get_Height());
     Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundAddonShape, 0, xy, rect, SHAPE_WIN_REL);
 
-    RedrawSidebar = true;
-
     /**
      *  Tab buttons always redraw (they might be flashing).
      */
@@ -757,7 +750,6 @@ void TabbedSidebarView::Draw()
 
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
         if (TabButtons[i].IsDrawn) {
-            RedrawSidebar = true;
             TabButtons[i].IsDrawn = false;
         }
     }
@@ -765,9 +757,6 @@ void TabbedSidebarView::Draw()
     if (ToolTips) {
         ToolTips->Force_Redraw(true);
     }
-
-    Map.IsToRedraw = false;
-    Map.IsToFullRedraw = false;
 
     LogicalSurface = oldsurface;
 }
@@ -861,56 +850,6 @@ bool TabbedSidebarView::Scroll_Page(bool up, int column)
 
 
 /**
- *  Flags the visible tab strip for redraw.
- *
- *  @author: ZivDero
- */
-void TabbedSidebarView::Flag_Strip_To_Redraw()
-{
-    Strip[TabIndex].Flag_To_Redraw();
-}
-
-
-/**
- *  Flags the routed tab strip for redraw.
- *
- *  @author: ZivDero
- */
-void TabbedSidebarView::Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
-{
-    SidebarTabType tab = SIDEBAR_TAB_SPECIAL;
-
-    switch (type) {
-    case RTTI_BUILDINGTYPE:
-    case RTTI_BUILDING:
-        tab = SIDEBAR_TAB_STRUCTURE;
-        break;
-
-    case RTTI_INFANTRYTYPE:
-    case RTTI_INFANTRY:
-        tab = SIDEBAR_TAB_INFANTRY;
-        break;
-
-    case RTTI_UNITTYPE:
-    case RTTI_UNIT:
-        tab = (flags & PRODFLAG_NAVAL) ? SIDEBAR_TAB_SPECIAL : SIDEBAR_TAB_UNIT;
-        break;
-
-    case RTTI_AIRCRAFTTYPE:
-    case RTTI_AIRCRAFT:
-    case RTTI_SUPERWEAPONTYPE:
-    case RTTI_SUPERWEAPON:
-    case RTTI_SPECIAL:
-    default:
-        tab = SIDEBAR_TAB_SPECIAL;
-        break;
-    }
-
-    Strip[tab].Flag_To_Redraw();
-}
-
-
-/**
  *  Returns tooltip text for a cameo slot in the active tab.
  *
  *  @author: ZivDero
@@ -984,7 +923,6 @@ bool TabbedSidebarView::Change_Tab(int index)
     Strip[TabIndex].Activate();
     TabButtons[TabIndex].Select();
 
-    Map.IsToFullRedraw = true;
     return true;
 }
 

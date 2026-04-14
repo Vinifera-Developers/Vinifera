@@ -78,8 +78,6 @@ public:
     bool Abandon_Production(RTTIType type, int id);
     bool Handle_Cameo_Action(SidebarStripView& strip, int slot, unsigned& flags);
     bool Is_On_Sidebar(RTTIType type, int id) const;
-    void Flag_Strip_To_Redraw();
-    void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags);
     bool Change_Tab(int index);
     void Detach(AbstractClass* target);
     void Activate(int control);

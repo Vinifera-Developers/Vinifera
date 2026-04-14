@@ -28,6 +28,8 @@
 
 #include "action_bar_view.h"
 
+#include "battleui_component.h"
+
 #include "fetchres.h"
 #include "house.h"
 #include "language.h"
@@ -297,29 +299,19 @@ void ActionBarView::Draw()
 
     if (layout.RepairButton.IsVisible) {
         RepairButton.Draw_Me(true);
-    } else {
-        RepairButton.IsDrawn = false;
     }
 
     if (layout.SellButton.IsVisible) {
         SellButton.Draw_Me(true);
-    } else {
-        SellButton.IsDrawn = false;
     }
 
     if (layout.PowerButton.IsVisible) {
         PowerButton.Draw_Me(true);
-    } else {
-        PowerButton.IsDrawn = false;
     }
 
     if (layout.WaypointButton.IsVisible) {
         WaypointButton.Draw_Me(true);
-    } else {
-        WaypointButton.IsDrawn = false;
     }
-
-    RedrawSidebar = true;
 
     RepairButton.IsDrawn = false;
     SellButton.IsDrawn = false;

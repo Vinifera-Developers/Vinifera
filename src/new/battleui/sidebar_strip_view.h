@@ -149,7 +149,6 @@ public:
     void Draw(Surface& surface, const Rect& rect);
     bool Scroll(bool up);
     bool Scroll_Page(bool up);
-    void Flag_To_Redraw();
 
     /**
      *  Category access.
@@ -177,7 +176,6 @@ public:
     int Columns;
     int ColumnX;
     int ColumnY;
-    bool IsToRedraw;
     bool IsActive;
     bool IsScrollingDown;
     bool IsScrolling;

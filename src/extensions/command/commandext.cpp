@@ -2371,11 +2371,6 @@ bool SpecialWeaponsCommandClass::Process()
         PlayerPtr->SuperWeapon[i]->Enable(true, true, true);
         PlayerPtr->SuperWeapon[i]->Forced_Charge(true);
         Map.Add(RTTI_SPECIAL, i);
-
-        /**
-         *  Redraw the specials strip.
-         */
-        BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(RTTI_SPECIAL, PRODFLAG_NONE);
     }
 
     Map.Redraw_Sidebar();

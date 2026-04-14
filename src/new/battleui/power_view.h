@@ -73,8 +73,6 @@ public:
 
     void Set_Model(PowerModel *model) { Model = model; }
 
-    bool IsToRedraw;
-
 private:
     int Current_Power() const;
     int Current_Drain() const;

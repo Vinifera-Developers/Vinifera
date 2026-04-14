@@ -466,7 +466,7 @@ void SidebarModel::Init_For_House()
  *
  *  @author: ZivDero
  */
-int SidebarModel::Route_To_Category(RTTIType type, int id) const
+int SidebarModel::Which_Category(RTTIType type, int id) const
 {
     if (Categories.Count() < 1) {
         return -1;
@@ -526,7 +526,7 @@ int SidebarModel::Route_To_Category(RTTIType type, int id) const
  */
 bool SidebarModel::Add(RTTIType type, int id)
 {
-    int index = Route_To_Category(type, id);
+    int index = Which_Category(type, id);
     if (index < 0) {
         return false;
     }
@@ -546,7 +546,7 @@ bool SidebarModel::Add(RTTIType type, int id)
  */
 bool SidebarModel::Remove(RTTIType type, int id)
 {
-    int index = Route_To_Category(type, id);
+    int index = Which_Category(type, id);
     if (index < 0) {
         return false;
     }
@@ -566,7 +566,7 @@ bool SidebarModel::Remove(RTTIType type, int id)
  */
 void SidebarModel::Link_Factory(FactoryClass* factory, RTTIType type, int id)
 {
-    int index = Route_To_Category(type, id);
+    int index = Which_Category(type, id);
     if (index >= 0) {
         Categories[index].Link_Factory(factory, type, id);
     }
@@ -580,7 +580,7 @@ void SidebarModel::Link_Factory(FactoryClass* factory, RTTIType type, int id)
  */
 void SidebarModel::Abandon_Production(RTTIType type, int id)
 {
-    int index = Route_To_Category(type, id);
+    int index = Which_Category(type, id);
     if (index >= 0) {
         Categories[index].Link_Factory(nullptr, type, id);
     }

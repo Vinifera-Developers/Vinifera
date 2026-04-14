@@ -82,32 +82,11 @@ public:
     const char* _Help_Text(int gadget_id);
     int _Max_Visible();
     int _Which_Column(RTTIType type);
-};
-
-
-/**
- *  A fake class for implementing new member functions which allow
- *  access to the "this" pointer of the intended class.
- *
- *  @note: This must not contain a constructor or destructor!
- *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
- */
-static class StripClassExt : public SidebarClass::StripClass
-{
-public:
-    void _Flag_To_Redraw();
+    void _Blit_Sidebar(bool complete);
 };
 
 
 static int& _dialog_count = Make_Global<int>(0x007E492C);
-
-
-static void Request_Sidebar_Redraw(int flags = 0)
-{
-    Map.SidebarClass::IsToRedraw = true;
-    RedrawSidebar = true;
-    Map.Flag_To_Redraw(flags);
-}
 
 
 /**
@@ -219,7 +198,6 @@ bool SidebarClassExt::_Add(RTTIType type, int id)
     if (!Debug_Map) {
         if (BattleUI.Get_Sidebar().Add(type, id)) {
             Activate(1);
-            Request_Sidebar_Redraw();
             return true;
         }
     }
@@ -271,7 +249,7 @@ bool SidebarClassExt::_Activate(int control)
             BattleUI.Get_Sidebar().Activate(0);
         }
 
-        Flag_To_Redraw(2);
+        Flag_To_Redraw(GS_REDRAW_ALL);
     }
 
     return old;
@@ -290,7 +268,6 @@ bool SidebarClassExt::_Scroll(bool up, int column)
     }
 
     if (BattleUI.Get_Sidebar().Scroll(up, column)) {
-        Request_Sidebar_Redraw();
         return true;
     }
 
@@ -307,7 +284,6 @@ bool SidebarClassExt::_Scroll(bool up, int column)
 bool SidebarClassExt::_Scroll_Page(bool up, int column)
 {
     if (BattleUI.Get_Sidebar().Scroll_Page(up, column)) {
-        Request_Sidebar_Redraw();
         return true;
     }
 
@@ -340,8 +316,6 @@ void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
  */
 void SidebarClassExt::_Draw_It(bool complete)
 {
-    complete |= IsToFullRedraw;
-    Map.LastDrawRect = Rect(0, 0, 0, 0);
     RadarClass::Draw_It(complete);
 
     BattleUI.Draw();
@@ -357,7 +331,6 @@ void SidebarClassExt::_Draw_It(bool complete)
 void SidebarClassExt::_Recalc()
 {
     BattleUI.Get_Sidebar().Recalc();
-    Request_Sidebar_Redraw();
 }
 
 
@@ -423,24 +396,27 @@ int SidebarClassExt::_Max_Visible()
  */
 int SidebarClassExt::_Which_Column(RTTIType type)
 {
-    return BattleUI.Get_Sidebar().Get_Model().Route_To_Category(type, 0);
+    return BattleUI.Get_Sidebar().Get_Model().Which_Category(type, 0);
 }
 
 
 /**
- *  Reimplements SidebarClass::StripClass::Flag_To_Redraw with simpler
- *  battle UI redraw semantics.
- *
- *  Classic redraws all visible strips, while the tabbed view redraws only
- *  the active strip.
+ *  Reimplements the entire SidebarClass::Blit_Sidebar function.
  *
  *  @author: ZivDero
  */
-void StripClassExt::_Flag_To_Redraw()
+void SidebarClassExt::_Blit_Sidebar(bool complete)
 {
-    IsToRedraw = true;
-    BattleUI.Get_Sidebar().Flag_Strip_To_Redraw();
-    Request_Sidebar_Redraw();
+    (void)complete;
+
+    if (IsSidebarActive && GameActive && ScenarioActive) {
+
+        /**
+         *  Blit the entire sidebar surface.
+         */
+        Rect sb_rect = SidebarSurface->Get_Rect();
+        VisibleSurface->Blit_From(sb_rect + Point2D(TacticalRect.Width, 0), *SidebarSurface, sb_rect);
+    }
 }
 
 
@@ -467,7 +443,7 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
     Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
     Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
-    Patch_Jump(0x005F48F0, &StripClassExt::_Flag_To_Redraw);
+    Patch_Jump(0x005F38C0, &SidebarClassExt::_Blit_Sidebar);
 
     // NOP away tooltip length check for formatting
     Patch_Byte(0x0044E486, 0x90);

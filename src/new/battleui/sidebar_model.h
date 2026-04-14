@@ -115,7 +115,7 @@ public:
     void Flag_Dirty() { IsDirty = true; }
     bool Is_Active() const { return IsActive; }
 
-    int Route_To_Category(RTTIType type, int id) const;
+    int Which_Category(RTTIType type, int id) const;
 
 private:
     bool IsDirty;

@@ -111,10 +111,6 @@ void FactoryClassExt::_Sanitize_Queue()
     }
 
     if (need_update) {
-        if (House == PlayerPtr) {
-            BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(type, TechnoTypeClassExtension::Get_Production_Flags(producing_type));
-        }
-
         House->Update_Factories(type);
         Resume_Queue();
     }

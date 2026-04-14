@@ -28,6 +28,7 @@
 
 #include "sidebar_classic_view.h"
 
+#include "battleui_component.h"
 #include "cameo_button.h"
 #include "sidebar_model.h"
 #include "sidebar_render_utils.h"
@@ -302,8 +303,6 @@ void ClassicSidebarView::Draw()
     xy = Point2D(0, y + BackgroundBottomShape->Get_Height());
     Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundAddonShape, 0, xy, rect, SHAPE_WIN_REL);
 
-    RedrawSidebar = true;
-
     /**
      *  Draw the strips.
      */
@@ -314,9 +313,6 @@ void ClassicSidebarView::Draw()
     if (ToolTips) {
         ToolTips->Force_Redraw(true);
     }
-
-    Map.IsToRedraw = false;
-    Map.IsToFullRedraw = false;
 
     LogicalSurface = oldsurface;
 }
@@ -408,39 +404,6 @@ bool ClassicSidebarView::Scroll_Page(bool up, int column)
         return Strip[column].Scroll_Page(up);
     }
     return false;
-}
-
-
-/**
- *  Flags the visible classic strips for redraw.
- *
- *  @author: ZivDero
- */
-void ClassicSidebarView::Flag_Strip_To_Redraw()
-{
-    for (int i = 0; i < COLUMN_COUNT; i++) {
-        Strip[i].Flag_To_Redraw();
-    }
-}
-
-
-/**
- *  Flags the routed classic column for redraw.
- *
- *  @author: ZivDero
- */
-void ClassicSidebarView::Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
-{
-    (void)flags;
-
-    int column = 1;
-    if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
-        column = 0;
-    }
-
-    if (column >= 0 && column < COLUMN_COUNT) {
-        Strip[column].Flag_To_Redraw();
-    }
 }
 
 

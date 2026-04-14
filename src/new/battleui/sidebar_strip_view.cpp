@@ -28,6 +28,7 @@
 
 #include "sidebar_strip_view.h"
 
+#include "battleui_component.h"
 #include "cameo_button.h"
 #include "sidebar_model.h"
 
@@ -79,7 +80,6 @@ SidebarStripView::SidebarStripView() :
     Columns(2),
     ColumnX(0),
     ColumnY(0),
-    IsToRedraw(true),
     IsActive(false),
     IsScrollingDown(false),
     IsScrolling(false),
@@ -133,7 +133,6 @@ void SidebarStripView::Init_Clear()
     IsActive = false;
     IsScrollingDown = false;
     IsScrolling = false;
-    IsToRedraw = true;
     TopIndex = 0;
     Scroller = 0;
     Slid = 0;
@@ -439,12 +438,6 @@ bool SidebarStripView::Update_State()
         }
     }
 
-    if (redraw) {
-        IsToRedraw = true;
-        Flag_To_Redraw();
-        RedrawSidebar = true;
-    }
-
     return redraw;
 }
 
@@ -459,9 +452,6 @@ void SidebarStripView::Draw(Surface& surface, const Rect& rect)
     if (Category == nullptr) {
         return;
     }
-
-    IsToRedraw = false;
-    RedrawSidebar = true;
 
     /**
      *  Draw scroll buttons.
@@ -546,17 +536,6 @@ bool SidebarStripView::Scroll_Page(bool up)
     }
 
     return true;
-}
-
-
-/**
- *  Flags the strip for redraw.
- *
- *  @author: ZivDero
- */
-void SidebarStripView::Flag_To_Redraw()
-{
-    IsToRedraw = true;
 }
 
 

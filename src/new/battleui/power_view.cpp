@@ -29,6 +29,7 @@
 
 #include "power_view.h"
 
+#include "battleui_component.h"
 #include "power_model.h"
 
 #include "building.h"
@@ -87,7 +88,6 @@ int Get_Power_Pip_Height(SidebarViewType view_type)
  */
 PowerView::PowerView() :
     Model(nullptr),
-    IsToRedraw(false),
     FlashTimer(0),
     FlashCount(0),
     UpdateTimer(0),
@@ -126,7 +126,6 @@ void PowerView::Init_Clear()
     RedPipCount = 0;
     VisibleButtonsPerColumn = SidebarClass::StripClass::MAX_VISIBLE;
     IsChanged = false;
-    IsToRedraw = false;
 }
 
 
@@ -171,7 +170,6 @@ void PowerView::Set_Visible_Buttons_Per_Column(int count)
     if (VisibleButtonsPerColumn != count) {
         VisibleButtonsPerColumn = count;
         IsChanged = true;
-        IsToRedraw = true;
     }
 }
 
@@ -374,7 +372,6 @@ void PowerView::AI()
 
     if (!IsChanged && FlashCount > 0) {
         if (FlashTimer == 0) {
-            IsToRedraw = true;
             FlashCount--;
             Map.Redraw_Sidebar();
             FlashTimer = 3;
@@ -386,7 +383,6 @@ void PowerView::AI()
      */
     if (model_dirty || IsChanged) {
 
-        IsToRedraw = true;
         Map.Redraw_Sidebar();
 
         /**
@@ -472,9 +468,6 @@ void PowerView::Draw()
     if (PowerPipShape == nullptr || SidebarSurface == nullptr) {
         return;
     }
-
-    IsToRedraw = false;
-    RedrawSidebar = true;
 
     Rect rect = SidebarSurface->Get_Rect();
     const TPoint2D<int> power_bar_position = Get_Power_Bar_Position(ViewType);

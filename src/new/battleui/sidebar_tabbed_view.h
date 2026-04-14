@@ -150,8 +150,6 @@ public:
     virtual bool Scroll_Page(bool up, int column) override;
 
     virtual const char* Help_Text(int gadget_id) override;
-    virtual void Flag_Strip_To_Redraw() override;
-    virtual void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags) override;
     virtual int Visible_Button_Count() const override;
     virtual int Visible_Buttons_Per_Column() const override;
 

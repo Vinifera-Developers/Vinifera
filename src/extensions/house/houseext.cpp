@@ -369,14 +369,6 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     */
     fptr->Suspend();
 
-    /*
-    **  Tell the sidebar that it needs to be redrawn because of this.
-    */
-    if (PlayerPtr == This()) {
-        BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(type, flags);
-        Map.Redraw_Sidebar();
-    }
-
     return PROD_OK;
 }
 
@@ -450,7 +442,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
 
     if (result) {
         if (fptr->QueuedObjects.Count() && !resume && !skipset) {
-            BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(type, flags);
+            //BattleUI.Flag_To_Redraw();
         } else {
             fptr->Start(onhold);
 
@@ -509,7 +501,6 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     if (fptr->Queued_Object_Count() > 0 && id >= 0) {
         const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
         if (fptr->Remove_From_Queue(*technotype)) {
-            BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(type, flags);
             return PROD_OK;
         }
     }
@@ -522,11 +513,9 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     }
 
     /*
-    **  Tell the sidebar that it needs to be redrawn because of this.
+    **  Drop any active building placement.
     */
     if (PlayerPtr == This()) {
-        BattleUI.Get_Sidebar().Abandon_Production(type, id);
-
         if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
             Map.PendingObjectPtr = nullptr;
             Map.PendingObject = nullptr;
@@ -731,13 +720,6 @@ void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
             } else {
                 if (factory->Object->TClass->Who_Can_Build_Me(true, true, true, This()) == nullptr) {
                     factory->Suspend(false);
-                    if (PlayerPtr == This()) {
-                        const TechnoTypeClass* suspended_type = factory->Object->TClass;
-                        BattleUI.Get_Sidebar().Flag_Strip_To_Redraw(
-                            suspended_type->RTTI,
-                            TechnoTypeClassExtension::Get_Production_Flags(suspended_type));
-                        Map.Redraw_Sidebar();
-                    }
                 } else {
                     if (factory->IsSuspended && !factory->IsOnHold) {
                         factory->Start(false);
