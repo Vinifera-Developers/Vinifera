@@ -713,13 +713,9 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
     UIControls = new UIControlsClass;
 
     CCFileClass ui_file("UI.INI");
-    CCINIClass ui_ini;
 
     if (ui_file.Is_Available()) {
-
-        ui_ini.Load(ui_file, false);
-
-        if (!UIControls->Read_INI(ui_ini)) {
+        if (!UIControls->Read_INI_File("UI.INI", true)) {
             DEV_DEBUG_ERROR("Failed to read UI.INI!\n");
             //return EXIT_FAILURE;
         }

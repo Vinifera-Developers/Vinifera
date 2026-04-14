@@ -41,6 +41,7 @@ BattleUISystem::~BattleUISystem()
 void BattleUISystem::One_Time()
 {
     Sidebar.One_Time();
+    Power.Set_Sidebar_View_Type(Sidebar.Get_View_Type());
     Power.One_Time();
 }
 

@@ -25,21 +25,13 @@ NewSidebar=no                   ; boolean, whether the game should use the new s
 - All sidebar positions are relative to the internal sidebar area that starts at `SidebarRect`.
 - `VisibleRows=0` keeps the default auto-fit behavior for the current resolution.
 - Leave the optional scroll button position entries blank to auto-place them from the current strip layout.
-- `[Sidebar]` controls shared elements, `[SidebarClassic]` controls the two-column classic view, and `[SidebarTabbed]` controls the tabbed view.
+- `[Sidebar]` only selects the battle sidebar view. `[SidebarClassic]` and `[SidebarTabbed]` are both complete, self-contained configs for their respective views.
+- After `Vinifera_Prep_For_Side` mounts side-specific mixes, the game also reads `UIOVERRIDES.INI` if present. This file uses the same keys as `UI.INI` and layers on top of the already loaded base config, which allows side-specific battle UI overrides from `SIDECT##.MIX`.
 
 In `UI.INI`:
 ```ini
 [Sidebar]
 ViewType=Classic          ; string, Classic or Tabbed.
-RepairButtonPos=31,-9     ; point, repair button position.
-RepairButtonVisible=yes   ; boolean, show the repair button.
-SellButtonPos=58,-9       ; point, sell button position.
-SellButtonVisible=yes     ; boolean, show the sell button.
-PowerButtonPos=85,-9      ; point, power button position.
-PowerButtonVisible=yes    ; boolean, show the power button.
-WaypointButtonPos=112,-9  ; point, waypoint button position.
-WaypointButtonVisible=yes ; boolean, show the waypoint button.
-PowerBarPos=8,25          ; point, power bar position.
 
 [SidebarClassic]
 LeftStripPos=24,26          ; point, left strip origin.
@@ -54,20 +46,70 @@ RightUpButtonPos=           ; point, optional explicit right up button position.
 RightUpButtonVisible=yes    ; boolean, show the right up button.
 RightDownButtonPos=         ; point, optional explicit right down button position.
 RightDownButtonVisible=yes  ; boolean, show the right down button.
+RepairButtonPos=31,-9       ; point, repair button position.
+RepairButtonVisible=yes     ; boolean, show the repair button.
+RepairButtonShape=REPAIR.SHP
+SellButtonPos=58,-9         ; point, sell button position.
+SellButtonVisible=yes       ; boolean, show the sell button.
+SellButtonShape=SELL.SHP
+PowerButtonPos=85,-9        ; point, power button position.
+PowerButtonVisible=yes      ; boolean, show the power button.
+PowerButtonShape=POWER.SHP
+WaypointButtonPos=112,-9    ; point, waypoint button position.
+WaypointButtonVisible=yes   ; boolean, show the waypoint button.
+WaypointButtonShape=WAYP.SHP
+PowerBarPos=8,25            ; point, power bar position.
+PowerPipShape=POWERP.SHP
+SidebarShape=SIDE1.SHP
+SidebarMiddleShape=SIDE2.SHP
+SidebarBottomShape=SIDE3.SHP
+SidebarAddonShape=ADDON.SHP
+ClockShape=GCLOCK2.SHP
+RechargeClockShape=RCLOCK2.SHP
+DarkenShape=DARKEN.SHP
+ScrollUpButtonShape=R-UP.SHP
+ScrollDownButtonShape=R-DN.SHP
 
 [SidebarTabbed]
-Tab1Pos=20,24            ; point, Structure tab position.
-Tab2Pos=55,24            ; point, Infantry tab position.
-Tab3Pos=90,24            ; point, Unit tab position.
-Tab4Pos=125,24           ; point, Special tab position.
-StripPos=24,54           ; point, 2-column strip origin.
-VisibleRows=0            ; integer, visible rows in the tab strip, 0 = auto-fit.
-RowPitch=51              ; integer, vertical spacing between cameo rows.
-ColumnSpacing=67         ; integer, horizontal spacing between the two strip columns.
-UpButtonPos=             ; point, optional explicit up button position.
-UpButtonVisible=yes      ; boolean, show the up button.
-DownButtonPos=           ; point, optional explicit down button position.
-DownButtonVisible=yes    ; boolean, show the down button.
+Tab1Pos=20,24              ; point, Structure tab position.
+Tab2Pos=55,24              ; point, Infantry tab position.
+Tab3Pos=90,24              ; point, Unit tab position.
+Tab4Pos=125,24             ; point, Special tab position.
+StripPos=24,54             ; point, 2-column strip origin.
+VisibleRows=0              ; integer, visible rows in the tab strip, 0 = auto-fit.
+RowPitch=51                ; integer, vertical spacing between cameo rows.
+ColumnSpacing=67           ; integer, horizontal spacing between the two strip columns.
+UpButtonPos=               ; point, optional explicit up button position.
+UpButtonVisible=yes        ; boolean, show the up button.
+DownButtonPos=             ; point, optional explicit down button position.
+DownButtonVisible=yes      ; boolean, show the down button.
+RepairButtonPos=31,-9      ; point, repair button position.
+RepairButtonVisible=yes    ; boolean, show the repair button.
+RepairButtonShape=REPAIR.SHP
+SellButtonPos=58,-9        ; point, sell button position.
+SellButtonVisible=yes      ; boolean, show the sell button.
+SellButtonShape=SELL.SHP
+PowerButtonPos=85,-9       ; point, power button position.
+PowerButtonVisible=yes     ; boolean, show the power button.
+PowerButtonShape=POWER.SHP
+WaypointButtonPos=112,-9   ; point, waypoint button position.
+WaypointButtonVisible=yes  ; boolean, show the waypoint button.
+WaypointButtonShape=WAYP.SHP
+PowerBarPos=8,25           ; point, power bar position.
+PowerPipShape=POWERP.SHP
+SidebarShape=SIDE1.SHP
+SidebarMiddleShape=SIDE2.SHP
+SidebarBottomShape=SIDE3.SHP
+SidebarAddonShape=ADDON.SHP
+ClockShape=GCLOCK2.SHP
+RechargeClockShape=RCLOCK2.SHP
+DarkenShape=DARKEN.SHP
+ScrollUpButtonShape=R-UP.SHP
+ScrollDownButtonShape=R-DN.SHP
+StructureTabShape=TAB-BLD.SHP
+InfantryTabShape=TAB-INF.SHP
+UnitTabShape=TAB-UNT.SHP
+SpecialTabShape=TAB-SPC.SHP
 ```
 
 - When `NewSidebar=yes` is set, the game loads an additional mix file `SIDECT##.MIX`, where `##` is `side index + 1`. Files found in `SIDECT##.MIX` override files from other side mixes.

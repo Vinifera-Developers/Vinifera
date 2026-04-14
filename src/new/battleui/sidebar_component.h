@@ -86,6 +86,7 @@ public:
     int Visible_Button_Count() const;
     int Visible_Buttons_Per_Column() const;
     void Reload_Layout();
+    SidebarViewType Get_View_Type() const { return ActiveViewType; }
 
     HRESULT Save(IStream* pStm) const override;
     HRESULT Load(IStream* pStm) override;
@@ -102,4 +103,5 @@ private:
     ActionBarView ActionBar;
     SidebarModel Model;
     ISidebarView* ActiveView;
+    SidebarViewType ActiveViewType;
 };

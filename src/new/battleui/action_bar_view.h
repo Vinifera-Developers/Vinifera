@@ -30,6 +30,7 @@
 
 #include "shapebtn.h"
 #include "sidebar.h"
+#include "uicontrol.h"
 #include "wwkeyboard.h"
 
 
@@ -37,7 +38,8 @@ class ActionBarView
 {
 public:
     ActionBarView() :
-        IsActive(false)
+        IsActive(false),
+        ViewType(SIDEBAR_CLASSIC)
     {
     }
 
@@ -48,11 +50,13 @@ public:
     void Activate(int control);
     void AI(KeyNumType& key);
     void Draw();
+    void Set_Sidebar_View_Type(SidebarViewType view_type) { ViewType = view_type; }
 
 private:
     void Register_Tooltips();
 
     bool IsActive;
+    SidebarViewType ViewType;
     ShapeButtonClass Repair;
     ShapeButtonClass Sell;
     ShapeButtonClass PowerBtn;

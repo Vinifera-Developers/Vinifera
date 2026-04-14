@@ -63,14 +63,28 @@ struct SidebarButtonLayout
 };
 
 
-struct SidebarSharedLayout
+struct BattleSidebarLayoutBase
 {
-    SidebarSharedLayout() :
+    BattleSidebarLayoutBase() :
         RepairButton(TPoint2D<int>(31, -9), true),
         SellButton(TPoint2D<int>(58, -9), true),
         PowerButton(TPoint2D<int>(85, -9), true),
         WaypointButton(TPoint2D<int>(112, -9), true),
-        PowerBarPosition(8, 25)
+        PowerBarPosition(8, 25),
+        SidebarShape("SIDE1.SHP"),
+        SidebarMiddleShape("SIDE2.SHP"),
+        SidebarBottomShape("SIDE3.SHP"),
+        SidebarAddonShape("ADDON.SHP"),
+        ClockShape("GCLOCK2.SHP"),
+        RechargeClockShape("RCLOCK2.SHP"),
+        DarkenShape("DARKEN.SHP"),
+        ScrollUpButtonShape("R-UP.SHP"),
+        ScrollDownButtonShape("R-DN.SHP"),
+        RepairButtonShape("REPAIR.SHP"),
+        SellButtonShape("SELL.SHP"),
+        PowerButtonShape("POWER.SHP"),
+        WaypointButtonShape("WAYP.SHP"),
+        PowerPipShape("POWERP.SHP")
     {
     }
 
@@ -79,12 +93,27 @@ struct SidebarSharedLayout
     SidebarButtonLayout PowerButton;
     SidebarButtonLayout WaypointButton;
     TPoint2D<int> PowerBarPosition;
+    std::string SidebarShape;
+    std::string SidebarMiddleShape;
+    std::string SidebarBottomShape;
+    std::string SidebarAddonShape;
+    std::string ClockShape;
+    std::string RechargeClockShape;
+    std::string DarkenShape;
+    std::string ScrollUpButtonShape;
+    std::string ScrollDownButtonShape;
+    std::string RepairButtonShape;
+    std::string SellButtonShape;
+    std::string PowerButtonShape;
+    std::string WaypointButtonShape;
+    std::string PowerPipShape;
 };
 
 
-struct SidebarClassicLayout
+struct SidebarClassicLayout : BattleSidebarLayoutBase
 {
     SidebarClassicLayout() :
+        BattleSidebarLayoutBase(),
         LeftStripPosition(24, 26),
         RightStripPosition(92, 26),
         VisibleRows(0),
@@ -115,9 +144,10 @@ struct SidebarClassicLayout
 };
 
 
-struct SidebarTabbedLayout
+struct SidebarTabbedLayout : BattleSidebarLayoutBase
 {
     SidebarTabbedLayout() :
+        BattleSidebarLayoutBase(),
         StripPosition(24, 54),
         VisibleRows(0),
         RowPitch(51),
@@ -125,7 +155,11 @@ struct SidebarTabbedLayout
         UpButtonPosition(INT_MIN, INT_MIN),
         DownButtonPosition(INT_MIN, INT_MIN),
         IsUpButtonVisible(true),
-        IsDownButtonVisible(true)
+        IsDownButtonVisible(true),
+        StructureTabShape("TAB-BLD.SHP"),
+        InfantryTabShape("TAB-INF.SHP"),
+        UnitTabShape("TAB-UNT.SHP"),
+        SpecialTabShape("TAB-SPC.SHP")
     {
         TabButtonPosition[0] = TPoint2D<int>(20, 24);
         TabButtonPosition[1] = TPoint2D<int>(55, 24);
@@ -142,6 +176,10 @@ struct SidebarTabbedLayout
     TPoint2D<int> DownButtonPosition;
     bool IsUpButtonVisible;
     bool IsDownButtonVisible;
+    std::string StructureTabShape;
+    std::string InfantryTabShape;
+    std::string UnitTabShape;
+    std::string SpecialTabShape;
 };
 
 
@@ -157,6 +195,29 @@ class UIControlsClass
         int Get_Object_Size() const;
 
         bool Read_INI(CCINIClass &ini);
+        bool Read_INI_File(const char *filename, bool reset_to_defaults = false);
+        void Reset_To_Defaults();
+
+        const BattleSidebarLayoutBase& Get_Battle_Sidebar_Config(SidebarViewType view_type) const
+        {
+            return view_type == SIDEBAR_TABBED ? static_cast<const BattleSidebarLayoutBase&>(TabbedSidebarLayoutConfig)
+                                               : static_cast<const BattleSidebarLayoutBase&>(ClassicSidebarLayoutConfig);
+        }
+
+        const BattleSidebarLayoutBase& Get_Active_Battle_Sidebar_Config() const
+        {
+            return Get_Battle_Sidebar_Config(BattleSidebarViewType);
+        }
+
+        const SidebarClassicLayout& Get_Classic_Battle_Sidebar_Config() const
+        {
+            return ClassicSidebarLayoutConfig;
+        }
+
+        const SidebarTabbedLayout& Get_Tabbed_Battle_Sidebar_Config() const
+        {
+            return TabbedSidebarLayoutConfig;
+        }
 
         /**
          *  Helper to get the group number drawing offset based on the object type.
@@ -412,7 +473,6 @@ class UIControlsClass
          */
         RGBStruct NavComQueueLineDropShadowColor;
 
-        SidebarSharedLayout SidebarLayout;
         SidebarClassicLayout ClassicSidebarLayoutConfig;
         SidebarTabbedLayout TabbedSidebarLayoutConfig;
 

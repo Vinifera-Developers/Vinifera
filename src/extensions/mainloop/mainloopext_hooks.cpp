@@ -177,14 +177,9 @@ static void After_Main_Loop()
          *  Finally, reload miscellaneous classes.
          */
         {
-            CCFileClass workingfile;
-            CCINIClass workingini;
-
             DEBUG_INFO("Calling UIControls->Read_INI().\n");
-            workingfile.Set_Name("UI.INI");
-            workingini.Clear();
-            workingini.Load(workingfile, false);
-            UIControls->Read_INI(workingini);
+            UIControls->Read_INI_File("UI.INI", true);
+            UIControls->Read_INI_File("UIOVERRIDES.INI");
             BattleUI.Set_Dimensions();
             Map.IsToFullRedraw = true;
             Map.Flag_To_Redraw(GS_REDRAW_ALL);

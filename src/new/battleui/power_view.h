@@ -32,6 +32,7 @@
 
 #include "stimer.h"
 #include "ttimer.h"
+#include "uicontrol.h"
 
 
 class PowerModel;
@@ -70,6 +71,7 @@ public:
     void AI();
     void Draw();
     void Flash_Power();
+    void Set_Sidebar_View_Type(SidebarViewType view_type) { ViewType = view_type; }
 
     const char *Help_Text(int gadget_id);
 
@@ -99,6 +101,7 @@ private:
     int VisibleButtonsPerColumn;
 
     bool IsChanged;
+    SidebarViewType ViewType;
 
     static const ShapeSet *PowerPipShape;
 };

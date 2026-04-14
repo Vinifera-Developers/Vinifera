@@ -50,24 +50,7 @@ namespace
 {
 const SidebarClassicLayout& Get_Classic_Layout()
 {
-    static const SidebarClassicLayout default_layout;
-    return UIControls != nullptr ? UIControls->ClassicSidebarLayoutConfig : default_layout;
-}
-
-
-int Sidebar_Background_Row_Count()
-{
-    if (SidebarSurface != nullptr
-        && SidebarClass::SidebarShape != nullptr
-        && SidebarClass::SidebarMiddleShape != nullptr
-        && SidebarClass::SidebarBottomShape != nullptr) {
-        return (SidebarRect.Height
-                - SidebarClass::SidebarBottomShape->Get_Height()
-                - SidebarClass::SidebarShape->Get_Height())
-               / SidebarClass::SidebarMiddleShape->Get_Height();
-    }
-
-    return SidebarClass::StripClass::MAX_VISIBLE;
+    return UIControls->Get_Classic_Battle_Sidebar_Config();
 }
 
 
@@ -105,7 +88,13 @@ SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
  */
 ClassicSidebarView::ClassicSidebarView(SidebarModel* model) :
     ISidebarView(model),
-    Strip()
+    Strip(),
+    BackgroundTopShape(nullptr),
+    BackgroundMiddleShape(nullptr),
+    BackgroundBottomShape(nullptr),
+    BackgroundAddonShape(nullptr),
+    ClockShape(nullptr),
+    RechargeClockShape(nullptr)
 {
 }
 
@@ -120,12 +109,6 @@ void ClassicSidebarView::One_Time()
     for (int i = 0; i < COLUMN_COUNT; i++) {
         Strip[i].One_Time(i);
     }
-
-    /**
-     *  Load the clock shapes.
-     */
-    SidebarClass::StripClass::RechargeClockShape = MFCD::RetrieveT<ShapeSet>("RCLOCK2.SHP");
-    SidebarClass::StripClass::ClockShape = MFCD::RetrieveT<ShapeSet>("GCLOCK2.SHP");
 }
 
 
@@ -179,13 +162,27 @@ void ClassicSidebarView::Init_IO()
  */
 void ClassicSidebarView::Init_For_House()
 {
-    SidebarClass::SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDE1.SHP");
-    SidebarClass::SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDE2.SHP");
-    SidebarClass::SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDE3.SHP");
-    SidebarClass::SidebarAddonShape = MFCD::RetrieveT<ShapeSet>("ADDON.SHP");
+    const SidebarClassicLayout& layout = Get_Classic_Layout();
+
+    BackgroundTopShape = MFCD::RetrieveT<ShapeSet>(layout.SidebarShape.c_str());
+    BackgroundMiddleShape = MFCD::RetrieveT<ShapeSet>(layout.SidebarMiddleShape.c_str());
+    BackgroundBottomShape = MFCD::RetrieveT<ShapeSet>(layout.SidebarBottomShape.c_str());
+    BackgroundAddonShape = MFCD::RetrieveT<ShapeSet>(layout.SidebarAddonShape.c_str());
+    ClockShape = MFCD::RetrieveT<ShapeSet>(layout.ClockShape.c_str());
+    RechargeClockShape = MFCD::RetrieveT<ShapeSet>(layout.RechargeClockShape.c_str());
+
+    SidebarStripView::StripArt strip_art;
+    strip_art.ScrollUpButtonShape = MFCD::RetrieveT<ShapeSet>(layout.ScrollUpButtonShape.c_str());
+    strip_art.ScrollDownButtonShape = MFCD::RetrieveT<ShapeSet>(layout.ScrollDownButtonShape.c_str());
+    strip_art.DarkenShape = MFCD::RetrieveT<ShapeSet>(layout.DarkenShape.c_str());
+    strip_art.ClockShape = ClockShape;
+    strip_art.RechargeClockShape = RechargeClockShape;
+    strip_art.BackgroundTopHeight = BackgroundTopShape != nullptr ? BackgroundTopShape->Get_Height() : 0;
+    strip_art.BackgroundBottomHeight = BackgroundBottomShape != nullptr ? BackgroundBottomShape->Get_Height() : 0;
 
     for (int i = 0; i < COLUMN_COUNT; i++) {
-        Strip[i].Init_For_House(i);
+        Strip[i].Set_Art(strip_art);
+        Strip[i].Init_For_House();
     }
 }
 
@@ -259,6 +256,14 @@ void ClassicSidebarView::Draw()
     Surface* oldsurface = LogicalSurface;
     LogicalSurface = SidebarSurface;
 
+    if (BackgroundTopShape == nullptr
+        || BackgroundMiddleShape == nullptr
+        || BackgroundBottomShape == nullptr
+        || BackgroundAddonShape == nullptr) {
+        LogicalSurface = oldsurface;
+        return;
+    }
+
     Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
 
     /**
@@ -267,20 +272,20 @@ void ClassicSidebarView::Draw()
      */
     int y = SidebarRect.Y;
     Point2D xy(0, y);
-    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
-    y += SidebarClass::SidebarShape->Get_Height();
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundTopShape, 0, xy, rect, SHAPE_WIN_REL);
+    y += BackgroundTopShape->Get_Height();
 
-    int rows = Sidebar_Background_Row_Count();
-    for (int i = 0; i < rows; i++, y += SidebarClass::SidebarMiddleShape->Get_Height()) {
+    int rows = Background_Row_Count();
+    for (int i = 0; i < rows; i++, y += BackgroundMiddleShape->Get_Height()) {
         xy = Point2D(0, y);
-        Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
+        Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
     }
 
     xy = Point2D(0, y);
-    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundBottomShape, 0, xy, rect, SHAPE_WIN_REL);
 
-    xy = Point2D(0, y + SidebarClass::SidebarBottomShape->Get_Height());
-    Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarClass::SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
+    xy = Point2D(0, y + BackgroundBottomShape->Get_Height());
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundAddonShape, 0, xy, rect, SHAPE_WIN_REL);
 
     RedrawSidebar = true;
 
@@ -299,6 +304,22 @@ void ClassicSidebarView::Draw()
     Map.IsToFullRedraw = false;
 
     LogicalSurface = oldsurface;
+}
+
+
+int ClassicSidebarView::Background_Row_Count() const
+{
+    if (SidebarSurface != nullptr
+        && BackgroundTopShape != nullptr
+        && BackgroundMiddleShape != nullptr
+        && BackgroundBottomShape != nullptr) {
+        return (SidebarRect.Height
+                - BackgroundBottomShape->Get_Height()
+                - BackgroundTopShape->Get_Height())
+               / BackgroundMiddleShape->Get_Height();
+    }
+
+    return SidebarClass::StripClass::MAX_VISIBLE;
 }
 
 

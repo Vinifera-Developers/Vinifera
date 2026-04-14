@@ -83,6 +83,7 @@ SidebarStripView::SidebarStripView() :
     MaxVisibleCount(0),
     Category(nullptr),
     Layout(),
+    Art(),
     UpButton(),
     DownButton(),
     SelectButtons()
@@ -112,11 +113,6 @@ SidebarStripView::~SidebarStripView()
 void SidebarStripView::One_Time(int id)
 {
     ID = id;
-
-    /**
-     *  DarkenShape is a static on StripClass, loaded once.
-     */
-    SidebarClass::StripClass::DarkenShape = MFCD::RetrieveT<ShapeSet>("DARKEN.SHP");
 }
 
 
@@ -193,15 +189,19 @@ void SidebarStripView::Set_Layout(const StripLayout& layout)
  *
  *  @author: ZivDero
  */
-void SidebarStripView::Init_For_House(int id)
+void SidebarStripView::Init_For_House()
 {
-    (void)id;
-
-    UpButton.Set_Shape(MFCD::RetrieveT<ShapeSet>("R-UP.SHP"));
+    UpButton.Set_Shape(Art.ScrollUpButtonShape);
     UpButton.ShapeDrawer = SidebarDrawer;
 
-    DownButton.Set_Shape(MFCD::RetrieveT<ShapeSet>("R-DN.SHP"));
+    DownButton.Set_Shape(Art.ScrollDownButtonShape);
     DownButton.ShapeDrawer = SidebarDrawer;
+}
+
+
+void SidebarStripView::Set_Art(const StripArt& art)
+{
+    Art = art;
 }
 
 
@@ -614,8 +614,8 @@ int SidebarStripView::Visible_Button_Count() const
 int SidebarStripView::Visible_Buttons_Per_Column() const
 {
     if (SidebarSurface != nullptr
-        && SidebarClass::SidebarShape != nullptr
-        && SidebarClass::SidebarBottomShape != nullptr) {
+        && Art.BackgroundTopHeight > 0
+        && Art.BackgroundBottomHeight > 0) {
         const int max_rows = std::max(1, Available_Content_Height() / Effective_Row_Pitch());
         if (Layout.VisibleRows <= 0) {
             return max_rows;
@@ -744,7 +744,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
              */
             if (darken) {
                 Point2D dp(x, y);
-                Draw_Darken_Overlay(surface, *SidebarDrawer, rect, dp);
+                Draw_Darken_Overlay(surface, *SidebarDrawer, Art.DarkenShape, rect, dp);
             }
 
             /**
@@ -786,9 +786,9 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
                 if (!completed) {
                     Point2D cp(x, y);
                     if (isready) {
-                        Draw_Recharge_Clock(surface, *SidebarDrawer, rect, cp, stage);
+                        Draw_Recharge_Clock(surface, *SidebarDrawer, Art.RechargeClockShape, rect, cp, stage);
                     } else {
-                        Draw_Clock_Overlay(surface, *SidebarDrawer, rect, cp, stage);
+                        Draw_Clock_Overlay(surface, *SidebarDrawer, Art.ClockShape, rect, cp, stage);
                     }
 
                     /**
@@ -808,8 +808,8 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
 int SidebarStripView::Available_Content_Height() const
 {
     return SidebarRect.Height
-        - SidebarClass::SidebarBottomShape->Get_Height()
-        - SidebarClass::SidebarShape->Get_Height();
+        - Art.BackgroundBottomHeight
+        - Art.BackgroundTopHeight;
 }
 
 

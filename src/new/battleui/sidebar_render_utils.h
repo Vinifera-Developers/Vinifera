@@ -46,17 +46,17 @@ void Draw_Cameo(Surface& surface, const Rect& rect, const BuildItem& item, const
 /**
  *  Draws the production clock overlay (green clock).
  */
-void Draw_Clock_Overlay(Surface& surface, ConvertClass& drawer, const Rect& rect, const Point2D& point, int stage);
+void Draw_Clock_Overlay(Surface& surface, ConvertClass& drawer, const ShapeSet* shape, const Rect& rect, const Point2D& point, int stage);
 
 /**
  *  Draws the superweapon recharge clock overlay.
  */
-void Draw_Recharge_Clock(Surface& surface, ConvertClass& drawer, const Rect& rect, const Point2D& point, int stage);
+void Draw_Recharge_Clock(Surface& surface, ConvertClass& drawer, const ShapeSet* shape, const Rect& rect, const Point2D& point, int stage);
 
 /**
  *  Draws the darkened overlay for unavailable items.
  */
-void Draw_Darken_Overlay(Surface& surface, ConvertClass& drawer, const Rect& rect, const Point2D& point);
+void Draw_Darken_Overlay(Surface& surface, ConvertClass& drawer, const ShapeSet* shape, const Rect& rect, const Point2D& point);
 
 /**
  *  Draws the "READY" text on a completed item.

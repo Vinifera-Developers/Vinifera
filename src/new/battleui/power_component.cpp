@@ -135,6 +135,12 @@ void PowerComponent::Set_Visible_Buttons_Per_Column(int count)
 }
 
 
+void PowerComponent::Set_Sidebar_View_Type(SidebarViewType view_type)
+{
+    View.Set_Sidebar_View_Type(view_type);
+}
+
+
 /**
  *  Shuts down the power component.
  *

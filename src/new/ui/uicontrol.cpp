@@ -31,6 +31,7 @@
 #include "uicontrol.h"
 
 #include "asserthandler.h"
+#include "ccfile.h"
 #include "ccini.h"
 
 #include <algorithm>
@@ -38,6 +39,47 @@
 
 
 UIControlsClass *UIControls = nullptr;
+
+
+namespace
+{
+void Read_String_Key(CCINIClass& ini, const char* section, const char* key, std::string& value)
+{
+    char buffer[260];
+    if (ini.Get_String(section, key, value.c_str(), buffer, sizeof(buffer)) > 0) {
+        value = buffer;
+    }
+}
+
+
+void Read_Battle_Sidebar_Config(CCINIClass& ini, const char* section, BattleSidebarLayoutBase& layout)
+{
+    layout.RepairButton.Position = ini.Get_Point(section, "RepairButtonPos", layout.RepairButton.Position);
+    layout.RepairButton.IsVisible = ini.Get_Bool(section, "RepairButtonVisible", layout.RepairButton.IsVisible);
+    layout.SellButton.Position = ini.Get_Point(section, "SellButtonPos", layout.SellButton.Position);
+    layout.SellButton.IsVisible = ini.Get_Bool(section, "SellButtonVisible", layout.SellButton.IsVisible);
+    layout.PowerButton.Position = ini.Get_Point(section, "PowerButtonPos", layout.PowerButton.Position);
+    layout.PowerButton.IsVisible = ini.Get_Bool(section, "PowerButtonVisible", layout.PowerButton.IsVisible);
+    layout.WaypointButton.Position = ini.Get_Point(section, "WaypointButtonPos", layout.WaypointButton.Position);
+    layout.WaypointButton.IsVisible = ini.Get_Bool(section, "WaypointButtonVisible", layout.WaypointButton.IsVisible);
+    layout.PowerBarPosition = ini.Get_Point(section, "PowerBarPos", layout.PowerBarPosition);
+
+    Read_String_Key(ini, section, "SidebarShape", layout.SidebarShape);
+    Read_String_Key(ini, section, "SidebarMiddleShape", layout.SidebarMiddleShape);
+    Read_String_Key(ini, section, "SidebarBottomShape", layout.SidebarBottomShape);
+    Read_String_Key(ini, section, "SidebarAddonShape", layout.SidebarAddonShape);
+    Read_String_Key(ini, section, "ClockShape", layout.ClockShape);
+    Read_String_Key(ini, section, "RechargeClockShape", layout.RechargeClockShape);
+    Read_String_Key(ini, section, "DarkenShape", layout.DarkenShape);
+    Read_String_Key(ini, section, "ScrollUpButtonShape", layout.ScrollUpButtonShape);
+    Read_String_Key(ini, section, "ScrollDownButtonShape", layout.ScrollDownButtonShape);
+    Read_String_Key(ini, section, "RepairButtonShape", layout.RepairButtonShape);
+    Read_String_Key(ini, section, "SellButtonShape", layout.SellButtonShape);
+    Read_String_Key(ini, section, "PowerButtonShape", layout.PowerButtonShape);
+    Read_String_Key(ini, section, "WaypointButtonShape", layout.WaypointButtonShape);
+    Read_String_Key(ini, section, "PowerPipShape", layout.PowerPipShape);
+}
+}
 
 
 /**
@@ -102,7 +144,6 @@ UIControlsClass::UIControlsClass() :
     IsNavComQueueLineThick(false),
     NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
     NavComQueueLineDropShadowColor{ 0, 0, 0 },
-    SidebarLayout(),
     ClassicSidebarLayoutConfig(),
     TabbedSidebarLayoutConfig(),
     BattleSidebarViewType(SIDEBAR_CLASSIC),
@@ -147,6 +188,36 @@ UIControlsClass::~UIControlsClass()
 }
 
 
+void UIControlsClass::Reset_To_Defaults()
+{
+    *this = UIControlsClass();
+}
+
+
+bool UIControlsClass::Read_INI_File(const char* filename, bool reset_to_defaults)
+{
+    if (reset_to_defaults) {
+        Reset_To_Defaults();
+    }
+
+    if (filename == nullptr || filename[0] == '\0') {
+        return false;
+    }
+
+    CCFileClass file(filename);
+    if (!file.Is_Available()) {
+        return false;
+    }
+
+    CCINIClass ini;
+    if (!ini.Load(file, false)) {
+        return false;
+    }
+
+    return Read_INI(ini);
+}
+
+
 /**
  *  Process the UI controls from INI.
  *  
@@ -158,20 +229,6 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     static char const * const SIDEBAR_SECTION = "Sidebar";
     static char const * const SIDEBAR_CLASSIC_SECTION = "SidebarClassic";
     static char const * const SIDEBAR_TABBED_SECTION = "SidebarTabbed";
-    const TPoint2D<int> auto_position(INT_MIN, INT_MIN);
-
-    /**
-     *  These entries are optional: when they are absent, the buttons should
-     *  snap back to auto-placement derived from the current strip layout.
-     *  UI.INI can be re-read during developer reloads, so clear them back to
-     *  the sentinel before applying INI values.
-     */
-    ClassicSidebarLayoutConfig.LeftUpButtonPosition = auto_position;
-    ClassicSidebarLayoutConfig.LeftDownButtonPosition = auto_position;
-    ClassicSidebarLayoutConfig.RightUpButtonPosition = auto_position;
-    ClassicSidebarLayoutConfig.RightDownButtonPosition = auto_position;
-    TabbedSidebarLayoutConfig.UpButtonPosition = auto_position;
-    TabbedSidebarLayoutConfig.DownButtonPosition = auto_position;
 
     char sidebar_view[64];
     ini.Get_String(SIDEBAR_SECTION, "ViewType", BattleSidebarViewType == SIDEBAR_TABBED ? "Tabbed" : "Classic", sidebar_view, sizeof(sidebar_view));
@@ -242,16 +299,7 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     NavComQueueLineColor = ini.Get_RGBColor(INGAME, "NavComQueueLineColor", NavComQueueLineColor);
     NavComQueueLineDropShadowColor = ini.Get_RGBColor(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
 
-    SidebarLayout.RepairButton.Position = ini.Get_Point(SIDEBAR_SECTION, "RepairButtonPos", SidebarLayout.RepairButton.Position);
-    SidebarLayout.RepairButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "RepairButtonVisible", SidebarLayout.RepairButton.IsVisible);
-    SidebarLayout.SellButton.Position = ini.Get_Point(SIDEBAR_SECTION, "SellButtonPos", SidebarLayout.SellButton.Position);
-    SidebarLayout.SellButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "SellButtonVisible", SidebarLayout.SellButton.IsVisible);
-    SidebarLayout.PowerButton.Position = ini.Get_Point(SIDEBAR_SECTION, "PowerButtonPos", SidebarLayout.PowerButton.Position);
-    SidebarLayout.PowerButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "PowerButtonVisible", SidebarLayout.PowerButton.IsVisible);
-    SidebarLayout.WaypointButton.Position = ini.Get_Point(SIDEBAR_SECTION, "WaypointButtonPos", SidebarLayout.WaypointButton.Position);
-    SidebarLayout.WaypointButton.IsVisible = ini.Get_Bool(SIDEBAR_SECTION, "WaypointButtonVisible", SidebarLayout.WaypointButton.IsVisible);
-    SidebarLayout.PowerBarPosition = ini.Get_Point(SIDEBAR_SECTION, "PowerBarPos", SidebarLayout.PowerBarPosition);
-
+    Read_Battle_Sidebar_Config(ini, SIDEBAR_CLASSIC_SECTION, ClassicSidebarLayoutConfig);
     ClassicSidebarLayoutConfig.LeftStripPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "LeftStripPos", ClassicSidebarLayoutConfig.LeftStripPosition);
     ClassicSidebarLayoutConfig.RightStripPosition = ini.Get_Point(SIDEBAR_CLASSIC_SECTION, "RightStripPos", ClassicSidebarLayoutConfig.RightStripPosition);
     ClassicSidebarLayoutConfig.VisibleRows = ini.Get_Int(SIDEBAR_CLASSIC_SECTION, "VisibleRows", ClassicSidebarLayoutConfig.VisibleRows);
@@ -265,6 +313,7 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     ClassicSidebarLayoutConfig.IsRightUpButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightUpButtonVisible", ClassicSidebarLayoutConfig.IsRightUpButtonVisible);
     ClassicSidebarLayoutConfig.IsRightDownButtonVisible = ini.Get_Bool(SIDEBAR_CLASSIC_SECTION, "RightDownButtonVisible", ClassicSidebarLayoutConfig.IsRightDownButtonVisible);
 
+    Read_Battle_Sidebar_Config(ini, SIDEBAR_TABBED_SECTION, TabbedSidebarLayoutConfig);
     TabbedSidebarLayoutConfig.TabButtonPosition[0] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab1Pos", TabbedSidebarLayoutConfig.TabButtonPosition[0]);
     TabbedSidebarLayoutConfig.TabButtonPosition[1] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab2Pos", TabbedSidebarLayoutConfig.TabButtonPosition[1]);
     TabbedSidebarLayoutConfig.TabButtonPosition[2] = ini.Get_Point(SIDEBAR_TABBED_SECTION, "Tab3Pos", TabbedSidebarLayoutConfig.TabButtonPosition[2]);
@@ -277,6 +326,10 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     TabbedSidebarLayoutConfig.DownButtonPosition = ini.Get_Point(SIDEBAR_TABBED_SECTION, "DownButtonPos", TabbedSidebarLayoutConfig.DownButtonPosition);
     TabbedSidebarLayoutConfig.IsUpButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "UpButtonVisible", TabbedSidebarLayoutConfig.IsUpButtonVisible);
     TabbedSidebarLayoutConfig.IsDownButtonVisible = ini.Get_Bool(SIDEBAR_TABBED_SECTION, "DownButtonVisible", TabbedSidebarLayoutConfig.IsDownButtonVisible);
+    Read_String_Key(ini, SIDEBAR_TABBED_SECTION, "StructureTabShape", TabbedSidebarLayoutConfig.StructureTabShape);
+    Read_String_Key(ini, SIDEBAR_TABBED_SECTION, "InfantryTabShape", TabbedSidebarLayoutConfig.InfantryTabShape);
+    Read_String_Key(ini, SIDEBAR_TABBED_SECTION, "UnitTabShape", TabbedSidebarLayoutConfig.UnitTabShape);
+    Read_String_Key(ini, SIDEBAR_TABBED_SECTION, "SpecialTabShape", TabbedSidebarLayoutConfig.SpecialTabShape);
 
     BeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "BeaconAnimFramesPerSecond", BeaconAnimFramesPerSecond);
     RadarBeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "RadarBeaconAnimFramesPerSecond", RadarBeaconAnimFramesPerSecond);

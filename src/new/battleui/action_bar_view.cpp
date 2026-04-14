@@ -41,10 +41,9 @@
 
 namespace
 {
-const SidebarSharedLayout& Get_Sidebar_Layout()
+const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 {
-    static const SidebarSharedLayout default_layout;
-    return UIControls != nullptr ? UIControls->SidebarLayout : default_layout;
+    return UIControls->Get_Battle_Sidebar_Config(view_type);
 }
 }
 
@@ -108,16 +107,18 @@ void ActionBarView::Init_For_House()
         return;
     }
 
-    Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
+    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
+
+    Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.SellButtonShape.c_str()));
     Sell.ShapeDrawer = SidebarDrawer;
 
-    PowerBtn.Set_Shape(MFCD::RetrieveT<ShapeSet>("POWER.SHP"));
+    PowerBtn.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.PowerButtonShape.c_str()));
     PowerBtn.ShapeDrawer = SidebarDrawer;
 
-    Waypoint.Set_Shape(MFCD::RetrieveT<ShapeSet>("WAYP.SHP"));
+    Waypoint.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.WaypointButtonShape.c_str()));
     Waypoint.ShapeDrawer = SidebarDrawer;
 
-    Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>("REPAIR.SHP"));
+    Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.RepairButtonShape.c_str()));
     Repair.ShapeDrawer = SidebarDrawer;
 }
 
@@ -133,7 +134,7 @@ void ActionBarView::Set_Dimensions()
         Activate(0);
     }
 
-    const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
     ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
     const SidebarButtonLayout* button_layouts[] = {
         &layout.RepairButton,
@@ -165,7 +166,7 @@ void ActionBarView::Activate(int control)
     IsActive = control != 0;
 
     if (control) {
-        const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+        const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
         ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
         const bool button_visible[] = {
             layout.RepairButton.IsVisible,
@@ -242,7 +243,7 @@ void ActionBarView::Draw()
     Surface* oldsurface = LogicalSurface;
     LogicalSurface = SidebarSurface;
 
-    const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
 
     if (layout.RepairButton.IsVisible) {
         Repair.Draw_Me(true);
@@ -285,7 +286,7 @@ void ActionBarView::Register_Tooltips()
         return;
     }
 
-    const SidebarSharedLayout& layout = Get_Sidebar_Layout();
+    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
     ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
     const SidebarButtonLayout* button_layouts[] = {
         &layout.RepairButton,

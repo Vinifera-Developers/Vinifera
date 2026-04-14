@@ -340,7 +340,8 @@ void Update_Item_Production_State(SidebarComponent& sidebar, BuildItem& item)
  *  @author: ZivDero
  */
 SidebarComponent::SidebarComponent() :
-    ActiveView(nullptr)
+    ActiveView(nullptr),
+    ActiveViewType(SIDEBAR_CLASSIC)
 {
 }
 
@@ -363,10 +364,8 @@ SidebarComponent::~SidebarComponent()
  */
 void SidebarComponent::One_Time()
 {
-    SidebarViewType view_type = SIDEBAR_CLASSIC;
-    if (UIControls != nullptr) {
-        view_type = UIControls->BattleSidebarViewType;
-    }
+    SidebarViewType view_type = UIControls->BattleSidebarViewType;
+    ActiveViewType = view_type;
 
     /**
      *  Create the view based on configuration.
@@ -385,6 +384,8 @@ void SidebarComponent::One_Time()
             break;
         }
     }
+
+    ActionBar.Set_Sidebar_View_Type(ActiveViewType);
 
     if (ActiveView) {
         ActiveView->One_Time();

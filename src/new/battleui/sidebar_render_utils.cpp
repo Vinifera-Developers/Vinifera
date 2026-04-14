@@ -103,9 +103,11 @@ void Draw_Cameo(Surface& surface, const Rect& rect, const BuildItem& item, const
  *
  *  @author: ZivDero
  */
-void Draw_Clock_Overlay(Surface& surface, ConvertClass& drawer, const Rect& rect, const Point2D& point, int stage)
+void Draw_Clock_Overlay(Surface& surface, ConvertClass& drawer, const ShapeSet* shape, const Rect& rect, const Point2D& point, int stage)
 {
-    Draw_Shape(surface, drawer, SidebarClass::StripClass::ClockShape, stage + 1, point, rect, SHAPE_WIN_REL | SHAPE_TRANS50);
+    if (shape != nullptr) {
+        Draw_Shape(surface, drawer, shape, stage + 1, point, rect, SHAPE_WIN_REL | SHAPE_TRANS50);
+    }
 }
 
 
@@ -114,9 +116,11 @@ void Draw_Clock_Overlay(Surface& surface, ConvertClass& drawer, const Rect& rect
  *
  *  @author: ZivDero
  */
-void Draw_Recharge_Clock(Surface& surface, ConvertClass& drawer, const Rect& rect, const Point2D& point, int stage)
+void Draw_Recharge_Clock(Surface& surface, ConvertClass& drawer, const ShapeSet* shape, const Rect& rect, const Point2D& point, int stage)
 {
-    Draw_Shape(surface, drawer, SidebarClass::StripClass::RechargeClockShape, stage + 1, point, rect, SHAPE_WIN_REL | SHAPE_TRANS50);
+    if (shape != nullptr) {
+        Draw_Shape(surface, drawer, shape, stage + 1, point, rect, SHAPE_WIN_REL | SHAPE_TRANS50);
+    }
 }
 
 
@@ -125,9 +129,11 @@ void Draw_Recharge_Clock(Surface& surface, ConvertClass& drawer, const Rect& rec
  *
  *  @author: ZivDero
  */
-void Draw_Darken_Overlay(Surface& surface, ConvertClass& drawer, const Rect& rect, const Point2D& point)
+void Draw_Darken_Overlay(Surface& surface, ConvertClass& drawer, const ShapeSet* shape, const Rect& rect, const Point2D& point)
 {
-    Draw_Shape(surface, drawer, SidebarClass::StripClass::DarkenShape, 0, point, rect, SHAPE_WIN_REL | SHAPE_DARKEN);
+    if (shape != nullptr) {
+        Draw_Shape(surface, drawer, shape, 0, point, rect, SHAPE_WIN_REL | SHAPE_DARKEN);
+    }
 }
 
 

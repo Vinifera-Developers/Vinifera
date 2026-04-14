@@ -45,6 +45,7 @@ class BuildCategory;
 struct BuildItem;
 class CameoButtonClass;
 class Surface;
+class ShapeSet;
 
 
 /**
@@ -55,6 +56,28 @@ class Surface;
 class SidebarStripView : public StageClass
 {
 public:
+    struct StripArt
+    {
+        StripArt() :
+            ScrollUpButtonShape(nullptr),
+            ScrollDownButtonShape(nullptr),
+            DarkenShape(nullptr),
+            ClockShape(nullptr),
+            RechargeClockShape(nullptr),
+            BackgroundTopHeight(0),
+            BackgroundBottomHeight(0)
+        {
+        }
+
+        const ShapeSet* ScrollUpButtonShape;
+        const ShapeSet* ScrollDownButtonShape;
+        const ShapeSet* DarkenShape;
+        const ShapeSet* ClockShape;
+        const ShapeSet* RechargeClockShape;
+        int BackgroundTopHeight;
+        int BackgroundBottomHeight;
+    };
+
     struct StripLayout
     {
         static constexpr int AUTO_POSITION = INT_MIN;
@@ -103,8 +126,9 @@ public:
     void One_Time(int id);
     void Init_Clear();
     void Init_IO(int id, int columns = 2);
-    void Init_For_House(int id);
+    void Init_For_House();
     void Set_Layout(const StripLayout& layout);
+    void Set_Art(const StripArt& art);
     void Set_Dimensions();
     void Activate();
     void Deactivate();
@@ -144,6 +168,7 @@ public:
 
     BuildCategory* Category;
     StripLayout Layout;
+    StripArt Art;
 
     ShapeButtonClass UpButton;
     ShapeButtonClass DownButton;

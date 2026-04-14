@@ -32,6 +32,8 @@
 #include "sidebar_strip_view.h"
 #include "sidebar_view.h"
 
+class ShapeSet;
+
 
 class ClassicSidebarView : public ISidebarView
 {
@@ -73,6 +75,14 @@ public:
     virtual int Visible_Buttons_Per_Column() const override;
 
 private:
+    int Background_Row_Count() const;
+
     SidebarStripView Strip[COLUMN_COUNT];
     SidebarClass::SBGadgetClass Background;
+    const ShapeSet* BackgroundTopShape;
+    const ShapeSet* BackgroundMiddleShape;
+    const ShapeSet* BackgroundBottomShape;
+    const ShapeSet* BackgroundAddonShape;
+    const ShapeSet* ClockShape;
+    const ShapeSet* RechargeClockShape;
 };

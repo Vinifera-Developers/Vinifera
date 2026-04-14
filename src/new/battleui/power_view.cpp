@@ -55,13 +55,15 @@ const ShapeSet *PowerView::PowerPipShape = nullptr;
 
 namespace
 {
-TPoint2D<int> Get_Power_Bar_Position()
+const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 {
-    if (UIControls != nullptr) {
-        return UIControls->SidebarLayout.PowerBarPosition;
-    }
+    return UIControls->Get_Battle_Sidebar_Config(view_type);
+}
 
-    return TPoint2D<int>(PowerView::POWER_X, PowerView::POWER_Y);
+
+TPoint2D<int> Get_Power_Bar_Position(SidebarViewType view_type)
+{
+    return Get_Sidebar_Layout(view_type).PowerBarPosition;
 }
 }
 
@@ -81,7 +83,8 @@ PowerView::PowerView() :
     YellowPipCount(0),
     RedPipCount(0),
     VisibleButtonsPerColumn(SidebarClass::StripClass::MAX_VISIBLE),
-    IsChanged(false)
+    IsChanged(false),
+    ViewType(SIDEBAR_CLASSIC)
 {
 }
 
@@ -122,7 +125,8 @@ void PowerView::Init_Clear()
  */
 void PowerView::Init_For_House()
 {
-    PowerPipShape = MFCD::RetrieveT<ShapeSet>("POWERP.SHP");
+    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
+    PowerPipShape = MFCD::RetrieveT<ShapeSet>(layout.PowerPipShape.c_str());
 }
 
 
@@ -134,7 +138,7 @@ void PowerView::Init_For_House()
 void PowerView::Set_Dimensions()
 {
     if (ToolTips != nullptr) {
-        const TPoint2D<int> power_bar_position = Get_Power_Bar_Position();
+        const TPoint2D<int> power_bar_position = Get_Power_Bar_Position(ViewType);
         ToolTip tt;
         tt.Text = TXT_NONE;
         tt.ID = GADGET_POWER;
@@ -460,7 +464,7 @@ void PowerView::Draw()
     RedrawSidebar = true;
 
     Rect rect = SidebarSurface->Get_Rect();
-    const TPoint2D<int> power_bar_position = Get_Power_Bar_Position();
+    const TPoint2D<int> power_bar_position = Get_Power_Bar_Position(ViewType);
     int x = power_bar_position.X;
     int y = SidebarRect.Y + power_bar_position.Y;
 

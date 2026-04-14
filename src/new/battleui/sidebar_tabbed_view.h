@@ -162,6 +162,7 @@ public:
     const SidebarStripView& Current_Strip() const { return Strip[TabIndex]; }
 
 private:
+    int Background_Row_Count() const;
     void Tab_Button_AI(int tab_index);
 
 public:
@@ -169,4 +170,10 @@ public:
     SidebarStripView Strip[SIDEBAR_TAB_COUNT];
     TabButtonClass TabButtons[SIDEBAR_TAB_COUNT];
     SidebarClass::SBGadgetClass Background;
+    const ShapeSet* BackgroundTopShape;
+    const ShapeSet* BackgroundMiddleShape;
+    const ShapeSet* BackgroundBottomShape;
+    const ShapeSet* BackgroundAddonShape;
+    const ShapeSet* ClockShape;
+    const ShapeSet* RechargeClockShape;
 };

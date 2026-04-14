@@ -60,6 +60,7 @@ public:
     virtual const char *Help_Text(int gadget_id) override;
 
     void Set_Visible_Buttons_Per_Column(int count);
+    void Set_Sidebar_View_Type(SidebarViewType view_type);
     void Flash_Power();
 
     PowerModel &Get_Model() { return Model; }
