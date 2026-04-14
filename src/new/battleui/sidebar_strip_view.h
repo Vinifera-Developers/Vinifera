@@ -176,8 +176,8 @@ public:
 
 private:
     int Available_Content_Height() const;
-    int Effective_Row_Pitch() const;
-    int Effective_Column_Spacing() const;
+    int Row_Pitch() const;
+    int Column_Spacing() const;
     int Scroll_Step() const;
     Point2D Resolve_Up_Button_Position() const;
     Point2D Resolve_Down_Button_Position() const;

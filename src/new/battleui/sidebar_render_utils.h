@@ -81,7 +81,7 @@ void Draw_Hover_Highlight(Surface& surface, const Rect& cameo_rect);
 /**
  *  Draws the cameo name text below the icon.
  */
-void Draw_Cameo_Name(Surface& surface, const Rect& rect, const Point2D& point, const char* name, int object_width);
+void Draw_Cameo_Name(const Rect& rect, const Point2D& point, const char* name, int object_width);
 
 /**
  *  Formats the tooltip text for a BuildItem (name, cost, description).

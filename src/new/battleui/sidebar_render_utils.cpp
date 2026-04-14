@@ -197,12 +197,10 @@ void Draw_Hover_Highlight(Surface& surface, const Rect& cameo_rect)
  *
  *  @author: ZivDero
  */
-void Draw_Cameo_Name(Surface& surface, const Rect& rect, const Point2D& point, const char* name, int object_width)
+void Draw_Cameo_Name(const Rect& rect, const Point2D& point, const char* name, int object_width)
 {
     if (name != nullptr) {
-        Point2D pt = point;
-        Rect r = rect;
-        Print_Cameo_Text(name, pt, r, object_width);
+        Print_Cameo_Text(name, point, rect, object_width);
     }
 }
 
