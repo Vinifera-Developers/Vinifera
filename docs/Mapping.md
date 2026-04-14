@@ -29,6 +29,17 @@ Not all tools properly support this feature yet, and may crash or corrupt the ma
 
 - Additionally, variables are now signed 32-bit integer numbers, allowing for greater flexibility during scripting. To make use of this feature, use new actions/events. Vanilla actions/events will treat 0 as false, and any other number as true.
 
+## Destroyed Only Trigger Event
+
+Adds a new trigger event that strictly occurs only when attached object is destroyed.
+
+* Changing houses, capturing it, and selling it doesn't count.
+* Destruction trigger event persists even when captured - very useful for "Capture and Keep Safe" missions.
+* Works well with Entered By by linking triggers together - if you want to react to the structure being captured
+* Also works well with the Building Exists trigger.
+
+This trigger event can be used in WAE, similarly to other 'Destroyed By' trigger events.
+
 ## Campaign Settings
 
 ### Intro Movie
@@ -304,4 +315,3 @@ Do not specify extra arguments for trigger actions that don't require them!
 |          | True if a local variable is less than a global variable.                             | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
 | 79       | Local Less Than Local                                                                |                   |                     |                     |                        |
 |          | True if a local variable is less than another local variable.                        | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
-
