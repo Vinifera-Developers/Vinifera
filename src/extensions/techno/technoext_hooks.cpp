@@ -127,7 +127,7 @@ public:
     int _Refund_Amount() const;
     bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
     bool _Should_Self_Heal_Now() const;
-    TechnoClass* Find_Trainable_Ally(TechnoClass * source);
+    TechnoClass* Find_Trainable_Ally(TechnoClass * source) const;
 };
 
 
@@ -1328,22 +1328,20 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         const auto source_ext = Extension::Fetch(source);
         const auto source_typeext = Extension::Fetch(source->TClass);
 
-        if (source->TClass->IsTrainable) {            
-            if (RuleExtension->ExperienceShare) {
-                if (!source->Crew.IsElite) {
-                    source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
-                } else {
-                    TechnoClass* techno = Find_Trainable_Ally(source);
-                    if (techno) {
-                        int shared_points = std::max(1, (int)(points * RuleExtension->ExperienceSharePercentage));
-                        techno->Crew.Made_A_Kill(techno->TClass->Cost_Of(House), shared_points);
-                    }
-                }
-            } else {
-                source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
-            }
-        } else if (source_typeext->IsMissileSpawn) {
+        if (source->TClass->IsTrainable) {
+            TechnoClass* techno_to_grant_points = source;
+            int points_to_grant = points;
 
+            if (RuleExtension->ExperienceShare && source->Crew.IsElite) {
+                TechnoClass* techno = Find_Trainable_Ally(source);
+                if (techno) {
+                    points_to_grant = std::max(1, (int)(points * RuleExtension->ExperienceSharePercentage));
+                    techno_to_grant_points = techno;
+                }
+            }
+
+            techno_to_grant_points->Crew.Made_A_Kill(techno_to_grant_points->TClass->Cost_Of(House), points_to_grant);
+        } else if (source_typeext->IsMissileSpawn) {
             if (source_ext->SpawnOwner && source_ext->SpawnOwner->TClass->IsTrainable) {
                 source_ext->SpawnOwner->Crew.Made_A_Kill(source_ext->SpawnOwner->TClass->Cost_Of(House), points);
             }
@@ -3178,7 +3176,7 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     return false;
 }
 
-TechnoClass* TechnoClassExt::Find_Trainable_Ally(TechnoClass* source) {
+TechnoClass* TechnoClassExt::Find_Trainable_Ally(TechnoClass* source) const {
     int experience_share_range = RuleExtension->ExperienceShareRange;
     if (experience_share_range <= 0) {
         return nullptr;
