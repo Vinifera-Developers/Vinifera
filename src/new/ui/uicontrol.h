@@ -69,6 +69,7 @@ struct BattleSidebarLayoutBase
     TPoint2D<int> PowerBarPosition = {8, 25};
     int PowerBarWidth = 12;
     int PowerPipHeight = 4;
+    int PowerBarHeightAdjust = 1;
     TPoint2D<int> CameoSize = {64, 51};
     int CameoNameOffset = 41;
     TPoint2D<int> CameoTextOffset = {30, 2};
@@ -111,6 +112,7 @@ struct SidebarClassicLayout : BattleSidebarLayoutBase
 
 struct SidebarTabbedLayout : BattleSidebarLayoutBase
 {
+    SidebarTabbedLayout() { PowerBarHeightAdjust = 28; }
     void Read_INI(CCINIClass const& ini, const char* section) override;
 
     TPoint2D<int> TabButtonPosition[4] = { {20, 24}, {55, 24}, {90, 24}, {125, 24} };

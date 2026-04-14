@@ -195,7 +195,8 @@ void PowerView::Flash_Power()
  */
 int PowerView::Max_Power_Height() const
 {
-    return Get_Sidebar_Layout(ViewType).CameoSize.Y * VisibleButtonsPerColumn / Get_Power_Pip_Height(ViewType);
+    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
+    return (layout.CameoSize.Y * VisibleButtonsPerColumn + layout.PowerBarHeightAdjust) / Get_Power_Pip_Height(ViewType);
 }
 
 

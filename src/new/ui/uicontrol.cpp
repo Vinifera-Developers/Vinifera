@@ -108,6 +108,7 @@ void SidebarClassicLayout::Read_INI(CCINIClass const& ini, const char* section)
     IsLeftDownButtonVisible = ini.Get_Bool(section, "LeftDownButtonVisible", IsLeftDownButtonVisible);
     IsRightUpButtonVisible = ini.Get_Bool(section, "RightUpButtonVisible", IsRightUpButtonVisible);
     IsRightDownButtonVisible = ini.Get_Bool(section, "RightDownButtonVisible", IsRightDownButtonVisible);
+    PowerBarHeightAdjust = ini.Get_Int(section, "PowerBarHeightAdjust", PowerBarHeightAdjust);
 }
 
 
@@ -136,6 +137,7 @@ void SidebarTabbedLayout::Read_INI(CCINIClass const& ini, const char* section)
     InfantryTabShape = ini.Get_String(section, "InfantryTabShape", InfantryTabShape);
     UnitTabShape = ini.Get_String(section, "UnitTabShape", UnitTabShape);
     SpecialTabShape = ini.Get_String(section, "SpecialTabShape", SpecialTabShape);
+    PowerBarHeightAdjust = ini.Get_Int(section, "PowerBarHeightAdjust", PowerBarHeightAdjust);
 }
 
 
