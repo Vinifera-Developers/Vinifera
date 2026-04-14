@@ -3176,13 +3176,20 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     return false;
 }
 
+/*
+* Finds an allied unit in a radius around the source unit.
+* The unit must be both allied to the source
+* and capable of being trained, i.e. not Elite and has IsTrainable set to true.
+* Used to grant that source unit experience for getting veterancy.
+* Requires the 'ExperienceShareRange' key to be a positive value.
+*/
 TechnoClass* TechnoClassExt::Find_Trainable_Ally(TechnoClass* source) const {
     int experience_share_range = RuleExtension->ExperienceShareRange;
     if (experience_share_range <= 0) {
         return nullptr;
     }
 
-    ObjectClass* object; // Working object pointer
+    ObjectClass* object;
 
     Coord coord = source->Center_Coord();
     Cell cell = coord.As_Cell();
@@ -3195,7 +3202,7 @@ TechnoClass* TechnoClassExt::Find_Trainable_Ally(TechnoClass* source) const {
     const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Height_GL(coord);
 
     /**
-     *  Find an ally that can be trained from the nearby cells.
+     * Find an ally that can be trained from the nearby cells.
      * The units can be lifted from the cell data directly.
      */
     for (int x = -cell_radius; x <= cell_radius; x++) {
@@ -3210,8 +3217,7 @@ TechnoClass* TechnoClassExt::Find_Trainable_Ally(TechnoClass* source) const {
 
 
             /**
-             *  Add all objects in this cell to the list of objects to possibly apply
-             *  damage to.
+             *  Check all objects in this cell to try and find a valid trainable techno to return.
              */
             object = cellptr->Cell_Occupier(isbridge);
             while (object) {
