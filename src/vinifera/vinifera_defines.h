@@ -286,6 +286,7 @@ typedef enum ExtTEventType
     EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT,
     EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL,
     EXT_TEVENT_LOCAL_LESS_THAN_LOCAL,
+    EXT_TEVENT_DESTROYED_ONLY,
 
     /**
      *  The new total ExtTEventType count.
