@@ -1328,19 +1328,18 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         const auto source_ext = Extension::Fetch(source);
         const auto source_typeext = Extension::Fetch(source->TClass);
 
-        if (source->TClass->IsTrainable) {
-            // pretend there's an if here for checking spreading experience
-            if (true) {
+        if (source->TClass->IsTrainable) {            
+            if (RuleExtension->ExperienceShare) {
                 if (!source->Crew.IsElite) {
                     source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
                 } else {
                     TechnoClass* techno = Find_Trainable_Ally(source);
                     if (techno) {
-                        techno->Crew.Made_A_Kill(techno->TClass->Cost_Of(House), points);
+                        int shared_points = std::max(1, (int)(points * RuleExtension->ExperienceSharePercentage));
+                        techno->Crew.Made_A_Kill(techno->TClass->Cost_Of(House), shared_points);
                     }
                 }
             } else {
-                // original behavior
                 source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
             }
         } else if (source_typeext->IsMissileSpawn) {
@@ -3180,13 +3179,18 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
 }
 
 TechnoClass* TechnoClassExt::Find_Trainable_Ally(TechnoClass* source) {
+    int experience_share_range = RuleExtension->ExperienceShareRange;
+    if (experience_share_range <= 0) {
+        return nullptr;
+    }
+
     ObjectClass* object; // Working object pointer
 
     Coord coord = source->Center_Coord();
     Cell cell = coord.As_Cell();
     CellClass* cellptr = &Map[cell];
 
-    int range = 5 * CELL_LEPTON_W; // replace 5 with search range value from Rules
+    int range = experience_share_range * CELL_LEPTON_W;
 
     int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
 

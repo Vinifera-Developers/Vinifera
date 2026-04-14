@@ -106,6 +106,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     DetectBeaconVoice(VOX_NONE),
     SelfHealingCap(-1),
     SelfHealingRate(-1),
+    ExperienceShare(false),
+    ExperienceShareRange(-1),
+    ExperienceSharePercentage(1.0),
     IsBeachIsCrush(false),
     BuildingFlameSpawnBlockFrames(0)
 {
@@ -676,6 +679,9 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
     SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
     SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
+    ExperienceShare = ini.Get_Bool(GENERAL, "ExperienceShare", ExperienceShare);
+    ExperienceShareRange = ini.Get_Int(GENERAL, "ExperienceShareRange", ExperienceShareRange);
+    ExperienceSharePercentage = ini.Get_Float(GENERAL, "ExperienceSharePercentage", ExperienceSharePercentage);    
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

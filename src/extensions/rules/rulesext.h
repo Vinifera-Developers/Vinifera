@@ -212,6 +212,24 @@ public:
     double SelfHealingRate;
 
     /**
+    * Defines whether units that are Elite will share their experience with other non-Elite units.
+    */
+    bool ExperienceShare;
+
+    /**
+     * Defines the range in cells that Elite units will share their experience.
+     * Requires 'ExperienceShare' to be enabled.
+     */
+    int ExperienceShareRange;
+
+    /**
+     * Defines the percentage that Elite units will share their experience with other units.
+     * Does not affect the amount of experience the unit itself gets if it takes the XP for itself.
+     * Requires 'ExperienceShare' to be enabled.
+     */
+    float ExperienceSharePercentage;
+
+    /**
      *  Is LandType Beach considered as "requires crushing" for passability purposes, as opposed to water?
      */
     bool IsBeachIsCrush;
