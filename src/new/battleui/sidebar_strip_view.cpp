@@ -667,6 +667,8 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
             y -= Effective_Row_Pitch() - Slid;
         }
 
+        const int draw_y = SidebarRect.Y + y;
+
         /**
          *  Fetch the data for the object at this index.
          */
@@ -725,7 +727,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
             /**
              *  Draw the cameo icon.
              */
-            Point2D drawpoint(x, y);
+            Point2D drawpoint(x, draw_y);
             Draw_Cameo(surface, rect, item, drawpoint);
 
             /**
@@ -734,7 +736,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
             if (i < SelectButtons.Count()) {
                 bool over = SelectButtons[i]->IsMousedOver;
                 if (over && !Scen->InputLock && !darken) {
-                    Rect cameo_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
+                    Rect cameo_rect(x, draw_y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
                     Draw_Hover_Highlight(surface, cameo_rect);
                 }
             }
@@ -743,7 +745,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
              *  Darken unavailable items.
              */
             if (darken) {
-                Point2D dp(x, y);
+                Point2D dp(x, draw_y);
                 Draw_Darken_Overlay(surface, *SidebarDrawer, Art.DarkenShape, rect, dp);
             }
 
@@ -751,7 +753,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
              *  Draw the cameo name.
              */
             if (name != nullptr) {
-                Point2D namepoint(x, y + OBJECT_NAME_OFFSET);
+                Point2D namepoint(x, draw_y + OBJECT_NAME_OFFSET);
                 Draw_Cameo_Name(surface, rect, namepoint, name, OBJECT_WIDTH);
             }
 
@@ -767,7 +769,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
                     if (total > 1
                         || (total > 0 && (queued_factory->Object == nullptr
                             || (queued_factory->Object->TClass != nullptr && queued_factory->Object->TClass != obj)))) {
-                        Point2D qp(x + QUEUE_COUNT_X_OFFSET, y + TEXT_Y_OFFSET);
+                        Point2D qp(x + QUEUE_COUNT_X_OFFSET, draw_y + TEXT_Y_OFFSET);
                         Draw_Queue_Count(surface, rect, qp, total);
                         has_queue_count = true;
                     }
@@ -779,12 +781,12 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
              */
             if (production) {
                 if (state != nullptr) {
-                    Point2D sp(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
+                    Point2D sp(x + TEXT_X_OFFSET, draw_y + TEXT_Y_OFFSET);
                     Draw_Ready_Text(surface, rect, sp, state, 0);
                 }
 
                 if (!completed) {
-                    Point2D cp(x, y);
+                    Point2D cp(x, draw_y);
                     if (isready) {
                         Draw_Recharge_Clock(surface, *SidebarDrawer, Art.RechargeClockShape, rect, cp, stage);
                     } else {
@@ -795,7 +797,7 @@ void SidebarStripView::Draw_Strip_Items(Surface& surface, const Rect& rect)
                      *  Display "HOLD" text if production is paused.
                      */
                     if (factory != nullptr && item.Is_On_Hold()) {
-                        Point2D hp(x, y + TEXT_Y_OFFSET);
+                        Point2D hp(x, draw_y + TEXT_Y_OFFSET);
                         Draw_Hold_Text(surface, rect, hp, OBJECT_WIDTH, has_queue_count);
                     }
                 }
