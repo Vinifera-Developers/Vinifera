@@ -52,134 +52,74 @@ enum SidebarViewType {
 
 struct SidebarButtonLayout
 {
-    SidebarButtonLayout(const TPoint2D<int>& position = TPoint2D<int>(0, 0), bool visible = true) :
-        Position(position),
-        IsVisible(visible)
-    {
-    }
-
-    TPoint2D<int> Position;
-    bool IsVisible;
+    TPoint2D<int> Position = {0, 0};
+    bool IsVisible = true;
 };
 
 
 struct BattleSidebarLayoutBase
 {
-    BattleSidebarLayoutBase() :
-        RepairButton(TPoint2D<int>(31, -9), true),
-        SellButton(TPoint2D<int>(58, -9), true),
-        PowerButton(TPoint2D<int>(85, -9), true),
-        WaypointButton(TPoint2D<int>(112, -9), true),
-        PowerBarPosition(8, 25),
-        SidebarShape("SIDE1.SHP"),
-        SidebarMiddleShape("SIDE2.SHP"),
-        SidebarBottomShape("SIDE3.SHP"),
-        SidebarAddonShape("ADDON.SHP"),
-        ClockShape("GCLOCK2.SHP"),
-        RechargeClockShape("RCLOCK2.SHP"),
-        DarkenShape("DARKEN.SHP"),
-        ScrollUpButtonShape("R-UP.SHP"),
-        ScrollDownButtonShape("R-DN.SHP"),
-        RepairButtonShape("REPAIR.SHP"),
-        SellButtonShape("SELL.SHP"),
-        PowerButtonShape("POWER.SHP"),
-        WaypointButtonShape("WAYP.SHP"),
-        PowerPipShape("POWERP.SHP")
-    {
-    }
+    virtual ~BattleSidebarLayoutBase() = default;
+    virtual void Read_INI(CCINIClass const& ini, const char* section);
 
-    SidebarButtonLayout RepairButton;
-    SidebarButtonLayout SellButton;
-    SidebarButtonLayout PowerButton;
-    SidebarButtonLayout WaypointButton;
-    TPoint2D<int> PowerBarPosition;
-    std::string SidebarShape;
-    std::string SidebarMiddleShape;
-    std::string SidebarBottomShape;
-    std::string SidebarAddonShape;
-    std::string ClockShape;
-    std::string RechargeClockShape;
-    std::string DarkenShape;
-    std::string ScrollUpButtonShape;
-    std::string ScrollDownButtonShape;
-    std::string RepairButtonShape;
-    std::string SellButtonShape;
-    std::string PowerButtonShape;
-    std::string WaypointButtonShape;
-    std::string PowerPipShape;
+    SidebarButtonLayout RepairButton = { {31, -9} };
+    SidebarButtonLayout SellButton = { {58, -9} };
+    SidebarButtonLayout PowerButton = { {85, -9} };
+    SidebarButtonLayout WaypointButton = { {112, -9} };
+    TPoint2D<int> PowerBarPosition = {8, 25};
+    std::string SidebarShape = "SIDE1.SHP";
+    std::string SidebarMiddleShape = "SIDE2.SHP";
+    std::string SidebarBottomShape = "SIDE3.SHP";
+    std::string SidebarAddonShape = "ADDON.SHP";
+    std::string ClockShape = "GCLOCK2.SHP";
+    std::string RechargeClockShape = "RCLOCK2.SHP";
+    std::string DarkenShape = "DARKEN.SHP";
+    std::string ScrollUpButtonShape = "R-UP.SHP";
+    std::string ScrollDownButtonShape = "R-DN.SHP";
+    std::string RepairButtonShape = "REPAIR.SHP";
+    std::string SellButtonShape = "SELL.SHP";
+    std::string PowerButtonShape = "POWER.SHP";
+    std::string WaypointButtonShape = "WAYP.SHP";
+    std::string PowerPipShape = "POWERP.SHP";
 };
 
 
 struct SidebarClassicLayout : BattleSidebarLayoutBase
 {
-    SidebarClassicLayout() :
-        BattleSidebarLayoutBase(),
-        LeftStripPosition(24, 26),
-        RightStripPosition(92, 26),
-        VisibleRows(0),
-        RowPitch(51),
-        LeftUpButtonPosition(INT_MIN, INT_MIN),
-        LeftDownButtonPosition(INT_MIN, INT_MIN),
-        RightUpButtonPosition(INT_MIN, INT_MIN),
-        RightDownButtonPosition(INT_MIN, INT_MIN),
-        IsLeftUpButtonVisible(true),
-        IsLeftDownButtonVisible(true),
-        IsRightUpButtonVisible(true),
-        IsRightDownButtonVisible(true)
-    {
-    }
+    void Read_INI(CCINIClass const& ini, const char* section) override;
 
-    TPoint2D<int> LeftStripPosition;
-    TPoint2D<int> RightStripPosition;
-    int VisibleRows;
-    int RowPitch;
-    TPoint2D<int> LeftUpButtonPosition;
-    TPoint2D<int> LeftDownButtonPosition;
-    TPoint2D<int> RightUpButtonPosition;
-    TPoint2D<int> RightDownButtonPosition;
-    bool IsLeftUpButtonVisible;
-    bool IsLeftDownButtonVisible;
-    bool IsRightUpButtonVisible;
-    bool IsRightDownButtonVisible;
+    TPoint2D<int> LeftStripPosition = {24, 26};
+    TPoint2D<int> RightStripPosition = {92, 26};
+    int VisibleRows = 0;
+    int RowPitch = 51;
+    TPoint2D<int> LeftUpButtonPosition = {INT_MIN, INT_MIN};
+    TPoint2D<int> LeftDownButtonPosition = {INT_MIN, INT_MIN};
+    TPoint2D<int> RightUpButtonPosition = {INT_MIN, INT_MIN};
+    TPoint2D<int> RightDownButtonPosition = {INT_MIN, INT_MIN};
+    bool IsLeftUpButtonVisible = true;
+    bool IsLeftDownButtonVisible = true;
+    bool IsRightUpButtonVisible = true;
+    bool IsRightDownButtonVisible = true;
 };
 
 
 struct SidebarTabbedLayout : BattleSidebarLayoutBase
 {
-    SidebarTabbedLayout() :
-        BattleSidebarLayoutBase(),
-        StripPosition(24, 54),
-        VisibleRows(0),
-        RowPitch(51),
-        ColumnSpacing(67),
-        UpButtonPosition(INT_MIN, INT_MIN),
-        DownButtonPosition(INT_MIN, INT_MIN),
-        IsUpButtonVisible(true),
-        IsDownButtonVisible(true),
-        StructureTabShape("TAB-BLD.SHP"),
-        InfantryTabShape("TAB-INF.SHP"),
-        UnitTabShape("TAB-UNT.SHP"),
-        SpecialTabShape("TAB-SPC.SHP")
-    {
-        TabButtonPosition[0] = TPoint2D<int>(20, 24);
-        TabButtonPosition[1] = TPoint2D<int>(55, 24);
-        TabButtonPosition[2] = TPoint2D<int>(90, 24);
-        TabButtonPosition[3] = TPoint2D<int>(125, 24);
-    }
+    void Read_INI(CCINIClass const& ini, const char* section) override;
 
-    TPoint2D<int> TabButtonPosition[4];
-    TPoint2D<int> StripPosition;
-    int VisibleRows;
-    int RowPitch;
-    int ColumnSpacing;
-    TPoint2D<int> UpButtonPosition;
-    TPoint2D<int> DownButtonPosition;
-    bool IsUpButtonVisible;
-    bool IsDownButtonVisible;
-    std::string StructureTabShape;
-    std::string InfantryTabShape;
-    std::string UnitTabShape;
-    std::string SpecialTabShape;
+    TPoint2D<int> TabButtonPosition[4] = { {20, 24}, {55, 24}, {90, 24}, {125, 24} };
+    TPoint2D<int> StripPosition = {24, 54};
+    int VisibleRows = 0;
+    int RowPitch = 51;
+    int ColumnSpacing = 67;
+    TPoint2D<int> UpButtonPosition = {INT_MIN, INT_MIN};
+    TPoint2D<int> DownButtonPosition = {INT_MIN, INT_MIN};
+    bool IsUpButtonVisible = true;
+    bool IsDownButtonVisible = true;
+    std::string StructureTabShape = "TAB-BLD.SHP";
+    std::string InfantryTabShape = "TAB-INF.SHP";
+    std::string UnitTabShape = "TAB-UNT.SHP";
+    std::string SpecialTabShape = "TAB-SPC.SHP";
 };
 
 
@@ -194,7 +134,7 @@ class UIControlsClass
         HRESULT Save(IStream *pStm, BOOL fClearDirty);
         int Get_Object_Size() const;
 
-        bool Read_INI(CCINIClass &ini);
+        bool Read_INI(CCINIClass const& ini);
         bool Read_INI_File(const char *filename, bool reset_to_defaults = false);
 
         const BattleSidebarLayoutBase& Get_Battle_Sidebar_Config(SidebarViewType view_type) const
@@ -203,139 +143,72 @@ class UIControlsClass
                                                : static_cast<const BattleSidebarLayoutBase&>(ClassicSidebarLayoutConfig);
         }
 
-        /**
-         *  Helper to get the group number drawing offset based on the object type.
-         */
-        TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const
-        {
-            switch (type)
-            {
-            case RTTI_UNIT:
-            case RTTI_UNITTYPE:
-                return has_pip ? UnitWithPipGroupNumberOffset : UnitGroupNumberOffset;
-            case RTTI_INFANTRY:
-            case RTTI_INFANTRYTYPE:
-                return has_pip ? InfantryWithPipGroupNumberOffset : InfantryGroupNumberOffset;
-            case RTTI_BUILDING:
-            case RTTI_BUILDINGTYPE:
-                return has_pip ? BuildingWithPipGroupNumberOffset : BuildingGroupNumberOffset;
-            case RTTI_AIRCRAFT:
-            case RTTI_AIRCRAFTTYPE:
-                return has_pip ? AircraftWithPipGroupNumberOffset : AircraftGroupNumberOffset;
-            default:
-                return TPoint2D<int>(0, 0);
-            }
-        }
-
-        /**
-         *  Helper to get the veterancy pip drawing offset based on the object type.
-         */
-        TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const
-        {
-            switch (type)
-            {
-            case RTTI_UNIT:
-            case RTTI_UNITTYPE:
-                return UnitVeterancyPipOffset;
-            case RTTI_INFANTRY:
-            case RTTI_INFANTRYTYPE:
-                return InfantryVeterancyPipOffset;
-            case RTTI_BUILDING:
-            case RTTI_BUILDINGTYPE:
-                return BuildingVeterancyPipOffset;
-            case RTTI_AIRCRAFT:
-            case RTTI_AIRCRAFTTYPE:
-                return AircraftVeterancyPipOffset;
-            default:
-                return TPoint2D<int>(0, 0);
-            }
-        }
-
-        /**
-         *  Helper to get the special pip drawing offset based on the object type.
-         */
-        TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const
-        {
-            switch (type)
-            {
-            case RTTI_UNIT:
-            case RTTI_UNITTYPE:
-                return UnitSpecialPipOffset;
-            case RTTI_INFANTRY:
-            case RTTI_INFANTRYTYPE:
-                return InfantrySpecialPipOffset;
-            case RTTI_BUILDING:
-            case RTTI_BUILDINGTYPE:
-                return BuildingSpecialPipOffset;
-            case RTTI_AIRCRAFT:
-            case RTTI_AIRCRAFTTYPE:
-                return AircraftSpecialPipOffset;
-            default:
-                return TPoint2D<int>(0, 0);
-            }
-        }
+        TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const;
+        TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const;
+        TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const;
 
     public:
         /**
          *  Health bar draw positions.
+         *  #issue-541: The health bar graphics "Y" position on selection boxes was off by 1 pixel.
          */
-        TPoint2D<int> UnitHealthBarDrawPos;
-        TPoint2D<int> InfantryHealthBarDrawPos;
+        TPoint2D<int> UnitHealthBarDrawPos = {-25, -16}; // Y was -15
+        TPoint2D<int> InfantryHealthBarDrawPos = {-24, -5};
 
         /**
          *  Should the text label be drawn with an outline?
          */
-        bool IsTextLabelOutline;
+        bool IsTextLabelOutline = true;
 
         /**
          *  Transparency of the text background.
          */
-        unsigned TextLabelBackgroundTransparency;
+        unsigned TextLabelBackgroundTransparency = 50;
 
         /**
          *  Customizable offsets for drawing different pips.
          */
-        TPoint2D<int> UnitGroupNumberOffset;
-        TPoint2D<int> InfantryGroupNumberOffset;
-        TPoint2D<int> BuildingGroupNumberOffset;
-        TPoint2D<int> AircraftGroupNumberOffset;
-        TPoint2D<int> UnitWithPipGroupNumberOffset;
-        TPoint2D<int> InfantryWithPipGroupNumberOffset;
-        TPoint2D<int> BuildingWithPipGroupNumberOffset;
-        TPoint2D<int> AircraftWithPipGroupNumberOffset;
-        TPoint2D<int> UnitVeterancyPipOffset;
-        TPoint2D<int> InfantryVeterancyPipOffset;
-        TPoint2D<int> BuildingVeterancyPipOffset;
-        TPoint2D<int> AircraftVeterancyPipOffset;
-        TPoint2D<int> UnitSpecialPipOffset;
-        TPoint2D<int> InfantrySpecialPipOffset;
-        TPoint2D<int> BuildingSpecialPipOffset;
-        TPoint2D<int> AircraftSpecialPipOffset;
+        TPoint2D<int> UnitGroupNumberOffset = {-4, -4};
+        TPoint2D<int> InfantryGroupNumberOffset = {-4, -4};
+        TPoint2D<int> BuildingGroupNumberOffset = {-4, -4};
+        TPoint2D<int> AircraftGroupNumberOffset = {-4, -4};
+        TPoint2D<int> UnitWithPipGroupNumberOffset = {-4, -8};
+        TPoint2D<int> InfantryWithPipGroupNumberOffset = {-4, -8};
+        TPoint2D<int> BuildingWithPipGroupNumberOffset = {-4, -8};
+        TPoint2D<int> AircraftWithPipGroupNumberOffset = {-4, -8};
+        TPoint2D<int> UnitVeterancyPipOffset = {10, 6};
+        TPoint2D<int> InfantryVeterancyPipOffset = {5, 2};
+        TPoint2D<int> BuildingVeterancyPipOffset = {10, 6};
+        TPoint2D<int> AircraftVeterancyPipOffset = {10, 6};
+        TPoint2D<int> UnitSpecialPipOffset = {0, -8};
+        TPoint2D<int> InfantrySpecialPipOffset = {0, -8};
+        TPoint2D<int> BuildingSpecialPipOffset = {0, -8};
+        TPoint2D<int> AircraftSpecialPipOffset = {0, -8};
 
         /**
          *  Should the tactical rubber band box be drawn with a drop shadow?
          */
-        bool IsBandBoxDropShadow;
+        bool IsBandBoxDropShadow = false;
 
         /**
          *  Should the tactical rubber band box be drawn with a thick border?
          */
-        bool IsBandBoxThick;
+        bool IsBandBoxThick = false;
 
         /**
          *  Color to draw the tactical rubber band box with.
          */
-        RGBStruct BandBoxColor;
+        RGBStruct BandBoxColor = { 255, 255, 255 };
 
         /**
          *  Color to draw the tactical rubber band box's shadow with.
          */
-        RGBStruct BandBoxDropShadowColor;
+        RGBStruct BandBoxDropShadowColor = { 0, 0, 0 };
 
         /**
          *  Transparency of the tactical rubber band.
          */
-        unsigned BandBoxTintTransparency;
+        unsigned BandBoxTintTransparency = 0;
 
         /**
          *  Two tint colors, interpolated between based on the current ambient light level.
@@ -345,117 +218,117 @@ class UIControlsClass
         /**
          *  Should action lines remain visible continuously, instead of disappearing after some time?
          */
-        bool IsAlwaysShowActionLines;
+        bool IsAlwaysShowActionLines = false;
 
         /**
          *  Should movement lines be drawn with dashes?
          */
-        bool IsMovementLineDashed;
+        bool IsMovementLineDashed = false;
 
         /**
          *  Should movement lines be drawn with a drop shadow?
          */
-        bool IsMovementLineDropShadow;
+        bool IsMovementLineDropShadow = false;
 
         /**
          *  Should movement lines be drawn with a thick line?
          */
-        bool IsMovementLineThick;
+        bool IsMovementLineThick = false;
 
         /**
          *  Color to draw movement lines with.
          */
-        RGBStruct MovementLineColor;
+        RGBStruct MovementLineColor = { 0, 170, 0 }; // COLOR_GREEN
 
         /**
          *  Color to draw movement lines' drop shadow with.
          */
-        RGBStruct MovementLineDropShadowColor;
+        RGBStruct MovementLineDropShadowColor = { 0, 0, 0 };
 
         /**
          *  Should target lines be drawn with dashes?
          */
-        bool IsTargetLineDashed;
+        bool IsTargetLineDashed = false;
 
         /**
          *  Should target lines be drawn with a drop shadow?
          */
-        bool IsTargetLineDropShadow;
+        bool IsTargetLineDropShadow = false;
 
         /**
          *  Should target lines be drawn with a thick line?
          */
-        bool IsTargetLineThick;
+        bool IsTargetLineThick = false;
 
         /**
          *  Color to target movement lines with.
          */
-        RGBStruct TargetLineColor;
+        RGBStruct TargetLineColor = { 173, 0, 0 }; // COLOR_RED
 
         /**
          *  Color to draw target lines' drop shadow with.
          */
-        RGBStruct TargetLineDropShadowColor;
+        RGBStruct TargetLineDropShadowColor = { 0, 0, 0 };
 
         /**
          *  Should target laser be drawn with dashes?
          */
-        bool IsTargetLaserDashed;
+        bool IsTargetLaserDashed = true;
 
         /**
          *  Should target laser be drawn with a drop shadow?
          */
-        bool IsTargetLaserDropShadow;
+        bool IsTargetLaserDropShadow = false;
 
         /**
          *  Should target laser be drawn with a thick line?
          */
-        bool IsTargetLaserThick;
+        bool IsTargetLaserThick = false;
 
         /**
          *  Color to draw the target laser with.
          */
-        RGBStruct TargetLaserColor;
+        RGBStruct TargetLaserColor = { 173, 0, 0 }; // COLOR_RED
 
         /**
          *  Color to draw the target laser's drop shadow with.
          */
-        RGBStruct TargetLaserDropShadowColor;
+        RGBStruct TargetLaserDropShadowColor = { 0, 0, 0 };
 
         /**
          *  Time in frames the target laser should be drawn for when the unit fires.
          */
-        unsigned TargetLaserTime;
+        unsigned TargetLaserTime = 15;
 
         /**
          *  Should NavCom queue lines be displayed?
          */
-        bool IsShowNavComQueueLines;
+        bool IsShowNavComQueueLines = true;
 
         /**
          *  Should NavCom queue lines be drawn with dashes?
          */
-        bool IsNavComQueueLineDashed;
+        bool IsNavComQueueLineDashed = false;
 
         /**
          *  Should NavCom queue lines be drawn with a drop shadow?
          */
-        bool IsNavComQueueLineDropShadow;
+        bool IsNavComQueueLineDropShadow = false;
 
         /**
          *  Should NavCom queue lines be drawn with a thick line?
          */
-        bool IsNavComQueueLineThick;
+        bool IsNavComQueueLineThick = false;
 
         /**
          *  Color to draw the NavCom queue lines with.
          */
-        RGBStruct NavComQueueLineColor;
+        RGBStruct NavComQueueLineColor = { 74, 77, 255 }; // COLOR_LTBLUE
 
         /**
          *  Color to draw the NavCom queue lines' drop shadow with.
          */
-        RGBStruct NavComQueueLineDropShadowColor;
+        RGBStruct NavComQueueLineDropShadowColor = { 0, 0, 0 };
 
         SidebarClassicLayout ClassicSidebarLayoutConfig;
         SidebarTabbedLayout TabbedSidebarLayoutConfig;
@@ -463,29 +336,29 @@ class UIControlsClass
         /**
          *  Selected sidebar layout for the battle UI.
          */
-        SidebarViewType BattleSidebarViewType;
+        SidebarViewType BattleSidebarViewType = SIDEBAR_CLASSIC;
 
         /**
          *  Beacon animations are not tied to game FPS, this is the FPS at which they play.
          */
-        int BeaconAnimFramesPerSecond;
-        int RadarBeaconAnimFramesPerSecond;
+        int BeaconAnimFramesPerSecond = 25;
+        int RadarBeaconAnimFramesPerSecond = 25;
 
         /**
          *  The offset at which beacon text is drawn (on actual beacons, and during preview).
          */
-        int BeaconTextOffset;
-        int BeaconPreviewTextOffset;
+        int BeaconTextOffset = 32;
+        int BeaconPreviewTextOffset = 20;
 
         /**
          *  Text presets for beacons when holding modifier keys when placing.
          */
-        std::string BeaconText[7];
+        std::string BeaconText[7] = { "Expand", "Attack", "Move", "", "", "Defend", "" };
 
         /**
          *  Text presets for beacons *shown as a tooltip* when holding modifier keys when placing.
          */
-        std::string BeaconPreviewText[7];
+        std::string BeaconPreviewText[7] = { "Expand", "Attack", "Move", "", "", "Defend", "" };
 };
 
 extern UIControlsClass *UIControls;
