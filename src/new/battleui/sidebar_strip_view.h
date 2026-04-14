@@ -92,7 +92,6 @@ public:
 
         StripLayout() :
             Position(0, 0),
-            VisibleRows(0),
             RowPitch(51),
             ColumnSpacing(66),
             CameoSize(64, 51),
@@ -107,7 +106,6 @@ public:
         }
 
         TPoint2D<int> Position;
-        int VisibleRows;
         int RowPitch;
         int ColumnSpacing;
         TPoint2D<int> CameoSize;

@@ -98,7 +98,6 @@ void SidebarClassicLayout::Read_INI(CCINIClass const& ini, const char* section)
 
     LeftStripPosition = ini.Get_Point(section, "LeftStripPos", LeftStripPosition);
     RightStripPosition = ini.Get_Point(section, "RightStripPos", RightStripPosition);
-    VisibleRows = ini.Get_Int(section, "VisibleRows", VisibleRows);
     RowPitch = std::max(1, ini.Get_Int(section, "RowPitch", RowPitch));
     LeftUpButtonPosition = ini.Get_Point(section, "LeftUpButtonPos", LeftUpButtonPosition);
     LeftDownButtonPosition = ini.Get_Point(section, "LeftDownButtonPos", LeftDownButtonPosition);
@@ -126,7 +125,6 @@ void SidebarTabbedLayout::Read_INI(CCINIClass const& ini, const char* section)
     TabButtonPosition[2] = ini.Get_Point(section, "Tab3Pos", TabButtonPosition[2]);
     TabButtonPosition[3] = ini.Get_Point(section, "Tab4Pos", TabButtonPosition[3]);
     StripPosition = ini.Get_Point(section, "StripPos", StripPosition);
-    VisibleRows = ini.Get_Int(section, "VisibleRows", VisibleRows);
     RowPitch = std::max(1, ini.Get_Int(section, "RowPitch", RowPitch));
     ColumnSpacing = std::max(1, ini.Get_Int(section, "ColumnSpacing", ColumnSpacing));
     UpButtonPosition = ini.Get_Point(section, "UpButtonPos", UpButtonPosition);

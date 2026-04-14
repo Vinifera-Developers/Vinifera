@@ -97,7 +97,6 @@ struct SidebarClassicLayout : BattleSidebarLayoutBase
 
     TPoint2D<int> LeftStripPosition = {24, 26};
     TPoint2D<int> RightStripPosition = {91, 26};
-    int VisibleRows = 0;
     int RowPitch = 51;
     TPoint2D<int> LeftUpButtonPosition = {INT_MIN, INT_MIN};
     TPoint2D<int> LeftDownButtonPosition = {INT_MIN, INT_MIN};
@@ -117,7 +116,6 @@ struct SidebarTabbedLayout : BattleSidebarLayoutBase
 
     TPoint2D<int> TabButtonPosition[4] = { {20, 24}, {55, 24}, {90, 24}, {125, 24} };
     TPoint2D<int> StripPosition = {24, 54};
-    int VisibleRows = 0;
     int RowPitch = 51;
     int ColumnSpacing = 66;
     TPoint2D<int> UpButtonPosition = {INT_MIN, INT_MIN};

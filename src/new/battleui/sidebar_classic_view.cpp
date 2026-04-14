@@ -59,7 +59,6 @@ SidebarStripView::StripLayout Build_Classic_Strip_Layout(bool left_strip)
     SidebarStripView::StripLayout strip_layout;
 
     strip_layout.Position = left_strip ? layout.LeftStripPosition : layout.RightStripPosition;
-    strip_layout.VisibleRows = layout.VisibleRows;
     strip_layout.RowPitch = layout.RowPitch;
     strip_layout.CameoSize = layout.CameoSize;
     strip_layout.CameoNameOffset = layout.CameoNameOffset;

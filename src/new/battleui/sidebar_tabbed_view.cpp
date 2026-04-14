@@ -81,7 +81,6 @@ SidebarStripView::StripLayout Build_Tabbed_Strip_Layout()
     SidebarStripView::StripLayout strip_layout;
 
     strip_layout.Position = layout.StripPosition;
-    strip_layout.VisibleRows = layout.VisibleRows;
     strip_layout.RowPitch = layout.RowPitch;
     strip_layout.ColumnSpacing = layout.ColumnSpacing;
     strip_layout.CameoSize = layout.CameoSize;

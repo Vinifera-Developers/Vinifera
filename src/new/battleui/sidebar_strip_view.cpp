@@ -668,11 +668,7 @@ int SidebarStripView::Visible_Button_Count() const
 int SidebarStripView::Visible_Buttons_Per_Column() const
 {
     if (SidebarSurface != nullptr && Art.BackgroundTopHeight > 0 && Art.BackgroundBottomHeight > 0) {
-        const int max_rows = std::max(1, Available_Content_Height() / Row_Pitch());
-        if (Layout.VisibleRows <= 0) {
-            return max_rows;
-        }
-        return std::clamp(Layout.VisibleRows, 1, max_rows);
+        return std::max(1, Available_Content_Height() / Row_Pitch());
     }
 
     return SidebarClass::StripClass::MAX_VISIBLE;

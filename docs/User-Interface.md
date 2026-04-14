@@ -21,9 +21,8 @@ Nearly every aspect of the sidebar — positions, sizes, shapes, visibility — 
 
 - All positions are relative to the internal sidebar area (under the radar).
 - `[Sidebar]` selects which layout to use. `[SidebarClassic]` and `[SidebarTabbed]` are self-contained configs for their respective layouts.
-- `VisibleRows=0` auto-fits to the current resolution.
 - Leaving scroll button position entries blank auto-places them from the strip layout.
-- After mounting side-specific mixes, the game also reads `UIOVERRIDES.INI` if present. This file uses the same keys as `UI.INI` and layers on top of the already loaded base config, allowing side-specific UI overrides.
+- After loading side-specific mixes, the game also reads `UIOVERRIDES.INI` if present. This file uses the same keys as `UI.INI` and layers on top of the already loaded base config, allowing side-specific UI overrides.
 
 Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
@@ -35,7 +34,6 @@ ViewType=Classic          ; string, Classic or Tabbed.
 [SidebarClassic]
 LeftStripPos=24,26          ; point, left strip origin.
 RightStripPos=91,26         ; point, right strip origin.
-VisibleRows=0               ; integer, visible rows per strip, 0 = auto-fit.
 RowPitch=51                 ; integer, vertical spacing between cameos.
 CameoSize=64,51             ; point, cameo width,height.
 CameoNameOffset=41          ; integer, Y offset for the cameo name.
@@ -82,7 +80,6 @@ Tab2Pos=55,24              ; point, Infantry tab position.
 Tab3Pos=90,24              ; point, Unit tab position.
 Tab4Pos=125,24             ; point, Special tab position.
 StripPos=24,54             ; point, 2-column strip origin.
-VisibleRows=0              ; integer, visible rows in the tab strip, 0 = auto-fit.
 RowPitch=51                ; integer, vertical spacing between cameo rows.
 ColumnSpacing=66           ; integer, horizontal spacing between the two strip columns.
 CameoSize=64,51            ; point, cameo width,height.
