@@ -393,7 +393,7 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
         return Compare_With_Variable(left_index, false, right_index, false, COMP_LESS);
     }
 
-    case EXT_TEVENT_DESTROYED_NOT_CAPTURED: {
+    case EXT_TEVENT_DESTROYED_ONLY: {
         if (event != Event) return false;        
     }
     }
