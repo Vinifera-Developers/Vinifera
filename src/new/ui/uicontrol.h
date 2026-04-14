@@ -126,8 +126,7 @@ struct SidebarTabbedLayout : BattleSidebarLayoutBase
 class UIControlsClass
 {
     public:
-        UIControlsClass();
-        UIControlsClass(const NoInitClass &noinit);
+        UIControlsClass() = default;
         ~UIControlsClass();
 
         HRESULT Load(IStream *pStm);
@@ -213,7 +212,7 @@ class UIControlsClass
         /**
          *  Two tint colors, interpolated between based on the current ambient light level.
          */
-        TypeList<RGBClass> BandBoxTintColors;
+        TypeList<RGBClass> BandBoxTintColors = { {0, 0, 0}, {255, 255, 255} };
 
         /**
          *  Should action lines remain visible continuously, instead of disappearing after some time?

@@ -112,29 +112,6 @@ void SidebarTabbedLayout::Read_INI(CCINIClass const& ini, const char* section)
 
 
 /**
- *  Class constructor.
- *
- *  @author: CCHyper
- */
-UIControlsClass::UIControlsClass()
-{
-    BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
-    BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
-}
-
-
-/**
- *  Class no-init constructor.
- *  
- *  @author: CCHyper
- */
-UIControlsClass::UIControlsClass(const NoInitClass &noinit) :
-    BandBoxTintColors(noinit)
-{
-}
-
-
-/**
  *  Class destructor.
  *  
  *  @author: CCHyper
