@@ -57,8 +57,8 @@ private:
 
     bool IsActive;
     SidebarViewType ViewType;
-    ShapeButtonClass Repair;
-    ShapeButtonClass Sell;
-    ShapeButtonClass PowerBtn;
-    ShapeButtonClass Waypoint;
+    ShapeButtonClass RepairButton;
+    ShapeButtonClass SellButton;
+    ShapeButtonClass PowerButton;
+    ShapeButtonClass WaypointButton;
 };

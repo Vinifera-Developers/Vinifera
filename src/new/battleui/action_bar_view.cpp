@@ -51,15 +51,15 @@ const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 void ActionBarView::Init_Clear()
 {
     IsActive = false;
-    Repair.IsPressed = false;
-    Sell.IsPressed = false;
-    PowerBtn.IsPressed = false;
-    Waypoint.IsPressed = false;
+    RepairButton.IsPressed = false;
+    SellButton.IsPressed = false;
+    PowerButton.IsPressed = false;
+    WaypointButton.IsPressed = false;
 
-    if (Repair.IsOn) Repair.Turn_Off();
-    if (Sell.IsOn) Sell.Turn_Off();
-    if (PowerBtn.IsOn) PowerBtn.Turn_Off();
-    if (Waypoint.IsOn) Waypoint.Turn_Off();
+    if (RepairButton.IsOn) RepairButton.Turn_Off();
+    if (SellButton.IsOn) SellButton.Turn_Off();
+    if (PowerButton.IsOn) PowerButton.Turn_Off();
+    if (WaypointButton.IsOn) WaypointButton.Turn_Off();
 }
 
 
@@ -69,7 +69,7 @@ void ActionBarView::Init_IO()
         return;
     }
 
-    ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+    ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
     const int button_ids[] = {
         SidebarClass::BUTTON_REPAIR,
         SidebarClass::BUTTON_SELL,
@@ -97,7 +97,7 @@ void ActionBarView::Init_IO()
         buttons[i]->ReflectButtonState = true;
     }
 
-    Waypoint.Enable();
+    WaypointButton.Enable();
 }
 
 
@@ -109,17 +109,17 @@ void ActionBarView::Init_For_House()
 
     const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
 
-    Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.SellButtonShape.c_str()));
-    Sell.ShapeDrawer = SidebarDrawer;
+    SellButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.SellButtonShape.c_str()));
+    SellButton.ShapeDrawer = SidebarDrawer;
 
-    PowerBtn.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.PowerButtonShape.c_str()));
-    PowerBtn.ShapeDrawer = SidebarDrawer;
+    PowerButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.PowerButtonShape.c_str()));
+    PowerButton.ShapeDrawer = SidebarDrawer;
 
-    Waypoint.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.WaypointButtonShape.c_str()));
-    Waypoint.ShapeDrawer = SidebarDrawer;
+    WaypointButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.WaypointButtonShape.c_str()));
+    WaypointButton.ShapeDrawer = SidebarDrawer;
 
-    Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.RepairButtonShape.c_str()));
-    Repair.ShapeDrawer = SidebarDrawer;
+    RepairButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.RepairButtonShape.c_str()));
+    RepairButton.ShapeDrawer = SidebarDrawer;
 }
 
 
@@ -135,7 +135,7 @@ void ActionBarView::Set_Dimensions()
     }
 
     const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-    ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+    ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
     const SidebarButtonLayout* button_layouts[] = {
         &layout.RepairButton,
         &layout.SellButton,
@@ -167,7 +167,7 @@ void ActionBarView::Activate(int control)
 
     if (control) {
         const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-        ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+        ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
         const bool button_visible[] = {
             layout.RepairButton.IsVisible,
             layout.SellButton.IsVisible,
@@ -184,10 +184,10 @@ void ActionBarView::Activate(int control)
             Map.Add_A_Button(*buttons[i]);
         }
     } else {
-        Map.Remove_A_Button(Repair);
-        Map.Remove_A_Button(Sell);
-        Map.Remove_A_Button(PowerBtn);
-        Map.Remove_A_Button(Waypoint);
+        Map.Remove_A_Button(RepairButton);
+        Map.Remove_A_Button(SellButton);
+        Map.Remove_A_Button(PowerButton);
+        Map.Remove_A_Button(WaypointButton);
     }
 }
 
@@ -216,20 +216,20 @@ void ActionBarView::AI(KeyNumType& key)
         Map.Sell_Mode_Control(-1);
     }
 
-    if (!Map.IsRepairMode && Repair.IsOn) {
-        Repair.Turn_Off();
+    if (!Map.IsRepairMode && RepairButton.IsOn) {
+        RepairButton.Turn_Off();
     }
 
-    if (!Map.IsSellMode && Sell.IsOn) {
-        Sell.Turn_Off();
+    if (!Map.IsSellMode && SellButton.IsOn) {
+        SellButton.Turn_Off();
     }
 
-    if (!Map.IsPowerMode && PowerBtn.IsOn) {
-        PowerBtn.Turn_Off();
+    if (!Map.IsPowerMode && PowerButton.IsOn) {
+        PowerButton.Turn_Off();
     }
 
-    if (!Map.IsWaypointMode && Waypoint.IsOn) {
-        Waypoint.Turn_Off();
+    if (!Map.IsWaypointMode && WaypointButton.IsOn) {
+        WaypointButton.Turn_Off();
     }
 }
 
@@ -246,35 +246,35 @@ void ActionBarView::Draw()
     const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
 
     if (layout.RepairButton.IsVisible) {
-        Repair.Draw_Me(true);
+        RepairButton.Draw_Me(true);
     } else {
-        Repair.IsDrawn = false;
+        RepairButton.IsDrawn = false;
     }
 
     if (layout.SellButton.IsVisible) {
-        Sell.Draw_Me(true);
+        SellButton.Draw_Me(true);
     } else {
-        Sell.IsDrawn = false;
+        SellButton.IsDrawn = false;
     }
 
     if (layout.PowerButton.IsVisible) {
-        PowerBtn.Draw_Me(true);
+        PowerButton.Draw_Me(true);
     } else {
-        PowerBtn.IsDrawn = false;
+        PowerButton.IsDrawn = false;
     }
 
     if (layout.WaypointButton.IsVisible) {
-        Waypoint.Draw_Me(true);
+        WaypointButton.Draw_Me(true);
     } else {
-        Waypoint.IsDrawn = false;
+        WaypointButton.IsDrawn = false;
     }
 
     RedrawSidebar = true;
 
-    Repair.IsDrawn = false;
-    Sell.IsDrawn = false;
-    PowerBtn.IsDrawn = false;
-    Waypoint.IsDrawn = false;
+    RepairButton.IsDrawn = false;
+    SellButton.IsDrawn = false;
+    PowerButton.IsDrawn = false;
+    WaypointButton.IsDrawn = false;
 
     LogicalSurface = oldsurface;
 }
@@ -287,7 +287,7 @@ void ActionBarView::Register_Tooltips()
     }
 
     const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-    ShapeButtonClass* buttons[] = { &Repair, &Sell, &PowerBtn, &Waypoint };
+    ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
     const SidebarButtonLayout* button_layouts[] = {
         &layout.RepairButton,
         &layout.SellButton,
