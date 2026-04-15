@@ -444,14 +444,10 @@ void SidebarStripView::Draw(Surface& surface, const Rect& rect)
      */
     if (Layout.IsUpButtonVisible) {
         UpButton.Draw_Me(true);
-    } else {
-        UpButton.IsDrawn = false;
     }
 
     if (Layout.IsDownButtonVisible) {
         DownButton.Draw_Me(true);
-    } else {
-        DownButton.IsDrawn = false;
     }
 
     /**
@@ -460,9 +456,6 @@ void SidebarStripView::Draw(Surface& surface, const Rect& rect)
     Draw_Strip_Items(surface, rect);
 
     LastSlid = Slid;
-
-    UpButton.IsDrawn = false;
-    DownButton.IsDrawn = false;
 }
 
 

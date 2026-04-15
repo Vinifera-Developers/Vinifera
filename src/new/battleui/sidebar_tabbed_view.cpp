@@ -115,7 +115,6 @@ TabButtonClass::TabButtonClass() :
     FlashTimer(0),
     FlashFrame(0),
     IsSelected(false),
-    IsDrawn(false),
     IsMousedOver(false)
 {
 }
@@ -137,7 +136,6 @@ TabButtonClass::TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y
     FlashTimer(0),
     FlashFrame(0),
     IsSelected(false),
-    IsDrawn(false),
     IsMousedOver(false)
 {
 }
@@ -248,7 +246,6 @@ bool TabButtonClass::Draw_Me(bool forced)
                                   DSurface::Build_Hicolor_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
     }
 
-    IsDrawn = true;
     return true;
 }
 
@@ -744,12 +741,6 @@ void TabbedSidebarView::Draw()
      *  Draw the active strip only.
      */
     Strip[TabIndex].Draw(*SidebarSurface, rect);
-
-    for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
-        if (TabButtons[i].IsDrawn) {
-            TabButtons[i].IsDrawn = false;
-        }
-    }
 
     if (ToolTips) {
         ToolTips->Force_Redraw(true);

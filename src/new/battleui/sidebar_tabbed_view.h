@@ -99,7 +99,6 @@ public:
     int FlashFrame;
 
     bool IsSelected;
-    bool IsDrawn;
     bool IsMousedOver;
 };
 

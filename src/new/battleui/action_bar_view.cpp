@@ -293,11 +293,6 @@ void ActionBarView::Draw()
         WaypointButton.Draw_Me(true);
     }
 
-    RepairButton.IsDrawn = false;
-    SellButton.IsDrawn = false;
-    PowerButton.IsDrawn = false;
-    WaypointButton.IsDrawn = false;
-
     LogicalSurface = oldsurface;
 }
 
