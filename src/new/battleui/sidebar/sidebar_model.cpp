@@ -615,12 +615,30 @@ void SidebarModel::Abandon_Production(RTTIType type, int id)
  *
  *  @author: ZivDero
  */
-void SidebarModel::Recalc_All()
+void SidebarModel::Recalc_Dirty()
 {
     for (auto& category : Categories) {
         if (category.IsDirty) {
             category.Recalc();
         }
+    }
+    IsDirty = false;
+}
+
+
+/**
+ *  Re-sorts all categories, even if they were not explicitly marked dirty.
+ *
+ *  This is used by full sidebar recalcs triggered from game-state changes
+ *  like building deletion, where availability can change without any
+ *  sidebar Add/Remove operation first marking a category dirty.
+ *
+ *  @author: ZivDero
+ */
+void SidebarModel::Recalc_All()
+{
+    for (auto& category : Categories) {
+        category.Recalc();
     }
     IsDirty = false;
 }

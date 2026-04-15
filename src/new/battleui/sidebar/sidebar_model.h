@@ -79,6 +79,7 @@ public:
     bool Remove(RTTIType type, int id);
     void Link_Factory(FactoryClass* factory, RTTIType type, int id);
     void Abandon_Production(RTTIType type, int id);
+    void Recalc_Dirty();
     void Recalc_All();
 
     bool Is_On_Sidebar(RTTIType type, int id) const;

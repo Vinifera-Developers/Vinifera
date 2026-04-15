@@ -460,7 +460,15 @@ void SidebarComponent::Init_For_House()
 void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
 {
     if (Model.Needs_Recalc()) {
-        Recalc();
+        if (ActiveView) {
+            ActiveView->Prepare_Model_Recalc();
+        }
+
+        Model.Recalc_Dirty();
+
+        if (ActiveView) {
+            ActiveView->Finish_Model_Recalc();
+        }
     }
 
     Production_AI();
