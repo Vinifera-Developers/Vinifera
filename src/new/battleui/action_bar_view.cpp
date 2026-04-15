@@ -221,12 +221,6 @@ void ActionBarView::Activate(int control)
  */
 void ActionBarView::AI(KeyNumType& key)
 {
-    if (PlayerPtr->CurBuildings > 0) {
-        Map.Activate_Repair(true);
-    } else {
-        Map.Activate_Repair(false);
-    }
-
     if (key == (SidebarClass::BUTTON_REPAIR | KN_BUTTON)) {
         Map.Repair_Mode_Control(-1);
     }
