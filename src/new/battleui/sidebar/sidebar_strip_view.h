@@ -78,8 +78,8 @@ public:
         static constexpr int AUTO_POSITION = INT_MIN;
 
         TPoint2D<int> Position = { 0, 0 };
-        int RowSpacing = 51;
-        int ColumnSpacing = 66;
+        int RowSpacing = 0;
+        int ColumnSpacing = 2;
         TPoint2D<int> CameoSize = { 64, 51 };
         int CameoNameOffset = 41;
         TPoint2D<int> CameoTextOffset = { 30, 2 };

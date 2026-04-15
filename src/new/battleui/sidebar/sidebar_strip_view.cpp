@@ -1050,7 +1050,7 @@ int SidebarStripView::Object_Name_Offset() const
  */
 int SidebarStripView::Row_Pitch() const
 {
-    return std::max(1, Layout.RowSpacing);
+    return std::max(1, Layout.CameoSize.Y + Layout.RowSpacing);
 }
 
 
@@ -1061,7 +1061,7 @@ int SidebarStripView::Row_Pitch() const
  */
 int SidebarStripView::Column_Spacing() const
 {
-    return std::max(1, Layout.ColumnSpacing);
+    return std::max(1, Layout.CameoSize.X + Layout.ColumnSpacing);
 }
 
 
