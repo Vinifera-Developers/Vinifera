@@ -374,7 +374,11 @@ void SidebarClassExt::_Shift_Sidebar()
  */
 const char* SidebarClassExt::_Help_Text(int gadget_id)
 {
-    return BattleUI.Help_Text(gadget_id);
+    const char* text = RadarClass::Help_Text(gadget_id);
+    if (text == nullptr) {
+        text = BattleUI.Help_Text(gadget_id);
+    }
+    return text;
 }
 
 
