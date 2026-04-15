@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "sidebar.h"
 #include "sidebar_strip_view.h"
 #include "sidebar_view.h"
 

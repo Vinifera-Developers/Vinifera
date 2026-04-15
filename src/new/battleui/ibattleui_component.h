@@ -12,6 +12,8 @@
 #include "point.h"
 #include "wwkeyboard.h"
 
+struct IStream;
+
 
 /**
  *  Lifecycle interface for battle UI components (sidebar, radar, etc.).
