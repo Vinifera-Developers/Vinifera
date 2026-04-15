@@ -61,24 +61,13 @@ public:
      */
     struct StripArt
     {
-        StripArt() :
-            ScrollUpButtonShape(nullptr),
-            ScrollDownButtonShape(nullptr),
-            DarkenShape(nullptr),
-            ClockShape(nullptr),
-            RechargeClockShape(nullptr),
-            BackgroundTopHeight(0),
-            BackgroundBottomHeight(0)
-        {
-        }
-
-        const ShapeSet* ScrollUpButtonShape;
-        const ShapeSet* ScrollDownButtonShape;
-        const ShapeSet* DarkenShape;
-        const ShapeSet* ClockShape;
-        const ShapeSet* RechargeClockShape;
-        int BackgroundTopHeight;
-        int BackgroundBottomHeight;
+        const ShapeSet* ScrollUpButtonShape = nullptr;
+        const ShapeSet* ScrollDownButtonShape = nullptr;
+        const ShapeSet* DarkenShape = nullptr;
+        const ShapeSet* ClockShape = nullptr;
+        const ShapeSet* RechargeClockShape = nullptr;
+        int BackgroundTopHeight = 0;
+        int BackgroundBottomHeight = 0;
     };
 
     /**
@@ -88,32 +77,17 @@ public:
     {
         static constexpr int AUTO_POSITION = INT_MIN;
 
-        StripLayout() :
-            Position(0, 0),
-            RowPitch(51),
-            ColumnSpacing(66),
-            CameoSize(64, 51),
-            CameoNameOffset(41),
-            CameoTextOffset(30, 2),
-            QueueCountOffset(60, 2),
-            UpButtonPosition(AUTO_POSITION, AUTO_POSITION),
-            DownButtonPosition(AUTO_POSITION, AUTO_POSITION),
-            IsUpButtonVisible(true),
-            IsDownButtonVisible(true)
-        {
-        }
-
-        TPoint2D<int> Position;
-        int RowPitch;
-        int ColumnSpacing;
-        TPoint2D<int> CameoSize;
-        int CameoNameOffset;
-        TPoint2D<int> CameoTextOffset;
-        TPoint2D<int> QueueCountOffset;
-        TPoint2D<int> UpButtonPosition;
-        TPoint2D<int> DownButtonPosition;
-        bool IsUpButtonVisible;
-        bool IsDownButtonVisible;
+        TPoint2D<int> Position = { 0, 0 };
+        int RowPitch = 51;
+        int ColumnSpacing = 66;
+        TPoint2D<int> CameoSize = { 64, 51 };
+        int CameoNameOffset = 41;
+        TPoint2D<int> CameoTextOffset = { 30, 2 };
+        TPoint2D<int> QueueCountOffset = { 60, 2 };
+        TPoint2D<int> UpButtonPosition = { AUTO_POSITION, AUTO_POSITION };
+        TPoint2D<int> DownButtonPosition = { AUTO_POSITION, AUTO_POSITION };
+        bool IsUpButtonVisible = true;
+        bool IsDownButtonVisible = true;
     };
 
     enum StripEnums {
@@ -197,30 +171,16 @@ private:
      */
     struct StripItemDrawState
     {
-        StripItemDrawState() :
-            Factory(nullptr),
-            Name(nullptr),
-            StateText(nullptr),
-            Production(false),
-            Completed(false),
-            Darken(false),
-            IsReady(false),
-            IsOnHold(false),
-            Stage(0),
-            QueueCount(0)
-        {
-        }
-
-        FactoryClass* Factory;
-        const char* Name;
-        const char* StateText;
-        bool Production;
-        bool Completed;
-        bool Darken;
-        bool IsReady;
-        bool IsOnHold;
-        int Stage;
-        int QueueCount;
+        FactoryClass* Factory = nullptr;
+        const char* Name = nullptr;
+        const char* StateText = nullptr;
+        bool Production = false;
+        bool Completed = false;
+        bool Darken = false;
+        bool IsReady = false;
+        bool IsOnHold = false;
+        int Stage = 0;
+        int QueueCount = 0;
     };
 
     /**
