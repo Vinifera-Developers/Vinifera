@@ -75,7 +75,6 @@
  *  @author: ZivDero
  */
 SidebarStripView::SidebarStripView() :
-    StageClass(),
     ID(0),
     Columns(2),
     ColumnX(0),
@@ -137,9 +136,6 @@ void SidebarStripView::Init_Clear()
     Scroller = 0;
     Slid = 0;
     LastSlid = 0;
-
-    Set_Rate(0);
-    Set_Stage(0);
 }
 
 
@@ -425,17 +421,6 @@ bool SidebarStripView::Update_State()
             }
         }
         redraw = true;
-    }
-
-    /**
-     *  Handle selection flash logic.
-     */
-    if (Graphic_Logic()) {
-        redraw = true;
-        if (Fetch_Stage() >= 7) {
-            Set_Rate(0);
-            Set_Stage(0);
-        }
     }
 
     return redraw;

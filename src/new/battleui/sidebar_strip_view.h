@@ -32,7 +32,6 @@
 #pragma once
 
 #include "shapebtn.h"
-#include "stage.h"
 #include "vector.h"
 #include "wwkeyboard.h"
 
@@ -55,7 +54,7 @@ class TechnoTypeClass;
  *  reference and renders them directly. Owns its own scroll buttons,
  *  select buttons, and scroll animation state.
  */
-class SidebarStripView : public StageClass
+class SidebarStripView
 {
 public:
     /**
