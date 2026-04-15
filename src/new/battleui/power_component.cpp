@@ -110,9 +110,9 @@ void PowerComponent::Shift_Sidebar()
 }
 
 
-void PowerComponent::Set_Visible_Buttons_Per_Column(int count)
+void PowerComponent::Set_Height(int pixels)
 {
-    View.Set_Visible_Buttons_Per_Column(count);
+    View.Set_Height(pixels);
 }
 
 

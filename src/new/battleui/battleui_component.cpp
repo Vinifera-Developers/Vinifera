@@ -129,7 +129,7 @@ void BattleUISystem::Blit(bool complete)
 void BattleUISystem::Shift_Sidebar()
 {
     Sidebar.Shift_Sidebar();
-    Power.Set_Visible_Buttons_Per_Column(Sidebar.Visible_Buttons_Per_Column());
+    Power.Set_Height(Sidebar.Visible_Buttons_Per_Column() * UIControls->Get_Battle_Sidebar_Config(Sidebar.Get_View_Type()).CameoSize.Y);
     Power.Shift_Sidebar();
 }
 

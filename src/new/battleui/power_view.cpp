@@ -21,7 +21,6 @@
 #include "house.h"
 #include "language.h"
 #include "mouse.h"
-#include "sidebar.h"
 #include "shapeset.h"
 #include "surface.h"
 #include "tibsun_globals.h"
@@ -75,7 +74,7 @@ PowerView::PowerView() :
     GreenPipCount(0),
     YellowPipCount(0),
     RedPipCount(0),
-    VisibleButtonsPerColumn(SidebarClass::StripClass::MAX_VISIBLE),
+    PixelHeight(0),
     HasChanged(false),
     ViewType(SIDEBAR_CLASSIC)
 {
@@ -105,7 +104,7 @@ void PowerView::Init_Clear()
     GreenPipCount = 0;
     YellowPipCount = 0;
     RedPipCount = 0;
-    VisibleButtonsPerColumn = SidebarClass::StripClass::MAX_VISIBLE;
+    PixelHeight = 0;
     HasChanged = false;
 }
 
@@ -137,7 +136,7 @@ void PowerView::Shift_Sidebar()
         tt.Region.X = SidebarRect.X + power_bar_position.X;
         tt.Region.Y = SidebarRect.Y + power_bar_position.Y;
         tt.Region.Width = Get_Power_Bar_Width(ViewType);
-        tt.Region.Height = Get_Sidebar_Layout(ViewType).CameoSize.Y * VisibleButtonsPerColumn;
+        tt.Region.Height = PixelHeight;
 
         ToolTips->Remove(tt.ID);
         ToolTips->Add(&tt);
@@ -145,11 +144,11 @@ void PowerView::Shift_Sidebar()
 }
 
 
-void PowerView::Set_Visible_Buttons_Per_Column(int count)
+void PowerView::Set_Height(int pixels)
 {
-    count = std::max(1, count);
-    if (VisibleButtonsPerColumn != count) {
-        VisibleButtonsPerColumn = count;
+    pixels = std::max(1, pixels);
+    if (PixelHeight != pixels) {
+        PixelHeight = pixels;
         HasChanged = true;
     }
 }
@@ -175,7 +174,7 @@ void PowerView::Flash_Power()
 int PowerView::Max_Power_Height() const
 {
     const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-    return (layout.CameoSize.Y * VisibleButtonsPerColumn + layout.PowerBarHeightAdjust) / Get_Power_Pip_Height(ViewType);
+    return (PixelHeight + layout.PowerBarHeightAdjust) / Get_Power_Pip_Height(ViewType);
 }
 
 
@@ -185,7 +184,7 @@ int PowerView::Current_Power() const
         return Model->Get_Power();
     }
 
-    return PlayerPtr != nullptr ? PlayerPtr->Power : 0;
+    return 0;
 }
 
 
@@ -195,7 +194,7 @@ int PowerView::Current_Drain() const
         return Model->Get_Drain();
     }
 
-    return PlayerPtr != nullptr ? PlayerPtr->Drain : 0;
+    return 0;
 }
 
 

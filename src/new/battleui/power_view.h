@@ -44,7 +44,7 @@ public:
     void Init_Clear();
     void Init_For_House();
     void Shift_Sidebar();
-    void Set_Visible_Buttons_Per_Column(int count);
+    void Set_Height(int pixels);
     void AI();
     void Draw();
     void Flash_Power();
@@ -73,7 +73,7 @@ private:
     int GreenPipCount;
     int YellowPipCount;
     int RedPipCount;
-    int VisibleButtonsPerColumn;
+    int PixelHeight;
 
     bool HasChanged;
     SidebarViewType ViewType;
