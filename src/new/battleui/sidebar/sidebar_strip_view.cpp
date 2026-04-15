@@ -1050,7 +1050,7 @@ int SidebarStripView::Object_Name_Offset() const
  */
 int SidebarStripView::Row_Pitch() const
 {
-    return std::max(1, Layout.RowPitch);
+    return std::max(1, Layout.RowSpacing);
 }
 
 

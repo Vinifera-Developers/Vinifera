@@ -34,7 +34,7 @@ ViewType=Classic          ; string, Classic or Tabbed.
 [SidebarClassic]
 LeftStripPos=24,26          ; point, left strip origin.
 RightStripPos=91,26         ; point, right strip origin.
-RowPitch=51                 ; integer, vertical spacing between cameos.
+RowSpacing=51               ; integer, vertical spacing between cameos.
 CameoSize=64,51             ; point, cameo width,height.
 CameoNameOffset=41          ; integer, Y offset for the cameo name.
 CameoTextOffset=30,2        ; point, READY/HOLD text offset.
@@ -80,7 +80,7 @@ Tab2Pos=55,24              ; point, Infantry tab position.
 Tab3Pos=90,24              ; point, Unit tab position.
 Tab4Pos=125,24             ; point, Special tab position.
 StripPos=24,54             ; point, 2-column strip origin.
-RowPitch=51                ; integer, vertical spacing between cameo rows.
+RowSpacing=51              ; integer, vertical spacing between cameo rows.
 ColumnSpacing=66           ; integer, horizontal spacing between the two strip columns.
 CameoSize=64,51            ; point, cameo width,height.
 CameoNameOffset=41         ; integer, Y offset for the cameo name.
