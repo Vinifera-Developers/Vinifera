@@ -327,3 +327,5 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
   - Fix game end text being stretched horizontally.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+  - Fix a bug where the sidebar could only contain up to 75 items on a strip.
+  - Extended sidebar customizability.

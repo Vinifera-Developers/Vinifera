@@ -99,3 +99,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the last line of an INI file would not be parsed.
 - Fix incorrect merging of sections and keys in INI files.
 - Fix game end text being stretched horizontally.
+- Fix a bug where the sidebar could only contain up to 75 items on a strip.

@@ -82,6 +82,7 @@ New:
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
 - Implement INI inheritance/includes (by ZivDero)
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
+- Extended sidebar customizability (by ZivDero)
 
 
 Vinifera fixes:
@@ -135,6 +136,7 @@ Vanilla fixes:
 - Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
 - Fix incorrect merging of sections and keys in INI files (by ZivDero)
 - Fix game end text being stretched horizontally (by ZivDero)
+- Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 
 :::
 
