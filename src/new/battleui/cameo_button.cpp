@@ -15,6 +15,11 @@
 #include "sidebar_strip_view.h"
 
 
+/**
+ *  Default constructor.
+ *
+ *  @author: ZivDero
+ */
 CameoButtonClass::CameoButtonClass() :
     ControlClass(0, 0, 0, 0, 0,
                  LEFTPRESS | RIGHTPRESS | LEFTUP),
@@ -25,6 +30,11 @@ CameoButtonClass::CameoButtonClass() :
 }
 
 
+/**
+ *  No-init constructor. Used when constructing inside a container without initialization.
+ *
+ *  @author: ZivDero
+ */
 CameoButtonClass::CameoButtonClass(const NoInitClass& x) :
     ControlClass(x),
     Strip(nullptr),
@@ -52,18 +62,33 @@ bool CameoButtonClass::Action(unsigned flags, KeyNumType& key)
 }
 
 
+/**
+ *  Called when the mouse enters the cameo button region.
+ *
+ *  @author: ZivDero
+ */
 void CameoButtonClass::On_Mouse_Enter()
 {
     IsMousedOver = true;
 }
 
 
+/**
+ *  Called when the mouse leaves the cameo button region.
+ *
+ *  @author: ZivDero
+ */
 void CameoButtonClass::On_Mouse_Leave()
 {
     IsMousedOver = false;
 }
 
 
+/**
+ *  Sets the owning strip and slot index for this button.
+ *
+ *  @author: ZivDero
+ */
 void CameoButtonClass::Set_Owner(SidebarStripView& strip, int index)
 {
     Strip = &strip;

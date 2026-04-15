@@ -184,14 +184,13 @@ void BuildCategory::Clear()
 /**
  *  Comparison function for sorting buildable items.
  *
- *  Sorting order:
- *    - Super weapons first (ordered by recharge time, then ID)
- *    - Within same RTTI type:
- *      - Buildings: non-defenses, then walls, then gates, then defenses
- *      - Units: non-naval before naval
- *      - Player side items before foreign side items
- *    - Different RTTI types: Specials > Infantry > Aircraft > Units
- *    - Final tiebreaker: by ID
+ *  Within the same RTTI type:
+ *    - Super weapons: by recharge time, then ID.
+ *    - Buildings: non-defenses first, then walls, then gates, then defenses.
+ *    - Units: non-naval before naval.
+ *    - Player-side items before foreign-side items.
+ *  Across different RTTI types: Specials > Infantry > Aircraft > Units > Buildings.
+ *  Final tiebreaker: by ID.
  *
  *  @author: ZivDero
  */
@@ -429,8 +428,7 @@ void SidebarModel::Init_Clear()
 
 
 /**
- *  Initializes the model for the current player house.
- *  Sets up the configured number of categories.
+ *  Marks the model as active. Called once per scenario after Init_Categories.
  *
  *  @author: ZivDero
  */
@@ -442,9 +440,10 @@ void SidebarModel::Init_For_House()
 
 
 /**
- *  Routes an RTTI type to its category index. Uses 4-category
- *  layout (Structure / Infantry / Unit / Special), matching the
- *  existing Vinifera tab routing.
+ *  Routes an RTTI type to its category index.
+ *  2-category layout: structures=0, all others=1.
+ *  4-category layout: structures=0, infantry=1, non-naval units=2,
+ *  everything else (naval units, aircraft, super weapons)=3.
  *
  *  @author: ZivDero
  */

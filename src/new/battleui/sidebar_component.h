@@ -8,8 +8,8 @@
  *
  *  @author        ZivDero
  *
- *  @brief         Sidebar component. Orchestrates the sidebar model, power
- *                 model, and active view implementation.
+ *  @brief         Sidebar component. Orchestrates the action bar view,
+ *                 data model, and active view implementation.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License

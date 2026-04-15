@@ -35,24 +35,44 @@ const ShapeSet *PowerView::PowerPipShape = nullptr;
 
 namespace
 {
+/**
+ *  Returns the active sidebar layout config for the selected view type.
+ *
+ *  @author: ZivDero
+ */
 const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 {
     return UIControls->Get_Battle_Sidebar_Config(view_type);
 }
 
 
+/**
+ *  Returns the power bar's sidebar-relative position for the given view type.
+ *
+ *  @author: ZivDero
+ */
 TPoint2D<int> Get_Power_Bar_Position(SidebarViewType view_type)
 {
     return Get_Sidebar_Layout(view_type).PowerBarPosition;
 }
 
 
+/**
+ *  Returns the power bar width in pixels for the given view type.
+ *
+ *  @author: ZivDero
+ */
 int Get_Power_Bar_Width(SidebarViewType view_type)
 {
     return Get_Sidebar_Layout(view_type).PowerBarWidth;
 }
 
 
+/**
+ *  Returns the height of one power pip in pixels for the given view type.
+ *
+ *  @author: ZivDero
+ */
 int Get_Power_Pip_Height(SidebarViewType view_type)
 {
     return Get_Sidebar_Layout(view_type).PowerPipHeight;
@@ -143,6 +163,11 @@ void PowerView::Shift_Sidebar()
 }
 
 
+/**
+ *  Sets the available pixel height for the power bar and flags a redraw.
+ *
+ *  @author: ZivDero
+ */
 void PowerView::Set_Height(int pixels)
 {
     pixels = std::max(1, pixels);
@@ -177,6 +202,11 @@ int PowerView::Max_Power_Height() const
 }
 
 
+/**
+ *  Returns the player's current power output.
+ *
+ *  @author: ZivDero
+ */
 int PowerView::Current_Power() const
 {
     if (Model != nullptr) {
@@ -187,6 +217,11 @@ int PowerView::Current_Power() const
 }
 
 
+/**
+ *  Returns the player's current power drain.
+ *
+ *  @author: ZivDero
+ */
 int PowerView::Current_Drain() const
 {
     if (Model != nullptr) {

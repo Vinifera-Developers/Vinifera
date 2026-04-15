@@ -134,7 +134,7 @@ void ClassicSidebarView::Init_Clear()
 
 
 /**
- *  Initializes IO gadgets. Sets up action buttons and strip gadgets.
+ *  Initializes IO gadgets. Sets up strips and links them to model categories.
  *
  *  @author: ZivDero
  */

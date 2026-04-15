@@ -407,7 +407,7 @@ void TabbedSidebarView::Init_Clear()
 
 
 /**
- *  Initializes IO gadgets — action buttons, tab buttons, and strips.
+ *  Initializes IO gadgets — tab buttons and strip gadgets.
  *
  *  @author: ZivDero
  */

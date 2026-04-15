@@ -16,6 +16,10 @@
 class SidebarStripView;
 
 
+/**
+ *  A sidebar cameo slot button. Delegates click handling to the owning
+ *  SidebarStripView and tracks hover state for highlight rendering.
+ */
 class CameoButtonClass : public ControlClass, public IHoverableGadget
 {
 public:

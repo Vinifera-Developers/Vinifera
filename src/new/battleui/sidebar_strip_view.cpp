@@ -429,7 +429,7 @@ bool SidebarStripView::Update_State()
 
 
 /**
- *  Main draw entry point. Draws the strip if it needs redrawing.
+ *  Draws the strip's scroll buttons and all visible cameo items.
  *
  *  @author: ZivDero
  */

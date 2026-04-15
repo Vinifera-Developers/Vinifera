@@ -47,7 +47,7 @@ void PowerComponent::Init_Clear()
 
 
 /**
- *  Initializes IO gadgets.
+ *  No-op. The power bar has no interactive gadgets.
  *
  *  @author: ZivDero
  */
@@ -91,7 +91,7 @@ void PowerComponent::Draw()
 
 
 /**
- *  Blits the power bar to the screen.
+ *  No-op. The power bar is drawn on the sidebar surface and blitted with it.
  *
  *  @author: ZivDero
  */
@@ -111,12 +111,22 @@ void PowerComponent::Shift_Sidebar()
 }
 
 
+/**
+ *  Sets the available pixel height for the power bar.
+ *
+ *  @author: ZivDero
+ */
 void PowerComponent::Set_Height(int pixels)
 {
     View.Set_Height(pixels);
 }
 
 
+/**
+ *  Sets the sidebar view type used for layout config lookups.
+ *
+ *  @author: ZivDero
+ */
 void PowerComponent::Set_Sidebar_View_Type(SidebarViewType view_type)
 {
     View.Set_Sidebar_View_Type(view_type);
