@@ -592,9 +592,10 @@ void SidebarModel::Link_Factory(FactoryClass* factory, RTTIType type, int id)
     int index = Which_Category(type, id);
     if (index >= 0) {
         /**
-         *  A factory can only actively build one object at a time. When queued
-         *  production advances to the next object, move the link instead of
-         *  letting stale cameos keep the same factory pointer.
+         *  HouseClassExtension::Abandon_Production is expected to clear the
+         *  sidebar's current cameo link before a factory resumes its queue.
+         *  Keep this detach as a defensive fallback in case some other path
+         *  reuses a factory without first unlinking the old cameo.
          */
         if (factory != nullptr) {
             Detach(factory);

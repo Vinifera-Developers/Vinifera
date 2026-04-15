@@ -516,6 +516,8 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     **  Drop any active building placement.
     */
     if (PlayerPtr == This()) {
+        BattleUI.Get_Sidebar().Detach(fptr);
+
         if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
             Map.PendingObjectPtr = nullptr;
             Map.PendingObject = nullptr;
