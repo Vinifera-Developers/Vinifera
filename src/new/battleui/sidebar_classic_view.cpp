@@ -384,10 +384,15 @@ void ClassicSidebarView::Activate(int control)
  */
 bool ClassicSidebarView::Scroll(bool up, int column)
 {
-    if (column >= 0 && column < COLUMN_COUNT) {
-        return Strip[column].Scroll(up);
+    bool scrolled = false;
+    if (column < 0) {
+        for (auto& strip : Strip) {
+            scrolled = strip.Scroll(up);
+        }
+    } else if (column < COLUMN_COUNT) {
+        scrolled = Strip[column].Scroll(up);
     }
-    return false;
+    return scrolled;
 }
 
 
@@ -398,10 +403,15 @@ bool ClassicSidebarView::Scroll(bool up, int column)
  */
 bool ClassicSidebarView::Scroll_Page(bool up, int column)
 {
-    if (column >= 0 && column < COLUMN_COUNT) {
-        return Strip[column].Scroll_Page(up);
+    bool scrolled = false;
+    if (column < 0) {
+        for (auto& strip : Strip) {
+            scrolled = strip.Scroll_Page(up);
+        }
+    } else if (column < COLUMN_COUNT) {
+        scrolled = Strip[column].Scroll_Page(up);
     }
-    return false;
+    return scrolled;
 }
 
 
