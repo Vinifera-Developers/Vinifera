@@ -26,28 +26,25 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "sidebar_tabbed_view.h"
 
-#include "battleui_component.h"
 #include "cameo_button.h"
-#include "power_model.h"
-#include "sidebar_model.h"
-#include "sidebar_render_utils.h"
-
 #include "colorscheme.h"
 #include "drawshape.h"
 #include "extension.h"
 #include "factory.h"
-#include "fetchres.h"
 #include "house.h"
-#include "housetype.h"
 #include "houseext.h"
+#include "housetype.h"
 #include "language.h"
 #include "mouse.h"
-#include "options.h"
 #include "power.h"
 #include "scenario.h"
 #include "sidebar.h"
+#include "sidebar_model.h"
+#include "sidebar_render_utils.h"
 #include "sideext.h"
 #include "super.h"
 #include "supertype.h"

@@ -12,9 +12,6 @@
 #pragma once
 
 #include "point.h"
-#include "sidebar.h"
-#include "tibsun_defines.h"
-#include "vinifera_defines.h"
 #include "wwkeyboard.h"
 
 class SidebarModel;

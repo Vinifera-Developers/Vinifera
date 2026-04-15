@@ -7,8 +7,9 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
-#include "power_component.h"
+#include "always.h"
 
+#include "power_component.h"
 
 
 /**

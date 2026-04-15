@@ -39,6 +39,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
+#include "battleui_component.h"
 #include "beacon.h"
 #include "building.h"
 #include "buildinglight.h"
@@ -112,7 +113,6 @@
 #include "verses.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_savever.h"
-#include "vinifera_util.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
@@ -120,8 +120,6 @@
 #include "waypointpath.h"
 #include "weapontype.h"
 #include "windialog.h"
-
-#include "battleui_component.h"
 
 #include <atlbase.h>
 

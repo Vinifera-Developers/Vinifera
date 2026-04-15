@@ -8,19 +8,19 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "power_view.h"
 
 #include "battleui_component.h"
-#include "power_model.h"
-
 #include "building.h"
-#include "buildingtype.h"
 #include "convert.h"
 #include "drawshape.h"
 #include "fetchres.h"
 #include "house.h"
 #include "language.h"
 #include "mouse.h"
+#include "power_model.h"
 #include "shapeset.h"
 #include "surface.h"
 #include "tibsun_globals.h"
@@ -28,7 +28,6 @@
 #include "uicontrol.h"
 
 #include <algorithm>
-#include <cstdio>
 
 
 const ShapeSet *PowerView::PowerPipShape = nullptr;

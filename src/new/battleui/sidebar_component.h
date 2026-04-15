@@ -33,9 +33,6 @@
 #include "ibattleui_component.h"
 #include "sidebar_model.h"
 #include "uicontrol.h"
-#include "vinifera_defines.h"
-
-#include <objidl.h>
 
 
 class ISidebarView;

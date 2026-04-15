@@ -7,11 +7,12 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "sidebar_render_utils.h"
 
-#include "sidebar_model.h"
-
 #include "extension.h"
+#include "sidebar_model.h"
 #include "supertype.h"
 #include "supertypeext.h"
 #include "technotype.h"

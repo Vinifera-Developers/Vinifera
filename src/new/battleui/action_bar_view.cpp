@@ -7,15 +7,14 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "action_bar_view.h"
 
 #include "battleui_component.h"
-
-#include "fetchres.h"
 #include "house.h"
 #include "language.h"
 #include "mouse.h"
-#include "palette.h"
 #include "sidebar.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"

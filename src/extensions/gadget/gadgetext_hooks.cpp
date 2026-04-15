@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "gadgetext_hooks.h"
 
 #include "gadget.h"

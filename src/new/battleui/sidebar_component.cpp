@@ -7,6 +7,8 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "sidebar_component.h"
 
 #include "abstract.h"
@@ -22,6 +24,7 @@
 #include "mouse.h"
 #include "object.h"
 #include "palette.h"
+#include "sidebar.h"
 #include "sidebar_classic_view.h"
 #include "sidebar_strip_view.h"
 #include "sidebar_tabbed_view.h"
@@ -31,13 +34,11 @@
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
-#include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "uicontrol.h"
 #include "voc.h"
 #include "vox.h"
-
-#include "sidebar.h"
 
 #include <algorithm>
 

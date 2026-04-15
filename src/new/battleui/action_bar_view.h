@@ -10,7 +10,6 @@
 #pragma once
 
 #include "shapebtn.h"
-#include "sidebar.h"
 #include "uicontrol.h"
 #include "wwkeyboard.h"
 

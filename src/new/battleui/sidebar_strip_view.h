@@ -31,12 +31,11 @@
 
 #pragma once
 
+#include "point.h"
+#include "rect.h"
 #include "shapebtn.h"
 #include "vector.h"
 #include "wwkeyboard.h"
-
-#include "point.h"
-#include "rect.h"
 
 #include <climits>
 

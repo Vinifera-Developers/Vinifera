@@ -12,8 +12,6 @@
 #include "point.h"
 #include "wwkeyboard.h"
 
-#include <objidl.h>
-
 
 /**
  *  Lifecycle interface for battle UI components (sidebar, radar, etc.).

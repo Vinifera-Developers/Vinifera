@@ -7,6 +7,8 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "power_model.h"
 
 #include "house.h"

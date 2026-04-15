@@ -7,6 +7,8 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "cameo_button.h"
 
 #include "battleui_component.h"

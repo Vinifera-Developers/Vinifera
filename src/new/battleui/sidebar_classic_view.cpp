@@ -26,22 +26,20 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "sidebar_classic_view.h"
 
 #include "battleui_component.h"
 #include "cameo_button.h"
-#include "sidebar_model.h"
-#include "sidebar_render_utils.h"
-#include "power_model.h"
-
 #include "drawshape.h"
-#include "fetchres.h"
 #include "house.h"
 #include "language.h"
 #include "mouse.h"
-#include "options.h"
 #include "power.h"
 #include "sidebar.h"
+#include "sidebar_model.h"
+#include "sidebar_render_utils.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
 #include "uicontrol.h"

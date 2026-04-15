@@ -7,6 +7,8 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "sidebar_model.h"
 
 #include "abstract.h"
@@ -16,7 +18,6 @@
 #include "house.h"
 #include "housetype.h"
 #include "optionsext.h"
-#include "sidebar.h"
 #include "supertype.h"
 #include "technotypeext.h"
 #include "tibsun_globals.h"
