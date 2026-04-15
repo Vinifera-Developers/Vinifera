@@ -9,7 +9,7 @@
 
 #include "always.h"
 
-#include "battleui_component.h"
+#include "battleui.h"
 
 #include "tibsun_globals.h"
 #include "tooltip.h"

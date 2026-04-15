@@ -12,7 +12,7 @@
 
 #include "power_view.h"
 
-#include "battleui_component.h"
+#include "battleui.h"
 #include "building.h"
 #include "convert.h"
 #include "drawshape.h"

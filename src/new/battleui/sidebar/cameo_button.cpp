@@ -11,7 +11,7 @@
 
 #include "cameo_button.h"
 
-#include "battleui_component.h"
+#include "battleui.h"
 #include "sidebar_strip_view.h"
 
 

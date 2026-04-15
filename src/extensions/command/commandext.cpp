@@ -70,7 +70,7 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
-#include "battleui_component.h"
+#include "battleui.h"
 #include "sidebar_tabbed_view.h"
 #include "smudgetype.h"
 #include "super.h"

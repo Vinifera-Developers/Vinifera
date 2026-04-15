@@ -43,7 +43,7 @@
 #include "rules.h"
 #include "saveload.h"
 #include "session.h"
-#include "battleui_component.h"
+#include "battleui.h"
 #include "storageext.h"
 #include "team.h"
 #include "teamtype.h"

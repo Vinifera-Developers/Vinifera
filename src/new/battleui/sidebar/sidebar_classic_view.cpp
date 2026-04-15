@@ -30,7 +30,7 @@
 
 #include "sidebar_classic_view.h"
 
-#include "battleui_component.h"
+#include "battleui.h"
 #include "cameo_button.h"
 #include "drawshape.h"
 #include "house.h"

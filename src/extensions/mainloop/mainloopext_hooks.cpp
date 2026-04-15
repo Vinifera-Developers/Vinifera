@@ -33,7 +33,7 @@
 #include "addon.h"
 #include "asserthandler.h"
 #include "beacon.h"
-#include "battleui_component.h"
+#include "battleui.h"
 #include "ccfile.h"
 #include "ccini.h"
 #include "command.h"

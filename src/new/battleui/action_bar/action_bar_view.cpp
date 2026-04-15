@@ -11,7 +11,7 @@
 
 #include "action_bar_view.h"
 
-#include "battleui_component.h"
+#include "battleui.h"
 #include "house.h"
 #include "language.h"
 #include "mouse.h"

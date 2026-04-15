@@ -12,7 +12,7 @@
 
 #include "sidebar.h"
 #include "sidebar_strip_view.h"
-#include "sidebar_view.h"
+#include "isidebar_view.h"
 
 class ShapeSet;
 

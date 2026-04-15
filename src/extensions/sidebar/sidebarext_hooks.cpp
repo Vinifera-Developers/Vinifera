@@ -30,7 +30,7 @@
 
 #include "sidebarext_hooks.h"
 
-#include "battleui_component.h"
+#include "battleui.h"
 #include "building.h"
 #include "debughandler.h"
 #include "extension.h"

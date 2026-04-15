@@ -40,7 +40,7 @@
 #include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"
-#include "battleui_component.h"
+#include "battleui.h"
 #include "techno.h"
 #include "technotype.h"
 #include "tibsun_globals.h"

@@ -36,7 +36,7 @@
 #include "map.h"
 #include "object.h"
 #include "objecttype.h"
-#include "battleui_component.h"
+#include "battleui.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
 

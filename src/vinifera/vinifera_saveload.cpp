@@ -39,7 +39,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
-#include "battleui_component.h"
+#include "battleui.h"
 #include "beacon.h"
 #include "building.h"
 #include "buildinglight.h"

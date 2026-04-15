@@ -30,7 +30,7 @@
 
 #include "sidebar_strip_view.h"
 
-#include "battleui_component.h"
+#include "battleui.h"
 #include "bsurface.h"
 #include "cameo_button.h"
 #include "colorscheme.h"
