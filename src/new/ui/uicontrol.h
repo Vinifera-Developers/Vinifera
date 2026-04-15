@@ -69,7 +69,7 @@ struct BattleSidebarLayoutBase
     TPoint2D<int> PowerBarPosition = {8, 25};
     int PowerBarWidth = 12;
     int PowerPipHeight = 4;
-    int PowerBarHeightAdjust = 1;
+    int PowerBarHeightAdjust = 3;
     TPoint2D<int> CameoSize = {64, 51};
     int CameoNameOffset = 41;
     TPoint2D<int> CameoTextOffset = {30, 2};
@@ -133,11 +133,7 @@ class UIControlsClass
 {
     public:
         UIControlsClass() = default;
-        ~UIControlsClass();
-
-        HRESULT Load(IStream *pStm);
-        HRESULT Save(IStream *pStm, BOOL fClearDirty);
-        int Get_Object_Size() const;
+        ~UIControlsClass() = default;
 
         bool Read_INI(CCINIClass const& ini);
         bool Read_INI_File(const char *filename, bool reset_to_defaults = false);

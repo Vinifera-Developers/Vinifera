@@ -139,16 +139,6 @@ void SidebarTabbedLayout::Read_INI(CCINIClass const& ini, const char* section)
 }
 
 
-/**
- *  Class destructor.
- *
- *  @author: CCHyper
- */
-UIControlsClass::~UIControlsClass()
-{
-}
-
-
 /***************************************************************************
 **  UI offset queries
 ***************************************************************************/
