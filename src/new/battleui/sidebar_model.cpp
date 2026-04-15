@@ -65,7 +65,7 @@ bool BuildItem::Is_In_Production() const
  *
  *  @author: ZivDero
  */
-int BuildItem::Completion_Percent() const
+int BuildItem::Completion_Stage() const
 {
     if (Factory == nullptr) {
         return 0;

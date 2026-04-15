@@ -725,7 +725,7 @@ SidebarStripView::StripItemDrawState SidebarStripView::Get_Item_Draw_State(const
         state.Production = true;
         state.Completed = item.Is_Completed();
         state.IsOnHold = item.Is_On_Hold();
-        state.Stage = item.Completion_Percent();
+        state.Stage = item.Completion_Stage();
         state.StateText = state.Completed ? Fetch_String(TXT_READY) : nullptr;
         state.Darken = false;
     }

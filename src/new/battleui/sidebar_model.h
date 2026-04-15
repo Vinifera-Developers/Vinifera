@@ -47,7 +47,7 @@ struct BuildItem {
     FactoryClass* Factory;
 
     bool Is_In_Production() const;
-    int Completion_Percent() const;
+    int Completion_Stage() const;
     bool Is_Completed() const;
     bool Is_On_Hold() const;
     int Queue_Count() const;
