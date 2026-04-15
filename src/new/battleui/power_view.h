@@ -75,7 +75,7 @@ private:
     int RedPipCount;
     int VisibleButtonsPerColumn;
 
-    bool IsChanged;
+    bool HasChanged;
     SidebarViewType ViewType;
 
     static const ShapeSet *PowerPipShape;
