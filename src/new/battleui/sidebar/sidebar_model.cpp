@@ -12,12 +12,14 @@
 #include "sidebar_model.h"
 
 #include "abstract.h"
+#include "building.h"
 #include "buildingtype.h"
 #include "extension.h"
 #include "factory.h"
 #include "house.h"
 #include "housetype.h"
 #include "optionsext.h"
+#include "super.h"
 #include "supertype.h"
 #include "technotypeext.h"
 #include "tibsun_globals.h"
@@ -339,12 +341,52 @@ static int __cdecl Build_Item_Compare(const void* p1, const void* p2)
 
 
 /**
+ *  Returns whether a build item should remain visible on the sidebar.
+ *
+ *  Mirrors the legacy StripClass::Recalc sweep that removed cameos which
+ *  could no longer be built even in theory.
+ *
+ *  @author: ZivDero
+ */
+static bool Is_Build_Item_Valid(const BuildItem& item)
+{
+    if (PlayerPtr == nullptr) {
+        return true;
+    }
+
+    const TechnoTypeClass* tech = Fetch_Techno_Type(item.Type, item.ID);
+    if (tech != nullptr) {
+        const BuildingClass* who = tech->Who_Can_Build_Me(true, false, false, PlayerPtr);
+        return who != nullptr && who->House->Can_Build(tech, true, true);
+    }
+
+    if ((item.Type == RTTI_SPECIAL || item.Type == RTTI_SUPERWEAPONTYPE)
+        && static_cast<unsigned>(item.ID) < static_cast<unsigned>(PlayerPtr->SuperWeapon.Count())) {
+        SuperClass* super = PlayerPtr->SuperWeapon[item.ID];
+        return super != nullptr && super->Is_Present();
+    }
+
+    return false;
+}
+
+
+/**
  *  Re-sorts the items in this category.
  *
  *  @author: ZivDero
  */
 void BuildCategory::Recalc()
 {
+    if (!Debug_Map) {
+        for (int index = 0; index < Items.Count(); ++index) {
+            if (!Is_Build_Item_Valid(Items[index])) {
+                Items[index].Factory = nullptr;
+                Items.Delete(index);
+                --index;
+            }
+        }
+    }
+
     if (Items.Count() > 1) {
         std::qsort(Items.begin(), Items.Count(), sizeof(BuildItem), Build_Item_Compare);
     }

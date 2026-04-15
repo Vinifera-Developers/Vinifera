@@ -460,7 +460,7 @@ void SidebarComponent::Init_For_House()
 void SidebarComponent::AI(KeyNumType& key, Point2D& mouse)
 {
     if (Model.Needs_Recalc()) {
-        Model.Recalc_All();
+        Recalc();
     }
 
     Production_AI();
@@ -566,7 +566,15 @@ bool SidebarComponent::Scroll_Page(bool up, int column)
  */
 void SidebarComponent::Recalc()
 {
+    if (ActiveView) {
+        ActiveView->Prepare_Model_Recalc();
+    }
+
     Model.Recalc_All();
+
+    if (ActiveView) {
+        ActiveView->Finish_Model_Recalc();
+    }
 }
 
 
@@ -812,7 +820,7 @@ void SidebarComponent::Relink_Factories()
         }
     }
 
-    Model.Recalc_All();
+    Recalc();
 }
 
 

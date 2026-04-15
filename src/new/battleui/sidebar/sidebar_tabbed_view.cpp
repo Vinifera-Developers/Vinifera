@@ -882,6 +882,32 @@ int TabbedSidebarView::Visible_Buttons_Per_Column() const
 
 
 /**
+ *  Captures per-tab strip state before the sidebar model recalcs.
+ *
+ *  @author: ZivDero
+ */
+void TabbedSidebarView::Prepare_Model_Recalc()
+{
+    for (auto& strip : Strip) {
+        strip.Prepare_Model_Recalc();
+    }
+}
+
+
+/**
+ *  Restores per-tab strip state after the sidebar model recalcs.
+ *
+ *  @author: ZivDero
+ */
+void TabbedSidebarView::Finish_Model_Recalc()
+{
+    for (auto& strip : Strip) {
+        strip.Finish_Model_Recalc();
+    }
+}
+
+
+/**
  *  Switches to a different tab.
  *
  *  @author: ZivDero

@@ -93,7 +93,9 @@ SidebarStripView::SidebarStripView() :
     Art(),
     UpButton(),
     DownButton(),
-    SelectButtons()
+    SelectButtons(),
+    RecalcSnapshot(),
+    HasRecalcSnapshot(false)
 {
 }
 
@@ -137,6 +139,8 @@ void SidebarStripView::Init_Clear()
     Scroller = 0;
     Slid = 0;
     LastSlid = 0;
+    RecalcSnapshot.Clear();
+    HasRecalcSnapshot = false;
 }
 
 
@@ -371,6 +375,12 @@ bool SidebarStripView::Update_State()
     bool redraw = false;
     int item_count = Category->Items.Count();
 
+    const int clamped_top = std::clamp(TopIndex, 0, Max_Top_Index(item_count));
+    if (clamped_top != TopIndex) {
+        TopIndex = clamped_top;
+        redraw = true;
+    }
+
     /**
      *  Reflect the scroll desired direction/value into the scroll
      *  logic handler.
@@ -425,6 +435,102 @@ bool SidebarStripView::Update_State()
     }
 
     return redraw;
+}
+
+
+/**
+ *  Captures the currently visible item keys so TopIndex can be restored
+ *  sensibly after the category is purged/re-sorted.
+ *
+ *  @author: ZivDero
+ */
+void SidebarStripView::Prepare_Model_Recalc()
+{
+    RecalcSnapshot.Clear();
+    HasRecalcSnapshot = false;
+
+    if (Category == nullptr || MaxVisibleCount <= 0) {
+        return;
+    }
+
+    for (int slot = 0; slot < MaxVisibleCount; ++slot) {
+        RecalcSnapshotItem snapshot_item;
+        const BuildItem* item = Get_Visible_Item(slot);
+        if (item != nullptr) {
+            snapshot_item.Type = item->Type;
+            snapshot_item.ID = item->ID;
+        }
+        RecalcSnapshot.Add(snapshot_item);
+    }
+
+    HasRecalcSnapshot = true;
+}
+
+
+/**
+ *  Restores TopIndex after the category changes by anchoring to the first
+ *  previously visible item that still exists.
+ *
+ *  @author: ZivDero
+ */
+void SidebarStripView::Finish_Model_Recalc()
+{
+    if (Category == nullptr) {
+        RecalcSnapshot.Clear();
+        HasRecalcSnapshot = false;
+        return;
+    }
+
+    if (!HasRecalcSnapshot) {
+        TopIndex = std::clamp(TopIndex, 0, Max_Top_Index(Category->Items.Count()));
+        return;
+    }
+
+    bool found_old = false;
+    bool found_new = false;
+    int old_position = 0;
+    int new_position = 0;
+
+    for (old_position = 0; old_position < RecalcSnapshot.Count(); ++old_position) {
+        const RecalcSnapshotItem& snapshot_item = RecalcSnapshot[old_position];
+        if (!snapshot_item.Is_Valid()) {
+            continue;
+        }
+
+        found_old = true;
+
+        for (new_position = 0; new_position < Category->Items.Count(); ++new_position) {
+            const BuildItem& current_item = Category->Items[new_position];
+            if (current_item.Type == snapshot_item.Type && current_item.ID == snapshot_item.ID) {
+                found_new = true;
+                break;
+            }
+        }
+
+        if (found_new) {
+            break;
+        }
+    }
+
+    if (found_old && found_new) {
+        TopIndex = new_position - old_position;
+    } else {
+        TopIndex = 0;
+    }
+
+    if (Columns > 1 && TopIndex > 0) {
+        TopIndex -= TopIndex % Columns;
+    }
+
+    TopIndex = std::clamp(TopIndex, 0, Max_Top_Index(Category->Items.Count()));
+    Scroller = 0;
+    IsScrolling = false;
+    IsScrollingDown = false;
+    Slid = 0;
+    LastSlid = 0;
+
+    RecalcSnapshot.Clear();
+    HasRecalcSnapshot = false;
 }
 
 
@@ -615,6 +721,23 @@ bool SidebarStripView::Has_Ready() const
 int SidebarStripView::Visible_Button_Count() const
 {
     return Visible_Buttons_Per_Column() * Columns;
+}
+
+
+/**
+ *  Returns the last valid TopIndex for the current item count.
+ *
+ *  @author: ZivDero
+ */
+int SidebarStripView::Max_Top_Index(int item_count) const
+{
+    if (item_count <= 0 || Columns <= 0 || MaxVisibleCount <= 0) {
+        return 0;
+    }
+
+    const int visible_rows = std::max(1, MaxVisibleCount / Columns);
+    const int row_count = (item_count + Columns - 1) / Columns;
+    return std::max(0, (row_count - visible_rows) * Columns);
 }
 
 

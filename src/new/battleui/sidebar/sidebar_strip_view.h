@@ -34,6 +34,7 @@
 #include "point.h"
 #include "rect.h"
 #include "shapebtn.h"
+#include "tibsun_defines.h"
 #include "vector.h"
 #include "wwkeyboard.h"
 
@@ -121,6 +122,8 @@ public:
     void Draw(Surface& surface, const Rect& rect);
     bool Scroll(bool up);
     bool Scroll_Page(bool up);
+    void Prepare_Model_Recalc();
+    void Finish_Model_Recalc();
 
     /**
      *  Category access.
@@ -166,6 +169,16 @@ public:
     DynamicVectorClass<CameoButtonClass*> SelectButtons;
 
 private:
+    struct RecalcSnapshotItem
+    {
+        RTTIType Type = RTTI_NONE;
+        int ID = -1;
+
+        bool Is_Valid() const { return Type != RTTI_NONE; }
+        bool operator==(const RecalcSnapshotItem& rhs) const { return Type == rhs.Type && ID == rhs.ID; }
+        bool operator!=(const RecalcSnapshotItem& rhs) const { return !(*this == rhs); }
+    };
+
     /**
      *  Transient resolved draw state for one visible item.
      */
@@ -191,6 +204,7 @@ private:
     int Object_Height() const;
     int Object_Name_Offset() const;
     int Row_Pitch() const;
+    int Max_Top_Index(int item_count) const;
     int Column_Spacing() const;
     int Scroll_Step() const;
     Point2D Text_Offset() const;
@@ -222,4 +236,7 @@ private:
     void Draw_Item(Surface& surface, const Rect& rect, int slot);
     void Draw_Item_Production(Surface& surface, const Rect& rect, const Point2D& drawpoint, const StripItemDrawState& state);
     void Draw_Strip_Items(Surface& surface, const Rect& rect);
+
+    DynamicVectorClass<RecalcSnapshotItem> RecalcSnapshot;
+    bool HasRecalcSnapshot = false;
 };

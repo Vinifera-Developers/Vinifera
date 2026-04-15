@@ -463,3 +463,29 @@ int ClassicSidebarView::Visible_Buttons_Per_Column() const
 }
 
 
+/**
+ *  Captures per-strip visible-item state before the sidebar model recalcs.
+ *
+ *  @author: ZivDero
+ */
+void ClassicSidebarView::Prepare_Model_Recalc()
+{
+    for (auto& strip : Strip) {
+        strip.Prepare_Model_Recalc();
+    }
+}
+
+
+/**
+ *  Restores per-strip scroll positions after the sidebar model recalcs.
+ *
+ *  @author: ZivDero
+ */
+void ClassicSidebarView::Finish_Model_Recalc()
+{
+    for (auto& strip : Strip) {
+        strip.Finish_Model_Recalc();
+    }
+}
+
+

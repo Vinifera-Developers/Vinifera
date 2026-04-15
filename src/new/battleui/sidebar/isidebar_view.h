@@ -47,6 +47,8 @@ public:
 
     virtual bool Change_Tab(int index) { return false; }
     virtual void Notify_Production_Complete(int category_index) { (void)category_index; }
+    virtual void Prepare_Model_Recalc() {}
+    virtual void Finish_Model_Recalc() {}
 
 protected:
     SidebarModel* Model;

@@ -44,6 +44,8 @@ public:
     virtual const char* Help_Text(int gadget_id) override;
     virtual int Visible_Button_Count() const override;
     virtual int Visible_Buttons_Per_Column() const override;
+    virtual void Prepare_Model_Recalc() override;
+    virtual void Finish_Model_Recalc() override;
 
 private:
     /**
