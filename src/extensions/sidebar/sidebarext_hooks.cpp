@@ -451,9 +451,4 @@ void SidebarClassExtension_Hooks()
 
     // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
     Patch_Byte(0x0044E605 + 1, 0x8C);
-
-    Patch_Jump(0x004E5C70, 0x004E5D4A); // Don't add LSidebarUpCommandClass and RSidebarUpCommandClass
-    Patch_Jump(0x004E5DB7, 0x004E5E91); // Don't add LSidebarDownCommandClass and RSidebarDownCommandClass
-    Patch_Jump(0x004E5EFE, 0x004E5FD8); // Don't add LSidebarPageUpCommandClass and RSidebarPageUpCommandClass
-    Patch_Jump(0x004E6045, 0x004E611F); // Don't add LSidebarPageDownCommandClass and RSidebarPageDownCommandClass
 }
