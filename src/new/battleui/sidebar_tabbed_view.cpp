@@ -489,9 +489,9 @@ void TabbedSidebarView::Init_For_House()
     TabButtons[SIDEBAR_TAB_SPECIAL].Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.SpecialTabShape.c_str()));
     TabButtons[SIDEBAR_TAB_SPECIAL].ShapeDrawer = SidebarDrawer;
 
-    for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
-        Strip[i].Set_Art(strip_art);
-        Strip[i].Init_For_House();
+    for (auto& strip : Strip) {
+        strip.Set_Art(strip_art);
+        strip.Init_For_House();
     }
 }
 
@@ -531,9 +531,9 @@ void TabbedSidebarView::Shift_Sidebar()
      *  Position the active strip. All strips share the same position.
      */
     const SidebarStripView::StripLayout strip_layout = Build_Tabbed_Strip_Layout();
-    for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
-        Strip[i].Set_Layout(strip_layout);
-        Strip[i].Shift_Sidebar();
+    for (auto& strip : Strip) {
+        strip.Set_Layout(strip_layout);
+        strip.Shift_Sidebar();
     }
 
     /**
@@ -733,18 +733,14 @@ void TabbedSidebarView::Draw()
     /**
      *  Tab buttons always redraw (they might be flashing).
      */
-    for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
-        TabButtons[i].Draw_Me(true);
+    for (auto& TabButton : TabButtons) {
+        TabButton.Draw_Me(true);
     }
 
     /**
      *  Draw the active strip only.
      */
     Strip[TabIndex].Draw(*SidebarSurface, rect);
-
-    if (ToolTips) {
-        ToolTips->Force_Redraw(true);
-    }
 
     LogicalSurface = oldsurface;
 }
@@ -800,9 +796,9 @@ void TabbedSidebarView::Activate(int control)
 
         Strip[TabIndex].Activate();
 
-        for (int i = 0; i < SIDEBAR_TAB_COUNT; i++) {
-            TabButtons[i].Zap();
-            Map.Add_A_Button(TabButtons[i]);
+        for (auto& button : TabButtons) {
+            button.Zap();
+            Map.Add_A_Button(button);
         }
     } else {
         Map.Remove_A_Button(Background);

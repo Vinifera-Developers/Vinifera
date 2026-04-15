@@ -127,8 +127,8 @@ void ClassicSidebarView::Init_Clear()
 {
     RegisteredTooltipCount = 0;
 
-    for (int i = 0; i < COLUMN_COUNT; i++) {
-        Strip[i].Init_Clear();
+    for (auto& strip : Strip) {
+        strip.Init_Clear();
     }
 }
 
@@ -187,9 +187,9 @@ void ClassicSidebarView::Init_For_House()
     strip_art.BackgroundTopHeight = BackgroundTopShape != nullptr ? BackgroundTopShape->Get_Height() : 0;
     strip_art.BackgroundBottomHeight = BackgroundBottomShape != nullptr ? BackgroundBottomShape->Get_Height() : 0;
 
-    for (int i = 0; i < COLUMN_COUNT; i++) {
-        Strip[i].Set_Art(strip_art);
-        Strip[i].Init_For_House();
+    for (auto& strip : Strip) {
+        strip.Set_Art(strip_art);
+        strip.Init_For_House();
     }
 }
 
@@ -223,9 +223,9 @@ void ClassicSidebarView::Shift_Sidebar()
             ToolTips->Remove(1000 + i);
         }
 
-        for (int col = 0; col < COLUMN_COUNT; col++) {
-            for (int i = 0; i < Strip[col].MaxVisibleCount; i++) {
-                CameoButtonClass* btn = Strip[col].SelectButtons[i];
+        for (auto& strip : Strip) {
+            for (int i = 0; i < strip.MaxVisibleCount; i++) {
+                CameoButtonClass* btn = strip.SelectButtons[i];
                 tooltip.Region = Rect(btn->X, btn->Y, btn->Width, btn->Height);
                 tooltip.ID = tooltip_id++;
                 tooltip.Text = TXT_NONE;
@@ -250,8 +250,8 @@ void ClassicSidebarView::Shift_Sidebar()
  */
 void ClassicSidebarView::AI(KeyNumType& input, Point2D& xy)
 {
-    for (int i = 0; i < COLUMN_COUNT; i++) {
-        Strip[i].AI(input, xy);
+    for (auto& strip : Strip) {
+        strip.AI(input, xy);
     }
 }
 
@@ -304,12 +304,8 @@ void ClassicSidebarView::Draw()
     /**
      *  Draw the strips.
      */
-    for (int i = 0; i < COLUMN_COUNT; i++) {
-        Strip[i].Draw(*SidebarSurface, rect);
-    }
-
-    if (ToolTips) {
-        ToolTips->Force_Redraw(true);
+    for (auto& strip : Strip) {
+        strip.Draw(*SidebarSurface, rect);
     }
 
     LogicalSurface = oldsurface;
@@ -364,14 +360,14 @@ void ClassicSidebarView::Activate(int control)
         Background.Zap();
         Map.Add_A_Button(Background);
 
-        for (int i = 0; i < COLUMN_COUNT; i++) {
-            Strip[i].Activate();
+        for (auto& strip : Strip) {
+            strip.Activate();
         }
     } else {
         Map.Remove_A_Button(Background);
 
-        for (int i = 0; i < COLUMN_COUNT; i++) {
-            Strip[i].Deactivate();
+        for (auto& strip : Strip) {
+            strip.Deactivate();
         }
     }
 }
@@ -427,8 +423,7 @@ const char* ClassicSidebarView::Help_Text(int gadget_id)
         return nullptr;
     }
 
-    for (int column = 0; column < COLUMN_COUNT; column++) {
-        SidebarStripView& strip = Strip[column];
+    for (auto& strip : Strip) {
         if (offset >= strip.MaxVisibleCount) {
             offset -= strip.MaxVisibleCount;
             continue;
