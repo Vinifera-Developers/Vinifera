@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ibattleui.h"
+#include "ibattleui_component.h"
 #include "power_model.h"
 #include "power_view.h"
 

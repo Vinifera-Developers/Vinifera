@@ -30,7 +30,7 @@
 #pragma once
 
 #include "action_bar_view.h"
-#include "ibattleui.h"
+#include "ibattleui_component.h"
 #include "sidebar_model.h"
 #include "uicontrol.h"
 
