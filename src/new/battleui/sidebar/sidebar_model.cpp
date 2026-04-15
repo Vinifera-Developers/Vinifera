@@ -591,6 +591,15 @@ void SidebarModel::Link_Factory(FactoryClass* factory, RTTIType type, int id)
 {
     int index = Which_Category(type, id);
     if (index >= 0) {
+        /**
+         *  A factory can only actively build one object at a time. When queued
+         *  production advances to the next object, move the link instead of
+         *  letting stale cameos keep the same factory pointer.
+         */
+        if (factory != nullptr) {
+            Detach(factory);
+        }
+
         Categories[index].Link_Factory(factory, type, id);
     }
 }
