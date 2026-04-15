@@ -228,9 +228,7 @@ int PowerView::Update_Delay() const
     int desired_pips = Desired_Power_Height();
 
     int current_pips = GreenPipCount + YellowPipCount + RedPipCount;
-    if (current_pips > desired_pips) {
-        current_pips = desired_pips;
-    }
+    current_pips = std::min(current_pips, desired_pips);
 
     if (desired_pips == 0) {
         return 0;
