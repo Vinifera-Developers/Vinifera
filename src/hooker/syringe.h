@@ -358,3 +358,18 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 #define GET_STACK(clsname, var, offset) clsname var = R->Stack<clsname>(offset);
 #define GET_BASE(clsname, var, offset) clsname var = R->Base<clsname>(offset);
 #define STACK_OFFSET(cur_offset, wanted_offset) (cur_offset + wanted_offset)
+
+/**
+ *  Feature flags set by Syringe at injection time.
+ *  DLLs can check these at runtime to verify that the running Syringe
+ *  version supports the features they rely on. Each flag defaults to false
+ *  and is set to true by Syringe after the DLL is loaded into the target
+ *  process. If a DLL is loaded by an older Syringe that does not know about
+ *  feature flags, the values will remain false.
+ */
+namespace SyringeFeatures
+{
+extern "C" __declspec(dllexport) inline bool ESPModification = false;
+extern "C" __declspec(dllexport) inline bool ZFPreservation = false;
+extern "C" __declspec(dllexport) inline bool ReladdrInstructionFixup = false;
+} // namespace SyringeFeatures
