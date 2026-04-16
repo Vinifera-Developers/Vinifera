@@ -2842,7 +2842,7 @@ bool TechnoClassExt::_Should_Self_Heal_Now() const
         repair_cap = Rule->ConditionYellow;
     }
     
-    return repair_cap > HealthRatio;
+    return repair_cap >= HealthRatio;
 }
 
 
