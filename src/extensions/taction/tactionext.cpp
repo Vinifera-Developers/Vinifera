@@ -45,6 +45,7 @@
 #include "tag.h"
 #include "tagtype.h"
 #include "techno.h"
+#include "technoext.h"
 #include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -84,6 +85,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Enable templated text", "Displays a line of text on the screen with variable substitution. The text may include placeholders like {{g_variableName}} or {{l_variableName}}, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house." },
     { "Disable templated text", "Removes the currently active templated text from the screen." },
     { "Adjust House Modifier", "Adjusts a house modifier by given percentage points." },
+    { "Apply Iron Curtain", "Applies Iron Curtain to attached objects. Can optionally bypass legality checks." },
 };
 
 
@@ -329,6 +331,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
+        EXT_DISPATCH(APPLY_IRON_CURTAIN);
 
         /**
          *  Unexpected TActionType.
@@ -1575,3 +1578,39 @@ bool TActionClassExtension::Do_ADJUST_HOUSE_MODIFIER(HouseClass* house, ObjectCl
     return true;
 }
 
+
+/**
+ *  Applies the Iron Curtain to attached objects.
+ *
+ *  @author: Rampastring
+ */
+bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    HouseClassExtension* houseext = Extension::Fetch(house);
+
+    // Check for legality, unless this is forced.
+    bool forced = This()->Data.Bool;
+    if (!forced) {
+        if (!houseext->Can_Use_Iron_Curtain()) {
+            // If the application is not forced and the house is unable to use the Iron Curtain, skip.
+            return true;
+        }
+    }
+
+    /**
+     *  Iterate all technos, and if their tag is attached to this trigger, apply Iron Curtain on them.
+     */
+    for (int i = 0; i < Technos.Count(); i++) {
+        TechnoClass* techno = Technos[i];
+
+        if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
+            if (techno->Tag && techno->Tag->Is_Trigger_Attached(trig)) {
+                TechnoClassExtension* technoext = Extension::Fetch(techno);
+                technoext->Iron_Curtain_Me(true);
+            }
+        }
+    }
+
+    houseext->Expend_Iron_Curtain();
+    return true;
+}

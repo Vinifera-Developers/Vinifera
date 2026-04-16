@@ -41,6 +41,7 @@
 #include "overlaytype.h"
 #include "prerequisitegroup.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "saveload.h"
 #include "session.h"
 #include "sidebarext.h"
@@ -70,7 +71,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     NavalFactories(0),
     NavalFactory(nullptr),
     BuildNavalUnit(UNIT_NONE),
-    SpawnWaypoint(WAYPOINT_NONE)
+    SpawnWaypoint(WAYPOINT_NONE),
+    IronCurtainAvailabilityTimer()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
@@ -1296,4 +1298,39 @@ HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
      *  Otherwise, just perform the normal logic to fetch the house.
      */
     return ::House_From_HousesType(house);
+}
+
+
+/**
+ *  Checks whether this house is able to use the Iron Curtain.
+ *
+ *  @author: Rampastring
+ */
+bool HouseClassExtension::Can_Use_Iron_Curtain() const
+{
+    if (!IronCurtainAvailabilityTimer.Expired()) {
+        return false;
+    }
+
+    if (!This()->Is_Powered()) {
+        return false;
+    }
+
+    for (int i = 0; i < RuleExtension->IronCurtains.Count(); i++) {
+        if (This()->ActiveBQuantity.Value(RuleExtension->IronCurtains[i]->HeapID) > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ *  Marks the house's Iron Curtain as used, making it recharge.
+ *
+ *  @author: Rampastring
+ */
+void HouseClassExtension::Expend_Iron_Curtain()
+{
+    IronCurtainAvailabilityTimer = RuleExtension->IronCurtainRechargeTime;
 }

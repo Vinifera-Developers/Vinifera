@@ -209,6 +209,7 @@ This page lists all the individual contributions to the project by their author.
   - Port a ts-patches fix for a bug where the player's army wouldn't fire at armed civilians.
   - Add "Building Does Not Exist" trigger event.
   - Add "Create Building At" trigger action.
+  - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

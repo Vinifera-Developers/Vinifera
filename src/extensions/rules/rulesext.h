@@ -221,4 +221,36 @@ public:
      *  damage state change after once catching fire.
      */
     int BuildingFlameSpawnBlockFrames;
+
+    /**
+     *  List of buildings that enable the AI to use the Iron Curtain.
+     */
+    TypeList<BuildingTypeClass*> IronCurtains;
+
+    /**
+     *  Duration of the Iron Curtain effect in frames.
+     */
+    int IronCurtainDuration;
+
+    /**
+     *  Recharge time of a house's Iron Curtain in frames.
+     */
+    int IronCurtainRechargeTime;
+
+    /**
+     *  Flash rate of the Iron Curtain pulse effect.
+     */
+    int IronCurtainFlashRate;
+
+    /**
+     *  Intensity multiplier of the Iron Curtain pulse effect.
+     */
+    int IronCurtainFlashIntensityMultiplier;
+
+    /**
+     *  Brightness modifier table for the Iron Curtain pulse effect.
+     */
+    TypeList<int> IronCurtainPulseTable;
+
+    VocType IronCurtainSound;
 };

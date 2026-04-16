@@ -204,6 +204,8 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 |          | Removes the currently active templated text from the screen. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 | 135      | Adjust House Modifier           |
 |          | Adjusts a house modifier by given percentage points. | Other (0) | Modifier (#)           | Amount (%)            | *unused*   | *unused*   | *unused*   | *unused*   |
+| 136      | Apply Iron Curtain             |
+|          | Applies Iron Curtain to attached objects. Can optionally bypass legality checks. | Other (0) | Boolean (skip legality check)           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 
 ### [135] Adjust House Modifier — Modifier Types
 
