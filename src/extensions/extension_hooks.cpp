@@ -36,6 +36,7 @@
 #include "aircrafttypeext_hooks.h"
 #include "animext_hooks.h"
 #include "animtypeext_hooks.h"
+#include "astarext_hooks.h"
 #include "beacon_hooks.h"
 #include "buildingext_hooks.h"
 #include "buildingtypeext_hooks.h"
@@ -286,6 +287,7 @@ void Extension_Hooks()
     /**
      *  Miscellaneous hooks
      */
+    AStarClassExtension_Hooks();
     FilePCXExtension_Hooks();
     FetchRes_Hooks();
     XSurfaceExtension_Hooks();

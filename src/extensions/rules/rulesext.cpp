@@ -89,7 +89,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsRecheckPrerequisites(false),
     IsMultiMCV(false),
     AINavalYardAdjacency(20),
-    AIRepairBaseNodes(false),
+    IsAIRepairBaseNodes(false),
     LowPowerPenaltyModifier(1.0f),
     MultipleFactoryCap(0),
     VoxelLightAzimuth(0),
@@ -114,7 +114,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainRechargeTime(9900),
     IronCurtainFlashRate(8),
     IronCurtainFlashIntensityMultiplier(50),
-    IronCurtainSound(VOC_NONE)
+    IronCurtainSound(VOC_NONE),
+    ComesNearWaypointDistance(CELL_LEPTON_W * 5),
+    IsAIDetectDisguise(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -271,11 +273,13 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsRecheckPrerequisites);
     crc(IsMultiMCV);
     crc(AINavalYardAdjacency);
-    crc(AIRepairBaseNodes);
+    crc(IsAIRepairBaseNodes);
     crc(BuildingFlameSpawnBlockFrames);
     crc(IronCurtainDuration);
     crc(IronCurtainRechargeTime);
     crc(IronCurtains.Count());
+    crc(ComesNearWaypointDistance);
+    crc(IsAIDetectDisguise);
 }
 
 
@@ -719,6 +723,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     }
 
     IsBeachIsCrush = ini.Get_Bool(GENERAL, "BeachIsCrush", IsBeachIsCrush);
+    ComesNearWaypointDistance = ini.Get_Int(GENERAL, "ComesNearWaypointDistance", ComesNearWaypointDistance);
 
     IronCurtains = ::TGet_TypeList(ini, GENERAL, "IronCurtains", IronCurtains);
     IronCurtainDuration = ini.Get_Int(GENERAL, "IronCurtainDuration", IronCurtainDuration);
@@ -813,7 +818,8 @@ bool RulesClassExtension::AI(CCINIClass& ini)
     }
 
     AINavalYardAdjacency = ini.Get_Int(AI, "AINavalYardAdjacency", AINavalYardAdjacency);
-    AIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", AIRepairBaseNodes);
+    IsAIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", IsAIRepairBaseNodes);
+    IsAIDetectDisguise = ini.Get_Bool(AI, "AIDetectDisguise", IsAIDetectDisguise);
 
     return true;
 }

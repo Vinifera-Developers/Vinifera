@@ -1219,7 +1219,11 @@ ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force
     if (action == ACTION_ATTACK)
     {
         const bool ctrldown = Keyboard->Down(Options.KeyForceAttack1) || Keyboard->Down(Options.KeyForceAttack2);
-        const FireErrorType error = Can_Fire(object, What_Weapon_Should_I_Use(object));
+
+        // Manually call the TechnoClass override so our TechnoClassExt override gets executed
+        // Otherwise, moving infantry would not hit our override due to vanilla game code
+        // returning early in InfantryClass::Can_Fire
+        const FireErrorType error = TechnoClass::Can_Fire(object, What_Weapon_Should_I_Use(object));
 
         if (error == FIRE_ILLEGAL && !ctrldown)
             return ACTION_NONE;
@@ -3008,8 +3012,8 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     /*
     **  Never consider a spy to be a valid target, unless you're a dog
     */
-    if (House->Is_Human_Player() && otype == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(tclass)->IsDisguised) {
-        return false;
+    if ((House->Is_Human_Player() || !RuleExtension->IsAIDetectDisguise) && otype == RTTI_INFANTRY && ((InfantryTypeClass const*)tclass)->IsDisguised && !Extension::Fetch(TClass)->IsDetectDisguise) {
+        return (false);
     }
 
     /*
@@ -3107,6 +3111,32 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
         }
     }
 
+    WeaponSlotType which = _What_Weapon_Should_I_Use(const_cast<TechnoClass*>(object));
+
+    /**
+     *  #issue-444
+     *
+     *  If the weapon fires torpedoes and the target is on land,
+     *  then firing is not allowed.
+     *
+     *  UNLESS we're part of a team. Other team members might still be able to fire at the target,
+     *  and teams prefer to synchronize their target. Cancelling targeting in this case
+     *  could confuse other units of the team.
+     *
+     *  @author: Rampastring
+     */
+    if (which != WEAPON_SLOT_NONE && (!Is_Foot() || reinterpret_cast<const FootClass*>(this)->Team == nullptr)) {
+        const WeaponTypeClass* weapon = Get_Weapon(which)->Weapon;
+        if (weapon != nullptr) {
+            const auto bullettypeext = Extension::Fetch(weapon->Bullet);
+            if (bullettypeext->IsTorpedo) {
+                if (Map[object->Center_Coord()].Land_Type() != LAND_WATER) {
+                    return false;
+                }
+            }
+        }
+    }
+
     /*
     **  If this target value is better than the previously recorded best
     **  target value then record this target for possible return as the
@@ -3151,7 +3181,6 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     **  If we cannot passively acquire the target, then ignore it.
     */
     if (object->RTTI != RTTI_BUILDING || RTTI != RTTI_INFANTRY || !reinterpret_cast<const InfantryClass*>(this)->Class->IsBomber) {
-        WeaponSlotType which = _What_Weapon_Should_I_Use(const_cast<TechnoClass*>(object));
         if (which != WEAPON_SLOT_NONE) {
             const WeaponTypeClass* weapon = TClass->Fetch_Weapon_Info(which).Weapon;
             if (weapon != nullptr) {

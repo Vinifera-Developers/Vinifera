@@ -144,6 +144,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
+- **CrimRecya**:
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
@@ -212,6 +214,17 @@ This page lists all the individual contributions to the project by their author.
   - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI.
   - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
   - Fix a bug where hijackers are able to hijack vehicles of their allies.
+  - Add a developer command to dump all heaps to the log.
+  - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+  - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally.
+  - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land.
+  - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game.
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+  - Allow customizing the distance for the "Comes Near Waypoint" trigger event.
+  - Add DetectDisguise to TechnoTypes.
+  - Allow customizing whether AI sees through disguise.
+  - Fix a bug where friendly Spies appeared as disguised.
+  - Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

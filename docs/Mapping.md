@@ -253,6 +253,15 @@ Do not specify extra arguments for trigger actions that don't require them!
 | 7    | Bitwise OR          | (x \| y) != 0    |
 | 8    | Bitwise XOR         | (x ^ y) != 0    |
 
+### Comes Near Waypoint
+
+- The distance for the "Comes Near Waypoint" trigger event was originally hardcoded to 5 cells. Vinifera allows customizing this distance.
+
+In `RULES.INI`, or a scenario INI:
+```ini
+[General]
+ComesNearWaypointDistance=1280   ; integer, defines how close, in leptons, an object needs to be to a waypoint for the "Comes Near Waypoint" event to be fired
+```
 
 ### New Trigger Events
 

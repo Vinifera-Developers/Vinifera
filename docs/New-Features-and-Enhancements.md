@@ -1735,6 +1735,19 @@ OmniFire=no   ; boolean, does the unit firing this weapon not have to perform a 
 `OmniFire` only applies to `UnitTypes`.
 ```
 
+### Disguise
+
+- In the original game, disguised infantry are completely undetectable by the AI, or any units. Vinifera changes this so that the AI can see through disguise by default, and the AI can be configured not to see through disguise. TechnoTypes can now also optionally see through disguise.
+
+In `RULES.INI`:
+```ini
+[AI]
+AIDetectDisguise=yes ; boolean, are AI houses allowed to target disguised enemy units?
+
+[SOMETECHNOTYPE]
+DetectDisguise=no    ; boolean, are instances of the techno type allowed to automatically target disguised enemy units?
+```
+
 ### Iron Curtains
 
 - Vinifera implements the Iron Curtain effect from Red Alert 1, available only for the AI and map scripting at this time.

@@ -85,6 +85,10 @@ New:
 - Add "Building Does Not Exist" trigger event (by Rampastring)
 - Add "Create Building At" trigger action (by Rampastring)
 - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI (by Rampastring)
+- Heap dumping command now logs more information of Techno objects (by Rampastring)
+- Allow customizing the distance for the "Comes Near Waypoint" trigger event (by Rampastring)
+- Add DetectDisguise to TechnoTypes (by Rampastring)
+- Allow customizing whether AI sees through disguise (by Rampastring)
 - Extended sidebar customizability (by ZivDero)
 
 Vinifera fixes:
@@ -107,6 +111,9 @@ Vinifera fixes:
 - Fix a bug where new local/global variable trigger events wouldn't reset their timers correctly (by ZivDero)
 - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued (by ZivDero)
 - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving (by ZivDero)
+- Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
+- Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
+- Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 
 
 Vanilla fixes:
@@ -141,6 +148,10 @@ Vanilla fixes:
 - Fix a bug where upon restoring focus to the window the last theme would play twice (by ZivDero)
 - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft (by Rampastring)
 - Fix a bug where hijackers are able to hijack vehicles of their allies (by Rampastring)
+- Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game (by Rampastring)
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps (by Rampastring, ported from Phobos code by CrimRecya)
+- Fix a bug where friendly Spies appeared as disguised (by Rampastring)
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name (by Rampastring)
 - Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 
 :::

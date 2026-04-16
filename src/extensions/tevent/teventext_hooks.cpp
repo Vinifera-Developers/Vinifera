@@ -34,8 +34,10 @@
 #include "building.h"
 #include "hooker.h"
 #include "house.h"
+#include "houseext.h"
 #include "mouse.h"
 #include "object.h"
+#include "rulesext.h"
 #include "scenario.h"
 #include "scenarioext.h"
 #include "syringe.h"
@@ -431,14 +433,14 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
     */
     if (Event == TEVENT_PLAYER_ENTERED || Event == TEVENT_CROSS_HORIZONTAL || Event == TEVENT_CROSS_VERTICAL || Event == TEVENT_ENTERS_ZONE) {
         if (event != Event) return false;
-        if (!object || (Data.House != HOUSE_NONE && object->Owner() != House_From_HousesType(Data.House)->HeapID)) return false;
+        if (!object || (Data.House != HOUSE_NONE && object->Owner() != HouseClassExtension::House_From_HousesType(Data.House)->HeapID)) return false;
         is_perm = true;
         return true;
     } else if (Event == TEVENT_NEAR_WAYPOINT) {
         if (event != Event) return false;
         assert(object != NULL);
         Coord waypoint_location(Scen->Waypoint_Coord(Data.Value));
-        if (object->Distance(waypoint_location) > CELL_LEPTON_W * 5) {
+        if (object->Distance(waypoint_location) > RuleExtension->ComesNearWaypointDistance) {
             return false;
         }
         return true;
@@ -571,7 +573,7 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
         }
     }
 
-    house = House_From_HousesType(Data.House);
+    house = HouseClassExtension::House_From_HousesType(Data.House);
     if (house != nullptr) {
         switch (Event) {
         case TEVENT_LOW_POWER:
