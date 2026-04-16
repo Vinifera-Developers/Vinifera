@@ -110,10 +110,13 @@ In `SUN.INI`:
 Windowed=no         ; boolean, should the game start in a window
 WindowWidth=-1      ; integer, if positive and Windowed=true, sets the window width override
 WindowHeight=-1     ; integer, if positive and Windowed=true, sets the window height override
+RendererDriver=Auto ; renderer backend, valid options are "Auto", "Direct3D", "Direct3D11", "Direct3D12", "OpenGL" and "Vulkan"
 ScaleMode=PixelArt  ; scale mode, valid options are "Linear", "Nearest" and "PixelArt"
 CursorScale=0       ; integer, cursor scale factor override
 VSync=no            ; boolean, is vertical synchronization on?
 ```
+
+`RendererDriver` supports SDL's Direct3D backends, OpenGL and Vulkan. If SDL cannot initialize the game with the select renderer, startup will fail instead of silently falling back.
 
 ```{note}
 `CursorScale` options:
