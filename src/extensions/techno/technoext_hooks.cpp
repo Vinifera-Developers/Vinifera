@@ -130,6 +130,7 @@ public:
     bool _Should_Self_Heal_Now() const;
     int _Apparent_Brightness(int brightness) const;
     void _Flashing_AI();
+    int _Anti_Air() const;
 };
 
 
@@ -3274,6 +3275,47 @@ DEFINE_HOOK(0x0062ECE3, _TechnoClass_AI_Iron_Curtain_Flash_Redraw_Patch, 0)
     return 0x0062ED7A;
 }
 
+/**
+ *  Fixes a bug where a unit believes it is not AA-capable when its primary weapon has no AA capability,
+ *  even when its secondary weapon is AA-capable.
+ *
+ *  Author: Rampastring
+ */
+int TechnoClassExt::_Anti_Air(void) const
+{
+    assert(IsActive);
+
+    if (Is_Weapon_Equipped()) {
+
+        WeaponTypeClass const* weapon = PrimaryWeapon;
+        BulletTypeClass const* bullet = weapon->Bullet;
+        WarheadTypeClass const* warhead = weapon->WarheadPtr;
+
+        if (bullet->IsAntiAircraft) {
+            int value = ((weapon->Attack * warhead->Modifier[ARMOR_ALUMINUM]) * weapon->Range) / weapon->ROF;
+
+            if (TClass->Is_Two_Shooter()) {
+                value *= 2;
+            }
+            return value / 50;
+        }
+
+        // If the primary weapon is not AA-capable, check if we have a secondary weapon that is AA-capable.
+        weapon = SecondaryWeapon;
+        if (weapon) {
+            bullet = weapon->Bullet;
+            warhead = weapon->WarheadPtr;
+
+            if (bullet->IsAntiAircraft) {
+                int value = ((weapon->Attack * warhead->Modifier[ARMOR_ALUMINUM]) * weapon->Range) / weapon->ROF;
+
+                return value / 50;
+            }
+        }
+    }
+    return (0);
+}
+
 
 /**
  *  Main function for patching the hooks.
@@ -3307,4 +3349,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062D0F0, &TechnoClassExt::_Evaluate_Object);
     Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
     Patch_Jump(0x00639C70, &TechnoClassExt::_Apparent_Brightness);
+    Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
 }

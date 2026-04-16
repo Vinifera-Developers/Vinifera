@@ -100,3 +100,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix incorrect merging of sections and keys in INI files.
 - Fix game end text being stretched horizontally.
 - Fix a bug where upon restoring focus to the window the last theme would play twice.
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
