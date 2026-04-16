@@ -224,6 +224,7 @@ This page lists all the individual contributions to the project by their author.
   - Add DetectDisguise to TechnoTypes.
   - Allow customizing whether AI sees through disguise.
   - Fix a bug where friendly Spies appeared as disguised.
+  - Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

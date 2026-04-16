@@ -150,6 +150,7 @@ Vanilla fixes:
 - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game (by Rampastring)
 - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps (by Rampastring, ported from Phobos code by CrimRecya)
 - Fix a bug where friendly Spies appeared as disguised (by Rampastring)
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name (by Rampastring)
 
 :::
 
