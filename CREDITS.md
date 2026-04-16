@@ -221,6 +221,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game.
   - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
   - Allow customizing the distance for the "Comes Near Waypoint" trigger event.
+  - Add DetectDisguise to TechnoTypes.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
