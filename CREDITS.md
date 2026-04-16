@@ -214,6 +214,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where hijackers are able to hijack vehicles of their allies.
   - Add a developer command to dump all heaps to the log.
   - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+  - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

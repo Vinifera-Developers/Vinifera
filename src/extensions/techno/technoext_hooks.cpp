@@ -1219,7 +1219,11 @@ ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force
     if (action == ACTION_ATTACK)
     {
         const bool ctrldown = Keyboard->Down(Options.KeyForceAttack1) || Keyboard->Down(Options.KeyForceAttack2);
-        const FireErrorType error = Can_Fire(object, What_Weapon_Should_I_Use(object));
+
+        // Manually call the TechnoClass override so our TechnoClassExt override gets executed
+        // Otherwise, moving infantry would not hit our override due to vanilla game code
+        // returning early in InfantryClass::Can_Fire
+        const FireErrorType error = TechnoClass::Can_Fire(object, What_Weapon_Should_I_Use(object));
 
         if (error == FIRE_ILLEGAL && !ctrldown)
             return ACTION_NONE;
