@@ -99,6 +99,7 @@ private:
     bool Do_GIVE_CREDITS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ENABLE_SHORT_GAME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DISABLE_SHORT_GAME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_CREATE_BUILDING_AT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_HOUSE_DESTROY_ALL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_MAKE_ELITE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ENABLE_ALLYREVEAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
@@ -125,6 +126,7 @@ private:
     bool Do_ENABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DISABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ADJUST_HOUSE_MODIFIER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 public:
     /**

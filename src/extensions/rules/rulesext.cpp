@@ -42,6 +42,7 @@
 #include "debughandler.h"
 #include "extension.h"
 #include "extension_globals.h"
+#include "findmake.h"
 #include "housetype.h"
 #include "housetypeext.h"
 #include "infantrytypeext.h"
@@ -62,6 +63,7 @@
 #include "tiberiumext.h"
 #include "unittypeext.h"
 #include "verses.h"
+#include "vinifera_saveload.h"
 #include "voxelanimtypeext.h"
 #include "voxelinit.h"
 #include "warheadtypeext.h"
@@ -107,7 +109,12 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     SelfHealingCap(-1),
     SelfHealingRate(-1),
     IsBeachIsCrush(false),
-    BuildingFlameSpawnBlockFrames(0)
+    BuildingFlameSpawnBlockFrames(0),
+    IronCurtainDuration(675),
+    IronCurtainRechargeTime(9900),
+    IronCurtainFlashRate(8),
+    IronCurtainFlashIntensityMultiplier(50),
+    IronCurtainSound(VOC_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -129,6 +136,18 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     MaxPips.Add(5);     // PIPSCALE_PASSENGERS
     MaxPips.Add(10);    // PIPSCALE_POWER
     MaxPips.Add(8);     // PIPSCALE_CHARGE
+
+    IronCurtains = TypeList<BuildingTypeClass*>(0);
+
+    IronCurtainPulseTable = TypeList<int>(8);
+    IronCurtainPulseTable.Add(-16);
+    IronCurtainPulseTable.Add(-15);
+    IronCurtainPulseTable.Add(-14);
+    IronCurtainPulseTable.Add(-13);
+    IronCurtainPulseTable.Add(-12);
+    IronCurtainPulseTable.Add(-13);
+    IronCurtainPulseTable.Add(-14);
+    IronCurtainPulseTable.Add(-15);
 }
 
 
@@ -139,7 +158,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
  */
 RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit),
-    MaxPips(noinit)
+    MaxPips(noinit),
+    IronCurtains(noinit),
+    IronCurtainPulseTable(noinit)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -166,6 +187,8 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     //EXT_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
 
     MaxPips.Clear();
+    IronCurtains.Clear();
+    IronCurtainPulseTable.Clear();
 
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
@@ -175,7 +198,11 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     new (this) RulesClassExtension(NoInitClass());
 
     MaxPips.Load_Self(pStm);
+    IronCurtains.Load_Self(pStm);
+    IronCurtainPulseTable.Load_Self(pStm);
     
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(IronCurtains, "IronCurtains");
+
     return hr;
 }
 
@@ -195,6 +222,8 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     }
 
     MaxPips.Save_Self(pStm);
+    IronCurtains.Save_Self(pStm);
+    IronCurtainPulseTable.Save_Self(pStm);
 
     return hr;
 }
@@ -244,6 +273,9 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(AINavalYardAdjacency);
     crc(AIRepairBaseNodes);
     crc(BuildingFlameSpawnBlockFrames);
+    crc(IronCurtainDuration);
+    crc(IronCurtainRechargeTime);
+    crc(IronCurtains.Count());
 }
 
 
@@ -688,6 +720,14 @@ bool RulesClassExtension::General(CCINIClass &ini)
 
     IsBeachIsCrush = ini.Get_Bool(GENERAL, "BeachIsCrush", IsBeachIsCrush);
 
+    IronCurtains = ::TGet_TypeList(ini, GENERAL, "IronCurtains", IronCurtains);
+    IronCurtainDuration = ini.Get_Int(GENERAL, "IronCurtainDuration", IronCurtainDuration);
+
+    float icrecharge = ini.Get_Float(GENERAL, "IronCurtainRechargeTime");
+    if (icrecharge != 0.0) {
+        IronCurtainRechargeTime = icrecharge * 900.0f;
+    }
+
     return true;
 }
 
@@ -725,6 +765,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     PlaceBeaconSound = ini.Get_VocType(AUDIOVISUAL, "PlaceBeaconSound", PlaceBeaconSound);
     PlaceBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "PlaceBeaconVoice", PlaceBeaconVoice);
     DetectBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "DetectBeaconVoice", DetectBeaconVoice);
+
+    IronCurtainFlashRate = ini.Get_Int(AUDIOVISUAL, "IronCurtainFlashRate", IronCurtainFlashRate);
+    IronCurtainFlashIntensityMultiplier = ini.Get_Int(AUDIOVISUAL, "IronCurtainFlashIntensityMultiplier", IronCurtainFlashIntensityMultiplier);
+    IronCurtainPulseTable = ini.Get_IntList(AUDIOVISUAL, "IronCurtainPulseTable", IronCurtainPulseTable);
+    IronCurtainSound = ini.Get_VocType(AUDIOVISUAL, "IronCurtainSound", IronCurtainSound);
 
     return true;
 }

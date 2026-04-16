@@ -1734,3 +1734,23 @@ OmniFire=no   ; boolean, does the unit firing this weapon not have to perform a 
 ```{note}
 `OmniFire` only applies to `UnitTypes`.
 ```
+
+### Iron Curtains
+
+- Vinifera implements the Iron Curtain effect from Red Alert 1, available only for the AI and map scripting at this time.
+
+In `RULES.INI`:
+```ini
+[General]
+IronCurtains=RAIRON           ; comma-separated list of BuildingTypes that can cause the Iron Curtain effect
+IronCurtainDuration=675       ; integer, how long the Iron Curtain effect lasts in frames
+IronCurtainRechargeTime=9900  ; integer, how long it takes for a house's Iron Curtain to charge after it has been used
+
+[AudioVisual]
+IronCurtainFlashRate=8                 ; integer, the rate, in frames, at which the Iron Curtain pulse "animation" progresses to the next brightness phase
+IronCurtainFlashIntensityMultiplier=50 ; integer, multiplier for the Iron Curtain pulse brightness modifier (def=50). 1000 brightness units is equal to regular fully-lit lighting
+IronCurtainPulseTable=-16,-15,-14,-13,-12,-13,-14,-15 ; list of integers, defines the brightness phases and raw brightness rates of the Iron Curtain pulse effect (def=-16,-15,-14,-13,-12,-13,-14,-15).
+
+[SOMEUNIT]
+IronCurtainPriorityTarget=no ; boolean, if set to yes, the AI will apply the Iron Curtain to this unit when its HP is about to drop below half. Requires the AI to have an Iron Curtain building available and the Iron Curtain charged
+```

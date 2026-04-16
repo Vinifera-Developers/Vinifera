@@ -82,8 +82,10 @@ New:
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
 - Implement INI inheritance/includes (by ZivDero)
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
+- Add "Building Does Not Exist" trigger event (by Rampastring)
+- Add "Create Building At" trigger action (by Rampastring)
+- Add the Iron Curtain logic from Red Alert 1 for map scripting and AI (by Rampastring)
 - Extended sidebar customizability (by ZivDero)
-
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -136,6 +138,9 @@ Vanilla fixes:
 - Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
 - Fix incorrect merging of sections and keys in INI files (by ZivDero)
 - Fix game end text being stretched horizontally (by ZivDero)
+- Fix a bug where upon restoring focus to the window the last theme would play twice (by ZivDero)
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft (by Rampastring)
+- Fix a bug where hijackers are able to hijack vehicles of their allies (by Rampastring)
 - Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 
 :::

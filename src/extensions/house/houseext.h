@@ -91,6 +91,9 @@ public:
     static HouseClass* House_At_Spawn_Point(WAYPOINT waypoint);
     static HouseClass* House_From_HousesType(HousesType house);
 
+    bool Can_Use_Iron_Curtain() const;
+    void Expend_Iron_Curtain();
+
 public:
     /**
      *  Replacement Tiberium storage.
@@ -122,4 +125,10 @@ public:
      *  The waypoint at which this house was spawned.
      */
     WAYPOINT SpawnWaypoint;
+
+    /**
+     *  Provides a timer for the availability of the Iron Curtain for this house.
+     *  Used until we have a proper superweapon based Iron Curtain implementation.
+     */
+    CDTimerClass<FrameTimerClass> IronCurtainAvailabilityTimer;
 };

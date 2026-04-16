@@ -207,6 +207,11 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
   - Fix a bug where spawned aircraft would reveal terrain when they fired.
   - Port a ts-patches fix for a bug where the player's army wouldn't fire at armed civilians.
+  - Add "Building Does Not Exist" trigger event.
+  - Add "Create Building At" trigger action.
+  - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI.
+  - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+  - Fix a bug where hijackers are able to hijack vehicles of their allies.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -327,5 +332,6 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
   - Fix game end text being stretched horizontally.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+  - Fix a bug where upon restoring focus to the window the last theme would play twice.
   - Fix a bug where the sidebar could only contain up to 75 items on a strip.
   - Extended sidebar customizability.

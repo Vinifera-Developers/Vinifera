@@ -597,6 +597,26 @@ DEFINE_HOOK(0x004D8BE4, _InfantryClass_Doing_AI_Fix_Invalid_Facing_Set, 0)
 
 
 /**
+ *  Fixes an exploit where hijackers are able to hijack vehicles of their allies.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehicles, 0)
+{
+    GET(TechnoClass*, target, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    if (this_ptr->House->Is_Ally(target)) {
+        // The target is allied to the hijacker. Move on.
+        return 0x004D72B7;
+    }
+
+    // Move to harvester truce check.
+    return 0x004D7277;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void InfantryClassExtension_Hooks()

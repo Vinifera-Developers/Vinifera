@@ -61,6 +61,7 @@ TEventClass::EventDescriptionStruct TEventClassExtension::ExtActionDescriptions[
     { "Local less than Constant", "Checks if a local variable is less than a constant." },
     { "Local less than Global", "Checks if a local variable is less than a global variable." },
     { "Local less than Local", "Checks if one local variable is less than another." },
+    { "Building does not exist", "Triggers when the building specified (owned by the house of this trigger) does not exist." },
 };
 
 

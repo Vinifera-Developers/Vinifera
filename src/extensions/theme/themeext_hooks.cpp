@@ -137,4 +137,10 @@ void ThemeClassExtension_Hooks()
     ThemeClassExtension_Init();
 
     Patch_Jump(0x00644300, &ThemeClassExt::_Is_Allowed);
+
+    /**
+     *  Skip calling Theme.Play_Song(OldTheme) in Focus_Restore.
+     *  ThemeClass::AI() will resume playing by itself.
+     */
+    Patch_Jump(0x00685B84, 0x00685B95);
 }
