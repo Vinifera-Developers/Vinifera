@@ -108,6 +108,7 @@ Vinifera fixes:
 - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued (by ZivDero)
 - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving (by ZivDero)
 - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
+- Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 
 
 Vanilla fixes:
