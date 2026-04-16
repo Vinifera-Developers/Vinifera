@@ -253,4 +253,9 @@ public:
     TypeList<int> IronCurtainPulseTable;
 
     VocType IronCurtainSound;
+
+    /**
+     *  Distance to consider "close enough" for TEVENT_NEAR_WAYPOINT.
+     */
+    int ComesNearWaypointDistance;
 };

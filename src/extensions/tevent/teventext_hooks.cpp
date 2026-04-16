@@ -37,6 +37,7 @@
 #include "houseext.h"
 #include "mouse.h"
 #include "object.h"
+#include "rulesext.h"
 #include "scenario.h"
 #include "scenarioext.h"
 #include "syringe.h"
@@ -439,7 +440,7 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
         if (event != Event) return false;
         assert(object != NULL);
         Coord waypoint_location(Scen->Waypoint_Coord(Data.Value));
-        if (object->Distance(waypoint_location) > CELL_LEPTON_W * 5) {
+        if (object->Distance(waypoint_location) > RuleExtension->ComesNearWaypointDistance) {
             return false;
         }
         return true;
