@@ -115,7 +115,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainFlashRate(8),
     IronCurtainFlashIntensityMultiplier(50),
     IronCurtainSound(VOC_NONE),
-    ComesNearWaypointDistance(CELL_LEPTON_W * 5)
+    ComesNearWaypointDistance(CELL_LEPTON_W * 5),
+    IsAIDetectDisguise(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -278,6 +279,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IronCurtainRechargeTime);
     crc(IronCurtains.Count());
     crc(ComesNearWaypointDistance);
+    crc(IsAIDetectDisguise);
 }
 
 
@@ -817,6 +819,7 @@ bool RulesClassExtension::AI(CCINIClass& ini)
 
     AINavalYardAdjacency = ini.Get_Int(AI, "AINavalYardAdjacency", AINavalYardAdjacency);
     AIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", AIRepairBaseNodes);
+    IsAIDetectDisguise = ini.Get_Bool(AI, "AIDetectDisguise", IsAIDetectDisguise);
 
     return true;
 }

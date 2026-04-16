@@ -1737,12 +1737,15 @@ OmniFire=no   ; boolean, does the unit firing this weapon not have to perform a 
 
 ### Disguise
 
-- In the original game, disguised infantry are completely undetectable by the AI, or any units. Vinifera changes this so that TechnoTypes can optionally see through disguise and target disguised units automatically.
+- In the original game, disguised infantry are completely undetectable by the AI, or any units. Vinifera changes this so that the AI can see through disguise by default, and the AI can be configured not to see through disguise. TechnoTypes can now also optionally see through disguise.
 
 In `RULES.INI`:
 ```ini
+[AI]
+AIDetectDisguise=yes ; boolean, are AI houses allowed to target disguised enemy units?
+
 [SOMETECHNOTYPE]
-DetectDisguise=no ; boolean, does the techno automatically target disguised enemy units?
+DetectDisguise=no    ; boolean, are instances of the techno type allowed to automatically target disguised enemy units?
 ```
 
 ### Iron Curtains

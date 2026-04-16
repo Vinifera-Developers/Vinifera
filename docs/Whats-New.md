@@ -88,6 +88,7 @@ New:
 - Heap dumping command now logs more information of Techno objects (by Rampastring)
 - Allow customizing the distance for the "Comes Near Waypoint" trigger event (by Rampastring)
 - Add DetectDisguise to TechnoTypes (by Rampastring)
+- Allow customizing whether AI sees through disguise (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

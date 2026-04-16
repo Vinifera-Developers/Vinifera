@@ -258,4 +258,9 @@ public:
      *  Distance to consider "close enough" for TEVENT_NEAR_WAYPOINT.
      */
     int ComesNearWaypointDistance;
+
+    /**
+     *  Do AI-controlled units ignore disguise and automatically target disguised enemy units?
+     */
+    bool IsAIDetectDisguise;
 };

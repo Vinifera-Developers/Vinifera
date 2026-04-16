@@ -3012,7 +3012,7 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     /*
     **  Never consider a spy to be a valid target, unless you're a dog
     */
-    if (House->Is_Human_Player() && otype == RTTI_INFANTRY && ((InfantryTypeClass const*)tclass)->IsDisguised && !Extension::Fetch(TClass)->IsDetectDisguise) {
+    if ((House->Is_Human_Player() || !RuleExtension->IsAIDetectDisguise) && otype == RTTI_INFANTRY && ((InfantryTypeClass const*)tclass)->IsDisguised && !Extension::Fetch(TClass)->IsDetectDisguise) {
         return (false);
     }
 

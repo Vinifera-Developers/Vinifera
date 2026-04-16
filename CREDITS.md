@@ -222,6 +222,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
   - Allow customizing the distance for the "Comes Near Waypoint" trigger event.
   - Add DetectDisguise to TechnoTypes.
+  - Allow customizing whether AI sees through disguise.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
