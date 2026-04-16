@@ -144,6 +144,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
+- **CrimRecya**:
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
@@ -217,6 +219,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally.
   - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land.
   - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game.
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

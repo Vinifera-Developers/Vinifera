@@ -145,6 +145,7 @@ Vanilla fixes:
 - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft (by Rampastring)
 - Fix a bug where hijackers are able to hijack vehicles of their allies (by Rampastring)
 - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game (by Rampastring)
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps (by Rampastring, ported from Phobos code by CrimRecya)
 
 :::
 
