@@ -77,7 +77,10 @@ public:
  *
  *  Infantry currently in webs also display a different image.
  *
- *  @author: ZivDero
+ *  This implementation adds support for side-specific disguises and also fixes
+ *  a bug in the original game where friendly Spies were shown as disguised.
+ *
+ *  @author: ZivDero, Rampastring
  */
 const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 {
@@ -85,7 +88,7 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
         return Rule->WebbedInfantry->Get_Image_Data();
     }
 
-    if (!IsOwnedByPlayer && Class->IsDisguised) {
+    if (!House->Is_Ally(PlayerPtr) && Class->IsDisguised) {
 
         const auto disguise = SideClassExtension::Get_Disguise(House);
         if (disguise) {

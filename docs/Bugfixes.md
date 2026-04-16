@@ -104,3 +104,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where hijackers are able to hijack vehicles of their allies.
 - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
 - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- Fix a bug where friendly Spies appeared as disguised.

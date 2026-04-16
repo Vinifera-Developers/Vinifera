@@ -223,6 +223,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow customizing the distance for the "Comes Near Waypoint" trigger event.
   - Add DetectDisguise to TechnoTypes.
   - Allow customizing whether AI sees through disguise.
+  - Fix a bug where friendly Spies appeared as disguised.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
