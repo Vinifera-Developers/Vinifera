@@ -304,4 +304,5 @@ Do not specify extra arguments for trigger actions that don't require them!
 |          | True if a local variable is less than a global variable.                             | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
 | 79       | Local Less Than Local                                                                |                   |                     |                     |                        |
 |          | True if a local variable is less than another local variable.                        | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
-
+| 80       | Buildings Does Not Exist                                                             |                   |                     |                     |                        |
+|          | Triggers when a building owned by the trigger's house does not exist.                | NeedOther (0)     | BuildingType (#)    |                     |                        |

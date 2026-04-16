@@ -156,7 +156,7 @@ static bool Compare_With_Variable(int left_index, bool left_global, int right_in
 
 /**
  *  Intercept for TEventClass::operator() to add the
- *  execution of our new TEVents.
+ *  execution of our new TEvents.
  *
  *  @author: ZivDero
  */
@@ -505,7 +505,7 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
             break;
 
             /*
-            **  Verify that the structure has been built.
+            **  Verify that the structure exists.
             */
         case TEVENT_BUILDING_EXISTS:
             if (house->ActiveBQuantity.Value(Data.Structure) == 0) return false;
@@ -556,6 +556,14 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
             */
         case TEVENT_NUNITS_DESTROYED:
             if (house->UnitsLost < Data.Value) return false;
+            break;
+
+            /*
+            **  Verify that the structure does not exist.
+            */
+        case EXT_TEVENT_BUILDING_DOES_NOT_EXIST:
+            if (house->ActiveBQuantity.Value(Data.Structure) > 0) return false;
+            is_perm = true;
             break;
 
         default:
