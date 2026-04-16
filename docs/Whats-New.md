@@ -135,6 +135,7 @@ Vanilla fixes:
 - Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
 - Fix incorrect merging of sections and keys in INI files (by ZivDero)
 - Fix game end text being stretched horizontally (by ZivDero)
+- Fix a bug where upon restoring focus to the window the last theme would play twice (by ZivDero)
 
 :::
 
