@@ -44,6 +44,7 @@ void Vinifera_Draw_Version_Text(Surface *surface, bool pre_init = false);
 bool Vinifera_Generate_Mini_Dump();
 
 int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2 = nullptr, const char *btn3 = nullptr);
+void Vinifera_Log_And_Show_WWMessageBox(const char* msg, ...);
 void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...);
 
 const char *Vinifera_Get_Window_Title(DWORD dwPid);
