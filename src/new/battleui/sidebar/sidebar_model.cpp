@@ -19,6 +19,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "optionsext.h"
+#include "rulesext.h"
 #include "super.h"
 #include "supertype.h"
 #include "technotypeext.h"
@@ -357,7 +358,7 @@ static bool Is_Build_Item_Valid(const BuildItem& item)
     const TechnoTypeClass* tech = Fetch_Techno_Type(item.Type, item.ID);
     if (tech != nullptr) {
         const BuildingClass* who = tech->Who_Can_Build_Me(true, false, false, PlayerPtr);
-        return who != nullptr && who->House->Can_Build(tech, true, true);
+        return who != nullptr && who->House->Can_Build(tech, !RuleExtension->IsRecheckPrerequisites, true);
     }
 
     if ((item.Type == RTTI_SPECIAL || item.Type == RTTI_SUPERWEAPONTYPE)
