@@ -109,6 +109,7 @@ Vinifera fixes:
 - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving (by ZivDero)
 - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
+- Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 
 
 Vanilla fixes:

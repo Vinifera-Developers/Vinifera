@@ -216,6 +216,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
   - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally.
   - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land.
+  - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
