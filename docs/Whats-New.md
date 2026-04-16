@@ -83,7 +83,7 @@ New:
 - Implement INI inheritance/includes (by ZivDero)
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
 - Add "Building Does Not Exist" trigger event (by Rampastring)
-
+- Add "Create Building At" trigger action (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

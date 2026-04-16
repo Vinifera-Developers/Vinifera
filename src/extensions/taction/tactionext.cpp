@@ -31,6 +31,7 @@
 #include "tactionext.h"
 
 #include "debughandler.h"
+#include "building.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
@@ -56,7 +57,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Give Credits", "Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it." },
     { "Enable Short Game", "Enables Short Game. Players will lose if all buildings are destroyed." },
     { "Disable Short Game", "Disables Short Game. Players can continue playing even after all buildings are destroyed." },
-    { "Unused Action", "This action does nothing. Originally used to display the difficulty in ts-patches." },
+    { "Create Building At", "Places a building at given waypoint position." },
     { "Destroy all of...", "Kills everything of the specified house and marks them as defeated." },
     { "Make Elite", "All technos attached to this trigger will be promoted to elite status." },
     { "Enable Ally Reveal", "Enables Ally Reveal, allowing allied players to see each other's explored areas." },
@@ -301,6 +302,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(GIVE_CREDITS);
         EXT_DISPATCH(ENABLE_SHORT_GAME);
         EXT_DISPATCH(DISABLE_SHORT_GAME);
+        EXT_DISPATCH(CREATE_BUILDING_AT);
         EXT_DISPATCH(HOUSE_DESTROY_ALL);
         EXT_DISPATCH(MAKE_ELITE);
         EXT_DISPATCH(ENABLE_ALLYREVEAL);
@@ -327,13 +329,6 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
-
-        /**
-         *  Used to print the current difficulty in ts-patches, available to be repurposed.
-         */
-    case EXT_TACTION_UNUSED1:
-        success = true;
-        break;
 
         /**
          *  Unexpected TActionType.
@@ -704,6 +699,52 @@ bool TActionClassExtension::Do_DISABLE_SHORT_GAME(HouseClass* house, ObjectClass
     Session.Options.ShortGame = false;
 
     return true;
+}
+
+
+/**
+ *  Places a building at given waypoint position.
+ *
+ *  @author: Rampastring
+ */
+bool TActionClassExtension::Do_CREATE_BUILDING_AT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    Cell wpcell = ScenExtension->Waypoint_Cell(This()->EffectLocation);
+
+    if (wpcell != CELL_NONE) {
+        HouseClass* hptr = HouseClassExtension::House_From_HousesType(This()->Data.House);
+
+        int buildingtypeid = This()->TriggerRect.X;
+        bool forced = This()->TriggerRect.Y > 0;
+        BuildingTypeClass* btc = BuildingTypes[buildingtypeid];
+
+        bool success = false;
+
+        if (forced) {
+            ScenarioInit++;
+            success = btc->Create_And_Place(wpcell, hptr);
+            ScenarioInit--;
+        } else {
+            // Create_And_Place does not play buildup anim
+            BuildingClass* building = new BuildingClass(btc, hptr);
+
+            if (building != nullptr) {
+                building->Assign_Mission(MISSION_CONSTRUCTION);
+                success = building->Unlimbo(wpcell.As_Coord());
+
+                if (!success) {
+                    delete building;
+                } else {
+                    building->Revealed(hptr);
+                    building->IsReadyToCommence = true;
+                }
+            }
+        }
+
+        return success;
+    }
+
+    return false;
 }
 
 

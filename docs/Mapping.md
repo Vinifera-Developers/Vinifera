@@ -150,8 +150,8 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 |          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 108      | Disable Short Game       |
 |          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 109      | Unused Action            |
-|          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 109      | Create Building At       |
+|          | Places a building at given waypoint position. | Other (0)   | HouseType (#)  | BuildingType (#)   | Boolean (force placement) | *unused*   | *unused*   | Waypoint   |
 | 110      | Destroy all of...       |
 |          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 111      | Make Elite               |
