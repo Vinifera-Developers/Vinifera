@@ -139,6 +139,7 @@ Vanilla fixes:
 - Fix game end text being stretched horizontally (by ZivDero)
 - Fix a bug where upon restoring focus to the window the last theme would play twice (by ZivDero)
 - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft (by Rampastring)
+- Fix a bug where hijackers are able to hijack vehicles of their allies (by Rampastring)
 
 :::
 

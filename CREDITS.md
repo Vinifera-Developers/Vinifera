@@ -211,6 +211,7 @@ This page lists all the individual contributions to the project by their author.
   - Add "Create Building At" trigger action.
   - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI.
   - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+  - Fix a bug where hijackers are able to hijack vehicles of their allies.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
