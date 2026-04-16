@@ -139,7 +139,7 @@ public:
     /**
      *  Should the AI automatically repair buildings built as Base Nodes?
      */
-    bool AIRepairBaseNodes;
+    bool IsAIRepairBaseNodes;
 
     /**
      *  The "double penalty" or "half penalty". Multiply this by the power

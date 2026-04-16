@@ -89,7 +89,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsRecheckPrerequisites(false),
     IsMultiMCV(false),
     AINavalYardAdjacency(20),
-    AIRepairBaseNodes(false),
+    IsAIRepairBaseNodes(false),
     LowPowerPenaltyModifier(1.0f),
     MultipleFactoryCap(0),
     VoxelLightAzimuth(0),
@@ -273,7 +273,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsRecheckPrerequisites);
     crc(IsMultiMCV);
     crc(AINavalYardAdjacency);
-    crc(AIRepairBaseNodes);
+    crc(IsAIRepairBaseNodes);
     crc(BuildingFlameSpawnBlockFrames);
     crc(IronCurtainDuration);
     crc(IronCurtainRechargeTime);
@@ -818,7 +818,7 @@ bool RulesClassExtension::AI(CCINIClass& ini)
     }
 
     AINavalYardAdjacency = ini.Get_Int(AI, "AINavalYardAdjacency", AINavalYardAdjacency);
-    AIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", AIRepairBaseNodes);
+    IsAIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", IsAIRepairBaseNodes);
     IsAIDetectDisguise = ini.Get_Bool(AI, "AIDetectDisguise", IsAIDetectDisguise);
 
     return true;
