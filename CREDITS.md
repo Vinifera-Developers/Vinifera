@@ -213,6 +213,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
   - Fix a bug where hijackers are able to hijack vehicles of their allies.
   - Add a developer command to dump all heaps to the log.
+  - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

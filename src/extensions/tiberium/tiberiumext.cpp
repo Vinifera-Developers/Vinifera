@@ -350,7 +350,7 @@ void TiberiumClassExtension::Recalc_Spread()
 
     while (iter != nullptr) {
         if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Spread()) {
-            SpreadQueue.emplace(0.0, iter->CellID);
+            SpreadQueue.emplace((float)Random_Pick(0, 10000), iter->CellID);
             SpreadState[Map_Cell_Index(iter->CellID)] = true;
         }
         iter = Map.Iterate();
@@ -467,7 +467,7 @@ void TiberiumClassExtension::Recalc_Growth()
 
     while (iter != nullptr) {
         if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Grow()) {
-            GrowthQueue.emplace(0.0, iter->CellID);
+            GrowthQueue.emplace((float)Random_Pick(0, 10000), iter->CellID);
             GrowthState[Map_Cell_Index(iter->CellID)] = true;
         }
         iter = Map.Iterate();
