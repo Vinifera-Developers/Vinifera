@@ -463,6 +463,52 @@ static int _Extract_Compressed_Events(void* buf, int bufsize)
 
 
 /**
+ *  Fixes a cheat in the original game where players are able to issue
+ *  an IDLE command to technos that are not owned by them.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x004949AF, _EventClass_Execute_IDLE_Prevent_Controlling_Enemy_Units, 0)
+{
+    enum {
+        Continue = 0x004949BB,
+        Bail = 0x00495110
+    };
+
+    GET(EventClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EAX);
+
+    // Stolen bytes / code.
+    // Jump out if the techno is null.
+    if (techno == nullptr) {
+        return Bail;
+    }
+
+    if (Session.Type != GAME_NORMAL) {
+        // In multiplayer, each human player can only control one house.
+        if (this_ptr->ID != techno->House->HeapID) {
+            // ID of owner of techno does not match the ID of whoever generated the event.
+            // Exit the function.
+            return Bail;
+        }
+    } else {
+        // In campaign, the player can control multiple houses.
+        // We might as well also fix this exploit for campaign by checking for player control here.
+        if (!techno->House->IsPlayerControl) {
+            return Bail;
+        }
+    }
+
+    // Continue event execution.
+    // Set esi to point to the techno and edi to zero, the original
+    // game code expects these values.
+    R->ESI(techno);
+    R->EDI(0);
+    return Continue;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void EventClassExtension_Hooks()

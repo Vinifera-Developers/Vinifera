@@ -155,6 +155,7 @@ Vanilla fixes:
 - Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type (by Rampastring)
 - Fix an edge case crash when AI is attempting to find a location to place a structure to (by Rampastring)
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
 
 :::
 
