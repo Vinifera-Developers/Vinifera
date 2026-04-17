@@ -107,3 +107,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where friendly Spies appeared as disguised.
 - Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
 - Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+- Fix an edge case crash when AI is attempting to find a location to place a structure to.
