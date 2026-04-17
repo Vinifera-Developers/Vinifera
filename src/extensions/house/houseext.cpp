@@ -384,17 +384,68 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     return PROD_OK;
 }
 
+/**
+ *  Replacement of Fetch_Techno_Type that performs bounds checking.
+ *
+ *  @author: Rampastring
+ */
+TechnoTypeClass const* _Fetch_Techno_Type(RTTIType type, int id)
+{
+    switch (type) {
+    case RTTI_UNITTYPE:
+    case RTTI_UNIT:
+        if (id < UnitTypes.Count())
+            return (TechnoTypeClass*)(UnitTypes[id]);
+        return nullptr;
+
+    case RTTI_BUILDINGTYPE:
+    case RTTI_BUILDING:
+        if (id < BuildingTypes.Count())
+            return (TechnoTypeClass*)(BuildingTypes[id]);
+        return nullptr;
+
+    case RTTI_INFANTRYTYPE:
+    case RTTI_INFANTRY:
+        if (id < InfantryTypes.Count())
+            return (TechnoTypeClass*)(InfantryTypes[id]);
+        return nullptr;
+
+    case RTTI_AIRCRAFTTYPE:
+    case RTTI_AIRCRAFT:
+        if (id < AircraftTypes.Count())
+            return (TechnoTypeClass*)(AircraftTypes[id]);
+        return nullptr;
+
+    default:
+        break;
+    }
+    return nullptr;
+}
+
 
 /**
  *  Extended replacement of HouseClass::Begin_Production.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool resume, ProductionFlags flags)
 {
     int result = true;
     FactoryClass* fptr;
-    const TechnoTypeClass* tech = Fetch_Techno_Type(type, id);
+    const TechnoTypeClass* tech = _Fetch_Techno_Type(type, id);
+
+    /*
+    **  The event layer does not validate the validity of the production event,
+    **  which allows players to build normally unbuildable objects through crafted events.
+    **  Validate the request here.
+    */
+    if (tech == nullptr) {
+        return PROD_ILLEGAL;
+    }
+
+    if (This()->Is_Human_Player() && tech->Level > This()->Control.TechLevel) {
+        return PROD_ILLEGAL;
+    }
 
     BuildingClass* who = tech->Who_Can_Build_Me(false, true, true, This());
     bool onhold = false;
