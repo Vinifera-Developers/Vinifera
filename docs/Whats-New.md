@@ -156,6 +156,7 @@ Vanilla fixes:
 - Fix an edge case crash when AI is attempting to find a location to place a structure to (by Rampastring)
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
 
 :::
 

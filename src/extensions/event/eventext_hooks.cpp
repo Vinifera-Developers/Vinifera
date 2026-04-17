@@ -464,6 +464,78 @@ static int _Extract_Compressed_Events(void* buf, int bufsize)
 
 /**
  *  Fixes a cheat in the original game where players are able to issue
+ *  commands to technos that are not owned by them.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x004946FF, _EventClass_Execute_MEGAMISSION_Prevent_Controlling_Enemy_Units, 0)
+{
+    enum {
+        Continue = 0x0049470A,
+        Bail = 0x00495110
+    };
+
+    GET(EventClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EDI);
+
+    // Stolen bytes / code.
+    // Jump out if the techno is not active.
+    if (!techno->IsActive) {
+        return Bail;
+    }
+
+    bool hasowncargo = false;
+
+    if (Session.Type != GAME_NORMAL) {
+        // In multiplayer, each human player can only control one house.
+        if (this_ptr->ID != techno->House->HeapID) {
+
+            // House IDs between event and unit do not match.
+            // This might be a crafted event.
+            // But before assuming so, check for the object having the event sender's units as cargo.
+            // This is necessary so that a player is able to unload units placed inside another house's transport.
+            FootClass* cargoobject = techno->Cargo.Attached_Object();
+            while (cargoobject != nullptr) {
+                if (cargoobject->House->HeapID == this_ptr->ID) {
+                    hasowncargo = true;
+                    break;
+                }
+                cargoobject = reinterpret_cast<FootClass*>(cargoobject->Next);
+            }
+
+            if (!hasowncargo) {
+                return Bail;
+            }
+        }
+    } else {
+        // In campaign, the player can control multiple houses.
+        // We might as well also fix this exploit for campaign by checking for player control here.
+        if (!techno->House->IsPlayerControl) {
+
+            // Also check for cargo in singleplayer. But use IsPlayerControl instead of direct ID comparison
+            // due to the human player being able to control multiple houses.
+            FootClass* cargoobject = techno->Cargo.Attached_Object();
+            while (cargoobject != nullptr) {
+                if (cargoobject->House->IsPlayerControl) {
+                    hasowncargo = true;
+                    break;
+                }
+                cargoobject = reinterpret_cast<FootClass*>(cargoobject->Next);
+            }
+
+            if (!hasowncargo) {
+                return Bail;
+            }
+        }
+    }
+
+    // Continue event execution.
+    return Continue;
+}
+
+
+/**
+ *  Fixes a cheat in the original game where players are able to issue
  *  an IDLE command to technos that are not owned by them.
  *
  *  Author: Rampastring

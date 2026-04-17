@@ -110,3 +110,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix an edge case crash when AI is attempting to find a location to place a structure to.
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
