@@ -263,4 +263,14 @@ public:
      *  Do AI-controlled units ignore disguise and automatically target disguised enemy units?
      */
     bool IsAIDetectDisguise;
+
+    /**
+     *  Determines how many harvesters the AI builds for each refinery on different difficulty levels.
+     */
+    TypeList<int> AIHarvestersPerRefinery;
+
+    /**
+     *  Determines whether the AI is limited to one harvester in singleplayer scenarios, like in original Tiberian Sun.
+     */
+    bool IsAIOneHarvesterInSingleplayer;
 };

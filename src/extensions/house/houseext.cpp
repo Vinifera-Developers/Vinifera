@@ -826,11 +826,10 @@ int HouseClassExtension::AI_Unit()
 
     int harv = This()->ActiveUQuantity.Value(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
     int ref = This()->ActiveBQuantity.Value(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
-    int mult;
-    if (Session.Type == GAME_NORMAL || This()->Difficulty == DIFF_HARD) {
+    int mult = RuleExtension->AIHarvestersPerRefinery[This()->Difficulty];
+
+    if (Session.Type == GAME_NORMAL && RuleExtension->IsAIOneHarvesterInSingleplayer) {
         mult = 1;
-    } else {
-        mult = 2;
     }
 
     /*

@@ -89,6 +89,7 @@ New:
 - Allow customizing the distance for the "Comes Near Waypoint" trigger event (by Rampastring)
 - Add DetectDisguise to TechnoTypes (by Rampastring)
 - Allow customizing whether AI sees through disguise (by Rampastring)
+- Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

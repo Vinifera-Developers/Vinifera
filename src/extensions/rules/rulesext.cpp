@@ -116,7 +116,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainFlashIntensityMultiplier(50),
     IronCurtainSound(VOC_NONE),
     ComesNearWaypointDistance(CELL_LEPTON_W * 5),
-    IsAIDetectDisguise(true)
+    IsAIDetectDisguise(true),
+    IsAIOneHarvesterInSingleplayer(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -150,6 +151,11 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainPulseTable.Add(-13);
     IronCurtainPulseTable.Add(-14);
     IronCurtainPulseTable.Add(-15);
+
+    AIHarvestersPerRefinery = TypeList<int>(3);
+    AIHarvestersPerRefinery.Add(2);
+    AIHarvestersPerRefinery.Add(2);
+    AIHarvestersPerRefinery.Add(1);
 }
 
 
@@ -162,7 +168,8 @@ RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit),
     MaxPips(noinit),
     IronCurtains(noinit),
-    IronCurtainPulseTable(noinit)
+    IronCurtainPulseTable(noinit),
+    AIHarvestersPerRefinery(noinit)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -191,6 +198,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     MaxPips.Clear();
     IronCurtains.Clear();
     IronCurtainPulseTable.Clear();
+    AIHarvestersPerRefinery.Clear();
 
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
@@ -202,6 +210,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     MaxPips.Load(pStm);
     IronCurtains.Load(pStm);
     IronCurtainPulseTable.Load(pStm);
+    AIHarvestersPerRefinery.Load(pStm);
     
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(IronCurtains, "IronCurtains");
 
@@ -226,6 +235,7 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     MaxPips.Save(pStm);
     IronCurtains.Save(pStm);
     IronCurtainPulseTable.Save(pStm);
+    AIHarvestersPerRefinery.Save(pStm);
 
     return hr;
 }
@@ -280,6 +290,8 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IronCurtains.Count());
     crc(ComesNearWaypointDistance);
     crc(IsAIDetectDisguise);
+    crc(AIHarvestersPerRefinery.Count());
+    crc(IsAIOneHarvesterInSingleplayer);
 }
 
 
@@ -820,6 +832,8 @@ bool RulesClassExtension::AI(CCINIClass& ini)
     AINavalYardAdjacency = ini.Get_Int(AI, "AINavalYardAdjacency", AINavalYardAdjacency);
     IsAIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", IsAIRepairBaseNodes);
     IsAIDetectDisguise = ini.Get_Bool(AI, "AIDetectDisguise", IsAIDetectDisguise);
+    AIHarvestersPerRefinery = ini.Get_IntList(AI, "HarvestersPerRefinery", AIHarvestersPerRefinery);
+    IsAIOneHarvesterInSingleplayer = ini.Get_Bool(AI, "AIOneHarvesterInSingleplayer", IsAIOneHarvesterInSingleplayer);
 
     return true;
 }
