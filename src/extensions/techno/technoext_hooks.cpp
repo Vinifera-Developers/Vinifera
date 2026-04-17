@@ -2562,6 +2562,11 @@ bool TechnoClassExt::_Can_Deploy_Now() const
             blocked = true;
         }
 
+        // Hijacked units that are build-limited cannot be deployed because that would allow circumventing the build limit.
+        if (unit->Class->DeploysInto != nullptr && unit->Class->BuildLimit < INT_MAX && EnteredByInfType != INFANTRY_NONE) {
+            blocked = true;
+        }
+
         if (unit->Class->Max_Passengers() > 0) {
             if (unit->IsOnBridge) {
                 blocked = true;
