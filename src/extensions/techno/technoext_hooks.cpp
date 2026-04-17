@@ -3257,7 +3257,10 @@ int TechnoClassExt::_Apparent_Brightness(int brightness) const
     if (technoext->IronCurtainTimer > 0) {
         int index = (technoext->IronCurtainTimer.Value() / RuleExtension->IronCurtainFlashRate) % RuleExtension->IronCurtainPulseTable.Count();
         int extra = RuleExtension->IronCurtainPulseTable[index] * RuleExtension->IronCurtainFlashIntensityMultiplier;
-        int total = brightness + extra;
+
+        float scale = Map[Center_Coord()].TileBrightness / 1000.0f;
+        int extrascaled = (int)(extra * scale);
+        int total = brightness + extrascaled;
         if (total < 0) total = 0;
 
         return total;
