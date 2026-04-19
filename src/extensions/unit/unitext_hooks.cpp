@@ -1273,6 +1273,32 @@ set_mission_delay_and_return:
 
 
 /**
+ *  Prevents deploying hijacked units that have a build limit.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hijacked_Build_Limited_Vehicles, 0)
+{
+    GET(UnitClass*, this_ptr, ESI);
+    GET(UnitTypeClass*, unittype, EAX);
+
+    // Stolen bytes / code.
+    if (unittype->DeploysInto == nullptr) {
+        return 0x00656344;
+    }
+
+    // Do not allow deploying if this unit has been hijacked and it would deploy into a build-limited unit.
+    if (unittype->BuildLimit < INT_MAX && this_ptr->EnteredByInfType != INFANTRY_NONE) {
+        R->Stack(0x28, ACTION_NO_DEPLOY);
+        return 0x0065618E;
+    }
+
+    // Continue deployability checks.
+    return 0x0065602B;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void UnitClassExtension_Hooks()

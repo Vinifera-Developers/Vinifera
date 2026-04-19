@@ -1767,3 +1767,14 @@ IronCurtainPulseTable=-16,-15,-14,-13,-12,-13,-14,-15 ; list of integers, define
 [SOMEUNIT]
 IronCurtainPriorityTarget=no ; boolean, if set to yes, the AI will apply the Iron Curtain to this unit when its HP is about to drop below half. Requires the AI to have an Iron Curtain building available and the Iron Curtain charged
 ```
+
+### AI Harvester Count
+
+- Vinifera allows customizing the number of harvesters the AI builds per refinery.
+
+In `RULES.INI`:
+```ini
+[AI]
+HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the AI builds per refinery by difficulty level, from hardest to easiest
+AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
+```

@@ -89,6 +89,7 @@ New:
 - Allow customizing the distance for the "Comes Near Waypoint" trigger event (by Rampastring)
 - Add DetectDisguise to TechnoTypes (by Rampastring)
 - Allow customizing whether AI sees through disguise (by Rampastring)
+- Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
 - Extended sidebar customizability (by ZivDero)
 
 Vinifera fixes:
@@ -152,6 +153,11 @@ Vanilla fixes:
 - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps (by Rampastring, ported from Phobos code by CrimRecya)
 - Fix a bug where friendly Spies appeared as disguised (by Rampastring)
 - Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name (by Rampastring)
+- Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type (by Rampastring)
+- Fix an edge case crash when AI is attempting to find a location to place a structure to (by Rampastring)
+- Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 
 :::

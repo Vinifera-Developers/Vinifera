@@ -814,6 +814,14 @@ void HouseClassExt::_Active_Add(TechnoClass const* techno)
 Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3)
 {
     /**
+     *  Fix an edge case crash where this function is called with a null btype.
+     *  @author: Rampastring
+     */
+    if (btype == nullptr) {
+        return Cell(0, 0);
+    }
+
+    /**
      *  Find the type class extension instance.
      */
     BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(btype);
