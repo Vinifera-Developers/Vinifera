@@ -232,7 +232,15 @@ bool SidebarClassExt::_Activate(int control)
         break;
     }
 
+    /**
+     *  Only if there is a change in the state of the sidebar will anything
+     *  be done to change it.
+     */
     if (IsSidebarActive != old) {
+        /**
+         *  If the sidebar is activated but was on the right side of the screen, then
+         *  activate it on the left side of the screen.
+         */
         if (IsSidebarActive) {
             Shift_Sidebar();
             IsToRedraw = true;
