@@ -147,7 +147,7 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 
     new (this) WarheadTypeClassExtension(NoInitClass());
 
-    CellAnim.Load(pStm);
+    CellAnim.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(CellAnim, "CellAnim");
     
@@ -169,7 +169,7 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    CellAnim.Save(pStm);
+    CellAnim.Save_Self(pStm);
 
     return hr;
 }
