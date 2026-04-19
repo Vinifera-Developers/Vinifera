@@ -26,10 +26,10 @@ public:
     CameoButtonClass();
     CameoButtonClass(const NoInitClass& x);
 
-    virtual bool Action(unsigned flags, KeyNumType& key) override;
+    bool Action(unsigned flags, KeyNumType& key) override;
 
-    virtual void On_Mouse_Enter();
-    virtual void On_Mouse_Leave();
+    void On_Mouse_Enter() override;
+    void On_Mouse_Leave() override;
 
     void Set_Owner(SidebarStripView& strip, int index);
 

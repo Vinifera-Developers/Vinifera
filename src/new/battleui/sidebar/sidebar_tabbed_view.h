@@ -61,18 +61,18 @@ public:
     TabButtonClass();
     TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y,
                    ConvertClass* drawer = nullptr, int w = 0, int h = 0);
-    virtual ~TabButtonClass() override = default;
+    ~TabButtonClass() override = default;
 
     /**
      *  ControlClass and hover behavior.
      */
-    virtual bool Action(unsigned flags, KeyNumType& key) override;
-    virtual void Disable() override;
-    virtual void Enable() override;
-    virtual bool Draw_Me(bool forced = false) override;
+    bool Action(unsigned flags, KeyNumType& key) override;
+    void Disable() override;
+    void Enable() override;
+    bool Draw_Me(bool forced = false) override;
 
-    virtual void On_Mouse_Enter();
-    virtual void On_Mouse_Leave();
+    void On_Mouse_Enter() override;
+    void On_Mouse_Leave() override;
 
     /**
      *  Tab button state transitions.
@@ -178,14 +178,29 @@ private:
      */
     int RegisteredTooltipCount;
 
-public:
     /**
-     *  Public tab/view state retained for existing sidebar integration.
+     *  Currently selected sidebar tab.
      */
     SidebarTabType TabIndex;
+
+    /**
+     *  Per-tab strip views; only the active tab's strip is drawn and accepts input.
+     */
     SidebarStripView Strip[SIDEBAR_TAB_COUNT];
+
+    /**
+     *  Per-tab category buttons used to switch the active strip.
+     */
     TabButtonClass TabButtons[SIDEBAR_TAB_COUNT];
+
+    /**
+     *  Sidebar background gadget registered with the map while the view is active.
+     */
     SidebarClass::SBGadgetClass Background;
+
+    /**
+     *  Shapes for the various sidebar graphics.
+     */
     const ShapeSet* BackgroundTopShape;
     const ShapeSet* BackgroundMiddleShape;
     const ShapeSet* BackgroundBottomShape;

@@ -59,10 +59,18 @@ private:
     int RegisteredTooltipCount;
 
     /**
-     *  Owned strip and background state.
+     *  Owned strip views.
      */
     SidebarStripView Strip[COLUMN_COUNT];
+
+    /**
+     *  Per-tab category buttons used to switch the active strip.
+     */
     SidebarClass::SBGadgetClass Background;
+
+    /**
+     *  Shapes for the various sidebar graphics.
+     */
     const ShapeSet* BackgroundTopShape;
     const ShapeSet* BackgroundMiddleShape;
     const ShapeSet* BackgroundBottomShape;
