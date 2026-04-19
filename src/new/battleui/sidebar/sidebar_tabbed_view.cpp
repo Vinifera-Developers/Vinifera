@@ -914,6 +914,10 @@ void TabbedSidebarView::Finish_Model_Recalc()
  */
 bool TabbedSidebarView::Change_Tab(int index)
 {
+    if (index < 0 || index >= SIDEBAR_TAB_COUNT) {
+        return false;
+    }
+
     SidebarTabType tab = static_cast<SidebarTabType>(index);
 
     if (TabIndex == tab) {

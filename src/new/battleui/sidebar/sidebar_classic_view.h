@@ -64,7 +64,7 @@ private:
     SidebarStripView Strip[COLUMN_COUNT];
 
     /**
-     *  Per-tab category buttons used to switch the active strip.
+     *  Sidebar background gadget registered with the map while the view is active.
      */
     SidebarClass::SBGadgetClass Background;
 

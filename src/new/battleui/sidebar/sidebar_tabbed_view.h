@@ -32,7 +32,7 @@
 #include "gcntrl.h"
 #include "ihoverable_gadget.h"
 #include "shapeset.h"
-#include "sidebar_classic_view.h"
+#include "sidebar.h"
 #include "sidebar_strip_view.h"
 #include "isidebar_view.h"
 #include "ttimer.h"
