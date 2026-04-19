@@ -2378,8 +2378,6 @@ bool SpecialWeaponsCommandClass::Process()
         Map.Add(RTTI_SPECIAL, i);
     }
 
-    Map.Redraw_Sidebar();
-
     return true;
 }
 
