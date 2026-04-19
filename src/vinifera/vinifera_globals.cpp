@@ -103,7 +103,6 @@ std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
 MFCD *GenericMix = nullptr;
 MFCD *IsoGenericMix = nullptr;
-MFCD *SideCTMix = nullptr;
 
 bool Vinifera_SkipToTSMenu = false;
 bool Vinifera_SkipToFSMenu = false;

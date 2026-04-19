@@ -331,12 +331,6 @@ bool Vinifera_Prep_For_Side(SideType side)
         SideCDMix = nullptr;
     }
 
-    if (SideCTMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCTMix->Filename);
-        delete SideCTMix;
-        SideCTMix = nullptr;
-    }
-
     int id = static_cast<int>(side) + 1; // Mix id
 
     while (ExpandSideMix.Count() > 0) {

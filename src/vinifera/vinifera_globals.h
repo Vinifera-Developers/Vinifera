@@ -118,7 +118,6 @@ extern DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
 extern MFCD *GenericMix;
 extern MFCD *IsoGenericMix;
-extern MFCD *SideCTMix;
 
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
