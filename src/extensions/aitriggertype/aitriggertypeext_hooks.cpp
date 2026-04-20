@@ -46,8 +46,7 @@ DEFINE_HOOK(0x004109EF, _AITriggerTypeClass_Process_MultiSide_Patch, 0)
     GET(AITriggerTypeClass*, trigtype, ESI);
     GET(HouseClass*, house, EBP);
 
-    if (trigtype->MultiSide != 0 && trigtype->MultiSide != house->ActLike + 1)
-    {
+    if (trigtype->MultiSide != 0 && trigtype->MultiSide != house->ActLike + 1) {
         return 0x00410A00;
     }
 
