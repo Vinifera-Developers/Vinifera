@@ -81,6 +81,7 @@
 #include "savever.h"
 #include "scenario.h"
 #include "scenarioext.h"
+#include "sessionext.h"
 #include "script.h"
 #include "scripttype.h"
 #include "session.h"
@@ -719,6 +720,8 @@ void Vinifera_Post_Load_Game()
         Extension::Fetch(buildingtype)->Fetch_Building_Normal_Image(Scen->Theater);
     }
 
+    SessionExtension->Apply_Spawner_Runtime_State();
+
     /**
      *  IsometricTileTypes are created before objects are loaded, so they are read from INI incorrectly.
      *  Let's re-read them now.
@@ -971,7 +974,9 @@ bool Vinifera_Load_Game(const char* file_name)
      *  Schedule the next autosave.
      */
     Vinifera_NextAutoSaveFrame = Frame;
-    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && Vinifera_SpawnerConfig != nullptr ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && SessionExtension->IsSpawnerSession
+        ? SessionExtension->SpawnerRuntime.MultiplayerAutoSaveInterval
+        : OptionsExtension->AutoSaveInterval;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 

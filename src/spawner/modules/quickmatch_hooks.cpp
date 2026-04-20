@@ -33,6 +33,7 @@
 #include "house.h"
 #include "ipxmgr.h"
 #include "session.h"
+#include "sessionext.h"
 #include "spawner.h"
 #include "syringe.h"
 #include "textprint.h"
@@ -64,7 +65,7 @@ public:
  */
 char* IPXManagerClassExt::_Connection_Name(int id)
 {
-    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
+    if (SessionExtension->SpawnerRuntime.QuickMatch) {
         return const_cast<char*>(PLAYER);
     } else {
         return IPXManagerClass::Connection_Name(id);
@@ -79,7 +80,7 @@ char* IPXManagerClassExt::_Connection_Name(int id)
  */
 static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* format, char* str)
 {
-    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
+    if (SessionExtension->SpawnerRuntime.QuickMatch) {
         return std::sprintf(buffer, "%s", PLAYER);
     } else {
         return std::sprintf(buffer, format, str);
@@ -94,7 +95,7 @@ static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const cha
  */
 static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, Surface& surface, Rect& rect, Point2D& xy, ColorScheme* fore, unsigned back, TextPrintType flag)
 {
-    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
+    if (SessionExtension->SpawnerRuntime.QuickMatch) {
         return Fancy_Text_Print(PLAYER, surface, rect, xy, fore, back, flag);
     } else {
         return Fancy_Text_Print(text, surface, rect, xy, fore, back, flag);
@@ -112,7 +113,7 @@ DEFINE_HOOK(0x005B4024, _Kick_Player_Dialog_SendMessage_Hide_Name, 0)
     GET(HWND, hWnd, EBP);
     GET(int, index, ESI);
 
-    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
+    if (SessionExtension->SpawnerRuntime.QuickMatch) {
         SendMessageA(hWnd, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(PLAYER));
     } else {
         SendMessageA(hWnd, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(Session.Players[index]->Name));

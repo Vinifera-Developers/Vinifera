@@ -37,6 +37,7 @@
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
 #include "session.h"
+#include "sessionext.h"
 #include "spawner.h"
 #include "statistics_hooks.h"
 #include "syringe.h"
@@ -149,7 +150,7 @@ DEFINE_HOOK(0x0057524A, _Destroy_Connection_AutoSurrender_Patch, 0)
 {
     GET(HouseClass*, hptr, EBP);
 
-    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->AutoSurrender)) {
+    if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || SessionExtension->SpawnerRuntime.AutoSurrender) {
         hptr->Flag_To_Die();
     } else {
         hptr->AI_Takeover();

@@ -30,6 +30,7 @@
 
 #include "extension.h"
 #include "session.h"
+#include "wolapi.h"
 
 
 class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
@@ -52,6 +53,8 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 
         void Read_MultiPlayer_Settings();
         void Write_MultiPlayer_Settings();
+        void Clear_Spawner_State();
+        void Apply_Spawner_Runtime_State() const;
 
     public:
         typedef struct ExtGameOptionsType
@@ -74,6 +77,38 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         } ExtGameOptionsType;
 
         ExtGameOptionsType ExtOptions;
+        
+        struct SpawnerGameOptionsType {
+            int MultiplayerAutoSaveInterval;
+            bool QuickMatch;
+            bool WriteStatistics;
+            bool AutoSurrender;
+            bool AttackNeutralUnits;
+            bool CoachMode;
+            bool ContinueWithoutHumans;
+            bool ScrapMetal;
+            bool AINamesByDifficulty;
+            bool ProtocolZeroEnabled;
+            unsigned char ProtocolZeroMaxLatencyLevel;
+            int ReconnectTimeout;
+            int Tournament;
+            unsigned long GameID;
+        };
+
+        struct SpawnerSlotInfoType {
+            bool IsConfigured;
+            bool IsHuman;
+            int Color;
+            int House;
+            int Difficulty;
+            bool IsObserver;
+            int SpawnLocation;
+            int Alliances[MAX_PLAYERS];
+        };
+
+        bool IsSpawnerSession;
+        SpawnerGameOptionsType SpawnerRuntime;
+        SpawnerSlotInfoType SlotInfo[MAX_PLAYERS];
 
         /**
          *  Is the message we're currently writing meant to be sent to allies only?

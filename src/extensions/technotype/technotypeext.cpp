@@ -35,6 +35,7 @@
 #include "bsurface.h"
 #include "ccini.h"
 #include "filepng.h"
+#include "sessionext.h"
 #include "swizzle.h"
 #include "bsurface.h"
 #include "tibsun_globals.h"
@@ -481,7 +482,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  If the spawner requested scrap explosions, replace the game's explosion vector with ours.
      */
-    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->ScrapMetal) {
+    if (SessionExtension->SpawnerRuntime.ScrapMetal) {
         This()->Explosion = ScrapExplosion;
     }
     return true;

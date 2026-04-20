@@ -47,6 +47,7 @@
 #include "unittype.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "sessionext.h"
 #include "unit.h"
 #include "session.h"
 #include "fatal.h"
@@ -759,7 +760,7 @@ void HouseClassExt::_MPlayer_Defeated()
          *  With the spawner active, if Coach mode is enabled, players don't get vision.
          */
         bool obiwan = true;
-        if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->CoachMode) {
+        if (SessionExtension->SpawnerRuntime.CoachMode) {
             obiwan = false;
         }
 
@@ -857,7 +858,7 @@ void HouseClassExt::_MPlayer_Defeated()
      *    player's IsDefeated flag
      */
     if (!Extension::Fetch(this)->IsObserver) {
-        if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
+        if (num_alive == 1 || (num_humans == 0 && !SessionExtension->SpawnerRuntime.ContinueWithoutHumans)) {
             IsToDie = false;
 
             if (PlayerPtr->IsDefeated) {

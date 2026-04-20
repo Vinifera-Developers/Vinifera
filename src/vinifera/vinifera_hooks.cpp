@@ -55,6 +55,8 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "tracker.h"
+#include "scenarioext.h"
+#include "sessionext.h"
 #include "vinifera_functions.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
@@ -418,6 +420,14 @@ DEFINE_HOOK(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0)
     Vinifera_DoSave = false;
     Vinifera_NextAutoSaveFrame = -1;
     Vinifera_NextAutoSaveNumber = 0;
+
+    if (SessionExtension != nullptr) {
+        SessionExtension->Clear_Spawner_State();
+    }
+
+    if (ScenExtension != nullptr) {
+        ScenExtension->Clear_Spawner_Overrides();
+    }
 
     /**
      *  Stolen bytes/code.

@@ -318,14 +318,11 @@ static void Init_Loading_Screen(const char* filename)
     /**
      *  The spawner can forcibly override the loading screen, and it already includes .PCX.
      */
-    if (Vinifera_SpawnerConfig != nullptr) {
+    if (ScenExtension->HasCustomLoadScreen) {
+        std::snprintf(loadfilename, sizeof(loadfilename), "%s", ScenExtension->CustomLoadScreen);
 
-        if (Wstring(Vinifera_SpawnerConfig->CustomLoadScreen).Is_Not_Empty()) {
-            std::snprintf(loadfilename, sizeof(loadfilename), "%s", Vinifera_SpawnerConfig->CustomLoadScreen);
-
-            if (Vinifera_SpawnerConfig->CustomLoadScreenPos != Point2D(0, 0)) {
-                bar_pos = Vinifera_SpawnerConfig->CustomLoadScreenPos;
-            }
+        if (ScenExtension->HasCustomLoadScreenPos) {
+            bar_pos = ScenExtension->CustomLoadScreenPos;
         }
     }
 
@@ -343,8 +340,8 @@ static void Init_Loading_Screen(const char* filename)
     char gamenamebuffer[128];
     const char* prog_msg = nullptr;
 
-    if (Session.Type == GAME_INTERNET && PlanetWestwoodTournament == WOL::TOURNAMENT_0) {
-        std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), PlanetWestwoodGameID);
+    if (Session.Type == GAME_INTERNET && WestwoodOnline_Tournament == 0) {
+        std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), WestwoodOnline_GameID);
         prog_msg = gamenamebuffer;
     }
 

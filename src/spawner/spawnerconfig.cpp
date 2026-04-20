@@ -63,7 +63,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
      *  Savegame Options
      */
     LoadSaveGame = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
-    /* SaveGameName */ spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+    SaveGameName = spawn_ini.Get_String(SETTINGS, "SaveGameName", std::string(SaveGameName));
     AutoSaveInterval = spawn_ini.Get_Int(SETTINGS, "AutoSaveGame", AutoSaveInterval);
     NextAutoSaveNumber = spawn_ini.Get_Int(SETTINGS, "NextSPAutoSaveId", NextAutoSaveNumber + 1) - 1; // Subtract 1 since our autosaves are 0-based internally
 
@@ -73,14 +73,14 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     Seed = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
     TechLevel = spawn_ini.Get_Int(SETTINGS, "TechLevel", TechLevel);
     IsCampaign = spawn_ini.Get_Bool(SETTINGS, "IsSinglePlayer", IsCampaign);
-    CampaignID = spawn_ini.Get_Int(SETTINGS, "CampaignID", CampaignID);
-    CampaignDifficulty = spawn_ini.Get_Int(SETTINGS, "DifficultyModeHuman", CampaignDifficulty);
-    CampaignCDifficulty = spawn_ini.Get_Int(SETTINGS, "DifficultyModeComputer", CampaignCDifficulty);
+    CampaignID = static_cast<CampaignType>(spawn_ini.Get_Int(SETTINGS, "CampaignID", CampaignID));
+    CampaignDifficulty = static_cast<DiffType>(spawn_ini.Get_Int(SETTINGS, "DifficultyModeHuman", CampaignDifficulty));
+    CampaignCDifficulty = static_cast<DiffType>(spawn_ini.Get_Int(SETTINGS, "DifficultyModeComputer", CampaignCDifficulty));
     Tournament = spawn_ini.Get_Int(SETTINGS, "Tournament", Tournament);
     WOLGameID = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
-    /* ScenarioName      */ spawn_ini.Get_String(SETTINGS, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));
-    /* MapHash           */ spawn_ini.Get_String(SETTINGS, "MapHash", MapHash, MapHash, sizeof(MapHash));
-    /* UIMapName         */ spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
+    ScenarioName = spawn_ini.Get_String(SETTINGS, "Scenario", std::string(ScenarioName));
+    MapHash = spawn_ini.Get_String(SETTINGS, "MapHash", std::string(MapHash));
+    UIMapName = spawn_ini.Get_String(SETTINGS, "UIMapName", std::string(UIMapName));
     PlayMoviesInMultiplayer = spawn_ini.Get_Bool(SETTINGS, "PlayMoviesInMultiplayer", PlayMoviesInMultiplayer);
 
     /**
@@ -92,26 +92,55 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     ConnTimeout = spawn_ini.Get_Int(SETTINGS, "ConnTimeout", ConnTimeout);
     MaxAhead = spawn_ini.Get_Int(SETTINGS, "MaxAhead", MaxAhead);
     PreCalcMaxAhead = spawn_ini.Get_Int(SETTINGS, "PreCalcMaxAhead", PreCalcMaxAhead);
-    MaxLatencyLevel = spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", MaxLatencyLevel);
+    MaxLatencyLevel = static_cast<LatencyLevelEnum>(spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", MaxLatencyLevel));
 
     /**
      *  Tunnel Options
      */
     TunnelId = spawn_ini.Get_Int(SETTINGS, "Port", TunnelId);
     ListenPort = spawn_ini.Get_Int(SETTINGS, "Port", ListenPort);
-    /* TunnelIp */ spawn_ini.Get_String(TUNNEL, "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
+    TunnelIp = spawn_ini.Get_String(TUNNEL, "Ip", std::string(TunnelIp));
     TunnelPort = spawn_ini.Get_Int(TUNNEL, "Port", TunnelPort);
 
     /**
-     *  Player and House Options
+     *  Player and House Options.
+     *  Read player data into a temp array, then sort humans by color
+     *  into the front of the final array, followed by AIs.
+     *  House data is read per final slot index since it's already in game slot order.
      */
-    for (int i = 0; i < std::size(Players); ++i) {
-        Players[i].Read_INI(spawn_ini, i);
-        if (Players[i].IsHuman) {
+    PlayerConfig temp[std::size(Players)];
+    for (int i = 0; i < std::size(temp); ++i) {
+        temp[i].Read_Player_INI(spawn_ini, i);
+        if (temp[i].IsHuman) {
             HumanPlayers++;
         }
+    }
 
-        Houses[i].Read_INI(spawn_ini, i);
+    bool claimed[std::size(Players)] = {};
+    int slot = 0;
+
+    for (int s = 0; s < HumanPlayers && slot < std::size(Players); ++s) {
+        int best = -1;
+        for (int i = 0; i < std::size(temp); ++i) {
+            if (!temp[i].IsHuman || claimed[i]) continue;
+            if (best == -1 || temp[i].Color < temp[best].Color) best = i;
+        }
+        if (best == -1) break;
+        claimed[best] = true;
+        Players[slot] = temp[best];
+        if (best == 0) LocalPlayerIndex = slot;
+        slot++;
+    }
+
+    for (int i = 0; i < std::size(temp) && slot < std::size(Players); ++i) {
+        if (!temp[i].IsHuman) {
+            Players[slot] = temp[i];
+            slot++;
+        }
+    }
+
+    for (int i = 0; i < std::size(Players); ++i) {
+        Players[i].Read_House_INI(spawn_ini, i);
     }
 
     /**
@@ -126,7 +155,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     AutoSurrender = spawn_ini.Get_Bool(SETTINGS, "AutoSurrender", AutoSurrender);
     AttackNeutralUnits = spawn_ini.Get_Bool(SETTINGS, "AttackNeutralUnits", AttackNeutralUnits);
     ScrapMetal = spawn_ini.Get_Bool(SETTINGS, "ScrapMetal", ScrapMetal);
-    /* CustomLoadScreen   */ spawn_ini.Get_String(SETTINGS, "CustomLoadScreen", "", CustomLoadScreen, sizeof(CustomLoadScreen));
+    CustomLoadScreen = spawn_ini.Get_String(SETTINGS, "CustomLoadScreen", std::string(CustomLoadScreen));
     CustomLoadScreenPos = spawn_ini.Get_Point(SETTINGS, "CustomLoadScreenPos", CustomLoadScreenPos);
     ContinueWithoutHumans = spawn_ini.Get_Bool(SETTINGS, "ContinueWithoutHumans", ContinueWithoutHumans);
 }
@@ -185,7 +214,7 @@ static constexpr const char* AlliancesTagArray[8] = {
  *
  *  @author: Belonit, ZivDero
  */
-void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
+void SpawnerConfig::PlayerConfig::Read_Player_INI(CCINIClass& spawn_ini, int index)
 {
     if (index >= MAX_PLAYERS) return;
 
@@ -195,14 +224,14 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
     if (spawn_ini.Is_Present(SECTION)) {
         IsHuman = true;
         Difficulty = -1;
-        spawn_ini.Get_String(SECTION, "Name", Name, Name, sizeof(Name));
-        Color = spawn_ini.Get_Int(SECTION, "Color", Color);
-        House = spawn_ini.Get_Int(SECTION, "Side", House);
-        spawn_ini.Get_String(SECTION, "Ip", Ip, Ip, sizeof(Ip));
+        Name = spawn_ini.Get_String(SECTION, "Name", std::string(Name));
+        Color = static_cast<PlayerColorType>(spawn_ini.Get_Int(SECTION, "Color", Color));
+        House = static_cast<HousesType>(spawn_ini.Get_Int(SECTION, "Side", House));
+        Ip = spawn_ini.Get_String(SECTION, "Ip", std::string(Ip));
         Port = spawn_ini.Get_Int(SECTION, "Port", Port);
     } else if (!IsHuman) {
-        Color = spawn_ini.Get_Int("HouseColors", MULTI_TAG, Color);
-        House = spawn_ini.Get_Int("HouseCountries", MULTI_TAG, House);
+        Color = static_cast<PlayerColorType>(spawn_ini.Get_Int("HouseColors", MULTI_TAG, Color));
+        House = static_cast<HousesType>(spawn_ini.Get_Int("HouseCountries", MULTI_TAG, House));
         Difficulty = spawn_ini.Get_Int("HouseHandicaps", MULTI_TAG, Difficulty);
     }
 }
@@ -213,7 +242,7 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
  *
  *  @author: Belonit, ZivDero
  */
-void SpawnerConfig::HouseConfig::Read_INI(CCINIClass& spawn_ini, int index)
+void SpawnerConfig::PlayerConfig::Read_House_INI(CCINIClass& spawn_ini, int index)
 {
     if (index >= MAX_PLAYERS) return;
 

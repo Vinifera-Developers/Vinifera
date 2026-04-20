@@ -36,7 +36,7 @@
 #include "mouse.h"
 #include "protocolzero.h"
 #include "session.h"
-#include "spawnerconfig.h"
+#include "sessionext.h"
 #include "spawnmanager.h"
 #include "unit.h"
 #include "vinifera_globals.h"
@@ -391,7 +391,7 @@ void EventClassExt::Do_IDLE()
  */
 void EventClassExt::Do_TIMING()
 {
-    if (!ProtocolZero::Enable) {
+    if (!SessionExtension->SpawnerRuntime.ProtocolZeroEnabled) {
         if (Scen->Special.IsFogOfWar) {
             Data.Timing.MaxAhead -= 10;
         }
@@ -432,11 +432,11 @@ void EventClassExt::Do_REMOVEPLAYER()
     /**
      *  Turn off autosaves when a player disconnects.
      */
-    if (Vinifera_SpawnerConfig != nullptr) {
-        Vinifera_SpawnerConfig->AutoSaveInterval = 0;
+    if (SessionExtension->IsSpawnerSession) {
+        SessionExtension->SpawnerRuntime.MultiplayerAutoSaveInterval = 0;
     }
 
-    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Session.Type == GAME_IPX & Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->AutoSurrender)) {
+    if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || (Session.Type == GAME_IPX && SessionExtension->SpawnerRuntime.AutoSurrender)) {
         house->Flag_To_Die();
     } else if (house->Is_Human_Player()) {
         house->AI_Takeover();

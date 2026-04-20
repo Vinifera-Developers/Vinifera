@@ -34,6 +34,7 @@
 #include "protocolzero.h"
 #include "rules.h"
 #include "session.h"
+#include "sessionext.h"
 
 
 LatencyLevelEnum LatencyLevel::CurentLatencyLevel = LATENCY_LEVEL_INITIAL;
@@ -49,7 +50,7 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
 {
     new_latency_level = std::min(new_latency_level, LATENCY_LEVEL_MAX);
 
-    auto max_latency_level = static_cast<LatencyLevelEnum>(ProtocolZero::MaxLatencyLevel);
+    auto max_latency_level = static_cast<LatencyLevelEnum>(SessionExtension->SpawnerRuntime.ProtocolZeroMaxLatencyLevel);
     new_latency_level = std::min(new_latency_level, max_latency_level);
 
     if (new_latency_level <= CurentLatencyLevel) return;

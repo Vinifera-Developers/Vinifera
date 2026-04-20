@@ -37,6 +37,7 @@
 #include "protocolzero.h"
 #include "scenario.h"
 #include "session.h"
+#include "sessionext.h"
 #include "spawner.h"
 #include "syringe.h"
 #include "tibsun_globals.h"
@@ -65,7 +66,7 @@ public:
  */
 void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long maxretries, unsigned long timeout, bool global)
 {
-    if (ProtocolZero::Enable) {
+    if (SessionExtension->SpawnerRuntime.ProtocolZeroEnabled) {
         DEBUG_INFO("[Spawner] NewRetryDelta = %d, NewRetryTimeout = %d, FrameSendRate = %d, CurentLatencyLevel = %d\n", retrydelta, maxretries, Session.FrameSendRate, LatencyLevel::CurentLatencyLevel);
     }
 
@@ -98,7 +99,7 @@ void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long max
  */
 unsigned long IPXManagerClassExt::_Response_Time()
 {
-    if (ProtocolZero::Enable && !ProtocolZero::GetRealMaxAhead) {
+    if (SessionExtension->SpawnerRuntime.ProtocolZeroEnabled && !ProtocolZero::GetRealMaxAhead) {
         return ProtocolZero::WorstMaxAhead;
     }
 
@@ -139,7 +140,7 @@ public:
  */
 bool MessageListClassExt::_Manage()
 {
-    if (ProtocolZero::Enable) ProtocolZero::Send_Response_Time();
+    if (SessionExtension->SpawnerRuntime.ProtocolZeroEnabled) ProtocolZero::Send_Response_Time();
 
     return MessageListClass::Manage();
 }
@@ -169,7 +170,7 @@ public:
 static short& MySent = Make_Global<short>(0x008099F0);
 DEFINE_HOOK(0x005B1A2D, _ProtocolZero_Queue_AI_Multiplayer_1, 0)
 {
-    if (ProtocolZero::Enable || MySent >= 5) {
+    if (SessionExtension->SpawnerRuntime.ProtocolZeroEnabled || MySent >= 5) {
         return 0x005B1A3B;
     }
 
@@ -190,7 +191,7 @@ DEFINE_HOOK(0x005B1BF1, _ProtocolZero_Queue_AI_Multiplayer_2, 0)
     ev.Type = EVENT_TIMING;
     ev.Data.Timing.DesiredFrameRate = Session.PrecalcDesiredFrameRate;
     ev.Data.Timing.MaxAhead = Session.PrecalcMaxAhead;
-    ev.Data.Timing.FrameSendRate = ProtocolZero::Enable ? LatencyLevel::NewFrameSendRate : Session.PrecalcDesiredFrameRate > 30 ? 10 : 5;
+    ev.Data.Timing.FrameSendRate = SessionExtension->SpawnerRuntime.ProtocolZeroEnabled ? LatencyLevel::NewFrameSendRate : Session.PrecalcDesiredFrameRate > 30 ? 10 : 5;
 
     OutList.Add(ev);
     Session.PrecalcMaxAhead = 0;
@@ -212,7 +213,7 @@ DEFINE_HOOK(0x005B1B7A, _ProtocolZero_Queue_AI_Multiplayer_3, 0)
     EventClass ev;
     ev.Type = EVENT_TIMING;
     ev.Data.Timing.DesiredFrameRate = Session.DesiredFrameRate;
-    ev.Data.Timing.MaxAhead = ProtocolZero::Enable ? Session.MaxAhead : (max_ahead + Scen->Special.IsFogOfWar ? 10 : 0);
+    ev.Data.Timing.MaxAhead = SessionExtension->SpawnerRuntime.ProtocolZeroEnabled ? Session.MaxAhead : (max_ahead + Scen->Special.IsFogOfWar ? 10 : 0);
     ev.Data.Timing.FrameSendRate = Session.FrameSendRate;
 
     OutList.Add(ev);
@@ -230,7 +231,7 @@ DEFINE_HOOK(0x005B4EA5, _ProtocolZero_ExecuteDoList, 5)
 {
     GET(EventClass*, event, ESI);
 
-    if (ProtocolZero::Enable) {
+    if (SessionExtension->SpawnerRuntime.ProtocolZeroEnabled) {
         if (event->Type == EVENT_EMPTY) {
             return 0x005B4EB7;
         }

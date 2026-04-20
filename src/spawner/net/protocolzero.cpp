@@ -35,15 +35,14 @@
 #include "ipxmgr.h"
 #include "latencylevel.h"
 #include "session.h"
+#include "sessionext.h"
 #include "spawner.h"
 
 #include "debughandler.h"
 
 
-bool ProtocolZero::Enable = false;
 bool ProtocolZero::GetRealMaxAhead = false;
 unsigned int ProtocolZero::WorstMaxAhead = 24;
-unsigned char ProtocolZero::MaxLatencyLevel = 0xff;
 
 
 /**
@@ -53,7 +52,7 @@ unsigned char ProtocolZero::MaxLatencyLevel = 0xff;
  */
 void ProtocolZero::Send_Response_Time()
 {
-    if (Enable == false || Session.Singleplayer_Game()) {
+    if (!SessionExtension->SpawnerRuntime.ProtocolZeroEnabled || Session.Singleplayer_Game()) {
         return;
     }
 
@@ -98,7 +97,7 @@ void ProtocolZero::Send_Response_Time()
  */
 void ProtocolZero::Handle_Response_Time(EventClassExt& event)
 {
-    if (Enable == false || Session.Singleplayer_Game()) {
+    if (!SessionExtension->SpawnerRuntime.ProtocolZeroEnabled || Session.Singleplayer_Game()) {
         return;
     }
 

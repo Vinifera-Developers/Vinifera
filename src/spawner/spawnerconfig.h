@@ -28,6 +28,9 @@
 #pragma once
 
 #include "abstractext.h"
+#include "stringid.h"
+#include "tibsun_defines.h"
+#include "latencylevel.h"
 
 class CCINIClass;
 
@@ -38,35 +41,28 @@ class CCINIClass;
 class SpawnerConfig
 {
     /**
-     *  Used to create NodeNameType
-     *  The order of entries may differ from HouseConfig
+     *  Combined player and house configuration for a single game slot.
+     *  After Read_INI, the array is sorted: humans first (by color), then AIs.
      */
     struct PlayerConfig {
         bool IsHuman;
-        char Name[20];
-        int Color;
-        int House;
+        FixedString<20> Name;
+        PlayerColorType Color;
+        HousesType House;
         int Difficulty;
-        char Ip[0x20];
+        FixedString<0x20> Ip;
         int Port;
-
-        PlayerConfig() : IsHuman {false}, Name {""}, Color {-1}, House {-1}, Difficulty {-1}, Ip {"0.0.0.0"}, Port {-1} {}
-
-        void Read_INI(CCINIClass& spawn_ini, int index);
-    };
-
-    /**
-     *  Used to configure the generated HouseClass
-     *  Must be sorted by respective player color
-     */
-    struct HouseConfig {
         bool IsObserver;
         int SpawnLocation;
         int Alliances[8];
 
-        HouseConfig() : IsObserver {false}, SpawnLocation {-2}, Alliances {-1, -1, -1, -1, -1, -1, -1, -1} {}
+        PlayerConfig() :
+            IsHuman {false}, Name {""}, Color {PCOLOR_NONE}, House {HOUSE_NONE}, Difficulty {-1}, Ip {"0.0.0.0"}, Port {-1},
+            IsObserver {false}, SpawnLocation {-2}, Alliances {-1, -1, -1, -1, -1, -1, -1, -1}
+        {}
 
-        void Read_INI(CCINIClass& spawn_ini, int index);
+        void Read_Player_INI(CCINIClass& spawn_ini, int index);
+        void Read_House_INI(CCINIClass& spawn_ini, int index);
     };
 
 public:
@@ -93,7 +89,7 @@ public:
      *  Savegame Options
      */
     bool LoadSaveGame;
-    char SaveGameName[60];
+    FixedString<60> SaveGameName;
     int AutoSaveInterval;
     int NextAutoSaveNumber;
 
@@ -103,14 +99,14 @@ public:
     int Seed;
     int TechLevel;
     bool IsCampaign;
-    int CampaignID;
-    int CampaignDifficulty;
-    int CampaignCDifficulty;
+    CampaignType CampaignID;
+    DiffType CampaignDifficulty;
+    DiffType CampaignCDifficulty;
     int Tournament;
     unsigned int WOLGameID;
-    char ScenarioName[260];
-    char MapHash[0xff];
-    char UIMapName[44];
+    FixedString<260> ScenarioName;
+    FixedString<0xff> MapHash;
+    FixedString<44> UIMapName;
     bool PlayMoviesInMultiplayer;
 
     /**
@@ -122,26 +118,23 @@ public:
     int ConnTimeout;
     int MaxAhead;
     int PreCalcMaxAhead;
-    unsigned char MaxLatencyLevel;
+    LatencyLevelEnum MaxLatencyLevel;
 
     /**
      *  Tunnel Options
      */
     int TunnelId;
-    char TunnelIp[0x20];
+    FixedString<0x20> TunnelIp;
     int TunnelPort;
     int ListenPort;
 
     /**
      *  Player Options
+     *  Sorted after Read_INI: humans first (by color), then AIs.
      */
     PlayerConfig Players[8];
     int HumanPlayers;
-
-    /**
-     *  House Options
-     */
-    HouseConfig Houses[8];
+    int LocalPlayerIndex;
 
     /**
      *  Extended Options
@@ -155,7 +148,7 @@ public:
     bool AutoSurrender;
     bool AttackNeutralUnits;
     bool ScrapMetal;
-    char CustomLoadScreen[PATH_MAX];
+    FixedString<PATH_MAX> CustomLoadScreen;
     TPoint2D<int> CustomLoadScreenPos;
     bool ContinueWithoutHumans;
 
@@ -184,9 +177,9 @@ public:
         Seed {0},
         TechLevel {10},
         IsCampaign {false},
-        CampaignID {-1},
-        CampaignDifficulty {1},
-        CampaignCDifficulty {1},
+        CampaignID {CAMPAIGN_NONE},
+        CampaignDifficulty {DIFF_NORMAL},
+        CampaignCDifficulty {DIFF_NORMAL},
         Tournament {0},
         WOLGameID {0xDEADBEEF},
         ScenarioName {"spawnmap.ini"},
@@ -200,7 +193,7 @@ public:
         ConnTimeout {3600},
         MaxAhead {-1},
         PreCalcMaxAhead {0},
-        MaxLatencyLevel {0xFF} ,
+        MaxLatencyLevel {static_cast<LatencyLevelEnum>(0xFF)} ,
 
         TunnelId {0},
         TunnelIp {"0.0.0.0"},
@@ -210,8 +203,7 @@ public:
         Players {PlayerConfig(), PlayerConfig(), PlayerConfig(), PlayerConfig(),
                  PlayerConfig(), PlayerConfig(), PlayerConfig(), PlayerConfig()},
         HumanPlayers(0),
-        Houses {HouseConfig(), HouseConfig(), HouseConfig(), HouseConfig(),
-                HouseConfig(), HouseConfig(), HouseConfig(), HouseConfig()},
+        LocalPlayerIndex(0),
 
         Firestorm {true},
         QuickMatch {false},

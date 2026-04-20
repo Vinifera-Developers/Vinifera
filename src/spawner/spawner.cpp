@@ -46,10 +46,10 @@
 #include "netdlg.h"
 #include "options.h"
 #include "ownrdraw.h"
-#include "protocolzero.h"
 #include "rules.h"
 #include "saveload.h"
 #include "scenario.h"
+#include "scenarioext.h"
 #include "sessionext.h"
 #include "tab.h"
 #include "tibsun_functions.h"
@@ -57,6 +57,7 @@
 #include "wspudp.h"
 #include "wwmouse.h"
 
+#include <algorithm>
 #include <ctime>
 
 
@@ -99,7 +100,7 @@ bool Spawner::Start_Game()
     Init_UI();
     Prepare_Screen();
 
-    const bool result = Start_Scenario(Vinifera_SpawnerConfig->ScenarioName);
+    const bool result = Start_Scenario(Vinifera_SpawnerConfig->ScenarioName.data());
     Vinifera_HasSpawned = true;
     return result;
 }
@@ -152,8 +153,9 @@ bool Spawner::Start_Scenario(char* scenario_name)
     // Session.Options.CaptureTheFlag
     Session.Options.FogOfWar = Vinifera_SpawnerConfig->FogOfWar;
     Session.Options.RedeployMCV = Vinifera_SpawnerConfig->MCVRedeploy;
-    std::strcpy(Session.Options.ScenarioDescription, Vinifera_SpawnerConfig->UIMapName);
-    Session.ColorIdx = static_cast<PlayerColorType>(Vinifera_SpawnerConfig->Players[0].Color);
+    std::strcpy(Session.Options.ScenarioDescription, Vinifera_SpawnerConfig->UIMapName.c_str());
+    const auto& local_player = Vinifera_SpawnerConfig->Players[Vinifera_SpawnerConfig->LocalPlayerIndex];
+    Session.ColorIdx = local_player.Color;
     Session.NumPlayers = Vinifera_SpawnerConfig->HumanPlayers;
 
     Seed = Vinifera_SpawnerConfig->Seed;
@@ -168,11 +170,10 @@ bool Spawner::Start_Scenario(char* scenario_name)
     const auto nodename = new NodeNameType();
     Session.Players.Add(nodename);
 
-    std::strcpy(nodename->Name, Vinifera_SpawnerConfig->Players[0].Name);
-    nodename->Player.House = static_cast<HousesType>(Vinifera_SpawnerConfig->Players[0].House);
-    nodename->Player.Color = static_cast<PlayerColorType>(Vinifera_SpawnerConfig->Players[0].Color);
+    std::strcpy(nodename->Name, local_player.Name.c_str());
+    nodename->Player.House = local_player.House;
+    nodename->Player.Color = local_player.Color;
     nodename->Player.ProcessTime = -1;
-    nodename->Game.LastTime = 1;
 
     /**
      *  Set session type.
@@ -185,6 +186,14 @@ bool Spawner::Start_Scenario(char* scenario_name)
         Session.Type = GAME_SKIRMISH;
     }
 
+    const bool load_save_game = Vinifera_SpawnerConfig->LoadSaveGame;
+    const CampaignType campaign_id = Vinifera_SpawnerConfig->CampaignID;
+    const bool play_movies_in_multiplayer = Vinifera_SpawnerConfig->PlayMoviesInMultiplayer;
+
+    char save_game_name[decltype(Vinifera_SpawnerConfig->SaveGameName)::capacity()];
+    std::snprintf(save_game_name, sizeof(save_game_name), "%s", Vinifera_SpawnerConfig->SaveGameName.c_str());
+
+    Freeze_Config_Into_Extensions();
 
     Init_Random();
 
@@ -193,31 +202,54 @@ bool Spawner::Start_Scenario(char* scenario_name)
      */
     if (Session.Type == GAME_NORMAL) {
         Session.Options.Goodies = true;
-        if (Vinifera_SpawnerConfig->LoadSaveGame) {
-            return Load_Game(Vinifera_SpawnerConfig->SaveGameName);
+        Release_Config();
+        if (load_save_game) {
+            return Load_Game(save_game_name);
         } else {
-            return ::Start_Scenario(scenario_name, true, static_cast<CampaignType>(Vinifera_SpawnerConfig->CampaignID));
+            return ::Start_Scenario(scenario_name, true, campaign_id);
         }
     } else if (Session.Type == GAME_SKIRMISH) {
-        if (Vinifera_SpawnerConfig->LoadSaveGame) {
-            return Load_Game(Vinifera_SpawnerConfig->SaveGameName);
+        Release_Config();
+        if (load_save_game) {
+            return Load_Game(save_game_name);
         } else {
             return ::Start_Scenario(scenario_name, true, CAMPAIGN_NONE);
         }
     } else {
         Init_Network();
 
-        bool result = Vinifera_SpawnerConfig->LoadSaveGame
-        ? Load_Game(Vinifera_SpawnerConfig->SaveGameName)
-        : ::Start_Scenario(scenario_name, Vinifera_SpawnerConfig->PlayMoviesInMultiplayer, CAMPAIGN_NONE);
+        /**
+         *  Preserve fresh network values from the current spawn.ini.
+         *  Load_Game will overwrite SpawnerRuntime with saved state,
+         *  but network parameters should always come from the current session.
+         */
+        const bool fresh_proto_enabled = SessionExtension->SpawnerRuntime.ProtocolZeroEnabled;
+        const unsigned char fresh_max_latency = SessionExtension->SpawnerRuntime.ProtocolZeroMaxLatencyLevel;
+        const int fresh_reconnect_timeout = SessionExtension->SpawnerRuntime.ReconnectTimeout;
+
+        Release_Config();
+
+        bool result = load_save_game
+        ? Load_Game(save_game_name)
+        : ::Start_Scenario(scenario_name, play_movies_in_multiplayer, CAMPAIGN_NONE);
 
         if (!result) {
             return false;
         }
 
+        /**
+         *  Restore fresh network values after load may have overwritten them with saved state.
+         */
+        if (load_save_game) {
+            SessionExtension->SpawnerRuntime.ProtocolZeroEnabled = fresh_proto_enabled;
+            SessionExtension->SpawnerRuntime.ProtocolZeroMaxLatencyLevel = fresh_max_latency;
+            SessionExtension->SpawnerRuntime.ReconnectTimeout = fresh_reconnect_timeout;
+            SessionExtension->Apply_Spawner_Runtime_State();
+        }
+
         Session.Type = GAME_IPX;
 
-        if (Vinifera_SpawnerConfig->LoadSaveGame && !Reconcile_Players()) {
+        if (load_save_game && !Reconcile_Players()) {
             return false;
         }
 
@@ -227,6 +259,80 @@ bool Spawner::Start_Scenario(char* scenario_name)
 
         return true;
     }
+}
+
+
+void Spawner::Freeze_Config_Into_Extensions()
+{
+    if (Vinifera_SpawnerConfig == nullptr) {
+        return;
+    }
+
+    SessionExtension->Clear_Spawner_State();
+    ScenExtension->Clear_Spawner_Overrides();
+
+    SessionExtension->IsSpawnerSession = true;
+
+    auto& runtime = SessionExtension->SpawnerRuntime;
+    runtime.MultiplayerAutoSaveInterval = Vinifera_SpawnerConfig->AutoSaveInterval;
+    runtime.QuickMatch = Vinifera_SpawnerConfig->QuickMatch;
+    runtime.WriteStatistics = Vinifera_SpawnerConfig->WriteStatistics;
+    runtime.AutoSurrender = Vinifera_SpawnerConfig->AutoSurrender;
+    runtime.AttackNeutralUnits = Vinifera_SpawnerConfig->AttackNeutralUnits;
+    runtime.CoachMode = Vinifera_SpawnerConfig->CoachMode;
+    runtime.ContinueWithoutHumans = Vinifera_SpawnerConfig->ContinueWithoutHumans;
+    runtime.ScrapMetal = Vinifera_SpawnerConfig->ScrapMetal;
+    runtime.AINamesByDifficulty = Vinifera_SpawnerConfig->AINamesByDifficulty;
+    runtime.ProtocolZeroEnabled = Vinifera_SpawnerConfig->Protocol == 0;
+    runtime.ProtocolZeroMaxLatencyLevel = static_cast<unsigned char>(std::clamp(Vinifera_SpawnerConfig->MaxLatencyLevel, LATENCY_LEVEL_1, LATENCY_LEVEL_MAX));
+    runtime.ReconnectTimeout = Vinifera_SpawnerConfig->ReconnectTimeout;
+    runtime.Tournament = Vinifera_SpawnerConfig->Tournament;
+    runtime.GameID = Vinifera_SpawnerConfig->WOLGameID;
+
+    ScenExtension->HasSpawnerScenarioOverrides = true;
+    ScenExtension->CampaignDifficultyOverride = Vinifera_SpawnerConfig->CampaignDifficulty;
+    ScenExtension->CampaignCDifficultyOverride = Vinifera_SpawnerConfig->CampaignCDifficulty;
+    ScenExtension->SkipScoreScreenOverride = Vinifera_SpawnerConfig->SkipScoreScreen;
+    std::snprintf(ScenExtension->StatsUIMapName, sizeof(ScenExtension->StatsUIMapName), "%s", Vinifera_SpawnerConfig->UIMapName.c_str());
+    std::snprintf(ScenExtension->StatsMapHash, sizeof(ScenExtension->StatsMapHash), "%s", Vinifera_SpawnerConfig->MapHash.c_str());
+
+    if (!Vinifera_SpawnerConfig->CustomLoadScreen.empty()) {
+        ScenExtension->HasCustomLoadScreen = true;
+        std::snprintf(ScenExtension->CustomLoadScreen, sizeof(ScenExtension->CustomLoadScreen), "%s", Vinifera_SpawnerConfig->CustomLoadScreen.c_str());
+    }
+
+    if (Vinifera_SpawnerConfig->CustomLoadScreenPos != Point2D(0, 0)) {
+        ScenExtension->HasCustomLoadScreenPos = true;
+        ScenExtension->CustomLoadScreenPos = Vinifera_SpawnerConfig->CustomLoadScreenPos;
+    }
+
+    const int total_slots = std::min(Vinifera_SpawnerConfig->HumanPlayers + Vinifera_SpawnerConfig->AIPlayers, MAX_PLAYERS);
+
+    for (int slot_index = 0; slot_index < total_slots; ++slot_index) {
+        const auto& player_config = Vinifera_SpawnerConfig->Players[slot_index];
+        auto& slot_info = SessionExtension->SlotInfo[slot_index];
+
+        slot_info.IsConfigured = true;
+        slot_info.IsHuman = player_config.IsHuman;
+        slot_info.Color = player_config.Color;
+        slot_info.House = player_config.House;
+        slot_info.Difficulty = player_config.Difficulty;
+        slot_info.IsObserver = player_config.IsObserver;
+        slot_info.SpawnLocation = player_config.SpawnLocation;
+
+        for (int ally_index = 0; ally_index < std::size(slot_info.Alliances); ++ally_index) {
+            slot_info.Alliances[ally_index] = player_config.Alliances[ally_index];
+        }
+    }
+
+    SessionExtension->Apply_Spawner_Runtime_State();
+}
+
+
+void Spawner::Release_Config()
+{
+    delete Vinifera_SpawnerConfig;
+    Vinifera_SpawnerConfig = nullptr;
 }
 
 
@@ -257,7 +363,7 @@ bool Spawner::Load_Game(const char* file_name)
 void Spawner::Init_Network()
 {
     const unsigned short tunnel_id = htons(Vinifera_SpawnerConfig->TunnelId);
-    const unsigned long tunnel_ip = inet_addr(Vinifera_SpawnerConfig->TunnelIp);
+    const unsigned long tunnel_ip = inet_addr(Vinifera_SpawnerConfig->TunnelIp.c_str());
     const unsigned short tunnel_port = htons(Vinifera_SpawnerConfig->TunnelPort);
 
     /**
@@ -268,34 +374,37 @@ void Spawner::Init_Network()
     const auto udp_interface = new CnCNet5UDPInterfaceClass(tunnel_id, tunnel_ip, tunnel_port, true);
     PacketTransport = udp_interface;
 
-    PlanetWestwoodPortNumber = tunnel_port ? 0 : Vinifera_SpawnerConfig->ListenPort;
+    WestwoodOnline_PortNumber = tunnel_port ? 0 : Vinifera_SpawnerConfig->ListenPort;
 
     /**
-     *  Set up the player nodes.
+     *  Set up the player nodes for remote human players.
      */
-    const char max_players = std::size(Vinifera_SpawnerConfig->Players);
-    for (char player_index = 1; player_index < max_players; player_index++) {
-        const auto player = &Vinifera_SpawnerConfig->Players[player_index];
-        if (!player->IsHuman) continue;
+    char remote_index = 1;
+    for (int slot_index = 0; slot_index < Vinifera_SpawnerConfig->HumanPlayers; ++slot_index) {
+        if (slot_index == Vinifera_SpawnerConfig->LocalPlayerIndex) continue;
+
+        const auto& player = Vinifera_SpawnerConfig->Players[slot_index];
 
         const auto nodename = new NodeNameType();
         Session.Players.Add(nodename);
 
-        std::strcpy(nodename->Name, player->Name);
-        nodename->Player.House = static_cast<HousesType>(player->House);
-        nodename->Player.Color = static_cast<PlayerColorType>(player->Color);
+        std::strcpy(nodename->Name, player.Name.c_str());
+        nodename->Player.House = player.House;
+        nodename->Player.Color = player.Color;
         nodename->Player.ProcessTime = -1;
         nodename->Game.LastTime = 1;
 
         std::memset(&nodename->Address, 0, sizeof(nodename->Address));
-        std::memcpy(&nodename->Address.NetworkNumber, &player_index, sizeof(player_index));
-        std::memcpy(&nodename->Address.NodeAddress, &player_index, sizeof(player_index));
+        std::memcpy(&nodename->Address.NetworkNumber, &remote_index, sizeof(remote_index));
+        std::memcpy(&nodename->Address.NodeAddress, &remote_index, sizeof(remote_index));
 
-        const auto ip = inet_addr(player->Ip);
-        const auto port = htons(player->Port);
-        udp_interface->AddressList[player_index - 1].IP = ip;
-        udp_interface->AddressList[player_index - 1].Port = port;
+        const auto ip = inet_addr(player.Ip.c_str());
+        const auto port = htons(player.Port);
+        udp_interface->AddressList[remote_index - 1].IP = ip;
+        udp_interface->AddressList[remote_index - 1].Port = port;
         if (port != Vinifera_SpawnerConfig->ListenPort) udp_interface->PortHack = false;
+
+        remote_index++;
     }
 
     /**
@@ -308,18 +417,16 @@ void Spawner::Init_Network()
     PacketTransport->Discard_Out_Buffers();
     Ipx.Set_Timing(60, -1, 600, true);
 
-    PlanetWestwoodStartTime = time(nullptr);
-    GameFSSKU = 0x1C00;
-    GameSKU = 0x1D00;
+    WestwoodOnline_StartTime = time(nullptr);
+    WestwoodOnline_GameSKU_FS = 0x1C00;
+    WestwoodOnline_GameSKU_TS = 0x1D00;
 
     /**
      *  Set up protocol stuff.
      */
-    ProtocolZero::Enable = (Vinifera_SpawnerConfig->Protocol == 0);
-    if (ProtocolZero::Enable) {
+    if (SessionExtension->SpawnerRuntime.ProtocolZeroEnabled) {
         Session.FrameSendRate = 2;
         Session.PrecalcMaxAhead = Vinifera_SpawnerConfig->PreCalcMaxAhead;
-        ProtocolZero::MaxLatencyLevel = std::clamp(Vinifera_SpawnerConfig->MaxLatencyLevel, static_cast<unsigned char>(LATENCY_LEVEL_1), static_cast<unsigned char>(LATENCY_LEVEL_MAX));
     } else {
         Session.FrameSendRate = Vinifera_SpawnerConfig->FrameSendRate;
     }
@@ -333,8 +440,8 @@ void Spawner::Init_Network()
     Session.CommProtocol = 2;
     Session.LatencyFudge = 0;
     Session.DesiredFrameRate = 60;
-    PlanetWestwoodTournament = static_cast<WOL::Tournament>(Vinifera_SpawnerConfig->Tournament);
-    PlanetWestwoodGameID = Vinifera_SpawnerConfig->WOLGameID;
+    WestwoodOnline_Tournament = Vinifera_SpawnerConfig->Tournament;
+    WestwoodOnline_GameID = Vinifera_SpawnerConfig->WOLGameID;
 
     struct QueueAIMPTimings {
         int MIXFILE_RESEND_DELTA;

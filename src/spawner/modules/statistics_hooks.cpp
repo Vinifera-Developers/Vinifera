@@ -39,6 +39,7 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
+#include "sessionext.h"
 #include "spawner.h"
 #include "syringe.h"
 #include "tibsun_globals.h"
@@ -46,11 +47,9 @@
 
 static bool Is_Spawner_Write_Statistics()
 {
-    if (Vinifera_SpawnerConfig != nullptr) {
-        return Vinifera_SpawnerConfig->WriteStatistics && Session.Type == GAME_IPX;
-    }
-
-    return false;
+    return SessionExtension->IsSpawnerSession
+        && SessionExtension->SpawnerRuntime.WriteStatistics
+        && Session.Type == GAME_IPX;
 }
 
 
@@ -109,9 +108,9 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
 void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
     if (Is_Spawner_Write_Statistics()) {
-        PacketClass::Add_Field(new FieldClass("SCEN", Vinifera_SpawnerConfig->UIMapName));
+        PacketClass::Add_Field(new FieldClass("SCEN", ScenExtension->StatsUIMapName));
         PacketClass::Add_Field(new FieldClass("ACCN", const_cast<char*>(PlayerPtr->IniName.c_str())));
-        PacketClass::Add_Field(new FieldClass("HASH", Vinifera_SpawnerConfig->MapHash));
+        PacketClass::Add_Field(new FieldClass("HASH", ScenExtension->StatsMapHash));
         return;
     }
 

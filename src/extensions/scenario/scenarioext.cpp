@@ -120,6 +120,13 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     IsIceDestruction(true),
     SidebarSide(SIDE_NONE),
     IsUseMPAIBaseNodes(false),
+    HasSpawnerScenarioOverrides(false),
+    CampaignDifficultyOverride(DIFF_NORMAL),
+    CampaignCDifficultyOverride(DIFF_NORMAL),
+    SkipScoreScreenOverride(false),
+    CustomLoadScreenPos(0, 0),
+    HasCustomLoadScreen(false),
+    HasCustomLoadScreenPos(false),
     LoadingScreens()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -236,6 +243,17 @@ void ScenarioClassExtension::Object_CRC(CRCEngine &crc) const
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 
     crc(IsIceDestruction);
+    crc(HasSpawnerScenarioOverrides);
+    crc(static_cast<int>(CampaignDifficultyOverride));
+    crc(static_cast<int>(CampaignCDifficultyOverride));
+    crc(SkipScoreScreenOverride);
+    crc(StatsUIMapName);
+    crc(StatsMapHash);
+    crc(CustomLoadScreen);
+    crc(CustomLoadScreenPos.X);
+    crc(CustomLoadScreenPos.Y);
+    crc(HasCustomLoadScreen);
+    crc(HasCustomLoadScreenPos);
 }
 
 
@@ -289,6 +307,22 @@ void ScenarioClassExtension::Init_Clear()
      * Erase unit all filter hotkey states as their unit objects are invalid now 
      */
     UnitFilterLastFullSelectionByClassifiers.clear();
+}
+
+
+void ScenarioClassExtension::Clear_Spawner_Overrides()
+{
+    HasSpawnerScenarioOverrides = false;
+    CampaignDifficultyOverride = DIFF_NORMAL;
+    CampaignCDifficultyOverride = DIFF_NORMAL;
+    SkipScoreScreenOverride = false;
+
+    StatsUIMapName[0] = '\0';
+    StatsMapHash[0] = '\0';
+    CustomLoadScreen[0] = '\0';
+    CustomLoadScreenPos = Point2D(0, 0);
+    HasCustomLoadScreen = false;
+    HasCustomLoadScreenPos = false;
 }
 
 
@@ -1333,9 +1367,9 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
      *  Set up difficulty and fog of war settings.
      */
     if (Session.Type == GAME_NORMAL) {
-        if (Vinifera_SpawnerConfig != nullptr) {
-            Scen->Difficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignDifficulty);
-            Scen->CDifficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignCDifficulty);
+        if (ScenExtension->HasSpawnerScenarioOverrides) {
+            Scen->Difficulty = ScenExtension->CampaignDifficultyOverride;
+            Scen->CDifficulty = ScenExtension->CampaignCDifficultyOverride;
         } else {
             Scen->Difficulty = static_cast<DiffType>(Options.Difficulty);
             Scen->CDifficulty = static_cast<DiffType>(2 - Options.Difficulty);
@@ -1880,13 +1914,15 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
      *  Schedule the next autosave.
      */
     Vinifera_NextAutoSaveFrame = Frame;
-    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && Vinifera_SpawnerConfig != nullptr ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && SessionExtension->IsSpawnerSession
+        ? SessionExtension->SpawnerRuntime.MultiplayerAutoSaveInterval
+        : OptionsExtension->AutoSaveInterval;
 
     /**
      *  Set the skip score bool.
      */
-    if (Vinifera_SpawnerConfig != nullptr) {
-        Scen->IsSkipScore = Vinifera_SpawnerConfig->SkipScoreScreen;
+    if (ScenExtension->HasSpawnerScenarioOverrides) {
+        Scen->IsSkipScore = ScenExtension->SkipScoreScreenOverride;
     }
 
     /**
@@ -1906,7 +1942,7 @@ void ScenarioClassExtension::Init_Forced_Alliances()
     /**
      *  Process the clients's forced alliances.
      */
-    if (Vinifera_SpawnerConfig != nullptr) {
+    if (SessionExtension->IsSpawnerSession) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
             HouseClass* housep = Houses[i];
 
@@ -1915,9 +1951,9 @@ void ScenarioClassExtension::Init_Forced_Alliances()
              */
             if (housep->Class->IsMultiplayPassive) continue;
 
-            const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
-            for (int j = 0; j < std::size(house_config->Alliances); j++) {
-                const int ally_index = house_config->Alliances[j];
+            const auto& slot_info = SessionExtension->SlotInfo[i];
+            for (int j = 0; j < std::size(slot_info.Alliances); j++) {
+                const int ally_index = slot_info.Alliances[j];
                 if (ally_index != -1) housep->Make_Ally(static_cast<HousesType>(ally_index));
             }
         }
@@ -1957,9 +1993,10 @@ static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
         look_for = MAX_PLAYERS;
     }
 
-    if (Vinifera_SpawnerConfig != nullptr) {
+    if (SessionExtension->IsSpawnerSession) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-            if (Vinifera_SpawnerConfig->Houses[i].IsObserver) {
+            const auto houseext = Extension::Fetch(Houses[i]);
+            if (houseext->IsObserver) {
                 look_for--;
             }
         }
@@ -2019,16 +2056,16 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
     /**
      *  If the spawner is active, assign the received starting positions to the houses.
      */
-    if (Vinifera_SpawnerConfig != nullptr) {
+    if (SessionExtension->IsSpawnerSession) {
         for (int house = 0; house < Session.Players.Count() + Session.Options.AIPlayers; house++) {
-            Extension::Fetch(Houses[house])->SpawnWaypoint = Vinifera_SpawnerConfig->Houses[house].SpawnLocation;
+            Extension::Fetch(Houses[house])->SpawnWaypoint = SessionExtension->SlotInfo[house].SpawnLocation;
         }
     }
 
     /**
      *  First pass - assign spawn waypoints given to use by the client.
      */
-    if (Vinifera_SpawnerConfig != nullptr) {
+    if (SessionExtension->IsSpawnerSession) {
         for (int house = HOUSE_FIRST; house < Houses.Count(); house++) {
 
             /**
@@ -2047,11 +2084,12 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
             /**
              *  Skip observers for now, we'll set them to observe another player later.
              */
-            if (Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+            const auto houseext = Extension::Fetch(hptr);
+            if (houseext->IsObserver) {
                 continue;
             }
 
-            const int chosen_spawn = Extension::Fetch(hptr)->SpawnWaypoint;
+            const int chosen_spawn = houseext->SpawnWaypoint;
             if (chosen_spawn >= 0 && chosen_spawn < MAX_PLAYERS && !taken[chosen_spawn]) {
                 taken[chosen_spawn] = true;
                 numtaken++;
@@ -2069,6 +2107,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
          */
         HouseClass* hptr = Houses[house];
         ASSERT(hptr != nullptr);
+        auto houseext = Extension::Fetch(hptr);
 
         /**
          *  Skip passive houses.
@@ -2080,14 +2119,13 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
         /**
          *  Skip observers for now, we'll set them to observe another player later.
          */
-        if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+        if (houseext->IsObserver) {
             continue;
         }
 
         /**
          *  Skip houses that already have a waypoint.
          */
-        auto houseext = Extension::Fetch(hptr);
         if (houseext->SpawnWaypoint != WAYPOINT_NONE) {
             continue;
         }
@@ -2182,7 +2220,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
         /**
          *  Observers now pick a random house to observe.
          */
-        if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+        if (houseext->IsObserver) {
 
             /**
              *  No players - just plop the spectator in the map center.
@@ -2312,14 +2350,14 @@ void ScenarioClassExtension::Assign_Houses()
         /**
          *  Process spawner overrides.
          */
-        if (Vinifera_SpawnerConfig != nullptr) {
+        if (SessionExtension->IsSpawnerSession) {
             int house_index = Houses.Count() - 1;
-            const auto& houseconfig = Vinifera_SpawnerConfig->Houses[house_index];
+            const auto& slot_info = SessionExtension->SlotInfo[house_index];
 
             /**
              *  Mark an observer accordingly.
              */
-            if (houseconfig.IsObserver) {
+            if (slot_info.IsObserver) {
                 houseext->IsObserver = true;
 
                 /**
@@ -2351,7 +2389,7 @@ void ScenarioClassExtension::Assign_Houses()
         HousesType pref_house;
         int color;
 
-        if (Vinifera_SpawnerConfig == nullptr) {
+        if (!SessionExtension->IsSpawnerSession || !SessionExtension->SlotInfo[i].IsConfigured) {
 
             /**
              *  #issue-7
@@ -2378,8 +2416,9 @@ void ScenarioClassExtension::Assign_Houses()
             }
             color_used[color] = true;
         } else {
-            color = Vinifera_SpawnerConfig->Players[i].Color;
-            pref_house = static_cast<HousesType>(Vinifera_SpawnerConfig->Players[i].House);
+            const auto& slot_info = SessionExtension->SlotInfo[i];
+            color = slot_info.Color;
+            pref_house = static_cast<HousesType>(slot_info.House);
         }
 
         HouseClass* housep = new HouseClass(HouseTypes[pref_house]);
@@ -2411,23 +2450,27 @@ void ScenarioClassExtension::Assign_Houses()
         /**
          *  Process spawner overrides.
          */
-        if (Vinifera_SpawnerConfig != nullptr) {
+        if (SessionExtension->IsSpawnerSession) {
             static char const* AINamesByDifficultyArray[] = {
                 "Hard AI",
                 "Medium AI",
                 "Easy AI"
             };
 
-            const auto player_config = &Vinifera_SpawnerConfig->Players[i];
+            const auto& slot_info = SessionExtension->SlotInfo[i];
 
             /**
              *  Set the difficulty and name for the AI (for AIs, player index == house index)
              */
-            if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray)) {
-                housep->Assign_Handicap(static_cast<DiffType>(player_config->Difficulty));
-                if (Vinifera_SpawnerConfig->AINamesByDifficulty && !housep->IsHuman) {
-                    housep->IniName = AINamesByDifficultyArray[player_config->Difficulty];
+            if (slot_info.Difficulty >= 0 && slot_info.Difficulty < std::size(AINamesByDifficultyArray)) {
+                housep->Assign_Handicap(static_cast<DiffType>(slot_info.Difficulty));
+                if (SessionExtension->SpawnerRuntime.AINamesByDifficulty && !housep->IsHuman) {
+                    housep->IniName = AINamesByDifficultyArray[slot_info.Difficulty];
                 }
+            }
+
+            if (slot_info.IsObserver) {
+                Extension::Fetch(housep)->IsObserver = true;
             }
         }
 
@@ -2499,7 +2542,7 @@ void ScenarioClassExtension::Assign_Houses()
     /**
      *  Process the spawner's forced alliances.
      */
-    if (Vinifera_SpawnerConfig != nullptr) {
+    if (SessionExtension->IsSpawnerSession) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
             HouseClass* housep = Houses[i];
 
@@ -2508,9 +2551,9 @@ void ScenarioClassExtension::Assign_Houses()
              */
             if (housep->Class->IsMultiplayPassive) continue;
 
-            const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
-            for (int j = 0; j < std::size(house_config->Alliances); ++j) {
-                const int ally_index = house_config->Alliances[j];
+            const auto& slot_info = SessionExtension->SlotInfo[i];
+            for (int j = 0; j < std::size(slot_info.Alliances); ++j) {
+                const int ally_index = slot_info.Alliances[j];
                 if (ally_index != -1) {
                     housep->Allies &= 1 << ally_index;
                 }

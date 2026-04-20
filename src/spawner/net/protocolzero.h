@@ -41,9 +41,7 @@ private:
     static constexpr int SendResponseTimeInterval = 30;
 
 public:
-    static bool Enable;
     static bool GetRealMaxAhead;
-    static unsigned char MaxLatencyLevel;
     static unsigned int WorstMaxAhead;
 
     static void Send_Response_Time();
