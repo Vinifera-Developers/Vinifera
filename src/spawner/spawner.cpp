@@ -27,15 +27,6 @@
  ******************************************************************************/
 
 #include "spawner.h"
-#include "latencylevel.h"
-#include "protocolzero.h"
-
-#include "house.h"
-#include "ipxmgr.h"
-#include "loadoptions.h"
-#include "options.h"
-#include "scenario.h"
-#include <ctime>
 
 #include "WinUser.h"
 #include "addon.h"
@@ -44,19 +35,29 @@
 #include "debughandler.h"
 #include "extension_globals.h"
 #include "gscreen.h"
+#include "house.h"
 #include "housetype.h"
 #include "housetypeext.h"
+#include "ipxmgr.h"
 #include "language.h"
+#include "latencylevel.h"
+#include "loadoptions.h"
 #include "mouse.h"
+#include "netdlg.h"
+#include "options.h"
 #include "ownrdraw.h"
+#include "protocolzero.h"
 #include "rules.h"
 #include "saveload.h"
+#include "scenario.h"
 #include "sessionext.h"
 #include "tab.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
 #include "wspudp.h"
 #include "wwmouse.h"
+
+#include <ctime>
 
 
 /**
@@ -334,7 +335,16 @@ void Spawner::Init_Network()
     Session.DesiredFrameRate = 60;
     PlanetWestwoodTournament = static_cast<WOL::Tournament>(Vinifera_SpawnerConfig->Tournament);
     PlanetWestwoodGameID = Vinifera_SpawnerConfig->WOLGameID;
-    FrameSyncSettings[GAME_IPX].Timeout = Vinifera_SpawnerConfig->ReconnectTimeout;
+
+    struct QueueAIMPTimings {
+        int MIXFILE_RESEND_DELTA;
+        int FRAMESYNC_DLG_TIME;
+        int FRAMESYNC_TIMEOUT;
+        int MIXFILE_TIMEOUT;
+    };
+    static QueueAIMPTimings(&Queue_AI_Multiplayer_Timings)[8] = *reinterpret_cast<QueueAIMPTimings(*)[8]>(0x00707F88);
+
+    Queue_AI_Multiplayer_Timings[GAME_IPX].MIXFILE_TIMEOUT = Vinifera_SpawnerConfig->ReconnectTimeout;
 
     /**
      *  For Quick Match, make sure MPDebug is off so that players can't cheat with it.
@@ -379,7 +389,7 @@ bool Spawner::Reconcile_Players()
                 continue;
             }
 
-            if (!stricmp(Session.Players[i]->Name, housep->IniName)) {
+            if (!stricmp(Session.Players[i]->Name, housep->IniName.c_str())) {
                 found = true;
                 break;
             }
@@ -410,7 +420,7 @@ bool Spawner::Reconcile_Players()
          */
         found = false;
         for (i = 0; i < Session.Players.Count(); i++) {
-            if (!stricmp(Session.Players[i]->Name, housep->IniName)) {
+            if (!stricmp(Session.Players[i]->Name, housep->IniName.c_str())) {
                 found = true;
                 Session.Players[i]->Player.ID = static_cast<HousesType>(house);
                 break;
@@ -428,11 +438,7 @@ bool Spawner::Reconcile_Players()
             housep->IsHuman = false;
             housep->IsStarted = true;
             housep->IQ = Rule->MaxIQ;
-
-            static char buffer[HOUSE_NAME_MAX + 1];
-            std::snprintf(buffer, sizeof(buffer), "%s (AI)", housep->IniName);
-            std::strncpy(housep->IniName, buffer, sizeof(housep->IniName));
-            // strcpy(housep->IniName, Fetch_String(TXT_COMPUTER));
+            housep->IniName = std::string(housep->IniName) + " (AI)";
 
             Session.NumPlayers--;
         }
@@ -470,13 +476,13 @@ void Spawner::Init_UI()
  */
 void Spawner::Prepare_Screen()
 {
-    WWMouse->Hide_Mouse();
+    MouseCursor->Hide_Mouse();
 
     HiddenSurface->Fill(TBLACK);
-    GScreenClass::Blit(true, HiddenSurface);
-    LogicSurface = HiddenSurface;
+    Update_Visible_Surface();
+    LogicalSurface = HiddenSurface;
 
-    WWMouse->Show_Mouse();
+    MouseCursor->Show_Mouse();
 
     Map.MouseClass::Set_Default_Mouse(MOUSE_NO_MOVE, false);
     Map.MouseClass::Revert_Mouse_Shape();

@@ -28,14 +28,21 @@
 
 #include "always.h"
 
+#include "commandext_hooks.h"
+
 #include "asserthandler.h"
+#include "building.h"
 #include "ccini.h"
 #include "commandext.h"
 #include "debughandler.h"
 #include "hooker.h"
+#include "house.h"
+#include "mouse.h"
 #include "object.h"
+#include "rulesext.h"
 #include "session.h"
 #include "syringe.h"
+#include "tactical.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "unit.h"

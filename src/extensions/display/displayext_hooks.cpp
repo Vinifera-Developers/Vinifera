@@ -43,6 +43,7 @@
 #include "session.h"
 #include "sessionext.h"
 #include "syringe.h"
+#include "tactical.h"
 #include "techno.h"
 #include "technotype.h"
 #include "tibsun_globals.h"

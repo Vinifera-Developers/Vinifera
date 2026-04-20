@@ -333,7 +333,8 @@ bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
     static const char * const BASIC = "Basic";
 
     CCFileClass file(filename);
-    CCINIClass ini(file);
+    CCINIClass ini;
+    ini.Load(file, false);
 
     if (!ini.Is_Loaded()) {
         return false;
@@ -1107,8 +1108,8 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         /**
          *  Check if the current campaign is an original GDI or NOD campaign.
          */
-        bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
-        bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
+        bool is_original_gdi = (cd_num == DISK_GDI && (campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && campaign->Scenario == "GDI1A.MAP");
+        bool is_original_nod = (cd_num == DISK_NOD && (campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && campaign->Scenario == "NOD1A.MAP");
 
         /**
          *  #issue-762
@@ -1152,8 +1153,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
                 Play_Movie("INTRO.VQA");
 
             } else {
-                DEBUG_WARNING("Failed to find Intro movie!\n");
-                return false;
+                DEBUG_WARNING("Failed to find Intro movie, continuing without it.\n");
             }
 
         } else {
@@ -1187,13 +1187,13 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         /**
          *  Make sure the mouse is visible before showing the restatement.
          */
-        WWMouse->Release_Mouse();
-        WWMouse->Show_Mouse();
+        MouseCursor->Release_Mouse();
+        MouseCursor->Show_Mouse();
 
         Restate_Mission(Scen);
 
-        WWMouse->Hide_Mouse();
-        WWMouse->Capture_Mouse();
+        MouseCursor->Hide_Mouse();
+        MouseCursor->Capture_Mouse();
     }
 
     /**
@@ -1222,13 +1222,13 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
             Theme.Play_Song(theme);
         }
 
-        WWMouse->Release_Mouse();
-        WWMouse->Show_Mouse();
+        MouseCursor->Release_Mouse();
+        MouseCursor->Show_Mouse();
 
         Dropship_Loadout();
 
-        WWMouse->Hide_Mouse();
-        WWMouse->Capture_Mouse();
+        MouseCursor->Hide_Mouse();
+        MouseCursor->Capture_Mouse();
 
         if (Theme.Still_Playing()) {
             Theme.Stop(true); // Smoothly fade out the track.
@@ -1254,7 +1254,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
      *  Black out the screen.
      */
     HiddenSurface->Fill(0);
-    GScreenClass::Blit(true, HiddenSurface, 0);
+    Update_Visible_Surface();
 
     /**
      *  Toggle the display mode if mode toggling is allowed.
@@ -1279,8 +1279,9 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
      *  Mark the game as having started.
      */
     Scen->ElapsedTimer.Start();
-    TacticalViewActive = true;
-    ScenarioStarted = true;
+
+    ScenarioActive = true;
+    TacticalActive = true;
 
     return true;
 }
@@ -1517,7 +1518,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
     for (int index = 0; index < TechnoTypes.Count(); ++index) {
 
         TechnoTypeClass* ttype = TechnoTypes[index];
-        std::snprintf(buffer, sizeof(buffer), "%s.SHP", ttype->CameoFilename);
+        std::snprintf(buffer, sizeof(buffer), "%s.SHP", ttype->CameoFilename.c_str());
 
         const ShapeSet* cameodata = MFCD::RetrieveT<const ShapeSet>(buffer);
 
@@ -2391,7 +2392,7 @@ void ScenarioClassExtension::Assign_Houses()
 
         housep->Init_Data(static_cast<PlayerColorType>(color), pref_house, Session.Options.Credits);
 
-        housep->Scheme = Session.Player_Color_To_Scheme_Color(static_cast<PlayerColorType>(color));
+        housep->Scheme = Session.Scheme_From_Color_ID(static_cast<PlayerColorType>(color));
         housep->Initialize_Radar_Color();
 
         housep->IniName = Text_String(TXT_COMPUTER);
@@ -2425,7 +2426,7 @@ void ScenarioClassExtension::Assign_Houses()
             if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray)) {
                 housep->Assign_Handicap(static_cast<DiffType>(player_config->Difficulty));
                 if (Vinifera_SpawnerConfig->AINamesByDifficulty && !housep->IsHuman) {
-                    std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
+                    housep->IniName = AINamesByDifficultyArray[player_config->Difficulty];
                 }
             }
         }

@@ -30,8 +30,13 @@
 
 #include "multiscoreext_hooks.h"
 
+#include "debughandler.h"
+#include "extension.h"
 #include "hooker.h"
 #include "house.h"
+#include "houseext.h"
+#include "housetype.h"
+#include "multiscore.h"
 #include "scenario.h"
 #include "syringe.h"
 #include "tibsun_globals.h"
@@ -78,9 +83,7 @@ void MultiScoreExt::_Tally_Score()
             continue;
         }
 
-        if (Houses[house]->CreditsSpent > most_credits_spent) {
-            most_credits_spent = Houses[house]->CreditsSpent;
-        }
+        most_credits_spent = std::max<unsigned int>(Houses[house]->CreditsSpent, most_credits_spent);
     }
 
     /**
@@ -106,7 +109,7 @@ void MultiScoreExt::_Tally_Score()
          *  Initialize this score entry.
          */
         Session.Score[score_index].Wins = 0;
-        std::strncpy(Session.Score[score_index].Name, hptr->IniName, std::size(Session.Score[score_index].Name) - 1);
+        std::strncpy(Session.Score[score_index].Name, hptr->IniName.c_str(), std::size(Session.Score[score_index].Name) - 1);
 
         /**
          *  Init this player's statistics to 0 (-1 means he didn't play this round;
@@ -190,26 +193,6 @@ void MultiScoreExt::_Tally_Score()
             kill_ratio = static_cast<double>(total_kills) / total_losses;
         }
 
-        /**
-         *  Original economy score calculation. Ratio of currently owned objects to total built objects.
-         */
-#if 0
-        int total_owned = hptr->ActiveBQuantity.Total();
-        total_owned += hptr->ActiveUQuantity.Total();
-        total_owned += hptr->ActiveIQuantity.Total();
-        total_owned += hptr->ActiveAQuantity.Total();
-
-        double build_economy;
-        int total_built = total_owned + hptr->BuildingsLost + hptr->UnitsLost;
-        if (total_built <= 0) {
-            build_economy = 0.0;
-        }
-        else {
-            build_economy = total_owned / total_built;
-        }
-        build_economy = std::max(0.0, build_economy);
-        Session.Score[score_index].Economy[0] = (build_economy * 100.0);
-#endif
         /*
          *  Calculate a percentage of how many credits this house has
          *  spent compared to the house that spent the highest

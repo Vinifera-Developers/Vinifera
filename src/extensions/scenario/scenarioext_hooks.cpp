@@ -33,24 +33,32 @@
 #include "addon.h"
 #include "aircrafttracker.h"
 #include "asserthandler.h"
+#include "campaignext.h"
 #include "ccfile.h"
 #include "ccini.h"
 #include "debughandler.h"
 #include "fatal.h"
 #include "hooker.h"
 #include "houseext.h"
+#include "housetypeext.h"
 #include "kamikazetracker.h"
 #include "language.h"
 #include "mouse.h"
 #include "multiscore.h"
+#include "progressscreen.h"
+#include "reinf.h"
 #include "rules.h"
 #include "scenario.h"
 #include "scenarioext.h"
 #include "scenarioext_init.h"
 #include "session.h"
+#include "sessionext.h"
+#include "spawnerconfig.h"
 #include "syringe.h"
+#include "teamtype.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "unit.h"
 #include "vinifera_globals.h"
 #include "wsproto.h"
 
@@ -364,9 +372,9 @@ static void Init_Loading_Screen(const char* filename)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Read_Scenario_Loading_Screen_Patch)
+DEFINE_HOOK(0x005DBA8B, _Read_Scenario_Loading_Screen_Patch, 0)
 {
-    LEA_STACK_STATIC(const char *, filename, esp, 0x50);
+    LEA_STACK(const char *, filename, 0x50);
 
     ScenExtension->Read_Loading_Screen_INI(filename);
 
@@ -375,7 +383,7 @@ DECLARE_PATCH(_Read_Scenario_Loading_Screen_Patch)
     /**
      *  Jump to setting broadcast addresses.
      */
-    JMP(0x005DBD4A);
+    return 0x005DBD4A;
 }
 
 
@@ -481,9 +489,9 @@ HousesType House_From_Name_Unit(const char* name)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_InfantryClass_Read_INI_SpawnHouses_Patch)
+DEFINE_HOOK(0x004D7B98, _InfantryClass_Read_INI_SpawnHouses_Patch, 0)
 {
-    GET_REGISTER_STATIC(char*, house_name, eax);
+    GET(char*, house_name, EAX);
 
     static HousesType house;
     static HouseClass* hptr;
@@ -494,12 +502,12 @@ DECLARE_PATCH(_InfantryClass_Read_INI_SpawnHouses_Patch)
         hptr = House_From_HousesType(house);
 
         if (hptr) {
-            _asm mov edi, hptr
-            JMP(0x004D7BD5);
+            R->EDI(hptr);
+            return 0x004D7BD5;
         }
     }
 
-    JMP(0x004D7F30);
+    return 0x004D7F30;
 }
 
 
@@ -545,13 +553,13 @@ static void Link_Units(DynamicVectorClass<int>& link_vector)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_UnitClass_Read_INI_Link_Units)
+DEFINE_HOOK(0x006589C8, _UnitClass_Read_INI_Link_Units, 0)
 {
-    LEA_STACK_STATIC(DynamicVectorClass<int>*, link_vector, esp, 0xC);
+    LEA_STACK(DynamicVectorClass<int>*, link_vector, 0xC);
 
     Link_Units(*link_vector);
 
-    JMP(0x00658A10);
+    return 0x00658A10;
 }
 
 
@@ -684,7 +692,6 @@ void ScenarioClassExtension_Hooks()
      */
     Patch_Byte(0x005DAFD0+6, 0x00); // +6 skips the opcode.
 
-    Patch_Jump(0x005DBA8B, &_Read_Scenario_Loading_Screen_Patch);
 
     /**
      *  Patch Unit, Building, Aircraft, Infatry and Team creation from the map to
@@ -693,14 +700,13 @@ void ScenarioClassExtension_Hooks()
     Patch_Call(0x00658658, &House_From_Name_Unit);       // UnitClass
     Patch_Call(0x00434843, &HouseTypeClassExtension::House_From_Name);            // BuildingClass
     Patch_Call(0x0040E806, &HouseTypeClassExtension::House_From_Name);  // AircraftClass
-    Patch_Jump(0x004D7B98, &_InfantryClass_Read_INI_SpawnHouses_Patch); // InfantryClass doesn't use House_From_HousesType
+    // InfantryClass doesn't use House_From_HousesType
     Patch_Call(0x00628600, &CCINIClassExt::_Get_HousesType);            // TeamTypeClass
 
 
     /**
      *  Units have the follower mechanic, so we need to fix that up to account for potentially missing units.
      */
-    Patch_Jump(0x006589C8, &_UnitClass_Read_INI_Link_Units);
 
     /**
      *  Jump past check in BuildingClass::Read_INI() preventing multiplayer building spawning for players.

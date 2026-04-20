@@ -122,6 +122,11 @@ public:
     RendererDriverType RendererDriver;
 
     /**
+     *  Number of autosaves to make in skirmish.
+     */
+    int AutoSaveCount;
+
+    /**
      *  The delay between autosaves in skirmish in frames.
      */
     int AutoSaveInterval;

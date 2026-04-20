@@ -25,20 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "aitriggertypeext_hooks.h"
 
 #include "aitrigtype.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "tibsun_globals.h"
-#include "house.h"
-#include "vector.h";
-
 #include "hooker.h"
-#include "hooker_macros.h"
-#include "scenario.h"
-#include "vinifera_globals.h"
+#include "house.h"
+#include "syringe.h"
 
 
 /**
@@ -46,22 +41,17 @@
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_AITriggerTypeClass_Process_MultiSide_Patch)
+DEFINE_HOOK(0x004109EF, _AITriggerTypeClass_Process_MultiSide_Patch, 0)
 {
-    GET_REGISTER_STATIC(AITriggerTypeClass*, trigtype, esi);
-    GET_REGISTER_STATIC(HouseClass*, house, ebp);
-
-    _asm push ecx
+    GET(AITriggerTypeClass*, trigtype, ESI);
+    GET(HouseClass*, house, EBP);
 
     if (trigtype->MultiSide != 0 && trigtype->MultiSide != house->ActLike + 1)
     {
-        // return 0;
-        _asm pop ecx
-        JMP(0x00410A00);
+        return 0x00410A00;
     }
 
-    _asm pop ecx
-    JMP(0x00410A1F);
+    return 0x00410A1F;
 }
 
 
@@ -70,5 +60,4 @@ DECLARE_PATCH(_AITriggerTypeClass_Process_MultiSide_Patch)
  */
 void AITriggerTypeClassExtension_Hooks()
 {
-    Patch_Jump(0x004109EF, &_AITriggerTypeClass_Process_MultiSide_Patch);
 }

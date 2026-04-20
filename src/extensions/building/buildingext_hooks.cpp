@@ -1014,7 +1014,7 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
                 int delay = Options.Normalize_Delay(14) / 4;
                 delay = std::max(delay, 2);
 
-                Draw_Shape(*LogicSurface, *MouseDrawer, WrenchShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+                Draw_Shape(*LogicalSurface, *MouseDrawer, WrenchShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
             }
         }
 
@@ -1029,7 +1029,7 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
                 int delay = Options.Normalize_Delay(14) / 4;
                 delay = std::max(delay, 2);
 
-                Draw_Shape(*LogicSurface, *MouseDrawer, PowerOffShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+                Draw_Shape(*LogicalSurface, *MouseDrawer, PowerOffShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
             }
         }
 
@@ -1071,7 +1071,7 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
                             pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
                             pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
 
-                            SpriteCollection.Draw(pcxrect, *LogicSurface, *technotypeext->CameoImageSurface);
+                            SpriteCollection.Draw(pcxrect, *LogicalSurface, *technotypeext->CameoImageSurface);
                         } else {
                             const ShapeSet* shape = obj->TClass->Get_Cameo_Data();
 
@@ -1081,7 +1081,7 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
                              *  Original code used NormalDrawer, which is the old Red Alert shape
                              *  drawer, so we need to use CameoDrawer here for the correct palette.
                              */
-                            Draw_Shape(*LogicSurface, *CameoDrawer, shape, 0, coord, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+                            Draw_Shape(*LogicalSurface, *CameoDrawer, shape, 0, coord, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
                         }
                     }
                 }
@@ -2501,15 +2501,15 @@ DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
+DEFINE_HOOK(0x0042AA76, _BuildingClass_Unlimbo_BuildConst_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
     if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
-        JMP(0x0042AA8B);
+        return 0x0042AA8B;
     }
 
-    JMP(0x0042AACF);
+    return 0x0042AACF;
 }
 
 
@@ -2520,15 +2520,15 @@ DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch1)
+DEFINE_HOOK(0x0042F958, _BuildingClass_Captured_BuildConst_Patch1, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
+    GET(BuildingTypeClass*, buildingtype, ECX);
 
     if (Rule->BuildConst.Is_Present(buildingtype)) {
-        JMP(0x0042F968);
+        return 0x0042F968;
     }
 
-    JMP(0x0042F9A2);
+    return 0x0042F9A2;
 }
 
 
@@ -2539,15 +2539,15 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch1)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
+DEFINE_HOOK(0x0042FACC, _BuildingClass_Captured_BuildConst_Patch2, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, house, ebx);
+    GET(HouseClass*, house, EBX);
 
     if (house->Count_Owned(Rule->BuildConst)) {
-        JMP(0x0042FAEF);
+        return 0x0042FAEF;
     }
 
-    JMP(0x0042FB10);
+    return 0x0042FB10;
 }
 
 
@@ -2558,15 +2558,15 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch3)
+DEFINE_HOOK(0x0042FCA1, _BuildingClass_Captured_BuildConst_Patch3, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
     if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
-        JMP(0x0042FCB6);
+        return 0x0042FCB6;
     }
 
-    JMP(0x0042FCF8);
+    return 0x0042FCF8;
 }
 
 
@@ -2600,8 +2600,4 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
     Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
     Patch_Jump(0x00428810, &BuildingClassExt::_Draw_Overlays);
-    Patch_Jump(0x0042AA76, &_BuildingClass_Unlimbo_BuildConst_Patch);
-    Patch_Jump(0x0042F958, &_BuildingClass_Captured_BuildConst_Patch1);
-    Patch_Jump(0x0042FACC, &_BuildingClass_Captured_BuildConst_Patch2);
-    Patch_Jump(0x0042FCA1, &_BuildingClass_Captured_BuildConst_Patch3);
 }

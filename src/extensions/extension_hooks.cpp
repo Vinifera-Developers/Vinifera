@@ -34,6 +34,7 @@
 #include "aircraftext_hooks.h"
 #include "aircrafttracker_hooks.h"
 #include "aircrafttypeext_hooks.h"
+#include "aitriggertypeext_hooks.h"
 #include "animext_hooks.h"
 #include "animtypeext_hooks.h"
 #include "astarext_hooks.h"

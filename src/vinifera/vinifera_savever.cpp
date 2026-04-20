@@ -57,7 +57,6 @@ ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     ViniferaVersion(0),
     PlaythroughID(0),
     ViniferaCommitHash {""},
-    SessionID(0),
     Difficulty(DIFF_NORMAL),
     TotalPlayTime(0)
 {

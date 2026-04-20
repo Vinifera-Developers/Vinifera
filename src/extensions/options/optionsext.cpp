@@ -249,8 +249,8 @@ void OptionsClassExtension::Load_Settings()
 
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
-    AutoSaveCount = sun_ini.Get_Int("Options", "AutoSaveCount", AutoSaveCount);
-    AutoSaveInterval = sun_ini.Get_Int("Options", "AutoSaveInterval", AutoSaveInterval);
+    AutoSaveCount = ConfigINI.Get_Int("Options", "AutoSaveCount", AutoSaveCount);
+    AutoSaveInterval = ConfigINI.Get_Int("Options", "AutoSaveInterval", AutoSaveInterval);
     
     /**
      *  Read keys from Keyboard.ini.

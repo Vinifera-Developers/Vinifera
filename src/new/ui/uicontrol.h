@@ -45,190 +45,222 @@ class NoInitClass;
 
 class UIControlsClass
 {
-public:
-    UIControlsClass();
-    UIControlsClass(const NoInitClass& noinit);
-    ~UIControlsClass();
+    public:
+        UIControlsClass();
+        UIControlsClass(const NoInitClass& noinit);
+        ~UIControlsClass();
 
-    bool Read_INI(CCINIClass& ini);
+        bool Read_INI(CCINIClass& ini);
 
-    struct LoadingScreenSize {
-        Point2D Size;
-        Point2D SPPosition;
-        Point2D MPPosition;
-    };
+        struct LoadingScreenSize {
+            Point2D Size;
+            Point2D SPPosition;
+            Point2D MPPosition;
+        };
 
-    struct LoadingScreen {
-        LoadingScreen() = default;
-        LoadingScreen(char const* entry);
-        LoadingScreen(HousesType house, std::string const& filename, LoadingScreenSize const& size) : IsValid(true), House(house), Filename(filename), Size(size) {};
+        struct LoadingScreen {
+            LoadingScreen() = default;
+            LoadingScreen(char const* entry);
+            LoadingScreen(HousesType house, std::string const& filename, LoadingScreenSize const& size) : IsValid(true), House(house), Filename(filename), Size(size) {};
 
-        bool IsValid;
-        HousesType House;
-        std::string Filename;
-        LoadingScreenSize Size;
-    };
+            bool IsValid;
+            HousesType House;
+            std::string Filename;
+            LoadingScreenSize Size;
+        };
 
-private:
+    private:
+        static const LoadingScreenSize DefaultLoadingScreenSizes[];
+        static LoadingScreenSize const& Pick_Default_Loading_Screen_Size();
 
-    static const LoadingScreenSize DefaultLoadingScreenSizes[];
-    static LoadingScreenSize const& Pick_Default_Loading_Screen_Size();
+    public:
+        TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const;
+        TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const;
+        TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const;
 
-public:
+        LoadingScreen Pick_Loading_Screen(HousesType house) const;
 
-    /**
-     *  Helper to get the group number drawing offset based on the object type.
-     */
-    TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const;
+    public:
+        /**
+         *  Health bar draw positions.
+         */
+        TPoint2D<int> UnitHealthBarDrawPos;
+        TPoint2D<int> InfantryHealthBarDrawPos;
 
-    /**
-     *  Helper to get the veterancy pip drawing offset based on the object type.
-     */
-    TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const;
+        /**
+         *  Should the text label be drawn with an outline?
+         */
+        bool IsTextLabelOutline;
 
-    /**
-     *  Helper to get the special pip drawing offset based on the object type.
-     */
-    TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const;
+        /**
+         *  Transparency of the text background.
+         */
+        unsigned TextLabelBackgroundTransparency;
 
-    LoadingScreen Pick_Loading_Screen(HousesType house) const;
+        /**
+         *  Customizable offsets for drawing different pips.
+         */
+        TPoint2D<int> UnitGroupNumberOffset;
+        TPoint2D<int> InfantryGroupNumberOffset;
+        TPoint2D<int> BuildingGroupNumberOffset;
+        TPoint2D<int> AircraftGroupNumberOffset;
+        TPoint2D<int> UnitWithPipGroupNumberOffset;
+        TPoint2D<int> InfantryWithPipGroupNumberOffset;
+        TPoint2D<int> BuildingWithPipGroupNumberOffset;
+        TPoint2D<int> AircraftWithPipGroupNumberOffset;
+        TPoint2D<int> UnitVeterancyPipOffset;
+        TPoint2D<int> InfantryVeterancyPipOffset;
+        TPoint2D<int> BuildingVeterancyPipOffset;
+        TPoint2D<int> AircraftVeterancyPipOffset;
+        TPoint2D<int> UnitSpecialPipOffset;
+        TPoint2D<int> InfantrySpecialPipOffset;
+        TPoint2D<int> BuildingSpecialPipOffset;
+        TPoint2D<int> AircraftSpecialPipOffset;
 
-public:
-    /**
-     *  Health bar draw positions.
-     */
-    TPoint2D<int> UnitHealthBarDrawPos;
-    TPoint2D<int> InfantryHealthBarDrawPos;
+        /**
+         *  Should the tactical rubber band box be drawn with a drop shadow?
+         */
+        bool IsBandBoxDropShadow;
 
-    /**
-     *  Should the text label be drawn with an outline?
-     */
-    bool IsTextLabelOutline;
+        /**
+         *  Should the tactical rubber band box be drawn with a thick border?
+         */
+        bool IsBandBoxThick;
 
-    /**
-     *  Transparency of the text background.
-     */
-    unsigned TextLabelBackgroundTransparency;
+        /**
+         *  Color to draw the tactical rubber band box with.
+         */
+        RGBStruct BandBoxColor;
+
+        /**
+         *  Color to draw the tactical rubber band box's shadow with.
+         */
+        RGBStruct BandBoxDropShadowColor;
+
+        /**
+         *  Transparency of the tactical rubber band.
+         */
+        unsigned BandBoxTintTransparency;
 
         /**
          *  Two tint colors, interpolated between based on the current ambient light level.
          */
         TypeList<RGBClass> BandBoxTintColors;
 
-    /**
-     *  Should the tactical rubber band box be drawn with a drop shadow?
-     */
-    bool IsBandBoxDropShadow;
+        /**
+         *  Should action lines remain visible continuously, instead of disappearing after some time?
+         */
+        bool IsAlwaysShowActionLines;
 
-    /**
-     *  Should the tactical rubber band box be drawn with a thick border?
-     */
-    bool IsBandBoxThick;
+        /**
+         *  Should movement lines be drawn with dashes?
+         */
+        bool IsMovementLineDashed;
 
-    /**
-     *  Color to draw the tactical rubber band box with.
-     */
-    RGBStruct BandBoxColor;
+        /**
+         *  Should movement lines be drawn with a drop shadow?
+         */
+        bool IsMovementLineDropShadow;
 
-    /**
-     *  Color to draw the tactical rubber band box's shadow with.
-     */
-    RGBStruct BandBoxDropShadowColor;
+        /**
+         *  Should movement lines be drawn with a thick line?
+         */
+        bool IsMovementLineThick;
 
-    /**
-     *  Transparency of the tactical rubber band.
-     */
-    unsigned BandBoxTintTransparency;
+        /**
+         *  Color to draw movement lines with.
+         */
+        RGBStruct MovementLineColor;
 
-    /**
-     *  Two tint colors, interpolated between based on the current ambient light level.
-     */
-    TypeList<RGBStruct> BandBoxTintColors;
+        /**
+         *  Color to draw movement lines' drop shadow with.
+         */
+        RGBStruct MovementLineDropShadowColor;
 
-    /**
-     *  Should action lines remain visible continuously, instead of disappearing after some time?
-     */
-    bool IsAlwaysShowActionLines;
+        /**
+         *  Should target lines be drawn with dashes?
+         */
+        bool IsTargetLineDashed;
 
-    /**
-     *  Should movement lines be drawn with dashes?
-     */
-    bool IsMovementLineDashed;
+        /**
+         *  Should target lines be drawn with a drop shadow?
+         */
+        bool IsTargetLineDropShadow;
 
-    /**
-     *  Should movement lines be drawn with a drop shadow?
-     */
-    bool IsMovementLineDropShadow;
+        /**
+         *  Should target lines be drawn with a thick line?
+         */
+        bool IsTargetLineThick;
 
-    /**
-     *  Should movement lines be drawn with a thick line?
-     */
-    bool IsMovementLineThick;
+        /**
+         *  Color to target movement lines with.
+         */
+        RGBStruct TargetLineColor;
 
-    /**
-     *  Color to draw movement lines with.
-     */
-    RGBStruct MovementLineColor;
+        /**
+         *  Color to draw target lines' drop shadow with.
+         */
+        RGBStruct TargetLineDropShadowColor;
 
-    /**
-     *  Color to draw movement lines' drop shadow with.
-     */
-    RGBStruct MovementLineDropShadowColor;
+        /**
+         *  Should target laser be drawn with dashes?
+         */
+        bool IsTargetLaserDashed;
 
-    /**
-     *  Should target lines be drawn with dashes?
-     */
-    bool IsTargetLineDashed;
+        /**
+         *  Should target laser be drawn with a drop shadow?
+         */
+        bool IsTargetLaserDropShadow;
 
-    /**
-     *  Should target lines be drawn with a drop shadow?
-     */
-    bool IsTargetLineDropShadow;
+        /**
+         *  Should target laser be drawn with a thick line?
+         */
+        bool IsTargetLaserThick;
 
-    /**
-     *  Should target lines be drawn with a thick line?
-     */
-    bool IsTargetLineThick;
+        /**
+         *  Color to draw the target laser with.
+         */
+        RGBStruct TargetLaserColor;
 
-    /**
-     *  Color to target movement lines with.
-     */
-    RGBStruct TargetLineColor;
+        /**
+         *  Color to draw the target laser's drop shadow with.
+         */
+        RGBStruct TargetLaserDropShadowColor;
 
-    /**
-     *  Color to draw target lines' drop shadow with.
-     */
-    RGBStruct TargetLineDropShadowColor;
+        /**
+         *  Time in frames the target laser should be drawn for when the unit fires.
+         */
+        unsigned TargetLaserTime;
 
-    /**
-     *  Should target laser be drawn with dashes?
-     */
-    bool IsTargetLaserDashed;
+        /**
+         *  Should NavCom queue lines be displayed?
+         */
+        bool IsShowNavComQueueLines;
 
-    /**
-     *  Should target laser be drawn with a drop shadow?
-     */
-    bool IsTargetLaserDropShadow;
+        /**
+         *  Should NavCom queue lines be drawn with dashes?
+         */
+        bool IsNavComQueueLineDashed;
 
-    /**
-     *  Should target laser be drawn with a thick line?
-     */
-    bool IsTargetLaserThick;
+        /**
+         *  Should NavCom queue lines be drawn with a drop shadow?
+         */
+        bool IsNavComQueueLineDropShadow;
 
-    /**
-     *  Color to draw the target laser with.
-     */
-    RGBStruct TargetLaserColor;
+        /**
+         *  Should NavCom queue lines be drawn with a thick line?
+         */
+        bool IsNavComQueueLineThick;
 
-    /**
-     *  Color to draw the target laser's drop shadow with.
-     */
-    RGBStruct TargetLaserDropShadowColor;
+        /**
+         *  Color to draw the NavCom queue lines with.
+         */
+        RGBStruct NavComQueueLineColor;
 
-    /**
-     *  Time in frames the target laser should be drawn for when the unit fires.
-     */
-    unsigned TargetLaserTime;
+        /**
+         *  Color to draw the NavCom queue lines' drop shadow with.
+         */
+        RGBStruct NavComQueueLineDropShadowColor;
 
         /**
          *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
@@ -257,7 +289,7 @@ public:
          */
         std::string BeaconPreviewText[7];
 
-    std::vector<LoadingScreen> LoadingScreens;
+        std::vector<LoadingScreen> LoadingScreens;
 };
 
 extern UIControlsClass* UIControls;

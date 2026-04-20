@@ -130,6 +130,6 @@ void Vinifera_Output_Debug_String(const char *string);
  */
 void Vinifera_Escape_Percent_Sign(char *string, size_t buffer_length);
 
-extern char CrashdumpFilename[PATH_MAX];
+extern char CrashdumpFilename[/*PATH_MAX*/260];
 
 extern bool DisableDebuggerOutput;

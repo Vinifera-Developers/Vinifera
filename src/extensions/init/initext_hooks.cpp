@@ -44,6 +44,7 @@
 #include "scenarioext.h"
 #include "sdl_functions.h"
 #include "session.h"
+#include "sessionext.h"
 #include "special.h"
 #include "syringe.h"
 #include "theme.h"
@@ -52,8 +53,8 @@
 #include "vinifera_globals.h"
 
 #include <bcrypt.h>
-#include <windows.h>
 #include <tlhelp32.h> // must be after windows.h
+#include <windows.h>
 
 
 extern HMODULE DLLInstance;
@@ -78,29 +79,16 @@ extern HMODULE DLLInstance;
  *
  *  @author: CCHyper
  */
-static void Set_Session_House() { SessionExtension->House = Session.Players.Fetch_Head()->Player.House; }
-DECLARE_PATCH(_Select_Game_PreStart_SetPlayerHouse_Patch)
+DEFINE_HOOK(0x004E2CE4, _Select_Game_PreStart_SetPlayerHouse_Patch, 0)
 {
     /**
      *  This patch removes the code that sets the "IsGDI" member of SessionClass
      *  bool based on if the house name matched "GDI" or not and stores
      *  the player HouseType directly.
      */
-#if 0
-    /**
-     *  Original game code.
-     */
-    static HouseTypeClass *housetype;
-    housetype = HouseTypes[Session.Players.Fetch_Head()->Player.House & 0xFF];
-    Session.IsGDI = strcmpi("GDI", housetype->Name()) == 0;
-#endif
+    SessionExtension->House = Session.Players.Fetch_Head()->Player.House;
 
-    /**
-     *  Accessing unions trashes the stack, so this operation is wrapped.
-     */
-    Set_Session_House();
-
-    JMP(0x004E2D13);
+    return 0x004E2D13;
 }
 
 
@@ -1035,5 +1023,4 @@ void GameInit_Hooks()
     Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 #endif
 
-    Patch_Jump(0x004E2CE4, &_Select_Game_PreStart_SetPlayerHouse_Patch);
 }

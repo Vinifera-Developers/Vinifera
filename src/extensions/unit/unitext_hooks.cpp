@@ -1331,15 +1331,15 @@ set_mission_delay_and_return:
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
+DEFINE_HOOK(0x0064E0D7, _UnitClass_AI_BuildConst_Patch, 0)
 {
-    GET_REGISTER_STATIC(UnitTypeClass*, unittype, edx);
+    GET(UnitTypeClass*, unittype, EDX);
 
     if (Rule->BuildConst.Is_Present(unittype->DeploysInto)) {
-        JMP_REG(ecx, 0x0064E0EC);
+        return 0x0064E0EC;
     }
 
-    JMP_REG(eax, 0x0064E134);
+    return 0x0064E134;
 }
 
 
@@ -1350,18 +1350,15 @@ DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
+DEFINE_HOOK(0x00656074, _UnitClass_What_Action_BuildConst, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ebp);
-    _asm pushad
+    GET(BuildingTypeClass*, buildingtype, EBP);
 
     if (Rule->BuildConst.Is_Present(buildingtype)) {
-        _asm popad
-        JMP_REG(edx, 0x00656084);
+        return 0x00656084;
     }
 
-    _asm popad
-    JMP_REG(edi, 0x006560A3);
+    return 0x006560A3;
 }
 
 
@@ -1372,15 +1369,15 @@ DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_UnitClass_Mission_Guard_BuildConst)
+DEFINE_HOOK(0x00656751, _UnitClass_Mission_Guard_BuildConst, 0)
 {
-    GET_REGISTER_STATIC(UnitClass*, unit, esi);
+    GET(UnitClass*, unit, ESI);
 
     if (Rule->BuildConst.Is_Present(unit->Class->DeploysInto)) {
-        JMP(0x00656770);
+        return 0x00656770;
     }
 
-    JMP(0x006567FD);
+    return 0x006567FD;
 }
 
 /**
@@ -1420,10 +1417,7 @@ void UnitClassExtension_Hooks()
     UnitClassExtension_Init();
 
     Patch_Jump(0x0064E920, &UnitClassExt::_Firing_AI);
-    Patch_Jump(0x0064E0D7, &_UnitClass_AI_BuildConst_Patch);
     Patch_Jump(0x00655270, &UnitClassExt::_Do_MISSION_HUNT);
-    Patch_Jump(0x00656074, &_UnitClass_What_Action_BuildConst);
-    Patch_Jump(0x00656751, &_UnitClass_Mission_Guard_BuildConst);
     Patch_Jump(0x0064E560, &UnitClassExt::_Rotation_AI);
     Patch_Jump(0x006571E0, &UnitClassExt::_Approach_Target);
 

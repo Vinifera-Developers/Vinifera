@@ -26,19 +26,20 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "spawner_hooks.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "housetype.h"
-#include "multiscore.h"
 #include "observer_hooks.h"
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
 #include "session.h"
 #include "spawner.h"
 #include "statistics_hooks.h"
+#include "syringe.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
 
@@ -79,16 +80,16 @@ void SessionClassExt::_Read_Scenario_Descriptions()
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
+DEFINE_HOOK(0x004C06EF, _HouseClass_Expert_AI_Check_Allies, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, edi);
-    GET_REGISTER_STATIC(HouseClass*, house, esi);
+    GET(HouseClass*, this_ptr, EDI);
+    GET(HouseClass*, house, ESI);
 
     if (house != this_ptr && !house->Class->IsMultiplayPassive && !house->IsDefeated && this_ptr->Is_Ally(house)) {
-        JMP(0x004C06F7);
+        return 0x004C06F7;
     }
 
-    JMP(0x004C0777);
+    return 0x004C0777;
 }
 
 
@@ -98,21 +99,21 @@ DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
  *
  *  @author: ZivDero, Rampastring
  */
-DECLARE_PATCH(_Play_VQA_Forbid_Skipping_In_MP_Patch)
+DEFINE_HOOK(0x0066BB57, _Play_VQA_Forbid_Skipping_In_MP_Patch, 0)
 {
-    GET_STACK_STATIC8(bool, cant_break_out, esp, 0x40);
+    GET_STACK(bool, cant_break_out, 0x40);
 
     /**
      *  Don't skip the movie.
      */
     if (cant_break_out || (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH)) {
-        JMP(0x0066BA30);
+        return 0x0066BA30;
     }
 
     /**
      *  Check if we want to skip the movie.
      */
-    JMP(0x0066BB61);
+    return 0x0066BB61;
 }
 
 
@@ -122,7 +123,7 @@ DECLARE_PATCH(_Play_VQA_Forbid_Skipping_In_MP_Patch)
  *
  *  @author: ZivDero, Rampastring
  */
-DECLARE_PATCH(_Play_VQA_Network_Callback_Patch)
+DEFINE_HOOK(0x0066BA56, _Play_VQA_Network_Callback_Patch, 7)
 {
     if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
         static unsigned NextNetworkRefreshTime = UINT_MAX;
@@ -135,15 +136,7 @@ DECLARE_PATCH(_Play_VQA_Network_Callback_Patch)
         NextNetworkRefreshTime = timeGetTime() + 1000;
     }
 
-    // Stolen instructions
-    _asm {
-        push ebx
-        push ebx
-        push ebx
-        lea  edx, [esp + 0x28]
-    }
-
-    JMP(0x0066BA5D);
+    return 0;
 }
 
 
@@ -152,9 +145,9 @@ DECLARE_PATCH(_Play_VQA_Network_Callback_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Destroy_Connection_AutoSurrender_Patch)
+DEFINE_HOOK(0x0057524A, _Destroy_Connection_AutoSurrender_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, hptr, ebp);
+    GET(HouseClass*, hptr, EBP);
 
     if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->AutoSurrender)) {
         hptr->Flag_To_Die();
@@ -162,7 +155,7 @@ DECLARE_PATCH(_Destroy_Connection_AutoSurrender_Patch)
         hptr->AI_Takeover();
     }
 
-    JMP(0x0057526B);
+    return 0x0057526B;
 }
 
 
@@ -194,19 +187,12 @@ void Spawner_Hooks()
     Patch_Call(0x0058037C, &SessionClassExt::_Read_Scenario_Descriptions); // NewMenuClass::
     Patch_Call(0x005ED477, &SessionClassExt::_Read_Scenario_Descriptions); // SessionClass::One_Time
 
-    Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
-
     /**
      *  PlayMoviesInMultiplayer feature.
      */
-    Patch_Jump(0x0066BB57, &_Play_VQA_Forbid_Skipping_In_MP_Patch);
-    Patch_Jump(0x0066BA56, &_Play_VQA_Network_Callback_Patch);
-
     /**
      *  AutoSurrender feature.
      */
-    Patch_Jump(0x0057524A, &_Destroy_Connection_AutoSurrender_Patch);
-
     /**
      *  Hooks for various sub-modules.
      */

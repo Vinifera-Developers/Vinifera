@@ -31,7 +31,6 @@
 #include "vinifera_util.h"
 
 #include "bsurface.h"
-#include "cncnet4_globals.h"
 #include "colorscheme.h"
 #include "debughandler.h"
 #include "dsurface.h"

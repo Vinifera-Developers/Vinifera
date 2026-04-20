@@ -969,9 +969,9 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
  * 
  *  @author: CCHyper, ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Short_Game_BaseUnit_Patch)
+DEFINE_HOOK(0x004BCEE7, _HouseClass_AI_Short_Game_BaseUnit_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass *, this_ptr, esi);
+    GET(HouseClass *, this_ptr, ESI);
     static UnitTypeClass *unittype;
     static UnitType unit;
     static int count;
@@ -982,22 +982,13 @@ DECLARE_PATCH(_HouseClass_AI_Short_Game_BaseUnit_Patch)
     count = this_ptr->Count_Owned(RuleExtension->BaseUnit);
 
     if (count) {
-        goto continue_function;
+        return 0x004BCF6E;
     }
-
-    goto blowup_house;
-
-    /**
-     *  
-     */
-continue_function:
-    JMP_REG(eax, 0x004BCF6E);
 
     /**
      *  Blows up the house, marking the house as defeated.
      */
-blowup_house:
-    JMP_REG(ecx, 0x004BCF60);
+    return 0x004BCF60;
 }
 
 
@@ -1769,16 +1760,16 @@ DEFINE_HOOK(0x004C0F87, _HouseClass_AI_Raise_Money_Fix_Memory_Corruption, 0)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_BuildConst_Patch)
+DEFINE_HOOK(0x004BCD5D, _HouseClass_AI_BuildConst_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
 
     if (this_ptr->Count_Owned(Rule->BuildConst) > 0)
     {
-        JMP(0x004BCD85);
+        return 0x004BCD85;
     }
 
-    JMP(0x004BCE0B);
+    return 0x004BCE0B;
 }
 
 
@@ -1789,15 +1780,15 @@ DECLARE_PATCH(_HouseClass_AI_BuildConst_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Count_HarvesterUnit_Patch)
+DEFINE_HOOK(0x004BCF3A, _HouseClass_AI_Count_HarvesterUnit_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
     static int harv_count;
 
     harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
 
-    _asm mov eax, harv_count
-    JMP_REG(ecx, 0x004BCF5A);
+    R->EAX(harv_count);
+    return 0x004BCF5A;
 }
 
 
@@ -1808,16 +1799,16 @@ DECLARE_PATCH(_HouseClass_AI_Count_HarvesterUnit_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Is_Building_Harvester_Unit_Patch)
+DEFINE_HOOK(0x004BD0BC, _HouseClass_AI_Is_Building_Harvester_Unit_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
 
     if (this_ptr->BuildUnit != -1 && Rule->HarvesterUnit.Is_Present(UnitTypes[this_ptr->BuildUnit]))
     {
-        JMP(0x004BD0E5);
+        return 0x004BD0E5;
     }
 
-    JMP(0x004BD0D7);
+    return 0x004BD0D7;
 }
 
 
@@ -1828,9 +1819,9 @@ DECLARE_PATCH(_HouseClass_AI_Is_Building_Harvester_Unit_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef1)
+DEFINE_HOOK(0x004C0D0C, _HouseClass_AI_Raise_Money_HarvRef1, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
 
     static bool build_harv;
     static int object_cost;
@@ -1850,11 +1841,9 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef1)
         object_cost = this_ptr->Get_First_Ownable(Rule->BuildRefinery)->Cost_Of(this_ptr);
     }
 
-    _asm mov al, build_harv
-    _asm mov [esp+0x13], al
-    _asm mov eax, object_cost
-
-    JMP_REG(ebx, 0x004C0D94);
+    R->Stack8(0x13, static_cast<BYTE>(build_harv));
+    R->EAX(object_cost);
+    return 0x004C0D94;
 }
 
 
@@ -1865,15 +1854,15 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef1)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef2)
+DEFINE_HOOK(0x004C0F5F, _HouseClass_AI_Raise_Money_HarvRef2, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
 
     UnitType harv;
     harv = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->HeapID;
 
-    _asm mov eax, harv
-    JMP_REG(ecx, 0x004C0F72);
+    R->EAX(harv);
+    return 0x004C0F72;
 }
 
 
@@ -1884,19 +1873,17 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef2)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef3)
+DEFINE_HOOK(0x004C0FAB, _HouseClass_AI_Raise_Money_HarvRef3, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
 
-    BuildingTypeClass* refinery_ptr;
-    BuildingTypeClass** refinery_ptr_ptr;
+    static BuildingTypeClass* refinery_ptr;
     refinery_ptr = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
-    refinery_ptr_ptr = &refinery_ptr;
 
     // The instructions here are messy, so we hijack when the game
     // is accessing the vector and substitute our pointer
-    _asm mov edx, refinery_ptr_ptr
-    JMP(0x004C0FBB);
+    R->EDX(&refinery_ptr);
+    return 0x004C0FBB;
 }
 
 
@@ -1907,15 +1894,15 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef3)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef4)
+DEFINE_HOOK(0x004C1051, _HouseClass_AI_Raise_Money_HarvRef4, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
     BuildingTypeClass* refinery;
 
     refinery = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
 
-    _asm mov eax, refinery
-    JMP_REG(ecx, 0x004C105E);
+    R->EAX(refinery);
+    return 0x004C105E;
 }
 
 
@@ -1926,17 +1913,17 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef4)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef1)
+DEFINE_HOOK(0x004C166D, _HouseClass_AI_Unit_HarvRef1, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebp);
+    GET(HouseClass*, this_ptr, EBP);
     static int harv_count, ref_count;
 
     harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
     ref_count = this_ptr->Count_Owned(Rule->BuildRefinery);
 
-    _asm mov esi, harv_count
-    _asm mov eax, ref_count
-    JMP_REG(ecx, 0x004C16AE);
+    R->ESI(harv_count);
+    R->EAX(ref_count);
+    return 0x004C16AE;
 }
 
 
@@ -1947,15 +1934,15 @@ DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef1)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef2)
+DEFINE_HOOK(0x004C1710, _HouseClass_AI_Unit_HarvRef2, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebp);
+    GET(HouseClass*, this_ptr, EBP);
     static UnitTypeClass* harvester;
 
     harvester = this_ptr->Get_First_Ownable(Rule->HarvesterUnit);
 
-    _asm mov eax, harvester
-    JMP_REG(edx, 0x004C1718);
+    R->EAX(harvester);
+    return 0x004C1718;
 }
 
 
@@ -1966,19 +1953,16 @@ DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef2)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
+DEFINE_HOOK(0x004C5977, _HouseClass_Has_Prerequisites_BuildConst, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass*, building, ecx);
-    _asm pushad
+    GET(BuildingTypeClass*, building, ECX);
 
     if (!Rule->BuildConst.Is_Present(building))
     {
-        _asm popad
-        JMP(0x004C5985);
+        return 0x004C5985;
     }
 
-    _asm popad
-    JMP(0x004C5B62);
+    return 0x004C5B62;
 }
 
 
@@ -1989,15 +1973,15 @@ DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst)
+DEFINE_HOOK(0x004C5E20, _HouseClass_GenerateAIBuildList_4C5BB0_BuildConst, 0)
 {
-    GET_STACK_STATIC(HouseClass*, this_ptr, esp, 0x14);
+    GET_STACK(HouseClass*, this_ptr, 0x14);
     static BuildingTypeClass* conyard;
 
     conyard = this_ptr->Get_First_Ownable(Rule->BuildConst);
 
-    _asm mov esi, conyard;
-    JMP(0x004C5E28);
+    R->ESI(conyard);
+    return 0x004C5E28;
 }
 
 
@@ -2008,19 +1992,16 @@ DECLARE_PATCH(_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst)
+DEFINE_HOOK(0x004CA222, _HouseClass_AI_Use_Super_Ion_Cannon_BuildConst, 0)
 {
-    GET_REGISTER_STATIC(UnitTypeClass*, unittype, ecx);
-    _asm push eax
+    GET(UnitTypeClass*, unittype, ECX);
 
     if (Rule->BuildConst.Is_Present(unittype->DeploysInto))
     {
-        _asm pop eax
-        JMP_REG(ecx, 0x004CA232);
+        return 0x004CA232;
     }
 
-    _asm pop eax
-    JMP_REG(edx, 0x004CA240);
+    return 0x004CA240;
 }
 
 
@@ -2031,19 +2012,16 @@ DECLARE_PATCH(_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Takeover_BuildConst)
+DEFINE_HOOK(0x004CA9A1, _HouseClass_AI_Takeover_BuildConst, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
-    _asm push eax
+    GET(BuildingTypeClass*, buildingtype, ECX);
 
     if (Rule->BuildConst.Is_Present(buildingtype))
     {
-        _asm pop eax
-        JMP_REG(edi, 0x004CA9A9);
+        return 0x004CA9A9;
     }
 
-    _asm pop eax
-    JMP_REG(edi, 0x004CA9B7)
+    return 0x004CA9B7;
 }
 
 
@@ -2054,18 +2032,16 @@ DECLARE_PATCH(_HouseClass_AI_Takeover_BuildConst)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_InfantryClass_What_Action_Harvester_Thief)
+DEFINE_HOOK(0x004D7284, _InfantryClass_What_Action_Harvester_Thief, 0)
 {
-    GET_REGISTER_STATIC(UnitClass*, target, esi);
+    GET(UnitClass*, target, ESI);
 
     if (target->What_Am_I() == RTTI_UNIT && Rule->HarvesterUnit.Is_Present(target->Class))
     {
-        // return ACTION_SELECT;
-        JMP(0x004D7258);
+        return 0x004D7258;
     }
 
-    // return ACTION_CAPTURE;
-    JMP(0x004D72A8);
+    return 0x004D72A8;
 }
 
 
@@ -2074,19 +2050,19 @@ DECLARE_PATCH(_InfantryClass_What_Action_Harvester_Thief)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch)
+DEFINE_HOOK(0x004CB9CD, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 0)
 {
-    // Stolen instructions
-    _asm push edi
-    _asm mov edi, ecx
+    const DWORD old_edi = R->EDI();
+    R->ESP(R->ESP() - 4);
+    R->Stack(0x0, old_edi);
+    R->EDI(R->ECX());
 
     /**
      *  Ignore AIBaseSpacing in Campaign.
      */
     if (Session.Type == GAME_NORMAL)
     {
-        // return 1;
-        JMP(0x004CB9D2);
+        return 0x004CB9D2;
     }
 
     /**
@@ -2094,14 +2070,13 @@ DECLARE_PATCH(_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch)
      */
     if (ScenExtension->IsUseMPAIBaseNodes)
     {
-        // return 1;
-        JMP(0x004CB9D2);
+        return 0x004CB9D2;
     }
 
     /**
      *  Continue with AIBaseSpacing.
      */
-    JMP_REG(ecx, 0x004CB9DE);
+    return 0x004CB9DE;
 }
 
 
@@ -2118,21 +2093,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
 
-    Patch_Jump(0x004BCD5D, &_HouseClass_AI_BuildConst_Patch);
-    Patch_Jump(0x004BCEE7, &_HouseClass_AI_Short_Game_BaseUnit_Patch);
-    Patch_Jump(0x004BCF3A, &_HouseClass_AI_Count_HarvesterUnit_Patch);
-    Patch_Jump(0x004BD0BC, &_HouseClass_AI_Is_Building_Harvester_Unit_Patch);
-    Patch_Jump(0x004C0D0C, &_HouseClass_AI_Raise_Money_HarvRef1);
-    Patch_Jump(0x004C0F5F, &_HouseClass_AI_Raise_Money_HarvRef2);
-    Patch_Jump(0x004C0FAB, &_HouseClass_AI_Raise_Money_HarvRef3);
-    Patch_Jump(0x004C1051, &_HouseClass_AI_Raise_Money_HarvRef4);
-    Patch_Jump(0x004C166D, &_HouseClass_AI_Unit_HarvRef1);
-    Patch_Jump(0x004C1710, &_HouseClass_AI_Unit_HarvRef2);
-    Patch_Jump(0x004C5977, &_HouseClass_Has_Prerequisites_BuildConst);
-    Patch_Jump(0x004C5E20, &_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst);
-    Patch_Jump(0x004CA222, &_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst);
-    Patch_Jump(0x004CA9A1, &_HouseClass_AI_Takeover_BuildConst);
-    Patch_Jump(0x004D7284, &_InfantryClass_What_Action_Harvester_Thief);
 
     Patch_Jump(0x004BAED0, &HouseClassExt::_Can_Make_Money);
     Patch_Jump(0x004C0A40, &HouseClassExt::_Check_Raise_Money);
@@ -2146,7 +2106,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C1650, &HouseClassExt::_AI_Unit);
     Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
     Patch_Jump(0x004BBC74, &_Can_Build_Required_Forbidden_Houses_Patch);
-    Patch_Jump(0x004CB9CD, &_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
 
@@ -2170,8 +2129,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BF180, &HouseClassExt::_Suggest_New_Object);
     Patch_Jump(0x004BD590, &HouseClassExt::_Harvested);
 
-    Patch_Jump(0x004BC78D, &_HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win);
-    Patch_Jump(0x004BC855, &_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose);
     Patch_Jump(0x004BC077, 0x004BC082); // HouseClass::Can_Build, always check for ConYard of required Owner
 
     Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);

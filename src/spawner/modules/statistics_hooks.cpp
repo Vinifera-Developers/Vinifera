@@ -40,6 +40,7 @@
 #include "scenarioext.h"
 #include "session.h"
 #include "spawner.h"
+#include "syringe.h"
 #include "tibsun_globals.h"
 
 
@@ -109,9 +110,8 @@ void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
     if (Is_Spawner_Write_Statistics()) {
         PacketClass::Add_Field(new FieldClass("SCEN", Vinifera_SpawnerConfig->UIMapName));
-        PacketClass::Add_Field(new FieldClass("ACCN", PlayerPtr->IniName));
+        PacketClass::Add_Field(new FieldClass("ACCN", const_cast<char*>(PlayerPtr->IniName.c_str())));
         PacketClass::Add_Field(new FieldClass("HASH", Vinifera_SpawnerConfig->MapHash));
-
         return;
     }
 
@@ -166,116 +166,111 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Print_MP_Stats_Check)
+DEFINE_HOOK(0x0046353C, _Print_MP_Stats_Check, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x00463542);
+        return 0x00463542;
     }
 
-    JMP(0x0046371F);
+    return 0x0046371F;
 }
 
 
-DECLARE_PATCH(_Kick_Player_Now_SendStatistics)
+DEFINE_HOOK(0x005B4333, _Kick_Player_Now_SendStatistics, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x005B433C);
+        return 0x005B433C;
     }
 
-    JMP(0x005B439F);
+    return 0x005B439F;
 }
 
 
-DECLARE_PATCH(_Queue_AI_Multiplayer_SendStatistics)
+DEFINE_HOOK(0x005B1E94, _Queue_AI_Multiplayer_SendStatistics, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x005B1EA0);
+        return 0x005B1EA0;
     }
 
-    JMP(0x005B1F21);
+    return 0x005B1F21;
 }
 
 
-DECLARE_PATCH(_Main_Loop_SendStatistics1)
+DEFINE_HOOK(0x00509220, _Main_Loop_SendStatistics1, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x00509229);
+        return 0x00509229;
     }
 
-    JMP(0x0050924B);
+    return 0x0050924B;
 }
 
 
-DECLARE_PATCH(_Main_Loop_SendStatistics2)
+DEFINE_HOOK(0x0050927A, _Main_Loop_SendStatistics2, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x00509283);
+        return 0x00509283;
     }
 
-    JMP(0x005092A5);
+    return 0x005092A5;
 }
 
 
-DECLARE_PATCH(_Execute_DoList_SendStatistics1)
+DEFINE_HOOK(0x005B4FAE, _Execute_DoList_SendStatistics1, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x005B4FB9);
+        return 0x005B4FB9;
     }
 
-    JMP(0x005B500C);
+    return 0x005B500C;
 }
 
 
-DECLARE_PATCH(_Execute_DoList_SendStatistics2)
+DEFINE_HOOK(0x005B4FD3, _Execute_DoList_SendStatistics2, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x005B4FDE);
+        return 0x005B4FDE;
     }
 
-    JMP(0x005B500C);
+    return 0x005B500C;
 }
 
 
-DECLARE_PATCH(_Main_Game_Start_Timer)
+DEFINE_HOOK(0x00462A26, _Main_Game_Start_Timer, 0)
 {
     if (Is_Statistics_Enabled()) {
-        JMP(0x00462A2F);
+        return 0x00462A2F;
     }
 
-    JMP(0x00462A46);
+    return 0x00462A46;
 }
 
-
+#if 0 // todo look into fixing this
 /**
  *  Don't send statistics for observers.
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
+EXPORT_FUNC(0x006098DA, _Send_Statistics_Packet_Send_AI_Dont_Send_Observers, 0)
 {
-    GET_REGISTER_STATIC(HouseClass**, house, edx);
-    static HouseClassExtension* house_ext;
-
-    _asm pushad
+    GET(HouseClass**, house, EDX);
 
     if (Is_Spawner_Write_Statistics()) {
-        house_ext = Extension::Fetch(*house);
+        HouseClassExtension* house_ext = Extension::Fetch(*house);
         if ((*house)->Class->IsMultiplayPassive || house_ext->IsObserver) {
-            _asm popad
-            JMP_REG(ecx, 0x006098EC);
+            return 0x006098EC;
         }
     }
     // Vanilla condition
     else  {
         if (!(*house)->IsHuman) {
-            _asm popad
-            JMP_REG(ecx, 0x006098EC);
+            return 0x006098EC;
         }
     }
 
-    _asm popad
-    JMP_REG(ecx, 0x006098E6);
+    return 0x006098E6;
 }
+#endif
 
 
 /**
@@ -284,16 +279,7 @@ DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
 void Statistics_Hooks()
 {
     Patch_Call(0x0060A797, &PacketClassExt::_Create_Comms_Packet);
-    Patch_Jump(0x0046353C, &_Print_MP_Stats_Check);
-    Patch_Jump(0x005B4333, &_Kick_Player_Now_SendStatistics);
-    Patch_Jump(0x005B1E94, &_Queue_AI_Multiplayer_SendStatistics);
-    Patch_Jump(0x00509220, &_Main_Loop_SendStatistics1);
-    Patch_Jump(0x0050927A, &_Main_Loop_SendStatistics2);
-    Patch_Jump(0x005B4FAE, &_Execute_DoList_SendStatistics1);
-    Patch_Jump(0x005B4FD3, &_Execute_DoList_SendStatistics2);
-    Patch_Jump(0x00462A26, &_Main_Game_Start_Timer);
     Patch_Call(0x0060982A, &PacketClassExt::_Add_Field_SCEN_ACCN_HASH);
     Patch_Call(0x00609DA6, &PacketClassExt::_Add_Field_Player_Data);
-    // Patch_Jump(0x006098DA, &_Send_Statistics_Packet_Send_AI_Dont_Send_Observers); // Crashes. We write whether the player is the observer in the statistics anyway
-    Patch_Jump(0x0060A79C, 0x0060A7C6); // Skip call to some WOL utility to send the packet
+    Patch_Jump(0x0060A79C, 0x0060A7C6); // Skip call WOL NetUtil->RequestGameresSend
 }

@@ -515,10 +515,10 @@ bool TActionClassExtension::Do_LOSE(HouseClass* house, ObjectClass* object, Trig
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_BEGIN_PRODUCTION(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_BEGIN_PRODUCTION(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(This()->Data.House);
         if (hptr != nullptr) {
             hptr->Begin_Production();
         }
@@ -532,10 +532,10 @@ bool TActionClassExtension::Do_BEGIN_PRODUCTION(TActionClass& taction, HouseClas
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_ALL_HUNT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ALL_HUNT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(This()->Data.House);
         if (hptr != nullptr) {
             hptr->All_To_Hunt();
         }
@@ -549,10 +549,10 @@ bool TActionClassExtension::Do_ALL_HUNT(TActionClass& taction, HouseClass* house
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_FIRE_SALE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_FIRE_SALE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(This()->Data.House);
         if (hptr != nullptr) {
             hptr->State = STATE_ENDGAME;
         }
@@ -629,10 +629,10 @@ bool TActionClassExtension::Do_DESTROY_TRIGGER(HouseClass* house, ObjectClass* o
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_AUTOCREATE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_AUTOCREATE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(This()->Data.House);
         if (hptr != nullptr) {
             hptr->IsAlerted = true;
         }
@@ -646,10 +646,10 @@ bool TActionClassExtension::Do_AUTOCREATE(TActionClass& taction, HouseClass* hou
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_CHANGE_HOUSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_CHANGE_HOUSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     bool success = false;
-    HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    HouseClass* hptr = House_From_HousesType(This()->Data.House);
 
     if (hptr != nullptr) {
         for (int index = 0; index < Technos.Count(); index++) {
@@ -670,11 +670,11 @@ bool TActionClassExtension::Do_CHANGE_HOUSE(TActionClass& taction, HouseClass* h
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_ALL_CHANGE_HOUSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ALL_CHANGE_HOUSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     bool retval = false;
 
-    HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    HouseClass* hptr = House_From_HousesType(This()->Data.House);
 
     if (hptr != nullptr) {
         for (int index = 0; index < Technos.Count(); index++) {
@@ -693,11 +693,11 @@ bool TActionClassExtension::Do_ALL_CHANGE_HOUSE(TActionClass& taction, HouseClas
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_MAKE_ALLY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_MAKE_ALLY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     if (house != nullptr) {
-        if (taction.Data.House != HOUSE_NONE) {
-            HouseClass* house2 = House_From_HousesType(taction.Data.House);
+        if (This()->Data.House != HOUSE_NONE) {
+            HouseClass* house2 = House_From_HousesType(This()->Data.House);
             if (house2 != nullptr) {
                 house->Make_Ally(house2);
                 house2->Make_Ally(house);
@@ -713,11 +713,11 @@ bool TActionClassExtension::Do_MAKE_ALLY(TActionClass& taction, HouseClass* hous
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_MAKE_ENEMY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_MAKE_ENEMY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     if (house != nullptr) {
-        if (taction.Data.House != HOUSE_NONE) {
-            HouseClass* house2 = House_From_HousesType(taction.Data.House);
+        if (This()->Data.House != HOUSE_NONE) {
+            HouseClass* house2 = House_From_HousesType(This()->Data.House);
             if (house2 != nullptr) {
                 house->Make_Enemy(house2);
                 house2->Make_Enemy(house);
@@ -795,10 +795,10 @@ bool TActionClassExtension::Do_DESTROY_TAG(HouseClass* house, ObjectClass* objec
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_BEGIN_AI_TRIGGERS(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_BEGIN_AI_TRIGGERS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(This()->Data.House);
         if (hptr != nullptr) {
             hptr->IsAITriggersOn = true;
         }
@@ -812,10 +812,10 @@ bool TActionClassExtension::Do_BEGIN_AI_TRIGGERS(TActionClass& taction, HouseCla
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_STOP_AI_TRIGGERS(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_STOP_AI_TRIGGERS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (taction.Data.House != HOUSE_NONE) {
-        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+    if (This()->Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(This()->Data.House);
         if (hptr != nullptr) {
             hptr->IsAITriggersOn = false;
         }

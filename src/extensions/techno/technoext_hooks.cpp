@@ -2002,9 +2002,9 @@ static bool Can_Attack_Neutrals(TechnoClass* target)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch)
+DEFINE_HOOK(0x0062D49A, _TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass*, target, esi);
+    GET(TechnoClass*, target, ESI);
 
     if (Session.Type != GAME_NORMAL && target->Owner_HouseClass()->Class->IsMultiplayPassive) {
 
@@ -2012,13 +2012,12 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch)
          *  Allow attacking neutrals, but if it's a building, it must be armed.
          */
         if (!Can_Attack_Neutrals(target)) {
-            // return false;
-            JMP(0x0062D8C0);
+            return 0x0062D8C0;
         }
     }
 
     // Continue normally.
-    JMP(0x0062D4BA);
+    return 0x0062D4BA;
 }
 
 
@@ -3502,6 +3501,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
     Patch_Jump(0x00639C70, &TechnoClassExt::_Apparent_Brightness);
     Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
-    Patch_Jump(0x0062D49A, &_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch);
     Patch_Jump(0x0062AAD0, &TechnoClassExt::_Revealed);
 }

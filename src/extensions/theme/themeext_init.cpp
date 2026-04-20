@@ -92,7 +92,7 @@ DEFINE_HOOK(0x00643AAB, _ThemeClass_ThemeControl_Fill_In_Patch, 7)
     /**
      *  Find the extension instance.
      */
-    exttype_ptr = Extension::List::Fetch(this_ptr, ThemeControlExtensions);
+    auto exttype_ptr = Extension::List::Fetch(this_ptr, ThemeControlExtensions);
 
     /**
      *  Read type class ini.

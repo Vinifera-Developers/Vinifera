@@ -29,13 +29,13 @@
 #include "quickmatch_hooks.h"
 
 #include "hooker.h"
+#include "hooker_macros.h"
 #include "house.h"
 #include "ipxmgr.h"
 #include "session.h"
 #include "spawner.h"
+#include "syringe.h"
 #include "textprint.h"
-
-#include "hooker_macros.h"
 
 
 static const char* PLAYER = "Player";
@@ -92,7 +92,7 @@ static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const cha
  *
  *  @author: ZivDero
  */
-static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, XSurface* surface, Rect* rect, Point2D* xy, ColorScheme* fore, unsigned back, TextPrintType flag)
+static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, Surface& surface, Rect& rect, Point2D& xy, ColorScheme* fore, unsigned back, TextPrintType flag)
 {
     if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
         return Fancy_Text_Print(PLAYER, surface, rect, xy, fore, back, flag);
@@ -107,12 +107,10 @@ static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const 
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Kick_Player_Dialog_SendMessage_Hide_Name)
+DEFINE_HOOK(0x005B4024, _Kick_Player_Dialog_SendMessage_Hide_Name, 0)
 {
-    GET_REGISTER_STATIC(HWND, hWnd, ebp);
-    GET_REGISTER_STATIC(int, index, esi);
-
-    _asm pushad
+    GET(HWND, hWnd, EBP);
+    GET(int, index, ESI);
 
     if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
         SendMessageA(hWnd, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(PLAYER));
@@ -120,8 +118,7 @@ DECLARE_PATCH(_Kick_Player_Dialog_SendMessage_Hide_Name)
         SendMessageA(hWnd, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(Session.Players[index]->Name));
     }
 
-    _asm popad
-    JMP(0x005B4038);
+    return 0x005B4038;
 }
 
 
@@ -132,6 +129,5 @@ void QuickMatch_Hooks()
 {
     Patch_Call(0x005B980E, &sprintf_RadarClass_Draw_Names_Wrapper);
     Patch_Call(0x005ADC8F, &Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper);
-    Patch_Jump(0x005B4024, &_Kick_Player_Dialog_SendMessage_Hide_Name);
     Patch_Call(0x00648EAE, &IPXManagerClassExt::_Connection_Name);
 }

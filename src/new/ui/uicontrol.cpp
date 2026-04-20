@@ -32,6 +32,8 @@
 
 #include "asserthandler.h"
 #include "ccini.h"
+#include "debughandler.h"
+#include "tibsun_inline.h"
 
 
 UIControlsClass *UIControls = nullptr;

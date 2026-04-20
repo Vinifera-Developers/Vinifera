@@ -28,6 +28,7 @@
 
 #include "protocolzero_hooks.h"
 
+#include "debughandler.h"
 #include "event.h"
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -37,6 +38,7 @@
 #include "scenario.h"
 #include "session.h"
 #include "spawner.h"
+#include "syringe.h"
 #include "tibsun_globals.h"
 
 /**
@@ -165,22 +167,22 @@ public:
  *  @author: ZivDero
  */
 static short& MySent = Make_Global<short>(0x008099F0);
-DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
+DEFINE_HOOK(0x005B1A2D, _ProtocolZero_Queue_AI_Multiplayer_1, 0)
 {
     if (ProtocolZero::Enable || MySent >= 5) {
-        JMP(0x005B1A3B);
+        return 0x005B1A3B;
     }
 
-    JMP(0x005B1C4C);
+    return 0x005B1C4C;
 }
 
 
 /**
- *  Adds the adjusted Timing event.
+ *  Patch adding the Timing event, taking Protocol 0 into consideration.
  *
  *  @author: ZivDero
  */
-static void Add_Timing_Event()
+DEFINE_HOOK(0x005B1BF1, _ProtocolZero_Queue_AI_Multiplayer_2, 0)
 {
     DEBUG_INFO("[Spawner] Sending precalculated network timings on frame %d\n", Frame);
 
@@ -193,6 +195,8 @@ static void Add_Timing_Event()
     OutList.Add(ev);
     Session.PrecalcMaxAhead = 0;
     Session.PrecalcDesiredFrameRate = 0;
+
+    return 0x005B1C4C;
 }
 
 
@@ -201,20 +205,10 @@ static void Add_Timing_Event()
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
+DEFINE_HOOK(0x005B1B7A, _ProtocolZero_Queue_AI_Multiplayer_3, 0)
 {
-    Add_Timing_Event();
-    JMP(0x005B1C4C);
-}
+    GET(int, max_ahead, EDI);
 
-
-/**
- *  Adds the adjusted Timing event.
- *
- *  @author: ZivDero
- */
-static void Add_Timing_Event_2(int max_ahead)
-{
     EventClass ev;
     ev.Type = EVENT_TIMING;
     ev.Data.Timing.DesiredFrameRate = Session.DesiredFrameRate;
@@ -222,23 +216,8 @@ static void Add_Timing_Event_2(int max_ahead)
     ev.Data.Timing.FrameSendRate = Session.FrameSendRate;
 
     OutList.Add(ev);
-}
 
-
-/**
- *  Patch adding the Timing event, taking Protocol 0 into consideration.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
-{
-    GET_REGISTER_STATIC(int, max_ahead, edi);
-    _asm push esi
-
-    Add_Timing_Event_2(max_ahead);
-
-    _asm pop esi
-    JMP(0x005B1BB9);
+    return 0x005B1BB9;
 }
 
 
@@ -247,24 +226,25 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
+DEFINE_HOOK(0x005B4EA5, _ProtocolZero_ExecuteDoList, 5)
 {
-    GET_REGISTER_STATIC(EventClass*, event, esi)
+    GET(EventClass*, event, ESI);
 
     if (ProtocolZero::Enable) {
-        if (event->Type == EVENT_EMPTY) goto continue_execution;
+        if (event->Type == EVENT_EMPTY) {
+            return 0x005B4EB7;
+        }
 
-        if (event->Type == EVENT_PROCESS_TIME) goto continue_execution;
+        if (event->Type == EVENT_PROCESS_TIME) {
+            return 0x005B4EB7;
+        }
 
-        if (event->Type == EXT_EVENT_RESPONSE_TIME2) goto continue_execution;
+        if (event->Type == EXT_EVENT_RESPONSE_TIME2) {
+            return 0x005B4EB7;
+        }
     }
 
-    _asm mov eax, Session
-    _asm mov eax, [eax]
-    JMP_REG(ecx, 0x005B4EAA);
-
-continue_execution:
-    JMP(0x005B4EB7);
+    return 0;
 }
 
 
@@ -274,10 +254,6 @@ continue_execution:
 void ProtocolZero_Hooks()
 {
     Patch_Call(0x005091A5, &MessageListClassExt::_Manage);
-    Patch_Jump(0x005B1A2D, &_ProtocolZero_Queue_AI_Multiplayer_1);
-    Patch_Jump(0x005B1BF1, &_ProtocolZero_Queue_AI_Multiplayer_2);
-    Patch_Jump(0x005B1B7A, &_ProtocolZero_Queue_AI_Multiplayer_3);
-    Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
     Patch_Jump(0x004F05B0, &IPXManagerClassExt::_Set_Timing);
     Patch_Jump(0x004F0F00, &IPXManagerClassExt::_Response_Time);
 }

@@ -118,7 +118,6 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     ComesNearWaypointDistance(CELL_LEPTON_W * 5),
     IsAIDetectDisguise(true),
     IsAIOneHarvesterInSingleplayer(true),
-    EliteFlashTimer(0),
     BaseUnit()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -172,7 +171,6 @@ RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     IronCurtains(noinit),
     IronCurtainPulseTable(noinit),
     AIHarvestersPerRefinery(noinit),
-    MaxPips(noinit),
     BaseUnit(noinit)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));

@@ -29,11 +29,9 @@
 #pragma once
 
 #include "extension.h"
+#include "point.h"
 #include "rules.h"
 #include "tibsun_defines.h"
-#include "rules.h"
-#include "extension.h"
-#include "point.h"
 #include "typelist.h"
 
 
@@ -74,12 +72,12 @@ public:
     bool Tiberiums(CCINIClass& ini);
     bool PrerequisiteGroups(CCINIClass& ini);
 
-        void Fixups(CCINIClass &ini);
-        
-        static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
+    void Fixups(CCINIClass& ini);
 
-    private:
-        void Check();
+    static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
+
+private:
+    void Check();
 
 public:
     /**
@@ -278,11 +276,6 @@ public:
      *  Determines whether the AI is limited to one harvester in singleplayer scenarios, like in original Tiberian Sun.
      */
     bool IsAIOneHarvesterInSingleplayer;
-    
-    /**
-     *  The number of frames that a newly elite unit will flash for.
-     */
-    int EliteFlashTimer;
     
     /**
      *  List of units to consider "home".

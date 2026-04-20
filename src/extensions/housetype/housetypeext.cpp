@@ -218,7 +218,7 @@ HousesType HouseTypeClassExtension::House_From_Name(char const* name)
     if (name != nullptr) {
         for (int house = HOUSE_FIRST; house < HouseTypes.Count(); house++) {
             HouseTypeClass* ptr = HouseTypes[house];
-            if (strcmp(ptr->FullName, name) == 0 || strcmp(ptr->IniName, name) == 0) {
+            if (ptr->GivenName == name || ptr->IniName == name) {
                 return ptr->House;
             }
         }
