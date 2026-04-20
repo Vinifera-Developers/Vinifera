@@ -417,9 +417,9 @@ DEFINE_HOOK(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0)
      */
     Vinifera_ShowSuperWeaponTimers = true;
     Vinifera_TotalPlayTime = 0;
-    Vinifera_DoSave = false;
-    Vinifera_NextAutoSaveFrame = -1;
-    Vinifera_NextAutoSaveNumber = 0;
+    if (SessionExtension) {
+        SessionExtension->Init_Clear();
+    }
 
     /**
      *  Stolen bytes/code.

@@ -47,6 +47,22 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         void Detach(AbstractClass * target, bool all = true) override;
         void Object_CRC(CRCEngine &crc) const override;
 
+        void Init_Clear();
+
+        int Get_Autosave_Interval() const;
+        void Schedule_Next_Autosave();
+        void Flag_To_Save();
+        void Disable_Multiplayer_Autosaves();
+        void Set_Next_Campaign_Autosave_Slot(int slot);
+        void Restore_Autosave_After_Load();
+        void Service_Autosave_After_Main_Loop();
+
+    private:
+        std::string Autosave_File_Name() const;
+        std::string Autosave_Description() const;
+
+    public:
+
         const char *Name() const override { return "Session"; }
         const char *Full_Name() const override { return "Session"; }
 
@@ -116,6 +132,31 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         };
 
         ExtGameOptionsType ExtOptions;
+
+        struct AutoSaveStateType {
+
+            /**
+             *  Has an autosave been queued to run from the main-loop safe point?
+             */
+            bool IsToSave = false;
+
+            /**
+             *  Frame on which the next periodic autosave should trigger.
+             */
+            int NextAutoSaveFrame = -1;
+
+            /**
+             *  Next rotating campaign autosave slot, stored as a 0-based index.
+             */
+            int NextSPAutoSaveSlot = 0;
+
+            /**
+             *  Have multiplayer autosaves been suppressed for the current session?
+             */
+            bool IsMultiplayerAutoSaveSuppressed = false;
+        };
+
+        AutoSaveStateType AutoSave;
         bool IsSpawnerSession = false;
 
         struct SpawnerSlotInfoType {

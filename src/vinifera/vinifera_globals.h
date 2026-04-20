@@ -127,10 +127,6 @@ extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
-extern bool Vinifera_DoSave;
-extern int Vinifera_NextAutoSaveFrame;
-extern int Vinifera_NextAutoSaveNumber;
-
 extern unsigned Vinifera_TotalPlayTime;
 extern unsigned Vinifera_PlaythroughID;
 

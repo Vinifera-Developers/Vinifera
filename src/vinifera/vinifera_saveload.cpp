@@ -970,12 +970,9 @@ bool Vinifera_Load_Game(const char* file_name)
     TacticalActive = true;
 
     /**
-     *  Schedule the next autosave.
+     *  Restore the loaded autosave state.
      */
-    Vinifera_NextAutoSaveFrame = Frame;
-    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && SessionExtension->ExtOptions.MultiplayerAutoSaveInterval > 0
-        ? SessionExtension->ExtOptions.MultiplayerAutoSaveInterval
-        : OptionsExtension->AutoSaveInterval;
+    SessionExtension->Restore_Autosave_After_Load();
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 

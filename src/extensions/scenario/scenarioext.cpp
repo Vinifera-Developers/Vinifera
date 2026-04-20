@@ -1907,10 +1907,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
     /**
      *  Schedule the next autosave.
      */
-    Vinifera_NextAutoSaveFrame = Frame;
-    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && SessionExtension->ExtOptions.MultiplayerAutoSaveInterval > 0
-        ? SessionExtension->ExtOptions.MultiplayerAutoSaveInterval
-        : OptionsExtension->AutoSaveInterval;
+    SessionExtension->Schedule_Next_Autosave();
 
     /**
      *  Set the skip score bool.

@@ -300,7 +300,7 @@ void EventClassExt::Execute()
         **  Save a multiplayer game (this event is only generated in multiplayer mode).
         */
     case EVENT_SAVEGAME:
-        Vinifera_DoSave = true;
+        SessionExtension->Flag_To_Save();
         break;
 
         /*
@@ -433,7 +433,7 @@ void EventClassExt::Do_REMOVEPLAYER()
      *  Turn off autosaves when a player disconnects.
      */
     if (Session.Type == GAME_IPX && SessionExtension->ExtOptions.MultiplayerAutoSaveInterval > 0) {
-        SessionExtension->ExtOptions.MultiplayerAutoSaveInterval = 0;
+        SessionExtension->Disable_Multiplayer_Autosaves();
     }
 
     if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || (Session.Type == GAME_IPX && SessionExtension->ExtOptions.IsAutoSurrender)) {

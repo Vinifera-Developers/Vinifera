@@ -40,6 +40,7 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
+#include "sessionext.h"
 #include "tacticalext.h"
 #include "taction.h"
 #include "tag.h"
@@ -1033,7 +1034,7 @@ bool TActionClassExtension::Do_CREATE_AUTOSAVE(HouseClass* house, ObjectClass* o
     /**
      *  Schedule a save.
      */
-    Vinifera_DoSave = true;
+    SessionExtension->Flag_To_Save();
 
     return true;
 }

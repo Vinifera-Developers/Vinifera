@@ -30,7 +30,29 @@
 
 #include "sessionext.h"
 
+#include "mouse.h"
+#include "optionsext.h"
+#include "rules.h"
+#include "saveload.h"
+#include "scenario.h"
+#include "textprint.h"
+#include "tibsun_functions.h"
 #include "tibsun_globals.h"
+
+#include <format>
+
+
+namespace
+{
+    void Print_Saving_Game_Message()
+    {
+        const int message_delay = Rule->MessageDelay * TICKS_PER_MINUTE;
+        Session.Messages.Add_Message(nullptr, 0, "Saving game...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
+
+        Map.Flag_To_Redraw(2);
+        Map.Render();
+    }
+}
 
 
 /**
@@ -42,6 +64,7 @@ SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
     GlobalExtensionClass(this_ptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
+    Init_Clear();
 }
 
 
@@ -57,10 +80,8 @@ SessionClassExtension::~SessionClassExtension()
 
 
 /**
- *  Loads game options from the stream.
+ *  Loads game options and autosave state from the stream.
  *
- *  @note: The Session extension itself is not saved, only the options are!
- *  
  *  @author: ZivDero
  */
 HRESULT SessionClassExtension::Load(IStream *pStm)
@@ -72,14 +93,17 @@ HRESULT SessionClassExtension::Load(IStream *pStm)
     }
 
     HRESULT hr = pStm->Read(&ExtOptions, sizeof(ExtOptions), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    hr = pStm->Read(&AutoSave, sizeof(AutoSave), nullptr);
     return hr;
 }
 
 
 /**
- *  Save game options to the stream.
- *
- *  @note: The Session extension itself is not saved, only the options are!
+ *  Saves game options and autosave state to the stream.
  *
  *  @author: ZivDero
  */
@@ -94,6 +118,11 @@ HRESULT SessionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     }
 
     HRESULT hr = pStm->Write(&ExtOptions, sizeof(ExtOptions), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    hr = pStm->Write(&AutoSave, sizeof(AutoSave), nullptr);
     return hr;
 }
 
@@ -119,6 +148,9 @@ int SessionClassExtension::Get_Object_Size() const
 void SessionClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SessionClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+
+    static_cast<void>(target);
+    static_cast<void>(all);
 }
 
 
@@ -143,4 +175,178 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
     crc(ExtOptions.IsContinueWithoutHumans);
     crc(ExtOptions.IsScrapMetal);
     crc(ExtOptions.IsAINamesByDifficulty);
+    crc(AutoSave.IsToSave);
+    crc(AutoSave.NextAutoSaveFrame);
+    crc(AutoSave.NextSPAutoSaveSlot);
+    crc(AutoSave.IsMultiplayerAutoSaveSuppressed);
+}
+
+
+/**
+ *  Resets transient and autosave state for a new session.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Init_Clear()
+{
+    AutoSave = AutoSaveStateType();
+}
+
+
+/**
+ *  Gets the autosave interval in frames for the current session, if any.
+ *
+ *  @author: ZivDero
+ */
+int SessionClassExtension::Get_Autosave_Interval() const
+{
+    if (Session.Type == GAME_NORMAL && OptionsExtension->AutoSaveCount > 0 && OptionsExtension->AutoSaveInterval > 0) {
+        return OptionsExtension->AutoSaveInterval;
+    }
+
+    if (Session.Type == GAME_IPX && !AutoSave.IsMultiplayerAutoSaveSuppressed && ExtOptions.MultiplayerAutoSaveInterval > 0) {
+        return ExtOptions.MultiplayerAutoSaveInterval;
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Schedules the next periodic autosave based on the current frame and session state.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Schedule_Next_Autosave()
+{
+    const int interval = Get_Autosave_Interval();
+    AutoSave.NextAutoSaveFrame = interval > 0 ? Frame + interval : -1;
+}
+
+
+/**
+ *  Queues an autosave to run from the main-loop safe point.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Flag_To_Save()
+{
+    AutoSave.IsToSave = true;
+}
+
+
+/**
+ *  Suppresses multiplayer autosaves for the remainder of the current session.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Disable_Multiplayer_Autosaves()
+{
+    AutoSave.IsMultiplayerAutoSaveSuppressed = true;
+    Schedule_Next_Autosave();
+}
+
+
+/**
+ *  Sets the next campaign autosave slot using the internal 0-based slot numbering.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Set_Next_Campaign_Autosave_Slot(int slot)
+{
+    AutoSave.NextSPAutoSaveSlot = slot >= 0 ? slot : 0;
+}
+
+
+/**
+ *  Restores autosave state after loading a savegame.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Restore_Autosave_After_Load()
+{
+    AutoSave.IsToSave = false;
+
+    if (Get_Autosave_Interval() <= 0) {
+        AutoSave.NextAutoSaveFrame = -1;
+        return;
+    }
+
+    if (AutoSave.NextAutoSaveFrame <= Frame) {
+        Schedule_Next_Autosave();
+    }
+}
+
+
+/**
+ *  Services autosaves from the post-main-loop safe point.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Service_Autosave_After_Main_Loop()
+{
+    if (Frame == AutoSave.NextAutoSaveFrame) {
+        Flag_To_Save();
+    }
+
+    if (!AutoSave.IsToSave) {
+        return;
+    }
+
+    Print_Saving_Game_Message();
+
+    if (Session.Singleplayer_Game()) {
+        if (OptionsExtension->AutoSaveCount > 0) {
+            AutoSave.NextSPAutoSaveSlot = (AutoSave.NextSPAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
+        }
+
+        AutoSave.IsToSave = false;
+        Schedule_Next_Autosave();
+
+        Pause_Scenario();
+        Call_Back();
+        Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
+        Resume_Scenario();
+        return;
+    }
+    
+    if (Session.Type == GAME_IPX) {
+        AutoSave.IsToSave = false;
+        Schedule_Next_Autosave();
+
+        Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
+        return;
+    }
+
+    AutoSave.IsToSave = false;
+    Schedule_Next_Autosave();
+}
+
+
+std::string SessionClassExtension::Autosave_File_Name() const
+{
+    switch (Session.Type) {
+    case GAME_IPX:
+        return NET_SAVE_FILE_NAME;
+    case GAME_NORMAL:
+    case GAME_SKIRMISH:
+        return std::format("AUTOSAVE%d.SAV", AutoSave.NextSPAutoSaveSlot + 1);
+    default:
+        return "";
+    }
+}
+
+
+std::string SessionClassExtension::Autosave_Description() const
+{
+    switch (Session.Type) {
+    case GAME_IPX:
+        return "Multiplayer Game";
+    case GAME_NORMAL:
+        return std::format("Mission Auto-Save (Slot %d)", AutoSave.NextSPAutoSaveSlot + 1);
+    case GAME_SKIRMISH:
+        return std::format("Skirmish Auto-Save (Slot %d)", AutoSave.NextSPAutoSaveSlot + 1);
+    default:
+        return "";
+    }
 }

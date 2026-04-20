@@ -154,7 +154,7 @@ void Spawner::Init_Session(char* scenario_name)
     BuildLevel = Config->TechLevel;
     Options.GameSpeed = Config->GameSpeed;
 
-    Vinifera_NextAutoSaveNumber = Config->NextAutoSaveNumber;
+    SessionExtension->Set_Next_Campaign_Autosave_Slot(Config->NextAutoSaveNumber);
 
     const auto nodename = new NodeNameType;
     Session.Players.Add(nodename);
