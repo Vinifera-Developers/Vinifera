@@ -25,21 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "abstractext.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "swizzle.h"
-#include "vinifera_saveload.h"
-#include "extension.h"
+
 #include "debughandler.h"
-#include "asserthandler.h"
+#include "extension.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor
- * 
+ *
  *  @author: CCHyper
  */
 AbstractClassExtension::AbstractClassExtension(const AbstractClass *this_ptr) :
@@ -176,12 +175,12 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
         return hr;
     }
 
-    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + "::" + Wstring("ThisPtr");
+    std::string this_name = Extension::Utility::Get_TypeID_Name(this) + "::" + "ThisPtr";
 
     /**
      *  Register this instance to be available for remapping references to.
      */
-    VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, this_name.Peek_Buffer());
+    VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, this_name.c_str());
 
     /**
      *  Read this class's binary blob data directly into this instance.
@@ -191,7 +190,7 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
         return hr;
     }
     
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ThisPtr, this_name.Peek_Buffer());
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ThisPtr, this_name.c_str());
 
     return hr;
 }
@@ -210,13 +209,13 @@ HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
         return E_POINTER;
     }
 
-    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + "::" + Wstring("ThisPtr");
+    std::string this_name = Extension::Utility::Get_TypeID_Name(this) + "::" + "ThisPtr";
 
     /**
      *  Fetch the save id for this instance.
      */
     LONG id;
-    VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(this, id, this_name.Peek_Buffer());
+    VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(this, id, this_name.c_str());
 
     //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
 

@@ -25,19 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "supertypeext.h"
-#include "supertype.h"
-#include "vinifera_util.h"
+
 #include "bsurface.h"
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "supertype.h"
+#include "vinifera_util.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTypeClass *this_ptr) :
@@ -61,7 +63,8 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTy
  *  @author: CCHyper
  */
 SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    SidebarImage(noinit)
 {
     //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -121,7 +124,7 @@ HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(SidebarImage);
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(SidebarImage.c_str());
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
@@ -142,7 +145,7 @@ HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     /**
      *  Store the graphic name strings as raw data, these are used by the load operation.
      */
-    std::strncpy(SidebarImage, This()->SidebarImage, sizeof(SidebarImage));
+    SidebarImage = This()->SidebarImage;
 
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -208,7 +211,7 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->SidebarImage);
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->SidebarImage.c_str());
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
@@ -216,8 +219,7 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ActionOutOfRange = ini.Get_ActionType(ini_name, "ActionOutOfRange", ActionOutOfRange);
     VoxMissileLaunched = ini.Get_VoxType(ini_name, "MissileLaunchedVoice", VoxMissileLaunched);
 
-    if (ini.Is_Present(ini_name, "Description"))
-        ini.Get_String(ini_name, "Description", Description, std::size(Description));
+    if (ini.Is_Present(ini_name, "Description")) ini.Get_String(ini_name, "Description", "", Description, std::size(Description));
 
     IsInitialized = true;
     

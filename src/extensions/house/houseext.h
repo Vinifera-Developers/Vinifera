@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "abstractext.h"
@@ -87,8 +88,13 @@ public:
     static void Load_Unit_Trackers(HouseClass* house, IStream* pStm);
     static void Save_Unit_Trackers(HouseClass* house, IStream* pStm);
 
+    void Set_Spawn_Point(const Cell& cell);
+
     static HouseClass* House_At_Spawn_Point(WAYPOINT waypoint);
     static HouseClass* House_From_HousesType(HousesType house);
+
+    bool Can_Use_Iron_Curtain() const;
+    void Expend_Iron_Curtain();
 
 public:
     /**
@@ -121,6 +127,12 @@ public:
      *  The waypoint at which this house was spawned.
      */
     WAYPOINT SpawnWaypoint;
+
+    /**
+     *  Provides a timer for the availability of the Iron Curtain for this house.
+     *  Used until we have a proper superweapon based Iron Curtain implementation.
+     */
+    CDTimerClass<FrameTimerClass> IronCurtainAvailabilityTimer;
 
     /**
      *  Is this house an observer?

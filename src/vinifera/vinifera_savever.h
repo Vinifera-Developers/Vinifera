@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include <objidl.h>
 #include <minwindef.h>
+#include <objidl.h>
 
 
 class ViniferaSaveVersionInfo

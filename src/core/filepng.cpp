@@ -25,21 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "filepng.h"
-#include "ccfile.h"
-#include "surface.h"
-#include "bsurface.h"
-#include "dsurface.h"
-#include "buff.h"
-#include "stristr.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
+#include "bsurface.h"
+#include "buff.h"
+#include "ccfile.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "stristr.h"
+#include "surface.h"
+
 #include <lodepng.h>
 
 
-/** 
+/**
  *  Writes the contents of a graphic surface as PNG to a file instance.
- * 
+ *
  *  @author: CCHyper
  */
 bool Write_PNG_File(FileClass *name, Surface &pic, const PaletteClass *palette, bool greyscale)
@@ -226,14 +231,14 @@ BSurface *Read_PNG_File(FileClass *name, unsigned char *palette, void *buff, lon
      */
     for (int y = 0; y < pic->Get_Height(); ++y) {
     
-        unsigned short *buffptr = (unsigned short *)pic->Lock(0, y);
+        unsigned short *buffptr = (unsigned short *)pic->Lock(Point2D(0, y));
         for (int x = 0; x < pic->Get_Width(); ++x) {
     
             int r = *png_image++; // & 0xFF;
             int g = *png_image++; // & 0xFF;
             int b = *png_image++; // & 0xFF;
     
-            *buffptr++ = DSurface::RGB_To_Pixel(r, g, b);
+            *buffptr++ = DSurface::Build_Hicolor_Pixel(r, g, b);
         }
     
         pic->Unlock();

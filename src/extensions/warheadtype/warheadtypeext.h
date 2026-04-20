@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "abstracttypeext.h"
@@ -77,7 +78,7 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  This is used to override the size of the combat light flash at the point of impact.
          */
-        float CombatLightSize;
+        double CombatLightSize;
 
         /**
          *  These values are used to shake the screen when the projectile impacts.

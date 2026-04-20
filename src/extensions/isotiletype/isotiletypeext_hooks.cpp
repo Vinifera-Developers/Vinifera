@@ -25,23 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "isotiletypeext_hooks.h"
-#include "isotiletypeext_init.h"
+
+#include "asserthandler.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "hooker.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "extension.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "isotiletypeext_init.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

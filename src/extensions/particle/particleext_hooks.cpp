@@ -25,23 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "aircraft.h"
-#include "building.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
-#include "particlesysext_hooks.h"
 #include "particlesys.h"
 #include "rules.h"
 #include "scenario.h"
-#include "unit.h"
-#include "tibsun_globals.h"
+#include "syringe.h"
 #include "tibsun_defines.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "tibsun_globals.h"
+#include "unit.h"
 
 
 UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
@@ -60,38 +57,37 @@ UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch)
+DEFINE_HOOK(0x005A389C, _ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch, 0)
 {
-    GET_REGISTER_STATIC(ObjectClass*, destroyedobject, esi);
-    GET_REGISTER_STATIC(ResultType, result, eax);
-    GET_STACK_STATIC(ObjectClass*, nextobject, esp, 0x40);
-    static UnitClass* visceroid;
+    GET(ObjectClass*, destroyedobject, ESI);
+    GET(ResultType, result, EAX);
+    GET_STACK(ObjectClass*, nextobject, 0x40);
 
     enum {
         ContinueVisceroidPlacement = 0x005A38FC,
         SkipToNextObjectOnCell = 0x005A3965
     };
 
-    _asm { mov esi, dword ptr ds:nextobject }
+    R->ESI(nextobject);
 
     if (result != RESULT_DESTROYED) {
         // Object was not destroyed, do not create visceroid.
-        JMP(SkipToNextObjectOnCell);
+        return SkipToNextObjectOnCell;
     }
 
     if (!Scen->IsTiberiumDeathToVisceroid) {
         // Visceroids spawning from Tiberium death is disabled, do not create visceroid.
-        JMP(SkipToNextObjectOnCell);
+        return SkipToNextObjectOnCell;
     }
 
-    visceroid = Create_Visceroid(destroyedobject);
+    UnitClass* visceroid = Create_Visceroid(destroyedobject);
     if (visceroid == nullptr) {
         // No visceroid was created.
-        JMP(SkipToNextObjectOnCell);
+        return SkipToNextObjectOnCell;
     }
 
-    _asm { mov edi, dword ptr ds:visceroid }
-    JMP(ContinueVisceroidPlacement);
+    R->EDI(visceroid);
+    return ContinueVisceroidPlacement;
 }
 
 
@@ -100,5 +96,5 @@ DECLARE_PATCH(_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch
  */
 void ParticleClassExtension_Hooks()
 {
-    Patch_Jump(0x005A389C, &_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch);
+    
 }

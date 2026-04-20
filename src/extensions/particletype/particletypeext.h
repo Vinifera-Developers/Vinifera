@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "objecttypeext.h"
@@ -59,7 +60,7 @@ ParticleTypeClassExtension final : public ObjectTypeClassExtension
         virtual const ParticleTypeClass *This_Const() const override { return reinterpret_cast<const ParticleTypeClass *>(ObjectTypeClassExtension::This_Const()); }
         virtual RTTIType Fetch_RTTI() const override { return RTTI_PARTICLETYPE; }
 
-        virtual bool Read_INI(CCINIClass &ini) override;
+        virtual bool Read_INI(CCINIClass& ini) override;
 
     public:
 };

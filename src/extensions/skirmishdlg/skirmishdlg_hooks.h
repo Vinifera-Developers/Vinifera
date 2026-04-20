@@ -25,9 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 
-#include "always.h"
+#pragma once
 
 
 void SkirmishDialog_Hooks();

@@ -25,34 +25,35 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sidebarext.h"
-#include "sidebarext.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
+
 #include "ccini.h"
-#include "noinit.h"
-#include "swizzle.h"
-#include "scenarioext.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
 #include "debughandler.h"
 #include "drawshape.h"
-#include "language.h"
-#include "tooltip.h"
-#include "mouse.h"
-#include "house.h"
-#include "super.h"
 #include "event.h"
 #include "eventext.h"
-#include "object.h"
 #include "factory.h"
+#include "house.h"
 #include "houseext.h"
+#include "housetype.h"
+#include "language.h"
+#include "mouse.h"
+#include "noinit.h"
+#include "object.h"
+#include "scenarioext.h"
+#include "sideext.h"
+#include "super.h"
+#include "techno.h"
+#include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tooltip.h"
+#include "vinifera_saveload.h"
 #include "vox.h"
 #include "wwmouse.h"
-#include "techno.h"
-#include "sideext.h"
-#include "housetype.h"
 
 
 GadgetClass* SidebarClassExtension::LastHovered;
@@ -127,7 +128,7 @@ HRESULT SidebarClassExtension::Load(IStream *pStm)
      */
 
     Init_IO();
-    Set_Dimensions();
+    Shift_Sidebar();
     Init_For_House();
     
     return hr;
@@ -206,7 +207,7 @@ void SidebarClassExtension::Init_Strips()
 
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++)
     {
-        new (&Column[i]) SidebarClass::StripClass(NoInitClass());
+        new (&Column[i]) SidebarClass::StripClass(InitClass());
         Column[i].X = COLUMN_ONE_X;
         Column[i].Y = COLUMN_Y;
         Column[i].Size = Rect(COLUMN_ONE_X, COLUMN_Y, SidebarClass::StripClass::OBJECT_WIDTH * 2, SidebarClass::StripClass::OBJECT_HEIGHT * max_visible);
@@ -260,7 +261,7 @@ void SidebarClassExtension::Init_IO()
  *
  *  @author: ZivDero
  */
-void SidebarClassExtension::Set_Dimensions()
+void SidebarClassExtension::Shift_Sidebar()
 {
     TabButtons[0].Set_Position(SidebarRect.X + TAB_ONE_X_OFFSET, SidebarRect.Y + TAB_Y_OFFSET);
     TabButtons[0].Flag_To_Redraw();
@@ -278,33 +279,33 @@ void SidebarClassExtension::Set_Dimensions()
     TabButtons[3].Flag_To_Redraw();
     TabButtons[3].DrawX = -SidebarRect.X;
 
-    if (ToolTipHandler)
+    if (ToolTips)
     {
         ToolTip tooltip;
 
         tooltip.Region = Rect(TabButtons[0].X, TabButtons[0].Y, TabButtons[0].Width, TabButtons[0].Height);
         tooltip.ID = BUTTON_TAB_1;
         tooltip.Text = TXT_NONE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
 
         tooltip.Region = Rect(TabButtons[1].X, TabButtons[1].Y, TabButtons[1].Width, TabButtons[1].Height);
         tooltip.ID = BUTTON_TAB_2;
         tooltip.Text = TXT_NONE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
 
         tooltip.Region = Rect(TabButtons[2].X, TabButtons[2].Y, TabButtons[2].Width, TabButtons[2].Height);
         tooltip.ID = BUTTON_TAB_3;
         tooltip.Text = TXT_NONE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
 
         tooltip.Region = Rect(TabButtons[3].X, TabButtons[3].Y, TabButtons[3].Width, TabButtons[3].Height);
         tooltip.ID = BUTTON_TAB_4;
         tooltip.Text = TXT_NONE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
     }
 }
 
@@ -505,7 +506,7 @@ bool SidebarClassExtension::TabButtonClass::Action(unsigned flags, KeyNumType& k
     */
     if (flags & LEFTRELEASE)
     {
-        bool overbutton = (WWMouse->Get_Mouse_X() - X) < Width && (WWMouse->Get_Mouse_Y() - Y) < Height;
+        bool overbutton = (Get_Mouse_X() - X) < Width && (Get_Mouse_Y() - Y) < Height;
         if (!IsSelected && overbutton)
         {
             IsSelected = true;
@@ -607,7 +608,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
     {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
         const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-        SidebarSurface->Draw_Rect(hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
+        SidebarSurface->Draw_Rect(hover_rect, DSurface::Build_Hicolor_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
     }
 
     IsDrawn = true;
@@ -1029,4 +1030,3 @@ void SidebarClassExtension::Check_Hover(GadgetClass* gadget, int mousex, int mou
         }
     }
 }
-

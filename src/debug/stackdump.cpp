@@ -25,11 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "stackdump.h"
+
 #include "debughlp.h"
-#include <Windows.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <eh.h>
- 
+#include <windows.h>
+
 
 #define PRIPTRSIZE "08"
 
@@ -38,7 +46,7 @@
  *  Options for the stack walker.
  */
 #define STACK_SYMNAME_MAX 512
-#define STACK_DEPTH_MAX 30
+#define STACK_DEPTH_MAX   30
 
 
 /**
@@ -47,7 +55,7 @@
 static bool StripFilenamePaths = true;
 
 
-static void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigned *linenumber, uintptr_t *address)
+void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigned *linenumber, uintptr_t *address)
 {
     char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64) + STACK_SYMNAME_MAX];
     IMAGEHLP_SYMBOL64 *const symbol_bufferp = reinterpret_cast<IMAGEHLP_SYMBOL64 *>(symbol_buffer);
@@ -100,6 +108,10 @@ static void Get_Function_Details(void *pointer, char *funcname, char *filename, 
                 std::strcat(funcname, "();");
             }
 
+            if (address != nullptr) {
+                *address = symbol_bufferp->Address;
+            }
+
             //if (SymGetLineFromAddrPtr != nullptr) {
                 IMAGEHLP_LINE64 line;
                 line.Key = 0;
@@ -134,10 +146,6 @@ static void Get_Function_Details(void *pointer, char *funcname, char *filename, 
 
                     if (linenumber != nullptr) {
                         *linenumber = line.LineNumber;
-                    }
-
-                    if (address != nullptr) {
-                        *address = line.Address;
                     }
                 }
             //}

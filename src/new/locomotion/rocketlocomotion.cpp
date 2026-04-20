@@ -25,25 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "rocketlocomotion.h"
-#include "tibsun_inline.h"
-#include "tibsun_globals.h"
-#include "iomap.h"
-#include "aircraftext.h"
+
 #include "aircraft.h"
+#include "aircraftext.h"
 #include "aircrafttracker.h"
 #include "aircrafttype.h"
-#include "cell.h"
 #include "anim.h"
+#include "cell.h"
 #include "combat.h"
-#include "foot.h"
-#include "tactical.h"
-#include "wwmath.h"
-#include "debughandler.h"
 #include "extension.h"
 #include "fastmath.h"
+#include "foot.h"
+#include "iomap.h"
+#include "tactical.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "vector2.h"
 #include "voc.h"
+#include "wwmath.h"
 
 
 /**
@@ -111,7 +114,7 @@ RocketLocomotionClass::RocketLocomotionClass(const NoInitClass& noinit) : Locomo
  */
 IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving()
 {
-    return DestinationCoord != Coord();
+    return DestinationCoord != Coord(0, 0, 0);
 }
 
 

@@ -25,14 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "missionext.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 MissionClassExtension::MissionClassExtension(const MissionClass *this_ptr) :

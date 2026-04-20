@@ -26,24 +26,18 @@
  *
  ******************************************************************************/
 
-#include "tibsun_globals.h"
+#include "always.h"
 
 #include "colorscheme.h"
 #include "dsurface.h"
-#include "extension_globals.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
 #include "rgb.h"
 #include "scenarioext.h"
 #include "sideext.h"
-
-
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "tibsun_globals.h"
 
 
 /**
@@ -51,18 +45,13 @@
  *
  *  @author: Rampastring, ZivDero
  */
-DECLARE_PATCH(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch)
+DEFINE_HOOK(0x0060E5AE, _TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch, 6)
 {
-    static ColorSchemeType colorschemetype;
-    static ColorScheme* colorscheme;
+    ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
+    ColorScheme* colorscheme = ColorSchemes[colorschemetype];
+    R->EDX(colorscheme);
 
-    colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-    colorscheme = ColorSchemes[colorschemetype];
-
-    _asm mov edx, colorscheme 
-    _asm mov ecx, LogicSurface
-    _asm mov ecx, [ecx]
-    JMP(0x0060E5B4);
+    return 0;
 }
 
 
@@ -71,20 +60,13 @@ DECLARE_PATCH(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Pat
  *
  *  @author: Rampastring, ZivDero
  */
-DECLARE_PATCH(_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch)
+DEFINE_HOOK(0x004714E6, _CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch, 8)
 {
-    _asm push ecx
-    _asm push 4108h
-    _asm push 0
+    ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
+    ColorScheme* colorscheme = ColorSchemes[colorschemetype];
+    R->EAX(colorscheme);
 
-    static ColorSchemeType colorschemetype;
-    static ColorScheme* colorscheme;
-
-    colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-    colorscheme = ColorSchemes[colorschemetype];
-
-    _asm mov eax, colorscheme
-    JMP_REG(ecx, 0x004714F0);
+    return 0;
 }
 
 
@@ -93,7 +75,7 @@ DECLARE_PATCH(_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch)
  *
  *  @author: Rampastring, ZivDero
  */
-void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
+void Draw_Tooltip_Rectangle(Surface* surface, Rect& drawrect)
 {
     surface->Fill_Rect(drawrect, 0);
 
@@ -101,7 +83,7 @@ void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
     const ColorScheme* colorscheme = ColorSchemes[colorschemetype];
 
     RGBClass rgb = colorscheme->HSV.operator RGBClass();
-    surface->Draw_Rect(drawrect, DSurface::RGB_To_Pixel(rgb));
+    surface->Draw_Rect(drawrect, DSurface::Build_Hicolor_Pixel(rgb));
 }
 
 
@@ -110,14 +92,14 @@ void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch)
+DEFINE_HOOK(0x0044E682, _CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch, 0)
 {
-    GET_REGISTER_STATIC(DSurface*, surface, esi);
-    GET_REGISTER_STATIC(Rect*, drawrect, eax);
+    GET(Surface*, surface, ESI);
+    GET(Rect*, drawrect, EAX);
 
     Draw_Tooltip_Rectangle(surface, *drawrect);
     
-    JMP(0x0044E6D4);
+    return 0x0044E6D4;
 }
 
 
@@ -126,16 +108,13 @@ DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch)
  *
  *  @author: Rampastring, ZivDero
  */
-DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch)
+DEFINE_HOOK(0x0044E6F3, _CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch, 0)
 {
-    static ColorSchemeType colorschemetype;
-    static ColorScheme* colorscheme;
+    ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->ToolTipColor;
+    ColorScheme* colorscheme = ColorSchemes[colorschemetype];
+    R->EAX(colorscheme);
 
-    colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->ToolTipColor;
-    colorscheme = ColorSchemes[colorschemetype];
-
-    _asm mov eax, colorscheme
-    JMP_REG(ecx, 0x0044E6F8);
+    return 0x0044E6F8;
 }
 
 
@@ -144,9 +123,5 @@ DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch)
  */
 void CreditClassExtension_Hooks()
 {
-    Patch_Jump(0x0060E5AE, &_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch);
-    Patch_Jump(0x004714E6, &_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch);
-
-    Patch_Jump(0x0044E682, &_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch);
-    Patch_Jump(0x0044E6F3, &_CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch);
+    
 }

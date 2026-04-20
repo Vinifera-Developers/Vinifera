@@ -25,29 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "playmovie_hooks.h"
-#include "tibsun_globals.h"
-#include "options.h"
+
 #include "campaign.h"
 #include "campaignext.h"
-#include "scenario.h"
-#include "vqa.h"
-#include "movie.h"
-#include "playmovie.h"
 #include "cd.h"
-#include "wstring.h"
-#include "extension.h"
-#include "fatal.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "movie.h"
+#include "options.h"
+#include "playmovie.h"
+#include "scenario.h"
+#include "syringe.h"
+#include "tibsun_globals.h"
+#include "vqa.h"
 
 
 /**
  *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio = false)
@@ -118,16 +118,20 @@ static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool mai
 
 
 /**
- *  Helper function to avoid trashing the esi register in _Play_Movie_Scale_By_Ratio_Patch.
+ *  #issue-292
  *
- *  @author: CCHyper, Rampastring
+ *  Videos stretch to the whole screen size and ignore the video aspect ratio.
+ *
+ *  @author: CCHyper
  */
-void Scale_Movie_Helper(MovieClass* this_ptr)
+DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
 {
+    GET(VQHandle*, this_ptr, ESI);
+
     /**
      *  Calculate the stretched rect for this video, maintaining the video ratio.
      */
-    Rect stretched_rect = this_ptr->VideoRect;
+    Rect stretched_rect = this_ptr->InitialRect;
     if (Scale_Video_Rect(stretched_rect, HiddenSurface->Width, HiddenSurface->Height, true)) {
 
         /**
@@ -135,25 +139,118 @@ void Scale_Movie_Helper(MovieClass* this_ptr)
          */
         this_ptr->StretchRect = stretched_rect;
 
-        DEBUG_INFO("Stretching movie - VideoRect: %d,%d -> StretchRect: %d,%d\n",
-            this_ptr->VideoRect.Width, this_ptr->VideoRect.Height,
-            this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
+        DEBUG_INFO("Stretching movie - InitialRect: %d,%d -> StretchRect: %d,%d\n", this_ptr->InitialRect.Width, this_ptr->InitialRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
     }
+
+    return 0x00563805;
 }
 
 
 /**
- *  #issue-292
- *
- *  Videos stretch to the whole screen size and ignore the video aspect ratio.
- *
+ *  #issue-95
+ * 
+ *  Patch for handling the campaign intro movies
+ *  for "The First Decade" and "Freeware TS" installations.
+ * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
+static bool Play_Intro_Movie(CampaignType campaign_id)
 {
-    GET_REGISTER_STATIC(MovieClass *, this_ptr, esi);
-    Scale_Movie_Helper(this_ptr);
-    JMP(0x00563805);
+    /**
+     *  Catch any cases where we might be starting a non-campaign scenario.
+     */
+    if (campaign_id == CAMPAIGN_NONE) {
+        return false;
+    }
+    if (Scen->Scenario != 1) {
+        return false;
+    }
+
+    char movie_filename[32];
+    VQType intro_vq = VQ_NONE;
+
+    /**
+     *  Fetch the campaign disk id.
+     */
+    CampaignClass *campaign = Campaigns[campaign_id];
+    DiskID cd_num = campaign->WhichCD;
+
+    /**
+     *  Check if the current campaign is an original GDI or NOD campaign.
+     */
+    bool is_original_gdi = (cd_num == DISK_GDI && (campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && campaign->Scenario == "GDI1A.MAP");
+    bool is_original_nod = (cd_num == DISK_NOD && (campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && campaign->Scenario == "NOD1A.MAP");
+
+    /**
+     *  #issue-762
+     * 
+     *  Fetch the campaign extension (if available) and get the custom intro movie.
+     * 
+     *  @author: CCHyper
+     */
+    CampaignClassExtension *campaignext = Extension::Fetch(campaign);
+    if (campaignext->IntroMovie[0] != '\0') {
+        std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
+        DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+        Play_Movie(movie_filename);
+
+    /**
+     *  If this is an original Tiberian Sun campaign, play the respective intro movie.
+     */
+    } else if (is_original_gdi || is_original_nod) {
+
+        /**
+         *  "The First Decade" and "Freeware TS" installations reshuffle
+         *  the movie files due to all mix files being local now and a
+         *  primitive "no-cd" added;
+         *  
+         *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
+         *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
+         * 
+         *  Build the movie filename based on the current campaigns desired CD (see DiskID enum). 
+         */
+        std::snprintf(movie_filename, sizeof(movie_filename), "INTR%d.VQA", cd_num);
+
+        /**
+         *  Now play the movie if it is found, falling back to original behavior otherwise.
+         */
+        if (CCFileClass(movie_filename).Is_Available()) {
+            DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+            Play_Movie(movie_filename);
+
+        } else if (CCFileClass("INTRO.VQA").Is_Available()) {
+            DEBUG_INFO("About to play \"INTRO.VQA\".\n");
+            Play_Movie("INTRO.VQA");
+
+        } else {
+            DEBUG_WARNING("Failed to find Intro movie!\n");
+            return false;
+        }
+
+    } else {
+        DEBUG_WARNING("No campaign intro movie defined.\n");
+    }
+
+    return true;
+}
+
+DEFINE_HOOK(0x005DB2DE, _Start_Scenario_Intro_Movie_Patch, 0)
+{
+    GET(CampaignType, campaign_id, EBX);
+    GET(char *, name, EBP);
+
+    Play_Intro_Movie(campaign_id);
+
+read_scenario:
+    //return 0x005DB319;
+
+    /**
+     *  The First Decade" and "Freeware TS" EXE's actually have patched code at
+     *  the address 0x005DB319, so lets handle the debug log print ourself and
+     *  jump back at a safe location.
+     */
+    DEBUG_GAME("Reading scenario: %s\n", name);
+    return 0x005DB327;
 }
 
 
@@ -230,11 +327,11 @@ static void Play_Intro_SneakPeak_Movies()
 }
 
 
-DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
+DEFINE_HOOK(0x004E2796, _Select_Game_Intro_SneakPeak_Movies_Patch, 0)
 {
     Play_Intro_SneakPeak_Movies();
 
-    JMP(0x004E288B);
+    return 0x004E288B;
 }
 
 
@@ -243,7 +340,6 @@ DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
  */
 void PlayMovieExtension_Hooks()
 {
-    Patch_Jump(0x004E2796, &_Select_Game_Intro_SneakPeak_Movies_Patch);
 
     /**
      *  #issue-287
@@ -255,6 +351,4 @@ void PlayMovieExtension_Hooks()
      */
     Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
     Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
-
-    Patch_Jump(0x00563795, &_Play_Movie_Scale_By_Ratio_Patch);
 }

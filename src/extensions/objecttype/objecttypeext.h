@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "abstracttypeext.h"
@@ -66,8 +67,8 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
         /**
          *  These are only to be accessed for save and load operations!
          */
-        char GraphicName[24 + 1];
-        char AlphaGraphicName[24 + 1];
+        FixedString<24> GraphicName;
+        FixedString<24> AlphaGraphicName;
 
     public:
 

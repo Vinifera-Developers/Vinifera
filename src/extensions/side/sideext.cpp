@@ -25,22 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sideext.h"
-#include "side.h"
+
 #include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
 #include "colorscheme.h"
-#include "rules.h"
 #include "debughandler.h"
+#include "extension.h"
 #include "findmake.h"
+#include "rules.h"
+#include "side.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
@@ -196,7 +199,7 @@ void SideClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool SideClassExtension::Read_INI(CCINIClass &ini)
 {
-    DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     const char* ini_name = Name();
 
@@ -234,8 +237,8 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
-    UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
-    ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+    UIColor = ini.Get_Scheme_Index(ini_name, "UIColor", UIColor);
+    ToolTipColor = ini.Get_Scheme_Index(ini_name, "ToolTipColor", ToolTipColor);
 
     Crew = TGet_Class(ini, ini_name, "Crew", Crew);
     Engineer = TGet_Class(ini, ini_name, "Engineer", Engineer);

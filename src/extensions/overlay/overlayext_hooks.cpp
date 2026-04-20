@@ -25,30 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "overlayext_hooks.h"
-#include "overlayext_init.h"
-#include "overlayext.h"
-#include "extension.h"
+#include <unordered_set>
+
 #include "bsurface.h"
 #include "buffpipe.h"
 #include "buffstraw.h"
 #include "ccini.h"
-#include "lcwpipe.h"
-#include "lcwstraw.h"
-#include "session.h"
-#include "overlaytype.h"
+#include "extension.h"
+#include "hooker.h"
 #include "lcwpipe.h"
 #include "lcwstraw.h"
 #include "mouse.h"
+#include "overlayext.h"
+#include "overlayext_init.h"
+#include "overlaytype.h"
 #include "session.h"
 #include "tracker.h"
-
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "hooker.h"
-#include "hooker_macros.h"
-
+#include "vinifera_util.h"
 
 /**
  *  Full reimplacement for OverlayClass::Read_INI.
@@ -63,7 +60,9 @@ void Read_INI(CCINIClass const& ini)
         BSurface temp_surface(512, 512, 2);
         temp_surface.Fill(0);
 
-        int len = ini.Get_UUBlock("OverlayPack", temp_surface.Lock(), temp_surface.Get_Width() * temp_surface.Get_Height() * temp_surface.BytesPerPixel);
+        int len = ini.Get_UUBlock("OverlayPack", temp_surface.Lock(), temp_surface.Get_Width() * temp_surface.Get_Height() * temp_surface.Bytes_Per_Pixel());
+
+        std::unordered_set<OverlayType> error_overlaytypes;
 
         if (len > 0) {
             BufferStraw bpipe(temp_surface.Lock(), len);
@@ -90,31 +89,37 @@ void Read_INI(CCINIClass const& ini)
                         }
                     }
 
-                    if (classid != OVERLAY_NONE && (OverlayTypes[classid]->Get_Image_Data() != nullptr || OverlayTypes[classid]->CellAnim)) {
+                    if (classid != OVERLAY_NONE) {
 
-                        /*
-                        **  Don't allow placement of crates in the multiplayer scenarios.
-                        */
+                        if (OverlayTypes[classid]->Get_Image_Data() != nullptr || OverlayTypes[classid]->CellAnim) {
 #if false
-                        if (Session.Type == GAME_NORMAL || !OverlayTypes[classid]->IsCrate) {
-#endif
-
                             /*
-                            **  Don't allow placement of overlays on the top or bottom rows of
-                            **  the map.
+                            **  Don't allow placement of crates in the multiplayer scenarios.
                             */
-                            if (Map.In_Radar(cell)) {
-                                unsigned char old_overlay_data = Map[cell].OverlayData;
-                                new OverlayClass(OverlayTypes[classid], cell);
-
-                                if (static_cast<int>(classid) == OVERLAY_BRIDGE1 || static_cast<int>(classid) == OVERLAY_BRIDGE2 ||
-                                    static_cast<int>(classid) == OVERLAY_RAIL_BRIDGE1 || static_cast<int>(classid) == OVERLAY_RAIL_BRIDGE2) {
-                                    Map[cell].OverlayData = old_overlay_data;
-                                }
-                            }
-#if false
-                        }
+                            if (Session.Type == GAME_NORMAL || !OverlayTypes[classid]->IsCrate) {
 #endif
+
+                                /*
+                                **  Don't allow placement of overlays on the top or bottom rows of
+                                **  the map.
+                                */
+                                if (Map.In_Radar(cell)) {
+                                    unsigned char old_overlay_data = Map[cell].OverlayData;
+                                    new OverlayClass(OverlayTypes[classid], cell);
+
+                                    if (static_cast<int>(classid) == OVERLAY_BRIDGE1 || static_cast<int>(classid) == OVERLAY_BRIDGE2 || static_cast<int>(classid) == OVERLAY_RAIL_BRIDGE1 || static_cast<int>(classid) == OVERLAY_RAIL_BRIDGE2) {
+                                        Map[cell].OverlayData = old_overlay_data;
+                                    }
+                                }
+#if false
+                            }
+#endif
+                        } else {
+                            if (!OverlayTypes[classid]->IsVeins && !error_overlaytypes.contains(classid)) { // Veinhole dummies intentionally have no valid image
+                                error_overlaytypes.insert(classid);
+                                Vinifera_Log_And_Show_WWMessageBox("Overlay type %s (%d) has no image!", OverlayTypes[classid]->IniName.c_str(), classid);
+                            }
+                        }
                     }
                 }
             }

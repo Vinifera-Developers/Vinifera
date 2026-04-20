@@ -25,16 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include <windows.h>
-#include <cstdarg>
-#include <cstdio>
-#include <ctime>
+
+#include "always.h"
 
 #include "hooker.h"
-#include "setup_hooks.h"
-
 #include "miscutil.h"
+#include "setup_hooks.h"
 #include "vinifera_util.h"
+
+#include <cstdio>
+#include <windows.h>
 
 
 /**
@@ -65,25 +65,10 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
     switch (ul_reason_for_call) {
         case DLL_PROCESS_ATTACH:
         {
-            /**
-             *  Give the user time to attach the debugger if one is not already present.
-             */
-#if !defined(NDEBUG) && defined(TS_CLIENT)
-            if (!IsDebuggerPresent()) {
-                MessageBox(NULL, "Attach the debugger now or continue.", "Vinifera", MB_OK|MB_SERVICE_NOTIFICATION);
-            }
-#elif defined(TS_CLIENT)
-            const char *cmdline = GetCommandLineA();
-            bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
-            if (wait_for_debugger) {
-                MessageBox(NULL, "Attach the debugger now or continue.", "Vinifera", MB_OK|MB_SERVICE_NOTIFICATION);
-            }
-#endif
-
             if (lpReserved) {
                 OutputDebugString(VINIFERA_DLL " is being loaded statically.\n");
             } else {
-                OutputDebugString(VINIFERA_DLL " is being loaded dynamicly.\n");
+                OutputDebugString(VINIFERA_DLL " is being loaded dynamically.\n");
             }
 
             OutputDebugString(VINIFERA_DLL " attached to " VINIFERA_TARGET_EXE ".\n");

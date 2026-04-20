@@ -25,15 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
+
 #include "extension.h"
 #include "mouse.h"
-#include "sidebar.h"
-#include "vinifera_globals.h"
 #include "shapeset.h"
+#include "sidebar.h"
 #include "technotypeext.h"
+#include "vinifera_globals.h"
 
 
 class SidebarClassExtension final : public GlobalExtensionClass<SidebarClass>
@@ -175,7 +176,7 @@ public:
         void Init_Strips();
         void Init_IO();
         void Init_For_House();
-        void Set_Dimensions();
+        void Shift_Sidebar();
         bool Change_Tab(SidebarTabType index);
 
         SidebarClass::StripClass& Current_Tab() { return Column[TabIndex];}
@@ -240,8 +241,11 @@ public:
 
         /**
          *  Replacement select buttons.
+         *
+         *  We can't have this many buildables in a strip, but let's have more buttons so that we can support higher resolutions.
+         *  160 should be sufficient for 8K.
          */
-        ViniferaSelectClass SelectButton[SIDEBAR_TAB_COUNT][SidebarClass::StripClass::MAX_BUILDABLES];
+        ViniferaSelectClass SelectButton[SIDEBAR_TAB_COUNT][160];
 
         /**
          *  Buttons for the tabs.

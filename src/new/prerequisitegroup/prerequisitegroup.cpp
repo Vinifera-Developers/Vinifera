@@ -25,11 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
 #include "prerequisitegroup.h"
 #include "ccini.h"
 #include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
 #include "asserthandler.h"
 #include "vinifera_saveload.h"
 
@@ -211,7 +211,7 @@ HRESULT PrerequisiteGroupClass::Load(IStream* pStm)
 
     new (this) PrerequisiteGroupClass(NoInitClass());
 
-    Prerequisites.Load(pStm);
+    Prerequisites.Load_Self(pStm);
 
     return hr;
 }
@@ -250,7 +250,7 @@ HRESULT PrerequisiteGroupClass::Save(IStream* pStm, BOOL fClearDirty)
         return hr;
     }
 
-    Prerequisites.Save(pStm);
+    Prerequisites.Save_Self(pStm);
 
     return hr;
 }

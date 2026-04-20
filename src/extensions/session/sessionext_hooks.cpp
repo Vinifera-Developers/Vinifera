@@ -25,12 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sessionext_hooks.h"
+
 #include "sessionext_init.h"
-#include "sessionext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"

@@ -25,11 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "iomap.h"
-#include "wstring.h"
+#include "vinifera_defines.h"
 
 
 class CCINIClass;
@@ -60,11 +59,7 @@ class ActionTypeClass
         static ActionTypeClass *Find_Or_Make(const char *name);
 
     private:
-        Wstring Name;
+        std::string Name;
         MouseType Mouse;
         MouseType ShadowMouse;
-
-    private:
-        static ActionTypeClass ActionControl[ACTION_COUNT];
-        static const char *ActionNames[ACTION_COUNT];
 };

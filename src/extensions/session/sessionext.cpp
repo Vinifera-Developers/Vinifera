@@ -25,28 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sessionext.h"
-#include "tibsun_globals.h"
-#include "noinit.h"
-#include "options.h"
+
 #include "ccini.h"
-#include "rawfile.h"
-#include "voc.h"
-#include "rules.h"
-#include "swizzle.h"
+#include "noinit.h"
 #include "vinifera_saveload.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "voc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
-    ExtOptions()
+    ExtOptions(),
+    IsChatToAllies(false),
+    MessageRecipientName("")
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 

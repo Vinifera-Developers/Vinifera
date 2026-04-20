@@ -86,3 +86,31 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
 - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+- Fix a bug where carryalls would unload infantry like they unload vehicles.
+- Fix a bug where carryalls would draw their infantry passenger's shadow.
+- Fix a bug where carryalls would try to drop off units when landing on a helipad.
+- Fix a bug where carryalls would land too high when carrying infantry.
+- Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
+- Fix a bug where carryalls assign their ROT to the unit they're carrying.
+- Fix a bug where paradropped vehicles would be placed off-center in the cell.
+- Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
+- Fix a bug where paradrops didn't take cell passability and bridges into account.
+- Fix a bug where carryalls assign their ROT to the unit they're carrying.
+- Teams attacking a BwP now take zones into account.
+- Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
+- Fix a bug where the player's army wouldn't fire at armed civilians.
+- Fix a bug where the last line of an INI file would not be parsed.
+- Fix incorrect merging of sections and keys in INI files.
+- Fix game end text being stretched horizontally.
+- Fix a bug where upon restoring focus to the window the last theme would play twice.
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+- Fix a bug where hijackers are able to hijack vehicles of their allies.
+- Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- Fix a bug where friendly Spies appeared as disguised.
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
+- Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+- Fix an edge case crash when AI is attempting to find a location to place a structure to.
+- Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.

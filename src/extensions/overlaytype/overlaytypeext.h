@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "objecttypeext.h"
@@ -62,4 +63,8 @@ OverlayTypeClassExtension final : public ObjectTypeClassExtension
         virtual RTTIType Fetch_RTTI() const override { return RTTI_INFANTRYTYPE; }
 
     public:
+        /**
+         *  Is this a water tunnel entrance?
+         */
+        bool IsWaterTunnel;
 };

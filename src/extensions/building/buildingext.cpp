@@ -25,21 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingext.h"
+
+#include "asserthandler.h"
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "extension.h"
 #include "house.h"
 #include "housetype.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
@@ -47,7 +50,8 @@ BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
     ProduceCashTimer(),
     CurrentProduceCashBudget(-1),
     IsCaptureOneTimeCashGiven(false),
-    IsBudgetDepleted(false)
+    IsBudgetDepleted(false),
+    LastFlameSpawnFrame(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingClassExtension::BuildingClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 

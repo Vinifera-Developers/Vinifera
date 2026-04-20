@@ -32,7 +32,11 @@
  *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sha.h"
+
 #include <algorithm>
 
 

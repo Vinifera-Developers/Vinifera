@@ -25,32 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "animtypeext_hooks.h"
-#include "animtypeext.h"
-#include "animtype.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "animtype.h"
+#include "animtypeext.h"
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x00418798, _AnimTypeClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
+    GET(AnimTypeClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,40 +60,8 @@ DECLARE_PATCH(_AnimTypeClass_Constructor_Patch)
      */
     Extension::Make<AnimTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimTypeClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<AnimTypeClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x0080F588 } // NeuronClass vector .vtble
-    JMP_REG(eax, 0x004187F8);
+    return 0;
 }
 
 
@@ -109,21 +72,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00419C22, _AnimTypeClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
+    GET(AnimTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<AnimTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x0080F588 } // NeuronClass vector .vtble
-    JMP_REG(eax, 0x00419C28);
+    return 0;
 }
 
 
@@ -132,7 +91,5 @@ original_code:
  */
 void AnimTypeClassExtension_Init()
 {
-    Patch_Jump(0x00418798, &_AnimTypeClass_Constructor_Patch);
-    //Patch_Jump(0x004187DB, &_AnimTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00419C22, &_AnimTypeClass_Scalar_Destructor_Patch);
+
 }

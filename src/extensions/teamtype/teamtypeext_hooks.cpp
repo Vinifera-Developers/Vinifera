@@ -25,16 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "teamtypeext_hooks.h"
-#include "teamtypeext_init.h"
-#include "teamtypeext.h"
-#include "teamtype.h"
+
 #include "ccini.h"
 #include "extension.h"
 #include "hooker.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#include "teamtype.h"
+#include "teamtypeext.h"
+#include "teamtypeext_init.h"
 
 
 /**

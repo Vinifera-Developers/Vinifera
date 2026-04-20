@@ -25,64 +25,66 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_saveload.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "tibsun_util.h"
-#include "vinifera_util.h"
-#include "vinifera_gitinfo.h"
-#include "wstring.h"
-#include "saveload.h"
-#include "extension.h"
-#include "debughandler.h"
 
 #include "addon.h"
 #include "aircraft.h"
+#include "aircrafttracker.h"
 #include "aircrafttype.h"
 #include "aitrigtype.h"
 #include "alphashape.h"
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
+#include "beacon.h"
 #include "building.h"
 #include "buildinglight.h"
 #include "buildingtype.h"
+#include "buildingtypeext.h"
 #include "bullet.h"
 #include "bullettype.h"
-#include "campaign.h"
 #include "ccini.h"
+#include "cstream.h"
+#include "debughandler.h"
 #include "empulse.h"
 #include "environment.h"
+#include "extension.h"
 #include "factory.h"
 #include "foggedobject.h"
+#include "hooker.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "iomap.h"
-#include "isotile.h"
-#include "isotiletype.h"
+#include "isotiletypeext.h"
 #include "kamikazetracker.h"
+#include "language.h"
 #include "lightsource.h"
+#include "loadoptions.h"
 #include "logic.h"
-#include "objecttype.h"
-#include "overlay.h"
+#include "miscutil.h"
 #include "overlaytype.h"
 #include "particle.h"
 #include "particlesys.h"
 #include "particlesystype.h"
 #include "particletype.h"
+#include "prerequisitegroup.h"
 #include "radarevent.h"
 #include "rockettype.h"
 #include "rules.h"
+#include "saveload.h"
+#include "savever.h"
 #include "scenario.h"
 #include "scenarioext.h"
 #include "script.h"
 #include "scripttype.h"
 #include "session.h"
 #include "side.h"
-#include "smudge.h"
 #include "smudgetype.h"
 #include "spawnmanager.h"
 #include "super.h"
@@ -99,6 +101,8 @@
 #include "terraintype.h"
 #include "tevent.h"
 #include "tiberium.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
 #include "tube.h"
@@ -106,38 +110,15 @@
 #include "unittype.h"
 #include "veinholemonster.h"
 #include "verses.h"
+#include "vinifera_gitinfo.h"
+#include "vinifera_savever.h"
+#include "vinifera_util.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
 #include "wave.h"
 #include "waypointpath.h"
 #include "weapontype.h"
-#include "prerequisitegroup.h"
-
-
-#include "scenario.h"
-#include "environment.h"
-#include "rules.h"
-#include "iomap.h"
-#include "logic.h"
-#include "tactical.h"
-#include "session.h"
-#include "addon.h"
-#include "ccini.h"
-#include "cstream.h"
-#include <atlbase.h>
-#include <atlcom.h>
-
-#include "aircrafttracker.h"
-#include "animtypeext.h"
-#include "buildingtypeext.h"
-#include "hooker.h"
-#include "isotiletypeext.h"
-#include "language.h"
-#include "loadoptions.h"
-#include "miscutil.h"
-#include "savever.h"
-#include "vinifera_savever.h"
 #include "windialog.h"
 #include "fetchres.h"
 #include "optionsext.h"
@@ -145,6 +126,8 @@
 #include "technoext.h"
 #include "verses.h"
 #include "scenarioext.h"
+
+#include <atlbase.h>
 
 
 /**
@@ -202,7 +185,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
         hr = OleSaveToStream(lpPS, pStm);
         if (FAILED(hr)) {
             DEBUG_ERROR("  OleSaveToStream failed!\n");
-            return false;
+            return hr;
         }
 
         /**
@@ -211,7 +194,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
         hr = lpPS->Release();
         if (FAILED(hr)) {
             DEBUG_ERROR("  Release failed!\n");
-            return false;
+            return hr;
         }
 
     }
@@ -226,7 +209,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
  *  @author: CCHyper
  */
 template<class T>
-static bool Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, const char *heap_name)
+static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, const char *heap_name)
 {
     DEBUG_INFO("Loading %s...\n", heap_name);
 
@@ -459,7 +442,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
         scen_ini.Load(scen_file, false);
 
-        if (!ScenExtension->Read_Tutorial_INI(scen_ini, true)) {
+        if (!ScenExtension->Read_Tutorial_INI(scen_ini)) {
             DEBUG_ERROR("Failed to read tutorial strings from scenario file!\n");
             return false;
         }
@@ -483,7 +466,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     Rect tile_rect(0, 0, tactical_rect.Width, VisibleRect.Height);
     Rect sidebar_rect(tactical_rect.X, tactical_rect.Y, SidebarClass::SIDE_WIDTH, VisibleRect.Height);
     DEBUG_INFO("About to call Allocate_Surfaces()...\n");
-    Allocate_Surfaces(&VisibleRect, &composite_rect, &tile_rect, &sidebar_rect);
+    Allocate_Surfaces(VisibleRect, composite_rect, tile_rect, sidebar_rect);
 
     DEBUG_INFO("About to call Map.Set_View_Dimensions()...\n");
     Map.Set_View_Dimensions(tactical_rect);
@@ -749,6 +732,8 @@ void Vinifera_Post_Load_Game()
     for (auto isotype_extension : IsometricTileTypeExtensions) {
         isotype_extension->Read_INI(theater_ini);
     }
+
+    BeaconManager.Load_Art();
 }
 
 
@@ -975,12 +960,12 @@ bool Vinifera_Load_Game(const char* file_name)
     Vinifera_Post_Load_Game();
     Map.Init_IO();
     Map.Activate(1);
-    Map.Set_Dimensions();
+    Map.Shift_Sidebar();
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
-    TacticalViewActive = true;
-    ScenarioStarted = true;
+    ScenarioActive = true;
+    TacticalActive = true;
 
     /**
      *  Schedule the next autosave.
@@ -1027,8 +1012,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
         WinDialogClass::Display_Dialog(handle);
     }
 
-    TacticalViewActive = false;
-    ScenarioStarted = false;
+    ScenarioActive = false;
+    TacticalActive = false;
 
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);
@@ -1036,6 +1021,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
     if (handle) {
         WinDialogClass::End_Dialog(handle);
     }
+
+    // TODO should exit game on failure in TS Client builds
 
     return result;
 }

@@ -25,24 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "setup_hooks.h"
 
 /**
  *  Include the hook headers here.
  */
-#include "vinifera_newdel.h"
 #include "crt_hooks.h"
 #include "debug_hooks.h"
-#include "vinifera_hooks.h"
-#include "newswizzle_hooks.h"
 #include "extension_hooks.h"
+#include "newswizzle_hooks.h"
 #include "sidebarext_hooks.h"
+#include "vinifera_hooks.h"
 
 
 void Setup_Hooks()
 {
-    Vinifera_Memory_Hooks();
-
     CRT_Hooks();
     Debug_Hooks();
     Vinifera_Hooks();

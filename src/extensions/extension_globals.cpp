@@ -25,6 +25,9 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "extension_globals.h"
 
 
@@ -63,6 +66,7 @@ DynamicVectorClass<WarheadTypeClassExtension *> WarheadTypeExtensions;
 DynamicVectorClass<WaveClassExtension *> WaveExtensions;
 DynamicVectorClass<WeaponTypeClassExtension *> WeaponTypeExtensions;
 DynamicVectorClass<TEventClassExtension*> TEventExtensions;
+DynamicVectorClass<TActionClassExtension*> TActionExtensions;
 
 TacticalExtension *TacticalMapExtension = nullptr;
 

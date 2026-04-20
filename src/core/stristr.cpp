@@ -25,13 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "stristr.h"
+
+#include <cstdlib>
 #include <cstring>
 
 
 /**
  *  Case-insensitive strstr.
- * 
+ *
  *  @author: CCHyper
  */
 char *stristr(const char *str, const char *str_search)

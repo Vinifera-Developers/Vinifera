@@ -25,17 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "voxelanimtypeext.h"
-#include "voxelanimtype.h"
+
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "voxelanimtype.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(const VoxelAnimTypeClass *this_ptr) :

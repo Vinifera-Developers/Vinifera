@@ -25,19 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "houseext_hooks.h"
-#include "houseext_init.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
+
+#include "asserthandler.h"
 #include "building.h"
-#include "house.h"
-#include "housetype.h"
-#include "technotype.h"
-#include "super.h"
+#include "buildingtypeext.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension_globals.h"
 #include "factory.h"
-#include "techno.h"
-#include "unittype.h"
-#include "unittypeext.h"
+#include "fatal.h"
+#include "hooker.h"
+#include "house.h"
+#include "houseext.h"
+#include "houseext_init.h"
+#include "housetype.h"
 #include "mouse.h"
 #include "unittype.h"
 #include "rules.h"
@@ -51,12 +56,24 @@
 #include "buildingext.h"
 #include "extension_globals.h"
 #include "sidebarext.h"
+#include "msgbox.h"
+#include "prerequisitegroup.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "session.h"
 #include "ccini.h"
 #include "fetchres.h"
+#include "sidebarext.h"
 #include "sideext.h"
+#include "super.h"
+#include "syringe.h"
+#include "techno.h"
+#include "technotype.h"
 #include "tiberium.h"
+#include "tibsun_globals.h"
+#include "unittype.h"
+#include "unittypeext.h"
+#include "vinifera_globals.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -244,10 +261,10 @@ int HouseClassExt::_AI_Building()
     /**
      *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
      */
-    if (b->PowersUpToLevel == -1 && node->CellID != Cell(0, 0) && b->PowersUpBuilding[0]) {
+    if (b->PowersUpToLevel == -1 && node->CellID != Cell(0, 0) && !b->PowersUpBuilding.empty()) {
 
         BuildingClass* existing_building = Map[node->CellID].Cell_Building();
-        BuildingTypeClass* node_building = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding)];
+        BuildingTypeClass* node_building = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding.c_str())];
 
         if (existing_building == nullptr) {
             node->CellID = Cell(0, 0);
@@ -989,35 +1006,29 @@ blowup_house:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch)
+DEFINE_HOOK(0x004BD30B, _HouseClass_Super_Weapon_Handler_InstantRecharge_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(SuperClass *, special, esi);
-    static bool is_player;
+    GET(HouseClass *, this_ptr, EDI);
+    GET(SuperClass *, special, ESI);
 
-    is_player = false;
+    bool is_player = false;
     if (this_ptr == PlayerPtr) {
         is_player = true;
     }
 
     if (Vinifera_DeveloperMode) {
-
         if (!special->IsReady) {
 
             /**
              *  If AIInstantBuild is toggled on, make sure this is a non-human AI house.
              */
-            if (Vinifera_Developer_AIInstantSuperRecharge
-                && !this_ptr->Is_Human_Player() && this_ptr != PlayerPtr) {
-
+            if (Vinifera_Developer_AIInstantSuperRecharge && !this_ptr->Is_Human_Player() && this_ptr != PlayerPtr) {
                 special->Forced_Charge(is_player);
 
             /**
              *  If InstantBuild is toggled on, make sure the local player is a human house.
              */
-            } else if (Vinifera_Developer_InstantSuperRecharge
-                && this_ptr->Is_Human_Player() && this_ptr == PlayerPtr) {
-                
+            } else if (Vinifera_Developer_InstantSuperRecharge && this_ptr->Is_Human_Player() && this_ptr == PlayerPtr) {
                 special->Forced_Charge(is_player);
 
             /**
@@ -1039,14 +1050,10 @@ DECLARE_PATCH(_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch)
      *  Stolen bytes/code.
      */
     if (!special->AI(is_player)) {
-        goto continue_function;
+        return 0x004BD332;
     }
 
-add_to_sidebar:
-    JMP(0x004BD320);
-
-continue_function:
-    JMP(0x004BD332);
+    return 0x004BD320;
 }
 
 
@@ -1055,11 +1062,10 @@ continue_function:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_HouseClass_Can_Build_BuildCheat_Patch)
+DEFINE_HOOK(0x004BBD26, _HouseClass_Can_Build_BuildCheat_Patch, 8)
 {
-    GET_REGISTER_STATIC(HouseClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(int, vector_count, ecx);
-    GET_STACK_STATIC(TechnoTypeClass *, objecttype, esp, 0x30);
+    GET(HouseClass *, this_ptr, EBP);
+    GET_STACK(TechnoTypeClass *, objecttype, 0x30);
 
     if (Vinifera_DeveloperMode && Vinifera_Developer_BuildCheat) {
 
@@ -1073,27 +1079,14 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildCheat_Patch)
              *  Check that the object has this house set as one of its owners.
              *  if true, force this 
              */
-            if (((1 << this_ptr->Class->HeapID) & objecttype->Get_Ownable()) != 0) {
-                //DEBUG_INFO("Forcing \"%s\" available.\n", objecttype->IniName);
-                goto return_true;
+            if ((1 << this_ptr->Class->HeapID & objecttype->Get_Ownable()) != 0) {
+                //DEBUG_INFO("Forcing \"%s\" available.\n", objecttype->IniName.c_str());
+                return 0x004BBD17;
             }
         }
     }
 
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-    _asm { xor eax, eax }
-    _asm { mov [esp+0x34], eax }
-
-    _asm { mov ecx, vector_count }
-    _asm { test ecx, ecx }
-
-    JMP_REG(ecx, 0x004BBD2E); // Need to use ECX as EAX is used later on.
-
-return_true:
-    JMP(0x004BBD17);
+    return 0;
 }
 
 
@@ -1145,7 +1138,7 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
         UnitTypeClassExtension* unittypeext = Extension::Fetch(unittype);
 
         if (unittype->DeploysInto == nullptr && unittypeext->TransformsInto != nullptr) {
-            count += factory->House->UQuantity.Value((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
+            count += factory->House->UQuantity.Value((UnitType)unittypeext->TransformsInto->Fetch_Heap_ID());
         }
     }
 
@@ -1162,16 +1155,15 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
  *  Also updates the build limit logic with unit queuing to
  *  take our unit transformation logic into account.
  */
-DECLARE_PATCH(_HouseClass_ShouldDisableCameo_BuildLimit_Fix)
+DEFINE_HOOK(0x004CB777, _HouseClass_ShouldDisableCameo_BuildLimit_Fix, 0)
 {
-    GET_REGISTER_STATIC(FactoryClass*, factory, ecx);
-    GET_REGISTER_STATIC(TechnoTypeClass*, technotype, esi);
-    static int queuedcount;
+    GET(FactoryClass*, factory, ECX);
+    GET(TechnoTypeClass*, technotype, ESI);
 
-    queuedcount = _HouseClass_ShouldDisableCameo_Get_Queued_Count(factory, technotype);
+    int queuedcount = _HouseClass_ShouldDisableCameo_Get_Queued_Count(factory, technotype);
+    R->EAX(queuedcount);
 
-    _asm { mov eax, [queuedcount] }
-    JMP_REG(ecx, 0x004CB77D);
+    return 0x004CB77D;
 }
 
 
@@ -1185,19 +1177,17 @@ DECLARE_PATCH(_HouseClass_ShouldDisableCameo_BuildLimit_Fix)
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
+DEFINE_HOOK(0x004BC187, _HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform, 0)
 {
-    GET_REGISTER_STATIC(UnitTypeClass*, unittype, edi);
-    GET_REGISTER_STATIC(HouseClass*, house, ebp);
-    static UnitTypeClassExtension* unittypeext;
-    static int objectcount;
+    GET(UnitTypeClass*, unittype, EDI);
+    GET(HouseClass*, house, EBP);
 
-    unittypeext = Extension::Fetch(unittype);
+    UnitTypeClassExtension* unittypeext = Extension::Fetch(unittype);
 
     /**
      *  Stolen bytes / code.
      */
-    objectcount = house->UQuantity.Value((UnitType)unittype->Fetch_Heap_ID());
+    int objectcount = house->UQuantity.Value((UnitType)unittype->Fetch_Heap_ID());
 
     /**
      *  Check whether this unit can deploy into a building.
@@ -1212,13 +1202,12 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
          *  This unit can transform into another unit, increment the object count
          *  by the number of transformed units.
          */
-        objectcount += house->UQuantity.Value((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
+        objectcount += house->UQuantity.Value((UnitType)unittypeext->TransformsInto->Fetch_Heap_ID());
     }
 
-    _asm { mov esi, objectcount }
+    R->ESI(objectcount);
 
-continue_function:
-    JMP(0x004BC1B9);
+    return 0x004BC1B9;
 }
 
 
@@ -1231,35 +1220,30 @@ continue_function:
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_HouseClass_Enable_SWs_Check_For_Building_Power)
+DEFINE_HOOK(0x004CB6C1, _HouseClass_Enable_SWs_Check_For_Building_Power, 6)
 {
-    GET_REGISTER_STATIC(int, quiet, eax);
-    GET_REGISTER_STATIC(BuildingClass*, building, esi);
+    GET(int, quiet, EAX);
+    GET(BuildingClass*, building, ESI);
 
     if (!building->IsOn)
     {
         /**
          *  Enable the superweapon in suspended mode.
          */
-        _asm { mov eax, 1 }
+        R->EAX(true);
     }
     else
     {
         /**
          *  Enable the superweapon in non-suspended mode.
          */
-        _asm {xor eax, eax }
+        R->EAX(false);
     }
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { mov  esi, [PlayerPtr] }
 
     /**
      *  Continue the SW enablement process.
      */
-    JMP_REG(ecx, 0x004CB6C7);
+    return 0;
 }
 
 
@@ -1307,6 +1291,14 @@ void HouseClassExt::_Active_Add(TechnoClass const* techno)
  */
 Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3)
 {
+    /**
+     *  Fix an edge case crash where this function is called with a null btype.
+     *  @author: Rampastring
+     */
+    if (btype == nullptr) {
+        return Cell(0, 0);
+    }
+
     /**
      *  Find the type class extension instance.
      */
@@ -1373,27 +1365,20 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
  *
  *  Author: ZivDero
  */
-DECLARE_PATCH(_Can_Build_Required_Forbidden_Houses_Patch)
+DEFINE_HOOK(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 9)
 {
-    GET_REGISTER_STATIC(TechnoTypeClass*, techno_type, edi);
-    GET_REGISTER_STATIC(HouseClassExt*, this_ptr, ebp);
-    static bool can_build;
+    GET(TechnoTypeClass*, techno_type, EDI);
+    GET(HouseClassExt*, this_ptr, EBP);
 
-    can_build = Extension::Fetch(this_ptr)->Required_Forbidden_Houses_Check(techno_type);
+    bool can_build = Extension::Fetch(this_ptr)->Required_Forbidden_Houses_Check(techno_type);
 
     if (!can_build) {
         //return false;
         JMP(0x004BBC9A);
     }
 
-    // Stolen bytes
-    _asm {
-        mov eax, [esi+0x14]
-        mov edx, [edi+0x32C]
-    }
-
     // Continue Can_Build
-    JMP_REG(ecx, 0x004BBC7D);
+    return 0;
 }
 
 
@@ -1402,19 +1387,13 @@ DECLARE_PATCH(_Can_Build_Required_Forbidden_Houses_Patch)
  *
  *  Author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_Can_Build_Multi_MCV_Patch)
+DEFINE_HOOK(0x004BC0B7, _HouseClass_Can_Build_Multi_MCV_Patch, 6)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, esi);
-
     if (RuleExtension->IsMultiMCV) {
-        JMP(0x004BC102);
+        return 0x004BC102;
     }
 
-    static HousesType act_like;
-    act_like = building->ActLike;
-
-    _asm mov ecx, act_like
-    JMP(0x004BC0BD);
+    return 0;
 }
 
 
@@ -1497,20 +1476,19 @@ TechnoTypeClass const* HouseClassExt::_Suggest_New_Object(RTTIType objecttype, b
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
+DEFINE_HOOK(0x004CB73D, _HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
-    GET_REGISTER_STATIC(TechnoTypeClass const*, ttype, esi);
+    GET(HouseClass*, this_ptr, EBX);
+    GET(TechnoTypeClass const*, ttype, ESI);
 
-    static FactoryClass* factory;
-    factory = Extension::Fetch(this_ptr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    FactoryClass* factory = Extension::Fetch(this_ptr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    R->ECX(factory);
 
-    _asm mov ecx, factory
-    JMP(0x004CB773);
+    return 0x004CB773;
 }
 
 
-void Update_Factories_Helper(BuildingClass* building)
+static void Update_Factories_Helper(BuildingClass* building)
 {
     if (building->Class->ToBuild != RTTI_NONE) {
         BuildingTypeClassExtension* type_ext = Extension::Fetch(building->Class);
@@ -1520,67 +1498,62 @@ void Update_Factories_Helper(BuildingClass* building)
 }
 
 
-DECLARE_PATCH(_BuildingClass_Unlimbo_Update_Factories_Patch)
+DEFINE_HOOK(0x0042AACF, _BuildingClass_Unlimbo_Update_Factories_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
-    JMP(0x0042AAEB);
+    return 0x0042AAEB;
 }
 
 
-DECLARE_PATCH(_BuildingClass_Limbo_Update_Factories_Patch)
+DEFINE_HOOK(0x0042DFBE, _BuildingClass_Limbo_Update_Factories_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, edi);
+    GET(BuildingClass*, this_ptr, EDI);
     Update_Factories_Helper(this_ptr);
-    JMP(0x0042DFDA);
+    return 0x0042DFDA;
 }
 
 
-DECLARE_PATCH(_BuildingClass_Captured_Update_Factories_Patch)
+DEFINE_HOOK(0x0042FCF8, _BuildingClass_Captured_Update_Factories_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_STACK_STATIC(HouseClass*, newowner, esp, 0x18);
-    GET_STACK_STATIC(HouseClass*, oldowner, esp, 0x60);
-
-    static BuildingTypeClassExtension* type_ext;
-    static HouseClassExtension* old_house_ext;
-    static HouseClassExtension* new_house_ext;
+    GET(BuildingClass*, this_ptr, ESI);
+    GET_STACK(HouseClass*, oldowner, 0x60);
 
     if (this_ptr->Class->ToBuild != RTTI_NONE) {
-        type_ext = Extension::Fetch(this_ptr->Class);
+        BuildingTypeClassExtension* type_ext = Extension::Fetch(this_ptr->Class);
 
-        old_house_ext = Extension::Fetch(oldowner);
+        HouseClassExtension* old_house_ext = Extension::Fetch(oldowner);
         old_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
 
-        new_house_ext = Extension::Fetch(oldowner);
+        HouseClassExtension* new_house_ext = Extension::Fetch(oldowner);
         new_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
     }
 
-    JMP(0x0042FD28);
+    return 0x0042FD28;
 }
 
 
-DECLARE_PATCH(_BuildingClass_Read_INI_Update_Factories_Patch)
+DEFINE_HOOK(0x00434C78, _BuildingClass_Read_INI_Update_Factories_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
-    JMP(0x00434C94);
+    return 0x00434C94;
 }
 
 
-DECLARE_PATCH(_BuildingClass_Turn_On_Update_Factories_Patch)
+DEFINE_HOOK(0x00436855, _BuildingClass_Turn_On_Update_Factories_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
-    JMP(0x0043686B);
+    return 0x0043686B;
 }
 
 
-DECLARE_PATCH(_BuildingClass_Turn_Off_Update_Factories_Patch)
+DEFINE_HOOK(0x00436911, _BuildingClass_Turn_Off_Update_Factories_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
-    JMP(0x0043692D);
+    return 0x0043692D;
 }
 
 
@@ -1589,13 +1562,12 @@ DECLARE_PATCH(_BuildingClass_Turn_Off_Update_Factories_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
+DEFINE_HOOK(0x004C0F40, _HouseClass_Raise_Money_BuildNavalUnit_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(bool, needs_harvester, cl);
-    static HouseClassExtension* house_ext;
+    GET(HouseClass*, this_ptr, ESI);
+    GET(bool, needs_harvester, ECX);
 
-    house_ext = Extension::Fetch(this_ptr);
+    HouseClassExtension* house_ext = Extension::Fetch(this_ptr);
 
     // Stolen instructions
     this_ptr->BuildUnit = UNIT_NONE;
@@ -1607,9 +1579,9 @@ DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
     house_ext->BuildNavalUnit = UNIT_NONE;
 
     if (needs_harvester) {
-        JMP(0x004C0F5F);
+        return 0x004C0F5F;
     } else {
-        JMP(0x004C0F87);
+        return 0x004C0F87;
     }
 }
 
@@ -1644,11 +1616,11 @@ void HouseClassExt::_Production_Check()
     }
 }
 
-DECLARE_PATCH(_HouseClass_AI_BuildNavalUnit_Patch)
+DEFINE_HOOK(0x004BD0E5, _HouseClass_AI_BuildNavalUnit_Patch, 0)
 {
-    GET_REGISTER_STATIC(HouseClassExt*, this_ptr, esi);
+    GET(HouseClassExt*, this_ptr, ESI);
     this_ptr->_Production_Check();
-    JMP(0x004BD1A1);
+    return 0x004BD1A1;
 }
 
 
@@ -1711,50 +1683,82 @@ bool HouseClassExt::_AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVe
 
 
 /**
- *  Fixes a bug where the player is flagged as losing the game when
- *  one of their allies is flagged to win the game.
- *
- *  NOTE: Typically only one house (the last opponent to be defeated) is flagged
- *  to win/lose at game end, that house is then used to figure out whether the
- *  local player won or lost.
+ *  Fixes a bug where the local player could be considered "lost" (Do_Lose was called)
+ *  when a multiplayer match ended with the last enemy getting defeated.
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win)
+DEFINE_HOOK(0x004BF8BD, _HouseClass_MPlayer_Defeated_Flag_Win_Or_Lose, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    // The match has ended due to player defeat because there is only one team left.
+    // Consider the player as having won if they are not defeated, OR in case of multiplayer,
+    // if they have any human allies left alive.
+    // This allows the player to be considered a winner if their team wins in a team game,
+    // even if the player itself is defeated.
 
-    if (!PlayerPtr->Is_Ally(this_ptr)) {
-        PlayerLoses = true;
-    } else {
-        PlayerWins = true;
+    bool localplayerwon = !PlayerPtr->IsDefeated;
+
+    if (!localplayerwon && Session.Type != GAME_SKIRMISH) {
+
+        DEBUG_INFO("MPlayer_Defeated: Local player is defeated, looking for allies.\n");
+
+        for (int i = 0; i < Houses.Count(); i++) {
+
+            /*
+            **	Get a pointer to this house
+            */
+            HouseClass* hptr = Houses[i];
+            if (!hptr || hptr->IsDefeated || !hptr->IsHuman || hptr->Class->IsMultiplayPassive) continue;
+
+            if (PlayerPtr->Is_Ally(hptr)) {
+                localplayerwon = true;
+                break;
+            }
+        }
     }
 
-    JMP(0x004BC7AA);
+    if (localplayerwon) {
+        DEBUG_INFO("MPlayer_Defeated: Flagging local player as victorious.\n");
+        PlayerPtr->Flag_To_Win(false);
+    } else {
+        DEBUG_INFO("MPlayer_Defeated: Flagging local player as lost.\n");
+        PlayerPtr->Flag_To_Lose(false);
+    }
+
+    return 0x004BF8E3;
 }
 
 
 /**
- *  Fixes a bug where the player is flagged as winning the game when
- *  one of their allies is flagged to lose the game.
- *
- *  NOTE: Typically only one house (the last opponent to be defeated) is flagged
- *  to win/lose at game end, that house is then used to figure out whether the
- *  local player won or lost.
+ *  Fixes an edge case bug where HouseClass::AI_Raise_Money can corrupt
+ *  the house's Base Node vector by writing to the vector at index -1.
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose)
+DEFINE_HOOK(0x004C0F87, _HouseClass_AI_Raise_Money_Fix_Memory_Corruption, 0)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET(HouseClass*, this_ptr, ESI);
+    GET(StructType, buildingtype, EAX);
+    int buildable_index;
 
-    if (PlayerPtr->Is_Ally(this_ptr)) {
-        PlayerLoses = true;
-    } else {
-        PlayerWins = true;
+    buildable_index = this_ptr->Base.Next_Buildable_Index(buildingtype);
+
+    // Stolen bytes / code. Do not insert element to Base Nodes vector
+    // if buildable index is 0.
+    if (buildable_index == 0) {
+        return 0x004C10BC;
     }
 
-    JMP(0x004BC872);
+    // Bugfix: also do not insert element if buildable index is -1. (or below 0)
+    if (buildable_index < 0) {
+        return 0x004C10BC;
+    }
+
+    // Apply node index variable and also save it in eax,
+    // original game code expects this
+    R->Stack(0x1C, buildable_index);
+    R->EAX(buildable_index);
+    return 0x004C0F9F;
 }
 
 
@@ -2113,7 +2117,6 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
-    Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
 
     Patch_Jump(0x004BCD5D, &_HouseClass_AI_BuildConst_Patch);
     Patch_Jump(0x004BCEE7, &_HouseClass_AI_Short_Game_BaseUnit_Patch);
@@ -2139,7 +2142,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
-
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
     Patch_Jump(0x004C1650, &HouseClassExt::_AI_Unit);
     Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
@@ -2147,17 +2149,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CB9CD, &_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
-    Patch_Jump(0x004BC0B7, &_HouseClass_Can_Build_Multi_MCV_Patch);
-
-    Patch_Jump(0x004CB73D, &_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch);
-    Patch_Jump(0x0042AACF, &_BuildingClass_Unlimbo_Update_Factories_Patch);
-    Patch_Jump(0x0042DFBE, &_BuildingClass_Limbo_Update_Factories_Patch);
-    Patch_Jump(0x0042FCF8, &_BuildingClass_Captured_Update_Factories_Patch);
-    Patch_Jump(0x00434C78, &_BuildingClass_Read_INI_Update_Factories_Patch);
-    Patch_Jump(0x00436855, &_BuildingClass_Turn_On_Update_Factories_Patch);
-    Patch_Jump(0x00436911, &_BuildingClass_Turn_Off_Update_Factories_Patch);
-    Patch_Jump(0x004C0F40, &_HouseClass_Raise_Money_BuildNavalUnit_Patch);
-    Patch_Jump(0x004BD0E5, &_HouseClass_AI_BuildNavalUnit_Patch);
 
     Patch_Jump(0x004C23B0, &HouseClassExt::_Active_Remove);
     Patch_Jump(0x004C2450, &HouseClassExt::_Active_Add);

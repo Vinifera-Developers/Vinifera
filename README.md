@@ -175,6 +175,7 @@ Vinifera makes use of third-party libraries to help implement features. Below is
  - [LodePNG](https://lodev.org/lodepng/)
  - [Image-Resampler](https://github.com/ramenhut/image-resampler)
  - [XZip](https://www.codeproject.com/Articles/4135/XZip-and-XUnzip-Add-zip-and-or-unzip-to-your-app-w?msg=3792406)
+ - [SDL](https://github.com/libsdl-org/SDL)
 
 
 # Anti-virus Warning
@@ -192,7 +193,9 @@ No assets, texts, artwork or other media from the original game(s) is included i
 
 # License
 The source code in this repository is licensed under the [GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.html).  
-Please refer to the accompanying `LICENSE` file for full details.
+Please refer to the accompanying `LICENSE` file for the complete license text.
+
+This project uses [SyringeEx](https://github.com/Vinifera-Developers/SyringeEx) for injection into the game's executable. SyringeEx is distributed under the [GNU Lesser General Public License version 3](https://www.gnu.org/licenses/lgpl-3.0.html).
 
 This project also incorporates source code released by Electronic Arts Inc. under the same [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) license.  
 These contributions originate from the following official repositories:
@@ -203,7 +206,7 @@ These contributions originate from the following official repositories:
 - [C&C Renegade](https://github.com/electronicarts/CnC_Renegade)  
 - [C&C Generals: Zero Hour](https://github.com/electronicarts/CnC_Generals_Zero_Hour)
 
-They are used in accordance with the original license terms and include additional terms as permitted under [Section 7 of the GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html#section7):
+These components are used in accordance with their original license terms, and include additional permissions and conditions as permitted under [Section 7 of the GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html#section7):
 
 <sub><i>No trademark or publicity rights are granted. This license does NOT give
 you any right, title or interest in "Command & Conquer" or any other

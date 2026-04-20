@@ -25,75 +25,78 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "commandext.h"
-#include <map>
-#include <algorithm>
-#include "tibsun_globals.h"
-#include "tibsun_util.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "iomap.h"
-#include "tactical.h"
-#include "tacticalext.h"
-#include "theme.h"
-#include "dsurface.h"
-#include "wwmouse.h"
-#include "rules.h"
-#include "house.h"
-#include "housetype.h"
-#include "base.h"
-#include "super.h"
-#include "factory.h"
-#include "anim.h"
-#include "animtype.h"
-#include "voxelanim.h"
-#include "voxelanimtype.h"
-#include "unit.h"
-#include "unittype.h"
-#include "infantry.h"
-#include "infantrytype.h"
-#include "building.h"
-#include "buildingtype.h"
+
 #include "aircraft.h"
 #include "aircrafttype.h"
-#include "weapontype.h"
-#include "warheadtype.h"
-#include "session.h"
-#include "ionstorm.h"
-#include "ionblast.h"
-#include "tiberium.h"
+#include "anim.h"
+#include "animtype.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "base.h"
+#include "beacon.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "bullettype.h"
 #include "combat.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "event.h"
+#include "eventext.h"
+#include "extension.h"
+#include "factory.h"
+#include "fatal.h"
+#include "filepng.h"
+#include "house.h"
+#include "houseext.h"
+#include "housetype.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "ionblast.h"
+#include "ionstorm.h"
+#include "language.h"
+#include "minidump.h"
+#include "miscutil.h"
+#include "overlaytype.h"
+#include "particlesystype.h"
+#include "particletype.h"
+#include "queue.h"
+#include "rockettype.h"
+#include "rules.h"
 #include "scenario.h"
+#include "scenarioext.h"
+#include "session.h"
 #include "sidebarext.h"
+#include "smudgetype.h"
+#include "super.h"
+#include "tactical.h"
+#include "tacticalext.h"
 #include "tag.h"
 #include "tagtype.h"
 #include "terraintype.h"
+#include "theme.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "tibsun_util.h"
 #include "trigger.h"
 #include "triggertype.h"
-#include "smudgetype.h"
-#include "overlaytype.h"
-#include "armortype.h"
+#include "unit.h"
+#include "unittype.h"
+#include "vinifera_globals.h"
+#include "voxelanim.h"
 #include "voxelanimtype.h"
-#include "particletype.h"
-#include "particlesystype.h"
-#include "rockettype.h"
-#include "vox.h"
-#include "event.h"
-#include "queue.h"
-#include "language.h"
-#include "wwcrc.h"
-#include "filepcx.h"
-#include "filepng.h"
-#include "extension.h"
-#include "fatal.h"
-#include "minidump.h"
+#include "warheadtype.h"
+#include "waypointpath.h"
+#include "weapontype.h"
 #include "winutil.h"
-#include "miscutil.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "bullettype.h"
-#include "eventext.h"
-#include "houseext.h"
+#include "wwcrc.h"
+#include "wwmouse.h"
+
+#include <algorithm>
+#include <map>
 
 
 /**
@@ -104,7 +107,7 @@
 
 /**
  *  Skips to the previous available music track allowed.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Prev_Theme_Command()
@@ -278,18 +281,18 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  We don't want the mouse to appear in screenshots!
      */
-    WWMouse->Hide_Mouse();
+    Hide_Mouse();
 
     /**
      *  Blit primary surface to the hidden.
      */
-    bool blit = HiddenSurface->Copy_From(dest, *PrimarySurface, src);
+    bool blit = HiddenSurface->Blit_From(dest, *VisibleSurface, src);
     ASSERT(blit);
 
     /**
      *  Now show the mouse again.
      */
-    WWMouse->Show_Mouse();
+    Show_Mouse();
 
     char buffer[256];
 
@@ -339,6 +342,57 @@ bool PNGScreenCaptureCommandClass::Process()
     }
 
     return success;
+}
+
+
+/**
+ *  Replacement for DeleteWaypointCommandClass.
+ *
+ *  @author: ZivDero
+ */
+const char* DeleteCommandClass::Get_Name() const
+{
+    return "DeleteWaypoint"; // kept as DeleteWaypoint to preserve keyboard.ini compatibility
+}
+
+const char* DeleteCommandClass::Get_UI_Name() const
+{
+    return "Delete";
+}
+
+const char* DeleteCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* DeleteCommandClass::Get_Description() const
+{
+    return "Deletes the selected waypoint or beacon.";
+}
+
+bool DeleteCommandClass::Process()
+{
+    if (Map.DraggedWaypoint) {
+        char waypoint_number;
+        PathType path_type = PATH_NONE;
+        PlayerPtr->Fetch_Waypoint_Data(Map.DraggedWaypoint, path_type, waypoint_number);
+        PlayerPtr->Ensure_Path(path_type);
+        PlayerPtr->Paths[path_type]->Delete_Waypoint(waypoint_number);
+        Map.DraggedWaypoint = nullptr;
+
+        for (int i = Foots.Count() - 1; i >= 0; i--) {
+            FootClass* foot = Foots[i];
+            if (foot->House == PlayerPtr && foot->CurrentPath == path_type && foot->NextWaypoint > waypoint_number) {
+                foot->NextWaypoint--;
+            }
+        }
+
+        Show_Mouse();
+    }
+
+    BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
+
+    return true;
 }
 
 
@@ -1368,7 +1422,7 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
 /**
  *  Handy macro for defining the logging the heaps CRCs.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, Rampastring
  */
 #define LOG_CRC(class_name, heap_name) \
     { \
@@ -1381,7 +1435,12 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
                     ptr->Object_CRC(crc); \
-                    DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value()); \
+                    if (ptr->RTTI == RTTI_INFANTRY || ptr->RTTI == RTTI_UNIT || ptr->RTTI == RTTI_BUILDING || ptr->RTTI == RTTI_AIRCRAFT) {                                                                                                                                                                    \
+                        TechnoClass* techno = (TechnoClass*)ptr;                                                                                                                                                                                                                                               \
+                        DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\tOwner: %s (%d) (Class: %s)\tCoord: %d,%d,%d\n", i, ptr->Name(), crc.CRC_Value(), techno->House->IniName.c_str(), techno->House->HeapID, techno->House->Class->IniName.c_str(), techno->Position.X, techno->Position.Y, techno->Position.Z); \
+                    } else {                                                                                                                                                                                                                                                                                   \
+                        DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value());                                                                                                                                                                                                        \
+                    } \
                 } else { \
                     DEBUG_INFO("  %04d\tFAILED!\n", i); \
                 } \
@@ -1471,7 +1530,7 @@ bool DumpTriggersCommandClass::Process()
     {
         TriggerClass* trigger = Triggers[i];
 
-        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->FullName);
+        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->GivenName.c_str());
         DEBUG_INFO("    IsToDie: %d\n", trigger->IsToDie);
         DEBUG_INFO("    TrippedFlags: %d\n", trigger->TrippedFlags);
         DEBUG_INFO("    IsActive: %d\n", trigger->IsActive);
@@ -1479,7 +1538,7 @@ bool DumpTriggersCommandClass::Process()
         while (trigger->LinkedTo != nullptr) {
             trigger = trigger->LinkedTo;
 
-            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->FullName);
+            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->GivenName.c_str());
             DEBUG_INFO("        IsToDie: %d\n", trigger->IsToDie);
             DEBUG_INFO("        TrippedFlags: %d\n", trigger->TrippedFlags);
             DEBUG_INFO("        IsActive: %d\n", trigger->IsActive);
@@ -1492,7 +1551,7 @@ bool DumpTriggersCommandClass::Process()
     {
         TagClass* tag = Tags[i];
 
-        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->FullName);
+        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->GivenName.c_str());
         DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
         DEBUG_INFO("    CellID: %d,%d\n", tag->CellID.X, tag->CellID.Y);
         DEBUG_INFO("    IsToDie: %d\n", tag->IsToDie);
@@ -1501,9 +1560,9 @@ bool DumpTriggersCommandClass::Process()
 
     DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
 
-    for (int i = 0; i < std::size(Scen->LocalFlags); i++)
+    for (int i = 0; i < std::size(ScenExtension->LocalFlags); i++)
     {
-        DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
+        DEBUG_INFO("LocalFlag %d: %s, value: %d\n", i, ScenExtension->LocalFlags[i].VariableName, ScenExtension->LocalFlags[i].Value);
     }
 
     DEBUG_INFO("\nFinished!\n\n");
@@ -1813,6 +1872,7 @@ bool VeterancyPromoteCommandClass::Process()
  */
 using TechnoList = DynamicVectorClass<TechnoClass*>;
 
+std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
 
 /**
  *  Checks if two lists are equal, meaning they contain the same TechnoClass pointers.
@@ -1935,24 +1995,20 @@ void Classify(const Classify_Function &classify_function, TechnoList &current_se
  *  otherwise the selection will be replaced with the next tier.
  */
 bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
-{
-    if (Session.Players.Count() > 1) {
-        return false;
-    }
-
+{    
     /**
      *  Each classify_function has its own last_full_selection and last_selection arrays.
      */
-    static std::map<Classify_Function, TechnoList*> last_full_selection_by_classifiers = {
-        { Get_Veterancy_Level, new TechnoList() },
-        { Get_Health_Level, new TechnoList() }
-    };
-    
+    if (UnitFilterLastFullSelectionByClassifiers.empty()) {
+        UnitFilterLastFullSelectionByClassifiers[Get_Veterancy_Level] = new TechnoList();
+        UnitFilterLastFullSelectionByClassifiers[Get_Health_Level] = new TechnoList();
+    }
+
     /**
      *  We fetch the last full selection for the given classify_function.
      */
-    TechnoList &last_full_selection = *(last_full_selection_by_classifiers[classify_function]);
-    TechnoList last_selection[3];
+    TechnoList& last_full_selection = *(UnitFilterLastFullSelectionByClassifiers[classify_function]);
+    TechnoList last_selection[3]; 
 
     /**
      *  Then we classify the last full selection into three tiers.
@@ -2236,6 +2292,43 @@ const char* HealthFilterAddNextCommandClass::Get_Description() const
 bool HealthFilterAddNextCommandClass::Process()
 {
     return Process_Filter(Get_Health_Level, true);
+}
+
+
+/**
+ *  Enters beacon placement mode.
+ *
+ *  @author: ZivDero
+ */
+const char* BeaconPlacementCommandClass::Get_Name() const
+{
+    return "PlaceBeacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_UI_Name() const
+{
+    return "Place Beacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* BeaconPlacementCommandClass::Get_Description() const
+{
+    return "Used to place a communication beacon.";
+}
+
+bool BeaconPlacementCommandClass::Process()
+{
+    if (BeaconManagerClass::Are_Beacons_Enabled()) {
+        if (!PlayerPtr->IsDefeated) {
+            TacticalMapExtension->Beacon_Mode_Control(-1);
+        }
+    }
+
+    return true;
 }
 
 
@@ -2828,7 +2921,7 @@ bool SpawnAllCommandClass::Process()
      *  If mouse position is valid, convert to world coordinates and update
      *  the spawn origin position to that of the mouse position.
      */
-    if (WWMouse->Get_Mouse_XY() != Point2D(0, 0)) {
+    if (Get_Mouse_Point() != Point2D(0, 0)) {
         origin = Get_Cell_Under_Mouse();
     }
 
@@ -4161,7 +4254,7 @@ bool PlaceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 1)) {
-        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4209,7 +4302,7 @@ bool ReduceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Reduce_Tiberium(1)) {
-        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4257,7 +4350,7 @@ bool PlaceFullTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 11)) {
-        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4447,7 +4540,7 @@ bool DumpNetworkCRCCommandClass::Process()
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
         Vinifera_DebugDirectory,
-        PlayerPtr->IniName,
+        PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         day, month, year, hour, min, sec);
 

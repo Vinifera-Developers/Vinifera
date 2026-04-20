@@ -25,25 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "miscutil.h"
-#include "rawfile.h"
-#include "ffactory.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include <Windows.h>
-#include <winver.h> // for GetFileVersionInfoSize, GetFileVersionInfo.
-#include <tlhelp32.h> // Must be after Windows.h!
-#include <shlwapi.h> // for PathFindExtension
-#include <shlobj.h> // for SHGetKnownFolderPath
-#include <dbghelp.h>
-#include <string>
-#include <locale>
-#include <codecvt>
 
+#include "always.h"
+
+#include "miscutil.h"
+
+#include "asserthandler.h"
 #include "ccfile.h"
+#include "debughandler.h"
 #include "objectext.h"
-#include "motionlib.h"
-#include "voxellib.h"
+#include "rawfile.h"
+
+#include <codecvt>
+#include <dbghelp.h>
+#include <locale>
+#include <shlobj.h>  // for SHGetKnownFolderPath
+#include <shlwapi.h> // for PathFindExtension
+#include <string>
+#include <windows.h>
+#include <winver.h> // for GetFileVersionInfoSize, GetFileVersionInfo.
 
 
 const char *Get_Text_Time()
@@ -589,4 +589,9 @@ bool Parse_Boolean(const char* value, bool defval)
     default:
         return defval;
     }
+}
+
+bool Key_Down(int key)
+{
+    return (GetAsyncKeyState(key) & 0x8000) != 0;
 }

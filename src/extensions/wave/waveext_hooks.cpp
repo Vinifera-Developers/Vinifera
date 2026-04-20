@@ -25,15 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "waveext_hooks.h"
-#include "waveext_init.h"
-#include "wave.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "always.h"
+
+#include "waveext_hooks.h"
+
+#include "waveext_init.h"
 
 
 /**

@@ -25,12 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "vinifera_defines.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 class AbstractClass;
@@ -71,6 +69,7 @@ class WarheadTypeClassExtension;
 class WaveClassExtension;
 class WeaponTypeClassExtension;
 class TEventClassExtension;
+class TActionClassExtension;
 
 class TacticalExtension;
 
@@ -141,6 +140,7 @@ extern DynamicVectorClass<WarheadTypeClassExtension *> WarheadTypeExtensions;
 extern DynamicVectorClass<WaveClassExtension *> WaveExtensions;
 extern DynamicVectorClass<WeaponTypeClassExtension *> WeaponTypeExtensions;
 extern DynamicVectorClass<TEventClassExtension*> TEventExtensions;
+extern DynamicVectorClass<TActionClassExtension*> TActionExtensions;
 
 /**
  *  Abstract derived classes, but only a single instance is required.

@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "radioext.h"
@@ -35,6 +36,7 @@ class SpawnManagerClass;
 class EBoltClass;
 class TechnoTypeClass;
 class TechnoTypeClassExtension;
+class AnimClass;
 
 
 class TechnoClassExtension : public RadioClassExtension
@@ -64,13 +66,15 @@ class TechnoClassExtension : public RadioClassExtension
         virtual void Response_Deploy();
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
-        virtual Coord Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>()) const;
+        virtual Coord Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>(0, 0, 0)) const;
 
         void Put_Storage_Pointers();
 
         int Time_To_Build() const;
         bool Can_Opportunity_Fire() const;
         bool Opportunity_Fire();
+
+        bool Iron_Curtain_Me(bool forced);
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
@@ -122,4 +126,14 @@ class TechnoClassExtension : public RadioClassExtension
          *  Used to determine when a unit has ranked up.
          */
         VeterancyRankType LastVeterancy;
+
+        /**
+         *  The idle wake animation attached to this object.
+         */
+        AnimClass* IdleWakeAnim;
+
+        /**
+         *  The countdown until the object's Iron Curtain effect fades away.
+         */
+        CDTimerClass<FrameTimerClass> IronCurtainTimer;
 };

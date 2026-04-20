@@ -32,9 +32,10 @@
  *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
+#include <climits>
 
 
 class BlowfishEngine

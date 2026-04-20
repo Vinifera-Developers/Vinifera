@@ -25,24 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "isotiletypeext.h"
-#include "isotiletype.h"
-#include "tibsun_globals.h"
-#include "scenario.h"
-#include "theatertype.h"
+
 #include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
 #include "debughandler.h"
-#include "tiberium.h"
-#include "smudgetype.h"
-#include "vinifera_saveload.h"
+#include "extension.h"
 #include "findmake.h"
+#include "isotiletype.h"
+#include "scenario.h"
+#include "smudgetype.h"
+#include "theatertype.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const IsometricTileTypeClass *this_ptr) :
@@ -50,7 +53,8 @@ IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const Isometric
     TileSetName(""),
     AllowedTiberiums(),
     AllowedSmudges(),
-    IsAllowVeins(true)
+    IsAllowVeins(true),
+    IsWaterTunnel(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -121,8 +125,8 @@ HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
 
     new (this) IsometricTileTypeClassExtension(NoInitClass());
 
-    AllowedTiberiums.Load(pStm);
-    AllowedSmudges.Load(pStm);
+    AllowedTiberiums.Load_Self(pStm);
+    AllowedSmudges.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedTiberiums, "AllowedTiberiums");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedSmudges, "AllowedSmudges");
@@ -145,8 +149,8 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    AllowedTiberiums.Save(pStm);
-    AllowedSmudges.Save(pStm);
+    AllowedTiberiums.Save_Self(pStm);
+    AllowedSmudges.Save_Self(pStm);
 
     return hr;
 }
@@ -230,6 +234,7 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     IsAllowVeins = ini.Get_Bool(ini_name, "AllowVeins", IsAllowVeins);
+    IsWaterTunnel = ini.Get_Bool(ini_name, "WaterTunnel", IsWaterTunnel);
 
     IsInitialized = true;
     

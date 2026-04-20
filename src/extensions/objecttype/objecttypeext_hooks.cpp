@@ -25,37 +25,35 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objecttypeext_hooks.h"
-#include "objecttypeext.h"
-#include "objecttype.h"
-#include "theatertype.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "house.h"
-#include "housetype.h"
-#include "scenario.h"
-#include "wstring.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
 #include "building.h"
-#include "buildingtypeext.h"
+#include "debughandler.h"
 #include "extension.h"
-#include "voxellib.h"
-#include "motionlib.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "house.h"
+#include "housetype.h"
 #include "miscutil.h"
-#include "rulesext.h"
+#include "objecttype.h"
+#include "objecttypeext.h"
+#include "scenario.h"
+#include "syringe.h"
+#include "theatertype.h"
+#include "tibsun_globals.h"
 #include "unit.h"
 #include "unittypeext.h"
+#include "vinifera_globals.h"
+#include "voxellib.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
@@ -138,15 +136,14 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch)
+DEFINE_HOOK(0x0058891D, _ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch, 0)
 {
-    GET_REGISTER_STATIC(ObjectTypeClass *, this_ptr, edi);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x0C);
-    LEA_STACK_STATIC(char *, destbuffer, esp, 0x08);
+    GET(ObjectTypeClass *, this_ptr, EDI);
+    LEA_STACK(char *, fullname, 0x0C);
 
     this_ptr->Theater_Naming_Convention(fullname, Scen->Theater);
 
-    JMP(0x005889E2);
+    return 0x005889E2;
 }
 
 
@@ -246,7 +243,6 @@ void ObjectTypeClassExtension_Hooks()
 {
     //Patch_Jump(0x004101A0, &ObjectTypeClassExt::_Get_Image_Data);
     Patch_Jump(0x00588D00, &ObjectTypeClassExt::_Assign_Theater_Name);
-    Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
     Patch_Jump(0x00587C80, &ObjectTypeClassExt::_Fetch_Voxel_Image);
     Patch_Jump(0x00589030, &ObjectTypeClassExt::_Clear_Voxel_Indexes);
     Patch_Jump(0x00587B20, &ObjectTypeClassExt::_Who_Can_Build_Me);

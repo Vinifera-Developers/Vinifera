@@ -25,41 +25,32 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "building.h"
-#include "house.h"
-#include "housetype.h"
-#include "mouse.h"
-#include "particlesysext_hooks.h"
-#include "particlesys.h"
-#include "rules.h"
-#include "scenario.h"
-#include "techno.h"
-#include "unit.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "building.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "house.h"
+#include "mouse.h"
+#include "particlesys.h"
+#include "syringe.h"
+#include "techno.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
 
 
 bool Passes_Cloak_Check(TechnoClass* techno)
 {
-	if (PlayerPtr->Is_Ally(techno))
-	{
-		return true;
-	}
+    if (PlayerPtr->Is_Ally(techno)) {
+        return true;
+    }
 
-	Coord coord = techno->Center_Coord();
-	const CellClass* cellptr = &Map[coord];
-	if (cellptr->Sensed_By(PlayerPtr->HeapID))
-	{
-		return true;
-	}
+    Coord coord = techno->Center_Coord();
+    if (Map[coord].Sensed_By(PlayerPtr->HeapID)) {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 
@@ -70,19 +61,18 @@ bool Passes_Cloak_Check(TechnoClass* techno)
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch1)
+DEFINE_HOOK(0x005E8840, _ScrollClass_Input_Allied_Cloaked_Object_Patch1, 0)
 {
-	GET_REGISTER_STATIC(TechnoClass*, techno, esi);
+    GET(TechnoClass*, techno, ESI);
 
-	if (Passes_Cloak_Check(techno))
-	{
-		// Target object is cloaked but visible to us (allied or sensed),
-		// handle mouse input on it normally.
-		JMP(0x005E886B);
-	}
+    if (Passes_Cloak_Check(techno)) {
+        // Target object is cloaked but visible to us (allied or sensed),
+        // handle mouse input on it normally.
+        return 0x005E886B;
+    }
 
-	// Target object is cloaked and not visible to us.
-	JMP(0x005E887F);
+    // Target object is cloaked and not visible to us.
+    return 0x005E887F;
 }
 
 
@@ -91,18 +81,17 @@ DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch1)
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch2)
+DEFINE_HOOK(0x005E88AA, _ScrollClass_Input_Allied_Cloaked_Object_Patch2, 0)
 {
-	GET_REGISTER_STATIC(BuildingClass*, building, edi);
+    GET(BuildingClass*, building, EDI);
 
-	if (Passes_Cloak_Check(building))
-	{
-		// Target object is visible to us (allied or sensed), handle mouse input on it normally.
-		JMP(0x005E88D6);
-	}
+    if (Passes_Cloak_Check(building)) {
+        // Target object is visible to us (allied or sensed), handle mouse input on it normally.
+        return 0x005E88D6;
+    }
 
-	// Target object is cloaked and not visible to us.
-	JMP(0x005E88E6);
+    // Target object is cloaked and not visible to us.
+    return 0x005E88E6;
 }
 
 
@@ -113,18 +102,17 @@ DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch2)
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch)
+DEFINE_HOOK(0x006167E3, _Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch, 0)
 {
-	GET_REGISTER_STATIC(TechnoClass*, techno, eax);
+    GET(TechnoClass*, techno, EAX);
 
-	if (Passes_Cloak_Check(techno))
-	{
-		// Target object is visible to us (allied or sensed), handle mouse input on it normally.
-		JMP(0x0061680F);
-	}
+    if (Passes_Cloak_Check(techno)) {
+        // Target object is visible to us (allied or sensed), handle mouse input on it normally.
+        return 0x0061680F;
+    }
 
-	// Target object is cloaked and not visible to us.
-	JMP(0x00616811);
+    // Target object is cloaked and not visible to us.
+    return 0x00616811;
 }
 
 
@@ -133,7 +121,5 @@ DECLARE_PATCH(_Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch)
  */
 void ScrollClassExtension_Hooks()
 {
-	Patch_Jump(0x005E8840, &_ScrollClass_Input_Allied_Cloaked_Object_Patch1);
-	Patch_Jump(0x005E88AA, &_ScrollClass_Input_Allied_Cloaked_Object_Patch2);
-	Patch_Jump(0x006167E3, &_Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch);
+
 }

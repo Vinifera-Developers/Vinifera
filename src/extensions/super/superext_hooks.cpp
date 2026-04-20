@@ -25,21 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "superext_hooks.h"
-#include "superext_init.h"
-#include "superext.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+
+#include "building.h"
 #include "extension.h"
-#include "unit.h"
+#include "hooker.h"
 #include "house.h"
 #include "housetype.h"
 #include "sideext.h"
-#include "building.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "superext.h"
+#include "superext_init.h"
+#include "syringe.h"
+#include "unit.h"
 
 
 /**
@@ -64,46 +64,46 @@ static UnitClass* Make_HunterSeeker(HouseClass* house)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_SuperClass_Place_HunterSeeker_Type_Patch)
+DEFINE_HOOK(0x0060C5DE, _SuperClass_Place_HunterSeeker_Type_Patch, 0)
 {
-    GET_REGISTER_STATIC(SuperClass*, this_ptr, esi);
-    static UnitClass* hunter_seeker;
+    GET(SuperClass*, this_ptr, ESI);
 
     /**
      *  Fetch the hunter-seeker for this house's side.
      */
-    hunter_seeker = Make_HunterSeeker(this_ptr->House);
-    _asm mov esi, hunter_seeker
+    UnitClass*  hunter_seeker = Make_HunterSeeker(this_ptr->House);
+    R->ESI(hunter_seeker);
 
     /**
      *  If we've successfully created a hunter-seeker, proceed to launching it.
      */
     if (hunter_seeker) {
-        JMP(0x0060C642);
+        return 0x0060C642;
     }
+
     /**
      *  Otherwise, abort (return).
      */
     else {
-        JMP(0x0060C68F);
+        return 0x0060C68F;
     }
 }
 
 
 /**
- *  Patch to use the actual SAW HeapID when launching a missile,
+ *  Patch to use the actual SW HeapID when launching a missile,
  *  instead of the Type= number.
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_SuperClass_Place_NukeType)
+DEFINE_HOOK(0x0060C49E, _SuperClass_Place_NukeType, 0)
 {
-    GET_REGISTER_STATIC(SuperClass*, this_ptr, eax);
-    GET_REGISTER_STATIC(BuildingClass*, launchsite, esi);
+    GET(SuperClass*, this_ptr, EAX);
+    GET(BuildingClass*, launchsite, ESI);
 
     launchsite->field_298 = this_ptr->Class->HeapID;
 
-    JMP(0x0060C4AA);
+    return 0x0060C4AA;
 }
 
 
@@ -116,7 +116,4 @@ void SuperClassExtension_Hooks()
      *  Initialises the extended class.
      */
     SuperClassExtension_Init();
-
-    Patch_Jump(0x0060C5DE, &_SuperClass_Place_HunterSeeker_Type_Patch);
-    Patch_Jump(0x0060C49E, &_SuperClass_Place_NukeType);
 }

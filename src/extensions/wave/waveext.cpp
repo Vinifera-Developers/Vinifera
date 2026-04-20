@@ -25,17 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "waveext.h"
+
+#include "extension.h"
 #include "wave.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 WaveClassExtension::WaveClassExtension(const WaveClass *this_ptr) :

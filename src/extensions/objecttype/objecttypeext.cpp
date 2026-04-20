@@ -25,35 +25,43 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objecttypeext.h"
-#include "objecttype.h"
-#include "ccini.h"
+
 #include "asserthandler.h"
 #include "building.h"
 #include "buildingtypeext.h"
-#include "ccfile.h"
-#include "debughandler.h"
+#include "ccini.h"
 #include "extension_globals.h"
 #include "house.h"
-#include "voxellib.h"
-#include "motionlib.h"
 #include "miscutil.h"
+#include "motionlib.h"
+#include "objecttype.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "technotypeext.h"
 #include "unittypeext.h"
+#include "voxellib.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     GraphicName(),
     AlphaGraphicName(),
-    NoSpawnAlt(false)
+    NoSpawnAlt(false),
+    NoSpawnVoxel(),
+    NoSpawnVoxelIndex(),
+    WaterAlt(false),
+    WaterVoxel(),
+    WaterVoxelIndex()
+
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -65,7 +73,11 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    GraphicName(noinit),
+    AlphaGraphicName(noinit),
+    NoSpawnVoxel(noinit),
+    WaterVoxel(noinit)
 {
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -105,10 +117,13 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
     new (&NoSpawnVoxelIndex) VoxelIndexClass;
     new (&WaterVoxelIndex) VoxelIndexClass;
 
-    NoSpawnVoxel.Clear();
-    WaterVoxel.Clear();
+    NoSpawnVoxel.MotionLibrary = nullptr;
+    NoSpawnVoxel.VoxelLibrary = nullptr;
 
-    Fetch_Voxel_Image(GraphicName);
+    WaterVoxel.MotionLibrary = nullptr;
+    WaterVoxel.VoxelLibrary = nullptr;
+
+    Fetch_Voxel_Image(GraphicName.c_str());
     
     return hr;
 }
@@ -124,10 +139,10 @@ HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     /**
-     *  Store the graphic name strings as raw data, these are used by the load operation.
+     *  Store the graphic name strings, these are used by the load operation.
      */
-    std::strncpy(GraphicName, Graphic_Name(), sizeof(GraphicName));
-    std::strncpy(AlphaGraphicName, Alpha_Graphic_Name(), sizeof(AlphaGraphicName));
+    GraphicName = Graphic_Name();
+    AlphaGraphicName = Alpha_Graphic_Name();
 
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -172,7 +187,7 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
     const char* ini_name = Name();
 
     if (!IsInitialized) {
-        WaterAlt = strcmpi(This()->IniName, "APC") == 0;
+        WaterAlt = strcmpi(This()->IniName.c_str(), "APC") == 0;
     }
 
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
@@ -293,4 +308,3 @@ BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool ne
 
     return anybuilding;
 }
-

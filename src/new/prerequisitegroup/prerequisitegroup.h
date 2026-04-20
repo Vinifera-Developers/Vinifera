@@ -25,15 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once 
 
-#include "always.h"
-#include "tibsun_defines.h"
-#include "vinifera_defines.h"
-#include "wstring.h"
+#pragma once
+
 #include "objidl.h"
-#include "noinit.h"
+#include "tibsun_defines.h"
 #include "typelist.h"
+#include "vinifera_defines.h"
 
 class BuildingTypeClass;
 class CCINIClass;

@@ -25,30 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "overlayext.h"
-#include "overlaytypeext.h"
-#include "overlay.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "overlay.h"
+#include "overlayext.h"
+#include "syringe.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayClass_Constructor_Patch)
+DEFINE_HOOK(0x0058B545, _OverlayClass_Constructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(OverlayClass *, this_ptr, esi); // Current "this" pointer.
+    GET(OverlayClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -63,62 +60,8 @@ DECLARE_PATCH(_OverlayClass_Constructor_Patch)
      */
     Extension::Make<OverlayClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { add esp, 0x0C }
-    _asm { ret 0x0C }
-}
-
-
-/**
- *  Patch for removing the inlined constructor and replacing it with a direct call.
- *
- *  @warning: Do not touch this unless you know what you are doing!
- *
- *  @author: CCHyper
- */
-DECLARE_PATCH(_OverlayClass_Read_INI_Constructor_Patch)
-{
-    static uintptr_t constructor_addr = 0x0058B460;
-
-    _asm { lea edx, [esp+0x14] } // cell
-    _asm { push 0xFFFFFFFF } // house (default arg, HOUSES_NONE)
-    _asm { push edx } // edx == cell
-    _asm { push edi } // edi == overlay type
-    _asm { mov ecx, esi } // esi == memory pointer
-    _asm { call constructor_addr } // OverlayClass::OverlayClass()
-
-    JMP(0x0058C0A5);
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_OverlayClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(OverlayClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<OverlayClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov dword ptr [esi+0x4C], 0 } // this->Class = nullptr;
-    this_ptr->ObjectClass::~ObjectClass();
-    JMP(0x0058B5CF);
+    return 0;
 }
 
 
@@ -129,22 +72,17 @@ original_code:
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0058CB73, _OverlayClass_Scalar_Destructor_Patch, 7)
 {
-    GET_REGISTER_STATIC(OverlayClass *, this_ptr, esi);
+    GET(OverlayClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<OverlayClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov dword ptr [esi+0x4C], 0 } // this->Class = nullptr;
-    this_ptr->ObjectClass::~ObjectClass();
-    JMP(0x0058CB7F);
+    return 0;
 }
 
 
@@ -153,8 +91,5 @@ original_code:
  */
 void OverlayClassExtension_Init()
 {
-    Patch_Jump(0x0058B545, &_OverlayClass_Constructor_Patch);
-    Patch_Jump(0x0058C02B, &_OverlayClass_Read_INI_Constructor_Patch); // Constructor is also inlined in OverlayClass::Read_INI!
-    //Patch_Jump(0x0058B5C1, &_OverlayClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x0058CB71, &_OverlayClass_Scalar_Destructor_Patch);
+
 }

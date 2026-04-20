@@ -25,19 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "smudgeext.h"
+
+#include "extension.h"
 #include "smudge.h"
 #include "smudgetype.h"
 #include "smudgetypeext.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SmudgeClassExtension::SmudgeClassExtension(const SmudgeClass *this_ptr) :

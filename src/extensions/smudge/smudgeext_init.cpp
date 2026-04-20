@@ -25,30 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "smudgeext.h"
-#include "smudgetypeext.h"
-#include "smudge.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "smudge.h"
+#include "smudgeext.h"
+#include "syringe.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SmudgeClass_Constructor_Patch)
+DEFINE_HOOK(0x005FAAB3, _SmudgeClass_Constructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(SmudgeClass *, this_ptr, esi); // Current "this" pointer.
+    GET(SmudgeClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -63,39 +60,8 @@ DECLARE_PATCH(_SmudgeClass_Constructor_Patch)
      */
     Extension::Make<SmudgeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { ret 0x0C }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_SmudgeClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(SmudgeClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<SmudgeClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov dword ptr [esi+0x4C], 0 } // this->Class = nullptr;
-    this_ptr->ObjectClass::~ObjectClass();
-    JMP(0x005FAB3F);
+    return 0;
 }
 
 
@@ -106,22 +72,17 @@ original_code:
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SmudgeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x005FAF63, _SmudgeClass_Scalar_Destructor_Patch, 7)
 {
-    GET_REGISTER_STATIC(SmudgeClass *, this_ptr, esi);
+    GET(SmudgeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<SmudgeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov dword ptr [esi+0x4C], 0 } // this->Class = nullptr;
-    this_ptr->ObjectClass::~ObjectClass();
-    JMP(0x005FAF6F);
+    return 0;
 }
 
 
@@ -130,7 +91,5 @@ original_code:
  */
 void SmudgeClassExtension_Init()
 {
-    Patch_Jump(0x005FAAB3, &_SmudgeClass_Constructor_Patch);
-    //Patch_Jump(0x005FAB3F, &_SmudgeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x005FAF61, &_SmudgeClass_Scalar_Destructor_Patch);
+
 }

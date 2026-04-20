@@ -25,28 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "filepcx_hooks.h"
+
+#include "asserthandler.h"
+#include "ccfile.h"
 #include "filepcx.h"
 #include "filepng.h"
-#include "ccfile.h"
-#include "stristr.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
  *  #issue-695
- * 
+ *
  *  Add support for PNG files as an alternative to PCX images.
- * 
+ *
  *  This intercept allows us to check the filename of the input file and see
  *  if a PNG for alternative exists for it, if so, load that instead of the
  *  PCX image file.
- * 
+ *
  *  @author: CCHyper
  */
 static BSurface *Read_PCX_File_Intercept(FileClass *file, unsigned char *palette, void *buff, long size)

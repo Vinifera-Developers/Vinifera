@@ -25,9 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "surfacescale.h"
+
+#include "Surface.h"
 #include "vinifera_util.h"
-#include "xsurface.h"
 #include "vnImagine.h"
 
 
@@ -37,12 +41,12 @@
  */
 
 
-/** 
+/**
  *  Scales an input surface to fit the destination surface using the Image-Resampler library.
- * 
+ *
  *  @author: CCHyper
  */
-static bool Scale_Surface_ImageResampler(XSurface *src, XSurface *dst, VN_IMAGE_KERNEL_TYPE kernel)
+static bool Scale_Surface_ImageResampler(Surface *src, Surface *dst, VN_IMAGE_KERNEL_TYPE kernel)
 {
     if (!src || !dst) {
         return false;
@@ -50,11 +54,11 @@ static bool Scale_Surface_ImageResampler(XSurface *src, XSurface *dst, VN_IMAGE_
 
     int src_width = src->Get_Width();
     int src_height = src->Get_Height();
-    int src_bpp = src->Get_Bytes_Per_Pixel();
+    int src_bpp = src->Bytes_Per_Pixel();
 
     int dst_width = dst->Get_Width();
     int dst_height = dst->Get_Height();
-    int dst_bpp = dst->Get_Bytes_Per_Pixel();
+    int dst_bpp = dst->Bytes_Per_Pixel();
 
     if (src_bpp != 2 || dst_bpp != 2) {
         return false;
@@ -110,27 +114,27 @@ static bool Scale_Surface_ImageResampler(XSurface *src, XSurface *dst, VN_IMAGE_
  * 
  *  @author: CCHyper
  */
-bool Scale_Surface_Nearest(XSurface *src, XSurface *dst)
+bool Scale_Surface_Nearest(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_NEAREST);
 }
 
-bool Scale_Surface_Bilinear(XSurface *src, XSurface *dst)
+bool Scale_Surface_Bilinear(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_BILINEAR);
 }
 
-bool Scale_Surface_Bicubic(XSurface *src, XSurface *dst)
+bool Scale_Surface_Bicubic(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_BICUBIC);
 }
 
-bool Scale_Surface_Cardinal(XSurface *src, XSurface *dst)
+bool Scale_Surface_Cardinal(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_CARDINAL);
 }
 
-bool Scale_Surface_Lanczos(XSurface *src, XSurface *dst)
+bool Scale_Surface_Lanczos(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_LANCZOS3);
 }

@@ -25,35 +25,36 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "exceptionhandler.h"
-#include "stackdump.h"
-#include "minidump.h"
-#include "cpudetect.h"
-#include "buildnum.h"
-#include "winutil.h"
-#include "miscutil.h"
-#include "crc32.h"
+
 #include "cdctrl.h"
-#include "version.h"
-#include "dsurface.h"
-#include "textfile.h"
-#include "debughlp.h"
-#include "wwmouse.h"
+#include "cpudetect.h"
+#include "crc32.h"
 #include "debughandler.h"
-#include "asserthandler.h"
+#include "debughlp.h"
+#include "dsurface.h"
+#include "minidump.h"
+#include "miscutil.h"
 #include "resource.h"
-#include "fetchres.h"
-#include "windialog.h"
+#include "stackdump.h"
+#include "stringid.h"
+#include "syringe.h"
+#include "textfile.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
-#include "tibsun_globals.h"
-#include "vinifera_newdel.h"
-#include <Windows.h>
+#include "windialog.h"
+#include "winutil.h"
+
 #include <dbghelp.h>
 #include <eh.h>
-#include <string>
+#include <windows.h>
 
 
 extern HMODULE DLLInstance;
@@ -99,7 +100,7 @@ LONG (* __stdcall Exception_Intercept_Func_Ptr)(unsigned int code, EXCEPTION_POI
 
 bool Any_Surface_Locked()
 {
-    return (PrimarySurface && PrimarySurface->Is_Locked())
+    return (VisibleSurface && VisibleSurface->Is_Locked())
         || (HiddenSurface && HiddenSurface->Is_Locked())
         || (CompositeSurface && CompositeSurface->Is_Locked())
         || (TileSurface && TileSurface->Is_Locked())
@@ -110,7 +111,7 @@ bool Any_Surface_Locked()
 
 void Clear_All_Surfaces()
 {
-    if (PrimarySurface) PrimarySurface->Clear();
+    if (VisibleSurface) VisibleSurface->Clear();
     if (HiddenSurface) HiddenSurface->Clear();
     if (CompositeSurface) CompositeSurface->Clear();
     if (TileSurface) TileSurface->Clear();
@@ -300,7 +301,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     /**
      *  Clear the buffer just in case we did a previous dump (like in a recursive situation).
      */
-    ExceptionBuffer.Clear();
+    ExceptionBuffer.clear();
 
     Init_Symbol_Info();
 
@@ -354,7 +355,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
         default:
             DEBUG_WARNING("Exception code is 0x%" PRIPTRSIZE PRIXPTR "\n", e_code);
             break;
-    };
+    }
 
     if (e_code == EXCEPTION_ACCESS_VIOLATION) {
 
@@ -377,21 +378,47 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
             default: // Unknown
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " Unknown violation.\r\n", record->ExceptionInformation[1]);
                 break;
-        };
+        }
     }
 
-    Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR "\r\n", context->Eip);
+    {
+        Init_Symbol_Info();
+
+        static char filename[512];
+        static char funcname[PATH_MAX];
+
+        uintptr_t addr;
+        unsigned line;
+
+        /**
+         *  Fetch function details for the EIP address.
+         */
+        Get_Function_Details(reinterpret_cast<void*>(context->Eip), funcname, filename, &line, &addr);
+
+        /**
+         *  If we got a function address, calculate our EIP's offset into the function.
+         */
+        if (addr != -1) {
+            addr = context->Eip - addr;
+        }
+
+        Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " (%s +0x%" PRIXPTR ") [%s:%d]\r\n", context->Eip, funcname, addr, filename, line);
+
+        if (SyringeData::LastHookOrigin != nullptr) {
+            Exception_Printf("Last entered hook at address: 0x%" PRIPTRSIZE PRIXPTR "\r\n", reinterpret_cast<register_t>(SyringeData::LastHookOrigin));
+        }
+    }
 
     Exception_Printf("\r\n");
 
     /**
      *  Has additional info for this EIP been loaded from the exception database?
      */
-    if (ExceptionInfoDescription.Peek_Buffer()[0] != '\0') {
+    if (!ExceptionInfoDescription.empty()) {
         Exception_Printf("Additional Information:\r\n");
         DEBUG_WARNING("\r\nAdditional Information:\n");
-        Exception_Printf("  %s\r\n", ExceptionInfoDescription.Peek_Buffer());
-        DEBUG_WARNING("  %s\n\n", ExceptionInfoDescription.Peek_Buffer());
+        Exception_Printf("  %s\r\n", ExceptionInfoDescription.c_str());
+        DEBUG_WARNING("  %s\n\n", ExceptionInfoDescription.c_str());
         Exception_Printf("\r\n");
     }
 
@@ -671,7 +698,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     /**
      *  Calculate unique crc for the exception data (used for checking recursive exceptions).
      */
-    CurrentExceptionCRC = CRC32_Memory(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
+    CurrentExceptionCRC = CRC32_Memory(ExceptionBuffer.data(), ExceptionBuffer.size());
 
     DEBUG_WARNING("****************************** END EXCEPTION DUMP ******************************!\n");
 }
@@ -696,7 +723,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
 
     switch (uMsg) {
         case WM_MOVING:
-            result = WinDialogClass::Dialog_Move(hDlg, wParam, lParam, uMsg);
+            result = On_WM_MOVING(hDlg, wParam, lParam);
             break;
 
         case WM_COMMAND:
@@ -736,7 +763,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
                 default:
                     result = FALSE;
                     break;
-            };
+            }
             break;
 
         case WM_CLOSE:
@@ -749,7 +776,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
              *  Send the exception buffer to the dialog.
              */
             if (ExceptionDumpFinished) {
-                SetDlgItemTextA(hDlg, IDC_EXCEPTION_LOG, ExceptionBuffer.Peek_Buffer()); // Debug edit box.
+                SetDlgItemTextA(hDlg, IDC_EXCEPTION_LOG, ExceptionBuffer.c_str()); // Debug edit box.
             }
 
             SetFocus(hDlg);
@@ -765,7 +792,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
         default:
             result = FALSE;
             break;
-    };
+    }
 
     return result;
 }
@@ -775,24 +802,24 @@ static INT_PTR Exception_Dialog()
 {
     switch (RecursionCount) {
         case 1:
-            CDControl.Unlock_All_CD_Drives();
+            CDControl.Unlock_All_CD_Trays();
             DEBUG_ERROR("Recursive exception detected!\n");
             MessageBox(nullptr, "Recursive exception detected!\n", "Error!", MB_OK|MB_ICONEXCLAMATION);
             Sleep(1000); // was 4000
             return IDC_EXCEPTION_QUIT; // Quit button
 
         case 2:
-            CDControl.Unlock_All_CD_Drives();
+            CDControl.Unlock_All_CD_Trays();
             return IDC_EXCEPTION_QUIT; // Quit button
 
         case 3:
-            CDControl.Unlock_All_CD_Drives();
+            CDControl.Unlock_All_CD_Trays();
             ExitProcess(EXIT_SUCCESS);
             break; //return IDC_EXCEPTION_QUIT; // Quit button
 
         default:
             break;
-    };
+    }
 
     HMODULE hResHandle = DLLInstance;
     const char *resId = MAKEINTRESOURCE(IDD_EXCEPTION);
@@ -816,7 +843,7 @@ static INT_PTR Exception_Dialog()
         DEBUG_ERROR("Unable to find the exception dialog resource!\n");
     }
     
-    CDControl.Unlock_All_CD_Drives();
+    CDControl.Unlock_All_CD_Trays();
 
     return retval;
 }
@@ -831,7 +858,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     ExceptionInfoCanContinue = false;
     ExceptionInfoIgnore = false;
-    ExceptionInfoDescription.Clear();
+    ExceptionInfoDescription.clear();
 
     /**
      *  
@@ -907,7 +934,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     if (RecursionCount < 2) {
 
-        ExceptionBuffer.Clear();
+        ExceptionBuffer.clear();
 
         DEBUG_WARNING("About to call Dump_Exception_Info()\n");
         Dump_Exception_Info(e_code, e_info);
@@ -925,7 +952,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         /**
          *  Write the exception log buffer to the file.
          */
-        ExceptionFile.Write(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
+        ExceptionFile.Write(ExceptionBuffer.c_str(), ExceptionBuffer.size());
 
         if (LastExceptionCRC && CurrentExceptionCRC == LastExceptionCRC) {
             DEBUG_WARNING("Exception dump is identical to the previous exception!\n");
@@ -1089,7 +1116,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
                     ExitAfterException = true;
                     break;
-            };
+            }
         }
 
         //WWMouseClass::System_Hide_Mouse();
@@ -1121,7 +1148,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         WinDialogClass::End_Dialog(WinDialogClass::CurrentWindowHandle);
     }
     
-    CDControl.Unlock_All_CD_Drives();
+    CDControl.Unlock_All_CD_Trays();
 
     Vinifera_Collect_Debug_Files();
 

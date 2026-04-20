@@ -25,24 +25,25 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
+
+#include "always.h"
+
 #include "asserthandler.h"
 #include "debughandler.h"
-#include "purecallhandler.h"
 #include "exceptionhandler.h"
-#include "vinifera_globals.h"
-#include "tspp_assert.h"
-#include "winutil.h"
-#include "wstring.h"
 #include "hooker.h"
-#include "hooker_macros.h"
-#include <string>
+#include "purecallhandler.h"
+#include "tspp_assert.h"
+#include "vinifera_globals.h"
+#include "winutil.h"
+
 #include <stdarg.h>
+#include <string>
 
 
 /**
  *  Prints an string to the debug handler.
- * 
+ *
  *  @author: CCHyper
  */
 static void __cdecl Debug_Print(const char *fmt, ...)
@@ -50,10 +51,10 @@ static void __cdecl Debug_Print(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    Wstring tmp = fmt;
+    std::string tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
+    vsprintf(buffer, tmp.c_str(), args);
 
     /**
      *  Re-escape any % signs.
@@ -76,10 +77,10 @@ static void __cdecl Debug_Print_Line(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    Wstring tmp = fmt;
+    std::string tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
+    vsprintf(buffer, tmp.c_str(), args);
 
     /**
      *  Re-escape any % signs.
@@ -102,10 +103,10 @@ static void __cdecl Debug_Print_Warning(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    Wstring tmp = fmt;
+    std::string tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
+    vsprintf(buffer, tmp.c_str(), args);
 
     /**
      *  Re-escape any % signs.
@@ -128,10 +129,10 @@ static void __cdecl Debug_Print_Error(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    Wstring tmp = fmt;
+    std::string tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
+    vsprintf(buffer, tmp.c_str(), args);
 
     /**
      *  Re-escape any % signs.

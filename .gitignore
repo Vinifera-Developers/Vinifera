@@ -31,6 +31,9 @@
 *.out
 *.app
 
+# Allow Syringe.exe
+!Syringe.exe
+
 # MSVC
 build/
 build_*/
@@ -62,3 +65,6 @@ desktop.ini
 
 # Docs
 docs/_build/
+
+# AI Agents
+.claude/

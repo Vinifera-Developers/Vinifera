@@ -25,15 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "rockettype.h"
-#include "ccini.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "asserthandler.h"
-#include "animtype.h"
+
 #include "aircrafttype.h"
+#include "animtype.h"
+#include "asserthandler.h"
+#include "ccini.h"
 #include "findmake.h"
+#include "tibsun_functions.h"
+#include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 
 
@@ -388,18 +391,18 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
 
     PauseFrames = ini.Get_Int(IniName, "PauseFrames", PauseFrames);
     TiltFrames = ini.Get_Int(IniName, "TiltFrames", TiltFrames);
-    PitchInitial = ini.Get_Double(IniName, "PitchInitial", PitchInitial);
-    PitchFinal = ini.Get_Double(IniName, "PitchFinal", PitchFinal);
-    TurnRate = ini.Get_Double(IniName, "TurnRate", TurnRate);
+    PitchInitial = ini.Get_Float(IniName, "PitchInitial", PitchInitial);
+    PitchFinal = ini.Get_Float(IniName, "PitchFinal", PitchFinal);
+    TurnRate = ini.Get_Float(IniName, "TurnRate", TurnRate);
     RaiseRate = ini.Get_Int(IniName, "RaiseRate", RaiseRate);
-    Acceleration = ini.Get_Double(IniName, "Acceleration", Acceleration);
+    Acceleration = ini.Get_Float(IniName, "Acceleration", Acceleration);
     Altitude = ini.Get_Int(IniName, "Altitude", Altitude);
     Damage = ini.Get_Int(IniName, "Damage", Damage);
     EliteDamage = ini.Get_Int(IniName, "EliteDamage", EliteDamage);
     BodyLength = ini.Get_Int(IniName, "BodyLength", BodyLength);
     IsLazyCurve = ini.Get_Bool(IniName, "LazyCurve", IsLazyCurve);
     IsCruiseMissile = ini.Get_Bool(IniName, "CruiseMissile", IsCruiseMissile);
-    CloseEnoughFactor = ini.Get_Double(IniName, "CloseEnoughFactor", CloseEnoughFactor);
+    CloseEnoughFactor = ini.Get_Float(IniName, "CloseEnoughFactor", CloseEnoughFactor);
     Type = TGet_Class(ini, IniName, "Type", Type);
     Warhead = TGet_Class(ini, IniName, "Warhead", Warhead);
     EliteWarhead = TGet_Class(ini, IniName, "EliteWarhead", EliteWarhead);

@@ -25,10 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "abstracttypeext.h"
-#include "cell.h"
 
 
 /**

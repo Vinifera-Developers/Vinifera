@@ -25,13 +25,16 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "theatertype.h"
-#include "vinifera_globals.h"
+
+#include "asserthandler.h"
 #include "ccini.h"
 #include "colorscheme.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-#include <string>
+#include "vinifera_globals.h"
 
 
 /**
@@ -187,7 +190,7 @@ bool TheaterTypeClass::Read_INI(CCINIClass &ini)
     ini.Get_String(Name, "MMSuffix", MMSuffix, MMSuffix, sizeof(MMSuffix));
 
     char chr[2] = { '\0' };
-    ini.Get_String(Name, "ImageLetter", chr, sizeof(chr));
+    ini.Get_String(Name, "ImageLetter", "", chr, sizeof(chr));
     if (isascii(chr[0])) {
         ImageLetter = std::toupper(chr[0]);
     }
@@ -288,7 +291,7 @@ bool TheaterTypeClass::Read_Theaters_INI(CCINIClass &ini)
         /**
          *  Get a theater entry.
          */
-        if (ini.Get_String(THEATERS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(THEATERS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a theater type of the name specified.

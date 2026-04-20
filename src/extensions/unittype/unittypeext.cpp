@@ -25,20 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "unittypeext.h"
-#include "unittype.h"
+
 #include "ccini.h"
-#include "tibsun_globals.h"
-#include "extension.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
 #include "debughandler.h"
+#include "extension.h"
 #include "findmake.h"
+#include "tibsun_globals.h"
+#include "unittype.h"
+#include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 UnitTypeClassExtension::UnitTypeClassExtension(const UnitTypeClass *this_ptr) :

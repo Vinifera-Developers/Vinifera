@@ -25,27 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "rulesext_hooks.h"
-#include "rulesext_init.h"
-#include "rulesext.h"
-#include "rules.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "sessionext.h"
-#include "ccini.h"
-#include "vector.h"
-#include "addon.h"
-#include "wwmouse.h"
-#include "windialog.h"
-#include "extension_globals.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include <resource.h>
 
-#include "armortype.h"
+#include "always.h"
+
+#include "rulesext_hooks.h"
+
+#include "addon.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension_globals.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "rulesext_init.h"
+#include "sessionext.h"
+#include "syringe.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "vector.h"
+#include "windialog.h"
+#include "wwmouse.h"
+
+#include <resource.h>
 
 
 extern HMODULE DLLInstance;
@@ -99,7 +100,7 @@ void RulesClassExt::_Initialize(CCINIClass& ini)
  *  
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Rules_Show_Rules_Select_Dialog_Patch)
+DEFINE_HOOK(0x004E12EB, _Init_Rules_Show_Rules_Select_Dialog_Patch, 0)
 {
     if (!Vinifera_DeveloperMode) {
         goto use_rules_ini;
@@ -108,13 +109,13 @@ DECLARE_PATCH(_Init_Rules_Show_Rules_Select_Dialog_Patch)
     /**
      *  Stolen bytes/code.
      */
-    WWMouse->Release_Mouse();
+    MouseCursor->Release_Mouse();
 
 show_rules_dialog:
-    JMP(0x004E12F6);
+    return 0x004E12F6;
 
 use_rules_ini:
-    JMP(0x004E12E3);
+    return 0x004E12E3;
 }
 
 
@@ -135,7 +136,7 @@ LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG 
             HWND hDlgItem = GetDlgItem(hWnd, IDC_RULE_LISTBOX);
             DynamicVectorClass<CCINIClass *> *vec = reinterpret_cast<DynamicVectorClass<CCINIClass *> *>(lParam);
             for (int i = 0; i < vec->Count(); ++i) {
-                (*vec)[i]->Get_String("General", "Name", buffer, sizeof(buffer));
+                (*vec)[i]->Get_String("General", "Name", "", buffer, sizeof(buffer));
                 SendMessage(hDlgItem, LB_ADDSTRING, 0, (LPARAM)buffer);
             }
             SendMessage(hDlgItem, LB_SETCURSEL, 0, 0);
@@ -152,7 +153,7 @@ LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG 
             break;
         }
         case WM_MOVING:
-            WinDialogClass::Dialog_Move(hWnd, wParam, lParam, uMsg);
+            On_WM_MOVING(hWnd, wParam, lParam);
             break;
         case WM_HELP:
             //Show_Help_File(lparam);
@@ -171,7 +172,7 @@ LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG 
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Rules_Extended_Class_Patch)
+DEFINE_HOOK(0x004E138B, _Init_Rules_Extended_Class_Patch, 5)
 {
     /**
      *  #issue-583
@@ -188,33 +189,13 @@ DECLARE_PATCH(_Init_Rules_Extended_Class_Patch)
     }
 
     /**
-     *  Original code.
-     */
-    Session.Options.UnitCount = Rule->MPUnitCount;
-    BuildLevel = Rule->MPTechLevel;
-    Session.Options.Credits = Rule->MPMaxMoney;
-    Session.Options.FogOfWar = false;
-    Session.Options.BridgeDestruction = Rule->IsMPBridgeDestruction;
-    Session.Options.Goodies = Rule->IsMPCrates;
-    Session.Options.Bases = Rule->IsMPBasesOn;
-    Session.Options.CaptureTheFlag = Rule->IsMPCaptureTheFlag;
-    Session.Options.AIPlayers = 0;
-    Session.Options.AIDifficulty = DIFF_NORMAL;
-
-    /**
      *  Store extended class values.
      */
     SessionExtension->ExtOptions.IsAutoDeployMCV = RuleExtension->IsMPAutoDeployMCV;
     SessionExtension->ExtOptions.IsPrePlacedConYards = RuleExtension->IsMPPrePlacedConYards;
     SessionExtension->ExtOptions.IsBuildOffAlly = RuleExtension->IsBuildOffAlly;
 
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { push 0x006FE02C } // "LANGRULE.INI"
-    _asm { lea ecx, [esp+0x1AC] }
-
-    JMP(0x004E1401);
+    return 0;
 }
 
 
@@ -230,9 +211,6 @@ void RulesClassExtension_Hooks()
 
     Patch_Jump(0x005C6710, &RulesClassExt::_Process);
     Patch_Call(0x0053E408, &RulesClassExt::_Initialize);
-
-    Patch_Jump(0x004E138B, &_Init_Rules_Extended_Class_Patch);
-    Patch_Jump(0x004E12EB, &_Init_Rules_Show_Rules_Select_Dialog_Patch);
 
     /**
      *  Patch the dialog init to use out rules dialog resource.

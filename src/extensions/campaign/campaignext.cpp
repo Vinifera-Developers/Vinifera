@@ -25,17 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "campaignext.h"
+
 #include "campaign.h"
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :
@@ -193,7 +195,7 @@ bool CampaignClassExtension::Read_INI(CCINIClass &ini)
         std::snprintf(This()->Description, sizeof(This()->Description), "[Debug] - %s", buffer);
     }
     
-    ini.Get_String(ini_name, "IntroMovie", IntroMovie, sizeof(IntroMovie));
+    ini.Get_String(ini_name, "IntroMovie", "", IntroMovie, sizeof(IntroMovie));
 
     _House = static_cast<HousesType>(ini.Get_Int(ini_name, "Side", _House));
 

@@ -25,45 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "crt_hooks.h"
-#include <fenv.h>
-#include "vinifera_newdel.h"
+
 #include "asserthandler.h"
 #include "debughandler.h"
-
 #include "hooker.h"
 #include "hooker_macros.h"
 
-
-/**
- *  Redirect msize() to use HeapSize as we now control all memory allocations.
- */
-static unsigned int __cdecl vinifera_msize(void *ptr)
-{
-    return HeapSize(GetProcessHeap(), 0, ptr);
-}
-
-
-/**
- *  Reimplementation of strdup() to use our allocator.
- */
-static char * __cdecl vinifera_strdup(const char *string)
-{
-    char *str;
-    char *p;
-    int len = 0;
-
-    while (string[len]) {
-        len++;
-    }
-    str = (char *)vinifera_allocate(len + 1);
-    p = str;
-    while (*string) {
-        *p++ = *string++;
-    }
-    *p = '\0';
-    return str;
-}
+#include <crtdbg.h>
+#include <cstring>
+#include <fenv.h>
 
 
 /**
@@ -94,38 +68,36 @@ DECLARE_PATCH(_set_fp_mode)
  */
 void CRT_Hooks()
 {
+#ifdef _DEBUG
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+#endif
+
     /**
      *  Call the games fpmath to make sure we init 
      */
     Patch_Jump(0x005FFDAB, &_set_fp_mode);
 
     /**
-     *  dynamic init functions call _msize indirectly.
-     *  They call __onexit, so we need to patch this.
-     */
-    Hook_Function(0x006B80AA, &vinifera_msize);
-
-    /**
      *  Standard functions.
      */
-    Hook_Function(0x006BE766, &vinifera_strdup);
+    Hook_Function(0x006B602A, &std::strtok);
+    Hook_Function(0x006BE766, &strdup);
 
     /**
      *  C memory functions.
      */
-    Hook_Function(0x006B72CC, &vinifera_allocate);
-    Hook_Function(0x006BCA26, &vinifera_count_allocate);
-    Hook_Function(0x006B7F72, &vinifera_reallocate);
-    Hook_Function(0x006B67E4, &vinifera_free);
+    Hook_Function(0x006B72CC, &std::malloc);
+    Hook_Function(0x006BCA26, &std::calloc);
+    Hook_Function(0x006B7F72, &std::realloc);
+    Hook_Function(0x006B67E4, &std::free);
+    Hook_Function(0x006B80AA, &_msize);
 
     /**
      *  C++ new and delete.
      */
-    Hook_Function(0x006B51D7, &vinifera_allocate);
-    Hook_Function(0x006B51CC, &vinifera_free);
-
-    /**
-     *  Redirect the games CRT functions to use use the DLL's CRT.
-     */
-    Hook_Function(0x006B602A, &std::strtok);
+    Hook_Function(0x006B51D7, &std::malloc);
+    Hook_Function(0x006B51CC, &std::free);
 }

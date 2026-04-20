@@ -25,20 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "supertypeext_hooks.h"
-#include "supertypeext_init.h"
-#include "supertypeext.h"
-#include "supertype.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
-#include "cell.h"
-#include "object.h"
 #include "building.h"
 #include "buildingtype.h"
+#include "cell.h"
+#include "debughandler.h"
 #include "extension.h"
 #include "hooker.h"
 #include "mouse.h"
+#include "object.h"
+#include "supertype.h"
+#include "supertypeext.h"
+#include "supertypeext_init.h"
 #include "weapontype.h"
 
 

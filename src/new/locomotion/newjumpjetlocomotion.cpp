@@ -25,24 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "newjumpjetlocomotion.h"
 
-#include <algorithm>
-#include <new>
-
 #include "aircrafttracker.h"
-#include "rules.h"
-#include "foot.h"
-#include "mouse.h"
-#include "cell.h"
 #include "building.h"
+#include "cell.h"
 #include "coord.h"
 #include "extension.h"
+#include "foot.h"
 #include "footext.h"
 #include "house.h"
 #include "ionstorm.h"
+#include "mouse.h"
+#include "rules.h"
 #include "technotypeext.h"
 #include "vinifera_globals.h"
+
+#include <algorithm>
+#include <new>
 
 
 NewJumpjetLocomotionClass::NewJumpjetLocomotionClass() :
@@ -624,4 +627,3 @@ IFACEMETHODIMP_(Coord) NewJumpjetLocomotionClass::Head_To_Coord()
         return HeadToCoord;
     }
 }
-

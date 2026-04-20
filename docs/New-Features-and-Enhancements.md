@@ -304,7 +304,18 @@ AllowedSmudges=   ; list of SmudgeTypes, which Smudges can appear on this tile. 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
 [SOMEISOTILESET]  ; IsometricTileType
-AllowVeins=yes    ; boolean, can Veins can grow on this tile.
+AllowVeins=yes    ; boolean, can Veins can grow on this tile?
+```
+
+
+### WaterTunnel
+
+- The `WaterTunnel` key turns this tile's `Tunnel` LandType tiles water-passable.
+
+In `TEMPERAT.INI` (or other theater file):
+```ini
+[SOMEISOTILESET]  ; IsometricTileType
+WaterTunnel=no    ; boolean, is this tile's tunnel on water?
 ```
 
 ## Infantry
@@ -326,6 +337,18 @@ OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, a
 
 ```{note}
 When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `ALT` key (Force Move) will allow you to enter the transport instead of healing it.
+```
+
+## Overlays
+
+### WaterTunnel
+
+- If the cell the overlay is on has the `Tunnel` LandType, the `WaterTunnel` key turns this tile water-passable.
+
+In `RULES.INI`:
+```ini
+[SOMEOVERLAY]   ; OverlayType
+WaterTunnel=no  ; boolean, is this tile's tunnel on water?
 ```
 
 ## Projectiles
@@ -647,6 +670,15 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     DropPod=AirStrike,AirStrike
     RallyToPoint=CanMove,Normal
     AttackSupport=Normal,Normal
+    PlaceBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon1=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon2=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon3=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon4=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon5=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon6=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon7=PlaceWaypoint,PlaceWaypoint
+    SelectBeacon=SelectWaypoint,SelectWaypoint
 
     ```
    :::
@@ -937,7 +969,7 @@ LeaveTransportSound=<none>  ; VocType, the sound effect to play when a passenger
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]  ; TechnoType
-Soylent=0     ; unsigned integer, the refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. 0 uses normal refund amount logic.
+Soylent=-1    ; integer, the refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. -1 uses normal refund amount logic.
 ```
 
 ### New Voice Responses
@@ -992,6 +1024,23 @@ ShakeXlo=0    ; unsigned integer, the minimum pixel X value.
 ### WalkRate
 
 - Vinifera allows `WalkRate` to be optionally loaded from `ART.INI` image entries, overriding any value defined in `RULES.INI`.
+
+### Wake Animation Customization
+
+- Vinifera allows customizing the wake (moving on water) animation per-techno.
+
+In `ART.INI`:
+```ini
+[SOMETECHNO]            ; TechnoType
+WakeAnim=               ; AnimType, the wake graphic to show as the object moves across water.
+WakeAnimRate=10         ; integer, the rate at which this object creates the wake animation while moving.
+IdleWakeAnim=           ; AnimType, the wake graphic to show when the object is staying still on water.
+HideWakeWhenCloaked=no  ; boolean, should this unit not spawn wakes when it's cloaked?
+```
+
+```{note}
+Wake customizations currently only take effect on units using `DriveLocomotion`.
+```
 
 ### ImmuneToEMP
 
@@ -1211,6 +1260,30 @@ Prerequisite=GROUPNAME
 Vanilla prerequisite groups always exist by default. If you re-define them in `[PrerequisiteGroups]`, values from `[PrerequisiteGroups]` will overwrite the values from `[General]`.
 ```
 
+### Self Healing
+- Vinifera adds the ability to control the Self Healing mechanism for all technos, allowing to control both the maximum healing capacity and healing rate, both game-wide and per techno.
+- Techno-specific values apply first.
+- If not specified, then game-wide values apply.
+- If both are not specified, then Vinifera falls back to the original values used by the game, which depends on the attribute:
+  - Self Healing Cap: based on `ConditionYellow`.
+  - Self Healing Rate: based on `RepairRate`.
+
+Game-wide definition:
+In `RULES.INI`:
+```ini
+[General]
+SelfHealingCap=50% ; % or float, determines the maximum amount of strength technos can automatically regenerate. Caps at 100%. Only used for technos that do not have this key defined for them.
+SelfHealingRate=.016 ; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. Only used for technos that do not have this key defined for them. The lower the value, the faster technos will heal.
+```
+
+Techno-specific definition:
+In `RULES.INI`:
+```ini
+[SOMETECHNO]
+SelfHealingCap=50% ; % or float, determines the maximum amount of strength this techno can automatically regenerate. Caps at 100%.
+SelfHealingRate=.016 ; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. The lower the value, the faster this techno will heal.
+```
+
 ## Terrain
 
 ### Light Sources
@@ -1233,7 +1306,7 @@ LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 - Vinifera adds additional customization for Tiberium spreaders (`SpawnsTiberium=yes`).
 
 ```{note}
-Spreaders don't spawn Tiberium out of thin air. A spreader first spreads Tiberium from itself, then from the radius-1 ring of Tiberium around it, then from the radius-2 ring, and so on. You can think of it as accelerating the natural spread process. If a cell doesn't border the spreader of a piece of Tiberium, it won't be spread to.
+With `SpawnsTiberiumScattered=no`, Spreaders don't spawn Tiberium out of thin air. A spreader first spreads Tiberium from itself, then from the radius-1 ring of Tiberium around it, then from the radius-2 ring, and so on. You can think of it as accelerating the natural spread process. If a cell doesn't border the spreader of a piece of Tiberium, it won't be spread to.
 ```
 
 In `RULES.INI`:
@@ -1243,6 +1316,7 @@ SpawnsTiberiumRange=1         ; integer, the maximum range in which Tiberium wil
 SpawnsTiberiumStage=5,5       ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
 SpawnsTiberiumStageFalloff=0  ; float, the amount by which the growth stage will decrease for every ring after the first one.
 SpawnsTiberiumCount=1,1       ; two integers, the minimum and maximum number of spreads that will occur (maximum can be omitted).
+SpawnsTiberiumScattered=no    ; boolean, whether Tiberium should spawn scattered in the spawn range, as opposed to spreading from the center (imitates the old Tiberium spreaders using animations).
 ```
 
 ## Theaters
@@ -1418,6 +1492,16 @@ In `RULES.INI`:
 ```ini
 [AudioVisual]
 WeedPipIndex=1  ; integer, the pip index used for Weeds.
+```
+
+### Spread Customization
+
+- Vinifera allows mods to customize some aspects about how Tiberiums spread.
+In `RULES.INI`:
+```ini
+[SOMETIBERIUM]      ; Tiberium
+MinSpreadStage=0    ; integer, the minimum growth stage at which this Tiberium can spread to a nearby cell. Defaults to ((Tiberium Index in list) / 2 + 1).
+SpreadSpawnStage=5  ; integer, newly spread Tiberium spawns grown to this stage.
 ```
 
 ## Vehicles
@@ -1675,4 +1759,48 @@ OmniFire=no   ; boolean, does the unit firing this weapon not have to perform a 
 
 ```{note}
 `OmniFire` only applies to `UnitTypes`.
+```
+
+### Disguise
+
+- In the original game, disguised infantry are completely undetectable by the AI, or any units. Vinifera changes this so that the AI can see through disguise by default, and the AI can be configured not to see through disguise. TechnoTypes can now also optionally see through disguise.
+
+In `RULES.INI`:
+```ini
+[AI]
+AIDetectDisguise=yes ; boolean, are AI houses allowed to target disguised enemy units?
+
+[SOMETECHNOTYPE]
+DetectDisguise=no    ; boolean, are instances of the techno type allowed to automatically target disguised enemy units?
+```
+
+### Iron Curtains
+
+- Vinifera implements the Iron Curtain effect from Red Alert 1, available only for the AI and map scripting at this time.
+
+In `RULES.INI`:
+```ini
+[General]
+IronCurtains=RAIRON           ; comma-separated list of BuildingTypes that can cause the Iron Curtain effect
+IronCurtainDuration=675       ; integer, how long the Iron Curtain effect lasts in frames
+IronCurtainRechargeTime=9900  ; integer, how long it takes for a house's Iron Curtain to charge after it has been used
+
+[AudioVisual]
+IronCurtainFlashRate=8                 ; integer, the rate, in frames, at which the Iron Curtain pulse "animation" progresses to the next brightness phase
+IronCurtainFlashIntensityMultiplier=50 ; integer, multiplier for the Iron Curtain pulse brightness modifier (def=50). 1000 brightness units is equal to regular fully-lit lighting
+IronCurtainPulseTable=-16,-15,-14,-13,-12,-13,-14,-15 ; list of integers, defines the brightness phases and raw brightness rates of the Iron Curtain pulse effect (def=-16,-15,-14,-13,-12,-13,-14,-15).
+
+[SOMEUNIT]
+IronCurtainPriorityTarget=no ; boolean, if set to yes, the AI will apply the Iron Curtain to this unit when its HP is about to drop below half. Requires the AI to have an Iron Curtain building available and the Iron Curtain charged
+```
+
+### AI Harvester Count
+
+- Vinifera allows customizing the number of harvesters the AI builds per refinery.
+
+In `RULES.INI`:
+```ini
+[AI]
+HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the AI builds per refinery by difficulty level, from hardest to easiest
+AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
 ```

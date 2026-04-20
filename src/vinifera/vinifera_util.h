@@ -25,13 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "vector.h"
 
 
-class XSurface;
+class Surface;
 class BSurface;
 
 
@@ -39,11 +39,12 @@ const char *Vinifera_Version_String();
 const char *Vinifera_Build_Type_String();
 const char *TSpp_Version_String();
 
-void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init = false);
+void Vinifera_Draw_Version_Text(Surface *surface, bool pre_init = false);
 
 bool Vinifera_Generate_Mini_Dump();
 
 int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2 = nullptr, const char *btn3 = nullptr);
+void Vinifera_Log_And_Show_WWMessageBox(const char* msg, ...);
 void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...);
 
 const char *Vinifera_Get_Window_Title(DWORD dwPid);

@@ -25,9 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
+#include "SDL3/SDL_surface.h"
 #include "extension.h"
 #include "options.h"
 
@@ -37,51 +38,91 @@ class CCINIClass;
 
 class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
 {
-    public:
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+public:
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
 
-    public:
-        OptionsClassExtension(const OptionsClass *this_ptr);
-        OptionsClassExtension(const NoInitClass &noinit);
-        virtual ~OptionsClassExtension();
+    enum RendererDriverType {
+        RENDERER_DRIVER_AUTO = -1,
+        RENDERER_DRIVER_DIRECT3D,
+        RENDERER_DRIVER_DIRECT3D11,
+        RENDERER_DRIVER_DIRECT3D12,
+        RENDERER_DRIVER_OPENGL,
+        RENDERER_DRIVER_VULKAN
+    };
 
-        /**
-         *  OptionsClass extension does not require these to be used, but we
-         *  implement them for completeness.
-         */
-        virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
-        virtual void Object_CRC(CRCEngine &crc) const override;
+public:
+    OptionsClassExtension(const OptionsClass* this_ptr);
+    OptionsClassExtension(const NoInitClass& noinit);
+    virtual ~OptionsClassExtension();
 
-        virtual const char *Name() const override { return "Options"; }
-        virtual const char *Full_Name() const override { return "Options"; }
+    /**
+     *  OptionsClass extension does not require these to be used, but we
+     *  implement them for completeness.
+     */
+    virtual int Get_Object_Size() const override;
+    virtual void Detach(AbstractClass* target, bool all = true) override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
 
-        void Load_Settings();
-        void Load_Init_Settings();
-        void Save_Settings();
+    virtual const char* Name() const override { return "Options"; }
+    virtual const char* Full_Name() const override { return "Options"; }
 
-        void Set();
+    void Load_Settings();
+    void Load_Init_Settings();
+    void Save_Settings();
 
-    public:
+    void Set();
 
-        /**
-         *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
-         */
-        bool SortDefensesAsLast;
+    static RendererDriverType Parse_Renderer_Driver(const char* name);
+    static const char* Get_Renderer_Driver_Config_Name(RendererDriverType driver);
+    static const char* Get_Renderer_Driver_SDL_Name(RendererDriverType driver);
 
-        /**
-         *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
-         */
-        bool FilterBandBoxSelection;
+public:
+    /**
+     *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
+     */
+    bool SortDefensesAsLast;
 
-        /**
-         *  Number of autosaves to make in skirmish.
-         */
-        int AutoSaveCount;
+    /**
+     *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
+     */
+    bool FilterBandBoxSelection;
 
-        /**
-         *  The delay between autosaves in skirmish in frames.
-         */
-        int AutoSaveInterval;
+    /**
+     *  Customizable hotkeys for starting a chat.
+     */
+    int KeyChatToAll1;
+    int KeyChatToAll2;
+    int KeyChatToAllies;
+
+    /**
+     *  Window size override.
+     */
+    int WindowWidth;
+    int WindowHeight;
+
+    /**
+     *  Scaling mode.
+     */
+    SDL_ScaleMode ScaleMode;
+
+    /**
+     *  Cursor scale factor.
+     */
+    int CursorScale;
+
+    /**
+     *  Is VSync on?
+     */
+    bool IsVSync;
+
+    /**
+     *  Preferred SDL renderer backend.
+     */
+    RendererDriverType RendererDriver;
+
+    /**
+     *  The delay between autosaves in skirmish in frames.
+     */
+    int AutoSaveInterval;
 };

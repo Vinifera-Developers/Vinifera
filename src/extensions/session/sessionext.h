@@ -25,9 +25,9 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "extension.h"
 #include "session.h"
 
@@ -74,6 +74,16 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         } ExtGameOptionsType;
 
         ExtGameOptionsType ExtOptions;
+
+        /**
+         *  Is the message we're currently writing meant to be sent to allies only?
+         */
+        bool IsChatToAllies;
+
+        /**
+         *  If we're writing a private message, this is the name of its recipient.
+         */
+        char MessageRecipientName[32];
 
         /**
          *  Convenient property to access IsGDI as a HousesType.

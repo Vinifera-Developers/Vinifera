@@ -25,14 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "storageext_hooks.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "storageext.h"
 
 

@@ -26,12 +26,16 @@
  *
  ******************************************************************************/
 
+#include "always.h"
+
 #include "vinifera_savever.h"
 
-#include <comdef.h>
-
-#include "savever.h"
 #include "debughandler.h"
+#include "savever.h"
+#include "tibsun_defines.h"
+
+#include <comdef.h>
+#include <iterator>
 
 
 /**
@@ -42,17 +46,20 @@
 ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     InternalVersion(0),
     Version(0),
-    ScenarioDescription{ "" },
-    PlayerHouse{ "" },
+    ScenarioDescription {""},
+    PlayerHouse {""},
     CampaignNumber(-1),
     ScenarioNumber(0),
-    UnknownString{ "" },
-    PlayerName{ "" },
-    ExecutableName{ "" },
+    UnknownString {""},
+    PlayerName {""},
+    ExecutableName {""},
     GameType(0),
     ViniferaVersion(0),
-    ViniferaCommitHash{ "" },
-    PlaythroughID(0)
+    PlaythroughID(0),
+    ViniferaCommitHash {""},
+    SessionID(0),
+    Difficulty(DIFF_NORMAL),
+    TotalPlayTime(0)
 {
     StartTime.dwLowDateTime = 0;
     StartTime.dwHighDateTime = 0;

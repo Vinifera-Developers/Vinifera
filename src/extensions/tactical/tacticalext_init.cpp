@@ -25,46 +25,35 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tacticalext_hooks.h"
-#include "tacticalext.h"
-#include "tactical.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "tactical.h"
+#include "tacticalext.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Constructor_Patch)
+DEFINE_HOOK(0x0060F08A, _Tactical_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, esi); // "this" pointer.
+    GET(Tactical *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  Create the extended class instance.
      */
     TacticalMapExtension = Extension::Singleton::Make<Tactical, TacticalExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -75,21 +64,15 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Destructor_Patch)
+DEFINE_HOOK(0x0060F0DD, _Tactical_Destructor_Patch, 10)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, esi);
-
     /**
      *  Remove the extended class instance.
      */
     Extension::Singleton::Destroy<Tactical, TacticalExtension>(TacticalMapExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    this_ptr->AbstractClass::~AbstractClass();
-    _asm { ret }
+    return 0;
 }
 
 
@@ -100,21 +83,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00618020, _Tactical_Scalar_Destructor_Patch, 10)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, esi);
+    GET(Tactical *, this_ptr, ESI);
 
     /**
      *  Remove the extended class instance.
      */
     Extension::Singleton::Destroy<Tactical, TacticalExtension>(TacticalMapExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    this_ptr->AbstractClass::~AbstractClass();
-    JMP(0x0061802F);
+    return 0;
 }
 
 
@@ -123,7 +102,5 @@ original_code:
  */
 void TacticalExtension_Init()
 {
-    Patch_Jump(0x0060F08A, &_Tactical_Constructor_Patch);
-    Patch_Jump(0x0060F0E7, &_Tactical_Destructor_Patch);
-    Patch_Jump(0x0061802A, &_Tactical_Scalar_Destructor_Patch);
+
 }

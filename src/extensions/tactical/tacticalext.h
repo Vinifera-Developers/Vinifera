@@ -25,17 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "abstractext.h"
 #include "extension.h"
-#include "tactical.h"
-#include "ttimer.h"
-#include "stimer.h"
-#include "wstring.h"
 #include "point.h"
+#include "stimer.h"
+#include "tactical.h"
 #include "textprint.h"
-#include <objidl.h>
+#include "ttimer.h"
 
 
 class HouseClass;
@@ -84,6 +82,9 @@ public:
 
     void Render_Post();
     void Flag_Cell(CellClass& cell);
+
+    void Beacon_Mode_Control(int control);
+    void Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset);
 
 #ifndef NDEBUG
     bool Debug_Draw_Facings();
@@ -172,4 +173,14 @@ public:
      *  The cached string containing the formatted templated text.
      */
     char TemplatedTextCache[512];
+
+    /**
+     *  Is the player currently placing a beacon?
+     */
+    bool IsBeaconPlacementMode;
+
+    /**
+     *  Is the player currently editing a beacon's text?
+     */
+    bool IsEditingBeaconText;
 };

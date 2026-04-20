@@ -25,34 +25,34 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "campaignext_hooks.h"
-#include "campaignext_init.h"
+
+#include "addon.h"
 #include "campaign.h"
 #include "campaignext.h"
-#include "addon.h"
-#include "extension.h"
-#include "fatal.h"
+#include "campaignext_init.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
  *  #issue-723
- * 
+ *
  *  Patches in support for checking IsDebugOnly when loading campaigns.
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
+DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)
 {
-    GET_REGISTER_STATIC(CampaignClass *, campaign, esi);
-    GET_REGISTER_STATIC(int, index, edi);
-    static CampaignClassExtension *campaignext;
+    GET(CampaignClass *, campaign, ESI);
+    GET(int, index, EDI);
 
-    campaignext = Extension::Fetch(campaign);
+    auto campaignext = Extension::Fetch(campaign);
 
     /**
      *  Is this a debug campaign? Make sure the developer mode is enabled
@@ -88,10 +88,9 @@ DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
 add_campaign:
     DEBUG_INFO("  Adding Campaign [%d] - %s\n", index, campaign->Description);
 add_no_print:
-    _asm { mov esi, campaign }
-    _asm { add esi, 0x268 } // campaign->Description
-    _asm { mov edi, index }
-    JMP_REG(ecx, 0x004E33D1);
+    R->ESI(&campaign->Description);
+    R->EDI(index);
+    return 0x004E33D1;
 
     /**
      *  Skip this campaign.
@@ -99,7 +98,7 @@ add_no_print:
 skip_campaign:
     DEBUG_GAME("  Skipping Campaign [%d] - %s\n", index, campaign->Description);
 skip_no_print:
-    JMP(0x004E33E6);
+    return 0x004E33E6;
 }
 
 
@@ -113,6 +112,5 @@ void CampaignClassExtension_Hooks()
      */
     CampaignClassExtension_Init();
 
-    Patch_Jump(0x004E337D, &_Choose_Campaign_Debug_Only_Patch);
     Patch_Byte_Range(0x004E3377, 0x90, 3); // Removes "or ecx, 0x0FFFFFFFF"
 }

@@ -25,40 +25,39 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "skirmishdlg_hooks.h"
-#include "tibsun_defines.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
-#include <Commctrl.h>
+#include "always.h"
+
+#include "skirmishdlg_hooks.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "session.h"
+#include "syringe.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
+
+#include <Commctrl.h>
 
 
 /**
  *  #issue-346
- * 
+ *
  *  Fixes a limitation where returning to the Skirmish dialog after a game
  *  clamps the chosen side between 0 (GDI) and 1 (NOD). This means the player
  *  would be forced back to index 1 (NOD) on the combo box if they played as
  *  a new side which was added in a mod for example.
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
+DEFINE_HOOK(0x005F7812, _SkirmishDialog_InitDialog_RestoreSideIndex_Patch, 0)
 {
-    GET_REGISTER_STATIC(HWND, hSideComboBox, edi);
-    static int side_index;
+    GET(HWND, hSideComboBox, EDI);
 
     /**
      *  Clamp the chosen House index within the range of known houses. If the
      *  value is out of range for any reason, set back to index 0 (GDI).
      */
-    side_index = Session.House;
+    int side_index = Session.House;
     if (side_index >= HouseTypes.Count()) {
         side_index = 0;
     }
@@ -68,7 +67,7 @@ DECLARE_PATCH(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
      */
     SendMessage(hSideComboBox, CB_SETCURSEL, (WPARAM)side_index, (LPARAM)0);
 
-    JMP(0x005F782C);
+    return 0x005F782C;
 }
 
 
@@ -81,10 +80,9 @@ DECLARE_PATCH(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SkirmishDialog_InitDialog_AIPlayers_Patch)
+DEFINE_HOOK(0x005F7759, _SkirmishDialog_InitDialog_AIPlayers_Patch, 0)
 {
-    GET_REGISTER_STATIC(HWND, hAICountSlider, ebp);
-    static int initial_pos;
+    GET(HWND, hAICountSlider, EBP);
 
     /**
      *  Set the AI Count slider range.
@@ -103,7 +101,7 @@ DECLARE_PATCH(_SkirmishDialog_InitDialog_AIPlayers_Patch)
     /**
      *  Set the slider initial value.
      */
-    initial_pos = Session.Options.AIPlayers;
+    int initial_pos = Session.Options.AIPlayers;
     if (initial_pos <= 1) {
         initial_pos = 1;
     }
@@ -115,7 +113,7 @@ DECLARE_PATCH(_SkirmishDialog_InitDialog_AIPlayers_Patch)
     SendMessage(hAICountSlider, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)0);
 #endif
 
-    JMP(0x005F7782);
+    return 0x005F7782;
 }
 
 
@@ -124,6 +122,5 @@ DECLARE_PATCH(_SkirmishDialog_InitDialog_AIPlayers_Patch)
  */
 void SkirmishDialog_Hooks()
 {
-    Patch_Jump(0x005F7759, &_SkirmishDialog_InitDialog_AIPlayers_Patch);
-    Patch_Jump(0x005F7812, &_SkirmishDialog_InitDialog_RestoreSideIndex_Patch);
+
 }

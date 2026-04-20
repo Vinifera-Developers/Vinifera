@@ -25,32 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "campaignext_hooks.h"
-#include "campaignext.h"
-#include "campaign.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "campaign.h"
+#include "campaignext.h"
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CampaignClass_Constructor_Patch)
+DEFINE_HOOK(0x00448AC4, _CampaignClass_Constructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, ebp); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
+    GET(CampaignClass *, this_ptr, EBP); // "this" pointer.
 
     // Campaign's are not saved to file, so this case is not required.
 #if 0
@@ -68,40 +64,8 @@ DECLARE_PATCH(_CampaignClass_Constructor_Patch)
      */
     Extension::Make<CampaignClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_CampaignClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, esi);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<CampaignClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007E2230 } // Campaigns.vtble
-    JMP_REG(eax, 0x00448AEE);
+    return 0;
 }
 
 
@@ -112,18 +76,16 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CampaignClass_Process_Patch)
+DEFINE_HOOK(0x00448CD0, _CampaignClass_Process_Patch, 0)
 {
-    static uintptr_t constructor_addr = 0x00448A10;
+    GET(CampaignClass*, this_ptr, EBP);
+    LEA_STACK(char const*, ini_name, 0x18);
 
-    _asm { lea ecx, [esp+0x18] } // ini_name
-    _asm { push ecx }
-    _asm { mov ecx, ebp } // ebp == memory pointer
-    _asm { call constructor_addr } // CampaignClass::CampaignClass()
+    new (this_ptr) CampaignClass(ini_name);
 
-    _asm { mov ecx, eax }
+    R->ECX(this_ptr);
 
-    JMP(0x00448D86);
+    return 0x00448D86;
 }
 
 
@@ -134,21 +96,17 @@ DECLARE_PATCH(_CampaignClass_Process_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CampaignClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00448EF8, _CampaignClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, esi);
+    GET(CampaignClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<CampaignClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007E2230 } // Campaigns.vtble
-    JMP_REG(eax, 0x00448EFE);
+    return 0;
 }
 
 
@@ -159,35 +117,22 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_CampaignClass_Read_INI_Patch)
+DEFINE_HOOK(0x00448C1E, _CampaignClass_Read_INI_Patch, 5)
 {
-    GET_REGISTER_STATIC(int, required_addon, eax);  // Return from ini.Get_Int("RequiredAddon")
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebx);
-    static CampaignClassExtension *exttype_ptr;
-
-    /**
-     *  Stolen bytes here.
-     */
-    this_ptr->RequiredAddon = (AddonType)required_addon;
+    GET(CampaignClass *, this_ptr, ESI);
+    GET(CCINIClass *, ini, EBX);
 
     /**
      *  Fetch the extension instance.
      */
-    exttype_ptr = Extension::Fetch(this_ptr);
+    auto exttype_ptr = Extension::Fetch(this_ptr);
 
     /**
      *  Read type class ini.
      */
     exttype_ptr->Read_INI(*ini);
 
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop ebp }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -196,9 +141,5 @@ original_code:
  */
 void CampaignClassExtension_Init()
 {
-    Patch_Jump(0x00448AC4, &_CampaignClass_Constructor_Patch);
-    //Patch_Jump(0x00448AE8, &_CampaignClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00448CD0, &_CampaignClass_Process_Patch); // Constructor is also inlined in CampaignClass::Process!
-    Patch_Jump(0x00448EF8, &_CampaignClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x00448C17, &_CampaignClass_Read_INI_Patch);
+
 }

@@ -25,15 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "objectext.h"
+
 #include "objecttype.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ObjectClassExtension::ObjectClassExtension(const ObjectClass *this_ptr) :

@@ -26,22 +26,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "macros.h"
+
 #include <cstdint>
 #include <intrin.h>
 
 // CPUID instructions.
-//#define __cpuidex(regs, cpuid_type, count) __cpuid_count(cpuid_type, count, regs[0], regs[1], regs[2], regs[3])
+// #define __cpuidex(regs, cpuid_type, count) __cpuid_count(cpuid_type, count, regs[0], regs[1], regs[2], regs[3])
 
 // GCC and MSVC use the same name but have different signatures so we use a new common name.
 #define __cpuidc __cpuid
 
 // Rotate instructions
-#define __rotl8 _rotl8
+#define __rotl8  _rotl8
 #define __rotl16 _rotl16
-#define __rotr8 _rotr8
+#define __rotr8  _rotr8
 #define __rotr16 _rotr16
 #define __rotl32 _rotl
 #define __rotr32 _rotr

@@ -25,54 +25,36 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "scenarioext_hooks.h"
-#include "scenarioext.h"
-#include "scenario.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "vinifera_util.h"
+
+#include "always.h"
+
 #include "extension.h"
 #include "extension_globals.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "scenario.h"
+#include "scenarioext.h"
+#include "syringe.h"
+#include "tibsun_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Constructor_Patch)
+DEFINE_HOOK(0x005DADDE, _ScenarioClass_Constructor_Patch, 9)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, ebp); // "this" pointer.
+    GET(ScenarioClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  Create the extended class instance.
      */
     ScenExtension = Extension::Singleton::Make<ScenarioClass, ScenarioClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-
-    /**
-     *  We can't assign to Views directly without trashing the stack, so clear the whole array.
-     */
-    std::memset(&this_ptr->Views, 0, sizeof(this_ptr->Views));
-
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -83,22 +65,15 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Destructor_Patch)
+DEFINE_HOOK(0x006023CC, _ScenarioClass_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, esi);
-
     /**
      *  Remove the extended class instance.
      */
     Extension::Singleton::Destroy<ScenarioClass, ScenarioClassExtension>(ScenExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    Scen = nullptr;
-
-    JMP(0x006023D2);
+    return 0;
 }
 
 
@@ -109,10 +84,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Init_Clear_Patch)
+DEFINE_HOOK(0x005DB166, _ScenarioClass_Init_Clear_Patch, 7)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, esi);
-
     /**
      *  This is a odd case; ScenarioClass::Init_Clear is called within the class
      *  constructor, so the first time this patch is called, ScenExtension is NULL.
@@ -123,16 +96,8 @@ DECLARE_PATCH(_ScenarioClass_Init_Clear_Patch)
         ScenExtension->Init_Clear();
     }
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x0C }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -141,7 +106,5 @@ original_code:
  */
 void ScenarioClassExtension_Init()
 {
-    Patch_Jump(0x005DADDE, &_ScenarioClass_Constructor_Patch);
-    Patch_Jump(0x006023CC, &_ScenarioClass_Destructor_Patch); // Inlined in game shutdown.
-    Patch_Jump(0x005DB166, &_ScenarioClass_Init_Clear_Patch);
+
 }

@@ -25,17 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "purecallhandler.h"
-#include "stackdump.h"
-#include "textfile.h"
-#include "fatal.h"
-#include "fixedstring.h"
+
 #include "debughandler.h"
+#include "fatal.h"
+#include "stackdump.h"
+#include "stringid.h"
+#include "textfile.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
-#include <Windows.h>
-#include <string>
+
+#include <windows.h>
 
 
 extern int Execute_Day;
@@ -109,7 +113,7 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
     /**
      *  Write the buffer to the file.
      */
-    StackFile.Write(StackBuffer.Peek_Buffer(), StackBuffer.Get_Length());
+    StackFile.Write(StackBuffer.c_str(), StackBuffer.size());
 
     DEBUG_ERROR("\n");
     DEBUG_ERROR("***** Pure virtual function called! *****\n");
@@ -119,8 +123,8 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
      */
     DEBUG_ERROR("See call stack in debugger for more information.\n");
     DEBUG_ERROR("\n");
-    if (!StackBuffer.Empty()) {
-        DEBUG_ERROR(StackBuffer.Peek_Buffer());
+    if (!StackBuffer.empty()) {
+        DEBUG_ERROR(StackBuffer.c_str());
         DEBUG_ERROR("\n");
     }
 
@@ -128,7 +132,7 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
     std::snprintf(buffer, sizeof(buffer),
         "Pure virtual function called!\n\n"
         "See STACK_<date-time>.TXT in the application directory for more details.\n\n"
-        "%s", StackBuffer.Peek_Buffer());
+        "%s", StackBuffer.c_str());
 
     MessageBoxA(
         MainWindow,

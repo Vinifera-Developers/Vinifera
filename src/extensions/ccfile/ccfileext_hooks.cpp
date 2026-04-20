@@ -25,21 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "ccfileext_hooks.h"
+
 #include "ccfile.h"
 #include "cd.h"
-#include "fatal.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

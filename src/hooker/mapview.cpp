@@ -29,7 +29,12 @@
  *                 https://github.com/TheAssemblyArmada/Thyme/
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "mapview.h"
+
+#include <iterator>
 
 
 MapViewOfFileClass::MapViewOfFileClass(const wchar_t *fileName) :

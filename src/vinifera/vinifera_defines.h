@@ -25,9 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
+#include "session.h"
 #include "tibsun_defines.h"
 
 
@@ -211,7 +212,7 @@ typedef enum ExtTActionType
     EXT_TACTION_GIVE_CREDITS,
     EXT_TACTION_ENABLE_SHORT_GAME,
     EXT_TACTION_DISABLE_SHORT_GAME,
-    EXT_TACTION_UNUSED1, // unused, used to print the difficulty as a message in ts-patches
+    EXT_TACTION_CREATE_BUILDING_AT,
     EXT_TACTION_HOUSE_DESTROY_ALL,
     EXT_TACTION_MAKE_ELITE,
     EXT_TACTION_ENABLE_ALLYREVEAL,
@@ -237,6 +238,8 @@ typedef enum ExtTActionType
     EXT_TACTION_PRINT_LOCAL,
     EXT_TACTION_ENABLE_TEMPLATED_TEXT,
     EXT_TACTION_DISABLE_TEMPLATED_TEXT,
+    EXT_TACTION_ADJUST_HOUSE_MODIFIER,
+    EXT_TACTION_APPLY_IRON_CURTAIN,
 
     /**
      *  The new total ExtTActionType count.
@@ -284,6 +287,7 @@ typedef enum ExtTEventType
     EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT,
     EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL,
     EXT_TEVENT_LOCAL_LESS_THAN_LOCAL,
+    EXT_TEVENT_BUILDING_DOES_NOT_EXIST,
 
     /**
      *  The new total ExtTEventType count.
@@ -319,3 +323,109 @@ enum ExtEventType {
     EXT_EVENT_FIRST = EXT_EVENT_PAD + 1
 };
 DEFINE_ENUMERATION_OPERATORS(ExtEventType);
+
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtActionType {
+    EXT_ACTION_PAD = ACTION_ATTACK_SUPPORT, // The last ActionType
+
+    /**
+     *  Add new ExtEventTypes from here.
+     */
+    EXT_ACTION_PLACE_BEACON,
+    EXT_ACTION_PLACE_BEACON_1,
+    EXT_ACTION_PLACE_BEACON_2,
+    EXT_ACTION_PLACE_BEACON_3,
+    EXT_ACTION_PLACE_BEACON_4,
+    EXT_ACTION_PLACE_BEACON_5,
+    EXT_ACTION_PLACE_BEACON_6,
+    EXT_ACTION_PLACE_BEACON_7,
+    EXT_ACTION_SELECT_BEACON,
+
+    /**
+     *  The new total ExtEventTypes count.
+     */
+    EXT_ACTION_COUNT,
+
+    /**
+     *  The first ExtEventTypes.
+     */
+    EXT_ACTION_FIRST = EXT_ACTION_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtActionType);
+
+/**
+ *  New global packet types.
+ */
+enum ExtNetCommandType {
+    EXT_NET_BEACON_PLACE = NET_PROPOSE_KICK + 1,
+    EXT_NET_BEACON_DELETE,
+    EXT_NET_BEACON_TEXT
+};
+
+/**
+ *  Extended struct for new global packet types.
+ */
+#pragma pack(1)
+struct ExtGlobalPacketType {
+    ExtNetCommandType Command;
+    char Name[MPLAYER_NAME_MAX];
+    char Serial[SERIAL_MAX];
+    union {
+        struct {
+            CoordStruct Position;
+            char House;
+            int Number;
+        } PlaceBeacon;
+        struct {
+            char House;
+            int Number;
+        } DeleteBeacon;
+        struct {
+            char Text[256];
+            int Number;
+            char House;
+        } BeaconText;
+        struct {
+            char Buf[370];
+            char Scope[30];
+            PlayerColorType Color;
+            unsigned long NameCRC;
+        } Message;
+        char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
+    };
+};
+#pragma pack()
+
+static_assert(sizeof(ExtGlobalPacketType) == sizeof(GlobalPacketType), "ExtGlobalPacketType size is wrong!");
+
+enum ExtThreatType {
+    EXT_THREAT_HARVESTERS = 0x8000 // Limit scan to harvesters only
+};
+DEFINE_ENUMERATION_OPERATORS(ExtThreatType);
+DEFINE_ENUMERATION_BITWISE_OPERATORS(ExtThreatType);
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtQuarryType {
+    EXT_QUARRY_PAD = QUARRY_POWER,            // The last QuarryType
+
+    /**
+     *  Add new ExtActionTypes from here.
+     */
+    EXT_QUARRY_HARVESTERS,   // Attack harvesters only (no refineries).
+
+    /**
+     *  The new total ExtActionType count.
+     */
+    EXT_QUARRY_COUNT,
+
+    /**
+     *  The first ExtActionType.
+     */
+    EXT_QUARRY_FIRST = 0
+};
+DEFINE_ENUMERATION_OPERATORS(ExtQuarryType);

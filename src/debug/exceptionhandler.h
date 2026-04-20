@@ -25,12 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "getreg.h"
-#include "fixedstring.h"
-#include <Windows.h>
+#include "stringid.h"
+
+#include <windows.h>
 
 
 typedef LONG(*exceptionhandler_ptr_t)(unsigned int, struct _EXCEPTION_POINTERS *);

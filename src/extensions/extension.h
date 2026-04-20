@@ -25,21 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "vinifera_defines.h"
-#include "extension_globals.h"
+
 #include "abstract.h"
 #include "abstractext.h"
-#include "swizzle.h"
-#include "noinit.h"
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "extension_globals.h"
+#include "swizzle.h"
+#include "vinifera_defines.h"
 
-#include <unknwn.h> // for IStream
-#include <typeinfo>
 #include <string>
+#include <typeinfo>
+#include <unknwn.h> // for IStream
 
 
 class EventClass;
@@ -175,7 +174,7 @@ class WaveClassExtension;
 // class TagClassExtension;
 // class TagTypeClassExtension;
 class TiberiumClassExtension;
-// class TActionClassExtension;
+class TActionClassExtension;
 // class TEventClassExtension;
 class WeaponTypeClassExtension;
 class WarheadTypeClassExtension;
@@ -417,7 +416,7 @@ MAKE_EXTENSION_PAIR(SmudgeClass);
 MAKE_EXTENSION_PAIR(SmudgeTypeClass);
 MAKE_EXTENSION_PAIR(SuperWeaponTypeClass);
 //MAKE_EXTENSION_PAIR(TaskForceClass);                                  // Not yet implemented
-//MAKE_EXTENSION_PAIR(TeamClass);                                       // Not yet implemented
+MAKE_EXTENSION_PAIR(TeamClass);
 MAKE_EXTENSION_PAIR(TeamTypeClass);
 MAKE_EXTENSION_PAIR(TerrainClass);
 MAKE_EXTENSION_PAIR(TerrainTypeClass);
@@ -430,7 +429,7 @@ MAKE_EXTENSION_PAIR(WaveClass);
 //MAKE_EXTENSION_PAIR(TagClass);                                        // Not yet implemented
 //MAKE_EXTENSION_PAIR(TagTypeClass);                                    // Not yet implemented
 MAKE_EXTENSION_PAIR(TiberiumClass);
-//MAKE_EXTENSION_PAIR(TActionClass);                                    // Not yet implemented
+MAKE_EXTENSION_PAIR(TActionClass);
 //MAKE_EXTENSION_PAIR(TEventClass);                                     // Not yet implemented
 MAKE_EXTENSION_PAIR(WeaponTypeClass);
 MAKE_EXTENSION_PAIR(WarheadTypeClass);

@@ -25,24 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "multiscoreext_hooks.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "extension.h"
 
-#include "tibsun_globals.h"
-#include "house.h"
-#include "vector.h"
+#include "always.h"
+
+#include "multiscoreext_hooks.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
-#include "houseext.h"
-#include "housetype.h"
-#include "multiscore.h"
+#include "house.h"
 #include "scenario.h"
-#include "session.h"
+#include "syringe.h"
+#include "tibsun_globals.h"
+#include "vector.h"
 #include "vinifera_globals.h"
 
+#include <algorithm>
 
 class HouseClassExtension;
 /**
@@ -270,13 +266,11 @@ void MultiScoreExt::_Tally_Score()
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
+DEFINE_HOOK(0x00568D10, _MultiScore_568BE0_ElapsedTime_Patch, 0)
 {
-    static unsigned elapsed_time;
-    elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
-
-    _asm mov ebx, elapsed_time
-    JMP(0x00568D38);
+    unsigned elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
+    R->EBX(elapsed_time);
+    return 0x00568D38;
 }
 
 
@@ -285,6 +279,14 @@ DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
  */
 void MultiScoreExtension_Hooks()
 {
-    Patch_Jump(0x00568D10, &_MultiScore_568BE0_ElapsedTime_Patch);
     Patch_Jump(0x005687A0, &MultiScoreExt::_Tally_Score);
+    
+    /**
+     *  #issue-187
+     *  
+     *  Fixes incorrect spelling of "Loser" on the multiplayer score screen debug output.
+     * 
+     *  @author: CCHyper
+     */
+    Patch_Dword(0x00568A05 + 1, (uintptr_t)&"Loser"); // +1 skips "mov eax," opcode
 }

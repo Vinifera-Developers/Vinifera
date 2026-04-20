@@ -25,41 +25,43 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "technoext.h"
-#include <algorithm>
+
+#include "anim.h"
+#include "buildingtype.h"
+#include "debughandler.h"
+#include "ebolt.h"
+#include "extension.h"
+#include "extension_globals.h"
+#include "house.h"
+#include "houseext.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "saveload.h"
+#include "spawnmanager.h"
+#include "storageext.h"
+#include "tactical.h"
+#include "team.h"
+#include "teamtype.h"
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
-#include "house.h"
-#include "housetype.h"
-#include "building.h"
-#include "buildingtype.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "voc.h"
-#include "ebolt.h"
-#include "tactical.h"
-#include "tibsun_inline.h"
 #include "tibsun_globals.h"
-#include "extension_globals.h"
-#include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "houseext.h"
-#include "saveload.h"
-#include "vinifera_saveload.h"
-#include "storageext.h"
-#include "spawnmanager.h"
-#include "team.h"
-#include "teamtype.h"
+#include "tibsun_inline.h"
 #include "unit.h"
-#include "weapontype.h"
+#include "vinifera_saveload.h"
+#include "voc.h"
+#include "wwcrc.h"
+
+#include <algorithm>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
@@ -72,7 +74,9 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     LastTargetFrame(Frame),
     IsToResetBurst(false),
     BurstResetTimer(),
-    LastVeterancy(RANK_NONE)
+    LastVeterancy(RANK_NONE),
+    IdleWakeAnim(nullptr),
+    IronCurtainTimer()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -124,6 +128,11 @@ TechnoClassExtension::~TechnoClassExtension()
         delete SpawnManager;
         SpawnManager = nullptr;
     }
+
+    if (IdleWakeAnim) {
+        delete IdleWakeAnim;
+        IdleWakeAnim = nullptr;
+    }
 }
 
 
@@ -147,6 +156,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnManager, "SpawnManager");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "SpawnOwner");
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(IdleWakeAnim, "IdleWakeAnim");
     
     return hr;
 }
@@ -189,6 +200,10 @@ void TechnoClassExtension::Detach(AbstractClass * target, bool all)
 
     if (target == SpawnOwner) {
         SpawnOwner = nullptr;
+    }
+
+    if (target == IdleWakeAnim) {
+        IdleWakeAnim = nullptr;
     }
 }
 
@@ -589,7 +604,7 @@ bool TechnoClassExtension::Can_Opportunity_Fire() const
  */
 bool TechnoClassExtension::Opportunity_Fire()
 {
-    if (Can_Opportunity_Fire()) {
+    if (Can_Opportunity_Fire() && (This()->TarCom == nullptr || HasOpportunityFireTarget)) {
         AbstractClass* old_target = This()->TarCom;
         bool result = This()->Target_Something_Nearby(This()->Center_Coord(), THREAT_RANGE);
         if (result && This()->TarCom != old_target) {
@@ -636,6 +651,27 @@ Coord TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offse
     Coord render_coord = This()->Render_Coord();
 
     return { render_coord.X + static_cast<int>(fire_coord.X), render_coord.Y - static_cast<int>(fire_coord.Y), render_coord.Z + static_cast<int>(fire_coord.Z) };
+}
+
+
+/**
+ *  Applies Iron Curtain to the unit. Can optionally skip legality checks.
+ *
+ *  @author: Rampastring
+ */
+bool TechnoClassExtension::Iron_Curtain_Me(bool forced)
+{
+    if (!forced) {
+        HouseClassExtension* houseext = Extension::Fetch(This()->House);
+
+        if (!houseext->Can_Use_Iron_Curtain()) {
+            return false;
+        }
+    }
+
+    IronCurtainTimer = RuleExtension->IronCurtainDuration;
+    Static_Sound(RuleExtension->IronCurtainSound, This()->Center_Coord());
+    return true;
 }
 
 

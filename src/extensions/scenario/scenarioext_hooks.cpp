@@ -25,44 +25,32 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "scenarioext_hooks.h"
+
 #include "addon.h"
 #include "aircrafttracker.h"
 #include "asserthandler.h"
-#include "buildingtype.h"
-#include "campaign.h"
-#include "campaignext.h"
 #include "ccfile.h"
 #include "ccini.h"
 #include "debughandler.h"
-#include "environment.h"
-#include "environmentext_hooks.h"
 #include "fatal.h"
 #include "hooker.h"
-#include "hooker_macros.h"
-#include "house.h"
-#include "housetype.h"
-#include "housetypeext.h"
+#include "houseext.h"
 #include "kamikazetracker.h"
 #include "language.h"
 #include "mouse.h"
 #include "multiscore.h"
-#include "progressscreen.h"
-#include "reinf.h"
 #include "rules.h"
-#include "rulesext.h"
 #include "scenario.h"
 #include "scenarioext.h"
 #include "scenarioext_init.h"
 #include "session.h"
-#include "sessionext.h"
-#include "spawner.h"
-#include "teamtype.h"
+#include "syringe.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
-#include "tibsun_inline.h"
-#include "uicontrol.h"
-#include "unit.h"
 #include "vinifera_globals.h"
 #include "wsproto.h"
 
@@ -105,7 +93,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Global_Value(global, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -115,7 +103,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Global_Value(name, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -128,7 +116,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Local_Value(local, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -138,7 +126,7 @@ public:
     {
         int raw;
         if (ScenExtension->Get_Local_Value(name, raw)) {
-            value = (raw != 0);
+            value = raw != 0;
             return true;
         }
         return false;
@@ -159,20 +147,15 @@ public:
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Clear_Scenario_Patch)
+DEFINE_HOOK(0x005DC85A, _Clear_Scenario_Patch, 0)
 {
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { add esp, 0x4 } // Fixes up the stack from the WWDebugPrintf call.
-
     //DEBUG_INFO("Clearing waypoints...\n");
     ScenExtension->Clear_All_Waypoints();
 
     KamikazeTracker->Clear();
     AircraftTracker->Clear();
 
-    JMP(0x005DC872);
+    return 0x005DC872;
 }
 
 
@@ -183,11 +166,10 @@ DECLARE_PATCH(_Clear_Scenario_Patch)
  *
  *  @author: ZivDero
  */
-void Init_Home_Cell()
+DEFINE_HOOK(0x005DC0A0, _Fill_In_Data_Home_Cell_Patch, 0)
 {
     Map.SidebarClass::Activate(1);
-    if (Session.Type == GAME_NORMAL)
-    {
+    if (Session.Type == GAME_NORMAL) {
         int home_cell_number = EnvironmentGlobals[0] ? Scen->AltHome : Scen->Home;
         Cell home_cell = ScenExtension->Waypoint[home_cell_number];
 
@@ -201,21 +183,8 @@ void Init_Home_Cell()
 
         Map.RadarClass::Set_Tactical_Position(home_coord);
     }
-}
 
-
-/**
- *  #issue-71
- *
- *  Assign the home cell waypoint.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_Fill_In_Data_Home_Cell_Patch)
-{
-    Init_Home_Cell();
-
-    JMP(0x005DC166);
+    return 0x005DC166;
 }
 
 
@@ -418,7 +387,7 @@ DECLARE_PATCH(_Read_Scenario_Loading_Screen_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
+DEFINE_HOOK(0x005DC9D4, _Do_Win_Skip_MPlayer_Score_Screen_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -429,11 +398,10 @@ DECLARE_PATCH(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
         MultiScore::Presentation();
     }
 
-    JMP(0x005DC9DF);
+    return 0x005DC9DF;
 }
 
-
-DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
+DEFINE_HOOK(0x005DCD92, _Do_Lose_Skip_MPlayer_Score_Screen_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -444,7 +412,7 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
         MultiScore::Presentation();
     }
 
-    JMP(0x005DCD9D);
+    return 0x005DCD9D;
 }
 
 
@@ -454,24 +422,20 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_ScenarioClass_Do_Win_GlobalFlags_Patch)
+DEFINE_HOOK(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0)
 {
-    _asm pushad
-
     if (ScenExtension->GlobalFlags[1].Value) {
 
         /**
          *  Proceed to AltNextScenario.
          */
-        _asm popad
-        JMP_REG(edx, 0x005DCB63);
+        return 0x005DCB63;
     } else {
 
         /**
          *  Proceed to NextScenario.
          */
-        _asm popad
-        JMP_REG(edx, 0x005DCB72);
+        return 0x005DCB72;
     }
 }
 
@@ -481,13 +445,12 @@ DECLARE_PATCH(_ScenarioClass_Do_Win_GlobalFlags_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_Clear_Scenario_Clear_Globals_Patch)
+DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Clear_Globals_Patch, 0)
 {
-    static int i;
-    for (i = 0; i < std::size(ScenExtension->GlobalFlags); i++) {
+    for (int i = 0; i < std::size(ScenExtension->GlobalFlags); i++) {
         ScenExtension->Set_Global_To(i, 0);
     }
-    JMP(0x005DC688);
+    return 0x005DC688;
 }
 
 

@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sideext_hooks.h"
+
 #include "sideext_init.h"
-#include "sideext.h"
-#include "side.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

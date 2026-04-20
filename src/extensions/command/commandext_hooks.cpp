@@ -25,30 +25,22 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
+#include "asserthandler.h"
+#include "ccini.h"
 #include "commandext.h"
-#include "vinifera_globals.h"
+#include "debughandler.h"
+#include "hooker.h"
+#include "object.h"
+#include "session.h"
+#include "syringe.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
-#include "session.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "ccfile.h"
-#include "ccini.h"
-#include "object.h"
 #include "unit.h"
 #include "unittype.h"
-#include "building.h"
-#include "buildingtype.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "display.h"
-#include "mouse.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-#include "house.h"
-#include "tactical.h"
-
+#include "vinifera_globals.h"
 
 /**
   *  A fake class for implementing new member functions which allow
@@ -129,7 +121,7 @@ bool CenterBaseCommandClassExt::_Process()
  *  This function reimplements the chunk of code that populates the keyboard
  *  command list box. This allows us to enforce limits on what commands
  *  to show depending on the current game mode.
- * 
+ *
  *  @author: CCHyper
  */
 static void Populate_Command_Categories(HWND hWnd, const char *category)
@@ -144,7 +136,7 @@ static void Populate_Command_Categories(HWND hWnd, const char *category)
          *  Any Vinifera commands are subject to game mode checks. We only need
          *  to check these if are actually "in game".
          */
-        if (ScenarioStarted || TacticalViewActive) {
+        if (TacticalActive || ScenarioActive) {
 
             ViniferaCommandClass *vcmd = dynamic_cast<ViniferaCommandClass *>(cmd);
             if (vcmd) {
@@ -174,21 +166,28 @@ static void Populate_Command_Categories(HWND hWnd, const char *category)
     }
 }
 
+/**
+ *  This can not be in client compatible builds currently as the additional
+ *  commands added do not have runtime type information.
+ */
+#if !defined(TS_CLIENT)
 
 /**
  *  Patch to intercept the populating of the keyboard command list box.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
+DEFINE_HOOK(0x0058A72E, _OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch, 0)
 {
-    GET_REGISTER_STATIC(HWND, hWnd, ebp);
-    LEA_STACK_STATIC(const char *, category, esp, 0x0A4);
+    GET(HWND, hWnd, EBP);
+    LEA_STACK(const char *, category, 0x0A4);
 
     Populate_Command_Categories(hWnd, category);
 
-    JMP(0x0058A79C);
+    return 0x0058A79C;
 }
+
+#endif
 
 
 /**
@@ -204,11 +203,9 @@ DECLARE_PATCH(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
+DEFINE_HOOK(0x004E95C2, _GuardCommandClass_Process_Harvesters_Set_Mission_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass *, techno, esi);
-    static UnitClass *unit;
-    static UnitTypeClass *unittype;
+    GET(TechnoClass *, techno, ESI);
 
     /**
      *  Original code:
@@ -227,9 +224,8 @@ DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
             /**
              *  Make sure this object is in fact a harvester of some type.
              */
-            unit = reinterpret_cast<UnitClass *>(techno);
-            unittype = unit->Class;
-            if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
+            UnitClass* unit = reinterpret_cast<UnitClass*>(techno);
+            if (unit->Class->IsToHarvest || unit->Class->IsToVeinHarvest) {
 
                 /**
                  *  If the harvester is currently busy unloading, skip it.
@@ -270,7 +266,7 @@ DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
      *  Continue the loop over CurrentObjects.
      */
 continue_loop:
-    JMP(0x004E95FC);
+    return 0x004E95FC;
 }
 
 
@@ -308,6 +304,7 @@ void Init_Vinifera_Commands()
     Commands.Add(new VeterancyFilterAddNextCommandClass);
     Commands.Add(new HealthFilterCommandClass);
     Commands.Add(new HealthFilterAddNextCommandClass);
+    Commands.Add(new BeaconPlacementCommandClass);
 
     /**
      *  Initialize hotkeys for the sidebar tabs, if sidebar tabs are enabled.
@@ -393,31 +390,11 @@ void Init_Vinifera_Commands()
 
 
 /**
- *  Set the default key assignments.
- * 
- *  @author: ZivDero
- */
-static void Process_Vinifera_Hotkey_Defaults()
-{
-    for (int i = 0; i < Commands.Count(); i++)
-    {
-        auto vcmd = dynamic_cast<ViniferaCommandClass*>(Commands[i]);
-        if (vcmd) {
-            KeyNumType key = vcmd->Default_Key();
-            if (key != KN_NONE && !HotkeyIndex.Is_Present(key) && HotkeyIndex.Fetch_ID_By_Data(vcmd) == -1) {
-                HotkeyIndex.Add_Index(key, vcmd);
-            }
-        }
-    }
-}
-
-
-/**
  *  Patch for initializing the new hotkey commands.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Commands_Patch)
+DEFINE_HOOK(0x004E6FA9, _Init_Commands_Patch, 0)
 {
     Init_Vinifera_Commands();
 
@@ -426,9 +403,7 @@ DECLARE_PATCH(_Init_Commands_Patch)
      */
     Load_Keyboard_Hotkeys();
 
-    Process_Vinifera_Hotkey_Defaults();
-
-    JMP(0x004E6FAE);
+    return 0x004E6FAE;
 }
 
 
@@ -437,8 +412,6 @@ DECLARE_PATCH(_Init_Commands_Patch)
  */
 void CommandExtension_Hooks()
 {
-    Patch_Jump(0x004E6FA9, &_Init_Commands_Patch);
-
     Patch_Dword(0x0058A917+1, 0x006FEFEC); // "Keyboard.ini" to "KEYBOARD.INI"
 
     /**
@@ -450,15 +423,14 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAAF0, PNGScreenCaptureCommandClass::Get_Description);
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
 
-    Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
-
     Patch_Jump(0x004E97E0, &CenterBaseCommandClassExt::_Process);
 
     /**
-     *  This can not be in client compatabile builds currently as the additional
-     *  commands added do not have runtime type information.
+     *  Replace DeleteWaypointCommandClass with DeleteCommandClass.
      */
-#if !defined(TS_CLIENT)
-    Patch_Jump(0x0058A72E, &_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch);
-#endif
+    Hook_Virtual(0x004EAEE0, DeleteCommandClass::Get_Name);
+    Hook_Virtual(0x004EAEF0, DeleteCommandClass::Get_UI_Name);
+    Hook_Virtual(0x004EAF00, DeleteCommandClass::Get_Category);
+    Hook_Virtual(0x004EAF10, DeleteCommandClass::Get_Description);
+    Hook_Virtual(0x004EAF20, DeleteCommandClass::Process);
 }

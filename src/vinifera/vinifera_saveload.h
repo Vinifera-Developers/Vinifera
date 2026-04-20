@@ -25,17 +25,14 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include <vector>
-
-#include "always.h"
 #include "debughandler.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "wstring.h"
-#include "swizzle.h"
 #include "newswizzle.h"
+#include "tibsun_globals.h"
+
+#include <vector>
 
 
 struct IStream;

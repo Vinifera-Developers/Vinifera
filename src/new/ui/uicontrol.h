@@ -25,16 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "point.h"
 #include "tibsun_defines.h"
 #include "typelist.h"
 #include <string>
 #include <vector>
 
+#include <string>
 
+
+class RGBClass;
 struct IStream;
 class CCINIClass;
 class NoInitClass;
@@ -107,25 +110,10 @@ public:
      */
     unsigned TextLabelBackgroundTransparency;
 
-    /**
-     *  Customizable offsets for drawing different pips.
-     */
-    TPoint2D<int> UnitGroupNumberOffset;
-    TPoint2D<int> InfantryGroupNumberOffset;
-    TPoint2D<int> BuildingGroupNumberOffset;
-    TPoint2D<int> AircraftGroupNumberOffset;
-    TPoint2D<int> UnitWithPipGroupNumberOffset;
-    TPoint2D<int> InfantryWithPipGroupNumberOffset;
-    TPoint2D<int> BuildingWithPipGroupNumberOffset;
-    TPoint2D<int> AircraftWithPipGroupNumberOffset;
-    TPoint2D<int> UnitVeterancyPipOffset;
-    TPoint2D<int> InfantryVeterancyPipOffset;
-    TPoint2D<int> BuildingVeterancyPipOffset;
-    TPoint2D<int> AircraftVeterancyPipOffset;
-    TPoint2D<int> UnitSpecialPipOffset;
-    TPoint2D<int> InfantrySpecialPipOffset;
-    TPoint2D<int> BuildingSpecialPipOffset;
-    TPoint2D<int> AircraftSpecialPipOffset;
+        /**
+         *  Two tint colors, interpolated between based on the current ambient light level.
+         */
+        TypeList<RGBClass> BandBoxTintColors;
 
     /**
      *  Should the tactical rubber band box be drawn with a drop shadow?
@@ -242,40 +230,32 @@ public:
      */
     unsigned TargetLaserTime;
 
-    /**
-     *  Should NavCom queue lines be displayed?
-     */
-    bool IsShowNavComQueueLines;
+        /**
+         *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
+         */
+        bool IsCenterSidebarButtonsOnRadar;
 
-    /**
-     *  Should NavCom queue lines be drawn with dashes?
-     */
-    bool IsNavComQueueLineDashed;
+        /**
+         *  Beacon animations are not tied to game FPS, this is the FPS at which they play.
+         */
+        int BeaconAnimFramesPerSecond;
+        int RadarBeaconAnimFramesPerSecond;
 
-    /**
-     *  Should NavCom queue lines be drawn with a drop shadow?
-     */
-    bool IsNavComQueueLineDropShadow;
+        /**
+         *  The offset at which beacon text is drawn (on actual beacons, and during preview).
+         */
+        int BeaconTextOffset;
+        int BeaconPreviewTextOffset;
 
-    /**
-     *  Should NavCom queue lines be drawn with a thick line?
-     */
-    bool IsNavComQueueLineThick;
+        /**
+         *  Text presets for beacons when holding modifier keys when placing.
+         */
+        std::string BeaconText[7];
 
-    /**
-     *  Color to draw the NavCom queue lines with.
-     */
-    RGBStruct NavComQueueLineColor;
-
-    /**
-     *  Color to draw the NavCom queue lines' drop shadow with.
-     */
-    RGBStruct NavComQueueLineDropShadowColor;
-
-    /**
-     *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
-     */
-    bool IsCenterSidebarButtonsOnRadar;
+        /**
+         *  Text presets for beacons *shown as a tooltip* when holding modifier keys when placing.
+         */
+        std::string BeaconPreviewText[7];
 
     std::vector<LoadingScreen> LoadingScreens;
 };

@@ -25,25 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animtypeext_hooks.h"
-#include "animtypeext_init.h"
+
 #include "animtype.h"
 #include "animtypeext.h"
-#include "supertype.h"
-#include "fatal.h"
-#include "debughandler.h"
+#include "animtypeext_init.h"
 #include "asserthandler.h"
+#include "debughandler.h"
 #include "extension.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
-
+#include "supertype.h"
+#include "syringe.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
@@ -125,28 +126,18 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi); this_ptr->Free_Image(); JMP(0x004187F2); }
-DECLARE_PATCH(_AnimTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi); this_ptr->Free_Image(); JMP(0x00419C22); }
-
-
-/**
- *  Patches in an assertion check for image data.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Assertion_Patch)
+DEFINE_HOOK(0x004187DB, _AnimTypeClass_DTOR_Free_Image_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
+    GET(AnimTypeClass*, this_ptr, ESI);
+    this_ptr->Free_Image();
+    return 0x004187F2;
+}
 
-    if (image == nullptr) {
-        DEBUG_WARNING("Anim %s has NULL image data!\n", this_ptr->Name());
-    }
-
-    _asm { mov eax, image } // restore eax state.
-    _asm { pop esi }
-    _asm { add esp, 0x264 }
-    _asm { ret }
+DEFINE_HOOK(0x00419C0B, _AnimTypeClass_SDDTOR_Free_Image_Patch, 0)
+{
+    GET(AnimTypeClass*, this_ptr, ESI);
+    this_ptr->Free_Image();
+    return 0x00419C22;
 }
 
 
@@ -160,10 +151,6 @@ void AnimTypeClassExtension_Hooks()
      */
     AnimTypeClassExtension_Init();
 
-    //Patch_Jump(0x00419B37, &_AnimTypeClass_Get_Image_Data_Assertion_Patch);
-
     Patch_Jump(0x00419B40, &AnimTypeClassExt::_Free_Image);
     Patch_Jump(0x00418A70, &AnimTypeClassExt::_Load_Image);
-    Patch_Jump(0x004187DB, &_AnimTypeClass_DTOR_Free_Image_Patch);
-    Patch_Jump(0x00419C0B, &_AnimTypeClass_SDDTOR_Free_Image_Patch);
 }

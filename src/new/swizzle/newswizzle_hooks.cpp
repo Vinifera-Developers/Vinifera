@@ -25,41 +25,14 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "asserthandler.h"
+
+#include "always.h"
+
 #include "debughandler.h"
-#include "fatal.h"
-#include "saveload.h"
-#include "tibsun_globals.h"
-#include "vinifera_saveload.h"
-#include "vinifera_util.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
-
-#include "aircraft.h"
-#include "aitrigtype.h"
-#include "alphashape.h"
-#include "anim.h"
-#include "animtype.h"
-#include "base.h"
-#include "brain.h"
-#include "building.h"
-#include "buildinglight.h"
-#include "bullet.h"
-#include "bullettype.h"
-#include "cell.h"
-#include "factory.h"
-#include "foot.h"
 #include "house.h"
-#include "rules.h"
-#include "script.h"
-#include "team.h"
-#include "techno.h"
-#include "technotype.h"
-#include "voxelanim.h"
-#include "voxelanimtype.h"
-
-#include "wstring.h"
+#include "swizzle.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -112,10 +85,10 @@ static void Add_Swizzle_Database_Entry(uint32_t retaddr, const char* function, c
     static const char* TIBSUN_SOURCE_PATH = "D:\\Projects\\Sun\\CodeFS\\";
 
     // Add the Tiberian Sun source path (as we know it) to the source name.
-    Wstring filepath = TIBSUN_SOURCE_PATH;
+    std::string filepath = TIBSUN_SOURCE_PATH;
     filepath += file;
 
-    std::strncpy(info.File, filepath.Peek_Buffer(), sizeof(info.File));
+    std::strncpy(info.File, filepath.c_str(), sizeof(info.File));
 
     info.Line = line;
 

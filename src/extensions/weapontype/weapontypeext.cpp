@@ -25,19 +25,21 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "weapontypeext.h"
-#include "weapontype.h"
-#include "ebolt.h"
+
 #include "ccini.h"
-#include "wwcrc.h"
+#include "ebolt.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "weapontype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_ptr) :
@@ -205,9 +207,9 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     IsOmniFire = ini.Get_Bool(ini_name, "OmniFire", IsOmniFire);
 
     IsElectricBolt = ini.Get_Bool(ini_name, "IsElectricBolt", IsElectricBolt);
-    ElectricBoltColor1 = ini.Get_RGB(ini_name, "EBoltColor1", ElectricBoltColor1);
-    ElectricBoltColor2 = ini.Get_RGB(ini_name, "EBoltColor2", ElectricBoltColor2);
-    ElectricBoltColor3 = ini.Get_RGB(ini_name, "EBoltColor3", ElectricBoltColor3);
+    ElectricBoltColor1 = ini.Get_RGBColor(ini_name, "EBoltColor1", ElectricBoltColor1);
+    ElectricBoltColor2 = ini.Get_RGBColor(ini_name, "EBoltColor2", ElectricBoltColor2);
+    ElectricBoltColor3 = ini.Get_RGBColor(ini_name, "EBoltColor3", ElectricBoltColor3);
     ElectricBoltSegmentCount = ini.Get_Int(ini_name, "EBoltSegmentCount", ElectricBoltSegmentCount);
     ElectricBoltLifetime = ini.Get_Int(ini_name, "EBoltLifetime", ElectricBoltLifetime);
     ElectricBoltIterationCount = ini.Get_Int(ini_name, "EBoltIterations", ElectricBoltIterationCount);

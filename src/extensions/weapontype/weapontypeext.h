@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
 #include "abstracttypeext.h"
@@ -107,7 +108,7 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  The maximum deviation from a straight line the electric bolts can be.
          */
-        float ElectricBoltDeviation;
+        double ElectricBoltDeviation;
 
         /**
          *  Does this weapon spawn aircraft when fired?

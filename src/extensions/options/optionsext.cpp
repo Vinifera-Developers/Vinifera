@@ -25,27 +25,116 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "optionsext.h"
-#include "options.h"
-#include "tibsun_globals.h"
+
+#include "ccini.h"
+#include "debughandler.h"
 #include "noinit.h"
 #include "options.h"
-#include "ccini.h"
 #include "rawfile.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "tibsun_globals.h"
 #include "vinifera_globals.h"
+
+
+namespace
+{
+    struct RendererDriverInfo
+    {
+        const char* ConfigName;
+        const char* SDLName;
+        OptionsClassExtension::RendererDriverType Type;
+    };
+
+    const RendererDriverInfo RendererDrivers[] = {
+        {"Direct3D", "direct3d", OptionsClassExtension::RENDERER_DRIVER_DIRECT3D},
+        {"Direct3D11", "direct3d11", OptionsClassExtension::RENDERER_DRIVER_DIRECT3D11},
+        {"Direct3D12", "direct3d12", OptionsClassExtension::RENDERER_DRIVER_DIRECT3D12},
+        {"OpenGL", "opengl", OptionsClassExtension::RENDERER_DRIVER_OPENGL},
+        {"Vulkan", "vulkan", OptionsClassExtension::RENDERER_DRIVER_VULKAN}
+    };
+}
+
+
+/**
+ *  Parses the configured renderer driver name into an internal enum value.
+ *
+ *  @author: ZivDero
+ */
+OptionsClassExtension::RendererDriverType OptionsClassExtension::Parse_Renderer_Driver(const char* name)
+{
+    if (name == nullptr || *name == '\0' || stricmp(name, "Auto") == 0) {
+        return RENDERER_DRIVER_AUTO;
+    }
+
+    for (const RendererDriverInfo& driver : RendererDrivers) {
+        if (stricmp(name, driver.ConfigName) == 0 || stricmp(name, driver.SDLName) == 0) {
+            return driver.Type;
+        }
+    }
+
+    return RENDERER_DRIVER_AUTO;
+}
+
+
+/**
+ *  Returns the INI-facing renderer driver name for the given enum value.
+ *
+ *  @author: ZivDero
+ */
+const char* OptionsClassExtension::Get_Renderer_Driver_Config_Name(RendererDriverType driver)
+{
+    if (driver == RENDERER_DRIVER_AUTO) {
+        return "Auto";
+    }
+
+    for (const RendererDriverInfo& renderer_driver : RendererDrivers) {
+        if (renderer_driver.Type == driver) {
+            return renderer_driver.ConfigName;
+        }
+    }
+
+    return "Auto";
+}
+
+
+/**
+ *  Returns the SDL renderer driver name for the given enum value.
+ *
+ *  @author: ZivDero
+ */
+const char* OptionsClassExtension::Get_Renderer_Driver_SDL_Name(RendererDriverType driver)
+{
+    for (const RendererDriverInfo& renderer_driver : RendererDrivers) {
+        if (renderer_driver.Type == driver) {
+            return renderer_driver.SDLName;
+        }
+    }
+
+    return nullptr;
+}
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     SortDefensesAsLast(true),
     FilterBandBoxSelection(true),
+    KeyChatToAll1(KN_RETURN),
+    KeyChatToAll2(KN_F8),
+    KeyChatToAllies(KN_BACKSPACE),
+    WindowWidth(-1),
+    WindowHeight(-1),
+    ScaleMode(SDL_SCALEMODE_PIXELART),
+    CursorScale(0),
+    IsVSync(false),
+    RendererDriver(RENDERER_DRIVER_AUTO),
     AutoSaveCount(5),
     AutoSaveInterval(7200)
 {
@@ -157,22 +246,14 @@ void OptionsClassExtension::Object_CRC(CRCEngine &crc) const
 void OptionsClassExtension::Load_Settings()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
+
+    SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
+    FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
+    AutoSaveCount = sun_ini.Get_Int("Options", "AutoSaveCount", AutoSaveCount);
+    AutoSaveInterval = sun_ini.Get_Int("Options", "AutoSaveInterval", AutoSaveInterval);
     
-    RawFileClass file("SUN.INI");
-    CCINIClass sun_ini;
-
-    if (file.Is_Available()) {
-
-        sun_ini.Load(file, false);
-
-        SortDefensesAsLast = sun_ini.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
-        FilterBandBoxSelection = sun_ini.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
-        AutoSaveCount = sun_ini.Get_Int("Options", "AutoSaveCount", AutoSaveCount);
-        AutoSaveInterval = sun_ini.Get_Int("Options", "AutoSaveInterval", AutoSaveInterval);
-    }
-
     /**
-     *  Read hardcoded modifier keys from Keyboard.ini.
+     *  Read keys from Keyboard.ini.
      *
      *  @author: ZivDero
      */
@@ -183,14 +264,18 @@ void OptionsClassExtension::Load_Settings()
 
         keyboard_ini.Load(keyboard_file, false);
 
-        Options.KeyForceMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
-        Options.KeyForceMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
-        Options.KeyForceAttack1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
-        Options.KeyForceAttack2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
-        Options.KeySelect1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
-        Options.KeySelect2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
-        Options.KeyQueueMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
-        Options.KeyQueueMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
+        Options.KeyForceMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU));
+        Options.KeyForceMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU));
+        Options.KeyForceAttack1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL));
+        Options.KeyForceAttack2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL));
+        Options.KeySelect1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
+        Options.KeySelect2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
+        Options.KeyQueueMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
+        Options.KeyQueueMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
+
+        KeyChatToAll1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll", KeyChatToAll1));
+        KeyChatToAll2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll2", KeyChatToAll2));
+        KeyChatToAllies = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAllies", KeyChatToAllies));
     }
 }
 
@@ -203,8 +288,32 @@ void OptionsClassExtension::Load_Settings()
 void OptionsClassExtension::Load_Init_Settings()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
-    
-    RawFileClass file("SUN.INI");
+
+    WindowWidth = ConfigINI.Get_Int("Video", "WindowWidth", WindowWidth);
+    WindowHeight = ConfigINI.Get_Int("Video", "WindowHeight", WindowHeight);
+
+    char buffer[256];
+    if (ConfigINI.Get_String("Video", "ScaleMode", "", buffer, std::size(buffer)) > 0) {
+        if (stricmp(buffer, "Linear") == 0) {
+            ScaleMode = SDL_SCALEMODE_LINEAR;
+        } else if (stricmp(buffer, "Nearest") == 0) {
+            ScaleMode = SDL_SCALEMODE_NEAREST;
+        } else if (stricmp(buffer, "PixelArt") == 0) {
+            ScaleMode = SDL_SCALEMODE_PIXELART;
+        }
+    }
+
+    CursorScale = ConfigINI.Get_Int("Video", "CursorScale", CursorScale);
+    WindowedMode = ConfigINI.Get_Bool("Video", "Windowed", WindowedMode);
+    IsVSync = ConfigINI.Get_Bool("Video", "VSync", IsVSync);
+
+    if (ConfigINI.Get_String("Video", "RendererDriver", "", buffer, std::size(buffer)) > 0) {
+        RendererDriver = Parse_Renderer_Driver(buffer);
+
+        if (RendererDriver == RENDERER_DRIVER_AUTO && stricmp(buffer, "Auto") != 0) {
+            DEBUG_WARNING("Unknown renderer driver \"%s\", falling back to Auto.\n", buffer);
+        }
+    }
 }
 
 
@@ -220,7 +329,7 @@ void OptionsClassExtension::Save_Settings()
     RawFileClass file("SUN.INI");
 
     /**
-     *  Save hardcoded modifier keys to Keyboard.ini.
+     *  Save keys to Keyboard.ini.
      *
      *  @author: ZivDero
      */
@@ -235,6 +344,10 @@ void OptionsClassExtension::Save_Settings()
         keyboard_ini.Put_Int("Hotkey", "ForceAttack", Options.KeyForceAttack1);
         keyboard_ini.Put_Int("Hotkey", "Select", Options.KeySelect1);
         keyboard_ini.Put_Int("Hotkey", "QueueMove", Options.KeyQueueMove1);
+
+        keyboard_ini.Put_Int("Hotkey", "ChatToAll", KeyChatToAll1);
+        keyboard_ini.Put_Int("Hotkey", "ChatToAll2", KeyChatToAll2);
+        keyboard_ini.Put_Int("Hotkey", "ChatToAllies", KeyChatToAllies);
 
         keyboard_ini.Save(keyboard_file, false);
     }

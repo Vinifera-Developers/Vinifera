@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "objecttypeext.h"
 #include "animtype.h"
+#include "objecttypeext.h"
 #include "typelist.h"
 
 
@@ -96,7 +97,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  The particle to spawn at the mid-point of this animation.
          */
-        ParticleType ParticleToSpawn;
+        ParticleTypeClass* ParticleToSpawn;
 
         /**
          *  The number of the particle to spawn.

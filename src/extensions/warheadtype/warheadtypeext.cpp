@@ -25,27 +25,30 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "warheadtypeext.h"
-#include "warheadtype.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "armortype.h"
-#include "rules.h"
-#include "ccini.h"
-#include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+
 #include "animtype.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
 #include "findmake.h"
 #include "miscutil.h"
+#include "tibsun_globals.h"
 #include "verses.h"
+#include "vinifera_globals.h"
 #include "vinifera_saveload.h"
+#include "warheadtype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *this_ptr) :
@@ -144,7 +147,7 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 
     new (this) WarheadTypeClassExtension(NoInitClass());
 
-    CellAnim.Load(pStm);
+    CellAnim.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(CellAnim, "CellAnim");
     
@@ -166,7 +169,7 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    CellAnim.Save(pStm);
+    CellAnim.Save_Self(pStm);
 
     return hr;
 }
@@ -250,7 +253,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsWallAbsoluteDestroyer = ini.Get_Bool(ini_name, "WallAbsoluteDestroyer", IsWallAbsoluteDestroyer);
     IsAffectsAllies = ini.Get_Bool(ini_name, "AffectsAllies", IsAffectsAllies);
-    CombatLightSize = ini.Get_Float_Clamp(ini_name, "CombatLightSize", 0.0f, 1.0f, CombatLightSize);
+    CombatLightSize = ini.Get_Float(ini_name, "CombatLightSize", CombatLightSize);
+    CombatLightSize = std::clamp(CombatLightSize, 0.0, 1.0);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
@@ -303,7 +307,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
         std::snprintf(key_name, sizeof(key_name), "Modifier.%s", armor_name);
         if (ini.Is_Present(ini_name, key_name)) {
-            Verses::Set_Modifier(armor, warheadtype, ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
+            Verses::Set_Modifier(armor, warheadtype, ini.Get_Float(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
         }
 
         std::snprintf(key_name, sizeof(key_name), "ForceFire.%s", armor_name);

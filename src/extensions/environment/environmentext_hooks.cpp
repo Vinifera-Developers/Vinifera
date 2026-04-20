@@ -25,19 +25,19 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "environmentext_hooks.h"
-#include "tibsun_globals.h"
-#include "environment.h"
-#include "scenario.h"
-#include "theme.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "extension_globals.h"
 
+#include "always.h"
+
+#include "environmentext_hooks.h"
+
+#include "debughandler.h"
+#include "environment.h"
+#include "extension_globals.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
+#include "scenario.h"
 #include "scenarioext.h"
+#include "tibsun_globals.h"
 #include "vinifera_globals.h"
 
 
@@ -81,7 +81,7 @@ public:
 /**
  *  Since we're not making a new instance, ensure that the size is the same
  */
-static_assert(sizeof(ExtEnvironmentClass) == sizeof(EnvironmentClass));
+static_assert(sizeof(ExtEnvironmentClass) == sizeof(EnvironmentClass), "sizeof(ExtEnvironmentClass) != sizeof(EnvironmentClass)!");
 
 
 /**

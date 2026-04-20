@@ -25,29 +25,29 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
+#include "always.h"
+
 #include "overlaytypeext_hooks.h"
-#include "overlaytypeext_init.h"
-#include "overlaytypeext.h"
-#include "overlaytype.h"
-#include "fatal.h"
+
 #include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
-
+#include "overlaytype.h"
+#include "overlaytypeext.h"
+#include "overlaytypeext_init.h"
+#include "syringe.h"
 
 
 /**
  *  Write to the debug log when freeing up pre-loaded buildup images.
- * 
+ *
  *  #NOTE:
  *  These patches are also done to remove the incorrect freeing
  *  of memory the game does not actually allocate, and as a result
  *  of this, Vinifera's new memory management triggers an assertion
  *  because this is not allowed. The original game silently failed
  *  when doing this.
- * 
+ *
  *  @author: CCHyper
  */
 static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)
@@ -76,28 +76,18 @@ static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058D192); }
-DECLARE_PATCH(_OverlayTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058DC82); }
-
-
-/**
- *  Patches in an assertion check for image data.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Assertion_Patch)
+DEFINE_HOOK(0x0058D17B, _OverlayTypeClass_DTOR_Free_Image_Patch, 0)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
+    GET(OverlayTypeClass*, this_ptr, ESI);
+    OverlayTypeClass_Free_Image(this_ptr);
+    return 0x0058D192;
+}
 
-    if (image == nullptr) {
-        DEBUG_WARNING("Overlay %s has NULL image data!\n", this_ptr->Name());
-    }
-
-    _asm { mov eax, image } // restore eax state.
-    _asm { pop esi }
-    _asm { add esp, 0x264 }
-    _asm { ret }
+DEFINE_HOOK(0x0058DC6B, _OverlayTypeClass_SDDTOR_Free_Image_Patch, 0)
+{
+    GET(OverlayTypeClass*, this_ptr, ESI);
+    OverlayTypeClass_Free_Image(this_ptr);
+    return 0x0058DC82;
 }
 
 
@@ -110,9 +100,4 @@ void OverlayTypeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     OverlayTypeClassExtension_Init();
-
-    //Patch_Jump(0x0058DC18, &_OverlayTypeClass_Get_Image_Data_Assertion_Patch);
-
-    Patch_Jump(0x0058D17B, &_OverlayTypeClass_DTOR_Free_Image_Patch);
-    Patch_Jump(0x0058DC6B, &_OverlayTypeClass_SDDTOR_Free_Image_Patch);
 }

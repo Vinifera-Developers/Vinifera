@@ -25,13 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once 
 
-#include "always.h"
+#pragma once
+
 #include "tibsun_defines.h"
-#include "vinifera_defines.h"
 #include "verses.h"
-#include "wstring.h"
+#include "vinifera_defines.h"
 
 class CCINIClass;
 

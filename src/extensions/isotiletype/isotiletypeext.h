@@ -25,10 +25,11 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+
 #pragma once
 
-#include "objecttypeext.h"
 #include "isotiletype.h"
+#include "objecttypeext.h"
 #include "typelist.h"
 
 
@@ -87,4 +88,9 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
          *  Can veins grow on this tile type?
          */
         bool IsAllowVeins;
+
+        /**
+         *  Is this a water tunnel entrance?
+         */
+        bool IsWaterTunnel;
 };
