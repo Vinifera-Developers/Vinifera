@@ -72,11 +72,10 @@ public:
     bool Tiberiums(CCINIClass& ini);
     bool PrerequisiteGroups(CCINIClass& ini);
 
-    void Fixups(CCINIClass& ini);
-
     static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
 
 private:
+    void Fixups(CCINIClass& ini);
     void Check();
 
 public:
