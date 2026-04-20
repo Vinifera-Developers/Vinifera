@@ -68,7 +68,7 @@ public:
  */
 void SessionClassExt::_Read_Scenario_Descriptions()
 {
-    if (Vinifera_SpawnerConfig != nullptr) {
+    if (SessionExtension->IsSpawnerSession) {
         return;
     }
 
@@ -150,13 +150,29 @@ DEFINE_HOOK(0x0057524A, _Destroy_Connection_AutoSurrender_Patch, 0)
 {
     GET(HouseClass*, hptr, EBP);
 
-    if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || SessionExtension->SpawnerRuntime.AutoSurrender) {
+    if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || SessionExtension->ExtOptions.IsAutoSurrender) {
         hptr->Flag_To_Die();
     } else {
         hptr->AI_Takeover();
     }
 
     return 0x0057526B;
+}
+
+
+/**
+ *  Changes the waiting for players timeout.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x005DB794, _Wait_For_Load_Timeout_Patch, 5)
+{
+    if (SessionExtension->ConnTimeout > 0) {
+        R->ECX(SessionExtension->ConnTimeout);
+        return 0x005DB799;
+    }
+
+    return 0;
 }
 
 
@@ -175,8 +191,6 @@ void Spawner_Hooks()
     Vinifera_SkipLogoMovies = true;
     Vinifera_SkipStartupMovies = true;
 
-    Patch_Dword(0x005DB794 + 1, Vinifera_SpawnerConfig->ConnTimeout); // Set ConnTimeout
-
     /**
      *  Remove calls to SessionClass::Read_Scenario_Descriptions() when the
      *  spawner is active. This will speed up the initialisation and loading
@@ -188,12 +202,6 @@ void Spawner_Hooks()
     Patch_Call(0x0058037C, &SessionClassExt::_Read_Scenario_Descriptions); // NewMenuClass::
     Patch_Call(0x005ED477, &SessionClassExt::_Read_Scenario_Descriptions); // SessionClass::One_Time
 
-    /**
-     *  PlayMoviesInMultiplayer feature.
-     */
-    /**
-     *  AutoSurrender feature.
-     */
     /**
      *  Hooks for various sub-modules.
      */

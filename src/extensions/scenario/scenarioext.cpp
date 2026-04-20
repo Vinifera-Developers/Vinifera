@@ -247,7 +247,7 @@ void ScenarioClassExtension::Object_CRC(CRCEngine &crc) const
     crc(static_cast<int>(CampaignDifficultyOverride));
     crc(static_cast<int>(CampaignCDifficultyOverride));
     crc(SkipScoreScreenOverride);
-    crc(StatsUIMapName);
+    crc(StatsMapName);
     crc(StatsMapHash);
     crc(CustomLoadScreen);
     crc(CustomLoadScreenPos.X);
@@ -267,6 +267,16 @@ void ScenarioClassExtension::Init_Clear()
     IsIceDestruction = true;
     ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
     ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
+    HasSpawnerScenarioOverrides = false;
+    CampaignDifficultyOverride = DIFF_NORMAL;
+    CampaignCDifficultyOverride = DIFF_NORMAL;
+    SkipScoreScreenOverride = false;
+    StatsMapName[0] = '\0';
+    StatsMapHash[0] = '\0';
+    CustomLoadScreen[0] = '\0';
+    CustomLoadScreenPos = Point2D(0, 0);
+    HasCustomLoadScreen = false;
+    HasCustomLoadScreenPos = false;
 
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
@@ -307,22 +317,6 @@ void ScenarioClassExtension::Init_Clear()
      * Erase unit all filter hotkey states as their unit objects are invalid now 
      */
     UnitFilterLastFullSelectionByClassifiers.clear();
-}
-
-
-void ScenarioClassExtension::Clear_Spawner_Overrides()
-{
-    HasSpawnerScenarioOverrides = false;
-    CampaignDifficultyOverride = DIFF_NORMAL;
-    CampaignCDifficultyOverride = DIFF_NORMAL;
-    SkipScoreScreenOverride = false;
-
-    StatsUIMapName[0] = '\0';
-    StatsMapHash[0] = '\0';
-    CustomLoadScreen[0] = '\0';
-    CustomLoadScreenPos = Point2D(0, 0);
-    HasCustomLoadScreen = false;
-    HasCustomLoadScreenPos = false;
 }
 
 
@@ -1914,8 +1908,8 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
      *  Schedule the next autosave.
      */
     Vinifera_NextAutoSaveFrame = Frame;
-    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && SessionExtension->IsSpawnerSession
-        ? SessionExtension->SpawnerRuntime.MultiplayerAutoSaveInterval
+    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && SessionExtension->ExtOptions.MultiplayerAutoSaveInterval > 0
+        ? SessionExtension->ExtOptions.MultiplayerAutoSaveInterval
         : OptionsExtension->AutoSaveInterval;
 
     /**
@@ -1940,7 +1934,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
 void ScenarioClassExtension::Init_Forced_Alliances()
 {
     /**
-     *  Process the clients's forced alliances.
+     *  Process the client's forced alliances.
      */
     if (SessionExtension->IsSpawnerSession) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
@@ -2464,7 +2458,7 @@ void ScenarioClassExtension::Assign_Houses()
              */
             if (slot_info.Difficulty >= 0 && slot_info.Difficulty < std::size(AINamesByDifficultyArray)) {
                 housep->Assign_Handicap(static_cast<DiffType>(slot_info.Difficulty));
-                if (SessionExtension->SpawnerRuntime.AINamesByDifficulty && !housep->IsHuman) {
+                if (SessionExtension->ExtOptions.IsAINamesByDifficulty && !housep->IsHuman) {
                     housep->IniName = AINamesByDifficultyArray[slot_info.Difficulty];
                 }
             }

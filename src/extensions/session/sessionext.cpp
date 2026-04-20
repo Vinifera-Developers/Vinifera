@@ -30,23 +30,7 @@
 
 #include "sessionext.h"
 
-#include "ccini.h"
-#include "noinit.h"
 #include "tibsun_globals.h"
-#include "vinifera_saveload.h"
-#include "voc.h"
-
-
-namespace
-{
-    struct QueueAIMPTimings
-    {
-        int MIXFILE_RESEND_DELTA;
-        int FRAMESYNC_DLG_TIME;
-        int FRAMESYNC_TIMEOUT;
-        int MIXFILE_TIMEOUT;
-    };
-}
 
 
 /**
@@ -55,34 +39,9 @@ namespace
  *  @author: CCHyper
  */
 SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
-    GlobalExtensionClass(this_ptr),
-    ExtOptions(),
-    IsSpawnerSession(false),
-    SpawnerRuntime(),
-    IsChatToAllies(false),
-    MessageRecipientName("")
+    GlobalExtensionClass(this_ptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
-   /**
-     *  Initialises the default game options.
-     */
-    ExtOptions.IsAutoDeployMCV = false;
-    ExtOptions.IsPrePlacedConYards = false;
-    ExtOptions.IsBuildOffAlly = true;
-    Clear_Spawner_State();
-}
-
-
-/**
- *  Class no-init constructor.
- *  
- *  @author: CCHyper
- */
-SessionClassExtension::SessionClassExtension(const NoInitClass &noinit) :
-    GlobalExtensionClass(noinit)
-{
-    //EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -98,39 +57,43 @@ SessionClassExtension::~SessionClassExtension()
 
 
 /**
- *  Initializes an object from the stream where it was saved previously.
+ *  Loads game options from the stream.
+ *
+ *  @note: The Session extension itself is not saved, only the options are!
  *  
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 HRESULT SessionClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("SessionClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
 
-    HRESULT hr = GlobalExtensionClass::Load(pStm);
-    if (FAILED(hr)) {
-        return E_FAIL;
+    if (!pStm) {
+        return E_POINTER;
     }
 
-    new (this) SessionClassExtension(NoInitClass());
-    
+    HRESULT hr = pStm->Read(&ExtOptions, sizeof(ExtOptions), nullptr);
     return hr;
 }
 
 
 /**
- *  Saves an object to the specified stream.
- *  
- *  @author: CCHyper
+ *  Save game options to the stream.
+ *
+ *  @note: The Session extension itself is not saved, only the options are!
+ *
+ *  @author: ZivDero
  */
 HRESULT SessionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     //EXT_DEBUG_TRACE("SessionClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
 
-    HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
-    if (FAILED(hr)) {
-        return hr;
+    static_cast<void>(fClearDirty);
+
+    if (!pStm) {
+        return E_POINTER;
     }
 
+    HRESULT hr = pStm->Write(&ExtOptions, sizeof(ExtOptions), nullptr);
     return hr;
 }
 
@@ -171,111 +134,13 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
     crc(ExtOptions.IsAutoDeployMCV);
     crc(ExtOptions.IsPrePlacedConYards);
     crc(ExtOptions.IsBuildOffAlly);
-
-    crc(IsSpawnerSession);
-    crc(SpawnerRuntime.MultiplayerAutoSaveInterval);
-    crc(SpawnerRuntime.QuickMatch);
-    crc(SpawnerRuntime.WriteStatistics);
-    crc(SpawnerRuntime.AutoSurrender);
-    crc(SpawnerRuntime.AttackNeutralUnits);
-    crc(SpawnerRuntime.CoachMode);
-    crc(SpawnerRuntime.ContinueWithoutHumans);
-    crc(SpawnerRuntime.ScrapMetal);
-    crc(SpawnerRuntime.AINamesByDifficulty);
-    crc(SpawnerRuntime.ProtocolZeroEnabled);
-    crc(SpawnerRuntime.ProtocolZeroMaxLatencyLevel);
-    crc(SpawnerRuntime.ReconnectTimeout);
-    crc(SpawnerRuntime.Tournament);
-    crc(SpawnerRuntime.GameID);
-
-    for (const SpawnerSlotInfoType& slot_info : SlotInfo) {
-        crc(slot_info.IsConfigured);
-        crc(slot_info.IsHuman);
-        crc(slot_info.Color);
-        crc(slot_info.House);
-        crc(slot_info.Difficulty);
-        crc(slot_info.IsObserver);
-        crc(slot_info.SpawnLocation);
-
-        for (int ally_index = 0; ally_index < std::size(slot_info.Alliances); ++ally_index) {
-            crc(slot_info.Alliances[ally_index]);
-        }
-    }
-
-    crc(IsChatToAllies);
-    crc(MessageRecipientName);
-}
-
-
-void SessionClassExtension::Clear_Spawner_State()
-{
-    IsSpawnerSession = false;
-
-    SpawnerRuntime.MultiplayerAutoSaveInterval = 0;
-    SpawnerRuntime.QuickMatch = false;
-    SpawnerRuntime.WriteStatistics = false;
-    SpawnerRuntime.AutoSurrender = false;
-    SpawnerRuntime.AttackNeutralUnits = false;
-    SpawnerRuntime.CoachMode = false;
-    SpawnerRuntime.ContinueWithoutHumans = false;
-    SpawnerRuntime.ScrapMetal = false;
-    SpawnerRuntime.AINamesByDifficulty = false;
-    SpawnerRuntime.ProtocolZeroEnabled = false;
-    SpawnerRuntime.ProtocolZeroMaxLatencyLevel = 0xFF;
-    SpawnerRuntime.ReconnectTimeout = 0;
-    SpawnerRuntime.Tournament = 0;
-    SpawnerRuntime.GameID = 0;
-
-    for (SpawnerSlotInfoType& slot_info : SlotInfo) {
-        slot_info.IsConfigured = false;
-        slot_info.IsHuman = false;
-        slot_info.Color = -1;
-        slot_info.House = -1;
-        slot_info.Difficulty = -1;
-        slot_info.IsObserver = false;
-        slot_info.SpawnLocation = -1;
-
-        for (int& ally_index : slot_info.Alliances) {
-            ally_index = -1;
-        }
-    }
-}
-
-
-void SessionClassExtension::Apply_Spawner_Runtime_State() const
-{
-    WestwoodOnline_Tournament = 0;
-    WestwoodOnline_GameID = 0;
-
-    if (!IsSpawnerSession) {
-        return;
-    }
-
-    WestwoodOnline_Tournament = SpawnerRuntime.Tournament;
-    WestwoodOnline_GameID = SpawnerRuntime.GameID;
-
-    static QueueAIMPTimings(&Queue_AI_Multiplayer_Timings)[8] = *reinterpret_cast<QueueAIMPTimings(*)[8]>(0x00707F88);
-    Queue_AI_Multiplayer_Timings[GAME_IPX].MIXFILE_TIMEOUT = SpawnerRuntime.ReconnectTimeout;
-}
-
-
-/**
- *  Fetches the extension data from the INI database.  
- *  
- *  @author: CCHyper
- */
-void SessionClassExtension::Read_MultiPlayer_Settings()
-{
-    //EXT_DEBUG_TRACE("SessionClassExtension::Read_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(This()));
-}
-
-
-/**
- *  Saves the extension data from the INI database.  
- *  
- *  @author: CCHyper
- */
-void SessionClassExtension::Write_MultiPlayer_Settings()
-{
-    //EXT_DEBUG_TRACE("SessionClassExtension::Write_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(This()));
+    crc(ExtOptions.MultiplayerAutoSaveInterval);
+    crc(ExtOptions.IsQuickMatch);
+    crc(ExtOptions.IsWriteStatistics);
+    crc(ExtOptions.IsAutoSurrender);
+    crc(ExtOptions.IsAttackNeutralUnits);
+    crc(ExtOptions.IsCoachMode);
+    crc(ExtOptions.IsContinueWithoutHumans);
+    crc(ExtOptions.IsScrapMetal);
+    crc(ExtOptions.IsAINamesByDifficulty);
 }

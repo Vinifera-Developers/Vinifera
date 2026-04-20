@@ -127,12 +127,6 @@ extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
-/**
- *  Spawner-related globals.
- */
-extern SpawnerConfig* Vinifera_SpawnerConfig;
-extern bool Vinifera_HasSpawned;
-
 extern bool Vinifera_DoSave;
 extern int Vinifera_NextAutoSaveFrame;
 extern int Vinifera_NextAutoSaveNumber;

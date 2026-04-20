@@ -231,8 +231,7 @@ static void After_Main_Loop()
 
     const bool do_campaign_autosaves = Session.Type == GAME_NORMAL && OptionsExtension->AutoSaveCount > 0 && OptionsExtension->AutoSaveInterval > 0;
     const bool do_mp_autosaves = Session.Type == GAME_IPX
-        && SessionExtension->IsSpawnerSession
-        && SessionExtension->SpawnerRuntime.MultiplayerAutoSaveInterval > 0;
+        && SessionExtension->ExtOptions.MultiplayerAutoSaveInterval > 0;
 
     /**
      *  Schedule to make a save if it's time to autosave.
@@ -304,7 +303,7 @@ static void After_Main_Loop()
             /**
              *  Schedule the next autosave.
              */
-            Vinifera_NextAutoSaveFrame = Frame + SessionExtension->SpawnerRuntime.MultiplayerAutoSaveInterval;
+            Vinifera_NextAutoSaveFrame = Frame + SessionExtension->ExtOptions.MultiplayerAutoSaveInterval;
         }
 
         Vinifera_DoSave = false;

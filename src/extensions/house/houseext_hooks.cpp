@@ -760,7 +760,7 @@ void HouseClassExt::_MPlayer_Defeated()
          *  With the spawner active, if Coach mode is enabled, players don't get vision.
          */
         bool obiwan = true;
-        if (SessionExtension->SpawnerRuntime.CoachMode) {
+        if (SessionExtension->ExtOptions.IsCoachMode) {
             obiwan = false;
         }
 
@@ -858,7 +858,7 @@ void HouseClassExt::_MPlayer_Defeated()
      *    player's IsDefeated flag
      */
     if (!Extension::Fetch(this)->IsObserver) {
-        if (num_alive == 1 || (num_humans == 0 && !SessionExtension->SpawnerRuntime.ContinueWithoutHumans)) {
+        if (num_alive == 1 || (num_humans == 0 && !SessionExtension->ExtOptions.IsContinueWithoutHumans)) {
             IsToDie = false;
 
             if (PlayerPtr->IsDefeated) {

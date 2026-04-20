@@ -482,7 +482,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  If the spawner requested scrap explosions, replace the game's explosion vector with ours.
      */
-    if (SessionExtension->SpawnerRuntime.ScrapMetal) {
+    if (SessionExtension->ExtOptions.IsScrapMetal) {
         This()->Explosion = ScrapExplosion;
     }
     return true;

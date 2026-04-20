@@ -50,7 +50,7 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
 {
     new_latency_level = std::min(new_latency_level, LATENCY_LEVEL_MAX);
 
-    auto max_latency_level = static_cast<LatencyLevelEnum>(SessionExtension->SpawnerRuntime.ProtocolZeroMaxLatencyLevel);
+    auto max_latency_level = static_cast<LatencyLevelEnum>(SessionExtension->ProtocolZeroMaxLatencyLevel);
     new_latency_level = std::min(new_latency_level, max_latency_level);
 
     if (new_latency_level <= CurentLatencyLevel) return;

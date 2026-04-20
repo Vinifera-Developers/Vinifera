@@ -41,84 +41,108 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 
     public:
         SessionClassExtension(const SessionClass *this_ptr);
-        SessionClassExtension(const NoInitClass &noinit);
-        virtual ~SessionClassExtension();
+        ~SessionClassExtension() override;
 
-        virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
-        virtual void Object_CRC(CRCEngine &crc) const override;
+        int Get_Object_Size() const override;
+        void Detach(AbstractClass * target, bool all = true) override;
+        void Object_CRC(CRCEngine &crc) const override;
 
-        virtual const char *Name() const override { return "Session"; }
-        virtual const char *Full_Name() const override { return "Session"; }
-
-        void Read_MultiPlayer_Settings();
-        void Write_MultiPlayer_Settings();
-        void Clear_Spawner_State();
-        void Apply_Spawner_Runtime_State() const;
+        const char *Name() const override { return "Session"; }
+        const char *Full_Name() const override { return "Session"; }
 
     public:
-        typedef struct ExtGameOptionsType
-        {
+        struct ExtGameOptionsType {
+
             /**
              *  Should the MCV unit auto deploy on game start?
              */
-            bool IsAutoDeployMCV;
+            bool IsAutoDeployMCV = false;
 
             /**
              *  Are construction yards pre-placed on the map rather than a MCV given to the player?
              */
-            bool IsPrePlacedConYards;
+            bool IsPrePlacedConYards = false;
 
             /**
              *  Can players build their own structures adjacent to structures owned by their allies?
              */
-            bool IsBuildOffAlly;
+            bool IsBuildOffAlly = true;
 
-        } ExtGameOptionsType;
+            /**
+             *  Autosave interval for multiplayer spawner sessions.
+             */
+            int MultiplayerAutoSaveInterval = 0;
+
+            /**
+             *  Should player identity be hidden for quick match?
+             */
+            bool IsQuickMatch = false;
+
+            /**
+             *  Should statistics be written for the current match?
+             */
+            bool IsWriteStatistics = false;
+
+            /**
+             *  Should disconnected players be eliminated instead of handed to the AI?
+             */
+            bool IsAutoSurrender = false;
+
+            /**
+             *  Can armed units attack multiplayer neutral houses?
+             */
+            bool IsAttackNeutralUnits = false;
+
+            /**
+             *  Should defeated players be denied observer vision?
+             */
+            bool IsCoachMode = false;
+
+            /**
+             *  Should the game continue when no human players remain?
+             */
+            bool IsContinueWithoutHumans = false;
+
+            /**
+             *  Should destroyed technos use scrap explosions?
+             */
+            bool IsScrapMetal = false;
+
+            /**
+             *  Should AI players be renamed according to their selected difficulty?
+             */
+            bool IsAINamesByDifficulty = false;
+
+        };
 
         ExtGameOptionsType ExtOptions;
-        
-        struct SpawnerGameOptionsType {
-            int MultiplayerAutoSaveInterval;
-            bool QuickMatch;
-            bool WriteStatistics;
-            bool AutoSurrender;
-            bool AttackNeutralUnits;
-            bool CoachMode;
-            bool ContinueWithoutHumans;
-            bool ScrapMetal;
-            bool AINamesByDifficulty;
-            bool ProtocolZeroEnabled;
-            unsigned char ProtocolZeroMaxLatencyLevel;
-            int ReconnectTimeout;
-            int Tournament;
-            unsigned long GameID;
-        };
+        bool IsSpawnerSession = false;
 
         struct SpawnerSlotInfoType {
-            bool IsConfigured;
-            bool IsHuman;
-            int Color;
-            int House;
-            int Difficulty;
-            bool IsObserver;
-            int SpawnLocation;
-            int Alliances[MAX_PLAYERS];
+            bool IsConfigured = false;
+            bool IsHuman = false;
+            int Color = -1;
+            int House = -1;
+            int Difficulty = -1;
+            bool IsObserver = false;
+            int SpawnLocation = -1;
+            int Alliances[MAX_PLAYERS] = {-1, -1, -1, -1, -1, -1, -1, -1};
         };
 
-        bool IsSpawnerSession;
-        SpawnerGameOptionsType SpawnerRuntime;
+        bool ProtocolZeroEnabled = false;
+        unsigned char ProtocolZeroMaxLatencyLevel = 0xFF;
+        int ConnTimeout = 0;
         SpawnerSlotInfoType SlotInfo[MAX_PLAYERS];
 
         /**
          *  Is the message we're currently writing meant to be sent to allies only?
          */
-        bool IsChatToAllies;
+        bool IsChatToAllies = false;
 
         /**
          *  If we're writing a private message, this is the name of its recipient.
          */
-        char MessageRecipientName[32];
+        char MessageRecipientName[32] = "";
 
         /**
          *  Convenient property to access IsGDI as a HousesType.

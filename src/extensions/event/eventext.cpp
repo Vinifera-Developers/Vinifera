@@ -391,7 +391,7 @@ void EventClassExt::Do_IDLE()
  */
 void EventClassExt::Do_TIMING()
 {
-    if (!SessionExtension->SpawnerRuntime.ProtocolZeroEnabled) {
+    if (!SessionExtension->ProtocolZeroEnabled) {
         if (Scen->Special.IsFogOfWar) {
             Data.Timing.MaxAhead -= 10;
         }
@@ -432,11 +432,11 @@ void EventClassExt::Do_REMOVEPLAYER()
     /**
      *  Turn off autosaves when a player disconnects.
      */
-    if (SessionExtension->IsSpawnerSession) {
-        SessionExtension->SpawnerRuntime.MultiplayerAutoSaveInterval = 0;
+    if (Session.Type == GAME_IPX && SessionExtension->ExtOptions.MultiplayerAutoSaveInterval > 0) {
+        SessionExtension->ExtOptions.MultiplayerAutoSaveInterval = 0;
     }
 
-    if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || (Session.Type == GAME_IPX && SessionExtension->SpawnerRuntime.AutoSurrender)) {
+    if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || (Session.Type == GAME_IPX && SessionExtension->ExtOptions.IsAutoSurrender)) {
         house->Flag_To_Die();
     } else if (house->Is_Human_Player()) {
         house->AI_Takeover();

@@ -54,7 +54,6 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         virtual const char *Full_Name() const override { return "Scenario"; }
 
         void Init_Clear();
-        void Clear_Spawner_Overrides();
         bool Read_INI(CCINIClass &ini);
 
         static bool Read_Tutorial_INI(CCINIClass const& ini);
@@ -154,7 +153,7 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         DiffType CampaignDifficultyOverride;
         DiffType CampaignCDifficultyOverride;
         bool SkipScoreScreenOverride;
-        char StatsUIMapName[44];
+        char StatsMapName[44];
         char StatsMapHash[0xff];
         char CustomLoadScreen[PATH_MAX];
         Point2D CustomLoadScreenPos;

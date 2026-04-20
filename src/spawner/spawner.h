@@ -47,11 +47,14 @@ private:
     static bool Start_Scenario(char* scenario_name);
     static bool Load_Game(const char* file_name);
 
-    static void Freeze_Config_Into_Extensions();
-    static void Release_Config();
+    static void Init_Session(char* scenario_name);
     static void Init_Network();
     static bool Reconcile_Players();
 
     static void Init_UI();
     static void Prepare_Screen();
+
+private:
+    static bool HasSpawned;
+    static std::unique_ptr<SpawnerConfig> Config;
 };

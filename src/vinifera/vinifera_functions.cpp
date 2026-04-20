@@ -655,9 +655,6 @@ bool Vinifera_Shutdown()
     delete AircraftTracker;
     AircraftTracker = nullptr;
 
-    delete Vinifera_SpawnerConfig;
-    Vinifera_SpawnerConfig = nullptr;
-
     return true;
 }
 

@@ -52,7 +52,7 @@ unsigned int ProtocolZero::WorstMaxAhead = 24;
  */
 void ProtocolZero::Send_Response_Time()
 {
-    if (!SessionExtension->SpawnerRuntime.ProtocolZeroEnabled || Session.Singleplayer_Game()) {
+    if (!SessionExtension->ProtocolZeroEnabled || Session.Singleplayer_Game()) {
         return;
     }
 
@@ -97,7 +97,7 @@ void ProtocolZero::Send_Response_Time()
  */
 void ProtocolZero::Handle_Response_Time(EventClassExt& event)
 {
-    if (!SessionExtension->SpawnerRuntime.ProtocolZeroEnabled || Session.Singleplayer_Game()) {
+    if (!SessionExtension->ProtocolZeroEnabled || Session.Singleplayer_Game()) {
         return;
     }
 

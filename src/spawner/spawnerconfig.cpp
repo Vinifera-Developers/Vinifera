@@ -80,7 +80,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     WOLGameID = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
     ScenarioName = spawn_ini.Get_String(SETTINGS, "Scenario", std::string(ScenarioName));
     MapHash = spawn_ini.Get_String(SETTINGS, "MapHash", std::string(MapHash));
-    UIMapName = spawn_ini.Get_String(SETTINGS, "UIMapName", std::string(UIMapName));
+    MapName = spawn_ini.Get_String(SETTINGS, "UIMapName", std::string(MapName));
     PlayMoviesInMultiplayer = spawn_ini.Get_Bool(SETTINGS, "PlayMoviesInMultiplayer", PlayMoviesInMultiplayer);
 
     /**

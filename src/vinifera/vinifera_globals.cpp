@@ -80,9 +80,6 @@ bool Vinifera_ShowSuperWeaponTimers = true;
 DynamicVectorClass<MFCD *> ViniferaMapsMixes;
 DynamicVectorClass<MFCD*> ViniferaMoviesMixes;
 
-SpawnerConfig* Vinifera_SpawnerConfig = nullptr;
-bool Vinifera_HasSpawned = false;
-
 bool Vinifera_DoSave = false;
 int Vinifera_NextAutoSaveFrame = -1;
 int Vinifera_NextAutoSaveNumber = 0;

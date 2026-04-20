@@ -47,8 +47,7 @@
 
 static bool Is_Spawner_Write_Statistics()
 {
-    return SessionExtension->IsSpawnerSession
-        && SessionExtension->SpawnerRuntime.WriteStatistics
+    return SessionExtension->ExtOptions.IsWriteStatistics
         && Session.Type == GAME_IPX;
 }
 
@@ -108,7 +107,7 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
 void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
     if (Is_Spawner_Write_Statistics()) {
-        PacketClass::Add_Field(new FieldClass("SCEN", ScenExtension->StatsUIMapName));
+        PacketClass::Add_Field(new FieldClass("SCEN", ScenExtension->StatsMapName));
         PacketClass::Add_Field(new FieldClass("ACCN", const_cast<char*>(PlayerPtr->IniName.c_str())));
         PacketClass::Add_Field(new FieldClass("HASH", ScenExtension->StatsMapHash));
         return;

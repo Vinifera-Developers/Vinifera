@@ -106,7 +106,7 @@ public:
     unsigned int WOLGameID;
     FixedString<260> ScenarioName;
     FixedString<0xff> MapHash;
-    FixedString<44> UIMapName;
+    FixedString<44> MapName;
     bool PlayMoviesInMultiplayer;
 
     /**
@@ -184,7 +184,7 @@ public:
         WOLGameID {0xDEADBEEF},
         ScenarioName {"spawnmap.ini"},
         MapHash {""},
-        UIMapName {""},
+        MapName {""},
         PlayMoviesInMultiplayer {false},
 
         Protocol {2},

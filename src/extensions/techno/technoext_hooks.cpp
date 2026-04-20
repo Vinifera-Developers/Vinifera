@@ -1991,7 +1991,7 @@ return_false:
  */
 static bool Can_Attack_Neutrals(TechnoClass* target)
 {
-    bool attack_neutrals = SessionExtension->SpawnerRuntime.AttackNeutralUnits;
+    bool attack_neutrals = SessionExtension->ExtOptions.IsAttackNeutralUnits;
     bool unarmed_building = target->RTTI == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
 
     return attack_neutrals && !unarmed_building;
