@@ -92,6 +92,7 @@ private:
     bool Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DESTROY_TAG(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
     /**
      *  New TActions.
@@ -127,7 +128,6 @@ private:
     bool Do_DISABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ADJUST_HOUSE_MODIFIER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
-    bool Do_INSTANT_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 public:
     /**

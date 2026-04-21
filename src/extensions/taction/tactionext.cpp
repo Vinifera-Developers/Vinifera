@@ -52,6 +52,7 @@
 #include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "voc.h"
+#include "mouse.h";
 
 
 TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST] = {
@@ -297,6 +298,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         DISPATCH(ENABLE_TRIGGER);
         DISPATCH(DESTROY_TAG);
         DISPATCH(PLAY_SOUND_RANDOM);
+        DISPATCH(CENTER_VIEWPOINT);
 
         /**
          *  New Vinifera TActions.
@@ -331,8 +333,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
-        EXT_DISPATCH(APPLY_IRON_CURTAIN);
-        EXT_DISPATCH(INSTANT_CENTER_VIEWPOINT);
+        EXT_DISPATCH(APPLY_IRON_CURTAIN);        
 
         /**
          *  Unexpected TActionType.
@@ -381,6 +382,7 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     case TACTION_ENABLE_TRIGGER:
     case TACTION_DESTROY_TAG:
     case TACTION_PLAY_SOUND_RANDOM:
+    case TACTION_CENTER_VIEWPOINT:
         return true;
 
     default:
@@ -1616,22 +1618,28 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
     return true;
 }
 
-bool TActionClassExtension::Do_INSTANT_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+/**
+ *  Reimplementation of the trigger action for centering the camera at the desired waypoint.
+ *  Enhanced to allow using a negative speed value for an instant snap of the camera to the waypoint, rather than a slow scroll to it.
+ *
+ *  @author: Shush
+ */
+bool TActionClassExtension::Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    Cell waypoint_cell = Scen->Waypoint_Cell(This()->EffectLocation);
-    //Point2D current_position = TacticalMap->Get_Tactical_Position();
+    Cell waypt = Scen->Waypoint_Cell(This()->EffectLocation);
+    Coord coord = Coord(waypt);
 
-    Coord waypoint_coord = waypoint_cell.As_Coord();
+    coord.Z = Map.Get_Height_GL(coord);
 
-    /*TacticalMap->MoveTo.X = waypoint_cell.X;
-    TacticalMap->MoveTo.Y = waypoint_cell.Y;
-    TacticalMap->MoveFrom.X = current_position.X;
-    TacticalMap->MoveFrom.Y = current_position.Y;
-    TacticalMap->MoveFactor = 1.0f;*/
+    if (This()->Data.Speed <= -1) {
+        TacticalMap->Set_Tactical_Position(coord);
+        return true;
+    }
 
-    TacticalMap->Set_Tactical_Position(waypoint_coord);
+    if (Map[waypt].IsUnderBridge || Map[waypt].WasUnderBridge) {
+        coord.Z += BRIDGE_LEPTON_HEIGHT;
+    }
 
-    DEBUG_INFO("Triggered instant center viewpoint action");
-
-    return true;
+    TacticalMap->Setup_Trigger_Scroll(coord, This()->Data.Speed);
+    return (true);
 }
