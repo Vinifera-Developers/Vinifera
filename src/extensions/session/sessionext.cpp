@@ -183,13 +183,25 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
 
 
 /**
- *  Resets transient and autosave state for a new session.
+ *  Resets all non-option session extension state for a new session.
  *
  *  @author: ZivDero
  */
 void SessionClassExtension::Init_Clear()
 {
+    ExtOptions = ExtGameOptionsType();
     AutoSave = AutoSaveStateType();
+    IsSpawnerSession = false;
+    ProtocolZeroEnabled = false;
+    ProtocolZeroMaxLatencyLevel = 0xFF;
+    ConnTimeout = 0;
+
+    for (auto& slot_info : SlotInfo) {
+        slot_info = SpawnerSlotInfoType();
+    }
+
+    IsChatToAllies = false;
+    std::memset(MessageRecipientName, '\0', sizeof(MessageRecipientName));
 }
 
 
@@ -331,7 +343,7 @@ std::string SessionClassExtension::Autosave_File_Name() const
         return NET_SAVE_FILE_NAME;
     case GAME_NORMAL:
     case GAME_SKIRMISH:
-        return std::format("AUTOSAVE%d.SAV", AutoSave.NextSPAutoSaveSlot + 1);
+        return std::format("AUTOSAVE{}.SAV", AutoSave.NextSPAutoSaveSlot + 1);
     default:
         return "";
     }
@@ -345,9 +357,9 @@ std::string SessionClassExtension::Autosave_Description() const
     case GAME_INTERNET:
         return "Multiplayer Game";
     case GAME_NORMAL:
-        return std::format("Mission Auto-Save (Slot %d)", AutoSave.NextSPAutoSaveSlot + 1);
+        return std::format("Mission Auto-Save (Slot {})", AutoSave.NextSPAutoSaveSlot + 1);
     case GAME_SKIRMISH:
-        return std::format("Skirmish Auto-Save (Slot %d)", AutoSave.NextSPAutoSaveSlot + 1);
+        return std::format("Skirmish Auto-Save (Slot {})", AutoSave.NextSPAutoSaveSlot + 1);
     default:
         return "";
     }
