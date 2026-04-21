@@ -1525,24 +1525,6 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
     Call_Back();
 
     /**
-     *  Unfortunately, since we now load rules before prepping for side,
-     *  we have to reload cameos for Technos, as they can be side-specific.
-     */
-    for (int index = 0; index < TechnoTypes.Count(); ++index) {
-
-        TechnoTypeClass* ttype = TechnoTypes[index];
-        std::snprintf(buffer, sizeof(buffer), "%s.SHP", ttype->CameoFilename.c_str());
-
-        const ShapeSet* cameodata = MFCD::RetrieveT<const ShapeSet>(buffer);
-
-        if (cameodata != nullptr) {
-            ttype->CameoData = cameodata;
-        }
-    }
-
-    Call_Back();
-
-    /**
      *  In single player, the speech and sidebar side can be overridden by the scenario.
      */
     if (Session.Type == GAME_NORMAL) {
