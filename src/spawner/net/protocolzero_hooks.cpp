@@ -213,7 +213,7 @@ DEFINE_HOOK(0x005B1B7A, _ProtocolZero_Queue_AI_Multiplayer_3, 0)
     EventClass ev;
     ev.Type = EVENT_TIMING;
     ev.Data.Timing.DesiredFrameRate = Session.DesiredFrameRate;
-    ev.Data.Timing.MaxAhead = SessionExtension->ProtocolZeroEnabled ? Session.MaxAhead : (max_ahead + Scen->Special.IsFogOfWar ? 10 : 0);
+    ev.Data.Timing.MaxAhead = SessionExtension->ProtocolZeroEnabled ? Session.MaxAhead : (max_ahead + (Scen->Special.IsFogOfWar ? 10 : 0));
     ev.Data.Timing.FrameSendRate = Session.FrameSendRate;
 
     OutList.Add(ev);
