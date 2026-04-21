@@ -204,7 +204,7 @@ int SessionClassExtension::Get_Autosave_Interval() const
         return OptionsExtension->AutoSaveInterval;
     }
 
-    if (Session.Type == GAME_IPX && !AutoSave.IsMultiplayerAutoSaveSuppressed && ExtOptions.MultiplayerAutoSaveInterval > 0) {
+    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerAutoSaveSuppressed && ExtOptions.MultiplayerAutoSaveInterval > 0) {
         return ExtOptions.MultiplayerAutoSaveInterval;
     }
 
@@ -310,7 +310,7 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         return;
     }
     
-    if (Session.Type == GAME_IPX) {
+    if (Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) {
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
 
@@ -327,6 +327,7 @@ std::string SessionClassExtension::Autosave_File_Name() const
 {
     switch (Session.Type) {
     case GAME_IPX:
+    case GAME_INTERNET:
         return NET_SAVE_FILE_NAME;
     case GAME_NORMAL:
     case GAME_SKIRMISH:
@@ -341,6 +342,7 @@ std::string SessionClassExtension::Autosave_Description() const
 {
     switch (Session.Type) {
     case GAME_IPX:
+    case GAME_INTERNET:
         return "Multiplayer Game";
     case GAME_NORMAL:
         return std::format("Mission Auto-Save (Slot %d)", AutoSave.NextSPAutoSaveSlot + 1);

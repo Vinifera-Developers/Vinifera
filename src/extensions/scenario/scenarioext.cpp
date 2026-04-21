@@ -2322,7 +2322,7 @@ void ScenarioClassExtension::Assign_Houses()
                  *  If the local player starts as an observer, mark him as "Obi Wan" -
                  *  prevents him from sending DMs to players (and removes fog).
                  */
-                if (house_index == 0) {
+                if (housep == PlayerPtr) {
                     Session.ObiWan = true;
                 }
             }
@@ -2513,7 +2513,7 @@ void ScenarioClassExtension::Assign_Houses()
             for (int j = 0; j < std::size(slot_info.Alliances); ++j) {
                 const int ally_index = slot_info.Alliances[j];
                 if (ally_index != -1) {
-                    housep->Allies &= 1 << ally_index;
+                    housep->Allies |= 1 << ally_index;
                 }
             }
         }
