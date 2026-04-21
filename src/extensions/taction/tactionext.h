@@ -127,6 +127,7 @@ private:
     bool Do_DISABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ADJUST_HOUSE_MODIFIER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_INSTANT_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 public:
     /**

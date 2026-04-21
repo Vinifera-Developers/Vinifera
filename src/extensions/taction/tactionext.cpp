@@ -332,6 +332,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
         EXT_DISPATCH(APPLY_IRON_CURTAIN);
+        EXT_DISPATCH(INSTANT_CENTER_VIEWPOINT);
 
         /**
          *  Unexpected TActionType.
@@ -1612,5 +1613,25 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
     }
 
     houseext->Expend_Iron_Curtain();
+    return true;
+}
+
+bool TActionClassExtension::Do_INSTANT_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    Cell waypoint_cell = Scen->Waypoint_Cell(This()->EffectLocation);
+    //Point2D current_position = TacticalMap->Get_Tactical_Position();
+
+    Coord waypoint_coord = waypoint_cell.As_Coord();
+
+    /*TacticalMap->MoveTo.X = waypoint_cell.X;
+    TacticalMap->MoveTo.Y = waypoint_cell.Y;
+    TacticalMap->MoveFrom.X = current_position.X;
+    TacticalMap->MoveFrom.Y = current_position.Y;
+    TacticalMap->MoveFactor = 1.0f;*/
+
+    TacticalMap->Set_Tactical_Position(waypoint_coord);
+
+    DEBUG_INFO("Triggered instant center viewpoint action");
+
     return true;
 }
