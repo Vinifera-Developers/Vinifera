@@ -1622,7 +1622,7 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
  *  Reimplementation of the trigger action for centering the camera at the desired waypoint.
  *  Enhanced to allow using a negative speed value for an instant snap of the camera to the waypoint, rather than a slow scroll to it.
  *
- *  @author: Shush
+ *  @author: JoyfulShush
  */
 bool TActionClassExtension::Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
@@ -1631,15 +1631,15 @@ bool TActionClassExtension::Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* 
 
     coord.Z = Map.Get_Height_GL(coord);
 
+    if (Map[waypt].IsUnderBridge || Map[waypt].WasUnderBridge) {
+        coord.Z += BRIDGE_LEPTON_HEIGHT;
+    }
+
     if (This()->Data.Speed <= -1) {
         TacticalMap->Set_Tactical_Position(coord);
         return true;
     }
 
-    if (Map[waypt].IsUnderBridge || Map[waypt].WasUnderBridge) {
-        coord.Z += BRIDGE_LEPTON_HEIGHT;
-    }
-
     TacticalMap->Setup_Trigger_Scroll(coord, This()->Data.Speed);
-    return (true);
+    return true;
 }
