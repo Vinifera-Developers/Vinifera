@@ -8,6 +8,7 @@ This page describes all mapping-related additions and changes introduced by Vini
 - Tutorial messages are now loaded from scenarios. This can be used to replace/update an existing entry from `TUTORIAL.INI`, or to add a new tutorial message index which can be used by trigger actions.
 - Remove a hardcoded limitation where the remap color of `Neutral` and `Special` could not be overridden in multiplayer games. Due to the inconsistencies between the official maps, values of `Grey` and `LightGrey` will be forced to `LightGrey`.
 - `[Basic]->SkipScore` is now considered when showing the multiplayer score screen. Setting to `SkipScore=yes` in the map file will now be all that is required for skip the score screen.
+- The game now supports using a negative value (such as `-1`) in the Center Camera At Waypoint trigger action in order to snap the camera position to the waypoint instead of scrolling to it over time.
 
 ## Increased Overlay Limit
 
