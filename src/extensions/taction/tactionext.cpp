@@ -333,7 +333,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
-        EXT_DISPATCH(APPLY_IRON_CURTAIN);        
+        EXT_DISPATCH(APPLY_IRON_CURTAIN);
 
         /**
          *  Unexpected TActionType.
