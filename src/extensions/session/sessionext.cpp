@@ -200,7 +200,7 @@ void SessionClassExtension::Init_Clear()
  */
 int SessionClassExtension::Get_Autosave_Interval() const
 {
-    if (Session.Type == GAME_NORMAL && OptionsExtension->AutoSaveCount > 0 && OptionsExtension->AutoSaveInterval > 0) {
+    if (Session.Singleplayer_Game() && OptionsExtension->AutoSaveCount > 0 && OptionsExtension->AutoSaveInterval > 0) {
         return OptionsExtension->AutoSaveInterval;
     }
 
