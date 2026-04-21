@@ -934,12 +934,12 @@ bool Vinifera_Load_Game(const char* file_name)
     Vinifera_Post_Load_Game();
     Map.Init_IO();
     Map.Activate(1);
-    Map.Set_Dimensions();
+    Map.Shift_Sidebar();
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
-    TacticalViewActive = true;
-    ScenarioStarted = true;
+    ScenarioActive = true;
+    TacticalActive = true;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 
@@ -980,8 +980,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
         WinDialogClass::Display_Dialog(handle);
     }
 
-    TacticalViewActive = false;
-    ScenarioStarted = false;
+    ScenarioActive = false;
+    TacticalActive = false;
 
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);

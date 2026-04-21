@@ -170,11 +170,11 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    VoiceCapture.Load(pStm);
-    VoiceEnter.Load(pStm);
-    VoiceDeploy.Load(pStm);
-    VoiceHarvest.Load(pStm);
-    BuiltAt.Load(pStm);
+    VoiceCapture.Load_Self(pStm);
+    VoiceEnter.Load_Self(pStm);
+    VoiceDeploy.Load_Self(pStm);
+    VoiceHarvest.Load_Self(pStm);
+    BuiltAt.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
@@ -225,11 +225,11 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    VoiceCapture.Save(pStm);
-    VoiceEnter.Save(pStm);
-    VoiceDeploy.Save(pStm);
-    VoiceHarvest.Save(pStm);
-    BuiltAt.Save(pStm);
+    VoiceCapture.Save_Self(pStm);
+    VoiceEnter.Save_Self(pStm);
+    VoiceDeploy.Save_Self(pStm);
+    VoiceHarvest.Save_Self(pStm);
+    BuiltAt.Save_Self(pStm);
 
     return hr;
 }

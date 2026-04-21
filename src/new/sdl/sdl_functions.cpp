@@ -134,7 +134,7 @@ namespace
         Map.Set_View_Dimensions(temp);
         Map.Init_IO();
         Map.Activate(1);
-        Map.Set_Dimensions();
+        Map.Shift_Sidebar();
         Map.Flag_To_Redraw(GS_REDRAW_ALL);
         Show_Mouse();
     }
@@ -392,7 +392,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         */
     case WM_PAINT:
         if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
-            if (ScenarioStarted == true) {
+            if (TacticalActive == true) {
                 Update_Visible_Surface(MouseCursor->Is_Captured(), CompositeSurface);
                 Map.Blit_Sidebar(true);
             } else if (Movie_Is_Playing() == true) {
@@ -491,7 +491,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             /**
              *  If we are not currently playing a scenario, no need to execute this command.
              */
-            if (ScenarioStarted && TacticalViewActive) {
+            if (TacticalActive && ScenarioActive) {
                 if (GET_WHEEL_DELTA_WPARAM(wParam) < 0) {
                     Do_Command("SidebarDown");
                 } else {

@@ -207,10 +207,10 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
 
     new (this) RulesClassExtension(NoInitClass());
 
-    MaxPips.Load(pStm);
-    IronCurtains.Load(pStm);
-    IronCurtainPulseTable.Load(pStm);
-    AIHarvestersPerRefinery.Load(pStm);
+    MaxPips.Load_Self(pStm);
+    IronCurtains.Load_Self(pStm);
+    IronCurtainPulseTable.Load_Self(pStm);
+    AIHarvestersPerRefinery.Load_Self(pStm);
     
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(IronCurtains, "IronCurtains");
 
@@ -232,10 +232,10 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    MaxPips.Save(pStm);
-    IronCurtains.Save(pStm);
-    IronCurtainPulseTable.Save(pStm);
-    AIHarvestersPerRefinery.Save(pStm);
+    MaxPips.Save_Self(pStm);
+    IronCurtains.Save_Self(pStm);
+    IronCurtainPulseTable.Save_Self(pStm);
+    AIHarvestersPerRefinery.Save_Self(pStm);
 
     return hr;
 }
