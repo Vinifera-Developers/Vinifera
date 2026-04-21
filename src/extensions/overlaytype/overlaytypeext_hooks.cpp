@@ -30,65 +30,8 @@
 
 #include "overlaytypeext_hooks.h"
 
-#include "debughandler.h"
-#include "hooker.h"
-#include "overlaytype.h"
-#include "overlaytypeext.h"
 #include "overlaytypeext_init.h"
 #include "syringe.h"
-
-
-/**
- *  Write to the debug log when freeing up pre-loaded buildup images.
- *
- *  #NOTE:
- *  These patches are also done to remove the incorrect freeing
- *  of memory the game does not actually allocate, and as a result
- *  of this, Vinifera's new memory management triggers an assertion
- *  because this is not allowed. The original game silently failed
- *  when doing this.
- *
- *  @author: CCHyper
- */
-static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)
-{
-    if (this_ptr->IsDemandLoad && this_ptr->Image) {
-        DEV_DEBUG_WARNING("Overlay: Freeing loaded image for %s\n", this_ptr->Name());
-
-        /**
-         *  The original function would incorrectly try to free memory
-         *  that the game does not actually allocate, and as a result of
-         *  this, Vinifera's new memory management triggers an assertion
-         *  because this is no longer allowed. The original game silently
-         *  failed when doing this.
-         *
-         *  We now remove this and just correctly nullify the pointer.
-         */
-        //delete this_ptr->Image;
-
-        this_ptr->Image = nullptr;
-    }
-}
-
-
-/**
- *  Write to the debug log when freeing up pre-loaded buildup images.
- *
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x0058D17B, _OverlayTypeClass_DTOR_Free_Image_Patch, 0)
-{
-    GET(OverlayTypeClass*, this_ptr, ESI);
-    OverlayTypeClass_Free_Image(this_ptr);
-    return 0x0058D192;
-}
-
-DEFINE_HOOK(0x0058DC6B, _OverlayTypeClass_SDDTOR_Free_Image_Patch, 0)
-{
-    GET(OverlayTypeClass*, this_ptr, ESI);
-    OverlayTypeClass_Free_Image(this_ptr);
-    return 0x0058DC82;
-}
 
 
 /**

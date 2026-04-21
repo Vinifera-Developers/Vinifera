@@ -452,6 +452,15 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     
     StopSound = ini.Get_VocType(ini_name, "StopSound", StopSound);
 
+    /**
+     *  ObjectTypeClass::Read_INI attempts to preload the image from a MIX file.
+     *  If you mark an object type DemandLoad=yes, and then place its image in a cached MIX,
+     *  the game will incorrectly attempt to delete that image later. To avoid this,
+     *  null the MIX-fetched image out now.
+     */
+    if (This()->IsDemandLoad) {
+        This()->Image = nullptr;
+    }
 
     IsInitialized = true;
 

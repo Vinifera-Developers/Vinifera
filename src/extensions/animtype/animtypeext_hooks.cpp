@@ -51,38 +51,8 @@
 DECLARE_EXTENDING_CLASS_AND_PAIR(AnimTypeClass)
 {
 public:
-    void _Free_Image();
     void _Load_Image(TheaterType theater);
 };
-
-
-/**
- *  Reimplementation of AnimTypeClass::Free_Image.
- *
- *  @author: CCHyper
- */
-void AnimTypeClassExt::_Free_Image()
-{
-    if (IsDemandLoad && Image) {
-
-        if (IsFreeAfterPlaying) {
-            DEV_DEBUG_WARNING("Anim: Freeing loaded image for %s\n", Name());
-
-            /**
-             *  The original function would incorrectly try to free memory
-             *  that the game does not actually allocate, and as a result of
-             *  this, Vinifera's new memory management triggers an assertion
-             *  because this is no longer allowed. The original game silently
-             *  failed when doing this.
-             * 
-             *  We now remove this and just correctly nullify the pointer.
-             */
-             //delete Image;
-
-            Image = nullptr;
-        }
-    }
-}
 
 
 /**
@@ -122,26 +92,6 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
 
 
 /**
- *  Write to the debug log when freeing up pre-loaded buildup images.
- * 
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x004187DB, _AnimTypeClass_DTOR_Free_Image_Patch, 0)
-{
-    GET(AnimTypeClass*, this_ptr, ESI);
-    this_ptr->Free_Image();
-    return 0x004187F2;
-}
-
-DEFINE_HOOK(0x00419C0B, _AnimTypeClass_SDDTOR_Free_Image_Patch, 0)
-{
-    GET(AnimTypeClass*, this_ptr, ESI);
-    this_ptr->Free_Image();
-    return 0x00419C22;
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void AnimTypeClassExtension_Hooks()
@@ -151,6 +101,5 @@ void AnimTypeClassExtension_Hooks()
      */
     AnimTypeClassExtension_Init();
 
-    Patch_Jump(0x00419B40, &AnimTypeClassExt::_Free_Image);
     Patch_Jump(0x00418A70, &AnimTypeClassExt::_Load_Image);
 }
