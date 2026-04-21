@@ -367,7 +367,9 @@ void Spawner::Init_Network()
         const auto port = htons(player.Port);
         udp_interface->AddressList[remote_index - 1].IP = ip;
         udp_interface->AddressList[remote_index - 1].Port = port;
-        if (port != Config->ListenPort) udp_interface->PortHack = false;
+        if (player.Port != Config->ListenPort) { // TODO: This used to compare the post-htons port in ts-patches, may be a bug?
+            udp_interface->PortHack = false;
+        }
 
         remote_index++;
     }

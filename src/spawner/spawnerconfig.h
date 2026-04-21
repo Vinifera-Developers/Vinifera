@@ -45,21 +45,16 @@ class SpawnerConfig
      *  After Read_INI, the array is sorted: humans first (by color), then AIs.
      */
     struct PlayerConfig {
-        bool IsHuman;
-        FixedString<20> Name;
-        PlayerColorType Color;
-        HousesType House;
-        int Difficulty;
-        FixedString<0x20> Ip;
-        int Port;
-        bool IsObserver;
-        int SpawnLocation;
-        int Alliances[8];
-
-        PlayerConfig() :
-            IsHuman {false}, Name {""}, Color {PCOLOR_NONE}, House {HOUSE_NONE}, Difficulty {-1}, Ip {"0.0.0.0"}, Port {-1},
-            IsObserver {false}, SpawnLocation {-2}, Alliances {-1, -1, -1, -1, -1, -1, -1, -1}
-        {}
+        bool IsHuman = false;
+        FixedString<20> Name {""};
+        PlayerColorType Color = PCOLOR_NONE;
+        HousesType House = HOUSE_NONE;
+        int Difficulty = -1;
+        FixedString<0x20> Ip {"0.0.0.0"};
+        int Port = -1;
+        bool IsObserver = false;
+        int SpawnLocation = -2;
+        int Alliances[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
         void Read_Player_INI(CCINIClass& spawn_ini, int index);
         void Read_House_INI(CCINIClass& spawn_ini, int index);
@@ -69,156 +64,88 @@ public:
     /**
      *  Game Mode Options
      */
-    bool Bases;
-    int Credits;
-    bool BridgeDestroy;
-    bool Crates;
-    bool ShortGame;
-    bool BuildOffAlly;
-    int GameSpeed;
-    bool MultiEngineer;
-    int UnitCount;
-    int AIPlayers;
-    int AIDifficulty;
-    bool AlliesAllowed;
-    bool HarvesterTruce;
-    bool FogOfWar;
-    bool MCVRedeploy;
+    bool Bases = true;
+    int Credits = 10000;
+    bool BridgeDestroy = true;
+    bool Crates = false;
+    bool ShortGame = false;
+    bool BuildOffAlly = false;
+    int GameSpeed = 0;
+    bool MultiEngineer = false;
+    int UnitCount = 0;
+    int AIPlayers = 0;
+    int AIDifficulty = 1;
+    bool AlliesAllowed = false;
+    bool HarvesterTruce = false;
+    bool FogOfWar = false;
+    bool MCVRedeploy = true;
 
     /**
      *  Savegame Options
      */
-    bool LoadSaveGame;
-    FixedString<60> SaveGameName;
-    int AutoSaveInterval;
-    int NextAutoSaveNumber;
+    bool LoadSaveGame = false;
+    FixedString<60> SaveGameName {""};
+    int AutoSaveInterval = 1;
+    int NextAutoSaveNumber = 0;
 
     /**
      *  Scenario Options
      */
-    int Seed;
-    int TechLevel;
-    bool IsCampaign;
-    CampaignType CampaignID;
-    DiffType CampaignDifficulty;
-    DiffType CampaignCDifficulty;
-    int Tournament;
-    unsigned int WOLGameID;
-    FixedString<260> ScenarioName;
-    FixedString<0xff> MapHash;
-    FixedString<44> MapName;
-    bool PlayMoviesInMultiplayer;
+    int Seed = 0;
+    int TechLevel = 10;
+    bool IsCampaign = false;
+    CampaignType CampaignID = CAMPAIGN_NONE;
+    DiffType CampaignDifficulty = DIFF_NORMAL;
+    DiffType CampaignCDifficulty = DIFF_NORMAL;
+    int Tournament = 0;
+    unsigned int WOLGameID = 0xDEADBEEF;
+    FixedString<260> ScenarioName {"spawnmap.ini"};
+    FixedString<0xff> MapHash {""};
+    FixedString<44> MapName {""};
+    bool PlayMoviesInMultiplayer = false;
 
     /**
      *  Network Options
      */
-    int Protocol;
-    int FrameSendRate;
-    int ReconnectTimeout;
-    int ConnTimeout;
-    int MaxAhead;
-    int PreCalcMaxAhead;
-    LatencyLevelEnum MaxLatencyLevel;
+    int Protocol = 2;
+    int FrameSendRate = 4;
+    int ReconnectTimeout = 2400;
+    int ConnTimeout = 3600;
+    int MaxAhead = -1;
+    int PreCalcMaxAhead = 0;
+    LatencyLevelEnum MaxLatencyLevel = static_cast<LatencyLevelEnum>(0xFF);
 
     /**
      *  Tunnel Options
      */
-    int TunnelId;
-    FixedString<0x20> TunnelIp;
-    int TunnelPort;
-    int ListenPort;
+    int TunnelId = 0;
+    FixedString<0x20> TunnelIp {"0.0.0.0"};
+    int TunnelPort = 0;
+    int ListenPort = 1234;
 
     /**
      *  Player Options
      *  Sorted after Read_INI: humans first (by color), then AIs.
      */
-    PlayerConfig Players[8];
-    int HumanPlayers;
-    int LocalPlayerIndex;
+    PlayerConfig Players[8] {};
+    int HumanPlayers = 0;
+    int LocalPlayerIndex = 0;
 
     /**
      *  Extended Options
      */
-    bool Firestorm;
-    bool QuickMatch;
-    bool SkipScoreScreen;
-    bool WriteStatistics;
-    bool AINamesByDifficulty;
-    bool CoachMode;
-    bool AutoSurrender;
-    bool AttackNeutralUnits;
-    bool ScrapMetal;
-    FixedString<PATH_MAX> CustomLoadScreen;
-    TPoint2D<int> CustomLoadScreenPos;
-    bool ContinueWithoutHumans;
-
-    SpawnerConfig() :
-        Bases {true},
-        Credits {10000},
-        BridgeDestroy {true},
-        Crates {false},
-        ShortGame {false},
-        BuildOffAlly {false},
-        GameSpeed {0},
-        MultiEngineer {false},
-        UnitCount {0},
-        AIPlayers {0},
-        AIDifficulty {1},
-        AlliesAllowed {false},
-        HarvesterTruce {false},
-        FogOfWar {false},
-        MCVRedeploy {true},
-
-        LoadSaveGame {false},
-        SaveGameName {""},
-        AutoSaveInterval {1},
-        NextAutoSaveNumber {0},
-
-        Seed {0},
-        TechLevel {10},
-        IsCampaign {false},
-        CampaignID {CAMPAIGN_NONE},
-        CampaignDifficulty {DIFF_NORMAL},
-        CampaignCDifficulty {DIFF_NORMAL},
-        Tournament {0},
-        WOLGameID {0xDEADBEEF},
-        ScenarioName {"spawnmap.ini"},
-        MapHash {""},
-        MapName {""},
-        PlayMoviesInMultiplayer {false},
-
-        Protocol {2},
-        FrameSendRate {4},
-        ReconnectTimeout {2400},
-        ConnTimeout {3600},
-        MaxAhead {-1},
-        PreCalcMaxAhead {0},
-        MaxLatencyLevel {static_cast<LatencyLevelEnum>(0xFF)} ,
-
-        TunnelId {0},
-        TunnelIp {"0.0.0.0"},
-        TunnelPort {0},
-        ListenPort {1234} ,
-
-        Players {PlayerConfig(), PlayerConfig(), PlayerConfig(), PlayerConfig(),
-                 PlayerConfig(), PlayerConfig(), PlayerConfig(), PlayerConfig()},
-        HumanPlayers(0),
-        LocalPlayerIndex(0),
-
-        Firestorm {true},
-        QuickMatch {false},
-        SkipScoreScreen {false},
-        WriteStatistics {false},
-        AINamesByDifficulty {false},
-        CoachMode {false},
-        AutoSurrender {true},
-        AttackNeutralUnits {false},
-        ScrapMetal {false},
-        CustomLoadScreen {""},
-        CustomLoadScreenPos {},
-        ContinueWithoutHumans {false}
-    {
-    }
+    bool Firestorm = true;
+    bool QuickMatch = false;
+    bool SkipScoreScreen = false;
+    bool WriteStatistics = false;
+    bool AINamesByDifficulty = false;
+    bool CoachMode = false;
+    bool AutoSurrender = true;
+    bool AttackNeutralUnits = false;
+    bool ScrapMetal = false;
+    FixedString<PATH_MAX> CustomLoadScreen {""};
+    TPoint2D<int> CustomLoadScreenPos {};
+    bool ContinueWithoutHumans = false;
 
     void Read_INI(CCINIClass& spawn_ini);
 };
