@@ -308,10 +308,6 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
     Print_Saving_Game_Message();
 
     if (Session.Singleplayer_Game()) {
-        if (OptionsExtension->AutoSaveCount > 0) {
-            AutoSave.NextSPAutoSaveSlot = (AutoSave.NextSPAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
-        }
-
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
 
@@ -319,6 +315,11 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         Call_Back();
         Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
         Resume_Scenario();
+
+        if (OptionsExtension->AutoSaveCount > 0) {
+            AutoSave.NextSPAutoSaveSlot = (AutoSave.NextSPAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
+        }
+
         return;
     }
     
