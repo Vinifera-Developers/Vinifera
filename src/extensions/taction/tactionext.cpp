@@ -52,6 +52,7 @@
 #include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "voc.h"
+#include "mouse.h"
 
 
 TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST] = {
@@ -297,6 +298,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         DISPATCH(ENABLE_TRIGGER);
         DISPATCH(DESTROY_TAG);
         DISPATCH(PLAY_SOUND_RANDOM);
+        DISPATCH(REVEAL_SOME);
 
         /**
          *  New Vinifera TActions.
@@ -380,6 +382,7 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     case TACTION_ENABLE_TRIGGER:
     case TACTION_DESTROY_TAG:
     case TACTION_PLAY_SOUND_RANDOM:
+    case TACTION_REVEAL_SOME:
         return true;
 
     default:
@@ -1612,5 +1615,34 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
     }
 
     houseext->Expend_Iron_Curtain();
+    return true;
+}
+
+/**
+ *  Reimplements Reveal Around Waypoint trigger action.
+ *  This reimplementation allows accepting a second optional value which defines the radius of the reveal.
+ *  If this value is 0 or negative, falls back to the original radius through `RevealTriggerRadius` from Rules.
+ *
+ *  @author: JoyfulShush
+ */
+bool TActionClass::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    if (!PlayerPtr->IsVisionary) {
+        Cell waypoint_cell = Scen->Waypoint_Cell(Data.Value);
+        
+        const auto& cell = Map[waypoint_cell];
+        int height = cell.Height;
+
+        if (cell.IsUnderBridge || cell.WasUnderBridge) {
+            height += BRIDGE_CELL_HEIGHT;
+        }
+
+        int radius = TriggerRect.X; // P3 value
+        if (radius <= 0) {
+            radius = Rule->RevealTriggerRadius;
+        }
+
+        Map.Sight_From(Coord(waypoint_cell - Cell(height / 2, height / 2)) + Coord(0, 0, height * LEVEL_LEPTON_H), radius, PlayerPtr, false, false, false, true);
+    }
     return true;
 }
