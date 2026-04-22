@@ -2030,9 +2030,7 @@ DEFINE_HOOK(0x004D7284, _InfantryClass_What_Action_Harvester_Thief, 0)
  */
 DEFINE_HOOK(0x004CB9CD, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 0)
 {
-    const DWORD old_edi = R->EDI();
-    R->ESP(R->ESP() - 4);
-    R->Stack(0x0, old_edi);
+    R->Push(R->EDI());
     R->EDI(R->ECX());
 
     /**

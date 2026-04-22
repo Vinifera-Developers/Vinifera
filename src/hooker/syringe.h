@@ -31,6 +31,9 @@
 
 #pragma once
 
+#include <bit>
+#include <cstdint>
+#include <type_traits>
 #include <windows.h>
 
 /**
@@ -141,6 +144,50 @@ public:
 class REGISTERS
 {
 private:
+    template<typename T>
+    using StackValueType = std::remove_cv_t<std::remove_reference_t<T>>;
+
+    template<typename T>
+    static constexpr bool IsPushPopType =
+        std::is_pointer_v<T>
+        || std::is_enum_v<T>
+        || std::is_integral_v<T>
+        || (sizeof(T) == sizeof(DWORD)
+            && std::is_trivially_copyable_v<T>
+            && !std::is_floating_point_v<T>);
+
+    template<typename T>
+    static DWORD PushPopToDWORD(T value) {
+        using ValueType = StackValueType<T>;
+
+        static_assert(IsPushPopType<ValueType>,
+            "REGISTERS::Push/Pop only support pointers, enums, integral values, and trivially-copyable DWORD-sized values.");
+
+        if constexpr (std::is_pointer_v<ValueType>) {
+            return static_cast<DWORD>(reinterpret_cast<std::uintptr_t>(value));
+        } else if constexpr (std::is_enum_v<ValueType> || std::is_integral_v<ValueType>) {
+            return static_cast<DWORD>(value);
+        } else {
+            return std::bit_cast<DWORD>(value);
+        }
+    }
+
+    template<typename T>
+    static T DWORDToPushPop(DWORD value) {
+        using ValueType = StackValueType<T>;
+
+        static_assert(IsPushPopType<ValueType>,
+            "REGISTERS::Push/Pop only support pointers, enums, integral values, and trivially-copyable DWORD-sized values.");
+
+        if constexpr (std::is_pointer_v<ValueType>) {
+            return reinterpret_cast<T>(static_cast<std::uintptr_t>(value));
+        } else if constexpr (std::is_enum_v<ValueType> || std::is_integral_v<ValueType>) {
+            return static_cast<T>(value);
+        } else {
+            return static_cast<T>(std::bit_cast<ValueType>(value));
+        }
+    }
+
     DWORD origin;
     DWORD flags;
 
@@ -207,6 +254,23 @@ public:
 
     BYTE Stack8(int offset) {
         return this->_ESP.At<BYTE>(offset);
+    }
+
+    /**
+     *  Simulate x86 32-bit push/pop instructions on a single stack slot.
+     *  These helpers are not generic stack-resizing primitives.
+     */
+    template<typename T>
+    void Push(T value) {
+        this->ESP(this->ESP() - 4);
+        this->Stack(0, PushPopToDWORD(value));
+    }
+
+    template<typename T = DWORD>
+    T Pop() {
+        const DWORD value = this->Stack32(0);
+        this->ESP(this->ESP() + 4);
+        return DWORDToPushPop<T>(value);
     }
 
     template<typename T>
