@@ -34,12 +34,11 @@ DEFINE_HOOK(0x00563677, _Play_Movie_Intercept_Patch, 5)
 }
 
 
-DEFINE_HOOK(0x00563AE0, _Play_Ingame_Movie_Create_Intercept_Patch, 7)
+DEFINE_HOOK(0x00563A37, _Play_Ingame_Movie_Create_Intercept_Patch, 5)
 {
-    GET_STACK(const char *, name, 0x38);
+    GET(const char *, name, ECX);
 
     if (MoviePlayback_Play_Ingame(name)) {
-        R->ESP(R->ESP() + 0x28);
         return 0x00563AF7;
     }
 
@@ -47,12 +46,11 @@ DEFINE_HOOK(0x00563AE0, _Play_Ingame_Movie_Create_Intercept_Patch, 7)
 }
 
 
-DEFINE_HOOK(0x00563C1C, _Play_Ingame_Movie_VQType_Create_Intercept_Patch, 5)
+DEFINE_HOOK(0x00563B7E, _Play_Ingame_Movie_VQType_Create_Intercept_Patch, 5)
 {
     auto& name = Make_Global<char[20]>(0x00806D74);
 
     if (MoviePlayback_Play_Ingame(name)) {
-        R->ESP(R->ESP() + 0x28);
         return 0x00563C31;
     }
 
