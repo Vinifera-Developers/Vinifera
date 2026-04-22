@@ -296,4 +296,8 @@ void PlayMovieExtension_Hooks()
      */
     Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
     Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
+
+    // Allow playing radar movies outside of campaign
+    Patch_Jump(0x00563A81, 0x00563A89);
+    Patch_Jump(0x00563BBA, 0x00563BC2);
 }
