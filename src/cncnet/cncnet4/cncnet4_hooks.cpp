@@ -1,41 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the CnCNet4 system.
  *
- *  @project       Vinifera
- *
- *  @file          CNCNET4_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the CnCNet4 system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "cncnet4_hooks.h"
-#include "cncnet4_globals.h"
-#include "cncnet4.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "wspudp.h"
-#include "wspipx.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "cncnet4_hooks.h"
+
+#include "cncnet4.h"
+#include "cncnet4_globals.h"
+#include "debughandler.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "session.h"
+#include "tibsun_globals.h"
+#include "wspipx.h"
+#include "wspudp.h"
 
 
 static int __stdcall bind_intercept(SOCKET s, const struct sockaddr *name, int namelen)

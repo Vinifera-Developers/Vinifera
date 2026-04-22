@@ -1,60 +1,39 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended ObjectClass.
  *
- *  @project       Vinifera
- *
- *  @file          OBJECTEXT_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for the extended ObjectClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objectext_hooks.h"
 
 #include "anim.h"
 #include "animtype.h"
-#include "objectext.h"
-#include "object.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
 #include "cell.h"
 #include "colorscheme.h"
 #include "extension.h"
-
 #include "audio_voc.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "mouse.h"
+#include "object.h"
+#include "objectext.h"
 #include "rules.h"
 #include "techno.h"
+#include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */

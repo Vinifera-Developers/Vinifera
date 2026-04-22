@@ -1,62 +1,49 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended ScenarioClass class.
  *
- *  @project       Vinifera
- *
- *  @file          SCENARIOEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended ScenarioClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "scenarioext.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
-#include "ccini.h"
-#include "unit.h"
-#include "building.h"
-#include "unittype.h"
-#include "buildingtype.h"
-#include "infantrytype.h"
-#include "house.h"
-#include "housetype.h"
-#include "rules.h"
-#include "language.h"
-#include "session.h"
-#include "sessionext.h"
-#include "waypoint.h"
-#include "iomap.h"
-#include "noinit.h"
-#include "swizzle.h"
-#include "vinifera_saveload.h"
+
 #include "asserthandler.h"
 #include "beacon.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "ccini.h"
+#include "commandext.h"
 #include "debughandler.h"
+#include "house.h"
 #include "houseext.h"
+#include "housetype.h"
+#include "infantrytype.h"
+#include "iomap.h"
+#include "language.h"
+#include "noinit.h"
+#include "rules.h"
+#include "session.h"
+#include "sessionext.h"
 #include "tacticalext.h"
 #include "tag.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
+#include "unit.h"
+#include "unittype.h"
+#include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+#include "waypoint.h"
+
 #include <regex>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
@@ -196,22 +183,17 @@ void ScenarioClassExtension::Init_Clear()
 
     {
         /**
-         *  Clear the any previously loaded tutorial messages in preperation for
+         *  Clear the any previously loaded tutorial messages in preparation for
          *  reloading the TUTORIAL.INI as they might contain scenario overrides.
          */
-        for (int i = 0; i < TutorialText.Count(); i++) {
-            const char* txt = TutorialText.Fetch_By_Position(i);
-            if (txt != nullptr) {
-                free(const_cast<char*>(txt));
-            }
-        }
-        TutorialText.Clear();
+        Vinifera_TutorialText.clear();
 
         /**
          *  Reload the main tutorial message data.
          */
         CCINIClass ini;
-        ini.Load(CCFileClass("TUTORIAL.INI"), false);
+        CCFileClass tutorial_file("TUTORIAL.INI");
+        ini.Load(tutorial_file, false);
         Read_Tutorial_INI(ini);
     }
 
@@ -229,6 +211,11 @@ void ScenarioClassExtension::Init_Clear()
         LocalFlags[index].VariableName[0] = '\0';
         Set_Local_To(index, 0);
     }
+
+    /* 
+     * Erase unit all filter hotkey states as their unit objects are invalid now 
+     */
+    UnitFilterLastFullSelectionByClassifiers.clear();
 }
 
 
@@ -244,15 +231,15 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
     static const char * const BASIC = "Basic";
 
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
-    ScorePlayerColor = ini.Get_RGB(BASIC, "ScorePlayerColor", ScorePlayerColor);
-    ScoreEnemyColor = ini.Get_RGB(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
+    ScorePlayerColor = ini.Get_RGBColor(BASIC, "ScorePlayerColor", ScorePlayerColor);
+    ScoreEnemyColor = ini.Get_RGBColor(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
 
     /**
      *  #issue-123
      * 
      *  Fetch additional tutorial message data (if present) from the scenario.
      */
-    Read_Tutorial_INI(ini, true);
+    Read_Tutorial_INI(ini);
 
     BeaconManager.Load_Art();
 
@@ -265,20 +252,16 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
  *
  *  @author: CCHyper
  */
-bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
+bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass const& ini)
 {
+    char buffer[512];
     static char const * const TUTORIAL = "Tutorial";
 
     /**
      *  Fetch the additional tutorial message data (if present).
      */
     if (ini.Is_Present(TUTORIAL)) {
-
-        char buf[300];
-
         int counter = ini.Entry_Count(TUTORIAL);
-
-        if (counter > 0 && log) DEBUG_INFO("Tutorial section found and has %d entries.\n", counter);
 
         for (int index = 0; index < counter; ++index) {
             const char *entry = ini.Get_Entry(TUTORIAL, index);
@@ -286,36 +269,10 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
             /**
              *  Get a tutorial message entry.
              */
-            if (ini.Get_String(TUTORIAL, entry, buf, sizeof(buf))) {
-
-                /**
-                 *  Convert the entry name (which in this context is an index) to an "id" value.
-                 */
-                int id = std::strtol(entry, nullptr, 10);
-                const char *string = strdup(buf);
-
-                /**
-                 *  Check to see if this id already exists before adding it, otherwise
-                 *  the replacement message will not get used.
-                 */
-                if (TutorialText.Is_Present(id)) {
-                    TutorialText.Remove_Index(id);
-                    if (log) DEV_DEBUG_INFO("  Removed ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                    if (log) { DEV_DEBUG_INFO("  %d = \"%s\".\n", id, TutorialText[id]); }
-#endif
-                }
-
-                if (log) DEV_DEBUG_INFO("  Adding ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                if (log) DEV_DEBUG_INFO("  %d = \"%s\".\n", id, string);
-#endif
-
-                TutorialText.Add_Index(id, string);
+            if (ini.Get_String(TUTORIAL, entry, "", buffer, sizeof(buffer))) {
+                Vinifera_TutorialText[entry] = buffer;
             }
-
         }
-
     }
 
     return true;
@@ -435,12 +392,12 @@ void ScenarioClassExtension::Clear_All_Waypoints()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_All_Waypoints - 0x%08X\n", (uintptr_t)(This()));
 
-    /**
-     *  Assume that whatever the contents of the VectorClass are is garbage
-     *  (it may have been loaded from a save-game file), so zero it out first.
-     */
     new (&Waypoint) VectorClass<Cell>;
     Waypoint.Resize(NEW_WAYPOINT_COUNT);
+
+    for (int i = 0; i < Waypoint.Length(); i++) {
+        Waypoint[i] = CELL_NONE;
+    }
 }
 
 
@@ -1805,7 +1762,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
-        Extension::Fetch(hptr)->Set_Spawn_Point(hptr->Center);
+        Extension::Fetch(hptr)->Set_Spawn_Point(centroid);
         DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**

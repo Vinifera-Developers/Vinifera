@@ -1,44 +1,27 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended BuildingTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          BUILDINGTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended BuildingTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingtypeext.h"
+
 #include "buildingtype.h"
-#include "tibsun_defines.h"
 #include "ccini.h"
-#include "wwcrc.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 #include "scenario.h"
+#include "tibsun_defines.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *this_ptr) :
@@ -227,6 +210,23 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsBarGate = ini.Get_Bool(ini_name, "BarGate", IsBarGate);
 
     Fetch_Building_Normal_Image(Scen->Theater);
+
+    /**
+     *  ObjectTypeClass::Read_INI attempts to preload the image from a MIX file.
+     *  If you mark an object type DemandLoad=yes, and then place its image in a cached MIX,
+     *  the game will incorrectly attempt to delete that image later. To avoid this,
+     *  null the MIX-fetched image out now.
+     */
+    if (This()->IsDemandLoad) {
+        This()->Image = nullptr;
+    }
+
+    /**
+     *  Don't try to free buildups if we don't demand load them.
+     */
+    if (!This()->IsDemandLoadBuildup) {
+        This()->IsFreeBuildup = false;
+    }
 
     IsInitialized = true;
 

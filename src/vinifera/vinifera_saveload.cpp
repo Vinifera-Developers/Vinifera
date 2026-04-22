@@ -1,87 +1,71 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Utility functions for saving and loading.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_SAVELOAD.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Utility functions for saving and loading.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_saveload.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "tibsun_util.h"
-#include "vinifera_util.h"
-#include "vinifera_gitinfo.h"
-#include "saveload.h"
-#include "extension.h"
-#include "debughandler.h"
 
 #include "addon.h"
 #include "aircraft.h"
+#include "aircrafttracker.h"
 #include "aircrafttype.h"
 #include "aitrigtype.h"
 #include "alphashape.h"
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
+#include "beacon.h"
 #include "building.h"
 #include "buildinglight.h"
 #include "buildingtype.h"
+#include "buildingtypeext.h"
 #include "bullet.h"
 #include "bullettype.h"
-#include "campaign.h"
 #include "ccini.h"
+#include "cstream.h"
+#include "debughandler.h"
 #include "empulse.h"
 #include "environment.h"
+#include "extension.h"
 #include "factory.h"
 #include "foggedobject.h"
+#include "hooker.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "iomap.h"
-#include "isotile.h"
-#include "isotiletype.h"
+#include "isotiletypeext.h"
 #include "kamikazetracker.h"
+#include "language.h"
 #include "lightsource.h"
+#include "loadoptions.h"
 #include "logic.h"
-#include "objecttype.h"
-#include "overlay.h"
+#include "miscutil.h"
 #include "overlaytype.h"
 #include "particle.h"
 #include "particlesys.h"
 #include "particlesystype.h"
 #include "particletype.h"
+#include "prerequisitegroup.h"
 #include "radarevent.h"
 #include "rockettype.h"
 #include "rules.h"
+#include "saveload.h"
+#include "savever.h"
 #include "scenario.h"
 #include "scenarioext.h"
 #include "script.h"
 #include "scripttype.h"
 #include "session.h"
 #include "side.h"
-#include "smudge.h"
 #include "smudgetype.h"
 #include "spawnmanager.h"
 #include "super.h"
@@ -98,6 +82,8 @@
 #include "terraintype.h"
 #include "tevent.h"
 #include "tiberium.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
 #include "tube.h"
@@ -105,40 +91,18 @@
 #include "unittype.h"
 #include "veinholemonster.h"
 #include "verses.h"
+#include "vinifera_gitinfo.h"
+#include "vinifera_savever.h"
+#include "vinifera_util.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
 #include "wave.h"
 #include "waypointpath.h"
 #include "weapontype.h"
-#include "prerequisitegroup.h"
-
-
-#include "scenario.h"
-#include "environment.h"
-#include "rules.h"
-#include "iomap.h"
-#include "logic.h"
-#include "tactical.h"
-#include "session.h"
-#include "addon.h"
-#include "ccini.h"
-#include "cstream.h"
-#include <atlbase.h>
-#include <atlcom.h>
-
-#include "aircrafttracker.h"
-#include "animtypeext.h"
-#include "beacon.h"
-#include "buildingtypeext.h"
-#include "hooker.h"
-#include "isotiletypeext.h"
-#include "language.h"
-#include "loadoptions.h"
-#include "miscutil.h"
-#include "savever.h"
-#include "vinifera_savever.h"
 #include "windialog.h"
+
+#include <atlbase.h>
 
 
 /**
@@ -455,7 +419,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
         scen_ini.Load(scen_file, false);
 
-        if (!ScenExtension->Read_Tutorial_INI(scen_ini, true)) {
+        if (!ScenExtension->Read_Tutorial_INI(scen_ini)) {
             DEBUG_ERROR("Failed to read tutorial strings from scenario file!\n");
             return false;
         }
@@ -951,12 +915,12 @@ bool Vinifera_Load_Game(const char* file_name)
     Vinifera_Post_Load_Game();
     Map.Init_IO();
     Map.Activate(1);
-    Map.Set_Dimensions();
+    Map.Shift_Sidebar();
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
-    TacticalViewActive = true;
-    ScenarioStarted = true;
+    ScenarioActive = true;
+    TacticalActive = true;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 
@@ -997,8 +961,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
         WinDialogClass::Display_Dialog(handle);
     }
 
-    TacticalViewActive = false;
-    ScenarioStarted = false;
+    ScenarioActive = false;
+    TacticalActive = false;
 
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);

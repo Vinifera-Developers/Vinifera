@@ -1,49 +1,33 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Graphical electric bolts for weapons.
  *
- *  @project       Vinifera
- *
- *  @file          EBOLT.CPP
- *
- *  @author        CCHyper, tomsons26
- *
- *  @brief         Graphical electric bolts for weapons.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "ebolt.h"
-#include "vinifera_globals.h"
+
+#include "asserthandler.h"
+#include "clipline.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "extension.h"
+#include "particlesys.h"
+#include "rgb.h"
+#include "rules.h"
+#include "tactical.h"
+#include "techno.h"
+#include "technoext.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
-#include "technoext.h"
-#include "techno.h"
-#include "particlesys.h"
+#include "vinifera_globals.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
-#include "tactical.h"
-#include "rgb.h"
-#include "dsurface.h"
-#include "rules.h"
-#include "random.h"
 #include "wwmath.h"
-#include "clipline.h"
-#include "extension.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**

@@ -142,8 +142,15 @@ This page lists all the individual contributions to the project by their author.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+  - Add customizable wake animations.
+  - Replace DirectDraw with SDL.
+- **CrimRecya**:
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
+- **JoyfulShush**:
+  - Allow customizing self healing cap and rate game-wide and per-unit.
+  - Allow customizing whether AI can repair buildings created as base nodes.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -152,6 +159,7 @@ This page lists all the individual contributions to the project by their author.
   - Graphics for the new sidebar fitting vanilla sidebar.
 - **[Phobos Contributors](https://github.com/Phobos-developers/Phobos/blob/develop/CREDITS.md)**:
   - DirStruct implementation.
+  - Original INI inheritance implementation as reference.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
@@ -193,6 +201,36 @@ This page lists all the individual contributions to the project by their author.
   - Original implementations of actions in ts-patches.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Fix an edge case crash when AI raises money.
+  - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages.
+  - Improve alternative factory selection when the primary factory is blocked.
+  - Add "Adjust House Modifier" trigger action.
+  - Teams attacking a BwP now take zones into account.
+  - Add "Only Harvesters" quarry.
+  - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
+  - Fix a bug where spawned aircraft would reveal terrain when they fired.
+  - Port a ts-patches fix for a bug where the player's army wouldn't fire at armed civilians.
+  - Add "Building Does Not Exist" trigger event.
+  - Add "Create Building At" trigger action.
+  - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI.
+  - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+  - Fix a bug where hijackers are able to hijack vehicles of their allies.
+  - Add a developer command to dump all heaps to the log.
+  - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+  - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally.
+  - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land.
+  - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game.
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+  - Allow customizing the distance for the "Comes Near Waypoint" trigger event.
+  - Add DetectDisguise to TechnoTypes.
+  - Allow customizing whether AI sees through disguise.
+  - Fix a bug where friendly Spies appeared as disguised.
+  - Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
+  - Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+  - Fix an edge case crash when AI is attempting to find a location to place a structure to.
+  - Allow customizing the number of harvesters the AI builds for each refinery.
+  - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
+  - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+  - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -301,3 +339,16 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily.
   - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
   - Fix a bug where carryalls assign their ROT to the unit they're carrying.
+  - Port to Syringe.
+  - Add customizable wake animations.
+  - Replace DirectDraw with SDL.
+  - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it.
+  - Tutorial text INI keys are now interpreted as strings, not integers.
+  - Implement INI inheritance/includes.
+  - Fix a bug where the last line of an INI file would not be parsed.
+  - Fix incorrect merging of sections and keys in INI files.
+  - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued.
+  - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
+  - Fix game end text being stretched horizontally.
+  - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+  - Fix a bug where upon restoring focus to the window the last theme would play twice.

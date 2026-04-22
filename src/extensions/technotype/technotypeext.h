@@ -1,39 +1,21 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TechnoTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOTYPEEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TechnoTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
 #include "extension.h"
 #include "objecttypeext.h"
 #include "techno.h"
 #include "technotype.h"
-#include "typelist.h"
 #include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "typelist.h"
 
 
 class AircraftTypeClass;
@@ -121,12 +103,12 @@ public:
     /**
      *  The graphic class to switch to when this unit is unloading (e.g., at a refinery).
      */
-    const TechnoTypeClass *UnloadingClass;
+    const UnitTypeClass *UnloadingClass;
 
     /**
      *  The refund value for the unit when it is sold at a Service Depot.
      */
-    unsigned SoylentValue;
+    int SoylentValue;
 
     /**
      *  This is the sound effect to play when a passenger enters this unit.
@@ -272,6 +254,16 @@ public:
     TargetZoneScanType TargetZoneScan;
 
     /**
+     *  Defines the health cap (in precentages) that this techno can self-heal up to
+     */
+    float SelfHealingCap;
+
+    /**
+     *  Defines the rate (in minutes) that this techno will self-heal
+     */
+    float SelfHealingRate;
+
+    /**
      *  Does this object need to decloak before firing?
      */
     bool IsDecloakToFire;
@@ -365,4 +357,34 @@ public:
      *  Can this object pick up targets within its range automatically (opportunity fire)?
      */
     bool IsOpportunityFire;
+
+    /**
+     *  The wake graphic to show as the object moves across water.
+     */
+    const AnimTypeClass* WakeAnim;
+
+    /**
+     *  The rate at which this object creates the wake animation while moving.
+     */
+    int WakeAnimRate;
+
+    /**
+     *  The wake graphic to show when the object is staying still on water.
+     */
+    const AnimTypeClass* IdleWakeAnim;
+
+    /**
+     *  Should this unit not spawn wakes when it's cloaked? Usually useful for submarines.
+     */
+    bool IsHideWakeWhenCloaked;
+
+    /**
+     *  Specifies whether this unit can see through the disguise of disguised enemy units.
+     */
+    bool IsDetectDisguise;
+
+    /**
+     *  Specifies whether the AI should use the Iron Curtain to protect this object.
+     */
+    bool IronCurtainPriorityTarget;
 };

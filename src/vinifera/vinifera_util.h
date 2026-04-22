@@ -1,33 +1,14 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Various utility functions.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_UTIL.H
- *
- *  @authors       CCHyper
- *
- *  @brief         Various utility functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "vector.h"
 #include <algorithm>
 #include <cctype>
@@ -48,6 +29,7 @@ void Vinifera_Draw_Version_Text(Surface *surface, bool pre_init = false);
 bool Vinifera_Generate_Mini_Dump();
 
 int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2 = nullptr, const char *btn3 = nullptr);
+void Vinifera_Log_And_Show_WWMessageBox(const char* msg, ...);
 void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...);
 
 const char *Vinifera_Get_Window_Title(DWORD dwPid);

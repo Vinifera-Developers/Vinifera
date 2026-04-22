@@ -1,86 +1,68 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the intercepting Main_Loop().
  *
- *  @project       Vinifera
- *
- *  @file          MAINLOOPEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the intercepting Main_Loop().
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "mainloopext_hooks.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "command.h"
-#include "uicontrol.h"
-#include "rules.h"
-#include "iomap.h"
-#include "tactical.h"
-#include "house.h"
-#include "ccfile.h"
+
 #include "addon.h"
-#include "ccini.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
 #include "beacon.h"
-#include "fetchres.h"
+#include "ccfile.h"
+#include "ccini.h"
+#include "command.h"
+#include "debughandler.h"
+#include "event.h"
+#include "fatal.h"
+#include "hooker.h"
+#include "house.h"
+#include "iomap.h"
 #include "ipxmgr.h"
-#include "language.h"
 #include "netdlg.h"
 #include "nullmgr.h"
 #include "optionsext.h"
+#include "rules.h"
 #include "rulesext.h"
+#include "sdlsurface.h"
 #include "sessionext.h"
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "tactical.h"
 #include "tacticalext.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "uicontrol.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  This patch stops EVENT_OPTIONS from being created when frame step
  *  mode is enabled. This is because we need to handle it differently
  *  due to us not processing any event while in frame step mode.
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Queue_Options_Frame_Step_Check_Patch)
+bool _Queue_Options()
 {
-    _asm { sub esp, 0x30 }
-
     if (Vinifera_Developer_FrameStep) {
-        goto function_return;
+        return false;
     }
 
-    if (!PlayerPtr->IsToWin && !PlayerPtr->IsToLose && !PlayerPtr->IsToDie) {
-        goto create_event;
+    if (PlayerPtr->IsToWin || PlayerPtr->IsToLose || PlayerPtr->IsToDie) {
+        return false;
     }
 
-function_return:
-    JMP_REG(ecx, 0x005B1171);
+    if (!OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_OPTIONS))) {
+        return false;
+    } else {
+        return true;
+    }
 
-create_event:
-    _asm { mov ecx, PlayerPtr } // Second dereference required due to the global reference in TS++.
-    _asm { mov eax, [ecx] }
-    JMP_REG(ecx, 0x005B1116);
 }
 
 
@@ -304,10 +286,18 @@ static bool Main_Loop_Intercept()
 
 void Process_Command_If_Allowed(CommandClass* command)
 {
-    if (!Scen->InputLock || (CommandClass::From_Type(COMMAND_OPTIONS) == command)) {
+    if (!Scen->InputLock || CommandClass::From_Type(COMMAND_OPTIONS) == command) {
         command->Process();
     }
 }
+
+/**
+ *  #issue-255
+ *
+ *  Keyboard processing patches.
+ *  Technically not all are directly in the main loop,
+ *  but all of these are similar to the main loop patch so we include them all here.
+ */
 
 /**
  *  #issue-255
@@ -317,37 +307,32 @@ void Process_Command_If_Allowed(CommandClass* command)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_Main_Loop_Check_Keyboard_Input_Allowed)
+DEFINE_HOOK(0x00508E83, _Main_Loop_Check_Keyboard_Input_Allowed, 0)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
-    JMP(0x00508EA8);
+    return 0x00508EA8;
 }
 
-DECLARE_PATCH(_Keyboard_Process_Check_Keyboard_Input_Allowed)
+DEFINE_HOOK(0x0050945C, _Keyboard_Process_Check_Keyboard_Input_Allowed, 0)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
-
-    // Rebuild function epilogue, we destroyed one byte of it
-    // by jumping to this hack
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { retn }
+    return 0x00509461;
 }
 
-DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1)
+DEFINE_HOOK(0x00509632, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch1, 0)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, eax);
+    GET(CommandClass*, command, EAX);
     Process_Command_If_Allowed(command);
-    JMP(0x00509659);
+    return 0x00509659;
 }
 
-DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2)
+DEFINE_HOOK(0x00509747, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch2, 0)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
-    JMP(0x0050976C);
+    return 0x0050976C;
 }
 
 
@@ -676,19 +661,6 @@ void MainLoop_Hooks()
     Patch_Call(0x00462A8E, &Main_Loop_Intercept);
     Patch_Call(0x00462A9C, &Main_Loop_Intercept);
     Patch_Call(0x005A0B85, &Main_Loop_Intercept);
-    Patch_Jump(0x005B10F0, &_Queue_Options_Frame_Step_Check_Patch);
-
-    /**
-     *  #issue-255
-     *
-     *  Keyboard processing patches.
-     *  Technically not all are directly in the main loop,
-     *  but all of these are similar to the main loop patch so we include them all here.
-     */
-    Patch_Jump(0x00508E83, &_Main_Loop_Check_Keyboard_Input_Allowed);
-    Patch_Jump(0x0050945C, &_Keyboard_Process_Check_Keyboard_Input_Allowed);
-    Patch_Jump(0x00509632, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1);
-    Patch_Jump(0x00509747, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2);
-
+    Patch_Jump(0x005B10F0, &_Queue_Options);
     Patch_Jump(0x005098D0, &_Message_Input);
 }

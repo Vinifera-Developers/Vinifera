@@ -1,47 +1,30 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended ObjectTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          OBJECTTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended ObjectTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objecttypeext.h"
-#include "objecttype.h"
-#include "ccini.h"
+
 #include "asserthandler.h"
 #include "building.h"
 #include "buildingtypeext.h"
-#include "ccfile.h"
-#include "debughandler.h"
+#include "ccini.h"
 #include "extension_globals.h"
 #include "house.h"
-#include "voxellib.h"
-#include "motionlib.h"
 #include "miscutil.h"
+#include "motionlib.h"
+#include "objecttype.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "technotypeext.h"
 #include "unittypeext.h"
+#include "voxellib.h"
 #include "vinifera_globals.h"
 
 #include "audio_sample.h"
@@ -49,7 +32,7 @@
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_ptr) :
@@ -76,7 +59,9 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
 ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit),
     GraphicName(noinit),
-    AlphaGraphicName(noinit)
+    AlphaGraphicName(noinit),
+    NoSpawnVoxel(noinit),
+    WaterVoxel(noinit)
 {
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -309,4 +294,3 @@ BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool ne
 
     return anybuilding;
 }
-

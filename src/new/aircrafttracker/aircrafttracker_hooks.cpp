@@ -1,30 +1,13 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for AircraftTrackerClass.
  *
- *  @project       Vinifera
- *
- *  @file          AIRCRAFTTRACKER_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for AircraftTrackerClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
 
 #include "aircrafttracker_hooks.h"
 
@@ -33,13 +16,12 @@
 #include "flylocomotion.h"
 #include "footext.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "jumpjetlocomotion.h"
+#include "levitatelocomotion.h"
 #include "spawnmanager.h"
+#include "syringe.h"
 #include "techno.h"
 #include "technotype.h"
-#include "kamikazetracker.h"
-#include "levitatelocomotion.h"
 #include "tibsun_globals.h"
 #include "veinholemonster.h"
 #include "vinifera_globals.h"
@@ -81,61 +63,41 @@ void FlyLocomotionClassExt::_Take_Off()
 }
 
 
-DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
+DEFINE_HOOK(0x00499F51, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1, 6)
 {
-    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, edi);
-    static FootClassExtension* linked_ext;
-    static Cell oldcell, newcell;
+    GET(FlyLocomotionClass*, loco, EDI);
 
-    MAKE_STACK_FRAME(0x20)
+    auto linked_ext = Extension::Fetch(loco->LinkedTo);
 
-    linked_ext = Extension::Fetch(loco->LinkedTo);
-
-    oldcell = linked_ext->Get_Last_Flight_Cell();
-    newcell = loco->LinkedTo->Get_Cell();
+    Cell oldcell = linked_ext->Get_Last_Flight_Cell();
+    Cell newcell = loco->LinkedTo->Get_Cell();
 
     if (newcell != oldcell && loco->Is_Moving_Now()) {
         AircraftTracker->Update_Position(loco->LinkedTo, oldcell, newcell);
     }
 
-    END_STACK_FRAME()
-
-    // Stolen instructions
-    _asm mov ecx, [edi+4]
-    _asm lea ebp, [edi+4]
-
-    JMP(0x00499F57);
+    return 0;
 }
 
 
-DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
+DEFINE_HOOK(0x0049A07D, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2, 10)
 {
-    GET_REGISTER_STATIC(FootClass*, linked_to, ecx);
+    GET(FootClass*, linked_to, ECX);
 
     AircraftTracker->Untrack(linked_to);
 
     // Stolen instruction
-    linked_to->HeightAGL = 0;
-
-    JMP(0x0049A087);
+    return 0;
 }
 
 
-DECLARE_PATCH(_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch)
+DEFINE_HOOK(0x0049B92C, _FlyLocomotionClass_Process_Landing_AircraftTracker_Patch, 6)
 {
-    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, esi);
-
-    _asm pushad
+    GET(FlyLocomotionClass*, loco, ESI);
 
     AircraftTracker->Untrack(loco->LinkedTo);
 
-    // Stolen instructions
-    loco->CurrentSpeed = 0;
-    loco->TargetSpeed = 0;
-
-    _asm popad
-
-    JMP(0x0049B938);
+    return 0;
 }
 
 
@@ -174,8 +136,5 @@ void LevitateLocomotionClassExt::_func_4FDF80()
 void AircraftTracker_Hooks()
 {
     Patch_Jump(0x0049CB00, &FlyLocomotionClassExt::_Take_Off);
-    Patch_Jump(0x00499F51, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1);
-    Patch_Jump(0x0049A07D, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2);
-    Patch_Jump(0x0049B92C, &_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch);
     Patch_Call(0x00500BF5, &LevitateLocomotionClassExt::_func_4FDF80);
 }

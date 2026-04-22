@@ -1,57 +1,39 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended AircraftClass.
  *
- *  @project       Vinifera
- *
- *  @file          AIRCRAFTEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended AircraftClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "aircraftext_hooks.h"
-#include "aircraftext_init.h"
+
 #include "aircraft.h"
 #include "aircraftext.h"
+#include "aircraftext_init.h"
 #include "aircrafttype.h"
 #include "aircrafttypeext.h"
+#include "asserthandler.h"
+#include "building.h"
+#include "extension.h"
+#include "hooker.h"
+#include "house.h"
+#include "mouse.h"
 #include "object.h"
-#include "target.h"
-#include "unit.h"
-#include "unittype.h"
-#include "unittypeext.h"
+#include "rules.h"
+#include "syringe.h"
+#include "team.h"
 #include "technotype.h"
 #include "technotypeext.h"
-#include "weapontype.h"
-#include "extension.h"
+#include "unit.h"
+#include "unitext.h"
+#include "unittype.h"
+#include "unittypeext.h"
 #include "voc.h"
-#include "mouse.h"
-#include "team.h"
-#include "building.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-#include "house.h"
-#include "rules.h"
+#include "weapontype.h"
 
 
 /**
@@ -165,8 +147,7 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
     if (Extension::Fetch(Class)->IsSpawned) {
         const TechnoClass* techno = Map[cell].Cell_Techno();
         if (techno) {
-            if (Extension::Fetch(techno)->SpawnManager
-                || Extension::Fetch(techno->TClass)->IsSpawned) {
+            if (Extension::Fetch(techno)->SpawnManager || Extension::Fetch(techno->TClass)->IsSpawned) {
                 return true;
             }
         }
@@ -176,8 +157,9 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
      *  If we're a carryall, we can enter a potential totable unit's cell.
      */
     bool can_tote = false;
-    if (Class->IsCarryall && NavCom != nullptr && NavCom->RTTI == RTTI_UNIT)
+    if (Class->IsCarryall && NavCom != nullptr && NavCom->RTTI == RTTI_UNIT && Extension::Fetch(static_cast<UnitClass*>(NavCom)->Class)->IsTotable) {
         can_tote = true;
+    }
 
     /**
      *  Make sure that no other aircraft are heading to the selected location. If they
@@ -486,61 +468,49 @@ RadioMessageType AircraftClassExt::_Receive_Message(RadioClass* from, RadioMessa
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch)
+DEFINE_HOOK(0x0040BDCF, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    static AircraftTypeClassExtension *class_ext;
-    static bool is_curley_shuffle;
+    GET(AircraftClass *, this_ptr, ESI);
 
-    class_ext = Extension::Fetch(this_ptr->Class);
+    AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
+    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    R->AL(is_curley_shuffle);
 
-    is_curley_shuffle = class_ext->IsCurleyShuffle;
-
-    _asm { mov al, is_curley_shuffle }
-    JMP_REG(edx, 0x0040BDDB);
+    return 0x0040BDDB;
 
 }
 
-DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch)
+DEFINE_HOOK(0x0040C054, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    static AircraftTypeClassExtension * class_ext;
-    static bool is_curley_shuffle;
+    GET(AircraftClass *, this_ptr, ESI);
 
-    class_ext = Extension::Fetch(this_ptr->Class);
+    AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
+    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    R->CL(is_curley_shuffle);
 
-    is_curley_shuffle = class_ext->IsCurleyShuffle;
-
-    _asm { mov cl, is_curley_shuffle }
-    JMP_REG(edx, 0x0040BFA8);
+    return 0x0040BFA8;
 }
 
-DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch)
+DEFINE_HOOK(0x0040BF9D, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    static AircraftTypeClassExtension * class_ext;
-    static bool is_curley_shuffle;
+    GET(AircraftClass *, this_ptr, ESI);
 
-    class_ext = Extension::Fetch(this_ptr->Class);
+    AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
+    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    R->DL(is_curley_shuffle);
 
-    is_curley_shuffle = class_ext->IsCurleyShuffle;
-
-    _asm { mov dl, is_curley_shuffle }
-    JMP_REG(edx, 0x0040C060);
+    return 0x0040C060;
 }
 
-DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch)
+DEFINE_HOOK(0x0040C0AC, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    static AircraftTypeClassExtension *class_ext;
-    static bool is_curley_shuffle;
+    GET(AircraftClass *, this_ptr, ESI);
 
-    class_ext = Extension::Fetch(this_ptr->Class);
+    AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
+    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    R->AL(is_curley_shuffle);
 
-    is_curley_shuffle = class_ext->IsCurleyShuffle;
-
-    _asm { mov al, is_curley_shuffle }
-    JMP_REG(edx, 0x0040C0B8);
+    return 0x0040C0B8;
 }
 
 
@@ -551,11 +521,9 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
+DEFINE_HOOK(0x0040988C, _AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(FootClass *, passenger, edi);
-    static TechnoTypeClassExtension *technotypeext;
+    GET(AircraftClass *, this_ptr, ESI);
 
     /**
      *  Don't play the passenger leave sound for carryalls.
@@ -565,7 +533,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
         /**
          *  Do we have a sound to play when passengers leave us? If so, play it now.
          */
-        technotypeext = Extension::Fetch(this_ptr->TClass);
+        TechnoTypeClassExtension* technotypeext = Extension::Fetch(this_ptr->TClass);
         if (technotypeext->LeaveTransportSound != VOC_NONE) {
             Static_Sound(technotypeext->LeaveTransportSound, this_ptr->Position);
         }
@@ -583,22 +551,18 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
          *  Are we a part of a team? If so, make any passengers we unload part of it too.
          */
         if (this_ptr->Team) {
-            goto add_to_team;
+
+            /**
+             *  Add this passenger to my team.
+             */
+            return 0x004098A0;
         }
     }
 
     /**
      *  Finished unloading passengers.
      */
-finish_up:
-    JMP(0x004098AC);
-
-    /**
-     *  Add this passenger to my team.
-     */
-add_to_team:
-    _asm { mov edi, passenger }     // Restore EBP pointer.
-    JMP(0x004098A0);
+    return 0x004098AC;
 }
 
 
@@ -612,23 +576,21 @@ add_to_team:
  * 
  *  @author: tomsons26, CCHyper
  */
-static bool Locomotion_Is_Moving(AircraftClass *this_ptr) { return this_ptr->Locomotion->Is_Moving(); }
-DECLARE_PATCH(_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch)
+DEFINE_HOOK(0x0040A413, _AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    GET(AircraftClass *, this_ptr, ESI);
     
     /**
      *  If the aircraft is not currently moving, enter idle mode.
      */
-    if (!Locomotion_Is_Moving(this_ptr)) {
+    if (!this_ptr->Locomotion->Is_Moving()) {
         this_ptr->Enter_Idle_Mode(false, true);
     }
 
     /**
      *  Function return with "1".
      */
-return_one:
-    JMP(0x0040A421);
+    return 0x0040A421;
 }
 
 
@@ -641,10 +603,10 @@ return_one:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
+DEFINE_HOOK(0x00408898, _AircraftClass_Init_IsCloakable_BugFix_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(AircraftTypeClass *, aircrafttype, eax);
+    GET(AircraftClass *, this_ptr, ESI);
+    GET(AircraftTypeClass *, aircrafttype, EAX);
 
     /**
      *  Stolen bytes/code.
@@ -657,26 +619,22 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
      */
     this_ptr->IsCloakable = aircrafttype->IsCloakable;
 
-    JMP_REG(ecx, 0x004088AA);
+    return 0x004088AA;
 }
 
 
-DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
+DEFINE_HOOK(0x0040B3A6, _AircraftClass_Enter_Idle_Mode_Spawner_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(int, layer, eax);
-    GET_REGISTER_STATIC(int, landingaltitude, ebp);
-    static AircraftTypeClassExtension* aircrafttypeext;
+    GET(AircraftClass*, this_ptr, ESI);
+    GET(int, layer, EAX);
+    GET(int, landingaltitude, EBP);
 
-    aircrafttypeext = Extension::Fetch(this_ptr->Class);
+    AircraftTypeClassExtension* aircrafttypeext = Extension::Fetch(this_ptr->Class);
 
-    if (layer != LAYER_GROUND && this_ptr->HeightAGL > landingaltitude && !aircrafttypeext->IsMissileSpawn)
-    {
-        JMP(0x0040B3C1);
-    }
-    else
-    {
-        JMP(0x0040B5DC);
+    if (layer != LAYER_GROUND && this_ptr->HeightAGL > landingaltitude && !aircrafttypeext->IsMissileSpawn) {
+        return 0x0040B3C1;
+    } else {
+        return 0x0040B5DC;
     }
 }
 
@@ -687,39 +645,37 @@ DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch)
+DEFINE_HOOK(0x004097FF, _AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+    GET(AircraftClass*, this_ptr, ESI);
 
     if (this_ptr->Class->IsCarryall && this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
-        JMP(0x0040980F);
+        return 0x0040980F;
     }
 
-    JMP(0x00409833);
+    return 0x00409833;
 }
 
-DECLARE_PATCH(_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch)
+DEFINE_HOOK(0x0040AD82, _AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch, 6)
 {
-    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
-
-    _asm add esp, 4
+    GET(AircraftClass*, this_ptr, ESI);
 
     if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
-        JMP(0x0040AD82);
+        return 0;
     }
 
-    JMP(0x0040ADD0);
+    return 0x0040ADD0;
 }
 
-DECLARE_PATCH(_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch)
+DEFINE_HOOK(0x0040D60D, _AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+    GET(AircraftClass*, this_ptr, ESI);
 
     if (this_ptr->Class->IsCarryall && this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
-        JMP(0x0040D62F);
+        return 0x0040D62F;
     }
 
-    JMP(0x0040D6D3);
+    return 0x0040D6D3;
 }
 
 
@@ -729,21 +685,17 @@ DECLARE_PATCH(_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_AircraftClass_Draw_It_Carry_All_Patch)
+DEFINE_HOOK(0x00408BF3, _AircraftClass_Draw_It_Carry_All_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass*, this_ptr, ebp);
-    GET_STACK_STATIC(Rect*, cliprect, esp, 0xD0);
-    LEA_STACK_STATIC(Point2D*, drawpoint, esp, 0x10);
-
-    MAKE_STACK_FRAME(0x20)
+    GET(AircraftClass*, this_ptr, EBP);
+    GET_STACK(Rect*, cliprect, 0xD0);
+    LEA_STACK(Point2D*, drawpoint, 0x10);
 
     if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT) && this_ptr->Class->IsCarryall) {
         this_ptr->Cargo.Attached_Object(RTTI_UNIT)->Draw_It(*drawpoint, *cliprect);
     }
 
-    END_STACK_FRAME()
-
-    JMP(0x00408C27);
+    return 0x00408C27;
 }
 
 
@@ -808,11 +760,9 @@ LONG AircraftClassExt::_Landing_Altitude_Thunk()
  *
  *  Author: ZivDero
  */
-DECLARE_PATCH(_AircraftClass_AI_Carryall_Facing_Patch)
+DEFINE_HOOK(0x00409366, _AircraftClass_AI_Carryall_Facing_Patch, 0)
 {
-    GET_REGISTER_STATIC(AircraftClass*, this_ptr, ebp);
-
-    MAKE_STACK_FRAME(0x30);
+    GET(AircraftClass*, this_ptr, EBP);
 
     if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT) && this_ptr->Class->IsCarryall) {
         this_ptr->Cargo.Attached_Object()->PrimaryFacing.Set(this_ptr->SecondaryFacing.Current());
@@ -820,9 +770,29 @@ DECLARE_PATCH(_AircraftClass_AI_Carryall_Facing_Patch)
         this_ptr->Cargo.Attached_Object()->PositionCoord = this_ptr->PositionCoord;
     }
 
-    END_STACK_FRAME();
+    return 0x004093DE;
+}
 
-    JMP(0x004093DE);
+
+/**
+ *  Patch to prevent spawned aircraft from revealing terrain when they fire.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x0040A195, _AircraftClass_Fire_At_No_Reveal_On_Fire_For_Spawned_Aircraft_Patch, 0)
+{
+    GET(AircraftClass*, this_ptr, EDI);
+
+    if (Extension::Fetch(this_ptr)->SpawnOwner == nullptr) {
+        if (Rule->AttackingAircraftSightRange > 0) {
+
+            // Don't reveal if attacking aircraft sight range has been specified as 0 in Rules.
+            // The original game did not have this check (though maybe it has one in MapClass::Sight_From).
+            Map.Sight_From(this_ptr->PositionCoord, Rule->AttackingAircraftSightRange, this_ptr->House);
+        }
+    }
+
+    return 0x0040A1C8;
 }
 
 
@@ -836,14 +806,6 @@ void AircraftClassExtension_Hooks()
      */
     AircraftClassExtension_Init();
 
-    Patch_Jump(0x00408898, &_AircraftClass_Init_IsCloakable_BugFix_Patch);
-    Patch_Jump(0x0040A413, &_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch);
-    Patch_Jump(0x0040988C, &_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch);
-    Patch_Jump(0x0040BDCF, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch);
-    Patch_Jump(0x0040C054, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch);
-    Patch_Jump(0x0040BF9D, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch);
-    Patch_Jump(0x0040C0AC, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch);
-
     /**
      *  #issue-1091
      *
@@ -855,15 +817,7 @@ void AircraftClassExtension_Hooks()
 
     Patch_Jump(0x00408940, &AircraftClassExt::_Unlimbo);
     Patch_Jump(0x0040D260, &AircraftClassExt::_Cell_Seems_Ok);
-    Patch_Jump(0x0040B3A6, &_AircraftClass_Enter_Idle_Mode_Spawner_Patch);
     Patch_Jump(0x0040B7E0, &AircraftClassExt::_What_Action);
-
-    Patch_Jump(0x004097FF, &_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch);
-    Patch_Jump(0x0040AD7B, &_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch);
-    Patch_Jump(0x0040D60D, &_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch);
-    Patch_Jump(0x00408BF3, &_AircraftClass_Draw_It_Carry_All_Patch);
     Patch_Jump(0x0040EDD0, &AircraftClassExt::_Landing_Altitude_Thunk);
     Patch_Jump(0x0040C8A0, &AircraftClassExt::_Receive_Message);
-
-    Patch_Jump(0x00409366, &_AircraftClass_AI_Carryall_Facing_Patch);
 }

@@ -1,64 +1,45 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains any hooks for the game init process.
  *
- *  @project       Vinifera
- *
- *  @file          INITEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains any hooks for the game init process.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "initext_hooks.h"
-#include "vinifera_const.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "special.h"
-#include "playmovie.h"
-#include "cd.h"
-#include "ccfile.h"
-#include "ccini.h"
-#include "newmenu.h"
+
 #include "addon.h"
-#include "command.h"
-#include "theme.h"
-#include "voc.h"
-#include "session.h"
-#include "iomap.h"
-#include "dsaudio.h"
-#include "vinifera_gitinfo.h"
-#include "tspp_gitinfo.h"
-#include "resource.h"
 #include "audio_manager.h"
 #include "audio_util.h"
 #include "audio_voc.h"
 #include "audio_vox.h"
 #include "audio_theme.h"
 #include "asserthandler.h"
+#include "ccini.h"
+#include "cd.h"
 #include "debughandler.h"
-#include <Windows.h>
-#include <commctrl.h>
-
+#include "dsaudio.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "iomap.h"
+#include "newmenu.h"
+#include "optionsext.h"
+#include "playmovie.h"
+#include "scenarioext.h"
+#include "sdl_functions.h"
+#include "session.h"
+#include "special.h"
+#include "syringe.h"
+#include "theme.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
+
+#include <bcrypt.h>
+#include <windows.h>
+#include <tlhelp32.h> // must be after windows.h
 
 
 extern HMODULE DLLInstance;
@@ -72,59 +53,6 @@ extern HMODULE DLLInstance;
 
 
 /**
- *  #issue-305
- * 
- *  Fixes bug where the sidebar mouse wheel scrolling "error" sound
- *  can be heard at the main menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
-{
-    GET_STACK_STATIC(UINT, wParam, esp, 0x14);
-    static bool _mouse_wheel_scolling;
-
-    /**
-     *  The code before this patch checks for WM_MOUSEWHEEL.
-     */
-
-    /**
-     *  We are not currently playing a scenario, no need to execute this command.
-     */
-    if (!ScenarioStarted && !TacticalViewActive) {
-        goto message_handler;
-    }
-
-    /**
-     *  Are we currently executing a scroll command? This is required because
-     *  the Main_Window_Procedure function runs at a Windows level.
-     */
-    if (_mouse_wheel_scolling) {
-        goto message_handler;
-    }
-
-    _mouse_wheel_scolling = true;
-
-    /**
-     *  Execute the command based on the direction of the mouse wheel.
-     */
-    if ((wParam & 0x80000000) == 0) {
-        CommandClass::Activate_From_Name("SidebarUp");
-    } else {
-        CommandClass::Activate_From_Name("SidebarDown");
-    }
-
-    _mouse_wheel_scolling = false;
-
-executed:
-    JMP_REG(eax, 0x00685F9C);
-
-message_handler:
-    JMP_REG(ecx, 0x00685FA0);
-}
-
-
-/**
  *  #issue-513
  * 
  *  Patch to add check for CD::IsOverrideSwap() to make sure -CD really
@@ -132,10 +60,8 @@ message_handler:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
+DEFINE_HOOK(0x004E0469, _Init_CDROM_Access_Local_Files_Patch, 0)
 {
-    _asm { add esp, 4 }
-
     /**
      *  If there are search drives specified then all files are to be
      *  considered local.
@@ -160,13 +86,13 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
      *  Continue to initialise the CD-ROM code.
      */
 init_cdrom:
-    JMP(0x004E0471);
+    return 0x004E0471;
 
     /**
      *  Flag files as being local, no CD-ROM init.
      */
 files_local:
-    JMP(0x004E06F5);
+    return 0x004E06F5;
 }
 
 
@@ -232,7 +158,7 @@ static bool Vinifera_Play_Startup_Movies()
     return true;
 }
 
-DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
+DEFINE_HOOK(0x004E0786, _Init_Game_Skip_Startup_Movies_Patch, 0)
 {
     if (Vinifera_SkipStartupMovies) {
         DEBUG_INFO("Skipping startup movies.\n");
@@ -244,15 +170,15 @@ DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
     }
 
 loading_screen:
-    _asm { or ebx, 0xFFFFFFFF }
-    JMP(0x004E0848);
+    R->EBX(-1);
+    return 0x004E0848;
 
 skip_loading_screen:
-    JMP(0x004E084D);
+    return 0x004E084D;
 
 failed:
-    _asm { mov ebx, 1 }
-    JMP(0x004E08B3);
+    R->EBX(1);
+    return 0x004E08B3;
 }
 
 
@@ -284,218 +210,81 @@ static bool Vinifera_Detect_Addons()
 extern bool ImGui_Create_Main_Window(HINSTANCE hInstance);
 
 /**
- *  Creates the main window for Tiberian Sun
+ *  Creates the main window for Tiberian Sun at 480p resolution.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
-void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, int height)
+void Vinifera_Create_Main_Window_480p(HINSTANCE hInstance, int command_show, int width, int height)
 {
     //DEV_DEBUG_INFO("Create_Main_Window(enter)\n");
 
-    MainWindow = nullptr;
-
-    HWND hWnd = nullptr;
-    BOOL rc;
-    WNDCLASSEX wc;
-    tagRECT rect;
-    HICON hIcon = nullptr;
-    HICON hSmIcon = nullptr;
-    HCURSOR hCursor = nullptr;
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call InitCommonControls()\n");
-
-    InitCommonControls();
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Preparing window name (with version info).\n");
-
-    DWORD dwPid = GetProcessId(GetCurrentProcess());
-    if (!dwPid) {
-        DEBUG_ERROR("Create_Main_Window() - Failed to get the process id!\n");
-        return;
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Loading icon and cursor resources.\n");
-
-    /**
-     *  Load the Vinifera icon and cursor resources, falling back to the GAME.EXE
-     *  resources if not available or failed to load.
-     */
-    if (Vinifera_IconName[0] != '\0') {
-        DEBUG_INFO("Loading custom icon \"%s\"\n", Vinifera_IconName);
-        hIcon = (HICON)LoadImage(
-            nullptr,
-            Vinifera_IconName,
-            IMAGE_ICON,
-            0,
-            0,
-            LR_LOADFROMFILE);
-        DEBUG_INFO("Loading custom small icon \"%s\"\n", Vinifera_IconName);
-        hSmIcon = (HICON)LoadImage(
-            nullptr,
-            Vinifera_IconName,
-            IMAGE_ICON,
-            GetSystemMetrics(SM_CXSMICON),
-            GetSystemMetrics(SM_CXSMICON),
-            LR_LOADFROMFILE);
-    }
-    if (!hIcon) {
-        hIcon = LoadIcon((HINSTANCE)DLLInstance, MAKEINTRESOURCE(VINIFERA_MAINICON));
-        if (!hIcon) {
-            hIcon = LoadIcon((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINICON));
-        }
-    }
-    if (Vinifera_CursorName[0] != '\0') {
-        DEBUG_INFO("Loading custom cursor \"%s\"\n", Vinifera_CursorName);
-        hCursor = LoadCursorFromFile(Vinifera_CursorName);
-    }
-    if (!hCursor) {
-        hCursor = LoadCursor(nullptr, VINIFERA_MAINCURSOR); // IDC_ARROW is a system resource, does not require module.
-        if (!hCursor) {
-            hCursor = LoadCursor((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINCURSOR));
-        }
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Setting up window class info.\n");
-
-    /**
-     *  Register the window class.
-     */
-    wc.cbSize         = sizeof(WNDCLASSEX);
-    wc.style          = CS_HREDRAW|CS_VREDRAW;
-    wc.lpfnWndProc    = Windows_Procedure;
-    wc.cbClsExtra     = 0;
-    wc.cbWndExtra     = 0;
-    wc.hInstance      = (HINSTANCE)hInstance;
-    wc.hIcon          = hIcon;
-    wc.hCursor        = hCursor;
-    wc.hbrBackground  = nullptr;
-    wc.lpszMenuName   = nullptr;
-    wc.lpszClassName  = "Vinifera";
-    wc.hIconSm        = (hSmIcon ? hSmIcon : hIcon);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call RegisterClass()\n");
-
-    /**
-     *  Register window class.
-     */
-    rc = RegisterClassEx(&wc);
-    if (!rc) {
-        DEBUG_INFO("Create_Main_Window() - Failed to register window class!\n");
-        return;
-    }
-
-    /**
-     *  Get the dimensions of the primary display.
-     */
-    int display_width = GetSystemMetrics(SM_CXSCREEN);
-    int display_height = GetSystemMetrics(SM_CYSCREEN);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Desktop size %d x %d\n", display_width, display_height);
-
-    /**
-     *  Create our main window.
-     */
-    if (WindowedMode) {
-
-        DEBUG_INFO("Create_Main_Window() - Creating desktop window (%d x %d).\n", width, height);
-
-        hWnd = CreateWindowEx(
-            WS_EX_LEFT|WS_EX_TOPMOST,
-            "Vinifera",
-            Vinifera_Get_Window_Title(dwPid),
-            WS_SYSMENU|WS_MINIMIZEBOX|WS_CLIPCHILDREN|WS_CAPTION,
-            0, 0, 0, 0,
-            nullptr,
-            nullptr,
-            (HINSTANCE)hInstance,
-            nullptr);
-
-        SetRect(&rect, 0, 0, width, height);
-
-        AdjustWindowRectEx(&rect,
-            GetWindowLong(hWnd, GWL_STYLE),
-            GetMenu(hWnd) != nullptr,
-            GetWindowLong(hWnd, GWL_EXSTYLE));
-
-        /**
-         *  #BUGFIX:
-         * 
-         *  Fetch the desktop size, calculate the screen center position the window and move it.
-         */
-        RECT workarea;
-        SystemParametersInfo(SPI_GETWORKAREA, 0, &workarea, 0);
-
-        int x_pos = (display_width - width) / 2;
-        int y_pos = (((display_height - height) / 2) - (display_height - workarea.bottom));
-        
-        DEBUG_INFO("Create_Main_Window() - Moving window (%d,%d,%d,%d).\n",
-            x_pos, y_pos, (rect.right - rect.left), (rect.bottom - rect.top));
-
-        MoveWindow(hWnd, x_pos, y_pos, (rect.right - rect.left), (rect.bottom - rect.top), TRUE);
-
-    } else {
-
-        DEBUG_INFO("Create_Main_Window() - Creating fullscreen window.\n");
-
-        hWnd = CreateWindowEx(
-            WS_EX_TOPMOST,
-            "Vinifera",
-            Vinifera_Get_Window_Title(dwPid),
-            WS_POPUP|WS_CLIPCHILDREN,
-            0, 0,
-            display_width,
-            display_height,
-            nullptr,
-            nullptr,
-            (HINSTANCE)hInstance,
-            nullptr);
-    }
-
-    if (!hWnd) {
-        DEBUG_INFO("Create_Main_Window() - Failed to create window!\n");
-        return;
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call ShowWindow()\n");
-
-    ShowWindow(hWnd, SW_SHOWNORMAL);
-    ShowCommand = nCmdShow;
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call UpdateWindow()\n");
-
-    UpdateWindow(hWnd);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call SetFocus()\n");
-
-    SetFocus(hWnd);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call RegisterHotKey()\n");
-
-    RegisterHotKey(hWnd, 1, MOD_ALT|MOD_CONTROL|MOD_SHIFT, VK_M);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call SetCursor()\n");
-
-    SetCursor(hCursor);
-
-    Audio.Audio_Focus_Loss_Function = &Focus_Loss;
-
-    /**
-     *  Save the handle to our main window.
-     */
-    MainWindow = hWnd;
-    ProgramInstance = hInstance;
-
-    /**
-     *  #NOTE:
-     *  This had been added to resolved a issue where the game gets stuck in a
-     *  focus checking loop, this could be because the DLL now creates the 
-     *  window in its thread.
-     */
-    GameInFocus = true;
+    SDL_Create_Main_Window(hInstance, width, height);
+    ShowCommand = command_show;
+    Audio.Audio_Focus_Loss_Function = Focus_Loss;
 
     //DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
+}
 
-    //ImGui_Create_Main_Window(hInstance);
+
+/**
+ *  Creates the main window for Tiberian Sun at a custom resolution.
+ *
+ *  @author: ZivDero
+ */
+void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, int width, int height)
+{
+    // DEV_DEBUG_INFO("Create_Main_Window(enter)\n");
+
+    width = Options.ScreenWidth;
+    height = Options.ScreenHeight;
+
+    if (OptionsExtension->WindowWidth > 0 && OptionsExtension->WindowHeight > 0) {
+        width = OptionsExtension->WindowWidth;
+        height = OptionsExtension->WindowHeight;
+    }
+
+    SDL_Create_Main_Window(hInstance, width, height);
+    ShowCommand = command_show;
+    Audio.Audio_Focus_Loss_Function = Focus_Loss;
+
+    // DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
+}
+
+
+/**
+ *  Reads SOUND.INI and SOUND01.INI if Firestorm is installed.
+ *
+ *  @author: ZivDero
+ */
+static bool Read_Sound_INI()
+{
+    DEBUG_INFO("Reading SOUND.INI\n");
+    CCINIClass vini;
+
+    bool found = false;
+    CCFileClass vfile("SOUND.INI");
+    if (vfile.Is_Available() && vini.Load(vfile, false)) {
+        found = true;
+        DEBUG_INFO("Read SOUND.INI.\n");
+    }
+
+    if (Addon_Installed(ADDON_FIRESTORM)) {
+        vfile.Set_Name("SOUND01.INI");
+        if (vfile.Is_Available() && vini.Load(vfile, false)) {
+            found = true;
+            DEBUG_INFO("Read SOUND01.INI.\n");
+        }
+    }
+
+    if (!found) {
+        DEBUG_FATAL("Failed to load SOUND.INI!\n");
+        return false;
+    }
+
+    VocClass::Clear();
+    VocClass::Process(vini);
+
+    return true;
 }
 
 
@@ -624,7 +413,36 @@ bool Vinifera_Prep_For_Side(SideType side)
 
     Map.Init_For_House();
 
+    /**
+     *  Re-initialize sounds in case the side mixes override them.
+     */
+    Read_Sound_INI();
+
     return true;
+}
+
+
+/**
+ *  Replace the sound reading routine in Init_Game().
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004E08EE, _Init_Game_Read_SOUND_INI_Patch, 0)
+{
+    REF_STACK(CCFileClass, file, 0x48);
+    REF_STACK(CCINIClass, ini, 0xAC);
+
+    /**
+     *  Construct classes where the game would so that it can destroy them later.
+     */
+    new (&file) CCFileClass("SOUND.INI");
+    new (&ini) CCINIClass();
+
+    if (!Read_Sound_INI()) {
+        R->EAX(-1);
+        return 0x004E0964;
+    } 
+    return 0x004E09C8;
 }
 
 
@@ -1012,16 +830,121 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
 
 
 /**
+ *  Detaches the debugger from the current process.
+ *
+ *  @author: secsome
+ */
+bool Detach_Debugger()
+{
+    auto GetDebuggerProcessId = [](DWORD dwSelfProcessId) -> DWORD {
+        DWORD dwParentProcessId = -1;
+        HANDLE hSnapshot = CreateToolhelp32Snapshot(2, 0);
+        PROCESSENTRY32 pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32);
+        Process32First(hSnapshot, &pe32);
+        do {
+            if (pe32.th32ProcessID == dwSelfProcessId) {
+                dwParentProcessId = pe32.th32ParentProcessID;
+                break;
+            }
+        } while (Process32Next(hSnapshot, &pe32));
+        CloseHandle(hSnapshot);
+        return dwParentProcessId;
+    };
+
+    HMODULE hModule = LoadLibrary("ntdll.dll");
+    if (hModule != NULL) {
+        auto const NtRemoveProcessDebug = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, HANDLE)>(GetProcAddress(hModule, "NtRemoveProcessDebug"));
+        auto const NtSetInformationDebugObject = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtSetInformationDebugObject"));
+        auto const NtQueryInformationProcess = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtQueryInformationProcess"));
+        auto const NtClose = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE)>(GetProcAddress(hModule, "NtClose"));
+
+        HANDLE hDebug;
+        HANDLE hCurrentProcess = GetCurrentProcess();
+        NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
+        if (status >= 0) {
+            ULONG killProcessOnExit = FALSE;
+            status = NtSetInformationDebugObject(hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+            if (status >= 0) {
+                const auto pid = GetDebuggerProcessId(GetProcessId(hCurrentProcess));
+                status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
+                if (status >= 0) {
+                    return true;
+                }
+            }
+            NtClose(hDebug);
+        }
+        FreeLibrary(hModule);
+    }
+
+    return false;
+}
+
+/**
+ *  Give the user time to attach the debugger if one is not already present.
+ *
+ *  @author: ZivDero, CCHyper
+ */
+DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
+{
+    DEBUG_INFO("Syringe is active.\n");
+
+    if (Detach_Debugger()) {
+        if (!IsDebuggerPresent()) {
+#if !defined(NDEBUG) && defined(TS_CLIENT)
+            bool wait_for_debugger = true;
+#elif defined(TS_CLIENT)
+            const char* cmdline = GetCommandLineA();
+            bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
+#else
+            bool wait_for_debugger = false;
+#endif
+
+            if (wait_for_debugger) {
+                MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Load tutorial.ini into our new map in Init_Bulk_Data.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004E46BB, _Init_Bulk_Data_Tutorial_Text_Patch, 0)
+{
+    REF_STACK(CCINIClass, tutorial_ini, 0x18);
+    ScenarioClassExtension::Read_Tutorial_INI(tutorial_ini);
+    return 0x004E482E;
+}
+
+
+/**
+ *  Clear our new tutorial text map in Prog_End.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x00601B15, _Prog_End_Tutorial_Text_Patch, 5)
+{
+    Vinifera_TutorialText.clear();
+    return 0;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void GameInit_Hooks()
 {
-    Patch_Jump(0x004E0786, &_Init_Game_Skip_Startup_Movies_Patch);
-    Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
     Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
-    Patch_Jump(0x00686190, &Vinifera_Create_Main_Window);
+    Patch_Call(0x006013AB, &Vinifera_Create_Main_Window_480p);
+    Patch_Call(0x00601696, &Vinifera_Create_Main_Window_Custom);
 
     /**
      *  #issue-110
@@ -1053,8 +976,6 @@ void GameInit_Hooks()
     Patch_Call(0x004E2991, &Addon_Enabled);
     Patch_Call(0x004E86F5, &Addon_Enabled);
     Patch_Call(0x004E8735, &Addon_Enabled);
-
-    Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
 
     /**
      *  Fixes a bug where CompositeSurface is used instead of HiddenSurface in Allocate_Surfaces.

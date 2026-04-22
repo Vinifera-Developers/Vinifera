@@ -83,6 +83,14 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 
 ## Script Actions
 
+### New Quarry Types
+
+- Script actions accepting a quarry as a parameter now take new quarry values.
+
+| Index | Name | Description |
+|-|-|-|
+|10|Only Harvesters|The team will target only harvesters (not refineries)|
+
 ## Trigger Actions
 
 ### NeedCodes
@@ -128,18 +136,22 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 
 ### New Trigger Actions
 
+```{warning}
+Trigger action 11 `Text Trigger` now takes a string key for the tutorial text entry, not an interer!
+```
+
 |  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
 | 11       | Text Trigger (Enhanced)     |
-|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text Index (#)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
+|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text ID (string)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
 | 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
 | 107      | Enable Short Game        |
 |          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 108      | Disable Short Game       |
 |          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 109      | Unused Action            |
-|          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 109      | Create Building At       |
+|          | Places a building at given waypoint position. | Other (0)   | HouseType (#)  | BuildingType (#)   | Boolean (force placement) | *unused*   | *unused*   | Waypoint   |
 | 110      | Destroy all of...       |
 |          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 111      | Make Elite               |
@@ -190,7 +202,22 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |          | Displays a line of text on the screen with variable substitution. The text may include placeholders like `{{g_variableName}}` or `{{l_variableName}}`, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house. | Other (0) | Text Index (#)     | Color (#) | *unused*   | *unused*   | *unused*   | *unused*   |
 | 134      | Disable Templated Text           |
 |          | Removes the currently active templated text from the screen. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
+| 135      | Adjust House Modifier           |
+|          | Adjusts a house modifier by given percentage points. | Other (0) | Modifier (#)           | Amount (%)            | *unused*   | *unused*   | *unused*   | *unused*   |
+| 136      | Apply Iron Curtain             |
+|          | Applies Iron Curtain to attached objects. Can optionally bypass legality checks. | Other (0) | Boolean (skip legality check)           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 
+### [135] Adjust House Modifier — Modifier Types
+
+| Number | Modifier |
+|---|--------|
+| 0 | Firepower |
+| 1 | Armor |
+| 2 | Groundspeed |
+| 3 | Airspeed |
+| 4 | Rate of Fire |
+| 5 | Cost |
+| 6 | Build Time |
 
 ## Trigger Events
 
@@ -226,6 +253,15 @@ Do not specify extra arguments for trigger actions that don't require them!
 | 7    | Bitwise OR          | (x \| y) != 0    |
 | 8    | Bitwise XOR         | (x ^ y) != 0    |
 
+### Comes Near Waypoint
+
+- The distance for the "Comes Near Waypoint" trigger event was originally hardcoded to 5 cells. Vinifera allows customizing this distance.
+
+In `RULES.INI`, or a scenario INI:
+```ini
+[General]
+ComesNearWaypointDistance=1280   ; integer, defines how close, in leptons, an object needs to be to a waypoint for the "Comes Near Waypoint" event to be fired
+```
 
 ### New Trigger Events
 
@@ -279,4 +315,5 @@ Do not specify extra arguments for trigger actions that don't require them!
 |          | True if a local variable is less than a global variable.                             | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
 | 79       | Local Less Than Local                                                                |                   |                     |                     |                        |
 |          | True if a local variable is less than another local variable.                        | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
-
+| 80       | Buildings Does Not Exist                                                             |                   |                     |                     |                        |
+|          | Triggers when a building owned by the trigger's house does not exist.                | NeedOther (0)     | BuildingType (#)    |                     |                        |

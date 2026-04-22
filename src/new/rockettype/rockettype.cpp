@@ -1,39 +1,23 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Class containing configuration for AircraftType rockets.
  *
- *  @project       Vinifera
- *
- *  @file          ROCKETTYPE.CPP
- *
- *  @authors       ZivDero
- *
- *  @brief         Class containing configuration for AircraftType rockets.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "rockettype.h"
-#include "ccini.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "asserthandler.h"
-#include "animtype.h"
+
 #include "aircrafttype.h"
+#include "animtype.h"
+#include "asserthandler.h"
+#include "ccini.h"
 #include "findmake.h"
+#include "tibsun_functions.h"
+#include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 
 
@@ -388,18 +372,18 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
 
     PauseFrames = ini.Get_Int(IniName, "PauseFrames", PauseFrames);
     TiltFrames = ini.Get_Int(IniName, "TiltFrames", TiltFrames);
-    PitchInitial = ini.Get_Double(IniName, "PitchInitial", PitchInitial);
-    PitchFinal = ini.Get_Double(IniName, "PitchFinal", PitchFinal);
-    TurnRate = ini.Get_Double(IniName, "TurnRate", TurnRate);
+    PitchInitial = ini.Get_Float(IniName, "PitchInitial", PitchInitial);
+    PitchFinal = ini.Get_Float(IniName, "PitchFinal", PitchFinal);
+    TurnRate = ini.Get_Float(IniName, "TurnRate", TurnRate);
     RaiseRate = ini.Get_Int(IniName, "RaiseRate", RaiseRate);
-    Acceleration = ini.Get_Double(IniName, "Acceleration", Acceleration);
+    Acceleration = ini.Get_Float(IniName, "Acceleration", Acceleration);
     Altitude = ini.Get_Int(IniName, "Altitude", Altitude);
     Damage = ini.Get_Int(IniName, "Damage", Damage);
     EliteDamage = ini.Get_Int(IniName, "EliteDamage", EliteDamage);
     BodyLength = ini.Get_Int(IniName, "BodyLength", BodyLength);
     IsLazyCurve = ini.Get_Bool(IniName, "LazyCurve", IsLazyCurve);
     IsCruiseMissile = ini.Get_Bool(IniName, "CruiseMissile", IsCruiseMissile);
-    CloseEnoughFactor = ini.Get_Double(IniName, "CloseEnoughFactor", CloseEnoughFactor);
+    CloseEnoughFactor = ini.Get_Float(IniName, "CloseEnoughFactor", CloseEnoughFactor);
     Type = TGet_Class(ini, IniName, "Type", Type);
     Warhead = TGet_Class(ini, IniName, "Warhead", Warhead);
     EliteWarhead = TGet_Class(ini, IniName, "EliteWarhead", EliteWarhead);

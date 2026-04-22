@@ -1,47 +1,30 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TiberiumClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TIBERIUMEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TiberiumClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "tiberiumext.h"
-#include "tiberium.h"
+
 #include "ccini.h"
-#include "overlaytype.h"
-#include "extension.h"
-#include "asserthandler.h"
 #include "cellext.h"
-#include "debughandler.h"
+#include "extension.h"
 #include "findmake.h"
 #include "mouse.h"
+#include "overlaytype.h"
+#include "tiberium.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
@@ -348,7 +331,7 @@ void TiberiumClassExtension::Recalc_Spread()
 
     while (iter != nullptr) {
         if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Spread()) {
-            SpreadQueue.emplace(0.0, iter->CellID);
+            SpreadQueue.emplace((float)Random_Pick(0, 10000), iter->CellID);
             SpreadState[Map_Cell_Index(iter->CellID)] = true;
         }
         iter = Map.Iterate();
@@ -465,7 +448,7 @@ void TiberiumClassExtension::Recalc_Growth()
 
     while (iter != nullptr) {
         if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Grow()) {
-            GrowthQueue.emplace(0.0, iter->CellID);
+            GrowthQueue.emplace((float)Random_Pick(0, 10000), iter->CellID);
             GrowthState[Map_Cell_Index(iter->CellID)] = true;
         }
         iter = Map.Iterate();

@@ -1,80 +1,63 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended RulesClass class.
  *
- *  @project       Vinifera
- *
- *  @file          RULESEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended RulesClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "rulesext.h"
-#include "ccini.h"
-#include "rules.h"
-#include "tiberium.h"
-#include "weapontype.h"
-#include "buildingtype.h"
-#include "housetype.h"
-#include "side.h"
-#include "armortype.h"
-#include "rockettype.h"
-#include "wwcrc.h"
-#include "noinit.h"
-#include "swizzle.h"
+
 #include "addon.h"
+#include "aircrafttypeext.h"
+#include "animtypeext.h"
+#include "armortype.h"
 #include "audio_util.h"
 #include "audio_theme.h"
-#include "vinifera_saveload.h"
 #include "asserthandler.h"
-#include "debughandler.h"
-
-#include "housetypeext.h"
-#include "supertypeext.h"
-#include "animtypeext.h"
+#include "buildingtype.h"
 #include "buildingtypeext.h"
-#include "aircrafttypeext.h"
-#include "unittypeext.h"
-#include "infantrytypeext.h"
-#include "weapontypeext.h"
 #include "bullettypeext.h"
-#include "warheadtypeext.h"
-#include "terraintypeext.h"
-#include "smudgetypeext.h"
-#include "overlaytypeext.h"
-#include "particletypeext.h"
-#include "particlesystypeext.h"
-#include "voxelanimtypeext.h"
-#include "tiberiumext.h"
-#include "sideext.h"
-
+#include "ccini.h"
+#include "debughandler.h"
 #include "extension.h"
 #include "extension_globals.h"
+#include "findmake.h"
+#include "housetype.h"
+#include "housetypeext.h"
+#include "infantrytypeext.h"
 #include "mission.h"
+#include "noinit.h"
+#include "overlaytypeext.h"
+#include "particlesystypeext.h"
+#include "particletypeext.h"
 #include "prerequisitegroup.h"
+#include "rockettype.h"
+#include "rules.h"
+#include "side.h"
+#include "sideext.h"
+#include "smudgetypeext.h"
+#include "supertypeext.h"
+#include "terraintypeext.h"
+#include "tiberium.h"
+#include "tiberiumext.h"
+#include "unittypeext.h"
 #include "verses.h"
+#include "vinifera_saveload.h"
+#include "voxelanimtypeext.h"
 #include "voxelinit.h"
+#include "warheadtypeext.h"
+#include "weapontype.h"
+#include "weapontypeext.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
@@ -89,6 +72,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsRecheckPrerequisites(false),
     IsMultiMCV(false),
     AINavalYardAdjacency(20),
+    IsAIRepairBaseNodes(false),
     LowPowerPenaltyModifier(1.0f),
     MultipleFactoryCap(0),
     VoxelLightAzimuth(0),
@@ -105,7 +89,18 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     PlaceBeaconSound(VOC_NONE),
     PlaceBeaconVoice(VOX_NONE),
     DetectBeaconVoice(VOX_NONE),
-    IsBeachIsCrush(false)
+    SelfHealingCap(-1),
+    SelfHealingRate(-1),
+    IsBeachIsCrush(false),
+    BuildingFlameSpawnBlockFrames(0),
+    IronCurtainDuration(675),
+    IronCurtainRechargeTime(9900),
+    IronCurtainFlashRate(8),
+    IronCurtainFlashIntensityMultiplier(50),
+    IronCurtainSound(VOC_NONE),
+    ComesNearWaypointDistance(CELL_LEPTON_W * 5),
+    IsAIDetectDisguise(true),
+    IsAIOneHarvesterInSingleplayer(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -122,11 +117,28 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     This()->EngineerCaptureLevel = This()->ConditionRed;  // Building damage level before engineer can capture.
 
     MaxPips = TypeList<int>(5);
-    MaxPips.Add(5);     // PIP_AMMO
-    MaxPips.Add(5);     // PIP_TIBERIUM
-    MaxPips.Add(5);     // PIP_PASSENGERS
-    MaxPips.Add(10);    // PIP_POWER
-    MaxPips.Add(8);     // PIP_CHARGE
+    MaxPips.Add(5);     // PIPSCALE_AMMO
+    MaxPips.Add(5);     // PIPSCALE_TIBERIUM
+    MaxPips.Add(5);     // PIPSCALE_PASSENGERS
+    MaxPips.Add(10);    // PIPSCALE_POWER
+    MaxPips.Add(8);     // PIPSCALE_CHARGE
+
+    IronCurtains = TypeList<BuildingTypeClass*>(0);
+
+    IronCurtainPulseTable = TypeList<int>(8);
+    IronCurtainPulseTable.Add(-16);
+    IronCurtainPulseTable.Add(-15);
+    IronCurtainPulseTable.Add(-14);
+    IronCurtainPulseTable.Add(-13);
+    IronCurtainPulseTable.Add(-12);
+    IronCurtainPulseTable.Add(-13);
+    IronCurtainPulseTable.Add(-14);
+    IronCurtainPulseTable.Add(-15);
+
+    AIHarvestersPerRefinery = TypeList<int>(3);
+    AIHarvestersPerRefinery.Add(2);
+    AIHarvestersPerRefinery.Add(2);
+    AIHarvestersPerRefinery.Add(1);
 }
 
 
@@ -137,7 +149,10 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
  */
 RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit),
-    MaxPips(noinit)
+    MaxPips(noinit),
+    IronCurtains(noinit),
+    IronCurtainPulseTable(noinit),
+    AIHarvestersPerRefinery(noinit)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -164,6 +179,9 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     //EXT_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
 
     MaxPips.Clear();
+    IronCurtains.Clear();
+    IronCurtainPulseTable.Clear();
+    AIHarvestersPerRefinery.Clear();
 
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
@@ -172,8 +190,13 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
 
     new (this) RulesClassExtension(NoInitClass());
 
-    MaxPips.Load(pStm);
+    MaxPips.Load_Self(pStm);
+    IronCurtains.Load_Self(pStm);
+    IronCurtainPulseTable.Load_Self(pStm);
+    AIHarvestersPerRefinery.Load_Self(pStm);
     
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(IronCurtains, "IronCurtains");
+
     return hr;
 }
 
@@ -192,7 +215,10 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    MaxPips.Save(pStm);
+    MaxPips.Save_Self(pStm);
+    IronCurtains.Save_Self(pStm);
+    IronCurtainPulseTable.Save_Self(pStm);
+    AIHarvestersPerRefinery.Save_Self(pStm);
 
     return hr;
 }
@@ -240,6 +266,15 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsRecheckPrerequisites);
     crc(IsMultiMCV);
     crc(AINavalYardAdjacency);
+    crc(IsAIRepairBaseNodes);
+    crc(BuildingFlameSpawnBlockFrames);
+    crc(IronCurtainDuration);
+    crc(IronCurtainRechargeTime);
+    crc(IronCurtains.Count());
+    crc(ComesNearWaypointDistance);
+    crc(IsAIDetectDisguise);
+    crc(AIHarvestersPerRefinery.Count());
+    crc(IsAIOneHarvesterInSingleplayer);
 }
 
 
@@ -675,6 +710,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
     IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
+    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
+    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
@@ -686,6 +723,15 @@ bool RulesClassExtension::General(CCINIClass &ini)
     }
 
     IsBeachIsCrush = ini.Get_Bool(GENERAL, "BeachIsCrush", IsBeachIsCrush);
+    ComesNearWaypointDistance = ini.Get_Int(GENERAL, "ComesNearWaypointDistance", ComesNearWaypointDistance);
+
+    IronCurtains = ::TGet_TypeList(ini, GENERAL, "IronCurtains", IronCurtains);
+    IronCurtainDuration = ini.Get_Int(GENERAL, "IronCurtainDuration", IronCurtainDuration);
+
+    float icrecharge = ini.Get_Float(GENERAL, "IronCurtainRechargeTime");
+    if (icrecharge != 0.0) {
+        IronCurtainRechargeTime = icrecharge * 900.0f;
+    }
 
     return true;
 }
@@ -708,7 +754,7 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
-    MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
+    MaxPips = ini.Get_IntList(AUDIOVISUAL, "MaxPips", MaxPips);
 
     VoxelLightAzimuth = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightAzimuth", RAD_TO_DEGF(VoxelLightAzimuth)));
     VoxelLightElevation = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightElevation", RAD_TO_DEGF(VoxelLightElevation)));
@@ -724,6 +770,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     PlaceBeaconSound = ini.Get_VocType(AUDIOVISUAL, "PlaceBeaconSound", PlaceBeaconSound);
     PlaceBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "PlaceBeaconVoice", PlaceBeaconVoice);
     DetectBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "DetectBeaconVoice", DetectBeaconVoice);
+
+    IronCurtainFlashRate = ini.Get_Int(AUDIOVISUAL, "IronCurtainFlashRate", IronCurtainFlashRate);
+    IronCurtainFlashIntensityMultiplier = ini.Get_Int(AUDIOVISUAL, "IronCurtainFlashIntensityMultiplier", IronCurtainFlashIntensityMultiplier);
+    IronCurtainPulseTable = ini.Get_IntList(AUDIOVISUAL, "IronCurtainPulseTable", IronCurtainPulseTable);
+    IronCurtainSound = ini.Get_VocType(AUDIOVISUAL, "IronCurtainSound", IronCurtainSound);
 
     return true;
 }
@@ -745,6 +796,7 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
     }
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
+    BuildingFlameSpawnBlockFrames = ini.Get_Int(COMBATDAMAGE, "BuildingFlameSpawnBlockFrames", BuildingFlameSpawnBlockFrames);
 
     return true;
 }
@@ -766,6 +818,10 @@ bool RulesClassExtension::AI(CCINIClass& ini)
     }
 
     AINavalYardAdjacency = ini.Get_Int(AI, "AINavalYardAdjacency", AINavalYardAdjacency);
+    IsAIRepairBaseNodes = ini.Get_Bool(AI, "AIRepairBaseNodes", IsAIRepairBaseNodes);
+    IsAIDetectDisguise = ini.Get_Bool(AI, "AIDetectDisguise", IsAIDetectDisguise);
+    AIHarvestersPerRefinery = ini.Get_IntList(AI, "HarvestersPerRefinery", AIHarvestersPerRefinery);
+    IsAIOneHarvesterInSingleplayer = ini.Get_Bool(AI, "AIOneHarvesterInSingleplayer", IsAIOneHarvesterInSingleplayer);
 
     return true;
 }
@@ -815,7 +871,7 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
         /**
          *  Get a weapon entry.
          */
-        if (ini.Get_String(WEAPONS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(WEAPONS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -856,7 +912,7 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
         /**
          *  Get a weapon entry.
          */
-        if (ini.Get_String(ARMORTYPES, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(ARMORTYPES, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -895,7 +951,7 @@ bool RulesClassExtension::Rockets(CCINIClass &ini)
         /**
          *  Get a rocket entry.
          */
-        if (ini.Get_String(ROCKETTYPES, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(ROCKETTYPES, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a rocket of the name specified.
@@ -935,7 +991,7 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
         /**
          *  Get a Tiberium entry.
          */
-        if (ini.Get_String(TIBERIUMS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(TIBERIUMS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
@@ -976,7 +1032,7 @@ bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
         /**
          *  Get a group entry.
          */
-        if (ini.Get_String(PREREQUISITE_GROUPS, entry, buf, sizeof(buf)) > 0) {
+        if (ini.Get_String(PREREQUISITE_GROUPS, entry, "", buf, sizeof(buf)) > 0) {
 
             /**
              *  Find or create a group of the name specified.

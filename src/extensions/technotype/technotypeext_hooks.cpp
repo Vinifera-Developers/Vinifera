@@ -1,44 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended TechnoTypeClass.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOTYPEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended TechnoTypeClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "technotypeext_hooks.h"
-#include "technotypeext.h"
-#include "objecttypeext.h"
-#include "technotype.h"
-#include "house.h"
-#include "rules.h"
-#include "tibsun_defines.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
+#include "extension.h"
 #include "extension_globals.h"
 #include "hooker.h"
+#include "house.h"
 #include "rulesext.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "tibsun_defines.h"
 
 
 /**
@@ -74,15 +55,15 @@ int TechnoTypeClassExt::_Max_Pips() const
 
     switch (PipScale)
     {
-    case PIP_AMMO:
+    case PIPSCALE_AMMO:
         return std::clamp(MaxAmmo, 0, max_pips);
 
-    case PIP_PASSENGERS:
+    case PIPSCALE_PASSENGERS:
         return std::clamp(MaxPassengers, 0, max_pips);
 
-    case PIP_TIBERIUM:
-    case PIP_POWER:
-    case PIP_CHARGE:
+    case PIPSCALE_TIBERIUM:
+    case PIPSCALE_POWER:
+    case PIPSCALE_CHARGE:
     default:
         return max_pips;
     }

@@ -1,50 +1,34 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for implementing the CnCNet5 system.
  *
- *  @project       Vinifera
- *
- *  @file          CNCNET5_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for implementing the CnCNet5 system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cncnet5_hooks.h"
+
 #include "cncnet5_globals.h"
 #include "cncnet5_wspudp.h"
-#include "wsproto.h"
-#include "wspipx.h"
-#include "wspudp.h"
-#include "tibsun_globals.h"
-#include "session.h"
 #include "debughandler.h"
-#include "asserthandler.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "session.h"
+#include "tibsun_globals.h"
+#include "wspipx.h"
+#include "wsproto.h"
+#include "wspudp.h"
 
 
 /**
  *  #issue-69
- * 
+ *
  *  Create the CnCNet5 UDP interface or standard UDP interface depending
  *  on if the CnCNet5 system has been enabled.
- * 
+ *
  *  @author: CCHyper
  */
 static void Create_PacketTransport()

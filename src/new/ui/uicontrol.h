@@ -1,40 +1,22 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  UI controls and overrides.
  *
- *  @project       Vinifera
- *
- *  @file          UICONTROL.H
- *
- *  @author        CCHyper
- *
- *  @brief         UI controls and overrides.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "tibsun_defines.h"
 #include "point.h"
+#include "tibsun_defines.h"
 #include "typelist.h"
 
 #include <string>
 
 
+class RGBClass;
 struct IStream;
 class CCINIClass;
 class NoInitClass;
@@ -190,7 +172,7 @@ class UIControlsClass
         /**
          *  Two tint colors, interpolated between based on the current ambient light level.
          */
-        TypeList<RGBStruct> BandBoxTintColors;
+        TypeList<RGBClass> BandBoxTintColors;
 
         /**
          *  Should action lines remain visible continuously, instead of disappearing after some time?

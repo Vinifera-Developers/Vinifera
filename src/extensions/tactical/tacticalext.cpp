@@ -1,63 +1,43 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended Tactical class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTICALEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended Tactical class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "tacticalext.h"
-#include "tactical.h"
-#include "wwcrc.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "tibsun_globals.h"
+
+#include "beacon.h"
 #include "colorscheme.h"
-#include "rgb.h"
-#include "wwfont.h"
-#include "wwcrc.h"
-#include "foot.h"
-#include "unit.h"
-#include "unittype.h"
-#include "session.h"
-#include "scenario.h"
+#include "debughandler.h"
 #include "ebolt.h"
+#include "extension.h"
+#include "foot.h"
 #include "house.h"
 #include "housetype.h"
+#include "mouse.h"
+#include "rgb.h"
+#include "rulesext.h"
+#include "scenario.h"
+#include "scenarioext.h"
+#include "session.h"
 #include "super.h"
 #include "superext.h"
 #include "supertype.h"
 #include "supertypeext.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "swizzle.h"
-#include "vinifera_saveload.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "beacon.h"
-#include "debughandler.h"
-#include "mouse.h"
+#include "tactical.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "uicontrol.h"
+#include "unit.h"
+#include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+#include "vinifera_util.h"
+#include "wwfont.h"
 #include "wwmouse.h"
 
 
@@ -709,7 +689,7 @@ void TacticalExtension::Draw_Super_Timers()
 #ifdef RELEASE
     int row_index = 0;
 #else
-    int row_index = 3;
+    int row_index = Vinifera_NoTacticalVersionString ? 0 : 3;
 #endif
 
     /**

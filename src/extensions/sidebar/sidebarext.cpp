@@ -1,58 +1,40 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended SidebarClass class.
  *
- *  @project       Vinifera
- *
- *  @file          SIDEBAREXT.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Extended SidebarClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sidebarext.h"
-#include "sidebarext.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
+
 #include "ccini.h"
-#include "noinit.h"
-#include "swizzle.h"
-#include "scenarioext.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
 #include "debughandler.h"
 #include "drawshape.h"
-#include "language.h"
-#include "tooltip.h"
-#include "mouse.h"
-#include "house.h"
-#include "super.h"
 #include "event.h"
 #include "eventext.h"
-#include "object.h"
 #include "factory.h"
+#include "house.h"
 #include "houseext.h"
+#include "housetype.h"
+#include "language.h"
+#include "mouse.h"
+#include "noinit.h"
+#include "object.h"
+#include "scenarioext.h"
+#include "sideext.h"
+#include "super.h"
+#include "techno.h"
+#include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tooltip.h"
+#include "vinifera_saveload.h"
 #include "vox.h"
 #include "wwmouse.h"
-#include "techno.h"
-#include "sideext.h"
-#include "housetype.h"
 
 
 GadgetClass* SidebarClassExtension::LastHovered;
@@ -127,7 +109,7 @@ HRESULT SidebarClassExtension::Load(IStream *pStm)
      */
 
     Init_IO();
-    Set_Dimensions();
+    Shift_Sidebar();
     Init_For_House();
     
     return hr;
@@ -206,7 +188,7 @@ void SidebarClassExtension::Init_Strips()
 
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++)
     {
-        new (&Column[i]) SidebarClass::StripClass(NoInitClass());
+        new (&Column[i]) SidebarClass::StripClass(InitClass());
         Column[i].X = COLUMN_ONE_X;
         Column[i].Y = COLUMN_Y;
         Column[i].Size = Rect(COLUMN_ONE_X, COLUMN_Y, SidebarClass::StripClass::OBJECT_WIDTH * 2, SidebarClass::StripClass::OBJECT_HEIGHT * max_visible);
@@ -260,7 +242,7 @@ void SidebarClassExtension::Init_IO()
  *
  *  @author: ZivDero
  */
-void SidebarClassExtension::Set_Dimensions()
+void SidebarClassExtension::Shift_Sidebar()
 {
     TabButtons[0].Set_Position(SidebarRect.X + TAB_ONE_X_OFFSET, SidebarRect.Y + TAB_Y_OFFSET);
     TabButtons[0].Flag_To_Redraw();
@@ -1029,4 +1011,3 @@ void SidebarClassExtension::Check_Hover(GadgetClass* gadget, int mousex, int mou
         }
     }
 }
-

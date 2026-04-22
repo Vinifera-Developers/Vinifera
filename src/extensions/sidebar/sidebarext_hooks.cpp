@@ -1,56 +1,52 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended SidebarClass.
  *
- *  @project       Vinifera
- *
- *  @file          SIDEBAREXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended SidebarClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sidebarext_hooks.h"
 
-#include <algorithm>
-
 #include "bsurface.h"
+#include "building.h"
 #include "buildingtype.h"
 #include "convert.h"
+#include "debughandler.h"
 #include "drawshape.h"
 #include "event.h"
+#include "eventext.h"
 #include "extension.h"
 #include "factory.h"
+#include "factoryext.h"
+#include "fatal.h"
 #include "fetchres.h"
+#include "hooker.h"
+#include "hooker_macros.h"
 #include "house.h"
+#include "houseext.h"
 #include "housetype.h"
 #include "language.h"
+#include "miscutil.h"
 #include "mouse.h"
+#include "msgbox.h"
+#include "optionsext.h"
 #include "playmovie.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "scenarioext.h"
 #include "session.h"
 #include "sidebar.h"
 #include "sidebarext.h"
+#include "sideext.h"
 #include "spritecollection.h"
 #include "super.h"
 #include "supertype.h"
 #include "supertypeext.h"
+#include "syringe.h"
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
@@ -58,27 +54,13 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
-#include "unittypeext.h"
+#include "uicontrol.h"
+#include "vinifera_globals.h"
 #include "voc.h"
 #include "vox.h"
 #include "wwmouse.h"
-#include "sideext.h"
-#include "debughandler.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "building.h"
-#include "eventext.h"
-#include "factoryext.h"
-#include "hooker.h"
-#include "hooker_macros.h"
-#include "houseext.h"
-#include "miscutil.h"
-#include "msgbox.h"
-#include "optionsext.h"
-#include "rulesext.h"
-#include "sidebar.h"
-#include "uicontrol.h"
-#include "vinifera_globals.h"
+
+#include <algorithm>
 
 
 /**
@@ -105,7 +87,7 @@ public:
     void _AI(KeyNumType& input, Point2D& xy);
     void _Recalc();
     bool _Abandon_Production(RTTIType type, FactoryClass* factory);
-    void _Set_Dimensions();
+    void _Shift_Sidebar();
     const char* _Help_Text(int gadget_id);
     int _Max_Visible();
 };
@@ -162,28 +144,22 @@ public:
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_SidebarClass_Constructor_Patch)
+DEFINE_HOOK(0x005F23A6, _SidebarClass_Constructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(SidebarClass*, this_ptr, esi); // "this" pointer.
+    GET(SidebarClass*, this_ptr, ESI); // "this" pointer.
+
+    /**
+     *  Set the SidebarClass vtable. Syringe will do this after our hook,
+     *  but do it now manually to be safe.
+     */
+    *reinterpret_cast<uintptr_t*>(this_ptr) = 0x006D68B0;
 
     /**
      *  Create the extended class instance.
      */
     SidebarExtension = Extension::Singleton::Make<SidebarClass, SidebarClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
-    _asm
-    {
-        mov eax, this_ptr
-        pop edi
-        pop esi
-        pop ebp
-        pop ebx
-        add esp, 14h
-        ret
-    }
+    return 0;
 }
 
 
@@ -194,26 +170,14 @@ DECLARE_PATCH(_SidebarClass_Constructor_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_SidebarClass_Destructor_Patch)
+DEFINE_HOOK(0x005B8B7D, _SidebarClass_Destructor_Patch, 5)
 {
-    //GET_REGISTER_STATIC(SidebarClass*, this_ptr, edi);
-
     /**
      *  Remove the extended class instance.
      */
     Extension::Singleton::Destroy<SidebarClass, SidebarClassExtension>(SidebarExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
-    _asm
-    {
-        pop edi
-        pop esi
-        pop ebp
-        pop ebx
-        ret
-    }
+    return 0;
 }
 
 
@@ -334,7 +298,7 @@ void SidebarClassExt::_Init_IO()
         for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
             SidebarExtension->Column[i].Init_IO(i);
 
-        Set_Dimensions();
+        Shift_Sidebar();
 
         /**
         **  If a game was loaded & the sidebar was enabled, pop it up now.
@@ -473,7 +437,7 @@ bool SidebarClassExt::_Activate(int control)
          */
         if (IsSidebarActive)
         {
-            Set_Dimensions();
+            Shift_Sidebar();
             IsToRedraw = true;
             Repair.Zap();
             Add_A_Button(Repair);
@@ -821,11 +785,11 @@ bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
 
 
 /**
- *  Reimplements the entire SidebarClass::Set_Dimensions function.
+ *  Reimplements the entire SidebarClass::Shift_Sidebar function.
  *
  *  @author: ZivDero
  */
-void SidebarClassExt::_Set_Dimensions()
+void SidebarClassExt::_Shift_Sidebar()
 {
     /**
      *  Position the sidebar itself.
@@ -836,7 +800,7 @@ void SidebarClassExt::_Set_Dimensions()
     SidebarRect.Width = 168;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - 148;
 
-    PowerClass::Set_Dimensions();
+    PowerClass::Shift_Sidebar();
 
     if (!SidebarShape)
     {
@@ -868,7 +832,7 @@ void SidebarClassExt::_Set_Dimensions()
     Waypoint.Flag_To_Redraw();
     Waypoint.DrawX = -SidebarRect.X;
 
-    SidebarExtension->Set_Dimensions();
+    SidebarExtension->Shift_Sidebar();
 
     /**
      *  Create the tooltips for the sidebar.
@@ -896,8 +860,8 @@ void SidebarClassExt::_Set_Dimensions()
         {
             for (int i = 0; i < max_visible; i++)
             {
-                const int x = SidebarRect.X + ((i % 2 == 0) ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
-                const int y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + ((i / 2) * StripClass::OBJECT_HEIGHT);
+                const int x = SidebarRect.X + (i % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
+                const int y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + i / 2 * StripClass::OBJECT_HEIGHT;
                 SidebarExtension->SelectButton[tab][i].Set_Position(x, y);
             }
         }
@@ -1026,8 +990,8 @@ void StripClassExt::_Init_IO(int id)
     {
         SelectClass& g = SidebarExtension->SelectButton[ID][index];
         g.ID = BUTTON_SELECT;
-        g.X = SidebarRect.X + ((index % 2 == 0) ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
-        g.Y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + ((index / 2) * OBJECT_HEIGHT);
+        g.X = SidebarRect.X + (index % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
+        g.Y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + index / 2 * OBJECT_HEIGHT;
         g.Width = OBJECT_WIDTH;
         g.Height = OBJECT_HEIGHT;
         g.Set_Owner(*this, index);
@@ -1105,7 +1069,7 @@ bool StripClassExt::_Recalc()
             **  Removes this entry from the list.
             */
             if (BuildableCount > 1 && index < BuildableCount - 1) {
-                memmove(&Buildables[index], &Buildables[index + 1], sizeof(Buildables[0]) * ((BuildableCount - index) - 1));
+                memmove(&Buildables[index], &Buildables[index + 1], sizeof(Buildables[0]) * (BuildableCount - index - 1));
             }
             redraw = true;
             scroll = true;
@@ -1188,7 +1152,7 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
 
             for (int i = 0; i < HouseTypes.Count(); i++)
             {
-                if (owners & (1 << i))
+                if (owners & 1 << i)
                     side = std::min<int>(HouseTypes[i]->Side, side);
             }
 
@@ -1204,7 +1168,7 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
             const SideType side = house->Class->Side;
             for (int i = 0; i < HouseTypes.Count(); i++)
             {
-                if ((owners & 1 << i) && HouseTypes[i]->Side == side)
+                if (owners & 1 << i && HouseTypes[i]->Side == side)
                     return true;
             }
 
@@ -1251,8 +1215,8 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
                 BCAT_DEFENSE
             };
 
-            int building_category1 = (b1->IsWall || b1->IsFirestormWall || b1->IsLaserFencePost || b1->IsLaserFence) ? BCAT_WALL : (b1->IsGate ? BCAT_GATE : (ext1->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
-            int building_category2 = (b2->IsWall || b2->IsFirestormWall || b2->IsLaserFencePost || b2->IsLaserFence) ? BCAT_WALL : (b2->IsGate ? BCAT_GATE : (ext2->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
+            int building_category1 = b1->IsWall || b1->IsFirestormWall || b1->IsLaserFencePost || b1->IsLaserFence ? BCAT_WALL : b1->IsGate ? BCAT_GATE : ext1->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL;
+            int building_category2 = b2->IsWall || b2->IsFirestormWall || b2->IsLaserFencePost || b2->IsLaserFence ? BCAT_WALL : b2->IsGate ? BCAT_GATE : ext2->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL;
 
             // Compare based on category priority
             if (building_category1 != building_category2)
@@ -1771,7 +1735,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
         RedrawSidebar = true;
     }
 
-    return(redraw);
+    return redraw;
 }
 
 
@@ -1876,7 +1840,7 @@ void StripClassExt::_Draw_It(bool complete)
             FactoryClass* factory = nullptr;
             int index = i + TopIndex;
             int x = i % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X;
-            int y = SidebarClassExtension::COLUMN_Y + ((i / 2) * OBJECT_HEIGHT);
+            int y = SidebarClassExtension::COLUMN_Y + i / 2 * OBJECT_HEIGHT;
 
             bool isready = false;
             const char* state = nullptr;
@@ -2244,11 +2208,11 @@ void StripClassExt::_Fake_Flag_To_Redraw_Current()
  */
 DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
 {
-    GET_REGISTER_STATIC(int, key, eax);
-    GET_REGISTER_STATIC(int, mousex, ebp);
-    GET_REGISTER_STATIC(int, mousey, ebx);
-    GET_REGISTER_STATIC(unsigned, flags, edi);
-    GET_REGISTER_STATIC(GadgetClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(int, key, EAX);
+    GET_REGISTER_STATIC(int, mousex, EBP);
+    GET_REGISTER_STATIC(int, mousey, EBX);
+    GET_REGISTER_STATIC(unsigned, flags, EDI);
+    GET_REGISTER_STATIC(GadgetClass*, this_ptr, ESI);
 
     _asm push eax
     _asm push edx
@@ -2306,11 +2270,8 @@ DECLARE_PATCH(_PowerClass_Draw_It_Move_Power_Bar)
 
     static int max_visible;
     max_visible = SidebarClassExtension::Max_Visible(true);
-    _asm
-    {
-        mov eax, max_visible
-        mov ecx, max_visible
-    }
+    _asm mov eax, max_visible
+    _asm mov ecx, max_visible
 
     JMP_REG(ebx, 0x005AB4D9);
 }
@@ -2330,46 +2291,42 @@ static BSurface* _SidebarClass_StripClass_CustomImage = nullptr;
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
+DEFINE_HOOK(0x005F5188, _SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch, 0)
 {
-    GET_REGISTER_STATIC(const ObjectTypeClass*, obj, ebp);
-    static const TechnoTypeClassExtension* technotypeext;
-    static const ShapeSet* shapefile;
+    GET(const ObjectTypeClass*, obj, EBP);
 
-    shapefile = obj->Get_Cameo_Data();
+    const ShapeSet* shapefile = obj->Get_Cameo_Data();
 
     _SidebarClass_StripClass_obj = obj;
     _SidebarClass_StripClass_CustomImage = nullptr;
 
-    technotypeext = Extension::Fetch(reinterpret_cast<const TechnoTypeClass*>(obj));
+    auto technotypeext = Extension::Fetch(reinterpret_cast<const TechnoTypeClass*>(obj));
     if (technotypeext->CameoImageSurface) {
         _SidebarClass_StripClass_CustomImage = technotypeext->CameoImageSurface;
     }
 
-    _asm { mov eax, shapefile }
+    R->EAX(shapefile);
 
-    JMP_REG(ebx, 0x005F5193);
+    return 0x005F5193;
 }
 
-DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
+DEFINE_HOOK(0x005F5216, _SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch, 0)
 {
-    GET_REGISTER_STATIC(const SuperWeaponTypeClass*, supertype, eax);
-    static const SuperWeaponTypeClassExtension* supertypeext;
-    static const ShapeSet* shapefile;
+    GET(const SuperWeaponTypeClass*, supertype, EAX);
 
-    shapefile = supertype->SidebarIcon;
+    const ShapeSet* shapefile = supertype->SidebarIcon;
 
     _SidebarClass_StripClass_spc = supertype;
     _SidebarClass_StripClass_CustomImage = nullptr;
 
-    supertypeext = Extension::Fetch(supertype);
+    auto supertypeext = Extension::Fetch(supertype);
     if (supertypeext->CameoImageSurface) {
         _SidebarClass_StripClass_CustomImage = supertypeext->CameoImageSurface;
     }
 
-    _asm { mov ebx, shapefile }
+    R->EBX(shapefile);
 
-    JMP(0x005F5220);
+    return 0x005F5220;
 }
 
 
@@ -2380,22 +2337,15 @@ DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
  *
  *  @author: CCHyper
  */
-static Point2D pointxy;
-static Rect pcxrect;
-void Draw_Shape_Wrapper(Surface& surface, ConvertClass& convert, const ShapeSet* shapefile, int shapenum, const Point2D& point, const Rect& window, ShapeFlags_Type flags)
+DEFINE_HOOK(0x005F52AF, _SidebarClass_StripClass_Custom_Cameo_Image_Patch, 0)
 {
-    Draw_Shape(surface, convert, shapefile, shapenum, point, window, flags);
-}
-DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
-{
-    GET_STACK_STATIC(SidebarClass::StripClass*, this_ptr, esp, 0x24);
-    LEA_STACK_STATIC(Rect*, window_rect, esp, 0x34);
-    GET_REGISTER_STATIC(int, pos_x, edi);
-    GET_REGISTER_STATIC(int, pos_y, esi);
-    GET_REGISTER_STATIC(const ShapeSet*, shapefile, ebx);
-    static BSurface* image_surface;
+    GET_STACK(SidebarClass::StripClass*, this_ptr, 0x24);
+    REF_STACK(const Rect, window_rect, 0x34);
+    GET(int, pos_x, EDI);
+    GET(int, pos_y, ESI);
+    GET(const ShapeSet*, shapefile, EBX);
 
-    image_surface = nullptr;
+    Surface* image_surface = nullptr;
 
     /**
      *  Was a factory object or special image found?
@@ -2408,8 +2358,9 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
      *  Draw the cameo pcx image.
      */
     if (image_surface) {
-        pcxrect.X = window_rect->X + pos_x;
-        pcxrect.Y = window_rect->Y + pos_y;
+        Rect pcxrect;
+        pcxrect.X = window_rect.X + pos_x;
+        pcxrect.Y = window_rect.Y + pos_y;
         pcxrect.Width = image_surface->Get_Width();
         pcxrect.Height = image_surface->Get_Height();
 
@@ -2419,10 +2370,11 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
      *  Draw shape cameo image.
      */
     else if (shapefile) {
+        Point2D pointxy;
         pointxy.X = pos_x;
         pointxy.Y = pos_y;
 
-        Draw_Shape_Wrapper(*SidebarSurface, *CameoDrawer, shapefile, 0, pointxy, *window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
+        Draw_Shape(*SidebarSurface, *CameoDrawer, shapefile, 0, pointxy, window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
     }
 
     _SidebarClass_StripClass_CustomImage = nullptr;
@@ -2431,7 +2383,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
      *  Next, draw the clock darken shape.
      */
 draw_darken_shape:
-    JMP(0x005F52F3);
+    return 0x005F52F3;
 }
 
 
@@ -2440,16 +2392,14 @@ draw_darken_shape:
  *
  *  @author: Rampastring
  */
-static char extended_description[512];
-DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
+DEFINE_HOOK(0x005F4EDD, _SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, cost, eax);
-    GET_REGISTER_STATIC(TechnoTypeClass*, technotype, esi);
+    GET(int, cost, EAX);
+    GET(TechnoTypeClass*, technotype, ESI);
+    static char extended_description[512];
 
-    static TechnoTypeClassExtension* technotypeext;
-    static char* description;
-    technotypeext = Extension::Fetch(technotype);
-    description = technotypeext->Description;
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch(technotype);
+    char* description = technotypeext->Description;
 
     // Using sprintf below will affect the stack, but the compiler should also clean it up,
     // so there should be no issue.
@@ -2463,8 +2413,8 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
     }
 
     // Set up return value
-    _asm { mov  eax, offset ds : extended_description }
-    JMP_REG(ecx, 0x005F4EFF);
+    R->EAX(extended_description);
+    return 0x005F4EFF;
 }
 
 
@@ -2473,26 +2423,24 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
+DEFINE_HOOK(0x005F5120, _StripClass_Draw_It_Fetch_Factory_Patch1, 0)
 {
-    GET_REGISTER_STATIC(TechnoTypeClass*, ttype, ebp);
+    GET(TechnoTypeClass*, ttype, EBP);
 
-    static FactoryClass* factory;
-    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
-    _asm mov eax, factory
-    JMP_REG(edx, 0x005F5132);
+    R->EAX(factory);
+    return 0x005F5132;
 }
 
-DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch2)
+DEFINE_HOOK(0x005F537C, _StripClass_Draw_It_Fetch_Factory_Patch2, 0)
 {
-    GET_STACK_STATIC(TechnoTypeClass*, ttype, esp, 0x18);
+    GET(TechnoTypeClass*, ttype, ECX);
 
-    static FactoryClass* factory;
-    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    FactoryClass*  factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
-    _asm mov ebx, factory
-    JMP(0x005F538A);
+    R->EBX(factory);
+    return 0x005F538A;
 }
 
 
@@ -2508,6 +2456,11 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
     }
 
     int index = Strip->TopIndex + Index;
+
+    if (index >= std::size(Strip->Buildables)) {
+        return true;
+    }
+
     RTTIType otype = Strip->Buildables[index].BuildableType;
     int oid = Strip->Buildables[index].BuildableID;
 
@@ -2652,8 +2605,10 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     if (factory->Has_Completed()) {
 
                         TechnoClass* pending = factory->Get_Object();
-                        if (!pending && factory->Get_Special_Item()) {
-                            Map.TargettingType = SUPER_ANY;
+                        if (!pending) {
+                            if (factory->Get_Special_Item() != -1) {
+                                Map.TargettingType = SUPER_ANY;
+                            }
                         } else {
                             BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
                             if (!builder) {
@@ -2695,6 +2650,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                             Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
                             TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
                     }
+
                 } else {
 
                     /*
@@ -2703,8 +2659,13 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     **  ignore the click.
                     */
                     factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
-                    if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE) {
-                        Speak(VOX_NO_FACTORY);
+                    bool produce = false;
+                    if (factory != nullptr && (factory->Is_Building() || factory->Has_Production_Target())) {
+                        if (otype == RTTI_BUILDINGTYPE) {
+                            Speak(VOX_NO_FACTORY);
+                        } else {
+                            produce = true;
+                        }
                     } else {
 
                         /*
@@ -2716,12 +2677,13 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                         } else {
                             Speak(VOX_BUILDING);
                         }
+                        produce = true;
+                    }
+                    if (produce) {
                         const int count_to_produce = Key_Down(VK_SHIFT) ? 5 : 1;
                         for (int i = 0; i < count_to_produce; i++) {
-                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
-                                TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID, TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
                         }
-
                     }
                 }
             }
@@ -2740,9 +2702,6 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
  */
 void SidebarClassExtension_Hooks()
 {
-    Patch_Jump(0x005F23AC, &_SidebarClass_Constructor_Patch);
-    Patch_Jump(0x005B8B7D, &_SidebarClass_Destructor_Patch);
-
     /**
      *  These patches are compatible with the vanilla sidebar.
      */
@@ -2760,16 +2719,7 @@ void SidebarClassExtension_Hooks()
     // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
     Patch_Byte(0x0044E605 + 1, 0x8C);
 
-    /**
-     *  Legacy patches for the old sidebar.
-     */
-    Patch_Jump(0x005F5188, &_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch);
-    Patch_Jump(0x005F5216, &_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch);
-    Patch_Jump(0x005F52AF, &_SidebarClass_StripClass_Custom_Cameo_Image_Patch);
-    Patch_Jump(0x005F5120, &_StripClass_Draw_It_Fetch_Factory_Patch1);
-    Patch_Jump(0x005F537C, &_StripClass_Draw_It_Fetch_Factory_Patch2);
-
-    Patch_Jump(0x005F4EDD, &_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch);
+    // Paired with _SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch
     Patch_Byte(0x005F4EF7 + 2, 0x14); // Pop one more argument passed to sprintf
 
     Patch_Jump(0x005F4DD0, 0x005F4DD5); // Skip a call to Speak as we now speak UNIT_READY in HouseClassExt::Place_Object
@@ -2796,7 +2746,7 @@ void SidebarClassExtension_Conditional_Hooks()
         Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
         Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
         Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
-        Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
+        Patch_Jump(0x005F6080, &SidebarClassExt::_Shift_Sidebar);
         Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
         Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
 

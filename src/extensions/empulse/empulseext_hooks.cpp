@@ -1,42 +1,21 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended EMPulseClass.
  *
- *  @project       Vinifera
- *
- *  @file          EMPULSEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended EMPulseClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "buildingtypeext.h"
-#include "technotype.h"
-#include "techno.h"
-#include "building.h"
-#include "foot.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "buildingtypeext.h"
+#include "extension.h"
+#include "foot.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "techno.h"
+#include "technotype.h"
 
 /**
  *  #issue-181
@@ -47,12 +26,11 @@
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_EMPulseClass_Create_Building_EMPImmune_Patch)
+DEFINE_HOOK(0x00492C45, _EMPulseClass_Create_Building_EMPImmune_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, buildingtype, eax);
-    static BuildingTypeClassExtension *exttype_ptr;
+    GET(BuildingTypeClass *, buildingtype, EAX);
 
-    exttype_ptr = Extension::Fetch(buildingtype);
+    auto exttype_ptr = Extension::Fetch(buildingtype);
 
     /**
      *  Is this building immune to EMP weapons?
@@ -69,14 +47,13 @@ original_code:
         goto loop_continue;
     }
 
-    _asm {mov eax, buildingtype}
-    JMP_REG(ecx, 0x00492C53);
+    return 0x00492C53;
 
     /**
      *  Continue looping through affected cells.
      */
 loop_continue:
-    JMP(0x00492F93);
+    return 0x00492F93;
 }
 
 /**
@@ -89,13 +66,11 @@ loop_continue:
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_EMPulseClass_Create_Foot_EMPImmune_Patch)
+DEFINE_HOOK(0x00492E84, _EMPulseClass_Create_Foot_EMPImmune_Patch, 0)
 {
-    GET_REGISTER_STATIC(FootClass *, foot, esi);
-    static ILocomotion *loco;
-    static TechnoTypeClassExtension *exttype_ptr;
+    GET(FootClass *, foot, ESI);
 
-    exttype_ptr = Extension::Fetch(foot->TClass);
+    auto exttype_ptr = Extension::Fetch(foot->TClass);
 
     /**
      *  Is this object immune to EMP weapons?
@@ -108,16 +83,15 @@ DECLARE_PATCH(_EMPulseClass_Create_Foot_EMPImmune_Patch)
      *  Stolen bytes/code.
      */
 original_code:
-    loco = foot->Locomotor_Ptr();
-    loco->Power_Off();
+    foot->Locomotion->Power_Off();
 
-    JMP(0x00492EB8);
+    return 0x00492EB8;
 
     /**
      *  Continue looping through the cell occupiers.
      */
 loop_continue:
-    JMP(0x00492F78);
+    return 0x00492F78;
 }
 
 
@@ -126,6 +100,4 @@ loop_continue:
  */
 void EMPulseClassExtension_Hooks()
 {
-    Patch_Jump(0x00492E84, _EMPulseClass_Create_Foot_EMPImmune_Patch);
-    Patch_Jump(0x00492C45, _EMPulseClass_Create_Building_EMPImmune_Patch);
 }

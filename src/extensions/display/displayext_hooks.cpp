@@ -1,63 +1,41 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended DisplayClass.
  *
- *  @project       Vinifera
- *
- *  @file          DISPLAYEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended DisplayClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "displayext_hooks.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "tibsun_util.h"
-#include "display.h"
-#include "iomap.h"
-#include "cell.h"
+
+#include "actiontype.h"
 #include "building.h"
-#include "buildingtype.h"
 #include "buildingtypeext.h"
-#include "techno.h"
-#include "technotype.h"
+#include "cell.h"
+#include "display.h"
+#include "extension.h"
+#include "hooker.h"
 #include "house.h"
-#include "housetype.h"
+#include "iomap.h"
 #include "layer.h"
 #include "session.h"
 #include "sessionext.h"
+#include "syringe.h"
+#include "techno.h"
+#include "technotype.h"
+#include "tibsun_globals.h"
+#include "tibsun_util.h"
+#include "vinifera_globals.h"
 #include "wwmouse.h"
-#include "mousetype.h"
-#include "actiontype.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
@@ -169,63 +147,41 @@ ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
  *
  *  @author: CCHyper, ZivDero
  */
-static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall, CellClass *cellptr)
+DEFINE_HOOK(0x004782CF, _DisplayClass_Mouse_Left_Up_Set_Mouse, 0)
 {
+    GET(ActionType, action, EBX);
+    GET_STACK(bool, shadow, 0x1C);
+    GET_STACK(CellClass*, cellptr, 0xC);
+    GET_STACK(bool, wsmall, 0x28);
+
     MouseType mouse = MOUSE_NORMAL;
 
     if (shadow) {
-        
         mouse = ActionTypes[action]->Get_Shadow_Mouse();
-
         if (action == ACTION_NOMOVE) {
-            if (CurrentObjects.Count()
-                && CurrentObjects[0]->Is_Techno()
-                && CurrentObjects[0]->TClass->MoveToShroud) {
-
+            if (CurrentObjects.Count() && CurrentObjects[0]->Is_Techno() && CurrentObjects[0]->TClass->MoveToShroud) {
                 mouse = ActionTypes[ACTION_MOVE]->Get_Shadow_Mouse();
             }
         }
-
     } else {
-
         mouse = ActionTypes[action]->Get_Mouse();
-
         if (action == ACTION_ATTACK) {
-            if (cellptr
-                && CurrentObjects.Count() == 1
-                && CurrentObjects[0]->Is_Techno()
-                && static_cast<TechnoClass*>(CurrentObjects[0])->In_Range_Of(cellptr)) {
-
+            if (cellptr && CurrentObjects.Count() == 1 && CurrentObjects[0]->Is_Techno() && static_cast<TechnoClass*>(CurrentObjects[0])->In_Range_Of(cellptr)) {
                 mouse = MOUSE_STAY_ATTACK;
             }
         }
-
     }
 
     Map.Set_Default_Mouse(mouse, wsmall);
-}
 
+    // return;
+    return 0x004786C5;
+}
 
 /**
- *  Patch to set the mouse cursor based on the action.
- *
- *  @author: CCHyper, ZivDero
+ *  The ts-patches spawner has its own Build off Ally implementation.
  */
-DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
-{
-    GET_REGISTER_STATIC(ActionType, action, ebx);
-    GET_STACK_STATIC8(bool, shadow, esp, 0x20);
-    GET_STACK_STATIC(CellClass *, cellptr, esp, 0x10);
-    GET_STACK_STATIC8(bool, wsmall, esp, 0x2C);
-
-    _asm { pop ebp }
-
-    Display_Set_Mouse_Cursor(action, shadow, wsmall, cellptr);
-
-    //return
-    JMP(0x004786C5);
-}
-
+#ifndef TS_CLIENT
 
 /**
  *  #issue-171
@@ -234,21 +190,13 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
+DEFINE_HOOK(0x004762E4, _DisplayClass_Passes_Proximity_Passes_Check_Patch, 0)
 {
-    //GET_REGISTER_STATIC(DisplayClass *, this_ptr, ?);   // No access to "this".
-    GET_REGISTER_STATIC(BuildingClass *, base, eax);
-    GET_STACK_STATIC(HousesType, house, esp, 0x38);
-    //GET_STACK_STATIC8(bool, passes, esp, 0x3C);
-    static BuildingTypeClassExtension *buildingtypeext;
-    static HouseClass *hptr;
+    GET(BuildingClass *, base, EAX);
+    GET_STACK(HousesType, house, 0x38);
+    REF_STACK(bool, passes, 0x3C);
 
-    /**
-     *  Store the proximity check result.
-     */
-    #define passes() _asm { mov byte ptr [esp+0x3C], 1 }
-
-    hptr = Houses[house];
+    HouseClass* hptr = Houses[house];
 
     /**
      *  Stolen bytes/code.
@@ -256,7 +204,7 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
      *  Ensure the building is considered eligible for adjacency checks.
      */
     if (base->House->HeapID == house && base->Class->IsBase) {
-        passes();
+        passes = true;
     }
 
     /**
@@ -271,22 +219,19 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
 
             if (base->House != hptr && base->House->Is_Ally(hptr)) {
 
-                buildingtypeext = Extension::Fetch(base->Class);
+                BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(base->Class);
                 if (buildingtypeext->IsEligibleForAllyBuilding) {
-#ifndef NDEBUG
-                    //DEV_DEBUG_INFO("Ally \"%s's\" building \"%s\" is eligible for building off.\n", base->House->IniName.c_str(), base->Name());
-#endif
-                    passes();
+                    passes = true;
                 }
             }
         }
     }
 
-    #undef passes
-
 continue_scan:
-    JMP(0x00476308);
+    return 0x00476308;
 }
+
+#endif
 
 
 /**
@@ -298,19 +243,16 @@ continue_scan:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch)
+DEFINE_HOOK(0x00478974, _DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch, 0)
 {
-    GET_REGISTER_STATIC(DisplayClass *, this_ptr, ebx);
-
-    static Point2D mouse_pos;
+    GET(DisplayClass *, this_ptr, EBX);
 
     /**
      *  Find out where the mouse cursor is, if its over the sidebar
      *  then invalidate the proximity checks, fixing the glitch.
      */
-    mouse_pos.X = Get_Mouse_X();
-    mouse_pos.Y = Get_Mouse_Y();
-    if (mouse_pos.X >= (TacticalRect.Width-1)) {
+    Point2D mouse_pos = Get_Mouse_Point();
+    if (mouse_pos.X >= TacticalRect.Width-1) {
         this_ptr->IsProximityCheck = false;
         this_ptr->IsShroudCheck = false;
         goto unable_to_deploy;
@@ -331,35 +273,15 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch)
      *  Cannot deploy here.
      */
 unable_to_deploy:
-    JMP(0x00478A30);
+    return 0x00478A30;
 
     /**
      *  Create PLACE event.
      */
 place_it:
-    JMP(0x00478990);
+    return 0x00478990;
 }
 
-
-/**
- *  We can't allocate instance on the stack in inline patches, so this
- *  fetches the mouse coords and assigned them to a global which we can
- *  then use after a call is made to this function without any issues.
- * 
- *  @author: CCHyper
- */
-static Cell _tmpcell;
-static Coord _tmpcoord;
-static void Get_Mouse_Cursor_Coords()
-{
-    _tmpcell = Get_Cell_Under_Mouse();
-    _tmpcoord = Get_Coord_Under_Mouse();
-
-    /**
-     *  Fixup Z position based on cell height.
-     */
-    _tmpcoord.Z = Map.Get_Height_GL(_tmpcoord);
-}
 
 /**
  *  Patch to return the mouse coords if the developer option is enabled.
@@ -368,18 +290,20 @@ static void Get_Mouse_Cursor_Coords()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_DisplayClass_Help_Text_GetCursorPosition_Patch)
+DEFINE_HOOK(0x0047AFA6, _DisplayClass_Help_Text_GetCursorPosition_Patch, 0)
 {
-    GET_REGISTER_STATIC(DisplayClass *, this_ptr, ebx);
-    LEA_STACK_STATIC(Coord *, coordinate, esp, 0x2C);
+    LEA_STACK(Coord *, coordinate, 0x2C);
     static char _cursor_position_buffer[128];
 
     if (Vinifera_Developer_ShowCursorPosition) {
 
+        Cell tmpcell = Get_Cell_Under_Mouse();
+        Coord tmpcoord = Get_Coord_Under_Mouse();
+
         /**
-         *  We need handle this out of this functions stack.
+         *  Fixup Z position based on cell height.
          */
-        Get_Mouse_Cursor_Coords();
+        tmpcoord.Z = Map.Get_Height_GL(tmpcoord);
 
         /**
          *  Format the buffer with the cell and coord of the
@@ -387,9 +311,9 @@ DECLARE_PATCH(_DisplayClass_Help_Text_GetCursorPosition_Patch)
          */
         std::snprintf(_cursor_position_buffer, sizeof(_cursor_position_buffer),
             " Cell: %d,%d  Coord: %d,%d,%d ",
-            _tmpcell.X, _tmpcell.Y, _tmpcoord.X, _tmpcoord.Y, _tmpcoord.Z);
-        
-        _asm { mov eax, offset _cursor_position_buffer }
+            tmpcell.X, tmpcell.Y, tmpcoord.X, tmpcoord.Y, tmpcoord.Z);
+
+        R->EAX(_cursor_position_buffer);
         goto return_label;
     }
 
@@ -405,19 +329,19 @@ original_code:
      *  Continue the function flow.
      */
 continue_function:
-    JMP(0x0047AFDA);
+    return 0x0047AFDA;
 
     /**
      *  Returns TXT_SHADOW.
      */
 txt_shadow:
-    JMP(0x0047AFC7);
+    return 0x0047AFC7;
 
     /**
      *  Function return, expects buffer or string pointer in EAX register.
      */
 return_label:
-    JMP_REG(ecx, 0x0047AFD1);
+    return 0x0047AFD1;
 }
 
 
@@ -428,18 +352,15 @@ return_label:
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_DisplayClass_47A790_Patch)
+DEFINE_HOOK(0x0047A856, _DisplayClass_47A790_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, i, edi)
+    GET(int, i, EDI);
 
-        if (i < NEW_WAYPOINT_COUNT)
-        {
-            JMP(0x0047A7FC);
-        }
-        else
-        {
-            JMP(0x0047A85B);
-        }
+    if (i < NEW_WAYPOINT_COUNT) {
+        return 0x0047A7FC;
+    } else {
+        return 0x0047A85B;
+    }
 }
 
 
@@ -448,18 +369,6 @@ DECLARE_PATCH(_DisplayClass_47A790_Patch)
  */
 void DisplayClassExtension_Hooks()
 {
-    Patch_Jump(0x0047AFA6, &_DisplayClass_Help_Text_GetCursorPosition_Patch);
-    Patch_Jump(0x00478974, &_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch);
-
-    /**
-     *  The ts-patches spawner has its own Build off Ally implementation.
-     */
-#ifndef TS_CLIENT
-    Patch_Jump(0x004762E4, &_DisplayClass_Passes_Proximity_Passes_Check_Patch);
-#endif
-
-    Patch_Jump(0x004782CA, &_DisplayClass_Mouse_Left_Up_Set_Mouse);
-
     /**
      *  #issue-76
      * 
@@ -478,15 +387,6 @@ void DisplayClassExtension_Hooks()
     Patch_Dword(0x0047A0B5+1, ISOMAPPACK_BUFF_WIDTH);
     Patch_Dword(0x0047A0BA+1, ISOMAPPACK_BUFF_HEIGHT);
     Patch_Dword(0x0047A0C8+1, ISOMAPPACK_BUFF_WIDTH*ISOMAPPACK_BUFF_HEIGHT*sizeof(unsigned short));
-
-    /**
-     *  #issue-71
-     *
-     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
-     *
-     *  @author: ZivDero
-     */
-    Patch_Jump(0x0047A856, &_DisplayClass_47A790_Patch);
 
     Patch_Byte_Range(0x0047C0A2, 0x90, 13); // Patch out logging "Display: Abort_Drag_Select()"
 

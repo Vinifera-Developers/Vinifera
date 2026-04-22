@@ -1,58 +1,39 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended CampaignClass.
  *
- *  @project       Vinifera
- *
- *  @file          CAMPAIGNEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended CampaignClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "campaignext_hooks.h"
-#include "campaignext_init.h"
+
+#include "addon.h"
 #include "campaign.h"
 #include "campaignext.h"
-#include "addon.h"
-#include "extension.h"
-#include "fatal.h"
+#include "campaignext_init.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
  *  #issue-723
- * 
+ *
  *  Patches in support for checking IsDebugOnly when loading campaigns.
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
+DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)
 {
-    GET_REGISTER_STATIC(CampaignClass *, campaign, esi);
-    GET_REGISTER_STATIC(int, index, edi);
-    static CampaignClassExtension *campaignext;
+    GET(CampaignClass *, campaign, ESI);
+    GET(int, index, EDI);
 
-    campaignext = Extension::Fetch(campaign);
+    auto campaignext = Extension::Fetch(campaign);
 
     /**
      *  Is this a debug campaign? Make sure the developer mode is enabled
@@ -88,10 +69,9 @@ DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
 add_campaign:
     DEBUG_INFO("  Adding Campaign [%d] - %s\n", index, campaign->Description);
 add_no_print:
-    _asm { mov esi, campaign }
-    _asm { add esi, 0x268 } // campaign->Description
-    _asm { mov edi, index }
-    JMP_REG(ecx, 0x004E33D1);
+    R->ESI(&campaign->Description);
+    R->EDI(index);
+    return 0x004E33D1;
 
     /**
      *  Skip this campaign.
@@ -99,7 +79,7 @@ add_no_print:
 skip_campaign:
     DEBUG_GAME("  Skipping Campaign [%d] - %s\n", index, campaign->Description);
 skip_no_print:
-    JMP(0x004E33E6);
+    return 0x004E33E6;
 }
 
 
@@ -113,6 +93,5 @@ void CampaignClassExtension_Hooks()
      */
     CampaignClassExtension_Init();
 
-    Patch_Jump(0x004E337D, &_Choose_Campaign_Debug_Only_Patch);
     Patch_Byte_Range(0x004E3377, 0x90, 3); // Removes "or ecx, 0x0FFFFFFFF"
 }

@@ -1,45 +1,28 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended AnimClass class.
  *
- *  @project       Vinifera
- *
- *  @file          ANIMEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended AnimClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animext.h"
+
 #include "anim.h"
 #include "animtype.h"
 #include "animtypeext.h"
-#include "tibsun_inline.h"
-#include "wwcrc.h"
-#include "extension.h"
 #include "asserthandler.h"
-#include "debughandler.h"
+#include "extension.h"
 #include "options.h"
+#include "tibsun_inline.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :

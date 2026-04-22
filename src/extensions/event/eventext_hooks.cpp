@@ -1,40 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended EventClass.
  *
- *  @project       Vinifera
- *
- *  @file          EVENTEXT_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for the extended EventClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "eventext_hooks.h"
+
+#include "connmgr.h"
+#include "debughandler.h"
 #include "event.h"
 #include "eventext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
+#include "ipxmgr.h"
 #include "session.h"
+#include "syringe.h"
 #include "version.h"
 
 
@@ -43,29 +28,231 @@
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_EventClass_Execute_New_Events)
+DEFINE_HOOK(0x00494294, _EventClass_Execute_New_Events, 5)
 {
-    GET_REGISTER_STATIC(EventClassExt*, event, esi);
-
-    _asm pushad
+    GET(EventClassExt*, event, ESI);
 
     if (event->Is_Vinifera_Event()) {
         event->Execute();
-        _asm popad
-        JMP(0x00495110); // return
+        return 0x00495110; // return
     }
 
-    static EventType etype;
-    static int eID;
+    return 0;
+}
 
-    etype = event->Type;
-    eID = event->ID;
+/**
+ *  Keeps a record of which connection ID we received the current packet from.
+ *  Used for detecting forged events in Extract_Compressed_Events.
+ */
+static int CurrentPacketPlayerId;
 
-    // continue execution
-    _asm popad
-    _asm mov al, etype
-    _asm mov edi, eID
-    JMP_REG(ebx, 0x00494299);
+/**
+ *  Reimplementation of Extract_Uncompressed_Events because the compiler
+ *  decided to inline and omit it from the original game binary.
+ *
+ *  @author: DRD (Red Alert 1 source code)
+ *           Rampastring (Tiberian Sun / Vinifera changes).
+ */
+static int Extract_Uncompressed_Events(void* buf, int bufsize)
+{
+    int count = 0;
+    int pos = 0;
+    int leftover = bufsize;
+    EventClass* event;
+
+    /**
+     *  Loop until there are no more events in the packet
+     */
+    while (leftover >= sizeof(EventClass)) {
+
+        event = (EventClass*)(((char*)buf) + pos);
+
+        /**
+         *  add event to the DoList, only if it's not a FRAMESYNC
+         *  (but FRAMEINFO's do get added.)
+         */
+        if (event->Type != EVENT_FRAMESYNC) {
+            event->IsExecuted = 0;
+
+            /**
+             *  Special processing for variable-sized events
+             */
+            if (event->Type == EVENT_ADDPLAYER) {
+                event->Data.Variable.Pointer = new char[event->Data.Variable.Size];
+                memcpy(event->Data.Variable.Pointer, ((char*)buf) + sizeof(EventClass), event->Data.Variable.Size);
+
+                pos += event->Data.Variable.Size;
+                leftover -= event->Data.Variable.Size;
+            }
+
+            if (!DoList.Add(*event)) {
+                if (event->Type == EVENT_ADDPLAYER) {
+                    delete[] event->Data.Variable.Pointer;
+                }
+                return (-1);
+            }
+#ifdef MIRROR_QUEUE
+            MirrorList.Add(*event);
+#endif
+
+            /**
+             *  Keep count of how many events we add to the queue
+             */
+            count++;
+        }
+
+        /**
+         *  Point to the next position in the buffer; decrement our 'leftover'
+         */
+        pos += sizeof(EventClass);
+        leftover -= sizeof(EventClass);
+    }
+
+    return (count);
+}
+
+
+/**
+ *  Reimplementation of Breakup_Receive_Packet because the compiler
+ *  decided to inline and omit it from the original game binary.
+ *
+ *  @author: BRR (Red Alert 1 source code).
+ */
+static int Breakup_Receive_Packet(void* buf, int bufsize)
+{
+    int count = 0;
+
+    /*
+    **	is there enough leftover for another record
+    */
+    switch (Session.CommProtocol) {
+    case (COMM_PROTOCOL_SINGLE_NO_COMP):
+        count = Extract_Uncompressed_Events(buf, bufsize);
+        break;
+
+    default:
+        count = Extract_Compressed_Events(buf, bufsize);
+        break;
+    }
+
+    return (count);
+}
+
+
+/**
+ *  Replacement of Process_Receive_Packet to record who we received a packet from.
+ *
+ *  @author: BRR (Red Alert 1 source code)
+*            tomsons26, Rampastring (Tiberian Sun changes)
+ */
+static RetcodeType _Process_Receive_Packet(ConnManClass* net, char* multi_packet_buf, int id, int packetlen, FrameSyncStruct* their, BasicTimerClass<SystemTimerClass>* timer)
+{
+    EventClass* event;
+    int index;
+    RetcodeType retcode = RC_NORMAL;
+    int i;
+    int frame;
+
+    /**
+     *  Record who we received this packet from so we can compare their ID against the events they have sent.
+     */
+    CurrentPacketPlayerId = id;
+
+    /**
+     *  Get an event ptr to the incoming message
+     */
+    event = (EventClass*)multi_packet_buf;
+
+    /**
+     *  Get the index of the sender
+     */
+    index = net->Connection_Index(id);
+
+    /**
+     *  Compute the other player's frame # (at the time this packet was sent)
+     */
+    frame = (event->Frame - event->Data.FrameInfo.Delay);
+    if (their[index].frame < frame) {
+
+        /**
+         *  If the original frame # for this player is -1, it means we've heard
+         *  from this player for the 1st time; return the appropriate value.
+         */
+        if (their[index].frame == -1) {
+            retcode = RC_PLAYER_READY;
+        }
+
+        their[index].frame = frame;
+
+        if (Session.Type != GAME_INTERNET) {
+            Session.field_1B30[index] = 0;
+        } else {
+            unsigned long f = Ipx.Avg_Response_Time(index) / 2;
+            f *= FramesPerSecond;
+            Session.field_1B30[index] = (Frame - (f / 60)) - frame;
+        }
+    }
+
+    /**
+     *  Extract the other player's CommandCount.  This count will include
+     *  the commands in this packet, if there are any.
+     */
+    if (event->Data.FrameInfo.CommandCount > their[index].sent) {
+
+        if (abs((int)(their[index].sent - event->Data.FrameInfo.CommandCount)) > 500) {
+            FILE* fp;
+            fp = fopen("badcount.txt", "wt");
+            if (fp) {
+                fprintf(fp, "Event Type:%s\n", EventClassExt::Event_Name(event->Type));
+                fprintf(fp, "Frame:%d  ID:%d  IsExec:%d\n", event->Frame, event->ID, event->IsExecuted);
+                if (event->Type != EVENT_FRAMEINFO) {
+                    fprintf(fp, "!!!!!!!!! bad bug, bad bug !!!!!!!!!\n");
+                } else {
+                    fprintf(fp, "CRC:%x  CommandCount:%d  Delay:%d\n", event->Data.FrameInfo.CRC, event->Data.FrameInfo.CommandCount, event->Data.FrameInfo.Delay);
+                }
+            }
+        }
+
+        their[index].sent = event->Data.FrameInfo.CommandCount;
+    }
+
+
+    /**
+     *  If this packet was not a FRAMESYNC packet:
+     *  - Add the events in it to our DoList
+     *  - Increment our commands-received counter by the number of non-FRAMEINFO packets received
+     */
+    if (event->Type != EVENT_FRAMESYNC) {
+        /**
+         *  Break up the packet into its component events.  A returned packet
+         *  count of -1 indicates a fatal queue-full error.
+         */
+        i = Breakup_Receive_Packet(multi_packet_buf, packetlen);
+        if (i == -1) {
+            return (RC_DOLIST_FULL);
+        }
+        /**
+         *  Compute the actual # commands in the packet by subtracting off the FRAMEINFO event
+         */
+        if ((event->Type == EVENT_FRAMEINFO) && (i > 0)) {
+            i--;
+        }
+
+        their[index].recv += (i & 0xFFFF); // TODO shouldn't be needed?????
+    }
+
+    /**
+     *  If the event was a FRAMESYNC packet, there will be no commands to add,
+     *  but we must check the ScenarioCRC value.
+     */
+    else if (event->Type == EVENT_FRAMESYNC) {
+        if (event->Data.FrameInfo.CRC != ScenarioCRC) {
+            return (RC_SCENARIO_MISMATCH);
+        }
+        their[index].timing = *timer;
+    }
+
+    return (retcode);
 }
 
 
@@ -376,6 +563,15 @@ static int _Extract_Compressed_Events(void* buf, int bufsize)
             }
 
             /**
+             *  If the sender ID of this packet does not match the expected player ID,
+             *  this is a forged packet. No need to continue - just bail.
+             */
+            if (eventdata.ID != CurrentPacketPlayerId) {
+                DEBUG_ERROR("Extract_Compressed_Events: Forged house ID detected. Expected: %d, actual: %d\n", CurrentPacketPlayerId, event->ID);
+                return count;
+            }
+
+            /**
              *  Clear the union data portion of the event
              */
             memset(&eventdata.Data, 0, sizeof(eventdata.Data));
@@ -474,17 +670,131 @@ static int _Extract_Compressed_Events(void* buf, int bufsize)
 
 
 /**
+ *  Fixes a cheat in the original game where players are able to issue
+ *  commands to technos that are not owned by them.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x004946FF, _EventClass_Execute_MEGAMISSION_Prevent_Controlling_Enemy_Units, 0)
+{
+    enum {
+        Continue = 0x0049470A,
+        Bail = 0x00495110
+    };
+
+    GET(EventClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EDI);
+
+    // Stolen bytes / code.
+    // Jump out if the techno is not active.
+    if (!techno->IsActive) {
+        return Bail;
+    }
+
+    bool hasowncargo = false;
+
+    if (Session.Type != GAME_NORMAL) {
+        // In multiplayer, each human player can only control one house.
+        if (this_ptr->ID != techno->House->HeapID) {
+
+            // House IDs between event and unit do not match.
+            // This might be a crafted event.
+            // But before assuming so, check for the object having the event sender's units as cargo.
+            // This is necessary so that a player is able to unload units placed inside another house's transport.
+            FootClass* cargoobject = techno->Cargo.Attached_Object();
+            while (cargoobject != nullptr) {
+                if (cargoobject->House->HeapID == this_ptr->ID) {
+                    hasowncargo = true;
+                    break;
+                }
+                cargoobject = reinterpret_cast<FootClass*>(cargoobject->Next);
+            }
+
+            if (!hasowncargo) {
+                return Bail;
+            }
+        }
+    } else {
+        // In campaign, the player can control multiple houses.
+        // We might as well also fix this exploit for campaign by checking for player control here.
+        if (!techno->House->IsPlayerControl) {
+
+            // Also check for cargo in singleplayer. But use IsPlayerControl instead of direct ID comparison
+            // due to the human player being able to control multiple houses.
+            FootClass* cargoobject = techno->Cargo.Attached_Object();
+            while (cargoobject != nullptr) {
+                if (cargoobject->House->IsPlayerControl) {
+                    hasowncargo = true;
+                    break;
+                }
+                cargoobject = reinterpret_cast<FootClass*>(cargoobject->Next);
+            }
+
+            if (!hasowncargo) {
+                return Bail;
+            }
+        }
+    }
+
+    // Continue event execution.
+    return Continue;
+}
+
+
+/**
+ *  Fixes a cheat in the original game where players are able to issue
+ *  an IDLE command to technos that are not owned by them.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x004949AF, _EventClass_Execute_IDLE_Prevent_Controlling_Enemy_Units, 0)
+{
+    enum {
+        Continue = 0x004949BB,
+        Bail = 0x00495110
+    };
+
+    GET(EventClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EAX);
+
+    // Stolen bytes / code.
+    // Jump out if the techno is null.
+    if (techno == nullptr) {
+        return Bail;
+    }
+
+    if (Session.Type != GAME_NORMAL) {
+        // In multiplayer, each human player can only control one house.
+        if (this_ptr->ID != techno->House->HeapID) {
+            // ID of owner of techno does not match the ID of whoever generated the event.
+            // Exit the function.
+            return Bail;
+        }
+    } else {
+        // In campaign, the player can control multiple houses.
+        // We might as well also fix this exploit for campaign by checking for player control here.
+        if (!techno->House->IsPlayerControl) {
+            return Bail;
+        }
+    }
+
+    // Continue event execution.
+    // Set esi to point to the techno and edi to zero, the original
+    // game code expects these values.
+    R->ESI(techno);
+    R->EDI(0);
+    return Continue;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void EventClassExtension_Hooks()
 {
-    Patch_Jump(0x00494294, &_EventClass_Execute_New_Events);
-    //Patch_Jump(0x005B4530, &_Add_Compressed_Events);
-    //Patch_Jump(0x005B4A40, &_Extract_Compressed_Events);
-
-    Patch_Dword(0x005B45E2 + 2, reinterpret_cast<uint32_t>(&EventClassExt::EventLength));
-    Patch_Dword(0x005B4AED + 2, reinterpret_cast<uint32_t>(&EventClassExt::EventLength));
-    Patch_Dword(0x005B4CF8 + 2, reinterpret_cast<uint32_t>(&EventClassExt::EventLength));
+    Patch_Jump(0x005B4530, &_Add_Compressed_Events);
+    Patch_Jump(0x005B4A40, &_Extract_Compressed_Events);
+    Patch_Jump(0x005B3600, &_Process_Receive_Packet);
 
     Patch_Jump(0x00494B9A, 0x00494BAA); // Jump over code that prevents deploying with aircraft
 }

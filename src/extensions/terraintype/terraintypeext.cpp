@@ -1,42 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TerrainTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TERRAINTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TerrainTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "terraintypeext.h"
-#include "terraintype.h"
+
 #include "ccini.h"
-#include "wwcrc.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "terraintype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* this_ptr) :
@@ -197,15 +180,15 @@ bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsLightEnabled = ini.Get_Bool(ini_name, "IsLightEnabled", IsLightEnabled);
     LightVisibility = ini.Get_Int(ini_name, "LightVisibility", LightVisibility);
-    LightIntensity = ini.Get_Double(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
-    LightRedTint = ini.Get_Double(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
-    LightGreenTint = ini.Get_Double(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
-    LightBlueTint = ini.Get_Double(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
+    LightIntensity = ini.Get_Float(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
+    LightRedTint = ini.Get_Float(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
+    LightGreenTint = ini.Get_Float(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
+    LightBlueTint = ini.Get_Float(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
 
     auto get_min_max = [](auto& ini, const char* section, const char* key, const Point2D& defval) {
         char buffer[128];
         int scan_min = 0, scan_max = 0;
-        if (ini.Get_String(section, key, buffer, sizeof(buffer)) > 0) {
+        if (ini.Get_String(section, key, "", buffer, sizeof(buffer)) > 0) {
             int scanned = sscanf(buffer, "%d,%d", &scan_min, &scan_max);
             if (scanned > 0) {
                 if (scanned == 1) {

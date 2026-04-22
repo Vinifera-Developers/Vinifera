@@ -1,52 +1,31 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended ToolTipManager.
  *
- *  @project       Vinifera
- *
- *  @file          TOOLTIPEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended ToolTipManager.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "tooltipext_hooks.h"
-#include "vinifera_globals.h"
-#include "tooltip.h"
-#include "cctooltip.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "always.h"
+
+#include "tooltipext_hooks.h"
+
+#include "syringe.h"
+#include "tooltip.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch to kill the tooltip timer when the developer option is enabled.
- * 
+ *
  *  @see: CursorPositionCommandClass.
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ToolTipManager_Message_Handler_CursorPosition_Patch)
+DEFINE_HOOK(0x006473D4, _ToolTipManager_Message_Handler_CursorPosition_Patch, 0)
 {
-    GET_REGISTER_STATIC(ToolTipManager *, this_ptr, esi);
+    GET(ToolTipManager *, this_ptr, ESI);
 
     /**
      *  If the cursor position command is activated, skip all
@@ -65,7 +44,7 @@ original_code:
      */
     KillTimer(this_ptr->Window, ToolTipManager::TIMER_ID);
 
-    JMP(0x006473E3);
+    return 0x006473E3;
 
 set_tooltip:
     /**
@@ -84,7 +63,7 @@ set_tooltip:
         SetTimer(this_ptr->Window, ToolTipManager::TIMER_ID, this_ptr->ToolTipLifetime, nullptr);
     }
 
-    JMP(0x006474D2);
+    return 0x006474D2;
 }
 
 
@@ -93,5 +72,5 @@ set_tooltip:
  */
 void ToolTipManagerExtension_Hooks()
 {
-    Patch_Jump(0x006473D4, &_ToolTipManager_Message_Handler_CursorPosition_Patch);
+
 }

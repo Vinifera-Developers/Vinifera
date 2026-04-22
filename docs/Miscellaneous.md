@@ -13,6 +13,83 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - `FreeUnit` or `PadAircraft` would in some cases affect the cost of a building. This functionality has been removed.
 - Pre-placed units can now have missions in multiplayer.
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
+- Improve alternative factory selection when the primary factory is blocked.
+- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+
+## INI
+
+### INI Inclusion and Inheritance
+
+INI files now support modularity through the `[$Include]` and `[$Inherit]` sections. These allow files to be merged or used as templates, each with distinct override behaviors.
+
+#### `[$Include]`
+* **Behavior:** The current file pulls in external data as if "pasting" it into the logic.
+* **Priority:** Included files override the current file. Values read later in the inclusion chain take precedence.
+* **Use Case:** Splitting a massive configuration into smaller, organized sub-modules.
+
+#### `[$Inherit]`
+* **Behavior:** The current file uses external files as a base template or background layer.
+* **Priority:** The current file overrides inherited files. This allows the host file to act as a "patch" layer.
+* **Use Case:** Creating map-specific overrides or mods that only define changes relative to a base file (e.g., `RULES.INI`).
+
+### Technical Rules
+* Supported in any INI file (`RULES.INI`, `ART.INI`, `SOUND.INI`, `AI.INI`, maps, etc.).
+* Files must be listed with unique keys (e.g., `0=FILE1.INI`, `1=FILE2.INI`).
+* Supported with files loaded from the game directory or from within any loaded `.MIX` archive.
+* Both features perform **depth-first recursion** (nested includes are resolved before moving to the next file in the list).
+* Entries are processed sequentially in the order in which they appear, regardless of their key (left of `=`).
+
+In any `INI` file:
+```ini
+[$Inherit]
+0=SOMEFILE1.INI  ; file name
+
+[$Include]
+0=SOMEFILE2.INI  ; file name
+```
+
+```{caution}
+Avoid recursive includes. Vinifera does not provide circular reference protection; self-referencing files will cause the game to crash.
+```
+
+```{note}
+Included/inherited files **MUST** be present. Failure to find such a file will cause the game to exit for security reasons.
+```
+
+### Section inheritance
+
+Sections can now inherit entries from one or more "parent" sections using the `$Inherits` key. This allows for shared configuration templates and reduced redundancy within INI files.
+
+### Technical Rules
+* If a key is missing or has no value in the current section, the game looks up the value in the specified parent sections. If the value is still not found, it falls back to the hardcoded engine default.
+* The current (child) section always takes precedence.
+* You can list multiple parents separated by commas. The lookup follows a **left-to-right** priority:
+  `$Inherits=ParentA, ParentB` (The engine checks ParentA first, then ParentB).
+* Inheritance is **depth-first**. If ParentA inherits from ParentX, ParentA's hierarchy will be fully resolved before ParentB is checked.
+
+In any `INI` file:
+```ini
+[TemplateA]
+Armor=heavy
+Speed=5
+
+[TemplateB]
+Speed=10
+Weapon=Vulcan
+
+[NewUnit]
+$Inherits=TemplateA,TemplateB
+Owner=GDI
+; Result: Armor=heavy (from A), Weapon=Vulcan (from B), Speed=5 (from A), Owner=GDI (Own value)
+```
+
+```{caution}
+There are no internal guards against recursive inheritance. If Section A inherits from Section B, and Section B inherits from Section A, the game will crash.
+```
+
+```{caution}
+Section-level does not work in certain cases that *iterate* a section. Notably, it may not be used with type lists, `[Tutorial]`, map briefings, as well as with map object lists.
+```
 
 ## Quality of Life
 
@@ -21,6 +98,36 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera changes the default value of `IsScoreShuffle` to true.
 - Vinifera changes the default value of `AllowHiResModes` to true.
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction.
+
+### DirectDraw replacement
+
+- Vinifera replaced the old DirectDraw (`ddraw.dll`) API with SDL. As a result, DirectDraw wrappers are no longer necessary for the game to run properly, and may even be harmful.
+- Accordingly, some new video settings are available in `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Video]
+Windowed=no         ; boolean, should the game start in a window
+WindowWidth=-1      ; integer, if positive and Windowed=true, sets the window width override
+WindowHeight=-1     ; integer, if positive and Windowed=true, sets the window height override
+RendererDriver=Auto ; renderer backend, valid options are "Auto", "Direct3D", "Direct3D11", "Direct3D12", "OpenGL" and "Vulkan"
+ScaleMode=PixelArt  ; scale mode, valid options are "Linear", "Nearest" and "PixelArt"
+CursorScale=0       ; integer, cursor scale factor override
+VSync=no            ; boolean, is vertical synchronization on?
+```
+
+`RendererDriver` supports SDL's Direct3D backends, OpenGL and Vulkan. If SDL cannot initialize the game with the select renderer, startup will fail instead of silently falling back.
+
+```{note}
+`CursorScale` options:
+- `<0` - disable scaling
+- `0` - scale automatically
+- `>0` - explicit scale value
+```
+
+```{warning}
+Fullscreen mode uses a borderless window; exclusive fullscreen is not supported. To disable the windowed mode entirely, set `Windowed` to `false`.
+```
 
 ### Starting Unit Placement
 
@@ -98,6 +205,18 @@ BuildOffAlly=yes                   ; boolean, can players build their own struct
 [SOMEBUILDING]                     ; BuildingType
 EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity checks by players who are its owner's allies?
                                    ; For buildings with ConstructionYard=yes this defaults to yes, otherwise it defaults to no.
+```
+
+### AI Repair Base Nodes
+
+- You can now customize whether the AI can repair structures created as base nodes. 
+- Applies globally to all AI houses, and only affects non-skirmish games. 
+- Can be set and overridden at either game (Rules.ini) or map level.
+
+In a scenario file:
+```ini
+[AI]
+AIRepairBaseNodes=no   ; boolean, can the AI can repair structures created as base nodes?
 ```
 
 ## Window Title, Cursor and Icon
@@ -184,6 +303,15 @@ Once a movement zone is replaced with water, it cannot be reverted.
 ```ini
 [General]
 BeachIsCrush=  ; boolean, are beaches considered as requiring crushing for pathfinding purposes?
+```
+
+## Building Catching on Fire Timeout
+
+- When a building enters a damaged state, it spawns flame animations that may deal damage. If the building rapidly switches between damage states, it may end up spawning many instance of flame animations, taking large amount of damage. You can now specify a timeout during which buildings do not get flames spawned on them on damage state change after once catching fire.
+
+```ini
+[CombatDamage]
+BuildingFlameSpawnBlockFrames=  ; integer, for how many frames buildings do not get flames spawned on them on damage state change after once catching fire.
 ```
 
 ## File System

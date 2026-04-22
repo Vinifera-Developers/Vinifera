@@ -1,103 +1,83 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended hotkey command class.
  *
- *  @project       Vinifera
- *
- *  @file          COMMANDEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended hotkey command class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "commandext.h"
-#include <map>
-#include <algorithm>
-#include "tibsun_globals.h"
-#include "tibsun_util.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "iomap.h"
-#include "tactical.h"
-#include "tacticalext.h"
-#include "theme.h"
-#include "dsurface.h"
-#include "wwmouse.h"
-#include "rules.h"
-#include "house.h"
-#include "housetype.h"
-#include "base.h"
-#include "super.h"
-#include "factory.h"
-#include "anim.h"
-#include "animtype.h"
-#include "voxelanim.h"
-#include "voxelanimtype.h"
-#include "unit.h"
-#include "unittype.h"
-#include "infantry.h"
-#include "infantrytype.h"
-#include "building.h"
-#include "buildingtype.h"
+
 #include "aircraft.h"
 #include "aircrafttype.h"
-#include "weapontype.h"
-#include "warheadtype.h"
-#include "session.h"
-#include "ionstorm.h"
-#include "ionblast.h"
-#include "tiberium.h"
+#include "anim.h"
+#include "animtype.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "base.h"
+#include "beacon.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "bullettype.h"
 #include "combat.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "event.h"
+#include "eventext.h"
+#include "extension.h"
+#include "factory.h"
+#include "fatal.h"
+#include "filepng.h"
+#include "house.h"
+#include "houseext.h"
+#include "housetype.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "ionblast.h"
+#include "ionstorm.h"
+#include "language.h"
+#include "minidump.h"
+#include "miscutil.h"
+#include "overlaytype.h"
+#include "particlesystype.h"
+#include "particletype.h"
+#include "queue.h"
+#include "rockettype.h"
+#include "rules.h"
 #include "scenario.h"
+#include "scenarioext.h"
+#include "session.h"
 #include "sidebarext.h"
+#include "smudgetype.h"
+#include "super.h"
+#include "tactical.h"
+#include "tacticalext.h"
 #include "tag.h"
 #include "tagtype.h"
 #include "terraintype.h"
+#include "theme.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "tibsun_util.h"
 #include "trigger.h"
 #include "triggertype.h"
-#include "smudgetype.h"
-#include "overlaytype.h"
-#include "armortype.h"
+#include "unit.h"
+#include "unittype.h"
+#include "vinifera_globals.h"
+#include "voxelanim.h"
 #include "voxelanimtype.h"
-#include "particletype.h"
-#include "particlesystype.h"
-#include "rockettype.h"
-#include "vox.h"
-#include "event.h"
-#include "queue.h"
-#include "language.h"
-#include "wwcrc.h"
-#include "filepcx.h"
-#include "filepng.h"
-#include "extension.h"
-#include "fatal.h"
-#include "minidump.h"
-#include "winutil.h"
-#include "miscutil.h"
-#include "audio_util.h"
-#include "audio_theme.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "beacon.h"
-#include "bullettype.h"
-#include "eventext.h"
-#include "houseext.h"
+#include "warheadtype.h"
 #include "waypointpath.h"
+#include "weapontype.h"
+#include "winutil.h"
+#include "wwcrc.h"
+#include "wwmouse.h"
+
+#include <algorithm>
+#include <map>
 
 
 /**
@@ -108,7 +88,7 @@
 
 /**
  *  Skips to the previous available music track allowed.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Prev_Theme_Command()
@@ -1423,7 +1403,7 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
 /**
  *  Handy macro for defining the logging the heaps CRCs.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, Rampastring
  */
 #define LOG_CRC(class_name, heap_name) \
     { \
@@ -1436,7 +1416,12 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
                     ptr->Object_CRC(crc); \
-                    DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value()); \
+                    if (ptr->RTTI == RTTI_INFANTRY || ptr->RTTI == RTTI_UNIT || ptr->RTTI == RTTI_BUILDING || ptr->RTTI == RTTI_AIRCRAFT) {                                                                                                                                                                    \
+                        TechnoClass* techno = (TechnoClass*)ptr;                                                                                                                                                                                                                                               \
+                        DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\tOwner: %s (%d) (Class: %s)\tCoord: %d,%d,%d\n", i, ptr->Name(), crc.CRC_Value(), techno->House->IniName.c_str(), techno->House->HeapID, techno->House->Class->IniName.c_str(), techno->Position.X, techno->Position.Y, techno->Position.Z); \
+                    } else {                                                                                                                                                                                                                                                                                   \
+                        DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value());                                                                                                                                                                                                        \
+                    } \
                 } else { \
                     DEBUG_INFO("  %04d\tFAILED!\n", i); \
                 } \
@@ -1556,9 +1541,9 @@ bool DumpTriggersCommandClass::Process()
 
     DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
 
-    for (int i = 0; i < std::size(Scen->LocalFlags); i++)
+    for (int i = 0; i < std::size(ScenExtension->LocalFlags); i++)
     {
-        DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
+        DEBUG_INFO("LocalFlag %d: %s, value: %d\n", i, ScenExtension->LocalFlags[i].VariableName, ScenExtension->LocalFlags[i].Value);
     }
 
     DEBUG_INFO("\nFinished!\n\n");
@@ -1868,6 +1853,7 @@ bool VeterancyPromoteCommandClass::Process()
  */
 using TechnoList = DynamicVectorClass<TechnoClass*>;
 
+std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
 
 /**
  *  Checks if two lists are equal, meaning they contain the same TechnoClass pointers.
@@ -1990,24 +1976,20 @@ void Classify(const Classify_Function &classify_function, TechnoList &current_se
  *  otherwise the selection will be replaced with the next tier.
  */
 bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
-{
-    if (Session.Players.Count() > 1) {
-        return false;
-    }
-
+{    
     /**
      *  Each classify_function has its own last_full_selection and last_selection arrays.
      */
-    static std::map<Classify_Function, TechnoList*> last_full_selection_by_classifiers = {
-        { Get_Veterancy_Level, new TechnoList() },
-        { Get_Health_Level, new TechnoList() }
-    };
-    
+    if (UnitFilterLastFullSelectionByClassifiers.empty()) {
+        UnitFilterLastFullSelectionByClassifiers[Get_Veterancy_Level] = new TechnoList();
+        UnitFilterLastFullSelectionByClassifiers[Get_Health_Level] = new TechnoList();
+    }
+
     /**
      *  We fetch the last full selection for the given classify_function.
      */
-    TechnoList &last_full_selection = *(last_full_selection_by_classifiers[classify_function]);
-    TechnoList last_selection[3];
+    TechnoList& last_full_selection = *(UnitFilterLastFullSelectionByClassifiers[classify_function]);
+    TechnoList last_selection[3]; 
 
     /**
      *  Then we classify the last full selection into three tiers.

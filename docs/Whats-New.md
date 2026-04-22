@@ -72,7 +72,24 @@ New:
 - Add Water movement zone override (by ZivDero)
 - Implement multiplayer beacons (by ZivDero)
 - Chat improvements (by ZivDero)
-
+- Port to Syringe (by ZivDero)
+- Add customizable wake animations (by CCHyper, ZivDero)
+- Replace DirectDraw with SDL (by ZivDero, tomsons26, CCHyper)
+- Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages (by Rampastring)
+- Improve alternative factory selection when the primary factory is blocked (by Rampstring)
+- Add "Adjust House Modifier" trigger action (by Rampstring)
+- Add "Only Harvesters" quarry (by Rampastring)
+- Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
+- Implement INI inheritance/includes (by ZivDero)
+- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
+- Add "Building Does Not Exist" trigger event (by Rampastring)
+- Add "Create Building At" trigger action (by Rampastring)
+- Add the Iron Curtain logic from Red Alert 1 for map scripting and AI (by Rampastring)
+- Heap dumping command now logs more information of Techno objects (by Rampastring)
+- Allow customizing the distance for the "Comes Near Waypoint" trigger event (by Rampastring)
+- Add DetectDisguise to TechnoTypes (by Rampastring)
+- Allow customizing whether AI sees through disguise (by Rampastring)
+- Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -89,6 +106,14 @@ Vinifera fixes:
 - Fix a bug where only local variables up to 50 would be used (by ZivDero)
 - Fix a bug where you'd hear "Construction complete" after placing a building, instead of when it's ready (by ZivDero)
 - Fix a bug where AI vehicles got stuck on War Factory if attacked while exiting (by Rampastring, ZivDero)
+- Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
+- Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
+- Fix a bug where new local/global variable trigger events wouldn't reset their timers correctly (by ZivDero)
+- Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued (by ZivDero)
+- Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving (by ZivDero)
+- Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
+- Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
+- Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 
 
 Vanilla fixes:
@@ -114,6 +139,24 @@ Vanilla fixes:
 - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily (by ZivDero)
 - Fix a bug where Tiberium spawned by animations wouldn't grow or spread (by ZivDero)
 - Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
+- Teams attacking a BwP now take zones into account (by Rampastring) 
+- Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building (by Rampastring)
+- Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
+- Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
+- Fix incorrect merging of sections and keys in INI files (by ZivDero)
+- Fix game end text being stretched horizontally (by ZivDero)
+- Fix a bug where upon restoring focus to the window the last theme would play twice (by ZivDero)
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft (by Rampastring)
+- Fix a bug where hijackers are able to hijack vehicles of their allies (by Rampastring)
+- Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game (by Rampastring)
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps (by Rampastring, ported from Phobos code by CrimRecya)
+- Fix a bug where friendly Spies appeared as disguised (by Rampastring)
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name (by Rampastring)
+- Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type (by Rampastring)
+- Fix an edge case crash when AI is attempting to find a location to place a structure to (by Rampastring)
+- Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
 
 :::
 
@@ -266,7 +309,8 @@ New:
 - Allow customizing which Tiberiums can grow on a tile (by ZivDero)
 - Allow customizing which Smudges can appear on a tile (by ZivDero)
 - Allow customizing if Veins can grow on a tile (by ZivDero)
-
+- Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
+- Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -347,4 +391,3 @@ Vanilla fixes:
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
 
 :::
-

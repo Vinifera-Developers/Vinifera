@@ -1,63 +1,48 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended HouseClass class.
  *
- *  @project       Vinifera
- *
- *  @file          HOUSEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended HouseClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "houseext.h"
 
-#include <algorithm>
-#include "house.h"
-#include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "factory.h"
-#include "mouse.h"
-#include "saveload.h"
-#include "sidebarext.h"
-#include "vinifera_saveload.h"
-#include "storageext.h"
-#include "tibsun_functions.h"
-#include "utracker.h"
 #include "building.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "factory.h"
 #include "factoryext.h"
+#include "house.h"
+#include "mouse.h"
 #include "overlaytype.h"
 #include "prerequisitegroup.h"
 #include "rules.h"
+#include "rulesext.h"
+#include "saveload.h"
 #include "session.h"
+#include "sidebarext.h"
+#include "storageext.h"
 #include "team.h"
 #include "teamtype.h"
+#include "tibsun_functions.h"
 #include "unit.h"
 #include "unittypeext.h"
+#include "utracker.h"
+#include "vinifera_saveload.h"
 #include "voc.h"
 #include "vox.h"
+
+#include <algorithm>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
@@ -67,7 +52,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     NavalFactories(0),
     NavalFactory(nullptr),
     BuildNavalUnit(UNIT_NONE),
-    SpawnWaypoint(WAYPOINT_NONE)
+    SpawnWaypoint(WAYPOINT_NONE),
+    IronCurtainAvailabilityTimer()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
@@ -379,17 +365,68 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     return PROD_OK;
 }
 
+/**
+ *  Replacement of Fetch_Techno_Type that performs bounds checking.
+ *
+ *  @author: Rampastring
+ */
+TechnoTypeClass const* _Fetch_Techno_Type(RTTIType type, int id)
+{
+    switch (type) {
+    case RTTI_UNITTYPE:
+    case RTTI_UNIT:
+        if (id < UnitTypes.Count())
+            return (TechnoTypeClass*)(UnitTypes[id]);
+        return nullptr;
+
+    case RTTI_BUILDINGTYPE:
+    case RTTI_BUILDING:
+        if (id < BuildingTypes.Count())
+            return (TechnoTypeClass*)(BuildingTypes[id]);
+        return nullptr;
+
+    case RTTI_INFANTRYTYPE:
+    case RTTI_INFANTRY:
+        if (id < InfantryTypes.Count())
+            return (TechnoTypeClass*)(InfantryTypes[id]);
+        return nullptr;
+
+    case RTTI_AIRCRAFTTYPE:
+    case RTTI_AIRCRAFT:
+        if (id < AircraftTypes.Count())
+            return (TechnoTypeClass*)(AircraftTypes[id]);
+        return nullptr;
+
+    default:
+        break;
+    }
+    return nullptr;
+}
+
 
 /**
  *  Extended replacement of HouseClass::Begin_Production.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool resume, ProductionFlags flags)
 {
     int result = true;
     FactoryClass* fptr;
-    const TechnoTypeClass* tech = Fetch_Techno_Type(type, id);
+    const TechnoTypeClass* tech = _Fetch_Techno_Type(type, id);
+
+    /*
+    **  The event layer does not validate the validity of the production event,
+    **  which allows players to build normally unbuildable objects through crafted events.
+    **  Validate the request here.
+    */
+    if (tech == nullptr) {
+        return PROD_ILLEGAL;
+    }
+
+    if (This()->Is_Human_Player() && tech->Level > This()->Control.TechLevel) {
+        return PROD_ILLEGAL;
+    }
 
     BuildingClass* who = tech->Who_Can_Build_Me(false, true, true, This());
     bool onhold = false;
@@ -612,7 +649,9 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                         **  the production manager tied to this slot in the sidebar. Its job
                         **  has been completed.
                         */
-                        LastRadarEventCell = builder->Center_Coord().As_Cell();
+
+                        // Do not assign last radar event cell, it's an annoyance - Rampastring
+                        // LastRadarEventCell = builder->Center_Coord().As_Cell();
                         factory->Completed();
                         Abandon_Production(type, -1, flags);
                         placed = true;
@@ -819,11 +858,10 @@ int HouseClassExtension::AI_Unit()
 
     int harv = This()->ActiveUQuantity.Value(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
     int ref = This()->ActiveBQuantity.Value(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
-    int mult;
-    if (Session.Type == GAME_NORMAL || This()->Difficulty == DIFF_HARD) {
+    int mult = RuleExtension->AIHarvestersPerRefinery[This()->Difficulty];
+
+    if (Session.Type == GAME_NORMAL && RuleExtension->IsAIOneHarvesterInSingleplayer) {
         mult = 1;
-    } else {
-        mult = 2;
     }
 
     /*
@@ -1239,10 +1277,10 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
  *
  *  @author: ZivDero
  */
-void HouseClassExtension::Set_Spawn_Point(const Coord& coord)
+void HouseClassExtension::Set_Spawn_Point(const Cell& cell)
 {
     for (WAYPOINT i = 0; i < MAX_PLAYERS; i++) {
-        if (Scen->Waypoint_Coord(i).As_Cell() == coord.As_Cell()) {
+        if (Scen->Is_Waypoint_Valid(i) && Scen->Waypoint_Cell(i) == cell) {
             SpawnWaypoint = i;
             return;
         }
@@ -1291,4 +1329,39 @@ HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
      *  Otherwise, just perform the normal logic to fetch the house.
      */
     return ::House_From_HousesType(house);
+}
+
+
+/**
+ *  Checks whether this house is able to use the Iron Curtain.
+ *
+ *  @author: Rampastring
+ */
+bool HouseClassExtension::Can_Use_Iron_Curtain() const
+{
+    if (!IronCurtainAvailabilityTimer.Expired()) {
+        return false;
+    }
+
+    if (!This()->Is_Powered()) {
+        return false;
+    }
+
+    for (int i = 0; i < RuleExtension->IronCurtains.Count(); i++) {
+        if (This()->ActiveBQuantity.Value(RuleExtension->IronCurtains[i]->HeapID) > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ *  Marks the house's Iron Curtain as used, making it recharge.
+ *
+ *  @author: Rampastring
+ */
+void HouseClassExtension::Expend_Iron_Curtain()
+{
+    IronCurtainAvailabilityTimer = RuleExtension->IronCurtainRechargeTime;
 }

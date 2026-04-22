@@ -1,51 +1,32 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended BulletClass.
  *
- *  @project       Vinifera
- *
- *  @file          BULLETEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended BulletClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "bulletext_hooks.h"
+
+#include "anim.h"
+#include "asserthandler.h"
+#include "building.h"
+#include "bullet.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
-#include "bullet.h"
-#include "anim.h"
-#include "animtype.h"
-#include "building.h"
+#include "extension.h"
+#include "hooker.h"
 #include "house.h"
 #include "infantry.h"
+#include "iomap.h"
 #include "overlaytype.h"
+#include "syringe.h"
 #include "techno.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
-#include "iomap.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
 
 
 /**
@@ -160,28 +141,27 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coord& coord)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BulletClass_AI_SpawnDelay_Patch)
+DEFINE_HOOK(0x004447BF, _BulletClass_AI_SpawnDelay_Patch, 0)
 {
-    GET_REGISTER_STATIC(BulletClass *, this_ptr, ebp);
-    static BulletTypeClassExtension *bullettypeext;
+    GET(BulletClass *, this_ptr, EBP);
 
     /**
      *  Fetch the extension instance.
      */
-    bullettypeext = Extension::Fetch(this_ptr->Class);
+    BulletTypeClassExtension* bullettypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  If this bullet has a custom spawn delay (defaults to the original delay of 3), perform that check first.
      */
-    if ((Frame % bullettypeext->SpawnDelay) == 0) {
+    if (Frame % bullettypeext->SpawnDelay == 0) {
         goto create_trailer_anim;
     }
 
 skip_anim:
-    JMP(0x00444801);
+    return 0x00444801;
 
 create_trailer_anim:
-    JMP(0x004447D0);
+    return 0x004447D0;
 }
 
 
@@ -192,17 +172,17 @@ create_trailer_anim:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
+DEFINE_HOOK(0x00446652, _BulletClass_Logic_ShakeScreen_Patch, 0)
 {
-    GET_REGISTER_STATIC(BulletClass *, this_ptr, ebx);
-    GET_REGISTER_STATIC(WarheadTypeClass *, warhead, eax);
-    GET_STACK_STATIC(Coord *, coord, esp, 0x0A8);
-    static WarheadTypeClassExtension *warheadext;
+    GET(WarheadTypeClass *, warhead, EAX);
+    GET_STACK(Coord*, coord, 0x0A8);
+
+    R->EDI(coord);
 
     /**
      *  Fetch the extension instance.
      */
-    warheadext = Extension::Fetch(warhead);
+    auto warheadext = Extension::Fetch(warhead);
 
     /**
      *  If this warhead has screen shake values defined, then set the blitter
@@ -216,15 +196,9 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
     }
 
     /**
-     *  Restore some registers.
-     */
-    _asm { mov eax, warhead }
-    _asm { mov edi, coord /*[esp+0x0A8]*/ } // coord
-
-    /**
      *  Jumps back to IsEMEffect check.
      */
-    JMP_REG(edx, 0x00446659);
+    return 0x00446659;
 }
 
 
@@ -234,6 +208,4 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
 void BulletClassExtension_Hooks()
 {
     Patch_Jump(0x004462C0, &BulletClassExt::_Is_Forced_To_Explode);
-    Patch_Jump(0x00446652, &_BulletClass_Logic_ShakeScreen_Patch);
-    Patch_Jump(0x004447BF, &_BulletClass_AI_SpawnDelay_Patch);
 }

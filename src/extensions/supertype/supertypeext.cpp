@@ -1,43 +1,26 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended SuperWeaponTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          SUPERTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended SuperWeaponTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "supertypeext.h"
-#include "supertype.h"
-#include "vinifera_util.h"
+
 #include "bsurface.h"
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "supertype.h"
+#include "vinifera_util.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTypeClass *this_ptr) :
@@ -217,8 +200,7 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ActionOutOfRange = ini.Get_ActionType(ini_name, "ActionOutOfRange", ActionOutOfRange);
     VoxMissileLaunched = ini.Get_VoxType(ini_name, "MissileLaunchedVoice", VoxMissileLaunched);
 
-    if (ini.Is_Present(ini_name, "Description"))
-        ini.Get_String(ini_name, "Description", Description, std::size(Description));
+    if (ini.Is_Present(ini_name, "Description")) ini.Get_String(ini_name, "Description", "", Description, std::size(Description));
 
     IsInitialized = true;
     

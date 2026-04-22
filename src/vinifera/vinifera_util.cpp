@@ -1,49 +1,35 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Various utility functions.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_UTIL.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Various utility functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_util.h"
-#include "vinifera_gitinfo.h"
+
+#include "bsurface.h"
+#include "cncnet4_globals.h"
+#include "colorscheme.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "filepng.h"
+#include "minidump.h"
+#include "msgbox.h"
+#include "spritecollection.h"
+#include "textprint.h"
+#include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_const.h"
+#include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "colorscheme.h"
-#include "textprint.h"
-#include "dsurface.h"
-#include "bsurface.h"
-#include "spritecollection.h"
-#include "filepng.h"
-#include "filepcx.h"
-#include "cncnet4_globals.h"
-#include "wwfont.h"
-#include "msgbox.h"
-#include "minidump.h"
 #include "winutil.h"
+#include "wwfont.h"
 #include "xzip.h"
+
 #include <cstdio>
 
 
@@ -64,12 +50,12 @@ const char *Vinifera_Name_String()
         /**
          *  Append the CnCNet version if enabled.
          */
-        char *cncnet_mode = nullptr;
+        char const* cncnet_mode = nullptr;
         if (CnCNet4::IsEnabled) {
             cncnet_mode = " (CnCNet4)";
         }
 
-        char *dev_mode = nullptr;
+        char const* dev_mode = nullptr;
         if (Vinifera_DeveloperMode) {
             dev_mode = " (Dev)";
         }
@@ -168,7 +154,7 @@ const char *Vinifera_Version_String()
         /**
          *  Append the CnCNet version if enabled.
          */
-        char *cncnet_mode = nullptr;
+        char const* cncnet_mode = nullptr;
         if (CnCNet4::IsEnabled) {
             cncnet_mode = " (CnCNet4)";
         }
@@ -401,6 +387,31 @@ int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2
 
 
 /**
+ *  Shows a in-game warning message box and logs the message.
+ *
+ *  @author: Rampastring
+ */
+void Vinifera_Log_And_Show_WWMessageBox(const char* msg, ...)
+{
+    char buffer[510]; // Working staging buffer.
+    va_list arg;      // Argument list var.
+
+    va_start(arg, msg);
+    vsnprintf(buffer, sizeof(buffer), msg, arg);
+    va_end(arg);
+
+    // For the log file, append a line-terminator at the end of the message.
+    char log_buffer[512];
+    int message_length = strlen(buffer);
+    memcpy(log_buffer, buffer, message_length);
+    log_buffer[message_length] = '\n';
+
+    DEBUG_WARNING(log_buffer);
+    WWMessageBox().Process(buffer, 0, "OK");
+}
+
+
+/**
  *  Shows a in-game warning message box only if developer mode is active.
  * 
  *  This has been made its own function because we can not allocate on the stack with
@@ -434,7 +445,7 @@ void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...)
  */
 const char *Vinifera_Get_Window_Title(DWORD dwPid)
 {
-    static char _window_name[512];
+    static char _window_name[512] = {};
 
     if (_window_name[0] != '\0') {
         return _window_name;

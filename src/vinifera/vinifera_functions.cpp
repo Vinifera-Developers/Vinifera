@@ -1,67 +1,47 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  General functions.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_FUNCTIONS.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         General functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_functions.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
+
+#include "actiontype.h"
+#include "aircrafttracker.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "ccfile.h"
+#include "ccini.h"
+#include "cd.h"
 #include "cncnet4.h"
 #include "cncnet4_globals.h"
 #include "cncnet5_globals.h"
-#include "rulesext.h"
-#include "ccfile.h"
-#include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
 #include "filestraw.h"
-#include "readline.h"
-#include "cd.h"
-#include "ebolt.h"
+#include "kamikazetracker.h"
+#include "mousetype.h"
+#include "newjumpjetlocomotion.h"
 #include "optionsext.h"
-#include "rulesext.h"
-#include "sessionext.h"
-#include "scenarioext.h"
-#include "tacticalext.h"
+#include "prerequisitegroup.h"
+#include "readline.h"
+#include "rocketlocomotion.h"
+#include "setup_hooks.h"
+#include "spawnmanager.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
-#include "kamikazetracker.h"
-#include "spawnmanager.h"
-#include "extension.h"
 #include "theatertype.h"
-#include "armortype.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "uicontrol.h"
-#include "mousetype.h"
-#include "actiontype.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include <string>
+#include "vinifera_globals.h"
 
-#include "aircrafttracker.h"
-#include "rocketlocomotion.h"
-#include "newjumpjetlocomotion.h"
-#include "prerequisitegroup.h"
-#include "setup_hooks.h"
+#include <string>
 
 #include "audio_util.h"
 
@@ -91,9 +71,9 @@ bool Vinifera_Load_INI()
 
     ini.Load(file);
 
-    ini.Get_String("General", "ProjectName", Vinifera_ProjectName, sizeof(Vinifera_ProjectName));
-    ini.Get_String("General", "IconFile", Vinifera_IconName, sizeof(Vinifera_IconName));
-    ini.Get_String("General", "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
+    ini.Get_String("General", "ProjectName", "", Vinifera_ProjectName, sizeof(Vinifera_ProjectName));
+    ini.Get_String("General", "IconFile", "", Vinifera_IconName, sizeof(Vinifera_IconName));
+    ini.Get_String("General", "CursorFile", "", Vinifera_CursorName, sizeof(Vinifera_CursorName));
 
 #if defined(TS_CLIENT)
     /**
@@ -105,12 +85,12 @@ bool Vinifera_Load_INI()
     if (ver_file.Is_Available()) {
         INIClass ver_ini;
         ver_ini.Load(ver_file);
-        ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+        ver_ini.Get_String("DTA", "Version", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     } else {
-        ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+        ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     }
 #else
-    ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
 #endif
 
     Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
@@ -119,7 +99,7 @@ bool Vinifera_Load_INI()
     Vinifera_CursorName[sizeof(Vinifera_CursorName)-1] = '\0';
 
     char buffer[1024];
-    if (ini.Get_String("General", "SearchPaths", buffer, sizeof(buffer)) > 0) {
+    if (ini.Get_String("General", "SearchPaths", "", buffer, sizeof(buffer)) > 0) {
         char *path = std::strtok(buffer, ",");
         while (path) {
             if (!ViniferaSearchPaths.Is_Present(path)) {
@@ -138,7 +118,7 @@ bool Vinifera_Load_INI()
     Vinifera_NoTacticalVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoTacticalVersionString);
 
     Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
-    ini.Get_String("General", "SavedGamesDirectory", buffer, std::size(buffer));
+    ini.Get_String("General", "SavedGamesDirectory", "", buffer, std::size(buffer));
     if (std::strlen(buffer) > 0) {
         std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);
     }
@@ -260,6 +240,13 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
 {
     if (argc > 1) {
         DEBUG_INFO("Parsing command line arguments...\n");
+    }
+
+    /**
+     *  Let the game parse the arguments first.
+     */
+    if (!Parse_Command_Line(argc, argv)) {
+        return false;
     }
 
     bool menu_skip = false;

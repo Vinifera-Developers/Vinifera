@@ -1,37 +1,19 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Vinifera global values.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_GLOBALS.H
- *
- *  @authors       CCHyper
- *
- *  @brief         Vinifera global values.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "vector.h"
 #include "ccfile.h"
 #include "extension_globals.h"
-#include "scenarioext.h"
+#include "vector.h"
+
+#include <unordered_map>
 
 
 class PrerequisiteGroupClass;
@@ -44,7 +26,9 @@ class ArmorTypeClass;
 class RocketTypeClass;
 class MouseTypeClass;
 class ActionTypeClass;
-class PrerequisiteGroupClass;
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
 
 
 extern bool Vinifera_DeveloperMode;
@@ -91,6 +75,16 @@ extern bool Vinifera_Developer_IsToReloadRules;
 
 
 /**
+ *  SDL globals.
+ */
+extern SDL_Window* SDLWindow;
+extern SDL_Renderer* SDLWindowRenderer;
+extern SDL_Texture* SDLWindowTexture;
+extern int SDLWindowWidth;
+extern int SDLWindowHeight;
+
+
+/**
  *  Various globals.
  */
 extern bool Vinifera_SkipLogoMovies;
@@ -113,6 +107,8 @@ extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
 
 extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
+
+extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
 
 /**

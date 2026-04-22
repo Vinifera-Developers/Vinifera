@@ -1,69 +1,50 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended AnimClass.
  *
- *  @project       Vinifera
- *
- *  @file          ANIMEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended AnimClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animext_hooks.h"
-#include "tibsun_globals.h"
-#include "tibsun_inline.h"
+
 #include "anim.h"
 #include "animext.h"
 #include "animext_init.h"
 #include "animtype.h"
 #include "animtypeext.h"
-#include "smudgetype.h"
-#include "particle.h"
-#include "particletype.h"
-#include "particlesys.h"
-#include "target.h"
-#include "cell.h"
-#include "rules.h"
-#include "scenario.h"
-#include "voc.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "cell.h"
 #include "combat.h"
 #include "coord.h"
 #include "drawshape.h"
-#include "mouse.h"
-#include "voc.h"
-#include "overlaytype.h"
-#include "overlay.h"
-#include "tactical.h"
-#include "tiberium.h"
-
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "mouse.h"
+#include "overlay.h"
+#include "overlaytype.h"
+#include "particle.h"
+#include "particlesys.h"
+#include "particletype.h"
+#include "rules.h"
+#include "scenario.h"
+#include "smudgetype.h"
+#include "syringe.h"
+#include "tactical.h"
+#include "target.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
+#include "voc.h"
 
 
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
@@ -515,7 +496,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
     AnimTypeClassExtension* animtypeext;
 
     animtypeext = Extension::Fetch(this_ptr->Class);
-    if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
+    if (animtypeext->ParticleToSpawn != NULL) {
 
         for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
 
@@ -524,7 +505,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
             /**
              *  Spawn a new particle at this anims coord.
              */
-            MasterParticle->Spawn_Particle(ParticleTypes[animtypeext->ParticleToSpawn], spawn_coord);
+            MasterParticle->Spawn_Particle(animtypeext->ParticleToSpawn, spawn_coord);
         }
     }
 }
@@ -682,12 +663,11 @@ void AnimClassExt::_Delete_Me()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
+DEFINE_HOOK(0x00413D3E, _AnimClass_Constructor_Layer_Set_Z_Height_Patch, 0)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClassExtension *animtypeext;
-    
-    animtypeext = Extension::Fetch(this_ptr->Class);
+    GET(AnimClass *, this_ptr, ESI);
+
+    AnimTypeClassExtension* animtypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Set the layer to the highest level if "air" or "top".
@@ -706,7 +686,7 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
         this_ptr->HeightAGL = 0;
     }
 
-    JMP(0x00413D63);
+    return 0x00413D63;
 }
 
 
@@ -717,16 +697,13 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
  *  @author: ZivDero
  */
 static AnimClass* _CurrentlyDrawnAnim = nullptr;
-DECLARE_PATCH(_AnimClass_Draw_It_Shadow_Patch)
+DEFINE_HOOK(0x00414B42, _AnimClass_Draw_It_Shadow_Patch, 6)
 {
-    GET_REGISTER_STATIC(AnimClass*, anim, esi);
-    _asm pushad
+    GET(AnimClass*, anim, ESI);
 
     _CurrentlyDrawnAnim = anim;
 
-    _asm popad
-    _asm mov eax, [eax + 0x1CC]
-    JMP_REG(edx, 0x00414B48);
+    return 0;
 }
 
 
@@ -795,8 +772,6 @@ void AnimClassExtension_Hooks()
      */
     AnimClassExtension_Init();
 
-    Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
-    Patch_Jump(0x00414B42, &_AnimClass_Draw_It_Shadow_Patch);
     Patch_Call(0x00414BA9, &Draw_Shape_Proxy);
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);

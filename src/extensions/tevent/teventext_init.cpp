@@ -1,54 +1,32 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for initialising the extended TEventClass.
  *
- *  @project       Vinifera
- *
- *  @file          TEVENTEXT_INIT.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for initialising the extended TEventClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "teventext.h"
-#include "tevent.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "tevent.h"
+#include "teventext.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TEventClass_Constructor_Patch)
+DEFINE_HOOK(0x00642207, _TEventClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(TEventClass *, this_ptr, esi); // Current "this" pointer.
+    GET(TEventClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -63,14 +41,8 @@ DECLARE_PATCH(_TEventClass_Constructor_Patch)
      */
     Extension::Make<TEventClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { retn }
+    return 0;
 }
 
 
@@ -81,21 +53,17 @@ original_code:
  * 
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TEventClass_Destructor_Patch)
+DEFINE_HOOK(0x00642F28, _TEventClass_Scalar_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(TEventClass *, this_ptr, esi);
+    GET(TEventClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<TEventClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x0080F570 } // EventActionTracker.vtble
-    JMP_REG(ecx, 0x0064222E);
+    return 0;
 }
 
 
@@ -104,6 +72,5 @@ original_code:
  */
 void TEventClassExtension_Init()
 {
-    Patch_Jump(0x00642207, &_TEventClass_Constructor_Patch);
-    Patch_Jump(0x00642228, &_TEventClass_Destructor_Patch);
+
 }
