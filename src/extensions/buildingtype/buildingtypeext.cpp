@@ -230,6 +230,23 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 
     Fetch_Building_Normal_Image(Scen->Theater);
 
+    /**
+     *  ObjectTypeClass::Read_INI attempts to preload the image from a MIX file.
+     *  If you mark an object type DemandLoad=yes, and then place its image in a cached MIX,
+     *  the game will incorrectly attempt to delete that image later. To avoid this,
+     *  null the MIX-fetched image out now.
+     */
+    if (This()->IsDemandLoad) {
+        This()->Image = nullptr;
+    }
+
+    /**
+     *  Don't try to free buildups if we don't demand load them.
+     */
+    if (!This()->IsDemandLoadBuildup) {
+        This()->IsFreeBuildup = false;
+    }
+
     IsInitialized = true;
 
     return true;
