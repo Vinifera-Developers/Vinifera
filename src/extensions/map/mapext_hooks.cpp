@@ -41,7 +41,6 @@
 #include "vinifera_globals.h"
 #include "syringe.h"
 #include "rules.h"
-#include "debughandler.h"
 
 
 /**
