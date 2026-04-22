@@ -2203,7 +2203,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
-        DEBUG_INFO("  House %d (%s) starting at waypoint %d (%d,%d)\n", house, hptr->IniName, houseext->SpawnWaypoint, centroid.X, centroid.Y);
+        DEBUG_INFO("  House %d (%s) starting at waypoint %d (%d,%d)\n", house, hptr->IniName.c_str(), houseext->SpawnWaypoint, centroid.X, centroid.Y);
     }
 }
 

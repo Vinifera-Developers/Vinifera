@@ -658,8 +658,6 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005E16E0, &ScenarioClassExt::_Set_Waypoint_Cell);
     Patch_Jump(0x005E1700, &ScenarioClassExt::_Waypoint_CellClass);
     Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
-    Patch_Jump(0x005DC852, &_Clear_Scenario_Patch);
-    Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
     Patch_Jump(0x00673330, &_Waypoint_From_Name);
     Patch_Jump(0x006732B0, &_Waypoint_To_Name);
     Patch_Jump(0x005DF930, &ScenarioClassExt::_Read_Global_INI);
@@ -677,9 +675,6 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DFB70, &ScenarioClassExt::_Find_Local_Variable_Index);
     Patch_Jump(0x005DFDC0, &ScenarioClassExt::_Find_Free_Local);
     Patch_Jump(0x005DFDA0, &ScenarioClassExt::_Num_Locals);
-
-    Patch_Jump(0x005DCB59, &_ScenarioClass_Do_Win_GlobalFlags_Patch);
-    Patch_Jump(0x005DC64D, &_Clear_Scenario_Clear_Globals_Patch);
 
     /**
      *  #issue-218
