@@ -624,9 +624,6 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DE210, &ScenarioClassExtension::Assign_Houses);
     Patch_Jump(0x005DE580, &ScenarioClassExtension::Create_Units);
 
-    Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
-    Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
-
     /**
      *  #issue-71
      *

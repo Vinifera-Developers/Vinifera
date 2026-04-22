@@ -973,14 +973,11 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
 DEFINE_HOOK(0x004BCEE7, _HouseClass_AI_Short_Game_BaseUnit_Patch, 0)
 {
     GET(HouseClass *, this_ptr, ESI);
-    static UnitTypeClass *unittype;
-    static UnitType unit;
-    static int count;
 
     /**
      *  Count all MCVs we own to see if the player should explode.
      */
-    count = this_ptr->Count_Owned(RuleExtension->BaseUnit);
+    const int count = this_ptr->Count_Owned(RuleExtension->BaseUnit);
 
     if (count) {
         return 0x004BCF6E;
@@ -1765,8 +1762,7 @@ DEFINE_HOOK(0x004BCD5D, _HouseClass_AI_BuildConst_Patch, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
 
-    if (this_ptr->Count_Owned(Rule->BuildConst) > 0)
-    {
+    if (this_ptr->Count_Owned(Rule->BuildConst) > 0) {
         return 0x004BCD85;
     }
 
@@ -1784,9 +1780,7 @@ DEFINE_HOOK(0x004BCD5D, _HouseClass_AI_BuildConst_Patch, 0)
 DEFINE_HOOK(0x004BCF3A, _HouseClass_AI_Count_HarvesterUnit_Patch, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
-    static int harv_count;
-
-    harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
+    const int harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
 
     R->EAX(harv_count);
     return 0x004BCF5A;
@@ -1804,8 +1798,7 @@ DEFINE_HOOK(0x004BD0BC, _HouseClass_AI_Is_Building_Harvester_Unit_Patch, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
 
-    if (this_ptr->BuildUnit != -1 && Rule->HarvesterUnit.Is_Present(UnitTypes[this_ptr->BuildUnit]))
-    {
+    if (this_ptr->BuildUnit != UNIT_NONE && Rule->HarvesterUnit.Is_Present(UnitTypes[this_ptr->BuildUnit])) {
         return 0x004BD0E5;
     }
 
@@ -1824,25 +1817,21 @@ DEFINE_HOOK(0x004C0D0C, _HouseClass_AI_Raise_Money_HarvRef1, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
 
-    static bool build_harv;
-    static int object_cost;
+    bool build_harv;
+    int object_cost;
 
     /**
      *  If we have a refinery and a weapons factory, build a harvester, otherwise - a refinery.
      */
-    if (this_ptr->Count_Owned(Rule->BuildRefinery) > 0
-        && this_ptr->Count_Owned(Rule->BuildWeapons) > 0)
-    {
+    if (this_ptr->Count_Owned(Rule->BuildRefinery) > 0 && this_ptr->Count_Owned(Rule->BuildWeapons) > 0) {
         build_harv = true;
         object_cost = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->Cost_Of(this_ptr);
-    }
-    else
-    {
+    } else {
         build_harv = false;
         object_cost = this_ptr->Get_First_Ownable(Rule->BuildRefinery)->Cost_Of(this_ptr);
     }
 
-    R->Stack8(0x13, static_cast<BYTE>(build_harv));
+    R->Stack8(0x13, build_harv);
     R->EAX(object_cost);
     return 0x004C0D94;
 }
@@ -1859,8 +1848,7 @@ DEFINE_HOOK(0x004C0F5F, _HouseClass_AI_Raise_Money_HarvRef2, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
 
-    UnitType harv;
-    harv = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->HeapID;
+    UnitType harv = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->HeapID;
 
     R->EAX(harv);
     return 0x004C0F72;
@@ -1898,9 +1886,8 @@ DEFINE_HOOK(0x004C0FAB, _HouseClass_AI_Raise_Money_HarvRef3, 0)
 DEFINE_HOOK(0x004C1051, _HouseClass_AI_Raise_Money_HarvRef4, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
-    BuildingTypeClass* refinery;
 
-    refinery = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
+    BuildingTypeClass* refinery = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
 
     R->EAX(refinery);
     return 0x004C105E;
@@ -1917,10 +1904,8 @@ DEFINE_HOOK(0x004C1051, _HouseClass_AI_Raise_Money_HarvRef4, 0)
 DEFINE_HOOK(0x004C166D, _HouseClass_AI_Unit_HarvRef1, 0)
 {
     GET(HouseClass*, this_ptr, EBP);
-    static int harv_count, ref_count;
-
-    harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
-    ref_count = this_ptr->Count_Owned(Rule->BuildRefinery);
+    const int harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
+    const int ref_count = this_ptr->Count_Owned(Rule->BuildRefinery);
 
     R->ESI(harv_count);
     R->EAX(ref_count);
@@ -1938,9 +1923,7 @@ DEFINE_HOOK(0x004C166D, _HouseClass_AI_Unit_HarvRef1, 0)
 DEFINE_HOOK(0x004C1710, _HouseClass_AI_Unit_HarvRef2, 0)
 {
     GET(HouseClass*, this_ptr, EBP);
-    static UnitTypeClass* harvester;
-
-    harvester = this_ptr->Get_First_Ownable(Rule->HarvesterUnit);
+    UnitTypeClass* harvester = this_ptr->Get_First_Ownable(Rule->HarvesterUnit);
 
     R->EAX(harvester);
     return 0x004C1718;
@@ -1958,8 +1941,7 @@ DEFINE_HOOK(0x004C5977, _HouseClass_Has_Prerequisites_BuildConst, 0)
 {
     GET(BuildingTypeClass*, building, ECX);
 
-    if (!Rule->BuildConst.Is_Present(building))
-    {
+    if (!Rule->BuildConst.Is_Present(building)) {
         return 0x004C5985;
     }
 
@@ -1977,9 +1959,7 @@ DEFINE_HOOK(0x004C5977, _HouseClass_Has_Prerequisites_BuildConst, 0)
 DEFINE_HOOK(0x004C5E20, _HouseClass_GenerateAIBuildList_4C5BB0_BuildConst, 0)
 {
     GET_STACK(HouseClass*, this_ptr, 0x14);
-    static BuildingTypeClass* conyard;
-
-    conyard = this_ptr->Get_First_Ownable(Rule->BuildConst);
+    BuildingTypeClass* conyard = this_ptr->Get_First_Ownable(Rule->BuildConst);
 
     R->ESI(conyard);
     return 0x004C5E28;
@@ -1997,8 +1977,7 @@ DEFINE_HOOK(0x004CA222, _HouseClass_AI_Use_Super_Ion_Cannon_BuildConst, 0)
 {
     GET(UnitTypeClass*, unittype, ECX);
 
-    if (Rule->BuildConst.Is_Present(unittype->DeploysInto))
-    {
+    if (Rule->BuildConst.Is_Present(unittype->DeploysInto)) {
         return 0x004CA232;
     }
 
@@ -2017,8 +1996,7 @@ DEFINE_HOOK(0x004CA9A1, _HouseClass_AI_Takeover_BuildConst, 0)
 {
     GET(BuildingTypeClass*, buildingtype, ECX);
 
-    if (Rule->BuildConst.Is_Present(buildingtype))
-    {
+    if (Rule->BuildConst.Is_Present(buildingtype)) {
         return 0x004CA9A9;
     }
 
@@ -2037,8 +2015,7 @@ DEFINE_HOOK(0x004D7284, _InfantryClass_What_Action_Harvester_Thief, 0)
 {
     GET(UnitClass*, target, ESI);
 
-    if (target->What_Am_I() == RTTI_UNIT && Rule->HarvesterUnit.Is_Present(target->Class))
-    {
+    if (target->RTTI == RTTI_UNIT && Rule->HarvesterUnit.Is_Present(target->Class)) {
         return 0x004D7258;
     }
 
@@ -2061,16 +2038,14 @@ DEFINE_HOOK(0x004CB9CD, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 0)
     /**
      *  Ignore AIBaseSpacing in Campaign.
      */
-    if (Session.Type == GAME_NORMAL)
-    {
+    if (Session.Type == GAME_NORMAL) {
         return 0x004CB9D2;
     }
 
     /**
      *  Also ignore AIBaseSpacing if it was requested by the client.
      */
-    if (ScenExtension->IsUseMPAIBaseNodes)
-    {
+    if (ScenExtension->IsUseMPAIBaseNodes) {
         return 0x004CB9D2;
     }
 
@@ -2091,22 +2066,14 @@ void HouseClassExtension_Hooks()
      */
     HouseClassExtension_Init();
 
-    Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
-    Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
-
-
     Patch_Jump(0x004BAED0, &HouseClassExt::_Can_Make_Money);
     Patch_Jump(0x004C0A40, &HouseClassExt::_Check_Raise_Money);
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
     Patch_Jump(0x004BDB50, &HouseClassExt::_Make_Ally);
 
-    Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
-    Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
-    Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
     Patch_Jump(0x004C1650, &HouseClassExt::_AI_Unit);
     Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
-    Patch_Jump(0x004BBC74, &_Can_Build_Required_Forbidden_Houses_Patch);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
 

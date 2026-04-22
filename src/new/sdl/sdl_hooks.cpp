@@ -419,11 +419,6 @@ void SDL_Hooks()
     Patch_Jump(0x006016BF, 0x006015A9);
 
     /**
-     *  Patch ToolTipManager to use MouseCursor for the mouse coordinates instead of asking Windows
-     */
-    Patch_Jump(0x0064743E, &_ToolTopManager_Message_Handler_Mouse_Pos_Patch_);
-
-    /**
      *  Disable DirectDraw.
      */
     Change_Virtual_Address(0x006EC110, (uintptr_t)&"NQXZJYVPRKMTLUGHSBDCFIEWOAQRMZNPLXTYVJHKSQGBFUACEL.DLL"); // replace DDRAW.DLL by a very unlikely library in the import table

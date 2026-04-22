@@ -645,7 +645,6 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x004594D0, &CellClassExt::_Spread_Tiberium);
     Patch_Jump(0x00459A00, &CellClassExt::_Recalc_Passability);
     Patch_Jump(0x00456BF0, &CellClassExt::_Reduce_Tiberium);
-    Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
     /**
      *  Patch away a check for GAME_INTERNET to enable statistics collection.
      */
