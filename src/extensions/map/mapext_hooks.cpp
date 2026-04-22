@@ -150,56 +150,56 @@ void MapClassExt::_Detach(AbstractClass* target, bool all)
  * 
  * @author: JoyfulShush
  */
-void MapClassExt::_CalculateSightRadiusIfNeeded(int sightRange)
+void MapClassExt::_CalculateSightRadiusIfNeeded(int sight_range)
 {
     // 1. Identify current progress    
-    int currentMaxRadius = static_cast<int>(RadiusCountTable.size());
+    int current_max_radius = static_cast<int>(RadiusCountTable.size());
 
     // 2. Skip if already calculated
     // The table starts with Radius 0 (size 1), so max radius is size - 1.
-    if (sightRange <= currentMaxRadius - 1) {
+    if (sight_range <= current_max_radius - 1) {
         return;
     }
 
     // 3. Generate new shells sequentially
-    for (int currentRadius = currentMaxRadius; currentRadius <= sightRange; ++currentRadius) {
+    for (int current_radius = current_max_radius; current_radius <= sight_range; ++current_radius) {
 
         // Define search bounds slightly larger than radius to ensure we find all octagonal corners
-        int searchBounds = currentRadius + 2;
+        int search_bounds = current_radius + 2;
 
-        for (int cellY = -searchBounds; cellY <= searchBounds; ++cellY) {
-            for (int cellX = -searchBounds; cellX <= searchBounds; ++cellX) {
+        for (int cell_y = -search_bounds; cell_y <= search_bounds; ++cell_y) {
+            for (int cell_x = -search_bounds; cell_x <= search_bounds; ++cell_x) {
 
-                int absoluteX = std::abs(cellX);
-                int absoluteY = std::abs(cellY);
+                int absolute_x = std::abs(cell_x);
+                int absolute_y = std::abs(cell_y);
 
                 // --- THE DISTANCE FORMULA ---
                 // D = max(|x|, |y|) + floor(min(|x|, |y|) / 2)                
-                int octagonalDistance = std::max(absoluteX, absoluteY) + (std::min(absoluteX, absoluteY) / 2);
+                int octagonal_distance = std::max(absolute_x, absolute_y) + (std::min(absolute_x, absolute_y) / 2);
 
-                if (octagonalDistance == currentRadius) {
+                if (octagonal_distance == current_radius) {
                     // Add the coordinate to the offset list
-                    RadiusOffsets.push_back(Cell(cellX, cellY));
+                    RadiusOffsets.push_back(Cell(cell_x, cell_y));
 
                     // --- THE OCCLUSION LOGIC ---
                     // The engine expects the parent vector to point toward (0,0).
                     // We prioritize the dominant axis to match the original game's lookup table.
-                    short parentDirectionX = 0;
-                    short parentDirectionY = 0;
+                    short parent_direction_x = 0;
+                    short parent_direction_y = 0;
 
-                    if (absoluteX > absoluteY) {
+                    if (absolute_x > absolute_y) {
                         // Horizontal is dominant: Point left if we are right, or right if we are left.
-                        parentDirectionX = (cellX > 0) ? -1 : 1;
-                    } else if (absoluteY > absoluteX) {
+                        parent_direction_x = (cell_x > 0) ? -1 : 1;
+                    } else if (absolute_y > absolute_x) {
                         // Vertical is dominant: Point up if we are down, or down if we are up.
-                        parentDirectionY = (cellY > 0) ? -1 : 1;
+                        parent_direction_y = (cell_y > 0) ? -1 : 1;
                     } else {
                         // Perfectly diagonal: Point diagonally back to center.
-                        parentDirectionX = (cellX > 0) ? -1 : 1;
-                        parentDirectionY = (cellY > 0) ? -1 : 1;
+                        parent_direction_x = (cell_x > 0) ? -1 : 1;
+                        parent_direction_y = (cell_y > 0) ? -1 : 1;
                     }
 
-                    OcclusionOffsets.push_back(Cell(parentDirectionX, parentDirectionY));
+                    OcclusionOffsets.push_back(Cell(parent_direction_x, parent_direction_y));
                 }
             }
         }
@@ -222,35 +222,29 @@ void MapClassExt::_CalculateSightRadiusIfNeeded(int sightRange)
 DEFINE_HOOK(0x510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6)
 {
     // EAX contains the sightrange of the unit currently being processed
-    int sightRange = R->EAX();
-
-    /*
-    * Retrieve the 'incremental' flag from the stack [esp + 0x58]
-    * Incremental = true means the unit is moving and only needs to reveal the "new" edge.
-    */
-    GET_STACK(bool, isIncremental, 0x58);
+    int sight_range = R->EAX();
 
     /*
     * 1. Dynamic Generation
     * Calculate the cells that need to be revealed for the provided sight range
     * If the sight range was already calculated from previous operations, they would be already cached
     */
-    MapClassExt::_CalculateSightRadiusIfNeeded(sightRange);
+    MapClassExt::_CalculateSightRadiusIfNeeded(sight_range);
 
     // 2. Data Preparation
-    int cellCount = MapClassExt::RadiusCountTable[sightRange];
-    Cell* radiusPointer = MapClassExt::RadiusOffsets.data();
-    Cell* occlusionPointer = MapClassExt::OcclusionOffsets.data();
+    int cell_count = MapClassExt::RadiusCountTable[sight_range];
+    Cell* radius_offsets_ptr = MapClassExt::RadiusOffsets.data();
+    Cell* occlusion_offsets_ptr = MapClassExt::OcclusionOffsets.data();
 
     /*
     * 3. Register and Stack Cleanup
     * ESI must contain the 'count' for the reveal loop
     */
-    R->ESI(cellCount);
+    R->ESI(cell_count);
 
     // The game expects the specific 'ptr' and 'coord' variables to be set on the stack
-    R->Stack<Cell*>(0x10, radiusPointer);    // [esp+48h+ptr]
-    R->Stack<Cell*>(0x4C, occlusionPointer); // [esp+48h+coord]
+    R->Stack<Cell*>(0x10, radius_offsets_ptr);    // [esp+48h+ptr]
+    R->Stack<Cell*>(0x4C, occlusion_offsets_ptr); // [esp+48h+coord]
 
     /*
     * 4. Flow Control
