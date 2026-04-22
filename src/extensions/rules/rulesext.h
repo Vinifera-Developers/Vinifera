@@ -273,4 +273,9 @@ public:
      *  Determines whether the AI is limited to one harvester in singleplayer scenarios, like in original Tiberian Sun.
      */
     bool IsAIOneHarvesterInSingleplayer;
+
+    /**
+     *  Determines whether the cloaked technos can trigger cell tags when used with Entered By trigger event.
+     */
+    bool IsCloakedTechnosTriggerCellTags;
 };

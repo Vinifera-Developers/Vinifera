@@ -56,6 +56,8 @@
 #include "vinifera_globals.h"
 #include "vox.h"
 #include "tag.h"
+#include "debughandler.h"
+#include "rulesext.h";
 
 
 /**
@@ -774,21 +776,15 @@ bool FootClassExt::_Limbo()
     return TechnoClass::Limbo();
 }
 
-//DEFINE_HOOK(0x004A3E1A, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 8)
-//{
-//    GET(FootClass*, this_ptr, ESI);
-//
-//    CellClass* cellptr = &Map[this_ptr->PositionCell];
-//    TagClass* tag = cellptr->CellTag;
-//
-//    if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
-//        tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
-//    }
-//
-//    return 0;
-//}
-
-DEFINE_HOOK(0x004A3E1, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
+/*
+* Patches FootClass::Per_Cell_Process at the cloak check.
+* Reimplements the logic inside the if check to safely add to it.
+* This is done in order to add the logic to allow cloaked units to trigger cell tags via the TEVENT_PLAYER_ENTERED trigger event.
+* Cell Tags can only be sprung by cloaked units if the 'CloakedTechnosTriggerCellTags' key is set in rules under [General].
+* 
+* @author: JoyfulShush
+*/
+DEFINE_HOOK(0x004A3E14, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
 {
     GET(FootClass*, this_ptr, ESI);
 
@@ -803,6 +799,15 @@ DEFINE_HOOK(0x004A3E1, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
                     this_ptr->Do_Shimmer();
                     break;
                 }
+            }
+        }
+
+        if (RuleExtension->IsCloakedTechnosTriggerCellTags) {
+            CellClass* cellptr = &Map[this_ptr->PositionCell];
+            TagClass* tag = cellptr->CellTag;
+
+            if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
+                tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
             }
         }
     }
