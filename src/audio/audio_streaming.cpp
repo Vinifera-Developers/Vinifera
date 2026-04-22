@@ -1,37 +1,22 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Streaming audio implementation.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_INSTANCE.CPP
- *
- *  @author        CCHyper, with suggestions and additional comments added by AI
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
-#include "audio_streaming.h"
-#include "audio_manager.h"
-#include "audio_decoders.h"
-#include "audio_util.h"
-#include "audio_debug.h"
+#include "always.h"
 
-//#define MINIAUDIO_IMPLEMENTATION      // Not needed here as we just want header info!
-#include <miniaudio/miniaudio.h>
+#include "audio_streaming.h"
+
+#include "asserthandler.h"
+#include "audio_debug.h"
+#include "audio_decoders.h"
+#include "audio_manager.h"
+#include "audio_util.h"
+#include "miniaudio.h"
 
 
 /**
@@ -45,22 +30,7 @@ static std::mutex AudioStreamingMutex;
  *
  *  @author: CCHyper
  */
-AudioStreamingClass::AudioStreamingClass() :
-    Sound(nullptr),
-    Decoder(),
-    DecoderInitialized(false),
-    DecoderIsOwnedBySound(false),
-    HandleID(INVALID_AUDIO_HANDLE_ID),
-    StreamInitialized(false),
-    IsStreaming(false),
-    IsPCM(false),
-    PCMBuffer(nullptr),
-    LogicalName(),
-    SampleRate(22050),
-    Channels(1),
-    BitsPerSample(16),
-    ChunkBuffer(),
-    FramesPushed(0)
+AudioStreamingClass::AudioStreamingClass()
 {
 }
 
@@ -107,7 +77,7 @@ bool AudioStreamingClass::Open(const std::string& name, int sample_rate, int cha
  */
 void AudioStreamingClass::Close()
 {
-    std::lock_guard<std::mutex> lock(AudioStreamingMutex);
+    std::scoped_lock lock(AudioStreamingMutex);
 
     if (Sound) {
         ma_sound_uninit(Sound);
@@ -145,11 +115,21 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
 
     ma_format format = Audio_GetMAFormatFromBPS(BitsPerSample);
 
-    // Create a ring buffer for streaming PCM
+    /**
+     *  Size the ring buffer to hold several VQA audio chunks. A VQA chunk is
+     *  HMIBufSize = 8192 bytes = 4096 frames for 16-bit mono, and the feeder
+     *  thread refills when the available read count drops below 2048 frames —
+     *  which means the buffer must hold "leftover + one full chunk" without
+     *  dropping. Previously the ring buffer was sized to exactly one chunk
+     *  (4096 frames), so every refill overflowed and the tail of each chunk was
+     *  silently dropped. Four chunks of headroom gives the feeder room to land
+     *  a full push without dropping and tolerates jitter from the audio thread
+     *  and the game loop.
+     */
     PCMBuffer = new ma_pcm_rb;
     result = ma_pcm_rb_init(format,
                                    Channels,
-                                   4096, // frames per page
+                                   4096 * 4,
                                    nullptr,
                                    nullptr,
                                    PCMBuffer);
@@ -158,6 +138,17 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
         PCMBuffer = nullptr;
         return false;
     }
+
+    /**
+     *  ma_pcm_rb_init leaves the ring buffer's sample rate at 0, which causes the
+     *  data source to report an unknown rate. Miniaudio then treats the data as if
+     *  it were already at the engine rate and does not set up a resampler — in
+     *  that state ma_sound_set_pitch has nothing to act on, so attempts to
+     *  compensate via pitch are silently ignored and the audio plays at engine
+     *  rate (too fast). Tell the ring buffer the actual source rate up front so
+     *  ma_sound_init_from_data_source builds a proper resampler.
+     */
+    ma_pcm_rb_set_sample_rate(PCMBuffer, (ma_uint32)SampleRate);
 
     /**
      *  Create a new sound object.
@@ -170,10 +161,10 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
     ASSERT(Sound != nullptr);
 
     // In Miniaudio, the ring buffer itself is a data source
-    result = ma_sound_init_from_data_source(AudioManager.Engine, 
-                                        &PCMBuffer->ds, 
-                                        AUDIO_GROUP_STREAMING, 
-                                        AudioManager.SoundGroups[AUDIO_GROUP_STREAMING], 
+    result = ma_sound_init_from_data_source(AudioManager.Engine,
+                                        &PCMBuffer->ds,
+                                        AUDIO_GROUP_STREAMING,
+                                        AudioManager.SoundGroups[AUDIO_GROUP_STREAMING],
                                         Sound);
     if (result != MA_SUCCESS) {
         ma_pcm_rb_uninit(PCMBuffer);
@@ -184,19 +175,6 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
 
     ma_sound_set_volume(Sound, 1.0f);
     ma_sound_set_spatialization_enabled(Sound, MA_FALSE);
-
-    /**
-     *  The PCM ring buffer data source does not report a sample rate to miniaudio,
-     *  so the engine assumes its own rate (e.g. 48000 Hz). If the actual audio data
-     *  is at a different rate (e.g. 22050 Hz for VQA), the engine will consume frames
-     *  too fast, causing playback at ~2x speed. Compensate by setting the sound's
-     *  pitch to the ratio of source rate to engine rate.
-     */
-    ma_uint32 engineSampleRate = ma_engine_get_sample_rate(AudioManager.Engine);
-    if (engineSampleRate > 0 && SampleRate != (int)engineSampleRate) {
-        float pitchFactor = (float)SampleRate / (float)engineSampleRate;
-        ma_sound_set_pitch(Sound, pitchFactor);
-    }
 
     StreamInitialized = true;
 
@@ -267,7 +245,7 @@ bool AudioStreamingClass::Initialize_AUD_Decoder(const void* initialData, size_t
  */
 bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
 {
-    std::lock_guard<std::mutex> lock(AudioStreamingMutex);
+    std::scoped_lock lock(AudioStreamingMutex);
 
     if (IsPCM) {
 
@@ -278,8 +256,6 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
         size_t frames = size / (Channels * (BitsPerSample / 8));
         size_t framesPushed = 0;
         const ma_uint8* src = (const ma_uint8*)data;
-
-        FramesPushed += frames;
 
         while (framesPushed < frames) {
 
@@ -300,6 +276,14 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
             ma_pcm_rb_commit_write(PCMBuffer, framesWritable);
             framesPushed += framesWritable;
         }
+
+        /**
+         *  Only count what actually made it into the ring buffer. If the buffer is
+         *  full and we break out early, inflating FramesPushed by the full chunk
+         *  size would make Get_Cursor_In_PCM_Frames over-report consumption, which
+         *  skews the VQA library's audio-time estimate and can desync playback.
+         */
+        FramesPushed += framesPushed;
 
     } else {
 
@@ -324,7 +308,7 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
  */
 bool AudioStreamingClass::Play()
 {
-    std::lock_guard<std::mutex> lock(AudioStreamingMutex);
+    std::scoped_lock lock(AudioStreamingMutex);
     if (!Sound) {
         return false;
     }
@@ -339,7 +323,7 @@ bool AudioStreamingClass::Play()
  */
 bool AudioStreamingClass::Pause()
 {
-    std::lock_guard<std::mutex> lock(AudioStreamingMutex);
+    std::scoped_lock lock(AudioStreamingMutex);
     if (!Sound) {
         return false;
     }
@@ -354,7 +338,7 @@ bool AudioStreamingClass::Pause()
  */
 bool AudioStreamingClass::Stop()
 {
-    std::lock_guard<std::mutex> lock(AudioStreamingMutex);
+    std::scoped_lock lock(AudioStreamingMutex);
     if (!Sound) {
         return false;
     }

@@ -1,43 +1,16 @@
 /*******************************************************************************
-/*                  O P E N  S O U R C E -- V I N I F E R A                   **
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Music theme playback and management.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_NEWTHEME.H
- *
- *  @author        Joe L. Bostic (see notes below)
- *
- *  @contributors  CCHyper, tomsons26
- *
- *  @brief         Music theme playback and management.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
- *  @note          This file contains heavily modified code from the source code
- *                 released by Electronic Arts for the C&C Remastered Collection
- *                 under the GPL3 license. Source:
- *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "audio_defines.h"
 #include "tibsun_defines.h"
-#include "wstring.h"
 #include "vector.h"
 
 
@@ -52,191 +25,172 @@ class AudioThemeClass
 {
     friend void Audio_Hooks();
 
-    public:
-        AudioThemeClass();
-        ~AudioThemeClass();
+public:
+    AudioThemeClass();
+    ~AudioThemeClass();
 
-        ThemeType From_Name(const char * name) const;
-        ThemeType Next_Song(ThemeType index) const;
-        ThemeType What_Is_Playing() const { return Score; }
-        bool Is_Allowed(ThemeType index) const;
-        bool Is_Regular(ThemeType theme) const;
-        bool Is_Playable(ThemeType theme) const;
-        const char * Base_Name(ThemeType index) const;
-        const char * INI_Base_Name(ThemeType index) const;
-        const char * Full_Name(ThemeType index) const;
+    ThemeType From_Name(const char* name) const;
+    ThemeType Next_Song(ThemeType theme) const;
+    ThemeType What_Is_Playing() const { return Score; }
+    bool Is_Allowed(ThemeType theme) const;
+    bool Is_Regular(ThemeType theme) const;
+    bool Is_Playable(ThemeType theme) const;
+    const char* Base_Name(ThemeType theme) const;
+    const char* INI_Name(ThemeType theme) const;
+    const char* Full_Name(ThemeType theme) const;
 
-        int Max_Themes() const { return Themes.Count(); }
+    int Max_Themes() const { return Themes.Count(); }
 
-        bool Play_Song(ThemeType index);
-        bool Still_Playing() const;
-        int Track_Length(ThemeType index) const;
-        void AI();
-        void Fade_Out();
-        void Queue_Song(ThemeType index);
-        void Stop(bool fade = false);
-        bool Suspend();
-        bool Resume();
-        bool Is_Paused() const;
+    bool Play_Song(ThemeType theme);
+    bool Still_Playing() const;
+    int Track_Length(ThemeType theme) const;
+    void AI();
+    void Fade_Out();
+    void Queue_Song(ThemeType theme);
+    void Stop(bool fade = false);
+    bool Suspend();
+    bool Resume();
+    bool Is_Paused() const;
 
-        void Clear();
-        void Set_Volume(int volume);
+    void Set_Volume(int volume);
 
-        int Process(CCINIClass & ini);
+    int Process(CCINIClass const& ini);
 
-        void Set_Theme_Data(ThemeType theme, int scenario, SideType owners);
+    void Set_Theme_Data(ThemeType theme, int scenario, SideType owners);
 
-        void Set_Shuffle(int on) { IsRepeat = on; }
-        void Set_Repeat(int on) { IsShuffle = on; }
+    void Set_Shuffle(int on) { IsShuffle = on; }
+    void Set_Repeat(int on) { IsRepeat = on; }
 
-        void Scan();
-        void Preload();
+    void Scan();
+    void Preload();
 
-        bool Fill_In_All(CCINIClass &ini);
+    bool Init_Themes(CCINIClass const& ini);
+    void Free_Themes();
 
-    private:
-        /**
-         *  Handle to current score.
-         */
-        AudioHandleID ScoreHandle;
+private:
+    /**
+     *  Handle to current score.
+     */
+    AudioHandleID ScoreHandle = INVALID_AUDIO_HANDLE_ID;
 
-        /**
-         *  Score number currently being played.
-         */
-        ThemeType Score;
+    /**
+     *  Score number currently being played.
+     */
+    ThemeType Score = THEME_NONE;
 
-        /**
-         *  Score to play next.
-         */
-        ThemeType Pending;
+    /**
+     *  Score to play next.
+     */
+    ThemeType Pending = THEME_NONE;
 
-        /**
-         *  Volume for scores.
-         */
-        //int Volume;
-        
-        /**
-         *  Score should repeat?
-         */
-        bool IsRepeat;
+    /**
+     *  Volume for scores.
+     */
+    // int Volume = 255;
 
-        /**
-         *  Score list should shuffle?
-         */
-        bool IsShuffle;
-        
-    public:
-        typedef struct ThemeControl
-        {
-            ThemeControl(std::string name) :
-                FileType(AUDIO_TYPE_AUD),
-                FileName(),
-                Name(name),
-                Fullname(),
-                Artist(),
-                Scenario(0),
-                Duration(0.0),
-                Normal(true),
-                Repeat(false),
-                Available(false),
-                Owner(-1),//Owner(SIDE_NONE),
-                RequiredAddon(ADDON_BASE_GAME),
-                Sound(),
-                Volume(1.0f)
-            {
-            }
+    /**
+     *  Score should repeat?
+     */
+    bool IsRepeat = false;
 
-            ~ThemeControl() {}
+    /**
+     *  Score list should shuffle?
+     */
+    bool IsShuffle = false;
 
-            bool Fill_In(CCINIClass & ini);
+public:
+    struct ThemeControl {
+        explicit ThemeControl(std::string name) : Name(std::move(name)) {}
 
-            /**
-             *  The file type of this score.
-             */
-            AudioFileType FileType;
+        ~ThemeControl() = default;
 
-            /**
-             *  Full filename of the score.
-             */
-            std::string FileName;
-
-            /**
-             *  Filename of the score.
-             */
-            std::string Name;
-
-            /**
-             *  Full score name.
-             */
-            std::string Fullname;
-
-            /**
-             *  The artist name.
-             */
-            std::string Artist;
-
-            /**
-             *  Scenario when it first becomes available.
-             */
-            int Scenario;
-
-            /**
-             *  Duration of theme in seconds.
-             */
-            float Duration;
-
-            /**
-             *  Allowed in normal game play?
-             */
-            bool Normal;
-
-            /**
-             *  Always repeat this score?
-             */
-            bool Repeat;
-
-            /**
-             *  Is the score available?
-             */
-            bool Available;
-
-            /**
-             *  What houses are allowed to play this theme (bit field)?
-             */
-            //SideType Owner;
-            int Owner;
-
-            /**
-             *  The addon required to be active for this theme to be available.
-             */
-            AddonType RequiredAddon;
-
-            /**
-             *  User defined filename.
-             */
-            std::string Sound;
-            
-            /**
-             *  Volume control for this theme.
-             */
-            float Volume;
-
-        } ThemeControl;
+        bool Fill_In(CCINIClass const& ini);
 
         /**
-         *  List of all registered theme control entries.
+         *  The file type of this score.
          */
-        DynamicVectorClass<ThemeControl *> Themes;
-
-    private:
-        /**
-         *  Duration in seconds for theme fade-out transitions.
-         */
-        static float FadeOutSeconds;
+        AudioFileType FileType = AUDIO_TYPE_AUD;
 
         /**
-         *  Whether cross-fading between themes is enabled, and its duration.
+         *  Full filename of the score.
          */
-        static bool CrossFade;
-        static float CrossFadeSeconds;
+        std::string FileName;
+
+        /**
+         *  Filename of the score.
+         */
+        std::string Name;
+
+        /**
+         *  Full score name.
+         */
+        std::string Fullname;
+
+        /**
+         *  The artist name.
+         */
+        std::string Artist;
+
+        /**
+         *  Scenario when it first becomes available.
+         */
+        int Scenario = 0;
+
+        /**
+         *  Duration of theme in seconds.
+         */
+        float Duration = 0.0f;
+
+        /**
+         *  Allowed in normal game play?
+         */
+        bool Normal = true;
+
+        /**
+         *  Always repeat this score?
+         */
+        bool Repeat = false;
+
+        /**
+         *  Is the score available?
+         */
+        bool Available = false;
+
+        /**
+         *  What houses are allowed to play this theme (bit field)?
+         */
+        int Owner = -1;
+
+        /**
+         *  The addon required to be active for this theme to be available.
+         */
+        AddonType RequiredAddon = ADDON_BASE_GAME;
+
+        /**
+         *  User defined filename.
+         */
+        std::string Sound;
+
+        /**
+         *  Volume control for this theme.
+         */
+        float Volume = 1.0f;
+    };
+
+    /**
+     *  List of all registered theme control entries.
+     */
+    DynamicVectorClass<ThemeControl*> Themes;
+
+private:
+    /**
+     *  Duration in seconds for theme fade-out transitions.
+     */
+    static float FadeOutSeconds;
+
+    /**
+     *  Whether cross-fading between themes is enabled, and its duration.
+     */
+    static bool CrossFade;
+    static float CrossFadeSeconds;
 };

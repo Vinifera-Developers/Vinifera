@@ -1,43 +1,23 @@
 /*******************************************************************************
-/*                  O P E N  S O U R C E -- V I N I F E R A                    *
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  VQA movie audio handler using miniaudio streaming.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_AHANDLE.CPP
- *
- *  @author        CCHyper, with suggestions and additional comments added by AI
- *
- *  @brief         VQA movie audio handler using miniaudio streaming.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
- *  @note          This file contains heavily modified code from the source code
- *                 released by Electronic Arts for the C&C Remastered Collection
- *                 under the GPL3 license. Source:
- *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "audio_ahandle.h"
+
+#include "ahandle.h"
+#include "asserthandler.h"
 #include "audio_manager.h"
 #include "audio_streaming.h"
-#include "ahandle.h"
-#include "gametime.h"
 #include "debughandler.h"
-#include "asserthandler.h"
+#include "gametime.h"
+
 #include <mutex>
 
 
@@ -168,7 +148,7 @@ unsigned long AudioHandleClass::Get_Total_Bytes_Played(VQAHandle *vqa, VQAConfig
         return 0;
     }
 
-    std::lock_guard<std::mutex> lock(AudioHandleMutex);
+    std::scoped_lock lock(AudioHandleMutex);
 
     uint64_t frames_played = StreamInstance->Get_Cursor_In_PCM_Frames();
     uint32_t frame_size = Channels * (BitsPerSample / 8);
@@ -230,9 +210,9 @@ long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitP
     VQAConfig * config = &vqap->Config;
 
     IsHandleOpen = true;
-    //Volume = config->Volume;
+    // Volume = config->Volume;
 
-    std::lock_guard<std::mutex> lock(AudioHandleMutex);
+    std::scoped_lock lock(AudioHandleMutex);
 
     // TODO break this down!
     SampleRate = (config->AudioRate != -1) ? config->AudioRate
@@ -300,7 +280,7 @@ long __cdecl AudioHandleClass::Close_Audio_Handler(VQAHandleP *vqap)
     /**
      *  Now safe to lock and clean up — the thread is no longer running.
      */
-    std::lock_guard<std::mutex> lock(AudioHandleMutex);
+    std::scoped_lock lock(AudioHandleMutex);
 
     if (StreamInstance) {
         StreamInstance->Stop();
@@ -354,7 +334,7 @@ long __cdecl AudioHandleClass::Load_Audio_Handler(VQAHandleP *vqap, void *buffer
     if (!StreamInstance || !buffer || nbytes <= 0)
         return VQAERR_AUDIO;
 
-    std::lock_guard<std::mutex> lock(AudioHandleMutex);
+    std::scoped_lock lock(AudioHandleMutex);
 
     CallbackBuffers[CurrentBufferIndex] = buffer;
     CallbackBufferPtr = CallbackBuffers[CurrentBufferIndex];
@@ -374,7 +354,7 @@ long __cdecl AudioHandleClass::Load_Audio_Handler(VQAHandleP *vqap, void *buffer
 
 long __cdecl AudioHandleClass::Pause_Audio_Handler(VQAHandleP *vqap)
 {
-    std::lock_guard<std::mutex> lock(AudioHandleMutex);
+    std::scoped_lock lock(AudioHandleMutex);
     if (StreamInstance) {
         StreamInstance->Pause();
     }
@@ -386,7 +366,7 @@ long __cdecl AudioHandleClass::Pause_Audio_Handler(VQAHandleP *vqap)
 
 long __cdecl AudioHandleClass::Play_Audio_Handler(VQAHandleP *vqap)
 {
-    std::lock_guard<std::mutex> lock(AudioHandleMutex);
+    std::scoped_lock lock(AudioHandleMutex);
     if (!StreamInstance) {
         return VQAERR_AUDIO;
     }
@@ -398,7 +378,7 @@ long __cdecl AudioHandleClass::Play_Audio_Handler(VQAHandleP *vqap)
 
 long __cdecl AudioHandleClass::Stop_Audio_Handler(VQAHandleP *vqap)
 {
-    std::lock_guard<std::mutex> lock(AudioHandleMutex);
+    std::scoped_lock lock(AudioHandleMutex);
     DEBUG_INFO("AudioHandle: Stopping VQ audio handler\n");
     if (StreamInstance) {
         StreamInstance->Stop();

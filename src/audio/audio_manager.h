@@ -1,49 +1,26 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Installable MiniAudio audio driver.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_MANAGER.H
- *
- *  @author        CCHyper
- *
- *  @brief         Installable MiniAudio audio driver.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "wstring.h"
-#include "vector.h"
 #include "audio_defines.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#include "vector.h"
 
+#include <atomic>
+#include <chrono> // for time tracking
+#include <condition_variable>
+#include <memory> // for std::shared_ptr
+#include <mutex>  // for std::mutex, std::lock_guard
+#include <queue>  // for std::queue
+#include <thread> // for sleep_until
 #include <unordered_map>
 #include <unordered_set>
-
-#include <memory>                // for std::shared_ptr
-#include <atomic>
-#include <chrono>                // for time tracking
-#include <thread>                // for sleep_until
-#include <mutex>                 // for std::mutex, std::lock_guard
-#include <queue>                 // for std::queue
-#include <condition_variable>
 
 
 /**
@@ -65,287 +42,261 @@ class AudioManagerClass
     friend class AudioInstanceClass;
     friend class AudioStreamingClass;
 
-    public:
-        AudioManagerClass();
-        virtual ~AudioManagerClass();
+public:
+    AudioManagerClass();
+    ~AudioManagerClass();
 
-        /**
-         *  Audio engine IO.
-         */
-        virtual bool Init(HWND hWnd);
-        virtual void End();
+    /**
+     *  Audio engine IO.
+     */
+    bool Init(HWND hWnd);
+    void End();
 
-        virtual bool Is_Available() const;
-        virtual bool Is_Enabled() const;
+    bool Is_Available() const;
+    bool Is_Enabled() const;
 
-        virtual void Enable();
-        virtual void Disable();
+    void Enable();
+    void Disable();
 
-        virtual bool Start_Engine(bool forced = false);
-        virtual bool Stop_Engine();
+    bool Start_Engine(bool forced = false);
+    bool Stop_Engine();
 
-        virtual void Focus_Loss();
-        virtual void Focus_Restore();
+    void Focus_Loss();
+    void Focus_Restore();
 
-        virtual void Sound_Callback() {}
+    void Sound_Callback();
 
-        /**
-         *  Sound playback control.
-         */
-        virtual AudioHandleID Request_Play(std::string filename, AudioGroupType group, float volume = 1.0f, float pitch = 1.0f, float pan = 0.0f, AudioPriorityType priority = AUDIO_PRIORITY_NORMAL, int limit = -1, float fade_in_seconds = 0.0f, float delay_in_seconds = 0.0f, bool start = true, bool looping = false);
-        virtual bool Request_Stop(AudioHandleID handle, float fade_out = 0.0f);
+    /**
+     *  Sound playback control.
+     */
+    AudioHandleID Request_Play(const std::string& filename, AudioGroupType group, float volume = 1.0f, float pitch = 1.0f, float pan = 0.0f, AudioPriorityType priority = AUDIO_PRIORITY_NORMAL, int limit = -1, float fade_in_seconds = 0.0f, float delay_in_seconds = 0.0f, bool start = true, bool looping = false, int loop_limit = 0);
+    bool Request_Stop(AudioHandleID id, float fade_out = 0.0f);
 
-        virtual bool Request_Pause(AudioHandleID handle);
-        virtual bool Request_Resume(AudioHandleID handle);
+    bool Request_Pause(AudioHandleID id);
+    bool Request_Resume(AudioHandleID id);
 
-        /**
-         *  Query functions.
-         */
-        virtual bool Query_Is_Playing(AudioHandleID handle);
-        virtual bool Query_Is_Paused(AudioHandleID handle);
+    /**
+     *  Query functions.
+     */
+    bool Query_Is_Playing(AudioHandleID id);
+    bool Query_Is_Paused(AudioHandleID id);
 
-        //virtual bool Query_Sample_Ready(AudioHandleID handle, AudioGroupType group);
-        virtual bool Query_Sample_Ready(std::string name, AudioGroupType group);
-        
-        /**
-         *  Set properties functions.
-         */
-        virtual bool Set_Volume(AudioHandleID handle, float volume);
-        virtual bool Set_Pan(AudioHandleID handle, float pan);
-        virtual bool Set_Pitch(AudioHandleID handle, float pitch);
+    // bool Query_Sample_Ready(AudioHandleID handle, AudioGroupType group);
+    bool Query_Sample_Ready(std::string name, AudioGroupType group);
 
-        /**
-         *  Submission functions.
-         */
-        virtual bool Submit_Sample(std::string &filename, AudioFileType filetype, AudioGroupType group, AudioPriorityType priority, AudioControlType control, AudioSoundType type, unsigned int limit);
-        virtual bool Clear_Samples(AudioGroupType group = AUDIO_GROUP_NONE);
-        virtual bool Has_Been_Submitted(std::string &filename, AudioGroupType group = AUDIO_GROUP_NONE);
+    /**
+     *  Set properties functions.
+     */
+    bool Set_Volume(AudioHandleID id, float volume);
+    bool Set_Pan(AudioHandleID id, float pan);
+    bool Set_Pitch(AudioHandleID id, float pitch);
 
-        void Lock_Submissions() { SubmissionsLocked = true; }
+    /**
+     *  Submission functions.
+     */
+    bool Submit_Sample(const std::string& filename, AudioFileType filetype, AudioGroupType group, AudioPriorityType priority, AudioControlType control, AudioSoundType type, unsigned int limit);
+    bool Clear_Samples(AudioGroupType group = AUDIO_GROUP_NONE);
+    bool Has_Been_Submitted(const std::string& filename, AudioGroupType group = AUDIO_GROUP_NONE);
 
-        /**
-         *  Master volume control.
-         */
-        virtual bool Set_Master_Volume(float volume) const;
+    void Lock_Submissions() { SubmissionsLocked = true; }
 
-        /**
-         *  Audio group control.
-         */
-        virtual float Get_Group_Volume(AudioGroupType group);
-        virtual bool Set_Group_Volume(AudioGroupType group, float volume);
-        virtual bool Is_Group_Playing(AudioGroupType group) const;
-        virtual bool Start_Group(AudioGroupType group) const;
-        virtual bool Stop_Group(AudioGroupType group) const;
-        virtual bool Stop_And_Fade_Out_Group(AudioGroupType group, float duration) const;
+    /**
+     *  Master volume control.
+     */
+    bool Set_Master_Volume(float volume) const;
 
-        /**
-         *  DirectSound access.
-         */
-        void * Get_DirectSound_Object() const;
-        void * Get_DirectSound_Primary_Buffer() const;
-        void * Get_DirectSound_Buffer() const;
+    /**
+     *  Audio group control.
+     */
+    float Get_Group_Volume(AudioGroupType group);
+    bool Set_Group_Volume(AudioGroupType group, float volume);
+    bool Is_Group_Playing(AudioGroupType group) const;
+    bool Start_Group(AudioGroupType group) const;
+    bool Stop_Group(AudioGroupType group) const;
+    bool Stop_And_Fade_Out_Group(AudioGroupType group, float duration) const;
 
-        /**
-         *  Supported formats query functions.
-         */
-        virtual bool Is_File_Available(AudioFileType type, std::string name) const;
-        virtual bool Is_File_Available(std::string name) const;
-        bool Is_FileType_Supported(AudioFileType type) const;
-        std::string Build_Filename_From_Type(AudioFileType type, std::string name);
+    /**
+     *  Supported formats query functions.
+     */
+    bool Is_File_Available(AudioFileType type, std::string name) const;
+    bool Is_File_Available(std::string name) const;
+    bool Is_FileType_Supported(AudioFileType type) const;
+    std::string Build_Filename_From_Type(AudioFileType type, std::string name);
 
-        bool Get_File_Info(std::string name, AudioFileType &filetype, std::string &filename, bool ignore_error = false);
+    bool Get_File_Info(const std::string& name, AudioFileType& filetype, std::string& filename, bool ignore_error = false);
 
-        /**
-         *  Utility functions.
-         */
-        int AudioPriority_To_Priority(AudioPriorityType priority);
-        AudioPriorityType Priority_To_AudioPriority(int priority);
-        unsigned int fVolume_To_iVolume(float vol);
-        float iVolume_To_fVolume(unsigned int vol);
+    /**
+     *  Utility functions.
+     */
+    static int AudioPriority_To_Priority(AudioPriorityType priority);
+    static AudioPriorityType Priority_To_AudioPriority(int priority);
+    static unsigned int fVolume_To_iVolume(float vol);
+    static float iVolume_To_fVolume(unsigned int vol);
 
-        bool Is_Handle_Valid(AudioHandleID handle);
-
-        /**
-         *  VQ Audio streaming support
-         */
-        bool Open_VQ_Audio_Stream(const std::string& name, int sampleRate, int channels, int bitsPerSample, float volume = 1.0f);
-        bool Push_VQ_Audio_Chunk(const void* data, size_t size);
-        bool Play_VQ_Audio_Stream();
-        bool Pause_VQ_Audio_Stream();
-        bool Resume_VQ_Audio_Stream();
-        bool Stop_VQ_Audio_Stream();
-        bool Close_VQ_Audio_Stream();
-        bool Is_VQ_Audio_Stream_Playing() const;
+    bool Is_Handle_Valid(AudioHandleID id);
 
 #ifndef NDEBUG
-        bool Create_Debug_Window(/*HINSTANCE hInstance*/);
-        bool Close_Debug_Window();
-        void Debug_Window_Message_Handler();
-        void Debug_Window_Loop();
+    bool Create_Debug_Window();
+    bool Close_Debug_Window();
+    void Debug_Window_Message_Handler();
+    void Debug_Window_Loop();
 #endif
 
-    private:
-        /**
-         *  Active handle management
-         */
-        bool Add_Active_Handle(std::unique_ptr<AudioInstanceClass> handle);
-        bool Add_Active_Handle_NoLock(std::unique_ptr<AudioInstanceClass> handle);
-        bool Remove_Active_Handle(AudioHandleID id);
-        bool Remove_Active_Handle_NoLock(AudioHandleID id);
-        bool Clear_All_Active_Handles();
+private:
+    /**
+     *  Active handle management
+     */
+    bool Add_Active_Handle(std::unique_ptr<AudioInstanceClass> handle);
+    bool Add_Active_Handle_NoLock(std::unique_ptr<AudioInstanceClass> handle);
+    bool Remove_Active_Handle(AudioHandleID id);
+    bool Remove_Active_Handle_NoLock(AudioHandleID id);
+    bool Clear_All_Active_Handles();
 
-        AudioSampleClass * Find_Sample(const std::string & filename, AudioGroupType group);
+    AudioSampleClass* Find_Sample(const std::string& filename, AudioGroupType group);
 
-    private:
-        static unsigned __stdcall CleanupThreadFunction(void * context);
+private:
+    static unsigned __stdcall CleanupThreadFunction(void* context);
 
-        /**
-         *  Utility functions to handle unique handle id's
-         */
-        static AudioHandleID Generate_Unique_Audio_ID(AudioGroupType group);
-        static bool Is_Valid_Audio_ID(AudioHandleID id, AudioGroupType group);
-        static AudioInstanceClass * Find_Handle_By_ID(AudioHandleID id);
-        static AudioInstanceClass * Find_Handle_By_ID_NoLock(AudioHandleID id);
+    /**
+     *  Utility functions to handle unique handle id's
+     */
+    static AudioHandleID Generate_Unique_Audio_ID(AudioGroupType group);
+    static bool Is_Valid_Audio_ID(AudioHandleID id, AudioGroupType group);
+    static AudioInstanceClass* Find_Handle_By_ID(AudioHandleID id);
+    static AudioInstanceClass* Find_Handle_By_ID_NoLock(AudioHandleID id);
 
-    private:
-        /**
-         *  The miniaudio engine and device instances.
-         */
-        ma_engine *Engine;
-        ma_device *Device;
+private:
+    /**
+     *  The miniaudio engine and device instances.
+     */
+    ma_engine* Engine = nullptr;
 
-        /**
-         *  Sound groups for per-group volume and playback control.
-         */
-        ma_sound_group *SoundGroups[AUDIO_GROUP_COUNT];
+    /**
+     *  Sound groups for per-group volume and playback control.
+     */
+    ma_sound_group* SoundGroups[AUDIO_GROUP_COUNT] = {};
 
-        /**
-         *  Has the audio engine been successfully initialized?
-         */
-        bool IsInitialized;
+    /**
+     *  Has the audio engine been successfully initialized?
+     */
+    bool IsInitialized = false;
 
-        /**
-         *  When the window loses focus, the current engine volume is stored here
-         *  so it can be restored when focus is restored.
-         */
-        float FocusRestoreVolume;
+    /**
+     *  When the window loses focus, the current engine volume is stored here
+     *  so it can be restored when focus is restored.
+     */
+    float FocusRestoreVolume = AUDIO_VOLUME_MAX;
 
-        /**
-         *  Tracks all the currently playing sounds.
-         */
-        std::unordered_map<AudioHandleID, std::unique_ptr<AudioInstanceClass> > ActiveInstanceMap;
-        
-        /**
-         *  Tracks all the currently playing sounds in their respective groups types. We can use raw
-         *  pointers here and ActiveInstanceMap has ownership of the audio instances being added.
-         */
-        std::unordered_map<AudioGroupType, std::vector<AudioInstanceClass *>> GroupedActiveInstanceMap;
-        
-        /**
-         *  Stores all available samples submitted to the manager.
-         */
-        std::unordered_map<AudioSampleKey, std::unique_ptr<AudioSampleClass> > SamplesMap;
+    /**
+     *  Tracks all the currently playing sounds.
+     */
+    std::unordered_map<AudioHandleID, std::unique_ptr<AudioInstanceClass>> ActiveInstanceMap;
 
-        /**
-         *  Lock down the manager to accepting any further submissions.
-         */
-        bool SubmissionsLocked;
+    /**
+     *  Tracks all the currently playing sounds in their respective groups types. We can use raw
+     *  pointers here and ActiveInstanceMap has ownership of the audio instances being added.
+     */
+    std::unordered_map<AudioGroupType, std::vector<AudioInstanceClass*>> GroupedActiveInstanceMap;
 
-    private:
-        /**
-         *  Types of audio requests that can be queued for processing.
-         */
-        typedef enum AudioRequestType {
-            AUDIO_REQUEST_PLAY,
-            AUDIO_REQUEST_STOP
-        } AudioRequestType;
+    /**
+     *  Stores all available samples submitted to the manager.
+     */
+    std::unordered_map<AudioSampleKey, std::unique_ptr<AudioSampleClass>> SamplesMap;
 
-        /**
-         *  Queued audio playback or stop request with all associated parameters.
-         */
-        typedef struct AudioRequest  {
+    /**
+     *  Lock down the manager to accepting any further submissions.
+     */
+    bool SubmissionsLocked = false;
 
-            AudioRequestType Type;
+private:
+    /**
+     *  Types of audio requests that can be queued for processing.
+     */
+    typedef enum AudioRequestType {
+        AUDIO_REQUEST_PLAY,
+        AUDIO_REQUEST_STOP
+    } AudioRequestType;
 
-            // For both Play and Stop
-            AudioHandleID HandleID = INVALID_AUDIO_HANDLE_ID;
+    /**
+     *  Queued audio playback or stop request with all associated parameters.
+     */
+    typedef struct AudioRequest {
 
-            // Only for Play
-            std::string Filename;
-            AudioGroupType Group = AUDIO_GROUP_NONE;
-            float Volume = 1.0f;
-            float Pitch = 1.0f;
-            float Pan = 0.0f;
-            AudioPriorityType Priority = AUDIO_PRIORITY_NORMAL;
-            int Limit = -1;
-            float FadeInSeconds = 0.0f;
-            float DelayInSeconds = 0.0f;
-            bool StartImmediately = true;
-            bool Loops = false;
+        AudioRequestType Type = AudioRequestType::AUDIO_REQUEST_PLAY;
 
-            // Only for Stop
-            float FadeOutSeconds = 0.0f;
+        // For both Play and Stop
+        AudioHandleID HandleID = INVALID_AUDIO_HANDLE_ID;
 
-            AudioRequest() = default;
+        // Only for Play
+        std::string Filename;
+        AudioGroupType Group = AUDIO_GROUP_NONE;
+        float Volume = 1.0f;
+        float Pitch = 1.0f;
+        float Pan = 0.0f;
+        AudioPriorityType Priority = AUDIO_PRIORITY_NORMAL;
+        int Limit = -1;
+        float FadeInSeconds = 0.0f;
+        float DelayInSeconds = 0.0f;
+        bool StartImmediately = true;
+        bool Loops = false;
+        int LoopLimit = 0;
 
-            // Constructor for Play
-            AudioRequest(AudioHandleID id, std::string filename, AudioGroupType group,
-                         float volume, float pitch, float pan,
-                         AudioPriorityType priority, int limit,
-                         float fadeIn, float delay, bool start, bool looping) :
-                HandleID(id),
-                Type(AudioRequestType::AUDIO_REQUEST_PLAY),
-                Filename(std::move(filename)),
-                Group(group),
-                Volume(volume),
-                Pitch(pitch),
-                Pan(pan),
-                Priority(priority),
-                Limit(limit),
-                FadeInSeconds(fadeIn),
-                DelayInSeconds(delay),
-                StartImmediately(start),
-                Loops(looping)
-            {
-            }
+        // Only for Stop
+        float FadeOutSeconds = 0.0f;
 
-            // Constructor for Stop
-            AudioRequest(AudioHandleID id, float fade_out) :
-                Type(AudioRequestType::AUDIO_REQUEST_STOP),
-                HandleID(id),
-                FadeOutSeconds(fade_out)
-            {
-            }
+        AudioRequest() = default;
 
-        } AudioRequest;
+        // Constructor for Play
+        AudioRequest(AudioHandleID id, std::string filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fadeIn, float delay, bool start, bool looping, int loop_limit) :
+            Type(AudioRequestType::AUDIO_REQUEST_PLAY),
+            HandleID(id),
+            Filename(std::move(filename)),
+            Group(group),
+            Volume(volume),
+            Pitch(pitch),
+            Pan(pan),
+            Priority(priority),
+            Limit(limit),
+            FadeInSeconds(fadeIn),
+            DelayInSeconds(delay),
+            StartImmediately(start),
+            Loops(looping),
+            LoopLimit(loop_limit)
+        {
+        }
 
-    private:
-        /**
-         *  Background thread and synchronization primitives for cleanup and request processing.
-         */
-        std::thread CleanupThread;
-        std::atomic<bool> ThreadExitFlag { false };
-        std::condition_variable_any ThreadWakeSignal;
-        std::mutex ThreadMutex;
+        // Constructor for Stop
+        AudioRequest(AudioHandleID id, float fade_out) : Type(AudioRequestType::AUDIO_REQUEST_STOP), HandleID(id), FadeOutSeconds(fade_out) {}
 
-        std::queue<AudioRequest> RequestQueue;
-        std::mutex RequestMutex;
-        std::condition_variable_any RequestCV;
+    } AudioRequest;
 
-        /**
-         *  IDs of requests submitted to RequestQueue but not yet processed by the worker.
-         *  Allows Query_Is_Playing to return true for in-flight requests without polling.
-         */
-        std::unordered_set<AudioHandleID> PendingHandleIDs;
-        std::mutex PendingMutex;
+private:
+    /**
+     *  Background thread and synchronization primitives for cleanup and request processing.
+     */
+    std::thread CleanupThread;
+    std::atomic<bool> ThreadExitFlag {false};
+    std::condition_variable_any ThreadWakeSignal;
+    std::mutex ThreadMutex;
 
-        /**
-         *  Requests with AUDIO_CONTROL_QUEUE that were deferred due to concurrent limit.
-         *  Worker-thread-only — no mutex required.
-         */
-        std::queue<AudioRequest> DeferredPlayQueue;
+    std::queue<AudioRequest> RequestQueue;
+    std::mutex RequestMutex;
+    std::condition_variable_any RequestCV;
 
-        std::mutex SubmissionMutex;
+    /**
+     *  IDs of requests submitted to RequestQueue but not yet processed by the worker.
+     *  Allows Query_Is_Playing to return true for in-flight requests without polling.
+     */
+    std::unordered_set<AudioHandleID> PendingHandleIDs;
+    std::mutex PendingMutex;
+
+    /**
+     *  Requests with AUDIO_CONTROL_QUEUE that were deferred due to concurrent limit.
+     *  Worker-thread-only — no mutex required.
+     */
+    std::queue<AudioRequest> DeferredPlayQueue;
+
+    std::mutex SubmissionMutex;
 };
 
 

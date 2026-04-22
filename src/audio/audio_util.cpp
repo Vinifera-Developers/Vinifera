@@ -1,50 +1,24 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Various audio utility functions.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_UTIL.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Various audio utility functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
 #include "audio_util.h"
+#include "audio_manager.h"
 #include "tibsun_globals.h"
-#include "vinifera_globals.h"
 #include "audio_theme.h"
-#include "audio_vox.h"
-#include "audio_voc.h"
-#include "theme.h"
 #include "addon.h"
 #include "dsaudio.h"
-#include "wwaud.h"
-#include "wstring.h"
 #include "ramfile.h"
 #include "ccfile.h"
 #include "ccini.h"
-#include "critsection.h"
 #include "debughandler.h"
-#include "asserthandler.h"
 #include <algorithm>
-#include <iostream>
 
 
 bool Theme_Fill_In_All()
@@ -60,7 +34,7 @@ bool Theme_Fill_In_All()
         DEBUG_WARNING("Failed to load THEME.INI!\n");
         return false;
     }
-    if (!ViniferaTheme.Fill_In_All(theme_ini)) {
+    if (!AudioTheme.Init_Themes(theme_ini)) {
         DEBUG_WARNING("Fill_In_All(THEME.INI) returned false!\n");
         return false;
     }
@@ -73,7 +47,7 @@ bool Theme_Fill_In_All()
             DEBUG_WARNING("Failed to load THEME01.INI!\n");
             return false;
         }
-        if (!ViniferaTheme.Fill_In_All(theme_ini)) {
+        if (!AudioTheme.Init_Themes(theme_ini)) {
             DEBUG_WARNING("Fill_In_All(THEME01.INI) returned false!\n");
             return false;
         }
@@ -99,11 +73,81 @@ bool Audio_IsAUDFile(const std::string & filename)
 {
     // Very quick and simple filename check for now.
     std::string ext = Audio_GetFileExtension(filename.c_str());
-    if (ext == "AUD") {
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+
+    if (ext == "AUD" || ext == "V00" || ext == "V01") {
         return true;
     }
 
     return false;
+}
+
+
+static std::string Audio_Normalize_Name(const std::string &name)
+{
+    if (name.empty()) {
+        return {};
+    }
+
+    std::string normalized(name);
+    size_t slash_pos = normalized.find_last_of("\\/");
+    size_t dot_pos = normalized.rfind('.');
+
+    if (dot_pos != std::string::npos && (slash_pos == std::string::npos || dot_pos > slash_pos)) {
+        normalized.erase(dot_pos);
+    }
+
+    return normalized;
+}
+
+
+AudioHandleID Audio_Play_UI_Sample(const std::string &name, int priority, int volume)
+{
+    if (!AudioManager.Is_Available() || name.empty()) {
+        return INVALID_AUDIO_HANDLE_ID;
+    }
+
+    std::string lookup_name = Audio_Normalize_Name(name);
+    if (lookup_name.empty()) {
+        return INVALID_AUDIO_HANDLE_ID;
+    }
+
+    AudioFileType type = AUDIO_TYPE_NONE;
+    std::string filename;
+    if (!AudioManager.Get_File_Info(lookup_name, type, filename)) {
+        DEBUG_WARNING("Audio_Play_UI_Sample - Failed to resolve \"%s\".\n", name.c_str());
+        return INVALID_AUDIO_HANDLE_ID;
+    }
+
+    AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
+    if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
+        if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
+            DEBUG_WARNING("Audio_Play_UI_Sample - Failed to submit \"%s\".\n", filename.c_str());
+            return INVALID_AUDIO_HANDLE_ID;
+        }
+    }
+
+    float vol = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    return AudioManager.Request_Play(filename, AUDIO_GROUP_UI, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
+}
+
+
+AudioHandleID Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume)
+{
+    if (!AudioManager.Is_Available() || filename.empty()) {
+        return INVALID_AUDIO_HANDLE_ID;
+    }
+
+    AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
+    if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
+        if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
+            DEBUG_WARNING("Audio_Play_UI_File - Failed to submit \"%s\".\n", filename.c_str());
+            return INVALID_AUDIO_HANDLE_ID;
+        }
+    }
+
+    float vol = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    return AudioManager.Request_Play(filename, AUDIO_GROUP_UI, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
 }
 
 /**

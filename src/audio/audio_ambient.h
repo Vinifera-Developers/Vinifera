@@ -1,97 +1,71 @@
 /*******************************************************************************
-/*                  O P E N  S O U R C E -- V I N I F E R A                   **
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Live playback instance of a voc sound owned by a long-lived caller.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_IONSTORM.H
- *
- *  @author        CCHyper
- *
- *  @brief         Ion storm ambient sound effect management.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
- *  @note          This file contains heavily modified code from the source code
- *                 released by Electronic Arts for the C&C Remastered Collection
- *                 under the GPL3 license. Source:
- *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "audio_defines.h"
-#include "wstring.h"
-#include "vector.h"
+#include "tibsun_defines.h"
+#include "tibsun_globals.h"
+
+class AudioVocClass;
 
 
 /**
- *  Manages playback of a looping ambient sound with fade-in/out support.
+ *  Manages playback of an ambient sound with fade-in/out support.
  */
 class AudioAmbientClass
 {
-    public:
-        AudioAmbientClass(std::string name);
-        ~AudioAmbientClass();
+public:
+    AudioAmbientClass(VocType voc);
+    AudioAmbientClass(const char* name);
+    ~AudioAmbientClass();
 
-        bool Start();
-        bool Stop();
-        bool Pause();
-        bool Resume();
+    bool Start(Coord const& coord = COORD_NONE);
+    bool Stop(float fade_out_seconds = 1.0f);
 
-        bool Is_Playing();
+    bool Update_Position(Coord coord);
 
-    private:
-        /**
-         *  Handle to ion storm ambient.
-         */
-        AudioHandleID Handle;
+    bool Pause();
+    bool Resume();
 
-        /**
-         *  Name of the sound event (up to 31 characters).
-         */
-        std::string Name;
+    bool Is_Playing();
 
-        /**
-         *  The file type of this sound.
-         */
-        AudioFileType FileType;
+    void Set_Fade_In(float seconds) { FadeInSeconds = seconds; }
 
-        /**
-         *  Full filename of the sound.
-         */
-        std::string FileName;
+private:
+    /**
+     *  Bound voc definition pointer.
+     */
+    AudioVocClass* Voc = nullptr;
 
-        /**
-         *  Is the sound available?
-         */
-        bool IsAvailable;
+    /**
+     *  Active audio handle, or INVALID_AUDIO_HANDLE_ID when not playing.
+     */
+    AudioHandleID Handle = INVALID_AUDIO_HANDLE_ID;
 
-        /**
-         *  Volume control for this sound.
-         */
-        float Volume;
+    /**
+     *  Last coordinate passed to Start()/Update_Position(). COORD_NONE for
+     *  non-positional playback.
+     */
+    Coord LastCoord = COORD_NONE;
 
-        /**
-         *  Fading control
-         */
-        bool FadeIn;
-        bool FadeOut;
-        float FadeSeconds;
+    /**
+     *  Fade-in applied on Start().
+     */
+    float FadeInSeconds = 1.0f;
 };
 
-
-extern DynamicVectorClass<AudioAmbientClass *> AudioAmbients;
+namespace IonAmbient
+{
+VocType Voc_Type();
+bool Is_Available();
+bool Is_Playing();
+bool Start();
+bool Stop();
+}

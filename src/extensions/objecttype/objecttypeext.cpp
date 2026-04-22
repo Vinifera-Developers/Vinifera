@@ -185,8 +185,7 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
     NoSpawnAlt = ini.Get_Bool(ini_name, "NoSpawnAlt", NoSpawnAlt);
     WaterAlt = ini.Get_Bool(ini_name, "WaterAlt", WaterAlt);
 
-    if (This()->IsVoxel)
-    {
+    if (This()->IsVoxel) {
         Fetch_Voxel_Image(Graphic_Name());
     }
     
@@ -205,14 +204,12 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
 {
     char buffer[260];
 
-    if (NoSpawnAlt)
-    {
+    if (NoSpawnAlt) {
         std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
         NoSpawnVoxel.Load(NoSpawnVoxelIndex, buffer);
     }
 
-    if (WaterAlt)
-    {
+    if (WaterAlt) {
         std::snprintf(buffer, sizeof(buffer), "%sW", graphic_name);
         WaterVoxel.Load(WaterVoxelIndex, buffer);
     }

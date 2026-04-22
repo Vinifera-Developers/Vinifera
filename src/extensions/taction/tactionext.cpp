@@ -11,11 +11,13 @@
 
 #include "tactionext.h"
 
-#include "debughandler.h"
+#include "audio_static_sound.h"
 #include "building.h"
+#include "debughandler.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
+#include "mouse.h"
 #include "object.h"
 #include "rules.h"
 #include "scenario.h"
@@ -27,6 +29,7 @@
 #include "tagtype.h"
 #include "techno.h"
 #include "technoext.h"
+#include "terrain.h"
 #include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -67,6 +70,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Disable templated text", "Removes the currently active templated text from the screen." },
     { "Adjust House Modifier", "Adjusts a house modifier by given percentage points." },
     { "Apply Iron Curtain", "Applies Iron Curtain to attached objects. Can optionally bypass legality checks." },
+    { "Stop Sounds At", "Stops all sounds at waypoint that were started using the Play Sound At trigger" },
 };
 
 
@@ -278,6 +282,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         DISPATCH(ENABLE_TRIGGER);
         DISPATCH(DESTROY_TAG);
         DISPATCH(PLAY_SOUND_RANDOM);
+        DISPATCH(PLAY_SOUND_AT);
 
         /**
          *  New Vinifera TActions.
@@ -313,6 +318,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
         EXT_DISPATCH(APPLY_IRON_CURTAIN);
+        EXT_DISPATCH(STOP_SOUNDS_AT);
 
         /**
          *  Unexpected TActionType.
@@ -1593,5 +1599,69 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
     }
 
     houseext->Expend_Iron_Curtain();
+    return true;
+}
+
+
+/**
+ *  Fetches the object to attach a sound to at a coordinate.
+ *
+ *  @author: ZivDero
+ */
+static ObjectClass* Get_Audio_Object(const Coord& coord)
+{
+    Cell cell = coord.As_Cell();
+    ObjectClass* object = nullptr;
+
+    if (cell != CELL_NONE) {
+        CellClass* cellptr = &Map[cell];
+        object = cellptr->Cell_Building();
+        if (!object) {
+            object = cellptr->Cell_Terrain();
+        }
+    }
+
+    return object;
+}
+
+
+/**
+ *  Plays a sound at the coordinate, or attaches it to an object there.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PLAY_SOUND_AT(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    Coord coord = Scen->Waypoint_Coord(This()->EffectLocation);
+    ObjectClass* object;
+
+    object = Get_Audio_Object(coord);
+
+    if (object) {
+        Extension::Fetch(object)->Attach_Ambient(This()->Data.Sound);
+    } else {
+        Play_Tracked_Static_Sound(This()->Data.Sound, coord);
+    }
+    return true;
+}
+
+
+/**
+ *  Plays playing the sound at the coordinate, or detaches it from the object there.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_STOP_SOUNDS_AT(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    Coord coord = Scen->Waypoint_Coord(This()->EffectLocation);
+    ObjectClass* object;
+
+    object = Get_Audio_Object(coord);
+
+    if (object) {
+        Extension::Fetch(object)->Attach_Ambient(VOC_NONE);
+    } else {
+        Stop_Tracked_Static_Sounds_At(coord);
+    }
     return true;
 }

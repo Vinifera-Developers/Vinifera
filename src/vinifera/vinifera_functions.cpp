@@ -707,11 +707,6 @@ bool Vinifera_Shutdown()
     delete UIControls;
     UIControls = nullptr;
 
-    /**
-     *  Cleanup additional extension instances.
-     */
-    ThemeControlExtensions.Clear();
-
     delete KamikazeTracker;
     KamikazeTracker = nullptr;
 

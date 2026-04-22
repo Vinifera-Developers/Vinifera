@@ -40,7 +40,5 @@ void Setup_Hooks()
  */
 void Setup_Conditional_Hooks()
 {
-    Audio_Hooks();
-
     SidebarClassExtension_Conditional_Hooks();
 }

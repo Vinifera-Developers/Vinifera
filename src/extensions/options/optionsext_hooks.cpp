@@ -40,16 +40,11 @@ DEFINE_HOOK(0x0058AA18, _Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch, 0)
  * 
  *  @author: CCHyper
  */
-static int Options_SoundVolume_To_Int() { return Options.SoundVolume * 255; }
-DECLARE_PATCH(_OptionsClass_Set_Sound_Volume_Patch)
+DEFINE_HOOK(0x00589B68, _OptionsClass_Set_Sound_Volume_Patch, 4)
 {
-    AudioVocClass::Set_Volume(Options_SoundVolume_To_Int());
+    AudioVocClass::Set_Volume(static_cast<int>(Options.SoundVolume * 255));
 
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { pop esi }
-    _asm { ret 8 }
+    return 0;
 }
 
 
@@ -63,5 +58,4 @@ void OptionsClassExtension_Hooks()
      */
     OptionsClassExtension_Init();
 
-    Patch_Jump(0x00589B68, &_OptionsClass_Set_Sound_Volume_Patch);
 }

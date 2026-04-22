@@ -14,6 +14,8 @@
 #include "addon.h"
 #include "aircrafttracker.h"
 #include "asserthandler.h"
+#include "audio_ambient.h"
+#include "audio_static_sound.h"
 #include "ccfile.h"
 #include "ccini.h"
 #include "debughandler.h"
@@ -133,6 +135,9 @@ DEFINE_HOOK(0x005DC85A, _Clear_Scenario_Patch, 0)
 
     KamikazeTracker->Clear();
     AircraftTracker->Clear();
+
+    Clear_Tracked_Static_Sounds();
+    IonAmbient::Stop();
 
     return 0x005DC872;
 }

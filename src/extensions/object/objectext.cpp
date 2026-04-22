@@ -11,8 +11,10 @@
 
 #include "objectext.h"
 
+#include "audio_ambient.h"
+#include "extension.h"
 #include "objecttype.h"
-#include "audio_voc.h"
+#include "objecttypeext.h"
 
 
 /**
@@ -22,7 +24,9 @@
  */
 ObjectClassExtension::ObjectClassExtension(const ObjectClass *this_ptr) :
     AbstractClassExtension(this_ptr),
-    AmbientSound(nullptr)
+    AmbientSound(nullptr),
+    AttachedAmbientSoundType(VOC_NONE),
+    AttachedAmbientSound(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectClassExtension::ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -49,9 +53,7 @@ ObjectClassExtension::~ObjectClassExtension()
 {
     //EXT_DEBUG_TRACE("ObjectClassExtension::~ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    if (AmbientSound) {
-        AmbientSound->Stop();
-    }
+    Stop_Ambient();
 }
 
 
@@ -68,6 +70,9 @@ HRESULT ObjectClassExtension::Load(IStream *pStm)
     if (FAILED(hr)) {
         return E_FAIL;
     }
+
+    AmbientSound = nullptr;
+    AttachedAmbientSound = nullptr;
     
     return hr;
 }
@@ -137,4 +142,55 @@ const char *ObjectClassExtension::Full_Name() const
     //EXT_DEBUG_TRACE("ObjectClassExtension::Full_Name - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return reinterpret_cast<const ObjectClass *>(This())->Class_Of()->Full_Name();
+}
+
+
+void ObjectClassExtension::Ambient_AI()
+{
+    if (This()->IsInLimbo) return;
+
+    auto classof = This()->Class_Of();
+    auto classext = Extension::Fetch(classof);
+
+    if (classext->AmbientSound != VOC_NONE && AmbientSound == nullptr) {
+        AmbientSound = new AudioAmbientClass(classext->AmbientSound);
+        AmbientSound->Start(This()->PositionCoord);
+    }
+    if (AmbientSound != nullptr) {
+        AmbientSound->Update_Position(This()->PositionCoord);
+    }
+
+    if (AttachedAmbientSoundType != VOC_NONE && AttachedAmbientSound == nullptr) {
+        AttachedAmbientSound = new AudioAmbientClass(AttachedAmbientSoundType);
+        AttachedAmbientSound->Start(This()->PositionCoord);
+    }
+    if (AttachedAmbientSound != nullptr) {
+        AttachedAmbientSound->Update_Position(This()->PositionCoord);
+    }
+}
+
+
+void ObjectClassExtension::Stop_Ambient()
+{
+    if (AmbientSound) {
+        delete AmbientSound;
+        AmbientSound = nullptr;
+    }
+
+    if (AttachedAmbientSound) {
+        delete AttachedAmbientSound;
+        AttachedAmbientSound = nullptr;
+    }
+}
+
+
+void ObjectClassExtension::Attach_Ambient(VocType voc)
+{
+    VocType old = AttachedAmbientSoundType;
+    AttachedAmbientSoundType = voc;
+
+    if (old != voc && old != VOC_NONE) {
+        delete AttachedAmbientSound;
+        AttachedAmbientSound = nullptr;
+    }
 }

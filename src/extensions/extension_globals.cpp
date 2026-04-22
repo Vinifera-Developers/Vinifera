@@ -56,5 +56,3 @@ ScenarioClassExtension *ScenExtension = nullptr;
 SidebarClassExtension *SidebarExtension = nullptr;
 SessionClassExtension *SessionExtension = nullptr;
 OptionsClassExtension *OptionsExtension = nullptr;
-
-DynamicVectorClass<ThemeControlExtension *> ThemeControlExtensions;

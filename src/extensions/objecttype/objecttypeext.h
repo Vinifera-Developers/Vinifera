@@ -81,5 +81,4 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
          *  The ambient sound effect type to play while this object is active.
          */
         VocType AmbientSound;
-        //std::string AmbientSoundName;
 };

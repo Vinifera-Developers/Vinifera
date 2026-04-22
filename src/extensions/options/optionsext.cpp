@@ -233,6 +233,7 @@ void OptionsClassExtension::Load_Settings()
     AudioManager.Set_Group_Volume(AUDIO_GROUP_SFX, This()->SoundVolume);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, This()->SoundVolume);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, This()->SoundVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_STREAMING, This()->SoundVolume);
 
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
@@ -354,4 +355,5 @@ void OptionsClassExtension::Set()
     AudioManager.Set_Group_Volume(AUDIO_GROUP_SFX, This()->SoundVolume);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, This()->SoundVolume);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, This()->SoundVolume);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_STREAMING, This()->SoundVolume);
 }

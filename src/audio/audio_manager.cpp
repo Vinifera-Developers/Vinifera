@@ -1,106 +1,35 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Installable MiniAudio audio driver.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_MANAGER.CPP
- *
- *  @author        CCHyper, with suggestions and additional comments added by AI
- * 
- *  @contributions mackron (miniaudio developer)
- *
- *  @brief         Installable MiniAudio audio driver.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "audio_manager.h"
-#include "audio_sample.h"
+
+#include "asserthandler.h"
+#include "audio_debug.h"
 #include "audio_instance.h"
 #include "audio_io.h"
-#include "audio_util.h"
-#include "audio_debug.h"
+#include "audio_sample.h"
+#include "audio_static_sound.h"
 #include "ccfile.h"
-#include "tibsun_globals.h"
 #include "debughandler.h"
-#include "asserthandler.h"
+#include "miniaudio.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
+
+#include <algorithm>
 
 
 /**
  *  Global audio manager instance.
  */
 AudioManagerClass AudioManager;
-
-
-/**
- *  The formats we/Miniaudio supports are controlled here.
- */
-#define MA_NO_OPUS
-//#define MA_NO_VORBIS      // vorbis decoding
-//#define MA_NO_WAV
-//#define MA_NO_MP3
-//#define MA_NO_FLAC
-
-// Enable printf() output of debug logs (MA_LOG_LEVEL_DEBUG).
-#ifndef NDEBUG
-#define MA_DEBUG_OUTPUT
-#endif
-
-#ifndef MA_NO_VORBIS
-#define STB_VORBIS_HEADER_ONLY
-#include "stb/stb_vorbis.c"
-#endif
-
-#define MINIAUDIO_IMPLEMENTATION // Actually implements the methods when we define this.
-#include <miniaudio/miniaudio.h>
-
-#ifndef MA_NO_VORBIS
-// stb_vorbis implementation must come after the implementation of miniaudio.
-#undef STB_VORBIS_HEADER_ONLY
-#include "stb/stb_vorbis.c"
-#endif
-
-
-/**
- *  Callback for routing miniaudio log messages to the debug output.
- *
- *  @author: CCHyper
- */
-static void Audio_log_callback(void *pUserData, ma_uint32 level, const char *pMessage)
-{
-    switch (level)
-    {
-#ifndef NDEBUG
-        case MA_LOG_LEVEL_DEBUG:
-            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "DEBUG: %s", pMessage);
-            break;
-#endif
-        default:
-        case MA_LOG_LEVEL_INFO:
-            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "%s", pMessage);
-            break;
-        case MA_LOG_LEVEL_WARNING:
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "%s", pMessage);
-            break;
-        case MA_LOG_LEVEL_ERROR:
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "%s", pMessage);
-            break;
-    };
-}
 
 
 /**
@@ -126,17 +55,15 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
             lastTime = now;
 
             // Clamp to 250ms max step
-            if (deltaTime > 0.25f) {
-                deltaTime = 0.25f;
-            }
-        
+            deltaTime = std::min(deltaTime, 0.25f);
+
             /**
              *  STEP 1: Process requests first!
              */
             { // local scope start
             
                 // Ensure thread-safe access to audio handles.
-                std::lock_guard<std::mutex> lock(_this->RequestMutex);
+                std::scoped_lock lock(_this->RequestMutex);
 
                 while (!_this->RequestQueue.empty()) {
 
@@ -153,7 +80,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                             // Remove this ID from the pending set on any exit that does not
                             // result in a live instance or a deferred (queued) request.
                             auto drop_pending = [&]() {
-                                std::lock_guard<std::mutex> plock(_this->PendingMutex);
+                                std::scoped_lock plock(_this->PendingMutex);
                                 _this->PendingHandleIDs.erase(req.HandleID);
                             };
 
@@ -183,7 +110,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                                     if (!inst) {
                                         continue;
                                     }
-                                    if (inst->Get_Sample_Template_As_Ptr() == sample) {
+                                    if (&inst->Get_Sample_Template() == sample) {
                                         ++activeCount;
 
                                         if (!lowestPriority || inst->Get_Sample_Template().Get_Priority() < lowestPriority->Get_Sample_Template().Get_Priority()) {
@@ -224,10 +151,13 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                                 break;
                             }
 
-                            // ThemeClass handles the looping, so lets filter any music tracks from causing logic problems.
-                            if (req.Group == AUDIO_GROUP_MUSIC) {
-                                instance->Set_Looping(req.Loops);
-                            }
+                            // ThemeClass owns music repetition, so do not apply sound-level looping
+                            // to AUDIO_GROUP_MUSIC. Non-music requests may use infinite or finite loops.
+                            const bool allow_sound_looping = req.Group != AUDIO_GROUP_MUSIC;
+                            const bool infinite_loop = allow_sound_looping && req.Loops && req.LoopLimit <= 0;
+                            const int loop_limit = allow_sound_looping && req.Loops ? req.LoopLimit : 0;
+                            instance->Set_Looping(infinite_loop);
+                            instance->Set_Loop_Limit(loop_limit);
 
                             instance->Set_Fade(req.FadeInSeconds, false);
                             instance->Set_Volume(req.Volume);
@@ -284,7 +214,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
             { // local scope start
 
                 // Ensure thread-safe access to the audio handles map.
-                std::lock_guard<std::mutex> lock(_this->ThreadMutex);
+                std::scoped_lock lock(_this->ThreadMutex);
 
                 // 3.1 - Iterate over each audio group.
                 for (int group = 0; group < AUDIO_GROUP_COUNT; ++group) {
@@ -308,12 +238,12 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                         handle->Update(deltaTime);
 
                         // If the handle has finished playback (e.g. stopped, completed fade out, etc.)
-                        if (!handle->IsLooping && handle->Is_Finished()) {
+                        if (handle->Is_Finished()) {
                             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed \"%s\" as it finished\n", handle->Get_FileName().c_str());
 
                             // Capture identity before the handle is freed.
                             const std::string finishedFile = handle->Get_FileName();
-                            const AudioGroupType finishedGroup = handle->Get_Group();
+                            const AudioGroupType finishedGroup = handle->Get_Sample_Template().Get_Group();
 
                             _this->Remove_Active_Handle_NoLock(handle->Get_ID()); // handles deletion and removal from both maps
 
@@ -326,7 +256,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                                     AudioRequest deferred = std::move(_this->DeferredPlayQueue.front());
                                     _this->DeferredPlayQueue.pop();
                                     if (!promoted && deferred.Filename == finishedFile && deferred.Group == finishedGroup) {
-                                        std::lock_guard<std::mutex> reqLock(_this->RequestMutex);
+                                        std::scoped_lock reqLock(_this->RequestMutex);
                                         _this->RequestQueue.push(std::move(deferred));
                                         promoted = true;
                                     } else {
@@ -426,7 +356,7 @@ bool AudioManagerClass::Is_Valid_Audio_ID(AudioHandleID id, AudioGroupType group
 // Causes a deadlock as its called within other locking functions, NoLock instead.
 AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID(AudioHandleID id)
 {
-    std::lock_guard<std::mutex> lock(AudioManager.ThreadMutex);
+    std::scoped_lock lock(AudioManager.ThreadMutex);
     return Find_Handle_By_ID_NoLock(id);
 }
 
@@ -464,16 +394,7 @@ AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioHandleID i
  *
  *  @author: CCHyper
  */
-AudioManagerClass::AudioManagerClass() :
-    Engine(nullptr),
-    Device(nullptr),
-    SoundGroups(),
-    IsInitialized(false),
-    FocusRestoreVolume(AUDIO_VOLUME_MAX),
-    ActiveInstanceMap(),
-    GroupedActiveInstanceMap(),
-    SamplesMap(),
-    SubmissionsLocked()
+AudioManagerClass::AudioManagerClass()
 {
 }
 
@@ -593,16 +514,8 @@ bool AudioManagerClass::Init(HWND hWnd)
  */
 void AudioManagerClass::End()
 {
-    /*
-     *  Uninitialize the device first to ensure the data callback is stopped
-     *  and doesn't try to access any data.
-     */
-    ma_device_uninit(Device);
-    delete Device;
-    Device = nullptr;
-
     /**
-     *  Then uninitialize the sound groups.
+     *  Uninitialize the sound groups.
      */
     for (int i = 0; i < AUDIO_GROUP_COUNT; ++i) {
         ma_sound_group_uninit(SoundGroups[i]);
@@ -763,11 +676,22 @@ void AudioManagerClass::Focus_Restore()
 
 
 /**
+ *  Per-frame maintenance tick for the audio manager.
+ *
+ *  @author: ZivDero
+ */
+void AudioManagerClass::Sound_Callback()
+{
+    Tracked_Static_Sounds_AI();
+}
+
+
+/**
  *  Submits a play request to the audio thread and waits for the instance to be created.
  *
  *  @author: CCHyper
  */
-AudioHandleID AudioManagerClass::Request_Play(std::string filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fade_in_seconds, float delay_in_seconds, bool start, bool looping)
+AudioHandleID AudioManagerClass::Request_Play(const std::string& filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fade_in_seconds, float delay_in_seconds, bool start, bool looping, int loop_limit)
 {
     // With modern hardware, its possible there is a race condition with the game ready to play
     // a sound before the audio manager has finished preloading all submitted samples. In the event
@@ -799,17 +723,17 @@ AudioHandleID AudioManagerClass::Request_Play(std::string filename, AudioGroupTy
     // immediately. Insert first to eliminate the race where the worker processes
     // the request before we can insert the ID.
     {
-        std::lock_guard<std::mutex> plock(PendingMutex);
+        std::scoped_lock plock(PendingMutex);
         PendingHandleIDs.insert(id);
     }
 
     // Enqueue request
     {
-        std::lock_guard<std::mutex> lock(RequestMutex);
+        std::scoped_lock lock(RequestMutex);
 
         RequestQueue.emplace( // Uses the "Play" constructor
             id,
-            std::string(filename.c_str()),
+            filename,
             group,
             volume,
             pitch,
@@ -819,7 +743,8 @@ AudioHandleID AudioManagerClass::Request_Play(std::string filename, AudioGroupTy
             fade_in_seconds,
             delay_in_seconds,
             start,
-            looping
+            looping,
+            loop_limit
         );
     }
 
@@ -845,7 +770,7 @@ bool AudioManagerClass::Request_Stop(AudioHandleID id, float fade_out)
     }
 
     {
-        std::lock_guard<std::mutex> lock(RequestMutex);
+        std::scoped_lock lock(RequestMutex);
 
         RequestQueue.emplace(id, fade_out); // Uses the "Stop" constructor
 
@@ -878,7 +803,7 @@ bool AudioManagerClass::Request_Pause(AudioHandleID id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
 
         handle = Find_Handle_By_ID_NoLock(id);
         ASSERT_FATAL(handle != nullptr);
@@ -902,7 +827,7 @@ bool AudioManagerClass::Request_Resume(AudioHandleID id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
 
         handle = Find_Handle_By_ID_NoLock(id);
         ASSERT_FATAL(handle != nullptr);
@@ -927,7 +852,7 @@ bool AudioManagerClass::Query_Is_Playing(AudioHandleID id)
     // A request that is submitted but not yet processed by the worker is still
     // "playing" from the caller's perspective — report it as active.
     {
-        std::lock_guard<std::mutex> plock(PendingMutex);
+        std::scoped_lock plock(PendingMutex);
         if (PendingHandleIDs.count(id)) {
             return true;
         }
@@ -935,7 +860,7 @@ bool AudioManagerClass::Query_Is_Playing(AudioHandleID id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
 
         handle = Find_Handle_By_ID_NoLock(id);
         //ASSERT_FATAL(handle != nullptr);
@@ -963,7 +888,7 @@ bool AudioManagerClass::Query_Is_Paused(AudioHandleID id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
 
         handle = Find_Handle_By_ID_NoLock(id);
         ASSERT_FATAL(handle != nullptr);
@@ -980,7 +905,7 @@ bool AudioManagerClass::Query_Is_Paused(AudioHandleID id)
  */
 bool AudioManagerClass::Query_Sample_Ready(std::string name, AudioGroupType group)
 {
-    std::lock_guard<std::mutex> lock(SubmissionMutex);
+    std::scoped_lock lock(SubmissionMutex);
 
     std::string str(name.c_str());
     AudioSampleKey key { str, group };
@@ -1005,10 +930,12 @@ bool AudioManagerClass::Set_Volume(AudioHandleID id, float volume)
     
     AudioInstanceClass * handle = nullptr;
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
 
         handle = Find_Handle_By_ID_NoLock(id);
-        ASSERT_FATAL(handle != nullptr);
+        if (handle == nullptr) {
+            return false;
+        }
     }
 
     return handle->Set_Volume(volume);
@@ -1029,10 +956,12 @@ bool AudioManagerClass::Set_Pan(AudioHandleID id, float pan)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
 
         handle = Find_Handle_By_ID_NoLock(id);
-        ASSERT_FATAL(handle != nullptr);
+        if (handle == nullptr) {
+            return false;
+        }
     }
 
     return handle->Set_Pan(pan);
@@ -1053,10 +982,12 @@ bool AudioManagerClass::Set_Pitch(AudioHandleID id, float pitch)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
 
         handle = Find_Handle_By_ID_NoLock(id);
-        ASSERT_FATAL(handle != nullptr);
+        if (handle == nullptr) {
+            return false;
+        }
     }
 
     return handle->Set_Pitch(pitch);
@@ -1069,7 +1000,7 @@ bool AudioManagerClass::Set_Pitch(AudioHandleID id, float pitch)
  *  @author: CCHyper
  */
 bool AudioManagerClass::Submit_Sample(
-    std::string &filename,
+    const std::string& filename,
     AudioFileType filetype,
     AudioGroupType group,
     AudioPriorityType priority,
@@ -1085,7 +1016,7 @@ bool AudioManagerClass::Submit_Sample(
     AudioSampleKey key { str, group };
 
     {
-        std::lock_guard<std::mutex> lock(SubmissionMutex);
+        std::scoped_lock lock(SubmissionMutex);
 
         if (SamplesMap.find(key) != SamplesMap.end()) {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Submit_Sample - Sample with the filename \"%s\" already exists!\n", filename.c_str());
@@ -1114,7 +1045,7 @@ bool AudioManagerClass::Submit_Sample(
  */
 bool AudioManagerClass::Clear_Samples(AudioGroupType group)
 {
-    std::lock_guard<std::mutex> lock(SubmissionMutex);
+    std::scoped_lock lock(SubmissionMutex);
 
     bool any_cleared = false;
 
@@ -1142,9 +1073,9 @@ bool AudioManagerClass::Clear_Samples(AudioGroupType group)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Has_Been_Submitted(std::string &filename, AudioGroupType group)
+bool AudioManagerClass::Has_Been_Submitted(const std::string& filename, AudioGroupType group)
 {
-    std::lock_guard<std::mutex> lock(SubmissionMutex);
+    std::scoped_lock lock(SubmissionMutex);
 
     std::string str(filename.c_str());
     AudioSampleKey key { str, group };
@@ -1308,7 +1239,7 @@ bool AudioManagerClass::Stop_And_Fade_Out_Group(AudioGroupType group, float dura
  */
 bool AudioManagerClass::Add_Active_Handle(std::unique_ptr<AudioInstanceClass> audio_handle)
 {
-    std::lock_guard<std::mutex> lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
     return Add_Active_Handle_NoLock(std::move(audio_handle));
 }
 
@@ -1320,7 +1251,7 @@ bool AudioManagerClass::Add_Active_Handle(std::unique_ptr<AudioInstanceClass> au
  */
 bool AudioManagerClass::Remove_Active_Handle(AudioHandleID audio_id)
 {
-    std::lock_guard<std::mutex> lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
     return Remove_Active_Handle_NoLock(audio_id);
 }
 
@@ -1395,7 +1326,7 @@ bool AudioManagerClass::Remove_Active_Handle_NoLock(AudioHandleID audio_id)
 bool AudioManagerClass::Clear_All_Active_Handles()
 {
     {
-        std::lock_guard<std::mutex> lock(ThreadMutex); // Protect both maps
+        std::scoped_lock lock(ThreadMutex); // Protect both maps
 
         // Smart pointers handle deletion automatically.
         ActiveInstanceMap.clear();
@@ -1409,7 +1340,7 @@ bool AudioManagerClass::Clear_All_Active_Handles()
 AudioSampleClass * AudioManagerClass::Find_Sample(const std::string & filename, AudioGroupType group)
 {
     {
-        std::lock_guard<std::mutex> lock(SubmissionMutex);
+        std::scoped_lock lock(SubmissionMutex);
 
         std::string str(filename.c_str());
         AudioSampleKey key{ str, group };
@@ -1425,236 +1356,6 @@ AudioSampleClass * AudioManagerClass::Find_Sample(const std::string & filename, 
 
 
 /**
- *  Returns the underlying DirectSound playback object.
- *
- *  @author: CCHyper
- */
-void * AudioManagerClass::Get_DirectSound_Object() const
-{
-    return Device->dsound.pPlayback;
-}
-
-
-/**
- *  Returns the DirectSound primary buffer.
- *
- *  @author: CCHyper
- */
-void * AudioManagerClass::Get_DirectSound_Primary_Buffer() const
-{
-    if (Device && Device->dsound.pPlaybackPrimaryBuffer) {
-        return Device->dsound.pPlaybackPrimaryBuffer;
-    }
-    return nullptr;
-}
-
-
-/**
- *  Returns the DirectSound secondary (playback) buffer.
- *
- *  @author: CCHyper
- */
-void * AudioManagerClass::Get_DirectSound_Buffer() const
-{
-    if (Device && Device->dsound.pPlaybackBuffer) {
-        return Device->dsound.pPlaybackBuffer;
-    }
-    return nullptr;
-}
-
-
-/**
- *  Opens a new VQA audio stream with the specified format parameters.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Open_VQ_Audio_Stream(const std::string& name, int sampleRate, int channels, int bitsPerSample, float volume)
-{
-#if 0
-    std::lock_guard<std::mutex> lock(Mutex);
-
-    if (VQAStream.Handle != INVALID_AUDIO_HANDLE_ID) {
-        Close_VQ_Audio_Stream();
-    }
-
-    AudioSample sample{};
-    sample.Type = AUDIO_TYPE_STREAM;
-    sample.Group = AUDIO_GROUP_STREAM;
-    sample.ControlFlags = AUDIO_CONTROL_STREAM;
-    sample.SoundType = AUDIO_SOUND_STREAM;
-    sample.Priority = AUDIO_PRIORITY_NORMAL;
-    sample.Channels = channels;
-    sample.SampleRate = sampleRate;
-    sample.BitsPerSample = bitsPerSample;
-    sample.LogicalName = name;
-
-    int sampleIndex = static_cast<int>(Samples.size());
-    Samples.push_back(sample);
-
-    AudioInstanceClass instance{};
-    instance.SampleIndex = sampleIndex;
-    instance.IsStreaming = true;
-    instance.IsPaused = true;
-
-    instance.Volume = volume;
-    instance.Pitch = 1.0f;
-    instance.Pan = 0.0f;
-
-    AudioHandleID id = Allocate_Handle();
-    if (id == INVALID_AUDIO_HANDLE_ID)
-        return false;
-
-    instance.Handle = id;
-    ActiveHandles[id] = std::move(instance);
-
-    VQAStream.Handle = id;
-    VQAStream.SampleRate = sampleRate;
-    VQAStream.Channels = channels;
-    VQAStream.BitsPerSample = bitsPerSample;
-    VQAStream.Volume = volume;
-    VQAStream.Group = AUDIO_GROUP_VQA;
-    VQAStream.IsPaused = true;
-
-#endif
-    return true;
-}
-
-/**
- *  Pushes a chunk of PCM audio data into the active VQA audio stream.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Push_VQ_Audio_Chunk(const void* data, size_t size)
-{
-#if 0
-    if (VQAStream.Handle == INVALID_AUDIO_HANDLE_ID) {
-        return false;
-    }
-
-    VQAStream.PushPCM(data, size);
-
-    auto* inst = Find_Handle_By_ID(VQAStream.Handle);
-    if (!inst) {
-        return false;
-    }
-
-    // Immediately push it to instance (you can buffer inside instance too if needed)
-    inst->Push_PCM_Data(data, size);
-#endif
-    return true;
-}
-
-/**
- *  Starts playback of the active VQA audio stream.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Play_VQ_Audio_Stream()
-{
-#if 0
-    if (VQAStream.Handle == INVALID_AUDIO_HANDLE_ID) {
-        return false;
-    }
-
-    auto* inst = Find_Handle_By_ID(VQAStream.Handle);
-    if (!inst) {
-        return false;
-    }
-
-    inst->IsPaused = false;
-    VQAStream.IsPaused = false;
-#endif
-    return true;
-}
-
-/**
- *  Pauses the active VQA audio stream.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Pause_VQ_Audio_Stream()
-{
-#if 0
-    if (VQAStream.Handle == INVALID_AUDIO_HANDLE_ID) {
-        return false;
-    }
-
-    auto* inst = Find_Handle_By_ID(VQAStream.Handle);
-    if (!inst) {
-        return false;
-    }
-
-    inst->IsPaused = true;
-    VQAStream.IsPaused = true;
-#endif
-    return true;
-}
-
-/**
- *  Resumes playback of a paused VQA audio stream.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Resume_VQ_Audio_Stream()
-{
-    return false;
-}
-
-/**
- *  Stops the active VQA audio stream.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Stop_VQ_Audio_Stream()
-{
-#if 0
-    if (VQAStream.Handle == INVALID_AUDIO_HANDLE_ID) {
-        return false;
-    }
-
-    return Request_Stop(VQAStream.Handle);
-#endif
-    return false;
-}
-
-/**
- *  Closes the active VQA audio stream and releases its resources.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Close_VQ_Audio_Stream()
-{
-#if 0
-    if (VQAStream.Handle == INVALID_AUDIO_HANDLE_ID) {
-        return false;
-    }
-
-    Request_Stop(VQAStream.Handle);
-    ActiveHandles.erase(VQAStream.Handle);
-    VQAStream = {};
-#endif
-    return true;
-}
-
-/**
- *  Returns whether a VQA audio stream is currently playing.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Is_VQ_Audio_Stream_Playing() const
-{
-#if 0
-    if (VQAStream.Handle == INVALID_AUDIO_HANDLE_ID) {
-        return false;
-    }
-    const auto* inst = Find_Handle_By_ID(VQAStream.Handle);
-    return inst && !inst->IsPaused;
-#endif
-    return true;
-}
-
-
-/**
  *  Returns whether the given audio file type is supported by the current build configuration.
  *
  *  @author: CCHyper
@@ -1662,9 +1363,6 @@ bool AudioManagerClass::Is_VQ_Audio_Stream_Playing() const
 bool AudioManagerClass::Is_FileType_Supported(AudioFileType type) const
 {
     switch (type) {
-#ifndef MA_NO_OPUS
-        case AUDIO_TYPE_OPUS: return true;
-#endif
 #ifndef MA_NO_VORBIS
         case AUDIO_TYPE_OGG: return true;
 #endif
@@ -1695,9 +1393,6 @@ bool AudioManagerClass::Is_FileType_Supported(AudioFileType type) const
 std::string AudioManagerClass::Build_Filename_From_Type(AudioFileType type, std::string name)
 {
     switch (type) {
-#ifndef MA_NO_OPUS
-        case AUDIO_TYPE_OPUS: return name + ".OPUS";
-#endif
 #ifndef MA_NO_VORBIS
         case AUDIO_TYPE_OGG: return name + ".OGG";
 #endif
@@ -1809,7 +1504,7 @@ float AudioManagerClass::iVolume_To_fVolume(unsigned int vol)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Get_File_Info(std::string name, AudioFileType &filetype, std::string &filename, bool ignore_error)
+bool AudioManagerClass::Get_File_Info(const std::string& name, AudioFileType& filetype, std::string& filename, bool ignore_error)
 {
 #ifndef MA_NO_FLAC
     if (Is_File_Available(AUDIO_TYPE_FLAC, name)) {
@@ -1871,11 +1566,6 @@ bool AudioManagerClass::Get_File_Info(std::string name, AudioFileType &filetype,
 bool AudioManagerClass::Is_File_Available(AudioFileType type, std::string name) const
 {
     switch (type) {
-#ifndef MA_NO_OPUS
-        case AUDIO_TYPE_OPUS:
-            name += ".OPUS";
-            break;
-#endif
 #ifndef MA_NO_VORBIS
         case AUDIO_TYPE_OGG:
             name += ".OGG";

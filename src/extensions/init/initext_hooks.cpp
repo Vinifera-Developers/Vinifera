@@ -220,7 +220,6 @@ void Vinifera_Create_Main_Window_480p(HINSTANCE hInstance, int command_show, int
 
     SDL_Create_Main_Window(hInstance, width, height);
     ShowCommand = command_show;
-    Audio.Audio_Focus_Loss_Function = Focus_Loss;
 
     //DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
 }
@@ -245,7 +244,6 @@ void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, i
 
     SDL_Create_Main_Window(hInstance, width, height);
     ShowCommand = command_show;
-    Audio.Audio_Focus_Loss_Function = Focus_Loss;
 
     // DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
 }
@@ -416,7 +414,7 @@ bool Vinifera_Prep_For_Side(SideType side)
     /**
      *  Re-initialize sounds in case the side mixes override them.
      */
-    Read_Sound_INI();
+    //Read_Sound_INI();
 
     return true;
 }
@@ -614,7 +612,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" SCORES.MIX\n", buffer);
     }
 	ScoresPresent = true;
-    ViniferaTheme.Scan();
+    AudioTheme.Scan();
 
     /**
      *  #issue-513

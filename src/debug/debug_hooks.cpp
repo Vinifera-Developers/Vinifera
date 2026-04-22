@@ -14,11 +14,12 @@
 #include "exceptionhandler.h"
 #include "hooker.h"
 #include "purecallhandler.h"
+#include "stackdump.h"
 #include "tspp_assert.h"
 #include "vinifera_globals.h"
 #include "winutil.h"
-#include <comdef.h>  // Declares _com_raise_error and _com_error
-#include <string>
+
+#include <comdef.h> // Declares _com_raise_error and _com_error
 #include <stdarg.h>
 #include <string>
 

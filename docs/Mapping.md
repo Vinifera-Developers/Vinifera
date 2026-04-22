@@ -134,6 +134,18 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 | 14       | Maximum            | x = max(x, y)  |
 | 15       | Minimum            | x = min(x, y)  |
 
+### Play Sound At / Stop Sounds At
+
+- The vanilla "Play Sound At" (action 10) and "Stop Sounds At" (action 30) trigger actions now correctly pair with each other at waypoints that have no object present.
+
+  Previously, if "Play Sound At" was fired at an empty waypoint (no unit or building at that location), it would play a fire-and-forget sound that could not be stopped by "Stop Sounds At". Looping sounds started this way would play indefinitely.
+
+  Vinifera fixes this: looping sounds started by "Play Sound At" at an empty waypoint are now tracked, and a subsequent "Stop Sounds At" at the same waypoint will stop them.
+
+```{note}
+If an object is present at the waypoint, the sound is attached to that object as before. The fix only applies to the empty-waypoint case.
+```
+
 ### New Trigger Actions
 
 ```{warning}

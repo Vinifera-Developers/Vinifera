@@ -1,33 +1,14 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Audio engine type definitions, enumerations, and constants.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_DEFINES.H
- *
- *  @author        CCHyper
- *
- *  @brief         Audio engine type definitions, enumerations, and constants.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include <string>
 
 
@@ -126,10 +107,9 @@ typedef enum AudioControlType
     AUDIO_CONTROL_NORMAL = 0,
 
     /**
-     *  Continually play sound event. LoopLimit attribute can be used to
-     *  specify how many times to loop the event.
+     *  Continually play sound event unless a finite LoopLimit caps total plays.
      */
-    //AUDIO_CONTROL_LOOP = 1 << 0,
+    AUDIO_CONTROL_LOOP = 1 << 0,
 
     /**
      *  Randomly pick sound from sound list to play.
@@ -190,7 +170,8 @@ typedef enum AudioControlType
     //AUDIO_CONTROL_DECAY = 1 << 9,
 
     /**
-     *  Marks this audio event as an ambient sound.
+     *  Marks this audio event as ambient/classified for compatibility.
+     *  This flag does not enable looping by itself.
      */
     AUDIO_CONTROL_AMBIENT = 1 << 10,
 

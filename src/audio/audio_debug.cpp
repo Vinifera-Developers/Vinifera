@@ -1,47 +1,30 @@
 /*******************************************************************************
-/*                  O P E N  S O U R C E -- V I N I F E R A                   **
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Audio engine debug logging macros and utilities.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_DEBUG.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Audio engine debug logging macros and utilities.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "audio_debug.h"
-#include "audio_manager.h"
+
 #include "audio_instance.h"
-
+#include "audio_manager.h"
+#include "debughandler.h"
 #include "tibsun_globals.h"
-#include "options.h"
+#include "vinifera_globals.h"
 
-#include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx11.h>
-#include <d3d11.h>
-#include <tchar.h>
 #include <chrono>
-#include <thread>
-
+#include <d3d11.h>
+#include <imgui.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
 #include <shellscalingapi.h>
+#include <tchar.h>
+#include <thread>
 
 
 /**
@@ -489,7 +472,7 @@ static std::vector<AudioDebugMessage> AudioDebugLogQueue;
 
 static void AudioSubmitToDebugLog(AudioDebugLogType type, AudioDebugLogLevel level, const std::string& msg)
 {
-    std::lock_guard<std::mutex> lock(AudioDebugLogMutex);
+    std::scoped_lock lock(AudioDebugLogMutex);
     AudioDebugLogQueue.push_back({type, level, msg});
 }
 
@@ -513,7 +496,7 @@ void __cdecl Audio_Debug_Log(AudioDebugLogLevel level, AudioDebugLogType type, c
     char timeStr[32];
     std::strftime(timeStr, sizeof(timeStr), "[%H:%M:%S]", &now_tm);
 
-    std::lock_guard<std::mutex> lock(AudioDebugLogMutex);
+    std::scoped_lock lock(AudioDebugLogMutex);
     AudioDebugLogQueue.push_back({type, level, buffer, timeStr});
 }
 
@@ -627,7 +610,7 @@ void AudioManagerClass::Debug_Window_Loop()
             ImGui::SameLine();
             if (ImGui::Button("Copy to Clipboard")) {
                 std::string clipboardText;
-                std::lock_guard<std::mutex> lock(AudioDebugLogMutex);
+                std::scoped_lock lock(AudioDebugLogMutex);
                 for (const auto& msg : AudioDebugLogQueue) {
                     if (msg.type != SelectedDebugLogTab) continue;
                     if (!LogFilter.PassFilter(msg.message.c_str())) continue;
@@ -644,7 +627,7 @@ void AudioManagerClass::Debug_Window_Loop()
             ImGui::BeginChild("LogWindow", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
             // --- Log Rendering ---
-            std::lock_guard<std::mutex> lock(AudioDebugLogMutex);
+            std::scoped_lock lock(AudioDebugLogMutex);
 
             for (const auto& msg : AudioDebugLogQueue) {
                 if (msg.type != SelectedDebugLogTab) continue;

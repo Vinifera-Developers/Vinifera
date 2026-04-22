@@ -427,7 +427,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     /**
      *  x
      */
-    ViniferaTheme.Fill_In_All(ini);
+    AudioTheme.Init_Themes(ini);
 }
 
 

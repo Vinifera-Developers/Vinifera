@@ -60,8 +60,6 @@ class SidebarClassExtension;
 class SessionClassExtension;
 class OptionsClassExtension;
 
-class ThemeControlExtension;
-
 
 /**
  *  For printing out extension debug info.
@@ -136,8 +134,3 @@ extern ScenarioClassExtension *ScenExtension;
 extern SidebarClassExtension* SidebarExtension;
 extern SessionClassExtension *SessionExtension;
 extern OptionsClassExtension *OptionsExtension;
-
-/**
- *  Classes that require a list, but are not abstract derived.
- */
-extern DynamicVectorClass<ThemeControlExtension *> ThemeControlExtensions;

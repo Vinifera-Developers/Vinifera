@@ -1,36 +1,16 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Audio sample instance class.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_INSTANCE.H
- *
- *  @author        CCHyper
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "wstring.h"
 #include "audio_defines.h"
 #include "audio_sample.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 struct ma_sound;
@@ -39,140 +19,137 @@ typedef ma_sound ma_sound_group;
 class AudioSampleClass;
 
 
-class AudioInstanceBase
-{
-    public:
-        AudioInstanceBase() {}
-        virtual ~AudioInstanceBase() {}
-};
-
-
 /**
  *  An active instance of a sample.
  */
-class AudioInstanceClass : public AudioInstanceBase
+class AudioInstanceClass
 {
     friend class AudioManagerClass;
 
-    public:
-        AudioInstanceClass(AudioSampleClass * tmpl, AudioHandleID id);
-        virtual ~AudioInstanceClass();
+public:
+    AudioInstanceClass(AudioSampleClass* tmpl, AudioHandleID id);
+    ~AudioInstanceClass();
 
-        std::string Get_FileName() const { return Is_Valid() ? Template->Get_FileName() : "<unknown>"; }
-        AudioHandleID Get_ID() const { return HandleID; }
-        AudioSampleClass const & Get_Sample_Template() const { return *Template; }
-        AudioSampleClass const * Get_Sample_Template_As_Ptr() const { return Template; } // Dont use!
+    std::string Get_FileName() const { return Is_Valid() ? Template->Get_FileName() : "<unknown>"; }
+    AudioHandleID Get_ID() const { return HandleID; }
+    AudioSampleClass const& Get_Sample_Template() const { return *Template; }
 
-        bool Is_Ready_To_Play() const { return CurrentState == AudioHandleState::AUDIO_STATE_READY; }
+    bool Is_Ready_To_Play() const { return CurrentState == AudioHandleState::AUDIO_STATE_READY; }
 
-        bool Is_Playing() const;
-        bool Is_Paused() const { return CurrentState == AudioHandleState::AUDIO_STATE_PAUSED; }
+    bool Is_Playing() const;
+    bool Is_Paused() const { return CurrentState == AudioHandleState::AUDIO_STATE_PAUSED; }
 
-        bool Is_Fading_Out() const;
-        bool Is_Fading_In() const;
+    bool Is_Fading_Out() const;
+    bool Is_Fading_In() const;
 
-        bool Is_Looping() const;
+    bool Is_Looping() const;
 
-        bool Is_Finished() const;
+    bool Is_Finished() const;
 
-        bool Is_Valid() const;
+    bool Is_Valid() const;
 
-        bool Play();
-        bool End();
+    bool Play();
+    bool End();
 
-        bool Pause();
-        bool Resume();
-        bool Restart();
+    bool Pause();
+    bool Resume();
+    bool Restart();
 
-        bool Update(float deltaTime);
+    bool Update(float deltaTime);
 
-        bool Seek(float time);
+    bool Seek(float time);
 
-        float Get_Volume() const;
-        float Get_Pitch() const;
-        float Get_Pan() const;
-        float Get_Time() const;
-        float Get_Length() const;
-        //float Get_Delay() const;
+    float Get_Volume() const;
+    float Get_Pitch() const;
+    float Get_Pan() const;
+    float Get_Time() const;
+    float Get_Length() const;
+    // float Get_Delay() const;
 
-        bool Set_Looping(bool loop);
-        bool Set_Fade(float seconds, bool out, bool end_after_out = true);
-        bool Set_Volume(float volume);
-        bool Set_Pitch(float pitch);
-        bool Set_Pan(float pan);
-        bool Set_Time(float time_in_seconds);
-        bool Set_Delay(float time_in_seconds);
+    bool Set_Looping(bool loop);
+    bool Set_Loop_Limit(int total_plays);
+    bool Set_Fade(float seconds, bool out, bool end_after_out = true);
+    bool Set_Volume(float volume);
+    bool Set_Pitch(float pitch);
+    bool Set_Pan(float pan);
+    bool Set_Time(float time_in_seconds);
+    bool Set_Delay(float delay_in_seconds);
 
-        unsigned Get_Sample_Rate() const;
-        unsigned Get_Channels() const;
+    unsigned Get_Sample_Rate() const;
+    unsigned Get_Channels() const;
 
-        //bool Assign_To_Group(ma_sound_group *group) const;
+    // bool Assign_To_Group(ma_sound_group *group) const;
 
-        bool Is_Using_Custom_Decoder() const { return DecoderInitialized && Decoder != nullptr; }
+    bool Is_Using_Custom_Decoder() const { return DecoderInitialized && Decoder != nullptr; }
 
-        bool Set_User_Data(void *user_data);
+    bool Set_User_Data(void* user_data);
 
-    private:
-        bool Load();
-        bool Free();
+private:
+    bool Load();
+    bool Free();
 
-    private:
-        /**
-         *  Pointer to the Miniaudio engine sound object
-         */
-        ma_sound * Sound;
+private:
+    /**
+     *  Pointer to the Miniaudio engine sound object
+     */
+    ma_sound* Sound = nullptr;
 
-        /**
-         *  Holds the optional decoder for streaming the WS AUD format
-         */
-        ma_decoder * Decoder;
-        bool DecoderInitialized;
-        bool DecoderIsOwnedBySound;
-        
-        /**
-         *  Back-reference to template
-         */
-        AudioSampleClass * Template;
-        
-        /**
-         *  Unique identifier generated by the audio manager, do not set manually!
-         */
-        AudioHandleID HandleID;
-        
-        /**
-         *  Current lifecycle state.
-         */
-        AudioHandleState CurrentState;
+    /**
+     *  Holds the optional decoder for streaming the WS AUD format
+     */
+    ma_decoder* Decoder = nullptr;
+    bool DecoderInitialized = false;
+    bool DecoderIsOwnedBySound = false;
 
-        /**
-         *  Volume at fade start.
-         */
-        float FadeStartVolume;
+    /**
+     *  Back-reference to template
+     */
+    AudioSampleClass* Template = nullptr;
 
-        /**
-         *  Time since fade started.
-         */
-        float FadeTime;
+    /**
+     *  Unique identifier generated by the audio manager, do not set manually!
+     */
+    AudioHandleID HandleID = INVALID_AUDIO_HANDLE_ID;
 
-        /**
-         *  How long the fade lasts.
-         */
-        float FadeDuration;
+    /**
+     *  Current lifecycle state.
+     */
+    AudioHandleState CurrentState = AudioHandleState::AUDIO_STATE_NEW;
 
-        bool IsLooping;
+    /**
+     *  Volume at fade start.
+     */
+    float FadeStartVolume = 1.0f;
 
-        /**
-         *  Indicates if audio was loaded correctly.
-         */
-        bool IsLoaded;
+    /**
+     *  Time since fade started.
+     */
+    float FadeTime = 0.0f;
 
-        /**
-         *  Whether a start delay is pending.
-         */
-        bool IsDelaySet;
+    /**
+     *  How long the fade lasts.
+     */
+    float FadeDuration = 0.0f;
 
-    private:
-        // Disable copy semantics
-        //AudioInstanceClass(const AudioInstanceClass & other);
-        //AudioInstanceClass & operator = (const AudioInstanceClass &) = delete;
+    bool IsLooping = false;
+
+    /**
+     *  Remaining automatic replays after the current pass completes.
+     */
+    int RemainingLoopRepeats = 0;
+
+    /**
+     *  Indicates if audio was loaded correctly.
+     */
+    bool IsLoaded = false;
+
+    /**
+     *  Whether a start delay is pending.
+     */
+    bool IsDelaySet = false;
+
+public:
+    // Disable copy semantics
+    AudioInstanceClass(const AudioInstanceClass&) = delete;
+    AudioInstanceClass& operator=(const AudioInstanceClass&) = delete;
 };

@@ -1,53 +1,27 @@
 /*******************************************************************************
-/*                  O P E N  S O U R C E -- V I N I F E R A                    *
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Music theme playback and management.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_THEME.CPP
- *
- *  @author        Joe L. Bostic (see notes below)
- *
- *  @contributors  CCHyper, tomsons26
- *
- *  @brief         Music theme playback and management.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
- *  @note          This file contains heavily modified code from the source code
- *                 released by Electronic Arts for the C&C Remastered Collection
- *                 under the GPL3 license. Source:
- *                 https://github.com/ElectronicArts/CnC_Remastered_Collection
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "audio_theme.h"
-#include "audio_manager.h"
-#include "audio_sample.h"
+
+#include "addon.h"
 #include "audio_debug.h"
-#include "tibsun_inline.h"
-#include "tibsun_globals.h"
-#include "options.h"
-#include "session.h"
+#include "audio_manager.h"
+#include "ccini.h"
+#include "debughandler.h"
 #include "house.h"
 #include "housetype.h"
-#include "ccfile.h"
-#include "ccini.h"
-#include "addon.h"
+#include "session.h"
 #include "side.h"
-#include "debughandler.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "vinifera_util.h"
 
 
@@ -57,7 +31,7 @@
 AudioThemeClass AudioTheme;
 
 
-float AudioThemeClass::FadeOutSeconds = 10.0f;
+float AudioThemeClass::FadeOutSeconds = 1.5f;
 bool AudioThemeClass::CrossFade = false;
 float AudioThemeClass::CrossFadeSeconds = 10.0f;
 
@@ -67,14 +41,7 @@ float AudioThemeClass::CrossFadeSeconds = 10.0f;
  * 
  *  @author: CCHyper
  */
-AudioThemeClass::AudioThemeClass() :
-    ScoreHandle(INVALID_AUDIO_HANDLE_ID),
-    Score(THEME_NONE),
-    Pending(THEME_NONE),
-    //Volume(255),
-    IsRepeat(false),
-    IsShuffle(false),
-    Themes()
+AudioThemeClass::AudioThemeClass()
 {
     Themes.Clear();
 }
@@ -87,7 +54,7 @@ AudioThemeClass::AudioThemeClass() :
  */
 AudioThemeClass::~AudioThemeClass()
 {
-    Clear();
+    Free_Themes();
 }
 
 
@@ -132,7 +99,7 @@ const char * AudioThemeClass::Base_Name(ThemeType theme) const
  *
  *  @author: CCHyper
  */
-const char * AudioThemeClass::INI_Base_Name(ThemeType theme) const
+const char * AudioThemeClass::INI_Name(ThemeType theme) const
 {
     if (theme != THEME_NONE && theme < Themes.Count()) {
         return Themes[theme]->Name.c_str();
@@ -451,7 +418,7 @@ void AudioThemeClass::Stop(bool fade)
     if (Still_Playing()) {
         if (fade) {
             DEBUG_INFO("Theme::Stop - Fading out \"%s\"...\n", Themes[Score]->Name.c_str());
-            AudioManager.Request_Stop(ScoreHandle, CrossFadeSeconds);
+            AudioManager.Request_Stop(ScoreHandle, FadeOutSeconds);
             //ScoreHandle->Stop(FadeOutSeconds, true);
 
         } else {
@@ -544,7 +511,7 @@ bool AudioThemeClass::Is_Paused() const
  *
  *  @author: CCHyper
  */
-void AudioThemeClass::Clear()
+void AudioThemeClass::Free_Themes()
 {
     //Themes.Delete_All();
 
@@ -573,7 +540,7 @@ void AudioThemeClass::Set_Volume(int volume)
  *
  *  @author: CCHyper
  */
-int AudioThemeClass::Process(CCINIClass &ini)
+int AudioThemeClass::Process(CCINIClass const &ini)
 {
     static char const * const GENERAL = "General";
     static char const * const THEMES = "Themes";
@@ -591,7 +558,7 @@ int AudioThemeClass::Process(CCINIClass &ini)
     int count = ini.Entry_Count(THEMES);
     for (int index = 0; index < count; ++index) {
 
-        if (ini.Get_String(THEMES, ini.Get_Entry(THEMES, index), buffer, sizeof(buffer)-1) > 0) {
+        if (ini.Get_String(THEMES, ini.Get_Entry(THEMES, index), "", buffer, sizeof(buffer)-1) > 0) {
             ThemeType theme = From_Name(buffer);
 
             ThemeControl *ctrl = nullptr;
@@ -638,11 +605,11 @@ bool AudioThemeClass::Still_Playing() const
  * 
  *  @author: CCHyper
  */
-bool AudioThemeClass::Is_Allowed(ThemeType index) const
+bool AudioThemeClass::Is_Allowed(ThemeType theme) const
 {
     //ASSERT(index < Themes.Count()); // Removed as Next_Song goes out of bounds (by design).
 
-    if (index == THEME_QUIET || index == THEME_PICK_ANOTHER) {
+    if (theme == THEME_QUIET || theme == THEME_PICK_ANOTHER) {
         return true;
     }
 
@@ -652,28 +619,28 @@ bool AudioThemeClass::Is_Allowed(ThemeType index) const
      * 
      *  #NOTE: Removed as Next_Song goes out of bounds (by design).
      */
-    if (index >= Themes.Count()) {
+    if (theme >= Themes.Count()) {
         return false;
     }
 
     /**
      *  If the theme is not present, then it certainly isn't allowed.
      */
-    if (!Themes[index]->Available) {
+    if (!Themes[theme]->Available) {
         return false;
     }
 
     /**
      *  Only normal themes (playable during battle) are considered allowed.
      */
-    if (!Themes[index]->Normal) {
+    if (!Themes[theme]->Normal) {
         return false;
     }
 #else
     /**
      *  Only normal themes (playable during battle) are considered allowed.
      */
-    if (!Is_Playable(index)) {
+    if (!Is_Playable(theme)) {
         return false;
     }
 #endif
@@ -685,7 +652,7 @@ bool AudioThemeClass::Is_Allowed(ThemeType index) const
      * 
      *  @author: CCHyper
      */
-    AddonType addon = Themes[index]->RequiredAddon;
+    AddonType addon = Themes[theme]->RequiredAddon;
     if (addon != ADDON_BASE_GAME) {
         if (!Addon_Installed(addon)) {
             //AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Is_Allowed - \"%s\" is only available for addon %d.\n", Themes[index]->Name.c_str(), addon);
@@ -698,8 +665,8 @@ bool AudioThemeClass::Is_Allowed(ThemeType index) const
      *  it. If the player's house hasn't yet been determined, then presume this test
      *  passes.
      */
-    if (PlayerPtr != nullptr && Themes[index]->Owner != -1 && ((1 << PlayerPtr->Class->Side) & Themes[index]->Owner) == 0) {
-        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Is_Allowed - Side \"%s\" not allowed to play %s!\n", SideClass::Name_From(PlayerPtr->Class->Side), Themes[index]->Name.c_str());
+    if (PlayerPtr != nullptr && Themes[theme]->Owner != -1 && ((1 << PlayerPtr->Class->Side) & Themes[theme]->Owner) == 0) {
+        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Is_Allowed - Side \"%s\" not allowed to play %s!\n", SideClass::Name_From(PlayerPtr->Class->Side), Themes[theme]->Name.c_str());
         return false;
     }
 
@@ -707,7 +674,7 @@ bool AudioThemeClass::Is_Allowed(ThemeType index) const
      *  If the scenario doesn't allow this theme yet, then return the failure flag. The
      *  scenario check only makes sense for solo play.
      */
-    if (Session.Type == GAME_NORMAL && Scen->Scenario < Themes[index]->Scenario) {
+    if (Session.Type == GAME_NORMAL && Scen->Scenario < Themes[theme]->Scenario) {
         //AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Is_Allowed - \"%s\" is not yet available for this scenario (\"%d\").\n", Themes[index]->Name.c_str(), Scen->Scenario);
         return false;
     }
@@ -869,7 +836,7 @@ void AudioThemeClass::Set_Theme_Data(ThemeType theme, int scenario, SideType own
  *
  *  @author: CCHyper
  */
-bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass &ini)
+bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass const &ini)
 {
     if (!ini.Is_Present(Name.c_str())) {
         return false;
@@ -898,11 +865,14 @@ bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass &ini)
      *  @author: CCHyper
      */
      //Owner = ini.Get_SideType(name, "Side", Owner);
-    if (ini.Get_String(name, "Side", buffer, sizeof(buffer)) > 0) {
+    if (ini.Get_String(name, "Side", "", buffer, sizeof(buffer)) > 0) {
         const char * token = std::strtok(buffer, ",");
         while (token) {
             SideType side = SideClass::From_Name(token);
             if (side != SIDE_NONE) {
+                if (Owner == -1) {
+                    Owner = 0;
+                }
                 Owner |= 1 << side;
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme: Setting side %s for %s.\n", token, name);
             }
@@ -910,17 +880,17 @@ bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass &ini)
         }
     }
 
-    Volume = ini.Get_Float_Clamp(name, "Volume", AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX, Volume);
+    Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
 
     char tmp[512];
 
-    ini.Get_String(name, "Sound", tmp, sizeof(tmp));
+    ini.Get_String(name, "Sound", "", tmp, sizeof(tmp));
     Sound = tmp;
 
-    ini.Get_String(name, "Name", tmp, sizeof(tmp));
+    ini.Get_String(name, "Name", "", tmp, sizeof(tmp));
     Fullname = tmp;
 
-    ini.Get_String(name, "Artist", tmp, sizeof(tmp));
+    ini.Get_String(name, "Artist", "", tmp, sizeof(tmp));
     Artist = tmp;
 
     return true;
@@ -932,7 +902,7 @@ bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass &ini)
  *
  *  @author: CCHyper
  */
-bool AudioThemeClass::Fill_In_All(CCINIClass &ini)
+bool AudioThemeClass::Init_Themes(CCINIClass const &ini)
 {
     for (ThemeType theme = THEME_FIRST; theme < Themes.Count(); ++theme) {
 
@@ -951,7 +921,7 @@ bool AudioThemeClass::Fill_In_All(CCINIClass &ini)
          *  @author: CCHyper
          */
          //Owner = ini.Get_SideType(name, "Side", Owner);
-        if (ini.Get_String(name, "Side", buffer, sizeof(buffer)) > 0) {
+        if (ini.Get_String(name, "Side", "", buffer, sizeof(buffer)) > 0) {
             const char * token = std::strtok(buffer, ",");
             while (token) {
                 SideType side = SideClass::From_Name(token);

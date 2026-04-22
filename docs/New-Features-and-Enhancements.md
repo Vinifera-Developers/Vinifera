@@ -1400,15 +1400,109 @@ The random map generator does not currently support new theater types.
     `DESERT.MIX`, `ISODES.MIX`, `DES.MIX`, `DESERT.INI`, `ISODES.PAL`, `DESERT.PAL`, `UNITDES.PAL`, and `SLOP#Z.DES` (where # is 1 to 4).
    :::
 
+## Sound Effects
+
+Vinifera replaces the vanilla audio engine with a new system that supports additional audio file formats and a redesigned `SOUND.INI` format.
+
+### Supported File Formats
+
+Sound effects can now use the following formats in addition to the vanilla `AUD` format:
+
+- Ogg Vorbis (`OGG`)
+- MP3 (`MP3`)
+- PCM audio (`WAV`)
+- FLAC (`FLAC`)
+
+The file extension determines the format. The `Sounds=` key in `SOUND.INI` should list filenames without their extensions.
+
+### SOUND.INI Format
+
+The `SOUND.INI` format has been redesigned. Sounds are declared in a `[SoundList]` section, and each sound has its own section with properties. Global defaults for all sounds can be set in a `[Defaults]` section.
+
+```ini
+[SoundList]
+0=SOMESOUND
+
+[Defaults]           ; Optional — sets global defaults for all sounds.
+Limit=5              ; integer, maximum concurrent instances (default for all sounds).
+Range=10             ; integer, audible range in cells (default for all sounds).
+Priority=10          ; integer, playback priority (default for all sounds).
+Volume=1.0           ; float (0.0–1.0), playback volume (default for all sounds).
+MinVolume=0.0        ; float (0.0–1.0), minimum volume for GLOBAL-type sounds (default for all sounds).
+
+[SOMESOUND]          ; VocType
+Sounds=              ; list of filenames (without extension), the audio files for this sound.
+Limit=5              ; integer, maximum number of concurrent instances.
+LoopLimit=0          ; integer, maximum number of times to loop. 0 means unlimited when Control includes LOOP.
+Range=10             ; integer, audible range in cells.
+Priority=10          ; integer, playback priority. Higher values take precedence when sounds compete.
+Volume=1.0           ; float (0.0–1.0), playback volume.
+MinVolume=0.0        ; float (0.0–1.0), minimum volume. Only applies when Type includes GLOBAL.
+VShift=0,0           ; two integers, minimum and maximum random volume shift (in percent) per play.
+FShift=0,0           ; two integers, minimum and maximum random frequency/pitch shift (in percent) per play.
+Type=NORMAL          ; comma-separated flags controlling how the sound is positioned and when it is audible.
+Control=NORMAL       ; comma-separated flags controlling playback behaviour.
+```
+
+#### Type Flags
+
+| Flag | Description |
+|------|-------------|
+| `NORMAL` | Standard positional sound. Volume fades based on distance from the screen edge. |
+| `GLOBAL` | Always audible at at least `MinVolume`, regardless of how far the source is from the screen. |
+| `LOCAL` | Only audible directly at the source position; volume fades from the source coordinate rather than the screen edge. |
+| `UNSHROUDED` | Only plays when the source cell is visible (not inside the shroud or fog of war). |
+| `SHROUDED` | Only plays when the source cell is inside the shroud or fog of war. |
+
+#### Control Flags
+
+| Flag | Description |
+|------|-------------|
+| `NORMAL` | Play once with no special behaviour. |
+| `LOOP` | Loop continuously until explicitly stopped. Use `LoopLimit` to cap the number of loops. |
+| `RANDOM` | Pick a random file from the `Sounds` list each play. |
+| `PREDELAY` | Apply any playback delay before the sound starts rather than after it ends. |
+| `AMBIENT` | Marks the sound as ambient, separating it from standard effect sounds. |
+
+### SOUND01.INI
+
+When the Firestorm expansion is active, `SOUND01.INI` is loaded after `SOUND.INI` and its entries are merged into the sound database. This allows new sounds to be added without modifying the base file.
+
 ## Themes
 
-- `RequiredAddon` can be set to be limit new and existing themes to a specific addon (i. e., Firestorm).
+Vinifera expands the music theme system with new per-theme keys and global playback settings.
+
+### New Theme Keys
+
+- Themes can now specify a custom audio filename, a full display name, and an artist name.
+- Per-theme volume is now supported.
 
 In `THEME.INI`:
 ```ini
-[SOMETHEME]      ; ThemeType
-RequiredAddon=0  ; AddonType, the addon required to be active for this theme to be available. Currently, only 0 (none) and 1 (Firestorm) are supported.
+[SOMETHEME]        ; ThemeType
+Sound=             ; filename (without extension), the audio file for this theme. Supports AUD, OGG, MP3, WAV and FLAC.
+Name=              ; string, the full display name of this theme as shown in the jukebox.
+Artist=            ; string, the artist name for this theme.
+Volume=1.0         ; float (0.0–1.0), playback volume for this theme.
+RequiredAddon=0    ; AddonType, the addon required for this theme to be available. 0 = base game, 1 = Firestorm.
 ```
+
+### Cross-Fading and Fade-Out
+
+- Vinifera supports a configurable fade-out duration and optional cross-fading between music tracks.
+
+These are set in a `[General]` section in `THEME.INI`:
+
+```ini
+[General]
+FadeOutSeconds=1.5     ; float, duration in seconds for the fade-out when a theme ends or is stopped. Defaults to 1.5.
+CrossFading=no         ; boolean, whether themes cross-fade into each other instead of fading out then fading in.
+CrossFadeSeconds=10.0  ; float, duration in seconds for cross-fade transitions when CrossFading is enabled. Defaults to 10.0.
+```
+
+### THEME01.INI
+
+When the Firestorm expansion is active, `THEME01.INI` is loaded after `THEME.INI` and its entries are merged, allowing new themes to be added without modifying the base file.
 
 ## Tiberiums
 

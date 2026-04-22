@@ -26,6 +26,7 @@
 #include "ipxmgr.h"
 #include "netdlg.h"
 #include "nullmgr.h"
+#include "objectext_hooks.h"
 #include "optionsext.h"
 #include "rules.h"
 #include "rulesext.h"

@@ -128,7 +128,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004142CB, _AnimClass_Destructor_Patch, 5)
+DEFINE_HOOK(0x0041436D, _AnimClass_Destructor_Patch, 6)
 {
     GET(AnimClass *, this_ptr, ESI);
 

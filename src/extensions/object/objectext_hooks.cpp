@@ -14,16 +14,19 @@
 #include "anim.h"
 #include "animtype.h"
 #include "asserthandler.h"
+#include "audio_ambient.h"
 #include "cell.h"
 #include "colorscheme.h"
 #include "extension.h"
-#include "audio_voc.h"
 #include "hooker.h"
 #include "house.h"
 #include "mouse.h"
 #include "object.h"
 #include "objectext.h"
+#include "objecttype.h"
+#include "objecttypeext.h"
 #include "rules.h"
+#include "syringe.h"
 #include "techno.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
@@ -127,46 +130,30 @@ bool ObjectClassExt::_Paradrop(Coord const& coord)
     return false;
 }
 
-/**
- *  Patch to stop the ambient sound when an object enters limbo.
- *
- *  @author: CCHyper
- */
-DECLARE_PATCH(_ObjectClass_Limbo_AmbientSound_Patch)
+
+DEFINE_HOOK(0x00584C18, _ObjectClass_AI_AmbientSound_Patch, 5)
 {
-    GET_REGISTER_STATIC(ObjectClass *, this_ptr, esi);
-    static ObjectClassExtension *this_ext;
+    GET(ObjectClass*, this_ptr, ESI);
 
-    this_ext = Extension::Fetch(this_ptr);
+    auto ext = Extension::Fetch(this_ptr);
+    if (ext != nullptr) {
+        Extension::Fetch(this_ptr)->Ambient_AI();
+    }
 
-    this_ext->AmbientSound->Stop();
-
-    //JMP();
+    return 0;
 }
 
 
-/**
- *  Patch to update the ambient sound position during the object's AI processing.
- *
- *  @author: CCHyper
- */
-DECLARE_PATCH(_ObjectClass_AI_AmbientSound_Patch)
+DEFINE_HOOK(0x00585AAD, _ObjectClass_Limbo_AmbientSound_Patch, 5)
 {
-    GET_REGISTER_STATIC(ObjectClass *, this_ptr, esi);
-    static ObjectClassExtension *this_ext;
+    GET(ObjectClass*, this_ptr, ESI);
 
-    this_ext = Extension::Fetch(this_ptr);
-
-    /**
-     *  Only update the ambient sound position if the object is not in limbo.
-     */
-    if (!this_ptr->IsInLimbo) {
-        if (this_ext->AmbientSound) {
-            this_ext->AmbientSound->Update_Position(this_ptr->PositionCoord);
-        }
+    auto ext = Extension::Fetch(this_ptr);
+    if (ext != nullptr) {
+        Extension::Fetch(this_ptr)->Stop_Ambient();
     }
 
-    //JMP();
+    return 0;
 }
 
 
@@ -176,5 +163,4 @@ DECLARE_PATCH(_ObjectClass_AI_AmbientSound_Patch)
 void ObjectClassExtension_Hooks()
 {
     Patch_Jump(0x005864C0, &ObjectClassExt::_Paradrop);
-    //Patch_Jump(0x00584C18, &_ObjectClass_AI_AmbientSound_Patch);
 }

@@ -17,11 +17,7 @@
 
 bool Vinifera_DeveloperMode = false;
 
-#ifndef NDEBUG
-bool Vinifera_AudioDebug = true;
-#else
 bool Vinifera_AudioDebug = false;
-#endif
 
 bool Vinifera_PerformingLoad = false;
 

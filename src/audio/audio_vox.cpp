@@ -1,45 +1,29 @@
 /*******************************************************************************
-/*                  O P E N  S O U R C E -- V I N I F E R A                   **
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  EVA speech/voice audio management.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_VOX.CPP
- *
- *  @author        CCHyper, tomsons26
- *
- *  @brief         EVA speech/voice audio management.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "audio_vox.h"
-#include "tibsun_globals.h"
-#include "options.h"
-#include "vox.h"
-#include "scenario.h"
+
+#include "asserthandler.h"
+#include "audio_debug.h"
+#include "audio_sample.h"
+#include "ccini.h"
 #include "house.h"
 #include "housetype.h"
+#include "options.h"
+#include "scenario.h"
 #include "side.h"
-#include "ccini.h"
-#include "audio_sample.h"
-#include "audio_util.h"
-#include "audio_debug.h"
+#include "tibsun_globals.h"
 #include "vinifera_util.h"
-#include "asserthandler.h"
+#include "vox.h"
+
 #include <algorithm>
 #include <thread>
 
@@ -51,9 +35,15 @@ static DynamicVectorClass<AudioVoxClass *> Voxs;
 
 
 /**
- *  Controls whether EVA speech playback is globally enabled.
+ *  AudioVoxClass statics.
  */
 bool AudioVoxClass::IsSpeechAllowed = true;
+int AudioVoxClass::DefaultPriority = AudioManagerClass::AudioPriority_To_Priority(AUDIO_PRIORITY_NORMAL);
+float AudioVoxClass::DefaultDelay = 0.2f; // We add a fake delay so the speech is not played on top of the building placement sound effect etc.
+float AudioVoxClass::DefaultFrequencyShift = 1.0f;
+float AudioVoxClass::DefaultVolume = AUDIO_VOLUME_MAX;
+float AudioVoxClass::DefaultMinVolume = AUDIO_VOLUME_MIN;
+float AudioVoxClass::DefaultMaxVolume = AUDIO_VOLUME_MAX;
 
 
 /**
@@ -61,19 +51,6 @@ bool AudioVoxClass::IsSpeechAllowed = true;
  *  used to query if a speech is currently playing.
  */
 static AudioHandleID SpeechHandle = INVALID_AUDIO_HANDLE_ID;
-
-
-/**
- *  These are the defaults for all speeches loaded from the ini database.
- */
-static AudioSoundType DefaultType = AUDIO_SOUND_VOICE;
-static AudioControlType DefaultControl = AUDIO_CONTROL_QUEUE;
-static int DefaultPriority = AudioManager.AudioPriority_To_Priority(AUDIO_PRIORITY_NORMAL);
-static float DefaultDelay = 0.2f; // We add a fake delay so the speech is not played on top of the building placement sound effect etc.
-static int DefaultFrequencyShift = 1.0f;
-static float DefaultVolume = AUDIO_VOLUME_MAX;
-static float DefaultMinVolume = AUDIO_VOLUME_MIN;
-static float DefaultMaxVolume = AUDIO_VOLUME_MAX;
 
 
 /**
@@ -89,19 +66,7 @@ static std::atomic<bool> IsVoxScanComplete{false};
  *  @author: CCHyper
  */
 AudioVoxClass::AudioVoxClass(std::string name) :
-    FileType(AUDIO_TYPE_AUD),
-    FileName(),
-    Available(false),
-    Name(name),
-    Sound(),
-    Priority(DefaultPriority),
-    Volume(DefaultVolume),
-    MinVolume(DefaultMinVolume),
-    MaxVolume(DefaultMaxVolume),
-    Delay(DefaultDelay),
-    FrequencyShift(DefaultFrequencyShift),
-    Type(DefaultType),
-    Control(DefaultControl)
+    Name(name)
 {
     string_to_upper(Name);
 
@@ -127,24 +92,20 @@ AudioVoxClass::~AudioVoxClass()
  */
 void AudioVoxClass::Read_INI(CCINIClass &ini)
 {
-    char buffer[256];
     const char *name = Name.c_str();
 
     if (!ini.Is_Present(name)) {
         return;
     }
 
-    ini.Get_String(name, "Sound", buffer, sizeof(buffer));
-    Sound = buffer;
+    Sound = ini.Get_String(name, "Sound", Sound);
+    DescriptionText = ini.Get_String(name, "Text", DescriptionText);
 
-    ini.Get_String(name, "Text", buffer, sizeof(buffer));
-    DescriptionText = buffer;
-
-    Priority = ini.Get_Int(name, "Priority", DefaultPriority);
-    DefaultDelay = ini.Get_Int(name, "Delay", DefaultDelay);
-    Volume = ini.Get_Float_Clamp(name, "Volume", 0.0f, 1.0f, DefaultVolume);
-    //Delay = ini.Get_Float_Clamp(name, "Delay", 0.0f, 5.0f, DefaultDelay); // Not to be read from the ini database.
-    FrequencyShift = ini.Get_Float_Clamp(name, "FShift", -5.0f, 5.0f, FrequencyShift);
+    Priority = ini.Get_Int(name, "Priority", Priority);
+    //DefaultDelay = ini.Get_Int(name, "Delay", DefaultDelay);
+    Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Volume), 0.0f, 1.0f);
+    //Delay = std::clamp<float>(ini.Get_Float(name, "Delay", Delay), 0.0f, 5.0f); // Not to be read from the ini database.
+    FrequencyShift = std::clamp<float>(ini.Get_Float(name, "FShift", FrequencyShift), -5.0f, 5.0f);
 
     // TODO, we should loop the HouseTypes and load GDI=, Nod= etc based of the names of the HouseTypes!
 }
@@ -189,8 +150,8 @@ bool AudioVoxClass::Process(CCINIClass &ini)
     if (ini.Is_Present(DEFAULTS)) {
         DefaultPriority = ini.Get_Int(DEFAULTS, "Priority", DefaultPriority);
         DefaultDelay = ini.Get_Float(DEFAULTS, "Delay", DefaultDelay);
-        DefaultVolume = ini.Get_Float_Clamp(DEFAULTS, "Volume", AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX, DefaultVolume);
-        DefaultMinVolume = ini.Get_Float_Clamp(DEFAULTS, "MinVolume", AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX, DefaultMinVolume);
+        DefaultVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "Volume", DefaultVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+        DefaultMinVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MinVolume", DefaultMinVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
         //DefaultMaxVolume = ini.Get_Float_Clamp(DEFAULTS, "MaxVolume", AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX, DefaultMaxVolume); // Not to be loaded from the ini database.
     }
 
@@ -200,7 +161,7 @@ bool AudioVoxClass::Process(CCINIClass &ini)
 
         for (int index = 0; index < counter; ++index) {
 
-            if (ini.Get_String(SOUNDLIST, ini.Get_Entry(SOUNDLIST, index), buffer, sizeof(buffer)-1)) {
+            if (ini.Get_String(SOUNDLIST, ini.Get_Entry(SOUNDLIST, index), "", buffer, sizeof(buffer)-1)) {
                 VoxType vox = From_Name(buffer);
 
                 AudioVoxClass *voxptr = nullptr;
@@ -301,7 +262,7 @@ void AudioVoxClass::Preload()
             voxptr->FileName,
             voxptr->FileType,
             AUDIO_GROUP_SPEECH,
-            AudioManager.Priority_To_AudioPriority(voxptr->Priority),
+            AudioManagerClass::Priority_To_AudioPriority(voxptr->Priority),
             voxptr->Control,
             voxptr->Type,
             1);
@@ -521,7 +482,7 @@ void AudioVoxClass::AI()
 
     // As Vox instances are now preloaded in a new thread, we must use a mutex
     {
-        std::lock_guard<std::mutex> lock(VoxScanMutex);
+        std::scoped_lock lock(VoxScanMutex);
 
         /**
          *  Speech file was found, now play it.
@@ -530,7 +491,7 @@ void AudioVoxClass::AI()
         float vol = std::clamp(voxptr->Volume, voxptr->MinVolume, voxptr->MaxVolume);
         float pitch = voxptr->FrequencyShift;
         float delay = voxptr->Delay;
-        AudioPriorityType priority = AudioManager.Priority_To_AudioPriority(voxptr->Priority);
+        AudioPriorityType priority = AudioManagerClass::Priority_To_AudioPriority(voxptr->Priority);
         AudioSoundType type = voxptr->Type;
         AudioControlType control = voxptr->Control;
 

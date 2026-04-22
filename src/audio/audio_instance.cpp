@@ -1,44 +1,26 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Audio sample instance implementation.
  *
- *  @project       Vinifera
- *
- *  @file          AUDIO_INSTANCE.CPP
- *
- *  @author        CCHyper
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
+#include "always.h"
+
 #include "audio_instance.h"
-#include "audio_manager.h"
+
+#include "asserthandler.h"
+#include "audio_debug.h"
 #include "audio_decoders.h"
 #include "audio_io.h"
+#include "audio_manager.h"
 #include "audio_util.h"
-#include "audio_debug.h"
 #include "ccfile.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#include "miniaudio.h"
 
 #include <chrono>
-#include <thread>
-
-//#define MINIAUDIO_IMPLEMENTATION      // Not needed here as we just want header info!
-#include <miniaudio/miniaudio.h>
 
 
 /**
@@ -47,19 +29,8 @@
  *  @author: CCHyper
  */
 AudioInstanceClass::AudioInstanceClass(AudioSampleClass * tmpl, AudioHandleID id) :
-    Sound(nullptr),
-    Decoder(nullptr),
-    DecoderInitialized(false),
-    DecoderIsOwnedBySound(false),
     Template(tmpl),
-    HandleID(id),
-    CurrentState(AudioHandleState::AUDIO_STATE_NEW),
-    FadeTime(0.0f),
-    FadeDuration(0.0f),
-    FadeStartVolume(1.0f),
-    IsLooping(false),
-    IsLoaded(false),
-    IsDelaySet(false)
+    HandleID(id)
 {
 }
 
@@ -405,11 +376,7 @@ bool AudioInstanceClass::Is_Fading_In() const
  */
 bool AudioInstanceClass::Is_Finished() const
 {
-    ASSERT(Sound != nullptr);
-
-    ma_bool32 result = ma_sound_at_end(Sound);
-
-    return CurrentState == AudioHandleState::AUDIO_STATE_FINISHED && result == MA_TRUE;
+    return CurrentState == AudioHandleState::AUDIO_STATE_FINISHED;
 }
 
 
@@ -605,8 +572,21 @@ bool AudioInstanceClass::Set_Looping(bool loop)
 {
     ASSERT(Sound != nullptr);
 
+    IsLooping = loop;
     ma_sound_set_looping(Sound, loop);
 
+    return true;
+}
+
+
+/**
+ *  Sets the total number of plays for a loop-enabled request.
+ *
+ *  @author: ZivDero
+ */
+bool AudioInstanceClass::Set_Loop_Limit(int total_plays)
+{
+    RemainingLoopRepeats = std::max(total_plays - 1, 0);
     return true;
 }
 
@@ -757,8 +737,18 @@ bool AudioInstanceClass::Update(float deltaTime)
         case AudioHandleState::AUDIO_STATE_PLAYING:
         {
             if (!Is_Playing()) {
-                CurrentState = AudioHandleState::AUDIO_STATE_FINISHED;
-                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - State changed: PLAYING > FINISHED\n");
+                if (RemainingLoopRepeats > 0 && ma_sound_at_end(Sound) == MA_TRUE) {
+                    if (!Restart() || !Play()) {
+                        CurrentState = AudioHandleState::AUDIO_STATE_FINISHED;
+                        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Update - Failed to restart finite loop for \"%s\"\n", Get_FileName().c_str());
+                    } else {
+                        --RemainingLoopRepeats;
+                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - Replaying \"%s\", repeats left: %d\n", Get_FileName().c_str(), RemainingLoopRepeats);
+                    }
+                } else {
+                    CurrentState = AudioHandleState::AUDIO_STATE_FINISHED;
+                    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - State changed: PLAYING > FINISHED\n");
+                }
             }
             break;
         }
@@ -773,7 +763,7 @@ bool AudioInstanceClass::Update(float deltaTime)
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - FadeIn: t=%.2f, vol=%.2f\n", FadeTime, volume);
             }
 
-            if (FadeTime <= 0.0f || !Is_Playing()) {
+            if (FadeTime <= 0.0f || !Is_Fading_In()) {
                 Set_Volume(FadeStartVolume);
                 CurrentState = AudioHandleState::AUDIO_STATE_PLAYING;
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - State changed: FADINGIN > PLAYING\n");
@@ -792,7 +782,7 @@ bool AudioInstanceClass::Update(float deltaTime)
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - FadeOut: t=%.2f, vol=%.2f\n", FadeTime, volume);
             }
 
-            if (FadeTime <= 0.0f || !Is_Playing()) {
+            if (FadeTime <= 0.0f || !Is_Fading_Out()) {
                 CurrentState = AudioHandleState::AUDIO_STATE_FINISHED;
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - State changed: FADINGOUT > FINISHED\n");
                 return false; // Signal to manager that we can delete this handle
