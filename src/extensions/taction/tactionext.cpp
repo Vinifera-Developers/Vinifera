@@ -1642,7 +1642,11 @@ bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerCla
             radius = Rule->RevealTriggerRadius;
         }
 
-        Map.Sight_From(Coord(waypoint_cell - Cell(height / 2, height / 2)) + Coord(0, 0, height * LEVEL_LEPTON_H), radius, PlayerPtr, false, false, false, true);
+        // Requires 'RevealByHeight=yes' (default) to consider elevation regardless of functionality since it is checked in 'Map.Sight_From'
+        // The value is for ignore elevation, for backwards compatibility
+        int consider_elevation = This()->TriggerRect.Y == 0 ? true : false; // P4 value
+
+        Map.Sight_From(Coord(waypoint_cell - Cell(height / 2, height / 2)) + Coord(0, 0, height * LEVEL_LEPTON_H), radius, PlayerPtr, false, false, false, consider_elevation);
     }
     return true;
 }

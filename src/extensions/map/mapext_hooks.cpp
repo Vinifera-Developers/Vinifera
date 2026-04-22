@@ -67,44 +67,7 @@ public:
     // Vectors pointing toward the parent cell for occlusion logic
     static std::vector<Cell> OcclusionOffsets;
 
-    /**
-     * Dynamically generates octagonal distance data up to the requested range.
-     * Uses the Octagonal Distance formula: D = max(|x|, |y|) + floor(min(|x|, |y|) / 2)
-     */
-    static void EnsureRadiusCalculated(int targetSightRange)
-    {
-        int currentMaxRadius = static_cast<int>(RadiusCountTable.size()) - 1;
-
-        if (targetSightRange <= currentMaxRadius) {
-            return;
-        }
-
-        for (int currentRadius = currentMaxRadius + 1; currentRadius <= targetSightRange; ++currentRadius) {
-            // We search in a bounding box slightly larger than the radius to find all octagonal cells
-            int searchBounds = currentRadius + 2;
-
-            for (int cellY = -searchBounds; cellY <= searchBounds; ++cellY) {
-                for (int cellX = -searchBounds; cellX <= searchBounds; ++cellX) {
-                    int absoluteX = std::abs(cellX);
-                    int absoluteY = std::abs(cellY);
-
-                    // The octagonal distance calculation
-                    int octagonalDistance = std::max(absoluteX, absoluteY) + (std::min(absoluteX, absoluteY) / 2);
-
-                    if (octagonalDistance == currentRadius) {
-                        RadiusOffsets.push_back(Cell(cellX, cellY));
-
-                        // Occlusion logic: the vector pointing back to the origin
-                        short parentDirectionX = (cellX == 0) ? 0 : (cellX > 0 ? -1 : 1);
-                        short parentDirectionY = (cellY == 0) ? 0 : (cellY > 0 ? -1 : 1);
-                        OcclusionOffsets.push_back(Cell(parentDirectionX, parentDirectionY));
-                    }
-                }
-            }
-            // Update the prefix sum table with the new total cell count
-            RadiusCountTable.push_back(static_cast<int>(RadiusOffsets.size()));
-        }
-    }
+    static void EnsureRadiusCalculated(int targetSightRange);    
 };
 
 // Initialize static members with the values for Radius 0
@@ -184,61 +147,107 @@ void MapClassExt::_Detach(AbstractClass* target, bool all)
     }
 }
 
-std::vector<Cell> getRadiusOffsets(int radius)
+void MapClassExt::EnsureRadiusCalculated(int targetSightRange)
 {
-    std::vector<Cell> offsets;
+    // 1. Check how much we have already calculated
+    // Subtract 1 because the 0th index is Radius 0
+    int currentMaxRadius = static_cast<int>(RadiusCountTable.size()) - 1;
 
-    // The maximum possible coordinate for a given radius R is R.
-    // We iterate through the bounding box of the potential octagon.
-    for (int y = -radius; y <= radius; ++y) {
-        for (int x = -radius; x <= radius; ++x) {
-            int absX = std::abs(x);
-            int absY = std::abs(y);
+    // 2. If we've already calculated this range, do nothing
+    if (targetSightRange <= currentMaxRadius) {
+        return;
+    }
 
-            // Octagonal distance formula
-            int dist = std::max(absX, absY) + (std::min(absX, absY) / 2);
+    // 3. Iteratively calculate every new radius shell required
+    for (int currentRadius = currentMaxRadius + 1; currentRadius <= targetSightRange; ++currentRadius) {
 
-            if (dist == radius) {
-                offsets.push_back(Cell(x, y));
+        // We define a search area large enough to capture all octagonal corners.
+        // Octagonal distance grows slower than Manhattan, so R+2 is a safe bounds.
+        int searchBounds = currentRadius + 2;
+
+        for (int cellY = -searchBounds; cellY <= searchBounds; ++cellY) {
+            for (int cellX = -searchBounds; cellX <= searchBounds; ++cellX) {
+
+                int absoluteX = std::abs(cellX);
+                int absoluteY = std::abs(cellY);
+
+                // The Octagonal Distance formula:
+                // This creates the 8-sided shape used by the game engine.
+                int octagonalDistance = std::max(absoluteX, absoluteY) + (std::min(absoluteX, absoluteY) / 2);
+
+                // 4. If this cell's distance matches the current shell we are building
+                if (octagonalDistance == currentRadius) {
+
+                    // Add the relative coordinate to our offset list
+                    RadiusOffsets.push_back(Cell(cellX, cellY));
+
+                    // 5. Calculate Occlusion (Line of Sight parenting)
+                    // The occlusion vector points from the current cell back toward the origin.
+                    // If a cell at (5, 5) is occluded, the game looks at (5-1, 5-1) to see if it's blocked.
+                    short parentDirectionX = (cellX == 0) ? 0 : (cellX > 0 ? -1 : 1);
+                    short parentDirectionY = (cellY == 0) ? 0 : (cellY > 0 ? -1 : 1);
+
+                    OcclusionOffsets.push_back(Cell(parentDirectionX, parentDirectionY));
+                }
             }
         }
+
+        // 6. Finalize the shell
+        // Record the current total size of the offsets list.
+        // This allows the game to know exactly where one radius ends and the next begins.
+        RadiusCountTable.push_back(static_cast<int>(RadiusOffsets.size()));
     }
-    return offsets;
 }
 
-// Hook at: .text:00510C9A (cmp eax, 0Ah)
+/**
+ * Hook at 0x510C9A: The entry point for calculating Fog of War reveal parameters.
+ * Original instruction: cmp eax, 0Ah (Checks if sight > 10)
+ */
 DEFINE_HOOK(0x510C9A, MapClass_Reveal_Dynamic, 6)
 {
-    DEBUG_INFO("ENTERED SIGHT LOOKUP\n");
-
-    // EAX contains the current sightrange being processed
+    // EAX contains the sightrange of the unit currently being processed
     int sightRange = R->EAX();
+
+    // Retrieve the 'incremental' flag from the stack [esp + 0x58]
+    // Incremental = true means the unit is moving and only needs to reveal the "new" edge.
     GET_STACK(bool, isIncremental, 0x58);
 
-    // Ensure the data for this sightrange exists in our static cache
+    // 1. Dynamic Generation
+    // Ensure our static vectors are large enough for this specific unit's sight
     MapClassExt::EnsureRadiusCalculated(sightRange);
 
-    // Initial pointers point to the start of our dynamic buffers
+    // 2. Data Preparation
+    // By default, we assume we are revealing the full circle (Radius 0 to sightRange)
     int cellCount = MapClassExt::RadiusCountTable[sightRange];
     Cell* radiusPointer = MapClassExt::RadiusOffsets.data();
     Cell* occlusionPointer = MapClassExt::OcclusionOffsets.data();
 
-    // Incremental reveal logic
-    // If not reveal-by-height, only reveal the new "shell" of cells
+    // 3. Incremental Logic
+    // If Rule->IsRevealByHeight is false, and it's an incremental update,
+    // we skip all inner cells and only provide the pointers for the outermost shell.
     if (!Rule->IsRevealByHeight && isIncremental && sightRange > 2) {
-        int previousShellCellCount = MapClassExt::RadiusCountTable[sightRange - 3];
 
-        cellCount -= previousShellCellCount;
-        radiusPointer += previousShellCellCount;
-        occlusionPointer += previousShellCellCount;
+        // The number of cells in all shells BEFORE the current one
+        int previousShellsTotal = MapClassExt::RadiusCountTable[sightRange - 3];
+
+        // Subtract inner count: we only want to process the difference
+        cellCount -= previousShellsTotal;
+
+        // Offset the pointers so the game starts reading at the beginning of the new shell
+        radiusPointer += previousShellsTotal;
+        occlusionPointer += previousShellsTotal;
     }
 
-    // Write results back to the registers and stack for the game's loop
+    // 4. Register and Stack Cleanup
+    // ESI must contain the 'count' for the reveal loop
     R->ESI(cellCount);
+
+    // The game expects the specific 'ptr' and 'coord' variables to be set on the stack
     R->Stack<Cell*>(0x10, radiusPointer);    // [esp+48h+ptr]
     R->Stack<Cell*>(0x4C, occlusionPointer); // [esp+48h+coord]
 
-    // Jump to loc_510CFB to resume execution after the patched block
+    // 5. Flow Control
+    // Return the address of loc_510CFB to skip the original hardcoded array lookups
     return 0x510CFB;
 }
 
