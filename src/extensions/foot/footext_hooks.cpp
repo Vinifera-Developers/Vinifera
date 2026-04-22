@@ -774,18 +774,40 @@ bool FootClassExt::_Limbo()
     return TechnoClass::Limbo();
 }
 
-DEFINE_HOOK(0x004A3E1A, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 8)
+//DEFINE_HOOK(0x004A3E1A, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 8)
+//{
+//    GET(FootClass*, this_ptr, ESI);
+//
+//    CellClass* cellptr = &Map[this_ptr->PositionCell];
+//    TagClass* tag = cellptr->CellTag;
+//
+//    if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
+//        tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
+//    }
+//
+//    return 0;
+//}
+
+DEFINE_HOOK(0x004A3E1, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
 {
     GET(FootClass*, this_ptr, ESI);
 
-    CellClass* cellptr = &Map[this_ptr->PositionCell];
-    TagClass* tag = cellptr->CellTag;
+    if (this_ptr->Cloak == CLOAKED) {
+        for (int face = FACING_N; face < FACING_COUNT; face++) {
+            Cell cell = Adjacent_Cell(this_ptr->PositionCell, (FacingType)face);
 
-    if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
-        tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
+            if (Map.In_Local_Radar(cell)) {
+                TechnoClass const* techno = Map[cell].Cell_Techno();
+
+                if (techno && !techno->House->Is_Ally(this_ptr) && (techno->TClass->IsScanner || techno->Has_Ability(ABILITY_SENSORS))) {
+                    this_ptr->Do_Shimmer();
+                    break;
+                }
+            }
+        }
     }
 
-    return 0;
+    return 0x4A3EE3;
 }
 
 
