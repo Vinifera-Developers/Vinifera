@@ -60,14 +60,11 @@ public:
 
     // Cumulative cell counts for each radius
     static std::vector<int> RadiusCountTable;
-
     // Ordered list of all relative cell coordinates
     static std::vector<Cell> RadiusOffsets;
-
     // Vectors pointing toward the parent cell for occlusion logic
     static std::vector<Cell> OcclusionOffsets;
-
-    static void EnsureRadiusCalculated(int targetSightRange);    
+    static void _CalculateSightRadiusIfNeeded(int targetSightRange);    
 };
 
 // Initialize static members with the values for Radius 0
@@ -147,22 +144,27 @@ void MapClassExt::_Detach(AbstractClass* target, bool all)
     }
 }
 
-void MapClassExt::EnsureRadiusCalculated(int targetSightRange)
+/**
+ * Dynamically populates the radius and occlusion tables if they are not populated for a given radius (sight range).
+ * This allows any desired radius of cells to be revealed when called through MapClass::From_Sight.
+ * 
+ * @author: JoyfulShush
+ */
+void MapClassExt::_CalculateSightRadiusIfNeeded(int sightRange)
 {
-    // 1. Check how much we have already calculated
-    // Subtract 1 because the 0th index is Radius 0
-    int currentMaxRadius = static_cast<int>(RadiusCountTable.size()) - 1;
+    // 1. Identify current progress    
+    int currentMaxRadius = static_cast<int>(RadiusCountTable.size());
 
-    // 2. If we've already calculated this range, do nothing
-    if (targetSightRange <= currentMaxRadius) {
+    // 2. Skip if already calculated
+    // The table starts with Radius 0 (size 1), so max radius is size - 1.
+    if (sightRange <= currentMaxRadius - 1) {
         return;
     }
 
-    // 3. Iteratively calculate every new radius shell required
-    for (int currentRadius = currentMaxRadius + 1; currentRadius <= targetSightRange; ++currentRadius) {
+    // 3. Generate new shells sequentially
+    for (int currentRadius = currentMaxRadius; currentRadius <= sightRange; ++currentRadius) {
 
-        // We define a search area large enough to capture all octagonal corners.
-        // Octagonal distance grows slower than Manhattan, so R+2 is a safe bounds.
+        // Define search bounds slightly larger than radius to ensure we find all octagonal corners
         int searchBounds = currentRadius + 2;
 
         for (int cellY = -searchBounds; cellY <= searchBounds; ++cellY) {
@@ -171,83 +173,89 @@ void MapClassExt::EnsureRadiusCalculated(int targetSightRange)
                 int absoluteX = std::abs(cellX);
                 int absoluteY = std::abs(cellY);
 
-                // The Octagonal Distance formula:
-                // This creates the 8-sided shape used by the game engine.
+                // --- THE DISTANCE FORMULA ---
+                // D = max(|x|, |y|) + floor(min(|x|, |y|) / 2)                
                 int octagonalDistance = std::max(absoluteX, absoluteY) + (std::min(absoluteX, absoluteY) / 2);
 
-                // 4. If this cell's distance matches the current shell we are building
                 if (octagonalDistance == currentRadius) {
-
-                    // Add the relative coordinate to our offset list
+                    // Add the coordinate to the offset list
                     RadiusOffsets.push_back(Cell(cellX, cellY));
 
-                    // 5. Calculate Occlusion (Line of Sight parenting)
-                    // The occlusion vector points from the current cell back toward the origin.
-                    // If a cell at (5, 5) is occluded, the game looks at (5-1, 5-1) to see if it's blocked.
-                    short parentDirectionX = (cellX == 0) ? 0 : (cellX > 0 ? -1 : 1);
-                    short parentDirectionY = (cellY == 0) ? 0 : (cellY > 0 ? -1 : 1);
+                    // --- THE OCCLUSION LOGIC ---
+                    // The engine expects the parent vector to point toward (0,0).
+                    // We prioritize the dominant axis to match the original game's lookup table.
+                    short parentDirectionX = 0;
+                    short parentDirectionY = 0;
+
+                    if (absoluteX > absoluteY) {
+                        // Horizontal is dominant: Point left if we are right, or right if we are left.
+                        parentDirectionX = (cellX > 0) ? -1 : 1;
+                    } else if (absoluteY > absoluteX) {
+                        // Vertical is dominant: Point up if we are down, or down if we are up.
+                        parentDirectionY = (cellY > 0) ? -1 : 1;
+                    } else {
+                        // Perfectly diagonal: Point diagonally back to center.
+                        parentDirectionX = (cellX > 0) ? -1 : 1;
+                        parentDirectionY = (cellY > 0) ? -1 : 1;
+                    }
 
                     OcclusionOffsets.push_back(Cell(parentDirectionX, parentDirectionY));
                 }
             }
         }
 
-        // 6. Finalize the shell
-        // Record the current total size of the offsets list.
-        // This allows the game to know exactly where one radius ends and the next begins.
+        // 4. Update the Count Table
+        // The size of RadiusOffsets after building the shell becomes the new total count.
         RadiusCountTable.push_back(static_cast<int>(RadiusOffsets.size()));
     }
 }
 
-/**
- * Hook at 0x510C9A: The entry point for calculating Fog of War reveal parameters.
- * Original instruction: cmp eax, 0Ah (Checks if sight > 10)
- */
-DEFINE_HOOK(0x510C9A, MapClass_Reveal_Dynamic, 6)
+/*
+* Patches MapClass::From_Sight to no longer clamp the sight range to 10.
+* Implements a dynamic algorithm handling that can compute the cells and counts needed for a given Sight Range.
+* Used by units when they call Look, and by Reveal by Waypoints, allowing the game to reveal any desired radius.
+* Additionally, removes the logic of 'incremental' which was intended to be performance saving,
+* but only worked when height reveals was turned off and sight ranges were small enough.
+* 
+* @author: JoyfulShush
+*/
+DEFINE_HOOK(0x510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6)
 {
     // EAX contains the sightrange of the unit currently being processed
     int sightRange = R->EAX();
 
-    // Retrieve the 'incremental' flag from the stack [esp + 0x58]
-    // Incremental = true means the unit is moving and only needs to reveal the "new" edge.
+    /*
+    * Retrieve the 'incremental' flag from the stack [esp + 0x58]
+    * Incremental = true means the unit is moving and only needs to reveal the "new" edge.
+    */    
     GET_STACK(bool, isIncremental, 0x58);
 
-    // 1. Dynamic Generation
-    // Ensure our static vectors are large enough for this specific unit's sight
-    MapClassExt::EnsureRadiusCalculated(sightRange);
+    /*
+    * 1. Dynamic Generation
+    * Calculate the cells that need to be revealed for the provided sight range
+    * If the sight range was already calculated from previous operations, they would be already cached
+    */    
+    MapClassExt::_CalculateSightRadiusIfNeeded(sightRange);
 
     // 2. Data Preparation
-    // By default, we assume we are revealing the full circle (Radius 0 to sightRange)
     int cellCount = MapClassExt::RadiusCountTable[sightRange];
     Cell* radiusPointer = MapClassExt::RadiusOffsets.data();
     Cell* occlusionPointer = MapClassExt::OcclusionOffsets.data();
 
-    // 3. Incremental Logic
-    // If Rule->IsRevealByHeight is false, and it's an incremental update,
-    // we skip all inner cells and only provide the pointers for the outermost shell.
-    if (!Rule->IsRevealByHeight && isIncremental && sightRange > 2) {
-
-        // The number of cells in all shells BEFORE the current one
-        int previousShellsTotal = MapClassExt::RadiusCountTable[sightRange - 3];
-
-        // Subtract inner count: we only want to process the difference
-        cellCount -= previousShellsTotal;
-
-        // Offset the pointers so the game starts reading at the beginning of the new shell
-        radiusPointer += previousShellsTotal;
-        occlusionPointer += previousShellsTotal;
-    }
-
-    // 4. Register and Stack Cleanup
-    // ESI must contain the 'count' for the reveal loop
+    /*
+    * 3. Register and Stack Cleanup
+    * ESI must contain the 'count' for the reveal loop
+    */    
     R->ESI(cellCount);
 
     // The game expects the specific 'ptr' and 'coord' variables to be set on the stack
     R->Stack<Cell*>(0x10, radiusPointer);    // [esp+48h+ptr]
     R->Stack<Cell*>(0x4C, occlusionPointer); // [esp+48h+coord]
 
-    // 5. Flow Control
-    // Return the address of loc_510CFB to skip the original hardcoded array lookups
+    /*
+    * 4. Flow Control
+    * Return the address of loc_510CFB to skip the original hardcoded array lookups
+    */    
     return 0x510CFB;
 }
 
