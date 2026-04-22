@@ -300,7 +300,7 @@ BOOL _GetWindowRect(HWND window, LPRECT rect)
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x0064743E, _ToolTopManager_Message_Handler_Mouse_Pos_Patch_, 0)
+DEFINE_HOOK(0x0064743E, _ToolTipManager_Message_Handler_Mouse_Pos_Patch_, 0)
 {
     GET(ToolTipManager*, tooltips, ESI);
 
@@ -417,11 +417,6 @@ void SDL_Hooks()
      */
     Patch_Jump(0x006016B8, 0x006016F3);
     Patch_Jump(0x006016BF, 0x006015A9);
-
-    /**
-     *  Patch ToolTipManager to use MouseCursor for the mouse coordinates instead of asking Windows
-     */
-    Patch_Jump(0x0064743E, &_ToolTopManager_Message_Handler_Mouse_Pos_Patch_);
 
     /**
      *  Disable DirectDraw.
