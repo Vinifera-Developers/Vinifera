@@ -1626,6 +1626,26 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
  */
 bool TActionClassExtension::Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
+    /*
+    * Represents valid speeds that are supported by the game
+    * -1 = Instant (also supports any negative value)
+    * 0 = Very Slow
+    * 1 = Slow
+    * 2 = Medium
+    * 3 = Fast
+    * 4 = Very Fast
+    */
+    constexpr int SCROLL_SPEED_COUNT = 5;
+
+    /*
+    * Disallow invalid speeds that could result in reading OOB addresses
+    * Speed can be any negative value, or up to 4
+    */
+    if (This()->Data.Speed > SCROLL_SPEED_COUNT - 1) {
+        return false;
+    }
+        
+
     Cell waypt = Scen->Waypoint_Cell(This()->EffectLocation);
     Coord coord = Coord(waypt);
 
