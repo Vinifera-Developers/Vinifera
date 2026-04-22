@@ -1625,10 +1625,10 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
  *
  *  @author: JoyfulShush
  */
-bool TActionClass::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
 {
     if (!PlayerPtr->IsVisionary) {
-        Cell waypoint_cell = Scen->Waypoint_Cell(Data.Value);
+        Cell waypoint_cell = Scen->Waypoint_Cell(This()->Data.Value);
         
         const auto& cell = Map[waypoint_cell];
         int height = cell.Height;
@@ -1637,7 +1637,7 @@ bool TActionClass::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerClass*, Cell
             height += BRIDGE_CELL_HEIGHT;
         }
 
-        int radius = TriggerRect.X; // P3 value
+        int radius = This()->TriggerRect.X; // P3 value
         if (radius <= 0) {
             radius = Rule->RevealTriggerRadius;
         }
