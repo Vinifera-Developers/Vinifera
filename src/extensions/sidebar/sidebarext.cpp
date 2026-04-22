@@ -64,7 +64,8 @@ GadgetClass* SidebarClassExtension::LastHovered;
  *  @author: ZivDero
  */
 SidebarClassExtension::SidebarClassExtension(const SidebarClass *this_ptr) :
-    GlobalExtensionClass(this_ptr)
+    GlobalExtensionClass(this_ptr),
+    TabIndex(SIDEBAR_TAB_STRUCTURE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SidebarClassExtension::SidebarClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
