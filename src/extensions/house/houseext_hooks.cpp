@@ -1365,8 +1365,8 @@ DEFINE_HOOK(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 9)
     bool can_build = Extension::Fetch(this_ptr)->Required_Forbidden_Houses_Check(techno_type);
 
     if (!can_build) {
-        //return false;
-        JMP(0x004BBC9A);
+        // return false;
+        return 0x004BBC9A;
     }
 
     // Continue Can_Build

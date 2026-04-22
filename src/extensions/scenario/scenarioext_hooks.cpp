@@ -513,17 +513,17 @@ DEFINE_HOOK(0x004D7B98, _InfantryClass_Read_INI_SpawnHouses_Patch, 0)
  *
  *  @author: ZivDero
  */
-static void Link_Units(DynamicVectorClass<int>& link_vector)
+DEFINE_HOOK(0x006589C8, _UnitClass_Read_INI_Link_Units, 0)
 {
+    REF_STACK(DynamicVectorClass<int>, followers, 0xC);
+
     /**
      *  Links the followed and followed units, checking to make sure both actually exist.
      */
     for (int i = 0; i < Units.Count(); ++i) {
-        int follower_id = link_vector[i];
         UnitClass* unit = Units[i];
-
-        if (unit) {
-
+        if (unit != nullptr) {
+            int follower_id = followers[i];
             if (follower_id != -1 && follower_id < Units.Count() && Units[follower_id]) {
                 UnitClass* follower = Units[follower_id];
                 unit->FollowingMe = follower;
@@ -542,19 +542,6 @@ static void Link_Units(DynamicVectorClass<int>& link_vector)
             Units.Delete(i--);
         }
     }
-}
-
-
-/**
- *  Patch to link follower and followed units.
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x006589C8, _UnitClass_Read_INI_Link_Units, 0)
-{
-    LEA_STACK(DynamicVectorClass<int>*, link_vector, 0xC);
-
-    Link_Units(*link_vector);
 
     return 0x00658A10;
 }

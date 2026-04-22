@@ -1108,8 +1108,8 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         /**
          *  Check if the current campaign is an original GDI or NOD campaign.
          */
-        bool is_original_gdi = (cd_num == DISK_GDI && (campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && campaign->Scenario == "GDI1A.MAP");
-        bool is_original_nod = (cd_num == DISK_NOD && (campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && campaign->Scenario == "NOD1A.MAP");
+        bool is_original_gdi = (cd_num == DISK_GDI && (campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && std::string_view(campaign->Scenario) == "GDI1A.MAP");
+        bool is_original_nod = (cd_num == DISK_NOD && (campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && std::string_view(campaign->Scenario) == "NOD1A.MAP");
 
         /**
          *  #issue-762
@@ -2879,7 +2879,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          */
         centroid = Scen->Waypoint_Cell(houseext->SpawnWaypoint);
 
-        DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n", house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->Scheme]->Name);
+        DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n", house, hptr->Class->Name(), hptr->IniName.c_str(), ColorSchemes[hptr->Scheme]->Name);
 
         DynamicVectorClass<InfantryTypeClass*> infantry;
         DynamicVectorClass<UnitTypeClass*> units;
@@ -3074,7 +3074,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 if (!_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE)) {
                     delete obj;
                 } else {
-                    DEBUG_INFO("House %s deployed object %s\n", hptr->Class->IniName, technotype->IniName);
+                    DEBUG_INFO("House %s deployed object %s\n", hptr->Class->IniName.c_str(), technotype->IniName.c_str());
 
                     deployed_so_far += technotype->Raw_Cost();
                     just_deployed.Add(tobj);
