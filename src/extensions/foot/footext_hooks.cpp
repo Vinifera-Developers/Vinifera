@@ -55,6 +55,7 @@
 #include "unittype.h"
 #include "vinifera_globals.h"
 #include "vox.h"
+#include "tag.h"
 
 
 /**
@@ -773,6 +774,19 @@ bool FootClassExt::_Limbo()
     return TechnoClass::Limbo();
 }
 
+DEFINE_HOOK(0x004A3E1A, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 8)
+{
+    GET(FootClass*, this_ptr, ESI);
+
+    CellClass* cellptr = &Map[this_ptr->PositionCell];
+    TagClass* tag = cellptr->CellTag;
+
+    if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
+        tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
+    }
+
+    return 0;
+}
 
 
 /**
