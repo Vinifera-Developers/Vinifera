@@ -692,7 +692,7 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<IsometricTileClass, IsometricTileClassExtension>(pStm, IsometricTileExtensions)) { return false; } // Not yet implemented
     //if (!Extension_Save<IsometricTileTypeClass, IsometricTileTypeClassExtension>(pStm, IsometricTileTypeExtensions)) { return false; } // Supported, but IsoTileTypess are not saved to file.
     //if (!Extension_Save<BuildingLightClass, BuildingLightClassExtension>(pStm, BuildingLightExtensions)) { return false; } // Not yet implemented
-    if (!Extension_Save<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }
+    //if (!Extension_Save<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Save<OverlayTypeClass, OverlayTypeClassExtension>(pStm, OverlayTypeExtensions)) { return false; }
     //if (!Extension_Save<ParticleClass, ParticleClassExtension>(pStm, ParticleClassExtensions)) { return false; }      // Not yet implemented
     if (!Extension_Save<ParticleTypeClass, ParticleTypeClassExtension>(pStm, ParticleTypeExtensions)) { return false; }
@@ -701,7 +701,7 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<ScriptClass, ScriptClassExtension>(pStm, ScriptExtensions)) { return false; }                 // Not yet implemented
     //if (!Extension_Save<ScriptTypeClass, ScriptTypeClassExtension>(pStm, ScriptTypeExtensions)) { return false; }     // Not yet implemented
     if (!Extension_Save<SideClass, SideClassExtension>(pStm, SideExtensions)) { return false; }
-    if (!Extension_Save<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }
+    //if (!Extension_Save<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Save<SmudgeTypeClass, SmudgeTypeClassExtension>(pStm, SmudgeTypeExtensions)) { return false; }
     if (!Extension_Save<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Save<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented
@@ -792,7 +792,7 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<IsometricTileClass, IsometricTileClassExtension>(pStm, IsometricTileExtensions)) { return false; } // Not yet implemented
     //if (!Extension_Load<IsometricTileTypeClass, IsometricTileTypeClassExtension>(pStm, IsometricTileTypeExtensions)) { return false; } // Supported, but IsoTileTypes's are not saved to file.
     //if (!Extension_Load<BuildingLightClass, BuildingLightClassExtension>(pStm, BuildingLightExtensions)) { return false; } // Not yet implemented
-    if (!Extension_Load<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }
+    //if (!Extension_Load<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Load<OverlayTypeClass, OverlayTypeClassExtension>(pStm, OverlayTypeExtensions)) { return false; }
     //if (!Extension_Load<ParticleClass, ParticleClassExtension>(pStm, ParticleClassExtensions)) { return false; }      // Not yet implemented
     if (!Extension_Load<ParticleTypeClass, ParticleTypeClassExtension>(pStm, ParticleTypeExtensions)) { return false; }
@@ -801,7 +801,7 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<ScriptClass, ScriptClassExtension>(pStm, ScriptExtensions)) { return false; }                 // Not yet implemented
     //if (!Extension_Load<ScriptTypeClass, ScriptTypeClassExtension>(pStm, ScriptTypeExtensions)) { return false; }     // Not yet implemented
     if (!Extension_Load<SideClass, SideClassExtension>(pStm, SideExtensions)) { return false; }
-    if (!Extension_Load<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }
+    //if (!Extension_Load<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Load<SmudgeTypeClass, SmudgeTypeClassExtension>(pStm, SmudgeTypeExtensions)) { return false; }
     if (!Extension_Load<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Load<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented

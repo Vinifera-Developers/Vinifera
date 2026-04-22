@@ -396,4 +396,14 @@ public:
      *  Should this unit not spawn wakes when it's cloaked? Usually useful for submarines.
      */
     bool IsHideWakeWhenCloaked;
+
+    /**
+     *  Specifies whether this unit can see through the disguise of disguised enemy units.
+     */
+    bool IsDetectDisguise;
+
+    /**
+     *  Specifies whether the AI should use the Iron Curtain to protect this object.
+     */
+    bool IronCurtainPriorityTarget;
 };

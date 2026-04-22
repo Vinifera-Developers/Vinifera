@@ -35,12 +35,14 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "extension.h"
+#include "fetchres.h"
 #include "hooker.h"
 #include "house.h"
 #include "infantry.h"
 #include "infantryext_init.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
+#include "language.h"
 #include "options.h"
 #include "rules.h"
 #include "sideext.h"
@@ -66,6 +68,7 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(InfantryClass)
 {
 public:
     const ShapeSet* _Get_Image_Data() const;
+    const char* _Full_Name(void) const;
 };
 
 
@@ -77,7 +80,10 @@ public:
  *
  *  Infantry currently in webs also display a different image.
  *
- *  @author: ZivDero
+ *  This implementation adds support for side-specific disguises and also fixes
+ *  a bug in the original game where friendly Spies were shown as disguised.
+ *
+ *  @author: ZivDero, Rampastring
  */
 const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 {
@@ -85,7 +91,7 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
         return Rule->WebbedInfantry->Get_Image_Data();
     }
 
-    if (!IsOwnedByPlayer && Class->IsDisguised) {
+    if (!House->Is_Ally(PlayerPtr) && Class->IsDisguised) {
 
         const auto disguise = SideClassExtension::Get_Disguise(House);
         if (disguise) {
@@ -95,6 +101,35 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 
     return ObjectClass::Get_Image_Data();
 };
+
+
+/**
+ *  Fetches the full name for this infantry unit.
+ *
+ *  This implementation adds support for side-specific disguises and also fixes
+ *  a bug in the original game where friendly Spies were shown as disguised.
+ *
+ *  @author: tomsons26/ZivDero, Rampastring
+ */
+const char* InfantryClassExt::_Full_Name(void) const
+{
+    assert(IsActive);
+
+    if (IsTechnician) {
+        return Fetch_String(TXT_TECHNICIAN);
+    }
+
+    if (Class->IsDisguised && !House->Is_Ally(PlayerPtr) && Rule->Disguise != NULL) {
+        const auto disguise = SideClassExtension::Get_Disguise(House);
+        if (disguise) {
+            return disguise->GivenName.c_str();
+        }
+
+        return Rule->Disguise->GivenName.c_str();
+    }
+
+    return Class->GivenName.c_str();
+}
 
 
 /**
@@ -597,6 +632,26 @@ DEFINE_HOOK(0x004D8BE4, _InfantryClass_Doing_AI_Fix_Invalid_Facing_Set, 0)
 
 
 /**
+ *  Fixes an exploit where hijackers are able to hijack vehicles of their allies.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehicles, 0)
+{
+    GET(TechnoClass*, target, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    if (this_ptr->House->Is_Ally(target)) {
+        // The target is allied to the hijacker. Move on.
+        return 0x004D72B7;
+    }
+
+    // Move to harvester truce check.
+    return 0x004D7277;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void InfantryClassExtension_Hooks()
@@ -607,4 +662,5 @@ void InfantryClassExtension_Hooks()
     InfantryClassExtension_Init();
 
     Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
+    Patch_Jump(0x004D77A0, &InfantryClassExt::_Full_Name);
 }

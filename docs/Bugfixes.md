@@ -99,3 +99,15 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the last line of an INI file would not be parsed.
 - Fix incorrect merging of sections and keys in INI files.
 - Fix game end text being stretched horizontally.
+- Fix a bug where upon restoring focus to the window the last theme would play twice.
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+- Fix a bug where hijackers are able to hijack vehicles of their allies.
+- Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- Fix a bug where friendly Spies appeared as disguised.
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
+- Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+- Fix an edge case crash when AI is attempting to find a location to place a structure to.
+- Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.

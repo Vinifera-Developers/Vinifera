@@ -41,6 +41,7 @@
 #include "overlaytype.h"
 #include "prerequisitegroup.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "saveload.h"
 #include "session.h"
 #include "sidebarext.h"
@@ -70,7 +71,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     NavalFactories(0),
     NavalFactory(nullptr),
     BuildNavalUnit(UNIT_NONE),
-    SpawnWaypoint(WAYPOINT_NONE)
+    SpawnWaypoint(WAYPOINT_NONE),
+    IronCurtainAvailabilityTimer()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
@@ -382,17 +384,68 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     return PROD_OK;
 }
 
+/**
+ *  Replacement of Fetch_Techno_Type that performs bounds checking.
+ *
+ *  @author: Rampastring
+ */
+TechnoTypeClass const* _Fetch_Techno_Type(RTTIType type, int id)
+{
+    switch (type) {
+    case RTTI_UNITTYPE:
+    case RTTI_UNIT:
+        if (id < UnitTypes.Count())
+            return (TechnoTypeClass*)(UnitTypes[id]);
+        return nullptr;
+
+    case RTTI_BUILDINGTYPE:
+    case RTTI_BUILDING:
+        if (id < BuildingTypes.Count())
+            return (TechnoTypeClass*)(BuildingTypes[id]);
+        return nullptr;
+
+    case RTTI_INFANTRYTYPE:
+    case RTTI_INFANTRY:
+        if (id < InfantryTypes.Count())
+            return (TechnoTypeClass*)(InfantryTypes[id]);
+        return nullptr;
+
+    case RTTI_AIRCRAFTTYPE:
+    case RTTI_AIRCRAFT:
+        if (id < AircraftTypes.Count())
+            return (TechnoTypeClass*)(AircraftTypes[id]);
+        return nullptr;
+
+    default:
+        break;
+    }
+    return nullptr;
+}
+
 
 /**
  *  Extended replacement of HouseClass::Begin_Production.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool resume, ProductionFlags flags)
 {
     int result = true;
     FactoryClass* fptr;
-    const TechnoTypeClass* tech = Fetch_Techno_Type(type, id);
+    const TechnoTypeClass* tech = _Fetch_Techno_Type(type, id);
+
+    /*
+    **  The event layer does not validate the validity of the production event,
+    **  which allows players to build normally unbuildable objects through crafted events.
+    **  Validate the request here.
+    */
+    if (tech == nullptr) {
+        return PROD_ILLEGAL;
+    }
+
+    if (This()->Is_Human_Player() && tech->Level > This()->Control.TechLevel) {
+        return PROD_ILLEGAL;
+    }
 
     BuildingClass* who = tech->Who_Can_Build_Me(false, true, true, This());
     bool onhold = false;
@@ -824,11 +877,10 @@ int HouseClassExtension::AI_Unit()
 
     int harv = This()->ActiveUQuantity.Value(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
     int ref = This()->ActiveBQuantity.Value(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
-    int mult;
-    if (Session.Type == GAME_NORMAL || This()->Difficulty == DIFF_HARD) {
+    int mult = RuleExtension->AIHarvestersPerRefinery[This()->Difficulty];
+
+    if (Session.Type == GAME_NORMAL && RuleExtension->IsAIOneHarvesterInSingleplayer) {
         mult = 1;
-    } else {
-        mult = 2;
     }
 
     /*
@@ -1296,4 +1348,39 @@ HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
      *  Otherwise, just perform the normal logic to fetch the house.
      */
     return ::House_From_HousesType(house);
+}
+
+
+/**
+ *  Checks whether this house is able to use the Iron Curtain.
+ *
+ *  @author: Rampastring
+ */
+bool HouseClassExtension::Can_Use_Iron_Curtain() const
+{
+    if (!IronCurtainAvailabilityTimer.Expired()) {
+        return false;
+    }
+
+    if (!This()->Is_Powered()) {
+        return false;
+    }
+
+    for (int i = 0; i < RuleExtension->IronCurtains.Count(); i++) {
+        if (This()->ActiveBQuantity.Value(RuleExtension->IronCurtains[i]->HeapID) > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ *  Marks the house's Iron Curtain as used, making it recharge.
+ *
+ *  @author: Rampastring
+ */
+void HouseClassExtension::Expend_Iron_Curtain()
+{
+    IronCurtainAvailabilityTimer = RuleExtension->IronCurtainRechargeTime;
 }

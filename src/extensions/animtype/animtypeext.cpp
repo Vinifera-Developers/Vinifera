@@ -179,22 +179,22 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 
     new (this) AnimTypeClassExtension(NoInitClass());
 
-    StartAnims.Load(pStm);
-    StartAnimsCount.Load(pStm);
-    StartAnimsMinimum.Load(pStm);
-    StartAnimsMaximum.Load(pStm);
-    StartAnimsDelay.Load(pStm);
-    MiddleAnims.Load(pStm);
-    MiddleAnimsCount.Load(pStm);
-    MiddleAnimsMinimum.Load(pStm);
-    MiddleAnimsMaximum.Load(pStm);
-    MiddleAnimsDelay.Load(pStm);
-    EndAnims.Load(pStm);
-    EndAnimsCount.Load(pStm);
-    EndAnimsMinimum.Load(pStm);
-    EndAnimsMaximum.Load(pStm);
-    EndAnimsDelay.Load(pStm);
-    MiddleFrames.Load(pStm);
+    StartAnims.Load_Self(pStm);
+    StartAnimsCount.Load_Self(pStm);
+    StartAnimsMinimum.Load_Self(pStm);
+    StartAnimsMaximum.Load_Self(pStm);
+    StartAnimsDelay.Load_Self(pStm);
+    MiddleAnims.Load_Self(pStm);
+    MiddleAnimsCount.Load_Self(pStm);
+    MiddleAnimsMinimum.Load_Self(pStm);
+    MiddleAnimsMaximum.Load_Self(pStm);
+    MiddleAnimsDelay.Load_Self(pStm);
+    EndAnims.Load_Self(pStm);
+    EndAnimsCount.Load_Self(pStm);
+    EndAnimsMinimum.Load_Self(pStm);
+    EndAnimsMaximum.Load_Self(pStm);
+    EndAnimsDelay.Load_Self(pStm);
+    MiddleFrames.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ParticleToSpawn, "ParticleToSpawn");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
@@ -219,22 +219,22 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    StartAnims.Save(pStm);
-    StartAnimsCount.Save(pStm);
-    StartAnimsMinimum.Save(pStm);
-    StartAnimsMaximum.Save(pStm);
-    StartAnimsDelay.Save(pStm);
-    MiddleAnims.Save(pStm);
-    MiddleAnimsCount.Save(pStm);
-    MiddleAnimsMinimum.Save(pStm);
-    MiddleAnimsMaximum.Save(pStm);
-    MiddleAnimsDelay.Save(pStm);
-    EndAnims.Save(pStm);
-    EndAnimsCount.Save(pStm);
-    EndAnimsMinimum.Save(pStm);
-    EndAnimsMaximum.Save(pStm);
-    EndAnimsDelay.Save(pStm);
-    MiddleFrames.Save(pStm);
+    StartAnims.Save_Self(pStm);
+    StartAnimsCount.Save_Self(pStm);
+    StartAnimsMinimum.Save_Self(pStm);
+    StartAnimsMaximum.Save_Self(pStm);
+    StartAnimsDelay.Save_Self(pStm);
+    MiddleAnims.Save_Self(pStm);
+    MiddleAnimsCount.Save_Self(pStm);
+    MiddleAnimsMinimum.Save_Self(pStm);
+    MiddleAnimsMaximum.Save_Self(pStm);
+    MiddleAnimsDelay.Save_Self(pStm);
+    EndAnims.Save_Self(pStm);
+    EndAnimsCount.Save_Self(pStm);
+    EndAnimsMinimum.Save_Self(pStm);
+    EndAnimsMaximum.Save_Self(pStm);
+    EndAnimsDelay.Save_Self(pStm);
+    MiddleFrames.Save_Self(pStm);
 
     return hr;
 }
@@ -452,6 +452,15 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     
     StopSound = ini.Get_VocType(ini_name, "StopSound", StopSound);
 
+    /**
+     *  ObjectTypeClass::Read_INI attempts to preload the image from a MIX file.
+     *  If you mark an object type DemandLoad=yes, and then place its image in a cached MIX,
+     *  the game will incorrectly attempt to delete that image later. To avoid this,
+     *  null the MIX-fetched image out now.
+     */
+    if (This()->IsDemandLoad) {
+        This()->Image = nullptr;
+    }
 
     IsInitialized = true;
 

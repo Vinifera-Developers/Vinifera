@@ -42,6 +42,15 @@ public:
     IFACEMETHOD(Load)(IStream* pStm);
     IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
 
+    enum RendererDriverType {
+        RENDERER_DRIVER_AUTO = -1,
+        RENDERER_DRIVER_DIRECT3D,
+        RENDERER_DRIVER_DIRECT3D11,
+        RENDERER_DRIVER_DIRECT3D12,
+        RENDERER_DRIVER_OPENGL,
+        RENDERER_DRIVER_VULKAN
+    };
+
 public:
     OptionsClassExtension(const OptionsClass* this_ptr);
     OptionsClassExtension(const NoInitClass& noinit);
@@ -63,6 +72,10 @@ public:
     void Save_Settings();
 
     void Set();
+
+    static RendererDriverType Parse_Renderer_Driver(const char* name);
+    static const char* Get_Renderer_Driver_Config_Name(RendererDriverType driver);
+    static const char* Get_Renderer_Driver_SDL_Name(RendererDriverType driver);
 
 public:
     /**
@@ -102,4 +115,9 @@ public:
      *  Is VSync on?
      */
     bool IsVSync;
+
+    /**
+     *  Preferred SDL renderer backend.
+     */
+    RendererDriverType RendererDriver;
 };

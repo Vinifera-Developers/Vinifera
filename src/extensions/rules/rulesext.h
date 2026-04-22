@@ -139,7 +139,7 @@ public:
     /**
      *  Should the AI automatically repair buildings built as Base Nodes?
      */
-    bool AIRepairBaseNodes;
+    bool IsAIRepairBaseNodes;
 
     /**
      *  The "double penalty" or "half penalty". Multiply this by the power
@@ -221,4 +221,56 @@ public:
      *  damage state change after once catching fire.
      */
     int BuildingFlameSpawnBlockFrames;
+
+    /**
+     *  List of buildings that enable the AI to use the Iron Curtain.
+     */
+    TypeList<BuildingTypeClass*> IronCurtains;
+
+    /**
+     *  Duration of the Iron Curtain effect in frames.
+     */
+    int IronCurtainDuration;
+
+    /**
+     *  Recharge time of a house's Iron Curtain in frames.
+     */
+    int IronCurtainRechargeTime;
+
+    /**
+     *  Flash rate of the Iron Curtain pulse effect.
+     */
+    int IronCurtainFlashRate;
+
+    /**
+     *  Intensity multiplier of the Iron Curtain pulse effect.
+     */
+    int IronCurtainFlashIntensityMultiplier;
+
+    /**
+     *  Brightness modifier table for the Iron Curtain pulse effect.
+     */
+    TypeList<int> IronCurtainPulseTable;
+
+    VocType IronCurtainSound;
+
+    /**
+     *  Distance to consider "close enough" for TEVENT_NEAR_WAYPOINT.
+     */
+    int ComesNearWaypointDistance;
+
+    /**
+     *  Do AI-controlled units ignore disguise and automatically target disguised enemy units?
+     */
+    bool IsAIDetectDisguise;
+
+    /**
+     *  Determines how many harvesters the AI builds for each refinery on different difficulty levels.
+     */
+    TypeList<int> AIHarvestersPerRefinery;
+
+    /**
+     *  Determines whether the AI is limited to one harvester in singleplayer scenarios, like in original Tiberian Sun.
+     */
+    bool IsAIOneHarvesterInSingleplayer;
 };

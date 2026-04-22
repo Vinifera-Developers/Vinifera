@@ -1734,3 +1734,47 @@ OmniFire=no   ; boolean, does the unit firing this weapon not have to perform a 
 ```{note}
 `OmniFire` only applies to `UnitTypes`.
 ```
+
+### Disguise
+
+- In the original game, disguised infantry are completely undetectable by the AI, or any units. Vinifera changes this so that the AI can see through disguise by default, and the AI can be configured not to see through disguise. TechnoTypes can now also optionally see through disguise.
+
+In `RULES.INI`:
+```ini
+[AI]
+AIDetectDisguise=yes ; boolean, are AI houses allowed to target disguised enemy units?
+
+[SOMETECHNOTYPE]
+DetectDisguise=no    ; boolean, are instances of the techno type allowed to automatically target disguised enemy units?
+```
+
+### Iron Curtains
+
+- Vinifera implements the Iron Curtain effect from Red Alert 1, available only for the AI and map scripting at this time.
+
+In `RULES.INI`:
+```ini
+[General]
+IronCurtains=RAIRON           ; comma-separated list of BuildingTypes that can cause the Iron Curtain effect
+IronCurtainDuration=675       ; integer, how long the Iron Curtain effect lasts in frames
+IronCurtainRechargeTime=9900  ; integer, how long it takes for a house's Iron Curtain to charge after it has been used
+
+[AudioVisual]
+IronCurtainFlashRate=8                 ; integer, the rate, in frames, at which the Iron Curtain pulse "animation" progresses to the next brightness phase
+IronCurtainFlashIntensityMultiplier=50 ; integer, multiplier for the Iron Curtain pulse brightness modifier (def=50). 1000 brightness units is equal to regular fully-lit lighting
+IronCurtainPulseTable=-16,-15,-14,-13,-12,-13,-14,-15 ; list of integers, defines the brightness phases and raw brightness rates of the Iron Curtain pulse effect (def=-16,-15,-14,-13,-12,-13,-14,-15).
+
+[SOMEUNIT]
+IronCurtainPriorityTarget=no ; boolean, if set to yes, the AI will apply the Iron Curtain to this unit when its HP is about to drop below half. Requires the AI to have an Iron Curtain building available and the Iron Curtain charged
+```
+
+### AI Harvester Count
+
+- Vinifera allows customizing the number of harvesters the AI builds per refinery.
+
+In `RULES.INI`:
+```ini
+[AI]
+HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the AI builds per refinery by difficulty level, from hardest to easiest
+AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
+```

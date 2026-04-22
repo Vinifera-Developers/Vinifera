@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          OVERLAYTYPEEXT_HOOKS.CPP
+ *  @file          ASTAREXT_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        Rampastring
  *
- *  @brief         Contains the hooks for the extended OverlayTypeClass.
+ *  @brief         Contains the hooks for the extended AStarClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,22 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-
-#include "always.h"
-
-#include "overlaytypeext_hooks.h"
-
-#include "overlaytypeext_init.h"
-#include "syringe.h"
+#pragma once
 
 
-/**
- *  Main function for patching the hooks.
- */
-void OverlayTypeClassExtension_Hooks()
-{
-    /**
-     *  Initialises the extended class.
-     */
-    OverlayTypeClassExtension_Init();
-}
+void AStarClassExtension_Hooks();

@@ -62,7 +62,7 @@ static void Populate_Command_Categories(HWND hWnd, const char *category)
          *  Any Vinifera commands are subject to game mode checks. We only need
          *  to check these if are actually "in game".
          */
-        if (ScenarioStarted || TacticalViewActive) {
+        if (TacticalActive || ScenarioActive) {
 
             ViniferaCommandClass *vcmd = dynamic_cast<ViniferaCommandClass *>(cmd);
             if (vcmd) {

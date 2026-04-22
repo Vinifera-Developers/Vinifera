@@ -211,7 +211,7 @@ HRESULT PrerequisiteGroupClass::Load(IStream* pStm)
 
     new (this) PrerequisiteGroupClass(NoInitClass());
 
-    Prerequisites.Load(pStm);
+    Prerequisites.Load_Self(pStm);
 
     return hr;
 }
@@ -250,7 +250,7 @@ HRESULT PrerequisiteGroupClass::Save(IStream* pStm, BOOL fClearDirty)
         return hr;
     }
 
-    Prerequisites.Save(pStm);
+    Prerequisites.Save_Self(pStm);
 
     return hr;
 }

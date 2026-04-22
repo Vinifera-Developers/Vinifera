@@ -145,6 +145,8 @@ This page lists all the individual contributions to the project by their author.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
   - Groundwork for implementing modern movie playback.
+- **CrimRecya**:
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
@@ -208,6 +210,28 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
   - Fix a bug where spawned aircraft would reveal terrain when they fired.
   - Port a ts-patches fix for a bug where the player's army wouldn't fire at armed civilians.
+  - Add "Building Does Not Exist" trigger event.
+  - Add "Create Building At" trigger action.
+  - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI.
+  - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+  - Fix a bug where hijackers are able to hijack vehicles of their allies.
+  - Add a developer command to dump all heaps to the log.
+  - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+  - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally.
+  - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land.
+  - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game.
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+  - Allow customizing the distance for the "Comes Near Waypoint" trigger event.
+  - Add DetectDisguise to TechnoTypes.
+  - Allow customizing whether AI sees through disguise.
+  - Fix a bug where friendly Spies appeared as disguised.
+  - Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
+  - Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+  - Fix an edge case crash when AI is attempting to find a location to place a structure to.
+  - Allow customizing the number of harvesters the AI builds for each refinery.
+  - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
+  - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+  - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -328,4 +352,5 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
   - Fix game end text being stretched horizontally.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+  - Fix a bug where upon restoring focus to the window the last theme would play twice.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.

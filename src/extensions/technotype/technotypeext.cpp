@@ -111,7 +111,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IdleWakeAnim(nullptr),
     IsHideWakeWhenCloaked(false),
     SelfHealingCap(-1),
-    SelfHealingRate(-1)
+    SelfHealingRate(-1),
+    IsDetectDisguise(false),
+    IronCurtainPriorityTarget(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -168,11 +170,11 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    VoiceCapture.Load(pStm);
-    VoiceEnter.Load(pStm);
-    VoiceDeploy.Load(pStm);
-    VoiceHarvest.Load(pStm);
-    BuiltAt.Load(pStm);
+    VoiceCapture.Load_Self(pStm);
+    VoiceEnter.Load_Self(pStm);
+    VoiceDeploy.Load_Self(pStm);
+    VoiceHarvest.Load_Self(pStm);
+    BuiltAt.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
@@ -223,11 +225,11 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    VoiceCapture.Save(pStm);
-    VoiceEnter.Save(pStm);
-    VoiceDeploy.Save(pStm);
-    VoiceHarvest.Save(pStm);
-    BuiltAt.Save(pStm);
+    VoiceCapture.Save_Self(pStm);
+    VoiceEnter.Save_Self(pStm);
+    VoiceDeploy.Save_Self(pStm);
+    VoiceHarvest.Save_Self(pStm);
+    BuiltAt.Save_Self(pStm);
 
     return hr;
 }
@@ -305,6 +307,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsHideWakeWhenCloaked);
     crc(SelfHealingCap);
     crc(SelfHealingRate);
+    crc(IsDetectDisguise);
+    crc(IronCurtainPriorityTarget);
 }
 
 
@@ -451,6 +455,10 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     SelfHealingCap = ini.Get_Float(ini_name, "SelfHealingCap", SelfHealingCap);
     SelfHealingRate = ini.Get_Float(ini_name, "SelfHealingRate", SelfHealingRate);
+
+    IsDetectDisguise = ini.Get_Bool(ini_name, "DetectDisguise", IsDetectDisguise);
+
+    IronCurtainPriorityTarget = ini.Get_Bool(ini_name, "IronCurtainPriorityTarget", IronCurtainPriorityTarget);
 
     return true;
 }

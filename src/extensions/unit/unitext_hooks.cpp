@@ -259,9 +259,8 @@ DEFINE_HOOK(0x006527B1, _UnitClass_Draw_Voxel_Patch, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 0)
+DEFINE_HOOK(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 6)
 {
-    GET(UnitClass *, this_ptr, ESI);
     GET(WeaponTypeClass *, weapon, EBX);
 
     auto weapontypeext = Extension::Fetch(weapon);
@@ -270,24 +269,13 @@ DEFINE_HOOK(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 0)
      *  Do we need to perform a turn to face the target before firing?
      */
     if (weapontypeext->IsOmniFire) {
-        goto locomotor_Can_Fire;
+        return 0x00657030;
     }
 
     /**
-     *  Stolen bytes/code.
+     *  Continue the other normal checks.
      */
-    if (this_ptr->Class->IsLargeVisceroid) {
-        goto locomotor_Can_Fire;
-    }
-
-continue_facing_check:
-    return 0x00656FA7;
-
-    /**
-     *  Final check to make sure the locomotor allows firing.
-     */
-locomotor_Can_Fire:
-    return 0x00656FA7;
+    return 0;
 }
 
 
@@ -1281,6 +1269,32 @@ queue_to_occupied:
      */
 set_mission_delay_and_return:
     return 0x00655226;
+}
+
+
+/**
+ *  Prevents deploying hijacked units that have a build limit.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hijacked_Build_Limited_Vehicles, 0)
+{
+    GET(UnitClass*, this_ptr, ESI);
+    GET(UnitTypeClass*, unittype, EAX);
+
+    // Stolen bytes / code.
+    if (unittype->DeploysInto == nullptr) {
+        return 0x00656344;
+    }
+
+    // Do not allow deploying if this unit has been hijacked and it would deploy into a build-limited unit.
+    if (unittype->BuildLimit < INT_MAX && this_ptr->EnteredByInfType != INFANTRY_NONE) {
+        R->Stack(0x28, ACTION_NO_DEPLOY);
+        return 0x0065618E;
+    }
+
+    // Continue deployability checks.
+    return 0x0065602B;
 }
 
 

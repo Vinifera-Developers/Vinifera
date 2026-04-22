@@ -150,8 +150,8 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 |          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 108      | Disable Short Game       |
 |          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 109      | Unused Action            |
-|          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 109      | Create Building At       |
+|          | Places a building at given waypoint position. | Other (0)   | HouseType (#)  | BuildingType (#)   | Boolean (force placement) | *unused*   | *unused*   | Waypoint   |
 | 110      | Destroy all of...       |
 |          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 111      | Make Elite               |
@@ -204,6 +204,8 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 |          | Removes the currently active templated text from the screen. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 | 135      | Adjust House Modifier           |
 |          | Adjusts a house modifier by given percentage points. | Other (0) | Modifier (#)           | Amount (%)            | *unused*   | *unused*   | *unused*   | *unused*   |
+| 136      | Apply Iron Curtain             |
+|          | Applies Iron Curtain to attached objects. Can optionally bypass legality checks. | Other (0) | Boolean (skip legality check)           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 
 ### [135] Adjust House Modifier — Modifier Types
 
@@ -251,6 +253,15 @@ Do not specify extra arguments for trigger actions that don't require them!
 | 7    | Bitwise OR          | (x \| y) != 0    |
 | 8    | Bitwise XOR         | (x ^ y) != 0    |
 
+### Comes Near Waypoint
+
+- The distance for the "Comes Near Waypoint" trigger event was originally hardcoded to 5 cells. Vinifera allows customizing this distance.
+
+In `RULES.INI`, or a scenario INI:
+```ini
+[General]
+ComesNearWaypointDistance=1280   ; integer, defines how close, in leptons, an object needs to be to a waypoint for the "Comes Near Waypoint" event to be fired
+```
 
 ### New Trigger Events
 
@@ -304,4 +315,5 @@ Do not specify extra arguments for trigger actions that don't require them!
 |          | True if a local variable is less than a global variable.                             | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
 | 79       | Local Less Than Local                                                                |                   |                     |                     |                        |
 |          | True if a local variable is less than another local variable.                        | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
-
+| 80       | Buildings Does Not Exist                                                             |                   |                     |                     |                        |
+|          | Triggers when a building owned by the trigger's house does not exist.                | NeedOther (0)     | BuildingType (#)    |                     |                        |

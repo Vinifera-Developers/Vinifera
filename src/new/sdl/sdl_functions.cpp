@@ -30,6 +30,7 @@
 
 #include "sdl_functions.h"
 
+#include "SDL3/SDL_hints.h"
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_render.h"
@@ -55,6 +56,90 @@
 #include "wwmouse.h"
 
 #include <windowsx.h>
+
+
+namespace
+{
+    /**
+     *  Applies the SDL renderer driver hint for the selected backend.
+     *
+     *  @author: ZivDero
+     */
+    void SDL_Apply_Renderer_Driver_Hint()
+    {
+        const char* requested_driver_name = OptionsClassExtension::Get_Renderer_Driver_SDL_Name(OptionsExtension->RendererDriver);
+        const char* requested_driver_config_name = OptionsClassExtension::Get_Renderer_Driver_Config_Name(OptionsExtension->RendererDriver);
+
+        DEBUG_INFO("Requested renderer driver: %s\n", requested_driver_config_name);
+
+        if (requested_driver_name != nullptr) {
+            SDL_SetHint(SDL_HINT_RENDER_DRIVER, requested_driver_name);
+        } else {
+            SDL_ResetHint(SDL_HINT_RENDER_DRIVER);
+        }
+    }
+
+    /**
+     *  Computes the tactical display rectangle for the given visible area.
+     *
+     *  @author: ZivDero
+     */
+    Rect SDL_Get_Display_View_Rect(const Rect& visible_rect)
+    {
+        Rect temp = visible_rect;
+        temp.X = Options.SidebarSide || Debug_Map ? 0 : 168;
+        temp.Y = 16;
+        temp.Width -= 168;
+        temp.Height -= 16;
+        return temp;
+    }
+
+    /**
+     *  Recalculates the SDL mouse cursor image if a cursor exists.
+     *
+     *  @author: ZivDero
+     */
+    void SDL_Recalc_Mouse_Cursor_Image()
+    {
+        if (MouseCursor != nullptr) {
+            static_cast<SDLMouseClass*>(MouseCursor)->Recalc_Cursor_Image();
+        }
+    }
+
+    /**
+     *  Rebuilds the software surfaces and UI state for the current display mode.
+     *
+     *  @author: ZivDero
+     */
+    void SDL_Rebuild_Display_State(const Rect& visible_rect)
+    {
+        Rect temp = SDL_Get_Display_View_Rect(visible_rect);
+
+        VisibleRect = visible_rect;
+        VideoWidth = visible_rect.Width;
+        VideoHeight = visible_rect.Height;
+
+        VisibleSurface = SDLSurface::Create_Primary();
+
+        Allocate_Surfaces(
+            VisibleRect,
+            Rect(0, 0, temp.Width, VisibleRect.Height),
+            Rect(0, 0, temp.Width, VisibleRect.Height),
+            Rect(0, 0, 168, VisibleRect.Height));
+        LogicalSurface = HiddenSurface;
+
+        Hide_Mouse();
+        SDL_Recalc_Mouse_Cursor_Image();
+        Show_Mouse();
+
+        Map.Set_View_Dimensions(temp);
+        Map.Init_IO();
+        Map.Activate(1);
+        Map.Shift_Sidebar();
+        Map.Flag_To_Redraw(GS_REDRAW_ALL);
+        Show_Mouse();
+    }
+}
 
 
 /**
@@ -165,6 +250,11 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
     DEBUG_INFO("Pixel format: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
 
     /**
+     *  Apply the renderer backend selection before creating the renderer.
+     */
+    SDL_Apply_Renderer_Driver_Hint();
+
+    /**
      *  Create the renderer for window.
      */
     SDLWindowRenderer = SDL_CreateRenderer(SDLWindow, nullptr);
@@ -175,7 +265,7 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
     DEBUG_INFO("SDLWindowRenderer created.\n");
 
     const char* driver_name = SDL_GetRendererName(SDLWindowRenderer);
-    DEBUG_INFO("Renderer driver: %s\n", driver_name);
+    DEBUG_INFO("Renderer driver: %s\n", driver_name != nullptr ? driver_name : "<unknown>");
 
     /**
      *  Toggle VSync.
@@ -305,7 +395,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         if (Vinifera_ModernMoviePlaying) {
             SDL_Movie_Repaint();
         } else if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
-            if (ScenarioStarted == true) {
+            if (TacticalActive == true) {
                 Update_Visible_Surface(MouseCursor->Is_Captured(), CompositeSurface);
                 Map.Blit_Sidebar(true);
             } else if (Movie_Is_Playing() == true) {
@@ -404,7 +494,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             /**
              *  If we are not currently playing a scenario, no need to execute this command.
              */
-            if (ScenarioStarted && TacticalViewActive) {
+            if (TacticalActive && ScenarioActive) {
                 if (GET_WHEEL_DELTA_WPARAM(wParam) < 0) {
                     Do_Command("SidebarDown");
                 } else {
@@ -492,6 +582,15 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
     }
 
     SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, Vinifera_Get_Window_Title(dwPid));
+
+    /**
+     *  OpenGL and Vulkan renderers need a matching graphics-capable window from the start on Windows.
+     */
+    if (OptionsExtension->RendererDriver == OptionsClassExtension::RENDERER_DRIVER_OPENGL) {
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+    } else if (OptionsExtension->RendererDriver == OptionsClassExtension::RENDERER_DRIVER_VULKAN) {
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+    }
 
     /**
      *  Create the window.
@@ -647,48 +746,30 @@ bool SDL_Change_Display_Mode(int width, int height)
 {
     DEBUG_INFO("About to set video mode\n");
 
+    Rect old_visible_rect = VisibleRect;
+    if (!old_visible_rect.Is_Valid() && VideoWidth > 0 && VideoHeight > 0) {
+        old_visible_rect = Rect(0, 0, VideoWidth, VideoHeight);
+    }
+
+    const int old_video_width = VideoWidth;
+    const int old_video_height = VideoHeight;
+    const int old_video_bits_per_pixel = VideoBitsPerPixel > 0 ? VideoBitsPerPixel : 16;
+
+    int old_window_x = 0;
+    int old_window_y = 0;
+    int old_window_width = SDLWindowWidth;
+    int old_window_height = SDLWindowHeight;
+
     Hide_Mouse();
 
     /**
-     *  Delete the old surfaces.
+     *  Delete the old primary surface.
      */
     if (VisibleSurface != nullptr) {
         DEBUG_INFO("Deleting VisibleSurface\n");
         delete VisibleSurface;
         VisibleSurface = nullptr;
     }
-
-    if (HiddenSurface != nullptr) {
-        DEBUG_INFO("Deleting HiddenSurface\n");
-        delete HiddenSurface;
-        HiddenSurface = nullptr;
-    }
-
-    if (TileSurface != nullptr) {
-        DEBUG_INFO("Deleting TileSurface\n");
-        delete TileSurface;
-        TileSurface = nullptr;
-    }
-
-    if (SidebarSurface != nullptr) {
-        DEBUG_INFO("Deleting SidebarSurface\n");
-        delete SidebarSurface;
-        SidebarSurface = nullptr;
-    }
-
-    if (CompositeSurface != nullptr) {
-        DEBUG_INFO("Deleting CompositeSurface\n");
-        delete CompositeSurface;
-        CompositeSurface = nullptr;
-    }
-
-    /**
-     *  Set the new surface resultion.
-     */
-    VisibleRect = Rect(0, 0, width, height);
-    VideoWidth = width;
-    VideoHeight = height;
-    DEBUG_INFO("VisibleRect: %dx%d\n", width, height);
 
     /**
      *  If the window size isn't set manually, resize the window to refect the new resolution.
@@ -708,15 +789,14 @@ bool SDL_Change_Display_Mode(int width, int height)
         /**
          *  Get the current window size and position.
          */
-        int old_x, old_y, old_w, old_h;
-        SDL_GetWindowPosition(SDLWindow, &old_x, &old_y);
-        SDL_GetWindowSize(SDLWindow, &old_w, &old_h);
+        SDL_GetWindowPosition(SDLWindow, &old_window_x, &old_window_y);
+        SDL_GetWindowSize(SDLWindow, &old_window_width, &old_window_height);
 
         /**
          *  Compute the current center point.
          */
-        int center_x = old_x + old_w / 2;
-        int center_y = old_y + old_h / 2;
+        int center_x = old_window_x + old_window_width / 2;
+        int center_y = old_window_y + old_window_height / 2;
 
         /**
          *  Compute new top-left corner so that the center stays the same.
@@ -738,38 +818,40 @@ bool SDL_Change_Display_Mode(int width, int height)
     /**
      *  Recreate all the SDL intermediates (texture, renderer).
      */
-    Set_Video_Mode(MainWindow, width, height, 16);
+    if (!Set_Video_Mode(MainWindow, width, height, 16)) {
+        DEBUG_ERROR("Set_Video_Mode failed.\n");
+
+        if (WindowedMode) {
+            SDL_SetWindowPosition(SDLWindow, old_window_x, old_window_y);
+            SDL_SetWindowSize(SDLWindow, old_window_width, old_window_height);
+            SDLWindowWidth = old_window_width;
+            SDLWindowHeight = old_window_height;
+            DEBUG_INFO("SDLWindow size restored: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+        }
+
+        if (old_visible_rect.Is_Valid() && old_video_width > 0 && old_video_height > 0) {
+            DEBUG_WARNING("Restoring previous display mode.\n");
+
+            if (!Set_Video_Mode(MainWindow, old_video_width, old_video_height, old_video_bits_per_pixel)) {
+                DEBUG_ERROR("Failed to restore previous video mode.\n");
+                Show_Mouse();
+                return false;
+            }
+
+            SDL_Rebuild_Display_State(old_visible_rect);
+        } else {
+            DEBUG_ERROR("Previous display mode is invalid and cannot be restored.\n");
+        }
+
+        Show_Mouse();
+        return false;
+    }
 
     /**
-     *  Re-allocate all the game surfaces.
+     *  Set the new surface resolution and reallocate the game surfaces.
      */
-    VisibleSurface = SDLSurface::Create_Primary();
-
-    Rect temp = VisibleRect;
-    temp.X = Options.SidebarSide || Debug_Map ? 0 : 168;
-    temp.Y = 16;
-    temp.Width -= 168;
-    temp.Height -= 16;
-
-    Allocate_Surfaces(VisibleRect, Rect(0, 0, temp.Width, VisibleRect.Height), Rect(0, 0, temp.Width, VisibleRect.Height), Rect(0, 0, 168, VisibleRect.Height));
-    LogicalSurface = HiddenSurface;
-
-    /**
-     *  Reset the mouse cursor, since it's scaled.
-     */
-    Hide_Mouse();
-    static_cast<SDLMouseClass*>(MouseCursor)->Recalc_Cursor_Image();
-    Show_Mouse();
-
-    /**
-     *  Resize the game UI.
-     */
-    Map.Set_View_Dimensions(temp);
-    Map.Init_IO();
-    Map.Activate(1);
-    Map.Set_Dimensions();
-    Map.Flag_To_Redraw(GS_REDRAW_ALL);
-    Show_Mouse();
+    SDL_Rebuild_Display_State(Rect(0, 0, width, height));
+    DEBUG_INFO("VisibleRect: %dx%d\n", width, height);
 
     DEBUG_INFO("Mode change complete.\n");
 

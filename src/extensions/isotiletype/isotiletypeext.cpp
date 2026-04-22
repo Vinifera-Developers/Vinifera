@@ -125,8 +125,8 @@ HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
 
     new (this) IsometricTileTypeClassExtension(NoInitClass());
 
-    AllowedTiberiums.Load(pStm);
-    AllowedSmudges.Load(pStm);
+    AllowedTiberiums.Load_Self(pStm);
+    AllowedSmudges.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedTiberiums, "AllowedTiberiums");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedSmudges, "AllowedSmudges");
@@ -149,8 +149,8 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    AllowedTiberiums.Save(pStm);
-    AllowedSmudges.Save(pStm);
+    AllowedTiberiums.Save_Self(pStm);
+    AllowedSmudges.Save_Self(pStm);
 
     return hr;
 }

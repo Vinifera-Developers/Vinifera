@@ -2443,7 +2443,7 @@ DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
-    if (Session.Type == GAME_NORMAL && !this_ptr->House->Is_Human_Player() && RuleExtension->AIRepairBaseNodes) {
+    if (Session.Type == GAME_NORMAL && !this_ptr->House->Is_Human_Player() && RuleExtension->IsAIRepairBaseNodes) {
         this_ptr->IsToRepair = true;
     }
     
