@@ -227,14 +227,14 @@ DEFINE_HOOK(0x510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6)
     /*
     * Retrieve the 'incremental' flag from the stack [esp + 0x58]
     * Incremental = true means the unit is moving and only needs to reveal the "new" edge.
-    */    
+    */
     GET_STACK(bool, isIncremental, 0x58);
 
     /*
     * 1. Dynamic Generation
     * Calculate the cells that need to be revealed for the provided sight range
     * If the sight range was already calculated from previous operations, they would be already cached
-    */    
+    */
     MapClassExt::_CalculateSightRadiusIfNeeded(sightRange);
 
     // 2. Data Preparation
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6)
     /*
     * 3. Register and Stack Cleanup
     * ESI must contain the 'count' for the reveal loop
-    */    
+    */
     R->ESI(cellCount);
 
     // The game expects the specific 'ptr' and 'coord' variables to be set on the stack
@@ -255,7 +255,7 @@ DEFINE_HOOK(0x510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6)
     /*
     * 4. Flow Control
     * Return the address of loc_510CFB to skip the original hardcoded array lookups
-    */    
+    */
     return 0x510CFB;
 }
 

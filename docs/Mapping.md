@@ -219,6 +219,13 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 | 5 | Cost |
 | 6 | Build Time |
 
+### [17] Reveal Around Waypoint Improvements
+
+Reveal Around Waypoint trigger action now comes with 2 new parameters that can be set by mappers: 
+* Reveal Radius: specify the radius to reveal in this instance of the trigger action. If set to 0 or a negative value, falls back to the value specified in `RevealTriggerRadius` in `Rules.ini`.
+* Ignore Elevation: specifies whether the reveal should ignore elevation. When elevation is taken into account, cells that are higher than 3 elevations will not be revealed. Possible values: 0 = No (default), any other value = Yes. 
+  * Requires `RevealByHeight=yes` (or omitted) for elevation to be taken into account.
+
 ## Trigger Events
 
 - Every trigger event has a NeedCode associated with it. The NeedCode dictates how some of the data used by the trigger event is parsed. Below is a table containing all valid NeedCodes.

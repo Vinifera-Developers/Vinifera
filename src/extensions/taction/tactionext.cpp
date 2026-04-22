@@ -1637,13 +1637,18 @@ bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerCla
             height += BRIDGE_CELL_HEIGHT;
         }
 
+        /*
+        * Allows for a custom reveal radius for the trigger
+        */
         int radius = This()->TriggerRect.X; // P3 value
         if (radius <= 0) {
             radius = Rule->RevealTriggerRadius;
         }
 
-        // Requires 'RevealByHeight=yes' (default) to consider elevation regardless of functionality since it is checked in 'Map.Sight_From'
-        // The value is for ignore elevation, for backwards compatibility
+        /*
+        * Requires 'RevealByHeight=yes' (default) to consider elevation, even when set to true, since it is checked in 'Map.Sight_From'
+        * The value is default 0 for true in order to be backwards compatible
+        */        
         int consider_elevation = This()->TriggerRect.Y == 0 ? true : false; // P4 value
 
         Map.Sight_From(Coord(waypoint_cell - Cell(height / 2, height / 2)) + Coord(0, 0, height * LEVEL_LEPTON_H), radius, PlayerPtr, false, false, false, consider_elevation);

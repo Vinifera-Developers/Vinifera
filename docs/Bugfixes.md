@@ -111,3 +111,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+- Removes incremental reveal logic when setting `RevealByHeight=no`, which could in some cases cause units with high `Sight` value to not reveal shroud close to them.
