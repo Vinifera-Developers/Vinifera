@@ -773,7 +773,27 @@ bool FootClassExt::_Limbo()
     return TechnoClass::Limbo();
 }
 
+DEFINE_HOOK(0x004A3E1, _My_Amazing_Patch, 6) 
+{
+    GET(FootClass*, this_ptr, ESI);
 
+    if (this_ptr->Cloak == CLOAKED) {
+        for (int face = FACING_N; face < FACING_COUNT; face++) {
+            Cell cell = Adjacent_Cell(this_ptr->PositionCell, (FacingType)face);
+
+            if (Map.In_Local_Radar(cell)) {
+                TechnoClass const* techno = Map[cell].Cell_Techno();
+
+                if (techno && !techno->House->Is_Ally(this_ptr) && (techno->TClass->IsScanner || techno->Has_Ability(ABILITY_SENSORS))) {
+                    this_ptr->Do_Shimmer();
+                    break;
+                }
+            }
+        }
+    }
+
+    return 0x4A3EE3;
+}
 
 /**
  *  Main function for patching the hooks.
