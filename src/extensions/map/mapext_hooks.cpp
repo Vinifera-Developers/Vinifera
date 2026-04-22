@@ -39,6 +39,9 @@
 #include "sidebarext.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
+#include "syringe.h"
+#include "rules.h"
+#include "debughandler.h"
 
 
 /**
@@ -54,7 +57,60 @@ public:
     void _Place_Down(Cell& cell, ObjectClass* object);
     void _Pick_Up(Cell& cell, ObjectClass* object);
     void _Detach(AbstractClass* target, bool all);
+
+    // Cumulative cell counts for each radius
+    static std::vector<int> RadiusCountTable;
+
+    // Ordered list of all relative cell coordinates
+    static std::vector<Cell> RadiusOffsets;
+
+    // Vectors pointing toward the parent cell for occlusion logic
+    static std::vector<Cell> OcclusionOffsets;
+
+    /**
+     * Dynamically generates octagonal distance data up to the requested range.
+     * Uses the Octagonal Distance formula: D = max(|x|, |y|) + floor(min(|x|, |y|) / 2)
+     */
+    static void EnsureRadiusCalculated(int targetSightRange)
+    {
+        int currentMaxRadius = static_cast<int>(RadiusCountTable.size()) - 1;
+
+        if (targetSightRange <= currentMaxRadius) {
+            return;
+        }
+
+        for (int currentRadius = currentMaxRadius + 1; currentRadius <= targetSightRange; ++currentRadius) {
+            // We search in a bounding box slightly larger than the radius to find all octagonal cells
+            int searchBounds = currentRadius + 2;
+
+            for (int cellY = -searchBounds; cellY <= searchBounds; ++cellY) {
+                for (int cellX = -searchBounds; cellX <= searchBounds; ++cellX) {
+                    int absoluteX = std::abs(cellX);
+                    int absoluteY = std::abs(cellY);
+
+                    // The octagonal distance calculation
+                    int octagonalDistance = std::max(absoluteX, absoluteY) + (std::min(absoluteX, absoluteY) / 2);
+
+                    if (octagonalDistance == currentRadius) {
+                        RadiusOffsets.push_back(Cell(cellX, cellY));
+
+                        // Occlusion logic: the vector pointing back to the origin
+                        short parentDirectionX = (cellX == 0) ? 0 : (cellX > 0 ? -1 : 1);
+                        short parentDirectionY = (cellY == 0) ? 0 : (cellY > 0 ? -1 : 1);
+                        OcclusionOffsets.push_back(Cell(parentDirectionX, parentDirectionY));
+                    }
+                }
+            }
+            // Update the prefix sum table with the new total cell count
+            RadiusCountTable.push_back(static_cast<int>(RadiusOffsets.size()));
+        }
+    }
 };
+
+// Initialize static members with the values for Radius 0
+std::vector<int> MapClassExt::RadiusCountTable = {1};
+std::vector<Cell> MapClassExt::RadiusOffsets = {Cell(0, 0)};
+std::vector<Cell> MapClassExt::OcclusionOffsets = {Cell(0, 0)};
 
 
 /**
@@ -126,6 +182,64 @@ void MapClassExt::_Detach(AbstractClass* target, bool all)
     if (target->RTTI == RTTI_FACTORY) {
         SidebarExtension->Detach(target);
     }
+}
+
+std::vector<Cell> getRadiusOffsets(int radius)
+{
+    std::vector<Cell> offsets;
+
+    // The maximum possible coordinate for a given radius R is R.
+    // We iterate through the bounding box of the potential octagon.
+    for (int y = -radius; y <= radius; ++y) {
+        for (int x = -radius; x <= radius; ++x) {
+            int absX = std::abs(x);
+            int absY = std::abs(y);
+
+            // Octagonal distance formula
+            int dist = std::max(absX, absY) + (std::min(absX, absY) / 2);
+
+            if (dist == radius) {
+                offsets.push_back(Cell(x, y));
+            }
+        }
+    }
+    return offsets;
+}
+
+// Hook at: .text:00510C9A (cmp eax, 0Ah)
+DEFINE_HOOK(0x510C9A, MapClass_Reveal_Dynamic, 6)
+{
+    DEBUG_INFO("ENTERED SIGHT LOOKUP\n");
+
+    // EAX contains the current sightrange being processed
+    int sightRange = R->EAX();
+    GET_STACK(bool, isIncremental, 0x58);
+
+    // Ensure the data for this sightrange exists in our static cache
+    MapClassExt::EnsureRadiusCalculated(sightRange);
+
+    // Initial pointers point to the start of our dynamic buffers
+    int cellCount = MapClassExt::RadiusCountTable[sightRange];
+    Cell* radiusPointer = MapClassExt::RadiusOffsets.data();
+    Cell* occlusionPointer = MapClassExt::OcclusionOffsets.data();
+
+    // Incremental reveal logic
+    // If not reveal-by-height, only reveal the new "shell" of cells
+    if (!Rule->IsRevealByHeight && isIncremental && sightRange > 2) {
+        int previousShellCellCount = MapClassExt::RadiusCountTable[sightRange - 3];
+
+        cellCount -= previousShellCellCount;
+        radiusPointer += previousShellCellCount;
+        occlusionPointer += previousShellCellCount;
+    }
+
+    // Write results back to the registers and stack for the game's loop
+    R->ESI(cellCount);
+    R->Stack<Cell*>(0x10, radiusPointer);    // [esp+48h+ptr]
+    R->Stack<Cell*>(0x4C, occlusionPointer); // [esp+48h+coord]
+
+    // Jump to loc_510CFB to resume execution after the patched block
+    return 0x510CFB;
 }
 
 
