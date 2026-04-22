@@ -1644,7 +1644,6 @@ bool TActionClassExtension::Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* 
     if (This()->Data.Speed > SCROLL_SPEED_COUNT - 1) {
         return false;
     }
-        
 
     Cell waypt = Scen->Waypoint_Cell(This()->EffectLocation);
     Coord coord = Coord(waypt);
