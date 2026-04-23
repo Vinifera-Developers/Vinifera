@@ -56,7 +56,6 @@
 #include "vinifera_globals.h"
 #include "vox.h"
 #include "tag.h"
-#include "debughandler.h"
 #include "rulesext.h";
 
 
@@ -789,6 +788,7 @@ DEFINE_HOOK(0x004A3E14, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
     GET(FootClass*, this_ptr, ESI);
 
     if (this_ptr->Cloak == CLOAKED) {
+        /* Reimplementation based on RE effort */
         for (int face = FACING_N; face < FACING_COUNT; face++) {
             Cell cell = Adjacent_Cell(this_ptr->PositionCell, (FacingType)face);
 
@@ -802,6 +802,7 @@ DEFINE_HOOK(0x004A3E14, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
             }
         }
 
+        /* New logic: conditionally spring cell tags for cloaked units */
         if (RuleExtension->IsCloakedTechnosTriggerCellTags) {
             CellClass* cellptr = &Map[this_ptr->PositionCell];
             TagClass* tag = cellptr->CellTag;
