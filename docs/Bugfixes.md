@@ -111,3 +111,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation.
