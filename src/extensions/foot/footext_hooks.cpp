@@ -802,8 +802,8 @@ DEFINE_HOOK(0x004A3E14, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
             }
         }
 
-        /* New logic: conditionally spring cell tags for cloaked units */
-        if (RuleExtension->IsCloakedTechnosTriggerCellTags) {
+        /* Conditionally spring cell tags for cloaked units */
+        if (!RuleExtension->IsCellTagsIgnoreStealth) {
             CellClass* cellptr = &Map[this_ptr->PositionCell];
             TagClass* tag = cellptr->CellTag;
 

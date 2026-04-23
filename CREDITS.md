@@ -151,6 +151,7 @@ This page lists all the individual contributions to the project by their author.
 - **JoyfulShush**:
   - Allow customizing self healing cap and rate game-wide and per-unit.
   - Allow customizing whether AI can repair buildings created as base nodes.
+  - Allow cloaked units to trigger cell tags when using Entered By trigger events.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
