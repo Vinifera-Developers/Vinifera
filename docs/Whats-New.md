@@ -390,5 +390,8 @@ Vanilla fixes:
 - Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
 - Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation (by JoyfulShush)
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, granting massive veterancy bonuses to their attackers.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
 
 :::
