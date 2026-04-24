@@ -287,7 +287,7 @@ static bool Read_Sound_INI()
 
 
 /**
- *  Reimplemention of Prep_For_Side()
+ *  Reimplementation of Prep_For_Side()
  *  
  *  Prepare the mixfiles for the player side.
  * 
@@ -415,6 +415,81 @@ bool Vinifera_Prep_For_Side(SideType side)
      *  Re-initialize sounds in case the side mixes override them.
      */
     //Read_Sound_INI();
+
+    return true;
+}
+
+
+/**
+ *  Reimplementation of Prep_Speech_For_Side()
+ *
+ *  Prepare the mixfiles for the player side.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+bool Vinifera_Prep_Speech_For_Side(SideType side)
+{
+    char name[64];
+
+    if (side == SIDE_NONE) {
+        return false;
+    }
+
+    /**
+     *  Free previously loaded speech MIXes.
+     */
+    if (SpeechMix != nullptr) {
+        DEBUG_INFO("     Releasing %s\n", SpeechMix->Filename);
+        delete SpeechMix;
+        SpeechMix = nullptr;
+    }
+
+    while (ExpandSpeechMix.Count() > 0) {
+        delete ExpandSpeechMix[0];
+        ExpandSpeechMix.Delete(0);
+    }
+
+    /**
+     *  Load the new generic speech MIX.
+     */
+    DEBUG_INFO("     Initializing SPEECH.MIX\n");
+    if (CCFileClass("SPEECH.MIX").Is_Available()) {
+        MFCD* mix = new MFCD("SPEECH.MIX", &FastKey);
+        if (mix != nullptr) {
+            ExpandSpeechMix.Add(mix);
+            DEBUG_INFO(" SPEECH.MIX");
+        }
+    }
+
+    int id = static_cast<int>(side) + 1;
+
+    /**
+     *  Load the per-side mixes.
+     */
+    for (AddonType addon = ADDON_COUNT; addon > 0; --addon) {
+        if (Addon_Enabled(addon) == true) {
+            std::snprintf(name, std::size(name), "E%02dVOX%02d.MIX", addon, id);
+
+            if (CCFileClass(name).Is_Available()) {
+                MFCD* mix = new MFCD(name, &FastKey);
+                if (mix != nullptr) {
+                    ExpandSpeechMix.Add(mix);
+                    DEBUG_INFO(" %s", name);
+                }
+            }
+        }
+    }
+
+    std::snprintf(name, std::size(name), "SPEECH%02d.MIX", id);
+    DEBUG_INFO("     Initializing %s\n", name);
+    if (CCFileClass(name).Is_Available()) {
+        SpeechMix = new MFCD(name, &FastKey);
+    }
+
+    //if (SpeechMix == nullptr) {
+    //    DEBUG_INFO("     FAILED!\n");
+    //    return false;
+    //}
 
     return true;
 }
@@ -941,6 +1016,7 @@ void GameInit_Hooks()
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
     Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
+    Patch_Jump(0x004E8460, &Vinifera_Prep_Speech_For_Side);
     Patch_Call(0x006013AB, &Vinifera_Create_Main_Window_480p);
     Patch_Call(0x00601696, &Vinifera_Create_Main_Window_Custom);
 
