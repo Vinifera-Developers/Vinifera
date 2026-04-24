@@ -510,8 +510,11 @@ target_compile_options(${PROJECT_NAME} PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:/Zc:threadSafeInit->
 )
 
-# __fastcall as default calling convention
+# __fastcall as default calling convention.
+# Apply this to both C and C++ sources so generators like Ninja don't diverge
+# from Visual Studio on third-party C sources such as miniaudio/stb_vorbis.
 target_compile_options(${PROJECT_NAME} PUBLIC
+    $<$<COMPILE_LANGUAGE:C>:/Gr>
     $<$<COMPILE_LANGUAGE:CXX>:/Gr>
 )
 
