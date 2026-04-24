@@ -42,7 +42,7 @@ endif()
 SET(CMAKE_CONFIGURATION_TYPES "Debug;RelWithDebInfo" CACHE STRING "Configs" FORCE)
 
 # Declare the project.
-project(Vinifera VERSION 1.00 LANGUAGES CXX)
+project(Vinifera VERSION 1.00 LANGUAGES C CXX)
 
 if(POLICY CMP0074)
     cmake_policy(SET CMP0074 NEW) #policy for <PackageName>_ROOT variables.
