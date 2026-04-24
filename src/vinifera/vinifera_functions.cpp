@@ -505,60 +505,6 @@ bool Vinifera_Startup()
     ViniferaSearchPaths.Add("SPEECH");
     ViniferaSearchPaths.Add("MUSIC");
 
-#ifndef NDEBUG
-    // Don't enable these in Release builds as it will slow down CCFile IO!
-    ViniferaSearchPaths.Add("SOUNDS\\FLAC");
-    ViniferaSearchPaths.Add("SOUNDS\\WAV");
-    ViniferaSearchPaths.Add("SOUNDS\\OGG");
-    ViniferaSearchPaths.Add("SOUNDS\\MP3");
-    ViniferaSearchPaths.Add("SOUNDS\\AUD");
-
-    ViniferaSearchPaths.Add("SPEECH\\FLAC");
-    ViniferaSearchPaths.Add("SPEECH\\WAV");
-    ViniferaSearchPaths.Add("SPEECH\\OGG");
-    ViniferaSearchPaths.Add("SPEECH\\MP3");
-    ViniferaSearchPaths.Add("SPEECH\\AUD");
-
-    ViniferaSearchPaths.Add("MUSIC\\FLAC");
-    ViniferaSearchPaths.Add("MUSIC\\WAV");
-    ViniferaSearchPaths.Add("MUSIC\\OGG");
-    ViniferaSearchPaths.Add("MUSIC\\MP3");
-    ViniferaSearchPaths.Add("MUSIC\\AUD");
-#endif
-
-    /**
-     *  #issue-514:
-     * 
-     *  Adds various search paths for loading files locally for the TS-Client builds only.
-     * 
-     *  #NOTE: REMOVED: Additional paths must now be set via SearchPaths in VINIFERA.INI!
-     * 
-     *  @author: CCHyper
-     */
-#if 0 // #if defined(TS_CLIENT)
-
-    // Only required for the TS Client builds as most projects will
-    // put VINIFERA.INI in this directory.
-    ViniferaSearchPaths.Add("INI");
-
-    // Required for startup mix files to be found.
-    ViniferaSearchPaths.Add("MIX");
-#endif
-
-#if !defined(TS_CLIENT)
-    // Required for startup movies to be found.
-    ViniferaSearchPaths.Add("MOVIES");
-#endif
-
-    // REMOVED: Paths are now set via SearchPaths in VINIFERA.INI
-//#if defined(TS_CLIENT)
-//    ViniferaSearchPaths.Add("MUSIC");
-//    ViniferaSearchPaths.Add("SOUNDS");
-//    ViniferaSearchPaths.Add("MAPS");
-//    ViniferaSearchPaths.Add("MAPS\\MULTIPLAYER");
-//    ViniferaSearchPaths.Add("MAPS\\MISSION");
-//#endif
-
     /**
      *  Load Vinifera settings and overrides.
      */
