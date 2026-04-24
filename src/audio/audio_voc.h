@@ -60,12 +60,17 @@ private:
      */
     static int DefaultLimit;
     static int DefaultRange;
-    static AudioSoundType DefaultType;
-    static AudioControlType DefaultControl;
     static int DefaultPriority;
     static float DefaultVolume;
     static float DefaultMinVolume;
     static float DefaultMaxVolume;
+
+    int Get_Limit() const { return Limit.value_or(DefaultLimit); }
+    int Get_Range() const { return Range.value_or(DefaultRange); }
+    int Get_Priority() const { return Priority.value_or(DefaultPriority); }
+    float Get_Volume() const { return Volume.value_or(DefaultVolume); }
+    float Get_MinVolume() const { return MinVolume.value_or(DefaultMinVolume); }
+    float Get_MaxVolume() const { return MaxVolume.value_or(DefaultMaxVolume); }
 
     /**
      *  Name of the sound event (up to 31 characters).
@@ -78,12 +83,12 @@ private:
     AudioFileType FileType = AUDIO_TYPE_AUD;
 
     /**
-     *  #NEW: Full filename of the sound effect.
+     *  Full filename of the sound effect.
      */
     std::string FileName;
 
     /**
-     *  #NEW: Is the sound available?
+     *  Is the sound available?
      */
     bool Available = false;
 
@@ -102,14 +107,14 @@ private:
      *  when choosing which events to drop. So make priorities are set correctly
      *  for all events.
      */
-    int Priority = DefaultPriority;
+    std::optional<int> Priority;
 
     /**
      *  Limit specifies the maximum number of instances of an audio event type
      *  that can be played SIMULTANEOUSLY. Limit of one, along with IMMEDIATE
      *  control, can be used to achieve monaural sounds.
      */
-    int Limit = DefaultLimit;
+    std::optional<int> Limit;
 
     /**
      *  Optional cap on the total number of plays for loop-enabled vocs.
@@ -123,15 +128,15 @@ private:
      *  The value specified is the percentage of full volume. e.g. 0.25 means
      *  playback at one quarter of full volume.
      */
-    float Volume = DefaultVolume;
+    std::optional<float> Volume;
 
     /**
      *  The minimum volume for the GLOBAL Type event (ignored for all other types).
      */
-    float MinVolume = DefaultMinVolume;
+    std::optional<float> MinVolume;
 
     // Not loaded from the INI!
-    float MaxVolume = DefaultMaxVolume;
+    std::optional<float> MaxVolume;
 
     /**
      *  The FShift attribute alows the playback frequency to be randomly changed
@@ -146,7 +151,7 @@ private:
      *     Volume = 80
      *     VShift = -5, 5     ; vary "Volume" between 75 and 85.
      */
-    TPoint2D<int> VolumeShift = {AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MIN};
+    Point2D VolumeShift = {AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MIN};
 
     /**
      *  The FShift attribute alows the playback frequency to be randomly changed
@@ -162,24 +167,24 @@ private:
      *     FShift = 5, 10      ; vary the frequency between 105% and 110% of original
      *     FShift = -50, 0     ; vary the frequency between 50% and 100% of original
      */
-    TPoint2D<int> FrequencyShift = {AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MIN};
+    Point2D FrequencyShift = {AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MIN};
 
     /**
      *  Specifies the audible range of a sound in game cells.
      */
-    int Range = DefaultRange;
+    std::optional<int> Range;
 
     /**
      *  Type information allows the game engine to modify event behaviour.
      */
-    AudioSoundType Type = DefaultType;
+    AudioSoundType Type = AUDIO_SOUND_SCREEN;
 
     /**
      *  The control attributes can be used in any combination to achieve desired
      *  playback effects. The default control behaviour is to play the first sound
      *  in the sound list just once.
      */
-    AudioControlType Control = DefaultControl;
+    AudioControlType Control = AUDIO_CONTROL_NORMAL;
 
     /**
      *  Do not touch!

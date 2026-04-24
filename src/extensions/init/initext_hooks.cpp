@@ -491,6 +491,8 @@ bool Vinifera_Prep_Speech_For_Side(SideType side)
     //    return false;
     //}
 
+    AudioVoxClass::ScanAsync();
+
     return true;
 }
 

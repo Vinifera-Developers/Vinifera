@@ -67,9 +67,16 @@ private:
     static float DefaultMinVolume;
     static float DefaultMaxVolume;
 
+    int Get_Priority() const { return Priority.value_or(DefaultPriority); }
+    int Get_Delay() const { return Delay.value_or(DefaultDelay); }
+    int Get_FrequencyShift() const { return FrequencyShift.value_or(DefaultFrequencyShift); }
+    float Get_Volume() const { return Volume.value_or(DefaultVolume); }
+    float Get_MinVolume() const { return MinVolume.value_or(DefaultMinVolume); }
+    float Get_MaxVolume() const { return MaxVolume.value_or(DefaultMaxVolume); }
+
     /**
-         *  The file type of this speech.
-         */
+     *  The file type of this speech.
+     */
     AudioFileType FileType = AUDIO_TYPE_AUD;
 
     /**
@@ -83,7 +90,7 @@ private:
     bool Available = false;
 
     /**
-     *  Name of this speech event (up to 31 characters).
+     *  Name of this speech event.
      */
     std::string Name;
 
@@ -93,9 +100,14 @@ private:
     std::string DescriptionText;
 
     /**
-     *  The name override of this speech event (up to 31 characters).
+     *  The name override of this speech event.
      */
     std::string Sound;
+
+    /**
+     *  Per-side name overrides of this speech event.
+     */
+    std::vector<std::string> SideSounds;
 
     /**
      *  Priority and Limit are the most important attributes of them all. While
@@ -105,28 +117,28 @@ private:
      *  when choosing which events to drop. So make priorities are set correctly
      *  for all events.
      */
-    int Priority = DefaultPriority;
+    std::optional<int> Priority;
 
     /**
      *  The playback volume for this speech entry.
      */
-    float Volume = DefaultVolume;
+    std::optional<float> Volume;
 
     /**
      *  The minimum and maximum volume bounds for this speech entry.
      */
-    float MinVolume = DefaultMinVolume;
-    float MaxVolume = DefaultMaxVolume;
+    std::optional<float> MinVolume;
+    std::optional<float> MaxVolume;
 
     /**
      *  Delay in seconds before this speech begins playback.
      */
-    float Delay = DefaultDelay;
+    std::optional<float> Delay;
 
     /**
      *  Pitch multiplier applied to this speech during playback.
      */
-    float FrequencyShift = DefaultFrequencyShift;
+    std::optional<float> FrequencyShift;
 
     /**
      *  The sound type flags for this speech entry.

@@ -33,8 +33,6 @@
  */
 int AudioVocClass::DefaultLimit = 5;
 int AudioVocClass::DefaultRange = 10;
-AudioSoundType AudioVocClass::DefaultType = AUDIO_SOUND_SCREEN;
-AudioControlType AudioVocClass::DefaultControl = AUDIO_CONTROL_NORMAL;
 int AudioVocClass::DefaultPriority = AudioManagerClass::Priority_To_AudioPriority(10);
 float AudioVocClass::DefaultVolume = AUDIO_VOLUME_MAX;
 float AudioVocClass::DefaultMinVolume = AUDIO_VOLUME_MIN;
@@ -74,7 +72,7 @@ void AudioVocClass::Calculate_Pan_And_Volume(Coord const& coord, float& pan_resu
     float tact_center_x_sq = tact_center_x + tact_center_x;
 
      // Convert logical range in map cells to pixel range.
-    float range = CELL_PIXEL_W * Range;
+    float range = CELL_PIXEL_W * Get_Range();
 
     float volume = AUDIO_VOLUME_MIN;
     float pan = 0.0f;
@@ -115,7 +113,7 @@ void AudioVocClass::Calculate_Pan_And_Volume(Coord const& coord, float& pan_resu
 
         // If this is a global sound, enforce a minimum volume threshold.
         if ((Type & AUDIO_SOUND_GLOBAL) != 0) {
-            volume = std::max(volume, MinVolume);
+            volume = std::max(volume, Get_MinVolume());
         }
 
     //}
@@ -213,7 +211,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
      */
     VocType id = static_cast<VocType>(AudioVocs.ID(const_cast<AudioVocClass*>(this)));
 
-    AudioPriorityType priority = AudioManagerClass::Priority_To_AudioPriority(Priority);
+    AudioPriorityType priority = AudioManagerClass::Priority_To_AudioPriority(Get_Priority());
     AudioSoundType type = Type;
     AudioControlType control = Control;
 
@@ -272,7 +270,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
 
     }
 
-    vol = std::min(std::clamp((Volume * vol + vshift), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX), MaxVolume);
+    vol = std::min(std::clamp((Get_Volume() * vol + vshift), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX), Get_MaxVolume());
 
     /**
      *  If the volume drops below this level, just skip it. Otherwise the sounds
@@ -304,7 +302,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
         //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Play - About to call AudioManager.Play with \"%s\".\n", filename.c_str());
         const bool looping = (Control & AUDIO_CONTROL_LOOP) != 0;
         const int loop_limit = looping ? LoopLimit : 0;
-        handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Limit, fade_in_seconds, 0.0f, true, looping, loop_limit);
+        handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, 0.0f, true, looping, loop_limit);
         if (handle == INVALID_AUDIO_HANDLE_ID) {
             DEBUG_ERROR("Voc::Play - Failed to play \"%s\"!\n", Name.c_str());
             return handle;
@@ -359,14 +357,26 @@ void AudioVocClass::Read_INI(CCINIClass &ini)
 
     Sounds = ini.Get_Strings(name, "Sounds", Sounds);
 
-    Limit = std::clamp(ini.Get_Int(name, "Limit", Limit), 0, AUDIO_MAX_CONCURRENT_LIMIT);
+    if (ini.Is_Present(name, "Limit")) {
+        Limit = std::clamp(ini.Get_Int(name, "Limit", Get_Limit()), 0, AUDIO_MAX_CONCURRENT_LIMIT);
+    }
     LoopLimit = std::max(0, ini.Get_Int(name, "LoopLimit", LoopLimit));
-    Range = std::max(0, ini.Get_Int(name, "Range", Range));
-    Priority = ini.Get_Int(name, "Priority", Priority);
-    Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    if (ini.Is_Present(name, "Range")) {
+        Range = std::max(0, ini.Get_Int(name, "Range", Get_Range()));
+    }
+    if (ini.Is_Present(name, "Priority")) {
+        Priority = ini.Get_Int(name, "Priority", Get_Priority());
+    }
+    if (ini.Is_Present(name, "Volume")) {
+        Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Get_Volume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    }
 
-    MinVolume = std::clamp<float>(ini.Get_Float(name, "MinVolume", MinVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    //MaxVolume = std::clamp<float>(ini.Get_Float(name, "MaxVolume", MaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX); // Not to be loaded from the ini database.
+    if (ini.Is_Present(name, "MinVolume")) {
+        MinVolume = std::clamp<float>(ini.Get_Float(name, "MinVolume", Get_MinVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    }
+    if (ini.Is_Present(name, "MaxVolume")) {
+        MaxVolume = std::clamp<float>(ini.Get_Float(name, "MaxVolume", Get_MaxVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    }
 
     VolumeShift = ini.Get_Point(name, "VShift", VolumeShift);
     VolumeShift.X = std::clamp(VolumeShift.X, AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MAX);
@@ -603,10 +613,10 @@ void AudioVocClass::Preload()
             vocptr->FileName,
             vocptr->FileType,
             vocptr->Group,
-            AudioManagerClass::Priority_To_AudioPriority(vocptr->Priority),
+            AudioManagerClass::Priority_To_AudioPriority(vocptr->Get_Priority()),
             vocptr->Control,
             vocptr->Type,
-            vocptr->Limit);
+            vocptr->Get_Limit());
 
         if (submitted) {
             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Preload - Submitted \"%s\" to audio manager.\n", vocptr->FileName.c_str());
@@ -646,8 +656,6 @@ void AudioVocClass::Process(CCINIClass &ini)
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Process(enter): AudioVocs.Count = %d\n", AudioVocs.Count());
 
-    //Clear();
-
     char buffer[32];
 
     if (ini.Is_Present(DEFAULTS)) {
@@ -656,7 +664,7 @@ void AudioVocClass::Process(CCINIClass &ini)
         DefaultPriority = ini.Get_Int(DEFAULTS, "Priority", DefaultPriority);
         DefaultVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "Volume", DefaultVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
         DefaultMinVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MinVolume", DefaultMinVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-        //DefaultMaxVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX); // Not to be loaded from the ini database.
+        DefaultMaxVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     }
 
     if (ini.Is_Present(SOUNDLIST)) {

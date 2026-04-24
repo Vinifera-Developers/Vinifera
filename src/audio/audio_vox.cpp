@@ -101,13 +101,31 @@ void AudioVoxClass::Read_INI(CCINIClass &ini)
     Sound = ini.Get_String(name, "Sound", Sound);
     DescriptionText = ini.Get_String(name, "Text", DescriptionText);
 
-    Priority = ini.Get_Int(name, "Priority", Priority);
-    //DefaultDelay = ini.Get_Int(name, "Delay", DefaultDelay);
-    Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Volume), 0.0f, 1.0f);
-    //Delay = std::clamp<float>(ini.Get_Float(name, "Delay", Delay), 0.0f, 5.0f); // Not to be read from the ini database.
-    FrequencyShift = std::clamp<float>(ini.Get_Float(name, "FShift", FrequencyShift), -5.0f, 5.0f);
+    if (ini.Is_Present(name, "Priority")) {
+        Priority = ini.Get_Int(name, "Priority", Get_Priority());
+    }
+    if (ini.Is_Present(name, "Volume")) {
+        Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Get_Volume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    }
+    //if (ini.Is_Present(name, "Delay")) {
+    //    Delay = std::clamp<float>(ini.Get_Float(name, "Delay", Get_Delay()), 0.0f, 5.0f);
+    //}
+    if (ini.Is_Present(name, "Delay")) {
+        FrequencyShift = std::clamp<float>(ini.Get_Float(name, "FShift", Get_FrequencyShift()), -5.0f, 5.0f);
+    }
 
-    // TODO, we should loop the HouseTypes and load GDI=, Nod= etc based of the names of the HouseTypes!
+    if (ini.Is_Present(name, "MinVolume")) {
+        MinVolume = std::clamp<float>(ini.Get_Float(name, "MinVolume", Get_MinVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    }
+    if (ini.Is_Present(name, "MaxVolume")) {
+        MaxVolume = std::clamp<float>(ini.Get_Float(name, "MaxVolume", Get_MaxVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    }
+
+    // Read the per-side filenames
+    SideSounds.resize(Sides.Count());
+    for (int i = 0; i < Sides.Count(); i++) {
+        SideSounds[i] = ini.Get_String(name, Sides[i]->IniName.c_str(), SideSounds[i]);
+    }
 }
 
 
@@ -122,11 +140,6 @@ void AudioVoxClass::One_Time()
         AudioVoxClass *voxptr = new AudioVoxClass(Speech[vox]);
         ASSERT(voxptr != nullptr);
     }
-
-#ifndef NDEBUG
-    // To help find duplicate loading errors.
-    ASSERT_FATAL_PRINT(Voxs.Count() == VOX_COUNT, "Voxs.Count == %d, VOX_COUNT == %d.", Voxs.Count(), VOX_COUNT);
-#endif
 }
 
 
@@ -142,8 +155,6 @@ bool AudioVoxClass::Process(CCINIClass &ini)
 
     char buffer[32];
 
-    //Clear();
-
     /**
      *  Load the global default values for speech entries.
      */
@@ -152,7 +163,7 @@ bool AudioVoxClass::Process(CCINIClass &ini)
         DefaultDelay = ini.Get_Float(DEFAULTS, "Delay", DefaultDelay);
         DefaultVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "Volume", DefaultVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
         DefaultMinVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MinVolume", DefaultMinVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-        //DefaultMaxVolume = ini.Get_Float_Clamp(DEFAULTS, "MaxVolume", AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX, DefaultMaxVolume); // Not to be loaded from the ini database.
+        DefaultMaxVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     }
 
     if (ini.Is_Present(SOUNDLIST)) {
@@ -176,15 +187,8 @@ bool AudioVoxClass::Process(CCINIClass &ini)
                 }
                 voxptr->Read_INI(ini);
             }
-
         }
-
     }
-
-#ifndef NDEBUG
-    // To help find duplicate loading errors.
-    ASSERT_FATAL_PRINT(Voxs.Count() == VOX_COUNT, "Voxs.Count == %d, VOX_COUNT == %d.", Voxs.Count(), VOX_COUNT);
-#endif
 
     return true;
 }
@@ -198,15 +202,14 @@ bool AudioVoxClass::Process(CCINIClass &ini)
 void AudioVoxClass::Scan()
 {
     for (int index = 0; index < Voxs.Count(); ++index) {
-
         AudioVoxClass *voxptr = Voxs[index];
 
         /**
          *  Use the sound name override if one has been specified.
          */
         std::string name = voxptr->Name;
-        if (!voxptr->Sound.empty()) {
-            name = voxptr->Sound;
+        if (!voxptr->Get_Sound_Name().empty()) {
+            name = voxptr->Get_Sound_Name();
         }
 
         if (!AudioManager.Is_File_Available(name)) {
@@ -221,13 +224,6 @@ void AudioVoxClass::Scan()
          */
         AudioManager.Get_File_Info(name, voxptr->FileType, voxptr->FileName);
     }
-
-#if 0//#ifndef NDEBUG
-    AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox dump...\n");
-    for (int index = 0; index < Voxs.Count(); ++index) {
-        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "  %03d  %s\n", index, ((AudioVoxClass *)Voxs[index])->Name.c_str());
-    }
-#endif
 
     // Call preload here to reduce patches.
     Preload();
@@ -262,7 +258,7 @@ void AudioVoxClass::Preload()
             voxptr->FileName,
             voxptr->FileType,
             AUDIO_GROUP_SPEECH,
-            AudioManagerClass::Priority_To_AudioPriority(voxptr->Priority),
+            AudioManagerClass::Priority_To_AudioPriority(voxptr->Get_Priority()),
             voxptr->Control,
             voxptr->Type,
             1);
@@ -488,22 +484,15 @@ void AudioVoxClass::AI()
          *  Speech file was found, now play it.
          */
         VoxType vox = SpeakQueue;
-        float vol = std::clamp(voxptr->Volume, voxptr->MinVolume, voxptr->MaxVolume);
-        float pitch = voxptr->FrequencyShift;
-        float delay = voxptr->Delay;
-        AudioPriorityType priority = AudioManagerClass::Priority_To_AudioPriority(voxptr->Priority);
+        float vol = std::clamp(voxptr->Get_Volume(), voxptr->Get_MinVolume(), voxptr->Get_MaxVolume());
+        float pitch = voxptr->Get_FrequencyShift();
+        float delay = voxptr->Get_Delay();
+        AudioPriorityType priority = AudioManagerClass::Priority_To_AudioPriority(voxptr->Get_Priority());
         AudioSoundType type = voxptr->Type;
         AudioControlType control = voxptr->Control;
 
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::AI - About to call AudioManager.Play with \"%s\".\n", filename.c_str());
-        handle = AudioManager.Request_Play(filename,
-                                                        AUDIO_GROUP_SPEECH,
-                                                        vol,
-                                                        pitch,
-                                                        0.0f,
-                                                        priority,
-                                                        0.0f,
-                                                        delay);
+        handle = AudioManager.Request_Play(filename, AUDIO_GROUP_SPEECH, vol, pitch, 0.0f, priority, 0.0f, delay);
     }
 
     if (handle == INVALID_AUDIO_HANDLE_ID) {
@@ -593,8 +582,9 @@ bool AudioVoxClass::Write_Default_Speech_INI(CCINIClass &ini)
     /**
      *  Save the default sound values.
      */
-    //ini.Put_Int(DEFAULTS, "Priority", DefaultPriority);
+    ini.Put_Int(DEFAULTS, "Priority", DefaultPriority);
     ini.Put_Float(DEFAULTS, "Delay", DefaultDelay);
+    ini.Put_Float(DEFAULTS, "FrequencyShift", DefaultFrequencyShift);
     ini.Put_Float(DEFAULTS, "Volume", DefaultVolume);
     ini.Put_Float(DEFAULTS, "MinVolume", DefaultMinVolume);
     ini.Put_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume);
@@ -682,4 +672,15 @@ void AudioVoxClass::Set_Speech_Allowed(bool set)
 bool AudioVoxClass::Is_Speech_Allowed()
 {
     return IsSpeechAllowed;
+}
+
+
+std::string const& AudioVoxClass::Get_Sound_Name() const
+{
+    if (Scen != nullptr && Scen->SpeechSide != SIDE_NONE) {
+        if (!SideSounds[Scen->SpeechSide].empty()) {
+            return SideSounds[Scen->SpeechSide];
+        }
+    }
+    return Sound;
 }

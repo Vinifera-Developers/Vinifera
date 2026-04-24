@@ -191,17 +191,6 @@ DEFINE_HOOK(0x00471493, _CreditsClass_Graphic_Logic_Limit_Sfx_Patch, 0)
 
 
 /**
- *  Load the speech file assets (e.g. for preloading).
- */
-DEFINE_HOOK(0x004E86E4, _Prep_Speech_For_Side_Preload_Files_Patch, 6)
-{
-    AudioVoxClass::ScanAsync();
-
-    return 0;
-}
-
-
-/**
  *  Patch to play the faction emblem sound effect when the owner-draw window is displayed.
  */
 DEFINE_HOOK(0x00593DAC, _OwnerDraw_Window_Procedure_Play_EMBLEM_Patch, 0)
