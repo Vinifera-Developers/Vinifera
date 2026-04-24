@@ -327,72 +327,27 @@ static bool Read_Speech_Ini()
     /**
      *  Initialize the speech/voice audio subsystem from INI data.
      */
-    DEBUG_INFO("About to call AudioVoxClass::One_Time...\n");
-    AudioVoxClass::One_Time();
-
-#ifndef NDEBUG
-    /**
-     *  Write the default speech file to ini.
-     */
-    {
-        CCFileClass vox_write_file("SPEECH.DBG");
-        CCINIClass vox_write_ini;
-        vox_write_file.Delete();
-        AudioVoxClass::Write_Default_Speech_INI(vox_write_ini);
-        vox_write_ini.Save(vox_write_file, false);
-        vox_write_file.Close();
-    }
-#endif
-
-    DEBUG_INFO("Reading SPEECH.INI\n");
+    DEBUG_INFO("Reading EVA.INI\n");
     CCFileClass file;
     CCINIClass ini;
 
-    file.Set_Name("SPEECH.INI");
+    file.Set_Name("EVA.INI");
     if (file.Is_Available()) {
-
         ini.Load(file, false);
-
-        /**
-         *  We no longer clear before loading SOUND.INI as 
-         *  all the original speeches are instantiated when
-         *  One_Time() is called.
-         */
-        //AudioVoxClass::Clear();
         if (!AudioVoxClass::Process(ini)) {
-            DEV_DEBUG_ERROR("Failed to read SPEECH.INI!\n");
-            return EXIT_FAILURE;
+            DEV_DEBUG_WARNING("Failed to read EVA.INI!\n");
         }
-
     } else {
-        DEV_DEBUG_WARNING("SPEECH.INI not found!\n");
+        DEV_DEBUG_WARNING("EVA.INI not found!\n");
     }
 
-    if (Addon_Installed(ADDON_FIRESTORM)) {
-
-        file.Set_Name("SPEECH01.INI");
-        if (file.Is_Available()) {
-
-            ini.Load(file, false);
-
-            /**
-             *  We no longer clear before loading SOUND01.INI as it
-             *  is now loaded as an "addition" to THEME.INI.
-             */
-            //AudioVoxClass::Clear();
-            if (!AudioVoxClass::Process(ini)) {
-                DEV_DEBUG_ERROR("Failed to read SPEECH01.INI!\n");
-                return EXIT_FAILURE;
-            }
-
-        } else {
-            DEV_DEBUG_WARNING("SPEECH01.INI not found!\n");
-        }
+    /**
+     *  If the user didn't provide a valid EVA.INI, create voxes from vanilla defaults.
+     */
+    if (Voxs.Count() <= 0) {
+        DEBUG_INFO("About to call AudioVoxClass::One_Time...\n");
+        AudioVoxClass::One_Time();
     }
-
-    // NOTE: Removed, this must only be called after Prep_For_Side!
-    //DEBUG_INFO("About to call AudioVoxClass::Scan()...\n");
-    //AudioVoxClass::Scan();
 
     return true;
 }
@@ -436,6 +391,22 @@ DEFINE_HOOK_AGAIN(0x005DCCAB, _Clear_Static_Sounds_Patch, 5); // Do_Lose
 DEFINE_HOOK_AGAIN(0x005DCED4, _Clear_Static_Sounds_Patch, 5); // Do_Restart
 DEFINE_HOOK_AGAIN(0x005DCFE8, _Clear_Static_Sounds_Patch, 5); // Do_Abort
 DEFINE_HOOK_AGAIN(0x005059AF, _Clear_Static_Sounds_Patch, 7); // LoadOptionsClass::Load_File
+
+
+/**
+ *  Wrapper for the vanilla Speak function that plays hardcoded speeches by name.
+ *
+ *  #NOTE: Because of this, do NOT call vanilla Speak() if you want a speech by index.
+ *  For this reason, we also re-implement the speech trigger action.
+ *
+ *  @author: ZivDero
+ */
+static void Speak_Wrapper(VoxType voice, bool now)
+{
+    if (voice >= VOX_FIRST && voice < std::size(EvaNames)) {
+        AudioVoxClass::Speak(EvaNames[voice], now);
+    }
+}
 
 
 /**
@@ -483,7 +454,7 @@ void Audio_Hooks()
     /**
      *  Replace the speech handler with the new AudioVoxClass.
      */
-    Patch_Jump(0x00665800, &AudioVoxClass::Speak);
+    Patch_Jump(0x00665800, &Speak_Wrapper);
     Patch_Jump(0x00665940, &AudioVoxClass::AI);
     Patch_Jump(0x00665AF0, &AudioVoxClass::Stop_Speaking);
     Patch_Jump(0x00665B20, &AudioVoxClass::Is_Speaking);

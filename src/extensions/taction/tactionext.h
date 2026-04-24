@@ -66,6 +66,7 @@ private:
     /**
      *  Vanilla TActions that we re-implement.
      */
+    bool Do_PLAY_SPEECH(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell const& cell);
     bool Do_WIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_LOSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_TEXT_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);

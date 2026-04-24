@@ -735,12 +735,13 @@ VocType AudioVocClass::From_Name(const char *name)
         return VOC_NONE;
     }
 
-    if (name != nullptr) {
-        for (VocType index = VOC_FIRST; index < AudioVocs.Count(); ++index) {
-            AudioVocClass *vocptr = AudioVocs[index];
-            if (!strcasecmp(vocptr->Name.c_str(), name)) {
-                return index;
-            }
+    std::string sname = name;
+    string_to_upper(sname);
+
+    for (VocType index = VOC_FIRST; index < AudioVocs.Count(); ++index) {
+        AudioVocClass* vocptr = AudioVocs[index];
+        if (vocptr->Name == sname) {
+            return index;
         }
     }
 

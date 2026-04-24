@@ -695,19 +695,19 @@ bool AudioThemeClass::Is_Allowed(ThemeType theme) const
  */
 ThemeType AudioThemeClass::From_Name(const char * name) const
 {
-    if (!name || std::strlen(name) <= 0) {
+    if (name == nullptr || std::strlen(name) <= 0) {
         return THEME_NONE;
     }
 
-    std::string theme_name = name;
-    string_to_upper(theme_name);
+    std::string sname = name;
+    string_to_upper(sname);
 
     /**
      *  First search for an exact name match with the filename
      *  of the theme. This is guaranteed to be unique.
      */
     for (ThemeType theme = THEME_FIRST; theme < Themes.Count(); ++theme) {
-        if (Themes[theme]->Name == theme_name) {
+        if (Themes[theme]->Name == sname) {
             return theme;
         }
     }
@@ -718,7 +718,7 @@ ThemeType AudioThemeClass::From_Name(const char * name) const
      *  yield a match, but is not guaranteed to be unique.
      */
     for (ThemeType theme = THEME_FIRST; theme < Themes.Count(); ++theme) {
-        if (std::strstr(Themes[theme]->Fullname.c_str(), theme_name.c_str()) != nullptr) {
+        if (std::strstr(Themes[theme]->Fullname.c_str(), sname.c_str()) != nullptr) {
             return theme;
         }
     }

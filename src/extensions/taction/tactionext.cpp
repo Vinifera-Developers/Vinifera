@@ -12,6 +12,7 @@
 #include "tactionext.h"
 
 #include "audio_static_sound.h"
+#include "audio_vox.h"
 #include "building.h"
 #include "debughandler.h"
 #include "house.h"
@@ -275,6 +276,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         /**
          *  Intercepted vanilla TActions.
          */
+        DISPATCH(PLAY_SPEECH)
         DISPATCH(WIN);
         DISPATCH(LOSE);
         DISPATCH(TEXT_TRIGGER);
@@ -409,6 +411,19 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
  *  [Actions]
  *  TActionType = [Name], [DEF_PARAM1_VALUE], [PARAM1_TYPE], [PARAM2_TYPE], [PARAM3_TYPE], [PARAM4_TYPE], [PARAM5_TYPE], [PARAM6_TYPE], [USE_WP], [USE_TAG], [Description], 1, 0, [TActionType]
  */
+
+
+/**
+ *  Replaces Do_PLAY_SPEECH because we need to call the new AudioVoxClass::Speak handler.
+ *  The old Speak() function is proxied to query the speech by a hardcoded name.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PLAY_SPEECH(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell const& cell)
+{
+    AudioVoxClass::Speak(This()->Data.Speech);
+    return true;
+}
 
 
 /**

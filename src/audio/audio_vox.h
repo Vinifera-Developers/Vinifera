@@ -35,7 +35,8 @@ public:
     static void Preload();
     static void Clear();
 
-    static void Speak(VoxType voice, bool force = false);
+    static void Speak(VoxType voice, bool now = false);
+    static void Speak(std::string const& name, bool now = false);
     static void AI();
     static void Stop_Speaking();
     static bool Is_Speaking();
@@ -68,11 +69,13 @@ private:
     static float DefaultMaxVolume;
 
     int Get_Priority() const { return Priority.value_or(DefaultPriority); }
-    int Get_Delay() const { return Delay.value_or(DefaultDelay); }
-    int Get_FrequencyShift() const { return FrequencyShift.value_or(DefaultFrequencyShift); }
+    float Get_Delay() const { return Delay.value_or(DefaultDelay); }
+    float Get_FrequencyShift() const { return FrequencyShift.value_or(DefaultFrequencyShift); }
     float Get_Volume() const { return Volume.value_or(DefaultVolume); }
     float Get_MinVolume() const { return MinVolume.value_or(DefaultMinVolume); }
     float Get_MaxVolume() const { return MaxVolume.value_or(DefaultMaxVolume); }
+
+    std::string const& Get_Sound_Name() const;
 
     /**
      *  The file type of this speech.
@@ -150,3 +153,7 @@ private:
      */
     AudioControlType Control = AUDIO_CONTROL_QUEUE;
 };
+
+extern DynamicVectorClass<AudioVoxClass*> Voxs;
+
+extern const char* EvaNames[VOX_COUNT];

@@ -129,7 +129,7 @@ bool AudioAmbientClass::Update_Position(Coord coord)
 
     LastCoord = coord;
 
-    float vol = Voc->Volume;
+    float vol = Voc->Get_Volume();
     float pan = 0.0f;
 
     if (coord != COORD_NONE) {
