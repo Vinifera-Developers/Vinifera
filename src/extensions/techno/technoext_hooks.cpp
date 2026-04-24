@@ -114,6 +114,17 @@ public:
     int _Anti_Air() const;
 };
 
+static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
+{
+    if (this_ptr->RTTI == RTTI_UNIT) {
+        const auto unit = reinterpret_cast<UnitClass*>(this_ptr);
+        if (unit->DeathCounter >= 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  *  Draw the pips of this Techno.
@@ -869,7 +880,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
 
 
 /**
- *  Determines if the object can move be moved by player.
+ *  Determines if the object can be moved by the player.
  *
  *  @author: 01/19/1995 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
@@ -881,6 +892,15 @@ bool TechnoClassExt::_Can_Player_Move() const
 
     if (Is_Immobilized())
         return false;
+
+     /*
+     * Fixes an issue where a unit that has entered death animation and is being held alive by it
+     * can be issued additional move commands to keep walking until it dies.
+     * This makes it impossible for a player to issue move commands to dying units
+     */
+    if (Is_Unit_Dying(const_cast<TechnoClassExt*>(this))) {
+        return false;
+    }
 
     const auto ext = Extension::Fetch(this);
     if (ext->SpawnManager)
@@ -2203,6 +2223,16 @@ DEFINE_HOOK(0x0062C5D5, _TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch, 0)
 
 static bool Should_Take_Damage(TechnoClass* this_ptr, TechnoClass* source, const WarheadTypeClass* warhead, int damage)
 {
+    /*
+     * Fixes an issue where a unit that has entered death animation and is being held alive by it
+     * can allow its killers to record its death over and over again, granting them an insane amount of veterancy.
+     * It also has other side effects, such as counting the unit as killed for unit death count total, etc.
+     * Units typically have a DeathCounter value of -1; it is set to 0 after it is first killed only if it has death frames.
+     */
+    if (Is_Unit_Dying(reinterpret_cast<TechnoClassExt*>(this_ptr))) {
+        return false;
+    }
+
     if (warhead) {
 
         /**
