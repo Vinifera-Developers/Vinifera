@@ -37,5 +37,9 @@ typedef enum AudioDebugLogType {
 /**
  *  Macro alias for the audio debug logging function.
  */
-#define AUDIO_DEBUG_MSG Audio_Debug_Log
-void __cdecl Audio_Debug_Log(AudioDebugLogLevel level, AudioDebugLogType type, const char * message, ...);
+#ifndef NDEBUG
+#define AUDIO_DEBUG_MSG(level, type, message, ...) Audio_Debug_Log(level, type, message, ##__VA_ARGS__)
+void __cdecl Audio_Debug_Log(AudioDebugLogLevel level, AudioDebugLogType type, const char* message, ...);
+#else
+#define AUDIO_DEBUG_MSG(level, type, message, ...)
+#endif

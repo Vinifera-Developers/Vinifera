@@ -26,6 +26,8 @@
 #include <tchar.h>
 #include <thread>
 
+#ifndef NDEBUG
+
 
 /**
  *  Forward declare message handler from imgui_impl_win32.cpp
@@ -769,3 +771,5 @@ void AudioManagerClass::Debug_Window_Loop()
     AudioImGui::Render_Frame();
     AudioImGui::End_Frame();
 }
+
+#endif // NDEBUG

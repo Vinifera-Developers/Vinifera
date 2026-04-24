@@ -426,6 +426,7 @@ bool AudioManagerClass::Init(HWND hWnd)
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr: Init...\n");
 
+#ifndef NDEBUG
     /**
      *  Create the audio debug window if debug mode is enabled.
      */
@@ -436,6 +437,7 @@ bool AudioManagerClass::Init(HWND hWnd)
             return false;
         }
     }
+#endif
 
     /**
      *  Assign our custom vfs using the engine io.
