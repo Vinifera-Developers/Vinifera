@@ -2432,11 +2432,11 @@ DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
 }
 
 /*
-* Patches a portion of BuildingClass::Captured where laser fence connections are updated (or more correctly - removed)
-* At this point, the House of the captured building is NOT updated yet - and belongs to the original owner of this building.
-* This allows us to add an additional check where if a sensor array is captured, the original owner loses that sensor array's sensing capabilities.
+*  Patches a portion of BuildingClass::Captured where laser fence connections are updated (or more correctly - removed)
+*  At this point, the House of the captured building is NOT updated yet - and belongs to the original owner of this building.
+*  This allows us to add an additional check where if a sensor array is captured, the original owner loses that sensor array's sensing capabilities.
 * 
-* @author: JoyfulShush
+*  @author: JoyfulShush
 */
 DEFINE_HOOK(0x0042F749, _BuildingClass_Captured_Disable_Sensors, 6)
 {
@@ -2452,11 +2452,11 @@ DEFINE_HOOK(0x0042F749, _BuildingClass_Captured_Disable_Sensors, 6)
 }
 
 /*
- * Patches a portion of BuildingClass::Captured where a building that gets captured lets players reveal shroud around it with Look().
- * At this point, the House of the captured building is already updated - and belongs to the new owner of this building.
- * This allows us to add an additional check where if a sensor array is captured, the new owner gains that sensor array's sensing capabilities.
+ *  Patches a portion of BuildingClass::Captured where a building that gets captured lets players reveal shroud around it with Look().
+ *  At this point, the House of the captured building is already updated - and belongs to the new owner of this building.
+ *  This allows us to add an additional check where if a sensor array is captured, the new owner gains that sensor array's sensing capabilities.
  *
- * @author: JoyfulShush
+ *  @author: JoyfulShush
  */
 DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
 {
