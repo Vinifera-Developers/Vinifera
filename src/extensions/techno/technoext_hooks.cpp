@@ -114,6 +114,14 @@ public:
     int _Anti_Air() const;
 };
 
+/*
+* A unit that has death frames will trigger its death counter upon the first death, and will live until the counter reaches its MaxDeathFrames
+* During this time, the unit is considered "dying" - in the sense that it was already killed, but still lives for the purposes of playing its death animation.
+* This has gameplay ramifications, so this helper function helps identify when the unit is in dying state to align its behavior.
+* Note: currently only RTTI_UNIT technos can have death frames.
+* 
+* @author: JoyfulShush
+*/
 static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
 {
     if (this_ptr->RTTI == RTTI_UNIT) {
