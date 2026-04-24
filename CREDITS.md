@@ -152,6 +152,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow customizing self healing cap and rate game-wide and per-unit.
   - Allow customizing whether AI can repair buildings created as base nodes.
   - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
+  - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
