@@ -11,7 +11,7 @@
 
 #include "objecttypeext.h"
 
-#include "asserthandler.h"
+#include "audio_sample.h"
 #include "building.h"
 #include "buildingtypeext.h"
 #include "ccini.h"
@@ -24,11 +24,9 @@
 #include "rulesext.h"
 #include "technotypeext.h"
 #include "unittypeext.h"
-#include "voxellib.h"
 #include "vinifera_globals.h"
-
-#include "audio_sample.h"
 #include "voc.h"
+#include "voxellib.h"
 
 /**
  *  Class constructor.

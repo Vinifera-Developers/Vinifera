@@ -11,13 +11,13 @@
 
 #include "optionsext.h"
 
+#include "audio_manager.h"
 #include "ccini.h"
 #include "debughandler.h"
 #include "noinit.h"
 #include "options.h"
 #include "rawfile.h"
 #include "tibsun_globals.h"
-#include "audio_manager.h"
 #include "vinifera_globals.h"
 
 

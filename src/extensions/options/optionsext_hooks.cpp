@@ -10,16 +10,13 @@
 #include "always.h"
 
 #include "optionsext_hooks.h"
-#include "optionsext_init.h"
-#include "optionsext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+
+#include "audio_voc.h"
 #include "hooker.h"
+#include "optionsext.h"
 #include "optionsext_init.h"
 #include "rawfile.h"
 #include "syringe.h"
-#include "audio_voc.h"
 
 /**
  *  Patches Hotkey_Dialog_Proc to use RawFileClass when deleting Keyboard.INI to ensure only

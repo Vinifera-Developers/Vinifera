@@ -12,8 +12,6 @@
 #include "abstracttypeext.h"
 #include "objecttype.h"
 
-#include "wstring.h"
-
 
 class ObjectTypeClassExtension : public AbstractTypeClassExtension
 {

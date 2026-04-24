@@ -18,7 +18,6 @@
 #include "armortype.h"
 #include "asserthandler.h"
 #include "audio_theme.h"
-#include "audio_util.h"
 #include "base.h"
 #include "beacon.h"
 #include "building.h"
@@ -176,7 +175,7 @@ static bool Next_Theme_Command()
      *  Queue the track for playback. We need to stop the track first
      *  otherwise Queue_Song() will fade the track out.
      */
-    Theme.Stop(false);
+    Theme.Stop();
     Theme.Queue_Song(theme);
 
     /**
