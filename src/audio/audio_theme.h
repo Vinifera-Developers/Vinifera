@@ -68,6 +68,8 @@ public:
     void Free_Themes();
 
 private:
+    bool Is_Valid_Theme(ThemeType theme) const { return theme >= THEME_FIRST && theme < Themes.Count(); }
+
     /**
      *  Handle to current score.
      */

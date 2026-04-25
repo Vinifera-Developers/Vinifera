@@ -76,7 +76,7 @@ bool AudioThemeClass::Is_Playable(ThemeType theme) const
  */
 bool AudioThemeClass::Is_Regular(ThemeType theme) const
 {
-    return theme > THEME_NONE && theme < Themes.Count() && Themes[theme]->Normal;
+    return Is_Valid_Theme(theme) && Themes[theme]->Normal;
 }
 
 
@@ -87,7 +87,7 @@ bool AudioThemeClass::Is_Regular(ThemeType theme) const
  */
 const char * AudioThemeClass::Base_Name(ThemeType theme) const
 {
-    if (theme != THEME_NONE && theme < Themes.Count()) {
+    if (Is_Valid_Theme(theme)) {
         return Themes[theme]->Name.c_str();
     }
     return "No theme";
@@ -101,7 +101,7 @@ const char * AudioThemeClass::Base_Name(ThemeType theme) const
  */
 const char * AudioThemeClass::INI_Name(ThemeType theme) const
 {
-    if (theme != THEME_NONE && theme < Themes.Count()) {
+    if (Is_Valid_Theme(theme)) {
         return Themes[theme]->Name.c_str();
     }
     return "none";
@@ -113,7 +113,7 @@ const char * AudioThemeClass::INI_Name(ThemeType theme) const
  */
 const char * AudioThemeClass::Full_Name(ThemeType theme) const
 {
-    if (theme >= THEME_FIRST && Themes.Count()) {
+    if (Is_Valid_Theme(theme)) {
         return Themes[theme]->Fullname.c_str();
     }
     return nullptr;
@@ -180,7 +180,7 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
     /**
      *  If the current theme is set to repeat, return it again.
      */
-    if (theme > THEME_FIRST && (Themes[theme]->Repeat || IsRepeat)) {
+    if (Is_Valid_Theme(theme) && theme > THEME_FIRST && (Themes[theme]->Repeat || IsRepeat)) {
         return theme;
     }
 
@@ -211,7 +211,7 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
          *  Sequential score playing.
          */
         for (int i = Themes.Count()+1; i > 0; --i) {
-            if (++theme > Themes.Count()) {
+            if (++theme >= Themes.Count()) {
                 theme = THEME_FIRST;
             }
             if (Is_Allowed(theme)) {
@@ -253,7 +253,7 @@ void AudioThemeClass::Queue_Song(ThemeType theme)
      */
     if (Pending == THEME_NONE || Pending == THEME_PICK_ANOTHER || theme == THEME_NONE || theme == THEME_QUIET) {
 
-        if (theme >= THEME_FIRST) {
+        if (Is_Valid_Theme(theme)) {
             DEBUG_INFO("Theme::Queue_Song - Queued \"%s\".\n", Themes[theme]->Name.c_str());
         } else {
             DEBUG_INFO("Theme::Queue_Song - Pending %d, theme %d.\n", Pending, theme);
@@ -301,7 +301,12 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
     /**
      *  Bail if the theme is not a valid playable index.
      */
-    if (theme == THEME_NONE || theme == THEME_QUIET || theme >= Themes.Count()) {
+    if (theme == THEME_PICK_ANOTHER) {
+        Pending = theme;
+        return false;
+    }
+
+    if (!Is_Valid_Theme(theme)) {
         return false;
     }
 
@@ -323,14 +328,7 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
      *  Request the audio manager to begin playing the theme.
      */
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Play_Song - About to call AudioManager.Play with \"%s\".\n", tctrl->FileName.c_str());
-    AudioHandleID handle = AudioManager.Request_Play(tctrl->FileName,
-                                                 AUDIO_GROUP_MUSIC,
-                                                 tctrl->Volume,
-                                                 1.0f,
-                                                 0.0f,
-                                                 AUDIO_PRIORITY_HIGH,
-                                                 1,
-                                                 CrossFade ? CrossFadeSeconds : 0.0f);
+    AudioHandleID handle = AudioManager.Request_Play(tctrl->FileName, AUDIO_GROUP_MUSIC, tctrl->Volume, 1.0f, 0.0f, AUDIO_PRIORITY_HIGH, 1, CrossFade ? CrossFadeSeconds : 0.0f);
 
     if (handle == INVALID_AUDIO_HANDLE_ID) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THEME, "Theme::Play_Song - Failed to play \"%s\"!\n", Themes[theme]->Name.c_str());
@@ -371,7 +369,7 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
  */
 int AudioThemeClass::Track_Length(ThemeType theme) const
 {
-    if (theme < Themes.Count()) {
+    if (Is_Valid_Theme(theme)) {
         return Themes[theme]->Duration * TIMER_SECOND;
     }
     return 0;
@@ -448,7 +446,7 @@ bool AudioThemeClass::Suspend()
         return false;
     }
 
-    if (What_Is_Playing() <= THEME_NONE) {
+    if (!Is_Valid_Theme(What_Is_Playing())) {
         return false;
     }
 
@@ -477,7 +475,7 @@ bool AudioThemeClass::Resume()
         return false;
     }
 
-    if (What_Is_Playing() <= THEME_NONE) {
+    if (!Is_Valid_Theme(What_Is_Playing())) {
         return false;
     }
 
@@ -823,7 +821,7 @@ void AudioThemeClass::Preload()
  */
 void AudioThemeClass::Set_Theme_Data(ThemeType theme, int scenario, SideType owners)
 {
-    if (theme != THEME_NONE) {
+    if (Is_Valid_Theme(theme)) {
         Themes[theme]->Normal = true;
         Themes[theme]->Scenario = scenario;
         Themes[theme]->Owner = owners;

@@ -199,7 +199,7 @@ VocType IonAmbient::Voc_Type()
 bool IonAmbient::Is_Available()
 {
     VocType ion = Voc_Type();
-    return ion >= VOC_FIRST && ion < AudioVocs.Count();
+    return ion >= VOC_FIRST && ion < AudioVocs.Count() && AudioVocs[ion] != nullptr && AudioVocs[ion]->Is_Available();
 }
 
 

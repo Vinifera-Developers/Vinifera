@@ -33,6 +33,7 @@ public:
 
     void Read_INI(CCINIClass& ini);
     bool Can_Play() const;
+    bool Is_Available() const { return Available; }
 
     int Play(float volume, int variation);
     int Play(float volume);
