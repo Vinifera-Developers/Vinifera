@@ -13,6 +13,7 @@
 
 #include "asserthandler.h"
 #include "audio_debug.h"
+#include "audio_event.h"
 #include "audio_instance.h"
 #include "audio_io.h"
 #include "audio_sample.h"
@@ -120,7 +121,8 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                                 }
 
                                 if (activeCount >= limit) {
-                                    if (lowestPriority && req.Priority > lowestPriority->Get_Sample_Template().Get_Priority()) {
+                                    const bool can_interrupt = (sample->Control & (AUDIO_CONTROL_INTERRUPT | AUDIO_CONTROL_QUEUED_INTERRUPT)) != 0;
+                                    if (lowestPriority && (req.Priority > lowestPriority->Get_Sample_Template().Get_Priority() || can_interrupt)) {
                                         // Replace lower priority sound
                                         lowestPriority->Set_Fade(0.1f, true, true);
                                         //lowestPriority->Stop(0.1f); // Fade out a little bit.
@@ -188,7 +190,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
 
                             AudioInstanceClass * instance = Find_Handle_By_ID_NoLock(req.HandleID);
                             if (!instance) {
-                                AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THREAD, "AudioThread: Stop request - handle not found for ID 0x%08X!\n", req.HandleID);
+                                AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THREAD, "AudioThread: Stop request - handle not found for ID 0x%08X!\n", req.HandleID.ID);
                                 break;
                             }
 
@@ -315,7 +317,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
  *
  *  @author: CCHyper
  */
-AudioHandleID AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType group)
+AudioInstanceHandle AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType group)
 {
     static std::atomic<uint32_t> AudioIDCounter{1};  // Avoid 0 to ensure no invalid numbers are generated first.
 
@@ -334,7 +336,7 @@ AudioHandleID AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType group)
                   ((static_cast<uint32_t>(group) & kGroupMask) << kGroupShift) | // Next 4 bits: group
                   counter;                                                       // Lower 24 bits: counter
 
-    return id;
+    return AudioInstanceHandle{id};
 }
 
 /**
@@ -342,25 +344,25 @@ AudioHandleID AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType group)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Is_Valid_Audio_ID(AudioHandleID id, AudioGroupType group)
+bool AudioManagerClass::Is_Valid_Audio_ID(AudioInstanceHandle id, AudioGroupType group)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         return false;
     }
 
     // Extract top 8 bits and compare with the group enum
-    AudioGroupType embeddedGroup = static_cast<AudioGroupType>((id >> 24) & 0xFF);
+    AudioGroupType embeddedGroup = static_cast<AudioGroupType>((id.ID >> 24) & 0xFF);
     return embeddedGroup == group;
 }
 
 // Causes a deadlock as its called within other locking functions, NoLock instead.
-AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID(AudioHandleID id)
+AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID(AudioInstanceHandle id)
 {
     std::scoped_lock lock(AudioManager.ThreadMutex);
     return Find_Handle_By_ID_NoLock(id);
 }
 
-AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioHandleID id)
+AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioInstanceHandle id)
 {
     // Just to be safe...
     //if (!AudioManager.Is_Available()) {
@@ -368,7 +370,7 @@ AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioHandleID i
     //}
 
     // Reject invalid ID immediately
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         return nullptr;
     }
 
@@ -383,7 +385,7 @@ AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioHandleID i
         return it->second.get();  // Return raw pointer to object, not ownership
     }
 
-    AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Failed to find 0x%08X!.\n", id);
+    AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Failed to find 0x%08X!.\n", id.ID);
 
     return nullptr; // Not found!
 }
@@ -717,6 +719,7 @@ void AudioManagerClass::Focus_Restore()
  */
 void AudioManagerClass::Sound_Callback()
 {
+    AudioEventSystem::AI();
     Tracked_Static_Sounds_AI();
 }
 
@@ -726,7 +729,7 @@ void AudioManagerClass::Sound_Callback()
  *
  *  @author: CCHyper
  */
-AudioHandleID AudioManagerClass::Request_Play(const std::string& filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fade_in_seconds, float delay_in_seconds, bool start, bool looping, int loop_limit)
+AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fade_in_seconds, float delay_in_seconds, bool start, bool looping, int loop_limit)
 {
     // With modern hardware, its possible there is a race condition with the game ready to play
     // a sound before the audio manager has finished preloading all submitted samples. In the event
@@ -747,12 +750,12 @@ AudioHandleID AudioManagerClass::Request_Play(const std::string& filename, Audio
         }
         if (!is_sample_ready) {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Request_Play - Sample was not loaded in time, returning error!\n", filename.c_str());
-            return INVALID_AUDIO_HANDLE_ID;
+            return INVALID_AUDIO_INSTANCE_HANDLE;
         }
     }
 
-    AudioHandleID id = Generate_Unique_Audio_ID(group);
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Play - Generated id '0x%08X' for request \"%s\".\n", id, filename.c_str());
+    AudioInstanceHandle id = Generate_Unique_Audio_ID(group);
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Play - Generated id '0x%08X' for request \"%s\".\n", id.ID, filename.c_str());
 
     // Mark as pending before pushing to the queue so Query_Is_Playing returns true
     // immediately. Insert first to eliminate the race where the worker processes
@@ -797,9 +800,9 @@ AudioHandleID AudioManagerClass::Request_Play(const std::string& filename, Audio
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Request_Stop(AudioHandleID id, float fade_out)
+bool AudioManagerClass::Request_Stop(AudioInstanceHandle id, float fade_out)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Request_Stop - Invalid handle!\n");
         return false;
     }
@@ -813,7 +816,7 @@ bool AudioManagerClass::Request_Stop(AudioHandleID id, float fade_out)
         if (handle) {
             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Stop - Request to stop \"%s\" submitted.\n", handle->Get_FileName().c_str());
         } else {
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Request_Stop - Handle not found for ID 0x%08X\n", id);
+            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Request_Stop - Handle not found for ID 0x%08X\n", id.ID);
         }
     }
 
@@ -829,9 +832,9 @@ bool AudioManagerClass::Request_Stop(AudioHandleID id, float fade_out)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Request_Pause(AudioHandleID id)
+bool AudioManagerClass::Request_Pause(AudioInstanceHandle id)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Request_Pause - Invalid handle!\n");
         return false;
     }
@@ -853,9 +856,9 @@ bool AudioManagerClass::Request_Pause(AudioHandleID id)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Request_Resume(AudioHandleID id)
+bool AudioManagerClass::Request_Resume(AudioInstanceHandle id)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Request_Resume - Invalid handle!\n");
         return false;
     }
@@ -877,9 +880,9 @@ bool AudioManagerClass::Request_Resume(AudioHandleID id)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Query_Is_Playing(AudioHandleID id)
+bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         //AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Invalid handle!\n");
         return false;
     }
@@ -900,7 +903,7 @@ bool AudioManagerClass::Query_Is_Playing(AudioHandleID id)
         handle = Find_Handle_By_ID_NoLock(id);
         //ASSERT_FATAL(handle != nullptr);
         if (handle == nullptr) { // Sometimes the returned handle is just null when a track ends and the thread cleans it before this query is performed.
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id);
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
             return false;
         }
     }
@@ -914,9 +917,9 @@ bool AudioManagerClass::Query_Is_Playing(AudioHandleID id)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Query_Is_Paused(AudioHandleID id)
+bool AudioManagerClass::Query_Is_Paused(AudioInstanceHandle id)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Paused - Invalid handle!\n");
         return false;
     }
@@ -956,9 +959,9 @@ bool AudioManagerClass::Query_Sample_Ready(std::string name, AudioGroupType grou
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Set_Volume(AudioHandleID id, float volume)
+bool AudioManagerClass::Set_Volume(AudioInstanceHandle id, float volume)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Set_Volume - Invalid handle!\n");
         return false;
     }
@@ -982,9 +985,9 @@ bool AudioManagerClass::Set_Volume(AudioHandleID id, float volume)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Set_Pan(AudioHandleID id, float pan)
+bool AudioManagerClass::Set_Pan(AudioInstanceHandle id, float pan)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Set_Pan - Invalid handle!\n");
         return false;
     }
@@ -1008,9 +1011,9 @@ bool AudioManagerClass::Set_Pan(AudioHandleID id, float pan)
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Set_Pitch(AudioHandleID id, float pitch)
+bool AudioManagerClass::Set_Pitch(AudioInstanceHandle id, float pitch)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Set_Pan - Invalid handle!\n");
         return false;
     }
@@ -1062,6 +1065,7 @@ bool AudioManagerClass::Submit_Sample(
         sample->FileName = filename;
         sample->FileType = filetype;
         sample->Group = group;
+        sample->Priority = priority;
         sample->Control = control;
         sample->Type = type;
         sample->ConcurrentLimit = limit;
@@ -1133,9 +1137,9 @@ bool AudioManagerClass::Has_Been_Submitted(const std::string& filename, AudioGro
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Is_Handle_Valid(AudioHandleID id)
+bool AudioManagerClass::Is_Handle_Valid(AudioInstanceHandle id)
 {
-    if (id == INVALID_AUDIO_HANDLE_ID) {
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Is_Handle_Valid - Invalid handle!\n");
         return false;
     }
@@ -1157,7 +1161,7 @@ bool AudioManagerClass::Set_Master_Volume(float volume) const
 {
     ma_result result;
 
-    result = ma_engine_set_volume(Engine, AUDIO_VOLUME_MAX);
+    result = ma_engine_set_volume(Engine, std::clamp(volume, AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX));
     if (result != MA_SUCCESS) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr: Failed to set engine volume (%s)!\n", ma_result_description(result));
         return false;
@@ -1253,7 +1257,7 @@ bool AudioManagerClass::Stop_Group(AudioGroupType group) const
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Stop_And_Fade_Out_Group(AudioGroupType group, float duration) const
+bool AudioManagerClass::Stop_And_Fade_Out_Group(AudioGroupType group, float duration)
 {
     //for (int i = 0; i < ActiveAudioHandles.Raw(group)) {
     //    auto group = AudioManager.ActiveAudioHandles.Raw(group);
@@ -1262,7 +1266,26 @@ bool AudioManagerClass::Stop_And_Fade_Out_Group(AudioGroupType group, float dura
     //    }
     //}
     // TODO: miniaudio doesn�t support fade directly...
-    Stop_Group(group);
+    if (duration <= 0.0f) {
+        Stop_Group(group);
+        return true;
+    }
+
+    std::scoped_lock lock(ThreadMutex);
+
+    auto& groupVec = GroupedActiveInstanceMap[group];
+    bool faded_any = false;
+    for (auto* handle : groupVec) {
+        if (handle != nullptr && handle->Is_Playing()) {
+            handle->Set_Fade(duration, true, true);
+            faded_any = true;
+        }
+    }
+
+    if (!faded_any) {
+        Stop_Group(group);
+    }
+
     return true;
 }
 
@@ -1284,7 +1307,7 @@ bool AudioManagerClass::Add_Active_Handle(std::unique_ptr<AudioInstanceClass> au
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Remove_Active_Handle(AudioHandleID audio_id)
+bool AudioManagerClass::Remove_Active_Handle(AudioInstanceHandle audio_id)
 {
     std::scoped_lock lock(ThreadMutex);
     return Remove_Active_Handle_NoLock(audio_id);
@@ -1303,17 +1326,17 @@ bool AudioManagerClass::Add_Active_Handle_NoLock(std::unique_ptr<AudioInstanceCl
         return false;
     }
 
-    AudioHandleID id = audio_handle->Get_ID();
+    AudioInstanceHandle id = audio_handle->Get_ID();
     AudioGroupType group = audio_handle->Get_Sample_Template().Get_Group();
 
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Add_Active_Handle: About to add 0x%08X to trackers...\n", id);
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Add_Active_Handle: About to add 0x%08X to trackers...\n", id.ID);
 
    AudioInstanceClass * raw_ptr = audio_handle.get();
 
     ActiveInstanceMap[id] = std::move(audio_handle); // store ownership
     GroupedActiveInstanceMap[group].push_back(raw_ptr); // just track, no ownership
 
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Add_Active_Handle: 0x%08X added to trackers\n", id);
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Add_Active_Handle: 0x%08X added to trackers\n", id.ID);
 
     return true;
 }
@@ -1324,7 +1347,7 @@ bool AudioManagerClass::Add_Active_Handle_NoLock(std::unique_ptr<AudioInstanceCl
  *
  *  @author: CCHyper
  */
-bool AudioManagerClass::Remove_Active_Handle_NoLock(AudioHandleID audio_id)
+bool AudioManagerClass::Remove_Active_Handle_NoLock(AudioInstanceHandle audio_id)
 {
     auto it = ActiveInstanceMap.find(audio_id);
     if (it == ActiveInstanceMap.end()) {
@@ -1457,28 +1480,16 @@ std::string AudioManagerClass::Build_Filename_From_Type(AudioFileType type, std:
  */
 int AudioManagerClass::AudioPriority_To_Priority(AudioPriorityType priority)
 {
-    int adj_priority = priority / 5;
-    int priority_step = 255 / 5;
-
-    int retval = 255 / 2;
-
-    if (priority == AUDIO_PRIORITY_LOWEST) {
-        return priority_step;
-    }
-    if (priority == AUDIO_PRIORITY_LOW) {
-        return priority_step*2;
-    }
-    if (priority == AUDIO_PRIORITY_NORMAL) {
-        return priority_step*3;
-    }
-    if (priority == AUDIO_PRIORITY_HIGH) {
-        return priority_step*4;
-    }
-    if (priority == AUDIO_PRIORITY_CRITICAL) {
-        return priority_step*5;
+    switch (priority) {
+        case AUDIO_PRIORITY_LOWEST: return 0;
+        case AUDIO_PRIORITY_LOW: return 64;
+        case AUDIO_PRIORITY_NORMAL: return 128;
+        case AUDIO_PRIORITY_HIGH: return 192;
+        case AUDIO_PRIORITY_CRITICAL: return 255;
+        default: break;
     }
 
-    return retval;
+    return 128;
 }
 
 
@@ -1489,28 +1500,22 @@ int AudioManagerClass::AudioPriority_To_Priority(AudioPriorityType priority)
  */
 AudioPriorityType AudioManagerClass::Priority_To_AudioPriority(int priority)
 {
-    int adj_priority = priority / 5;
-    int priority_step = 255 / 5;
+    priority = std::clamp(priority, 0, 255);
 
-    AudioPriorityType retval = AUDIO_PRIORITY_NORMAL;
-
-    if (adj_priority <= priority_step) {
+    if (priority <= 51) {
         return AUDIO_PRIORITY_LOWEST;
     }
-    if (adj_priority <= priority_step*2) {
+    if (priority <= 102) {
         return AUDIO_PRIORITY_LOW;
     }
-    if (adj_priority <= priority_step*3) {
+    if (priority <= 153) {
         return AUDIO_PRIORITY_NORMAL;
     }
-    if (adj_priority <= priority_step*4) {
+    if (priority <= 204) {
         return AUDIO_PRIORITY_HIGH;
     }
-    if (adj_priority <= priority_step*5) {
-        return AUDIO_PRIORITY_CRITICAL;
-    }
 
-    return retval;
+    return AUDIO_PRIORITY_CRITICAL;
 }
 
 

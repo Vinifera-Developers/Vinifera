@@ -44,8 +44,7 @@ public:
     void Set_Type(AudioSoundType type) { Type = type; }
     void Set_Limit(int limit)
     {
-        ConcurrentLimit = std::clamp(0, AUDIO_MAX_CONCURRENT_LIMIT, limit);
-        ;
+        ConcurrentLimit = std::clamp(limit, 0, AUDIO_MAX_CONCURRENT_LIMIT);
     }
 
     bool Is_Available() const;

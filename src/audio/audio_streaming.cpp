@@ -100,7 +100,7 @@ void AudioStreamingClass::Close()
 
     StreamInitialized = false;
 
-    HandleID = INVALID_AUDIO_HANDLE_ID;
+    HandleID = INVALID_AUDIO_INSTANCE_HANDLE;
 }
 
 

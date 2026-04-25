@@ -13,19 +13,28 @@
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
 
+#include <vector>
+
 
 class AudioVocClass;
 class CCINIClass;
+class AudioEventClass;
 class AudioEventHandleClass;
 
 
 class AudioVocClass
 {
     friend class AudioEventHandleClass;
+    friend class AudioEventClass;
     friend class AudioAmbientClass;
 
     void Calculate_Pan_And_Volume(Coord const& coord, float& pan_result, float& volume_result) const;
-    AudioHandleID Internal_Play(Coord const& coord = COORD_NONE, int variation = 0, float volume = 1.0f, float fade_in_seconds = 0.0f) const;
+    AudioEventHandle Internal_Play(Coord const& coord = COORD_NONE, int variation = -1, float volume = 1.0f, float fade_in_seconds = 0.0f) const;
+    AudioInstanceHandle Start_File(const std::string& filename, Coord const& coord, float volume, float fade_in_seconds, bool looping, int loop_limit, float delay_seconds = 0.0f) const;
+    bool Resolve_Sound_Filename(const std::string& sound, std::string& filename, AudioFileType& filetype) const;
+    std::vector<std::string> Build_Filename_Pool(int variation) const;
+    float Random_Delay_Seconds() const;
+    size_t Advance_Sequential_Index() const;
 
 public:
     AudioVocClass(const char* name);
@@ -124,6 +133,13 @@ private:
     int LoopLimit = 0;
 
     /**
+     *  Optional playback delay range in milliseconds. Without PREDELAY this
+     *  delay is used between repeated/ordered event samples; with PREDELAY the
+     *  first event sample waits before starting.
+     */
+    Point2D Delay = {0, 0};
+
+    /**
      *  Volume level playback for audio event. We assume that all sounds are
      *  normalized. Use this attribute to set the mixing levels for audio.
      *  The value specified is the percentage of full volume. e.g. 0.25 means
@@ -191,6 +207,13 @@ private:
      *  Do not touch!
      */
     AudioGroupType Group = AUDIO_GROUP_SFX;
+
+    /**
+     *  Persistent index used by AUDIO_CONTROL_SEQUENTIAL to advance through
+     *  the Sounds list across plays / body cycles. Mutable so const Play()
+     *  paths can advance it.
+     */
+    mutable size_t SequentialIndex = 0;
 };
 
 extern DynamicVectorClass<AudioVocClass*> AudioVocs;

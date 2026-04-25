@@ -101,29 +101,29 @@ static std::string Audio_Normalize_Name(const std::string &name)
 }
 
 
-AudioHandleID Audio_Play_UI_Sample(const std::string &name, int priority, int volume)
+AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, int volume)
 {
     if (!AudioManager.Is_Available() || name.empty()) {
-        return INVALID_AUDIO_HANDLE_ID;
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     std::string lookup_name = Audio_Normalize_Name(name);
     if (lookup_name.empty()) {
-        return INVALID_AUDIO_HANDLE_ID;
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     AudioFileType type = AUDIO_TYPE_NONE;
     std::string filename;
     if (!AudioManager.Get_File_Info(lookup_name, type, filename)) {
         DEBUG_WARNING("Audio_Play_UI_Sample - Failed to resolve \"%s\".\n", name.c_str());
-        return INVALID_AUDIO_HANDLE_ID;
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
     if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
         if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
             DEBUG_WARNING("Audio_Play_UI_Sample - Failed to submit \"%s\".\n", filename.c_str());
-            return INVALID_AUDIO_HANDLE_ID;
+            return INVALID_AUDIO_INSTANCE_HANDLE;
         }
     }
 
@@ -132,17 +132,17 @@ AudioHandleID Audio_Play_UI_Sample(const std::string &name, int priority, int vo
 }
 
 
-AudioHandleID Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume)
+AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume)
 {
     if (!AudioManager.Is_Available() || filename.empty()) {
-        return INVALID_AUDIO_HANDLE_ID;
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
     if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
         if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
             DEBUG_WARNING("Audio_Play_UI_File - Failed to submit \"%s\".\n", filename.c_str());
-            return INVALID_AUDIO_HANDLE_ID;
+            return INVALID_AUDIO_INSTANCE_HANDLE;
         }
     }
 

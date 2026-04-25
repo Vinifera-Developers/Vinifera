@@ -13,6 +13,7 @@
 
 #include "asserthandler.h"
 #include "audio_debug.h"
+#include "audio_event.h"
 #include "audio_manager.h"
 #include "audio_sample.h"
 #include "ccini.h"
@@ -25,7 +26,11 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdlib>
+#include <cstring>
+#include <mutex>
 #include <thread>
+#include <vector>
 
 
 /**
@@ -51,6 +56,34 @@ static std::atomic<bool> IsVocScanComplete {false};
  *  New vocs vector.
  */
 DynamicVectorClass<AudioVocClass*> AudioVocs;
+
+namespace {
+
+float Parse_Delay_Seconds(const char* value, Point2D& delay)
+{
+    if (value == nullptr || *value == '\0') {
+        delay = {0, 0};
+        return 0.0f;
+    }
+
+    char buffer[64];
+    std::strncpy(buffer, value, sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0';
+
+    char* first = std::strtok(buffer, ",");
+    char* second = std::strtok(nullptr, ",");
+
+    const float min_seconds = first != nullptr ? static_cast<float>(std::atof(first)) : 0.0f;
+    const float max_seconds = second != nullptr ? static_cast<float>(std::atof(second)) : min_seconds;
+
+    const int min_ms = std::max(0, static_cast<int>(min_seconds * 1000.0f));
+    const int max_ms = std::max(min_ms, static_cast<int>(max_seconds * 1000.0f));
+
+    delay = {min_ms, max_ms};
+    return static_cast<float>(min_ms) / 1000.0f;
+}
+
+} // namespace
 
 
 /**
@@ -162,40 +195,93 @@ void AudioVocClass::Calculate_Pan_And_Volume(Coord const& coord, float& pan_resu
  *
  *  @author: CCHyper
  */
-AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, float volume, float fade_in_seconds) const
+bool AudioVocClass::Resolve_Sound_Filename(const std::string& sound, std::string& filename, AudioFileType& filetype) const
+{
+    filename.clear();
+    filetype = AUDIO_TYPE_NONE;
+
+    if (sound.empty()) {
+        return false;
+    }
+
+    return AudioManager.Get_File_Info(sound, filetype, filename, true);
+}
+
+
+/**
+ *  Resolves the full set of candidate filenames for this voc. The event
+ *  system is responsible for picking which one(s) actually play based on
+ *  Control flags. If a fixed variation index is provided, only that one
+ *  filename is returned.
+ */
+std::vector<std::string> AudioVocClass::Build_Filename_Pool(int variation) const
+{
+    std::vector<std::string> filenames;
+
+    auto add_sound = [&](const std::string& sound) {
+        std::string filename;
+        AudioFileType filetype = AUDIO_TYPE_NONE;
+        if (Resolve_Sound_Filename(sound, filename, filetype) && !filename.empty()) {
+            filenames.push_back(filename);
+        }
+    };
+
+    if (variation >= 0 && variation < Sounds.Count()) {
+        add_sound(Sounds[variation]);
+        return filenames;
+    }
+
+    if (Sounds.Count() > 0) {
+        for (int index = 0; index < Sounds.Count(); ++index) {
+            add_sound(Sounds[index]);
+        }
+        return filenames;
+    }
+
+    add_sound(Name);
+    return filenames;
+}
+
+
+/**
+ *  Returns the current SEQUENTIAL index (clamped to the pool size) and
+ *  advances it for the next caller. Wraps around modulo pool size.
+ */
+size_t AudioVocClass::Advance_Sequential_Index() const
+{
+    const int pool_size = std::max(1, Sounds.Count());
+    const size_t current = SequentialIndex % static_cast<size_t>(pool_size);
+    SequentialIndex = (current + 1) % static_cast<size_t>(pool_size);
+    return current;
+}
+
+
+float AudioVocClass::Random_Delay_Seconds() const
+{
+    if (Delay.X <= 0 && Delay.Y <= 0) {
+        return 0.0f;
+    }
+
+    const int min_delay = std::min(Delay.X, Delay.Y);
+    const int max_delay = std::max(Delay.X, Delay.Y);
+    return static_cast<float>(Sim_Random_Pick(min_delay, max_delay)) / 1000.0f;
+}
+
+
+AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord const& coord, float volume, float fade_in_seconds, bool looping, int loop_limit, float delay_seconds) const
 {
     /**
      *  Bail out early if the audio system is unavailable or sound is muted.
      */
     if (!AudioManager.Is_Available() || Debug_Quiet) {
-        return false;
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     /**
      *  Skip if the sound group volume is muted.
      */
     if (AudioManager.Get_Group_Volume(Group) <= AUDIO_VOLUME_MIN) {
-        return false;
-    }
-
-    /**
-     *  Ensure the voc has a valid audio file type assigned.
-     */
-    if (FileType == AUDIO_TYPE_NONE) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "Voc::Play - Voc has invalid file type!\n");
-        return false;
-    }
-
-    std::string filename;
-
-    /**
-     *  If the RANDOM flag has been set, pick a random sound from the list.
-     */
-    if (Sounds.Count() > 0 && (Control & AUDIO_CONTROL_RANDOM) != 0) {
-        std::string sound = Sounds[Sim_Random_Pick(0, Sounds.Count()-1)];
-        filename = AudioManager.Build_Filename_From_Type(FileType, sound);
-    } else {
-        filename = AudioManager.Build_Filename_From_Type(FileType, Name);
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     /**
@@ -203,17 +289,11 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
      */
     if (filename.empty()) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "Voc::Play - Voc %s has a null filename!\n", Name.c_str());
-        return false;
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
-
-    /**
-     *  Resolve the voc index and prepare playback parameters.
-     */
-    VocType id = static_cast<VocType>(AudioVocs.ID(const_cast<AudioVocClass*>(this)));
 
     AudioPriorityType priority = AudioManagerClass::Priority_To_AudioPriority(Get_Priority());
     AudioSoundType type = Type;
-    AudioControlType control = Control;
 
     /**
      *  If we were given a coord, check to see if this sound is subject to certain rules.
@@ -222,7 +302,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
 
         Cell cell = coord.As_Cell();
         if (cell == CELL_NONE) {
-            return false;
+            return INVALID_AUDIO_INSTANCE_HANDLE;
         }
 
         /**
@@ -230,7 +310,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
          */
         if ((Type & AUDIO_SOUND_SHROUDED) != 0) {
             if (Map[cell].IsVisible|| Map[cell].IsFogVisible) {
-                return false;
+                return INVALID_AUDIO_INSTANCE_HANDLE;
             }
 
         /**
@@ -238,7 +318,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
          */
         } else if ((Type & AUDIO_SOUND_UNSHROUDED) != 0) {
             if (!Map[cell].IsVisible && !Map[cell].IsFogVisible) {
-                return false;
+                return INVALID_AUDIO_INSTANCE_HANDLE;
             }
         }
 
@@ -277,7 +357,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
      *  will bleed into adjacent areas a little too far.
      */
     if (vol < AUDIO_VOLUME_CUTOFF_THRESHOLD) {
-        return false;
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     /**
@@ -290,7 +370,7 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
 
     float pitch = 1.0f + fshift;
 
-    AudioHandleID handle = INVALID_AUDIO_HANDLE_ID;
+    AudioInstanceHandle handle = INVALID_AUDIO_INSTANCE_HANDLE;
 
     // As Voc instances are now preloaded in a new thread, we must use a mutex
     {
@@ -300,10 +380,8 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
          *  Submit the play request to the audio manager.
          */
         //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Play - About to call AudioManager.Play with \"%s\".\n", filename.c_str());
-        const bool looping = (Control & AUDIO_CONTROL_LOOP) != 0;
-        const int loop_limit = looping ? LoopLimit : 0;
-        handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, 0.0f, true, looping, loop_limit);
-        if (handle == INVALID_AUDIO_HANDLE_ID) {
+        handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit);
+        if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
             DEBUG_ERROR("Voc::Play - Failed to play \"%s\"!\n", Name.c_str());
             return handle;
         }
@@ -312,6 +390,19 @@ AudioHandleID AudioVocClass::Internal_Play(Coord const& coord, int variation, fl
     //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Play - Playing effect \"%s\".\n", Name.c_str());
 
     return handle;
+}
+
+
+/**
+ *  Routes every voc playback through the audio event system. The event
+ *  takes ownership of the public handle and drives sample selection,
+ *  cycling, looping, decay, and per-iteration randomization uniformly.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+AudioEventHandle AudioVocClass::Internal_Play(Coord const& coord, int variation, float volume, float fade_in_seconds) const
+{
+    return AudioEventSystem::Start(*this, coord, variation, volume, fade_in_seconds);
 }
 
 
@@ -363,6 +454,9 @@ void AudioVocClass::Read_INI(CCINIClass &ini)
     LoopLimit = std::max(0, ini.Get_Int(name, "LoopLimit", LoopLimit));
     if (ini.Is_Present(name, "Range")) {
         Range = std::max(0, ini.Get_Int(name, "Range", Get_Range()));
+    }
+    if (ini.Get_String(name, "Delay", "", buffer, sizeof(buffer)) > 0) {
+        Parse_Delay_Seconds(buffer, Delay);
     }
     if (ini.Is_Present(name, "Priority")) {
         Priority = ini.Get_Int(name, "Priority", Get_Priority());
@@ -443,14 +537,16 @@ void AudioVocClass::Read_INI(CCINIClass &ini)
             "NORMAL", AUDIO_CONTROL_NORMAL,
             "LOOP", AUDIO_CONTROL_LOOP,
             "RANDOM", AUDIO_CONTROL_RANDOM,
-            //"SEQUENTIAL", AUDIO_CONTROL_SEQUENTIAL,
-            //"ALL", AUDIO_CONTROL_ALL,
+            "SEQUENTIAL", AUDIO_CONTROL_SEQUENTIAL,
+            "ALL", AUDIO_CONTROL_ALL,
             "PREDELAY", AUDIO_CONTROL_PREDELAY,
             "QUEUE", AUDIO_CONTROL_QUEUE,
-            //"QUEUED_INTERUPT", AUDIO_CONTROL_QUEUED_INTERUPT,
-            //"INTERUPT", AUDIO_CONTROL_INTERUPT,
-            //"ATTACK", AUDIO_CONTROL_ATTACK,
-            //"DECAY", AUDIO_CONTROL_DECAY,
+            "QUEUED_INTERRUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
+            "QUEUED_INTERUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
+            "INTERRUPT", AUDIO_CONTROL_INTERRUPT,
+            "INTERUPT", AUDIO_CONTROL_INTERRUPT,
+            "ATTACK", AUDIO_CONTROL_ATTACK,
+            "DECAY", AUDIO_CONTROL_DECAY,
             "AMBIENT", AUDIO_CONTROL_AMBIENT,
         };
 
@@ -487,66 +583,53 @@ bool AudioVocClass::Can_Play() const
 
 
 /**
- *  Plays this sound effect with the given volume and variation.
+ *  Vanilla-compat shims. These overloads exist solely so the patched
+ *  vanilla call sites (Sound_Effect / Voice_Sound_Effect / Static_Sound)
+ *  keep their original `int` return signature. Vanilla never reads the
+ *  returned value, and Vinifera-side code that needs a long-lived handle
+ *  uses the AudioEventHandle-returning paths (Internal_Play directly via
+ *  AudioAmbientClass / AudioEventSystem). Always return -1.
  *
  *  @author: CCHyper
  */
 int AudioVocClass::Play(float volume, int variation)
 {
-    return Internal_Play(COORD_NONE, variation, volume);
+    Internal_Play(COORD_NONE, variation, volume);
+    return -1;
 }
 
 
-/**
- *  Plays this sound effect at the given volume.
- *
- *  @author: CCHyper
- */
 int AudioVocClass::Play(float volume)
 {
-    return Internal_Play(COORD_NONE, -1, volume);
+    Internal_Play(COORD_NONE, -1, volume);
+    return -1;
 }
 
 
-/**
- *  Static helper to play a sound effect by VocType with a variation and volume.
- *
- *  @author: CCHyper
- */
 int AudioVocClass::Play(VocType voc, float volume, int variation)
 {
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
-        return AudioVocs[voc]->Internal_Play(COORD_NONE, variation, volume);
+        AudioVocs[voc]->Internal_Play(COORD_NONE, variation, volume);
     }
-    return INVALID_AUDIO_HANDLE_ID;
+    return -1;
 }
 
 
-/**
- *  Static helper to play a sound effect by VocType at the given volume.
- *
- *  @author: CCHyper
- */
 int AudioVocClass::Play(VocType voc, float volume)
 {
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
-        return AudioVocs[voc]->Internal_Play(COORD_NONE, -1, volume);
+        AudioVocs[voc]->Internal_Play(COORD_NONE, -1, volume);
     }
-    return INVALID_AUDIO_HANDLE_ID;
+    return -1;
 }
 
 
-/**
- *  Static helper to play a sound effect by VocType at the given world coordinate.
- *
- *  @author: CCHyper
- */
 int AudioVocClass::Play(VocType voc, Coord const &coord)
 {
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
-        return AudioVocs[voc]->Internal_Play(coord);
+        AudioVocs[voc]->Internal_Play(coord);
     }
-    return INVALID_AUDIO_HANDLE_ID;
+    return -1;
 }
 
 
@@ -567,17 +650,27 @@ void AudioVocClass::Scan()
          *  flag the audio engine to ignore any errors at this point.
          */
 
-        if (!AudioManager.Is_File_Available(vocptr->Name)) {
+        AudioFileType filetype = AUDIO_TYPE_NONE;
+        std::string filename;
+        bool available = AudioManager.Get_File_Info(vocptr->Name, filetype, filename, true);
+
+        if (!available) {
+            for (int sound = 0; sound < vocptr->Sounds.Count(); ++sound) {
+                if (AudioManager.Get_File_Info(vocptr->Sounds[sound], filetype, filename, true)) {
+                    available = true;
+                    break;
+                }
+            }
+        }
+
+        if (!available) {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOC, "Voc::Scan - File \"%s\" was not found in any supported formats!\n", vocptr->Name.c_str());
             continue;
         }
 
         vocptr->Available = true;
-
-        /**
-         *  Resolve the file type and full filename for this voc.
-         */
-        AudioManager.Get_File_Info(vocptr->Name, vocptr->FileType, vocptr->FileName);
+        vocptr->FileType = filetype;
+        vocptr->FileName = filename;
     }
 
     // Call preload here to reduce patches.
@@ -601,27 +694,37 @@ void AudioVocClass::Preload()
             continue;
         }
 
-        if (AudioManager.Has_Been_Submitted(vocptr->FileName, vocptr->Group)) {
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOC, "Voc::Preload - File \"%s\" has already been submitted to the audio manager!\n", vocptr->Name.c_str());
-            continue;
-        }
+        auto submit_sound = [&](const std::string& sound) {
+            std::string filename;
+            AudioFileType filetype = AUDIO_TYPE_NONE;
+            if (!vocptr->Resolve_Sound_Filename(sound, filename, filetype)) {
+                return;
+            }
 
-        /**
-         *  Submit this sample to the audio manager with its configured properties.
-         */
-        bool submitted = AudioManager.Submit_Sample(
-            vocptr->FileName,
-            vocptr->FileType,
-            vocptr->Group,
-            AudioManagerClass::Priority_To_AudioPriority(vocptr->Get_Priority()),
-            vocptr->Control,
-            vocptr->Type,
-            vocptr->Get_Limit());
+            if (AudioManager.Has_Been_Submitted(filename, vocptr->Group)) {
+                AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOC, "Voc::Preload - File \"%s\" has already been submitted to the audio manager!\n", filename.c_str());
+                return;
+            }
 
-        if (submitted) {
-            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Preload - Submitted \"%s\" to audio manager.\n", vocptr->FileName.c_str());
-        } else {
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "Voc::Preload - Failed to submit \"%s\" to audio manager!\n", vocptr->FileName.c_str());
+            bool submitted = AudioManager.Submit_Sample(
+                filename,
+                filetype,
+                vocptr->Group,
+                AudioManagerClass::Priority_To_AudioPriority(vocptr->Get_Priority()),
+                vocptr->Control,
+                vocptr->Type,
+                vocptr->Get_Limit());
+
+            if (submitted) {
+                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Preload - Submitted \"%s\" to audio manager.\n", filename.c_str());
+            } else {
+                AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "Voc::Preload - Failed to submit \"%s\" to audio manager!\n", filename.c_str());
+            }
+        };
+
+        submit_sound(vocptr->Name);
+        for (int sound = 0; sound < vocptr->Sounds.Count(); ++sound) {
+            submit_sound(vocptr->Sounds[sound]);
         }
     }
 }
@@ -699,6 +802,8 @@ void AudioVocClass::Process(CCINIClass &ini)
  */
 void AudioVocClass::Clear()
 {
+    AudioEventSystem::Clear();
+
     while (AudioVocs.Count() > 0) {
         delete AudioVocs[0];
     }

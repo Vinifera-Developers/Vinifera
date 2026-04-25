@@ -12,7 +12,8 @@
 
 #include "audio_static_sound.h"
 
-#include "audio_ambient.h"
+#include "audio_event.h"
+#include "audio_voc.h"
 
 #include <vector>
 
@@ -20,7 +21,7 @@
 namespace {
 
     struct TrackedStaticSound {
-        AudioAmbientClass* Ambient;
+        AudioEventHandle Handle;
         Coord Position;
     };
 
@@ -30,13 +31,21 @@ namespace {
 
 bool Play_Tracked_Static_Sound(VocType voc, Coord const& coord)
 {
-    AudioAmbientClass* ambient = new AudioAmbientClass(voc);
-    if (!ambient->Start(coord)) {
-        delete ambient;
+    if (voc < VOC_FIRST || voc >= AudioVocs.Count()) {
         return false;
     }
 
-    TrackedSounds.emplace_back(ambient, coord);
+    AudioVocClass* voc_def = AudioVocs[voc];
+    if (voc_def == nullptr) {
+        return false;
+    }
+
+    AudioEventHandle handle = AudioEventSystem::Start(*voc_def, coord, -1, 1.0f, 0.0f);
+    if (!handle.Is_Valid()) {
+        return false;
+    }
+
+    TrackedSounds.emplace_back(handle, coord);
     return true;
 }
 
@@ -47,8 +56,7 @@ int Stop_Tracked_Static_Sounds_At(Coord const& coord, float fade_out_seconds)
     auto it = TrackedSounds.begin();
     while (it != TrackedSounds.end()) {
         if (it->Position == coord) {
-            it->Ambient->Stop(fade_out_seconds);
-            delete it->Ambient;
+            AudioEventSystem::Stop(it->Handle, fade_out_seconds);
             it = TrackedSounds.erase(it);
             ++stopped;
         } else {
@@ -63,11 +71,10 @@ void Tracked_Static_Sounds_AI()
 {
     auto it = TrackedSounds.begin();
     while (it != TrackedSounds.end()) {
-        if (!it->Ambient->Is_Playing()) {
-            delete it->Ambient;
+        if (!AudioEventSystem::Is_Playing(it->Handle)) {
             it = TrackedSounds.erase(it);
         } else {
-            it->Ambient->Update_Position(it->Position);
+            AudioEventSystem::Update_Position(it->Handle, it->Position);
             ++it;
         }
     }
@@ -77,8 +84,7 @@ void Tracked_Static_Sounds_AI()
 void Clear_Tracked_Static_Sounds()
 {
     for (auto& entry : TrackedSounds) {
-        entry.Ambient->Stop(0.0f);
-        delete entry.Ambient;
+        AudioEventSystem::Stop(entry.Handle, 0.0f);
     }
     TrackedSounds.clear();
 }

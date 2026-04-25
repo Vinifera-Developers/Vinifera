@@ -13,16 +13,14 @@
 
 #include "asserthandler.h"
 #include "audio_debug.h"
+#include "audio_event.h"
 #include "audio_manager.h"
 #include "audio_voc.h"
 #include "tibsun_globals.h"
 
 
-DynamicVectorClass<AudioAmbientClass*> AudioAmbients;
-
-
 /**
- *  Constructor; initializes the ambient sound and registers it.
+ *  Constructor; initializes the ambient sound from a VocType.
  *
  *  @author: ZivDero
  */
@@ -33,8 +31,6 @@ AudioAmbientClass::AudioAmbientClass(VocType voc)
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
         Voc = AudioVocs[voc];
     }
-
-    AudioAmbients.Add(this);
 }
 
 AudioAmbientClass::AudioAmbientClass(const char* name) :
@@ -44,18 +40,17 @@ AudioAmbientClass::AudioAmbientClass(const char* name) :
 
 
 /**
- *  Destructor; unregisters this ambient sound from the global list.
+ *  Destructor; stops playback (immediate, no fade) and unregisters this
+ *  ambient from the global list.
  *
  *  @author: ZivDero
  */
 AudioAmbientClass::~AudioAmbientClass()
 {
-    if (Handle != INVALID_AUDIO_HANDLE_ID) {
-        AudioManager.Request_Stop(Handle, 0.0f);
-        Handle = INVALID_AUDIO_HANDLE_ID;
+    if (Handle.Is_Valid()) {
+        AudioEventSystem::Stop(Handle, 0.0f);
+        Handle = INVALID_AUDIO_EVENT_HANDLE;
     }
-
-    AudioAmbients.Delete(this);
 }
 
 
@@ -70,22 +65,20 @@ bool AudioAmbientClass::Start(Coord const& coord)
         return false;
     }
 
-    if (Handle != INVALID_AUDIO_HANDLE_ID) {
-        if (AudioManager.Query_Is_Playing(Handle)) {
+    if (Handle.Is_Valid()) {
+        if (AudioEventSystem::Is_Playing(Handle)) {
             return true;
         }
-        Handle = INVALID_AUDIO_HANDLE_ID;
+        Handle = INVALID_AUDIO_EVENT_HANDLE;
     }
 
     if (Voc == nullptr) {
         return false;
     }
 
-    LastCoord = coord;
+    Handle = Voc->Internal_Play(coord, -1, 1.0f, FadeInSeconds);
 
-    Handle = Voc->Internal_Play(LastCoord, 0, 1.0f, FadeInSeconds);
-
-    if (Handle == INVALID_AUDIO_HANDLE_ID) {
+    if (!Handle.Is_Valid()) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "AudioAmbient::Start - Failed to start \"%s\"!\n", Voc->Name.c_str());
         return false;
     }
@@ -95,18 +88,19 @@ bool AudioAmbientClass::Start(Coord const& coord)
 
 
 /**
- *  Stops playback of the ambient sound with a fade-out.
+ *  Stops playback of the ambient sound with a fade-out (event system honors
+ *  Decay control flag and fade duration).
  *
  *  @author: ZivDero
  */
 bool AudioAmbientClass::Stop(float fade_out_seconds)
 {
-    if (Handle == INVALID_AUDIO_HANDLE_ID) {
+    if (!Handle.Is_Valid()) {
         return false;
     }
 
-    bool ok = AudioManager.Request_Stop(Handle, fade_out_seconds);
-    Handle = INVALID_AUDIO_HANDLE_ID;
+    const bool ok = AudioEventSystem::Stop(Handle, fade_out_seconds);
+    Handle = INVALID_AUDIO_EVENT_HANDLE;
     return ok;
 }
 
@@ -118,49 +112,21 @@ bool AudioAmbientClass::Stop(float fade_out_seconds)
  */
 bool AudioAmbientClass::Update_Position(Coord coord)
 {
-    if (Handle == INVALID_AUDIO_HANDLE_ID || Voc == nullptr) {
+    if (!Handle.Is_Valid() || Voc == nullptr) {
         return false;
     }
 
-    if (!AudioManager.Query_Is_Playing(Handle)) {
-        Handle = INVALID_AUDIO_HANDLE_ID;
-        return false;
+    if (AudioEventSystem::Update_Position(Handle, coord)) {
+        return true;
     }
 
-    LastCoord = coord;
-
-    float vol = Voc->Get_Volume();
-    float pan = 0.0f;
-
-    if (coord != COORD_NONE) {
-        Voc->Calculate_Pan_And_Volume(coord, pan, vol);
-    }
-
-    const bool volume_ok = AudioManager.Set_Volume(Handle, vol);
-    const bool pan_ok = AudioManager.Set_Pan(Handle, pan);
-    return volume_ok && pan_ok;
-}
-
-
-/**
- *  Pauses playback of the ambient sound.
- *
- *  @author: ZivDero
- */
-bool AudioAmbientClass::Pause()
-{
-    return Handle != INVALID_AUDIO_HANDLE_ID && AudioManager.Request_Pause(Handle);
-}
-
-
-/**
- *  Resumes playback of a paused ambient sound.
- *
- *  @author: ZivDero
- */
-bool AudioAmbientClass::Resume()
-{
-    return Handle != INVALID_AUDIO_HANDLE_ID && AudioManager.Request_Resume(Handle);
+    /**
+     *  The event system reports the event no longer exists (finished or
+     *  was cleared). Drop our stale handle so subsequent calls don't
+     *  keep probing it.
+     */
+    Handle = INVALID_AUDIO_EVENT_HANDLE;
+    return false;
 }
 
 
@@ -171,16 +137,20 @@ bool AudioAmbientClass::Resume()
  */
 bool AudioAmbientClass::Is_Playing()
 {
-    if (Handle == INVALID_AUDIO_HANDLE_ID) {
+    if (!Handle.Is_Valid()) {
         return false;
     }
 
-    if (!AudioManager.Query_Is_Playing(Handle)) {
-        Handle = INVALID_AUDIO_HANDLE_ID;
-        return false;
+    if (AudioEventSystem::Is_Playing(Handle)) {
+        return true;
     }
 
-    return true;
+    /**
+     *  Event finished — clear our cached handle so we don't keep referring
+     *  to a dead event.
+     */
+    Handle = INVALID_AUDIO_EVENT_HANDLE;
+    return false;
 }
 
 namespace IonAmbient

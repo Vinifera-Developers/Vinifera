@@ -31,9 +31,6 @@ public:
 
     bool Update_Position(Coord coord);
 
-    bool Pause();
-    bool Resume();
-
     bool Is_Playing();
 
     void Set_Fade_In(float seconds) { FadeInSeconds = seconds; }
@@ -45,15 +42,11 @@ private:
     AudioVocClass* Voc = nullptr;
 
     /**
-     *  Active audio handle, or INVALID_AUDIO_HANDLE_ID when not playing.
+     *  Active event handle for this ambient, or invalid when not playing.
+     *  Operations route through AudioEventSystem so the event can swap
+     *  underlying samples (decay tail, looped retrigger) without us caring.
      */
-    AudioHandleID Handle = INVALID_AUDIO_HANDLE_ID;
-
-    /**
-     *  Last coordinate passed to Start()/Update_Position(). COORD_NONE for
-     *  non-positional playback.
-     */
-    Coord LastCoord = COORD_NONE;
+    AudioEventHandle Handle{};
 
     /**
      *  Fade-in applied on Start().

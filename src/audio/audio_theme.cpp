@@ -328,9 +328,9 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
      *  Request the audio manager to begin playing the theme.
      */
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Play_Song - About to call AudioManager.Play with \"%s\".\n", tctrl->FileName.c_str());
-    AudioHandleID handle = AudioManager.Request_Play(tctrl->FileName, AUDIO_GROUP_MUSIC, tctrl->Volume, 1.0f, 0.0f, AUDIO_PRIORITY_HIGH, 1, CrossFade ? CrossFadeSeconds : 0.0f);
+    AudioInstanceHandle handle = AudioManager.Request_Play(tctrl->FileName, AUDIO_GROUP_MUSIC, tctrl->Volume, 1.0f, 0.0f, AUDIO_PRIORITY_HIGH, 1, CrossFade ? CrossFadeSeconds : 0.0f);
 
-    if (handle == INVALID_AUDIO_HANDLE_ID) {
+    if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THEME, "Theme::Play_Song - Failed to play \"%s\"!\n", Themes[theme]->Name.c_str());
         return false;
     }
@@ -338,7 +338,7 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
     /**
      *  Stop the previously playing theme if one was active.
      */
-    if (ScoreHandle && current > THEME_NONE && current < Themes.Count()) {
+    if (ScoreHandle.Is_Valid() && current > THEME_NONE && current < Themes.Count()) {
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Play_Song - Stopping handle for \"%s\"\n", Themes[current]->Name.c_str());
         AudioManager.Request_Stop(ScoreHandle, CrossFade ? CrossFadeSeconds : 0.0f);
         //ScoreHandle->Stop(CrossFade ? CrossFadeSeconds : 0.0f, CrossFade);
@@ -408,7 +408,7 @@ void AudioThemeClass::Stop(bool fade)
         return;
     }
 
-    if (ScoreHandle == INVALID_AUDIO_HANDLE_ID) {
+    if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
         //AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Stop - Handle is null, nothing to stop.\n");
         return;
     }
@@ -450,7 +450,7 @@ bool AudioThemeClass::Suspend()
         return false;
     }
 
-    //if (ScoreHandle == INVALID_AUDIO_HANDLE_ID) {
+    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
     //    return false;
     //}
 
@@ -479,7 +479,7 @@ bool AudioThemeClass::Resume()
         return false;
     }
 
-    //if (ScoreHandle == INVALID_AUDIO_HANDLE_ID) {
+    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
     //    return false;
     //}
 
@@ -496,7 +496,7 @@ bool AudioThemeClass::Resume()
  */
 bool AudioThemeClass::Is_Paused() const
 {
-    //if (ScoreHandle == INVALID_AUDIO_HANDLE_ID) {
+    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
     //    return false;
     //}
 
@@ -590,7 +590,7 @@ bool AudioThemeClass::Still_Playing() const
         return false;
     }
 
-    //if (ScoreHandle == INVALID_AUDIO_HANDLE_ID) {
+    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
     //    return false;
     //}
 

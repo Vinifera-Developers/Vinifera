@@ -69,27 +69,27 @@ public:
     /**
      *  Sound playback control.
      */
-    AudioHandleID Request_Play(const std::string& filename, AudioGroupType group, float volume = 1.0f, float pitch = 1.0f, float pan = 0.0f, AudioPriorityType priority = AUDIO_PRIORITY_NORMAL, int limit = -1, float fade_in_seconds = 0.0f, float delay_in_seconds = 0.0f, bool start = true, bool looping = false, int loop_limit = 0);
-    bool Request_Stop(AudioHandleID id, float fade_out = 0.0f);
+    AudioInstanceHandle Request_Play(const std::string& filename, AudioGroupType group, float volume = 1.0f, float pitch = 1.0f, float pan = 0.0f, AudioPriorityType priority = AUDIO_PRIORITY_NORMAL, int limit = -1, float fade_in_seconds = 0.0f, float delay_in_seconds = 0.0f, bool start = true, bool looping = false, int loop_limit = 0);
+    bool Request_Stop(AudioInstanceHandle id, float fade_out = 0.0f);
 
-    bool Request_Pause(AudioHandleID id);
-    bool Request_Resume(AudioHandleID id);
+    bool Request_Pause(AudioInstanceHandle id);
+    bool Request_Resume(AudioInstanceHandle id);
 
     /**
      *  Query functions.
      */
-    bool Query_Is_Playing(AudioHandleID id);
-    bool Query_Is_Paused(AudioHandleID id);
+    bool Query_Is_Playing(AudioInstanceHandle id);
+    bool Query_Is_Paused(AudioInstanceHandle id);
 
-    // bool Query_Sample_Ready(AudioHandleID handle, AudioGroupType group);
+    // bool Query_Sample_Ready(AudioInstanceHandle handle, AudioGroupType group);
     bool Query_Sample_Ready(std::string name, AudioGroupType group);
 
     /**
      *  Set properties functions.
      */
-    bool Set_Volume(AudioHandleID id, float volume);
-    bool Set_Pan(AudioHandleID id, float pan);
-    bool Set_Pitch(AudioHandleID id, float pitch);
+    bool Set_Volume(AudioInstanceHandle id, float volume);
+    bool Set_Pan(AudioInstanceHandle id, float pan);
+    bool Set_Pitch(AudioInstanceHandle id, float pitch);
 
     /**
      *  Submission functions.
@@ -113,7 +113,7 @@ public:
     bool Is_Group_Playing(AudioGroupType group) const;
     bool Start_Group(AudioGroupType group) const;
     bool Stop_Group(AudioGroupType group) const;
-    bool Stop_And_Fade_Out_Group(AudioGroupType group, float duration) const;
+    bool Stop_And_Fade_Out_Group(AudioGroupType group, float duration);
 
     /**
      *  Supported formats query functions.
@@ -133,7 +133,7 @@ public:
     static unsigned int fVolume_To_iVolume(float vol);
     static float iVolume_To_fVolume(unsigned int vol);
 
-    bool Is_Handle_Valid(AudioHandleID id);
+    bool Is_Handle_Valid(AudioInstanceHandle id);
 
 #ifndef NDEBUG
     bool Create_Debug_Window();
@@ -148,8 +148,8 @@ private:
      */
     bool Add_Active_Handle(std::unique_ptr<AudioInstanceClass> handle);
     bool Add_Active_Handle_NoLock(std::unique_ptr<AudioInstanceClass> handle);
-    bool Remove_Active_Handle(AudioHandleID id);
-    bool Remove_Active_Handle_NoLock(AudioHandleID id);
+    bool Remove_Active_Handle(AudioInstanceHandle id);
+    bool Remove_Active_Handle_NoLock(AudioInstanceHandle id);
     bool Clear_All_Active_Handles();
 
     AudioSampleClass* Find_Sample(const std::string& filename, AudioGroupType group);
@@ -160,10 +160,10 @@ private:
     /**
      *  Utility functions to handle unique handle id's
      */
-    static AudioHandleID Generate_Unique_Audio_ID(AudioGroupType group);
-    static bool Is_Valid_Audio_ID(AudioHandleID id, AudioGroupType group);
-    static AudioInstanceClass* Find_Handle_By_ID(AudioHandleID id);
-    static AudioInstanceClass* Find_Handle_By_ID_NoLock(AudioHandleID id);
+    static AudioInstanceHandle Generate_Unique_Audio_ID(AudioGroupType group);
+    static bool Is_Valid_Audio_ID(AudioInstanceHandle id, AudioGroupType group);
+    static AudioInstanceClass* Find_Handle_By_ID(AudioInstanceHandle id);
+    static AudioInstanceClass* Find_Handle_By_ID_NoLock(AudioInstanceHandle id);
 
 private:
     /**
@@ -190,7 +190,7 @@ private:
     /**
      *  Tracks all the currently playing sounds.
      */
-    std::unordered_map<AudioHandleID, std::unique_ptr<AudioInstanceClass>> ActiveInstanceMap;
+    std::unordered_map<AudioInstanceHandle, std::unique_ptr<AudioInstanceClass>> ActiveInstanceMap;
 
     /**
      *  Tracks all the currently playing sounds in their respective groups types. We can use raw
@@ -225,7 +225,7 @@ private:
         AudioRequestType Type = AudioRequestType::AUDIO_REQUEST_PLAY;
 
         // For both Play and Stop
-        AudioHandleID HandleID = INVALID_AUDIO_HANDLE_ID;
+        AudioInstanceHandle HandleID = INVALID_AUDIO_INSTANCE_HANDLE;
 
         // Only for Play
         std::string Filename;
@@ -247,7 +247,7 @@ private:
         AudioRequest() = default;
 
         // Constructor for Play
-        AudioRequest(AudioHandleID id, std::string filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fadeIn, float delay, bool start, bool looping, int loop_limit) :
+        AudioRequest(AudioInstanceHandle id, std::string filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fadeIn, float delay, bool start, bool looping, int loop_limit) :
             Type(AudioRequestType::AUDIO_REQUEST_PLAY),
             HandleID(id),
             Filename(std::move(filename)),
@@ -266,7 +266,7 @@ private:
         }
 
         // Constructor for Stop
-        AudioRequest(AudioHandleID id, float fade_out) : Type(AudioRequestType::AUDIO_REQUEST_STOP), HandleID(id), FadeOutSeconds(fade_out) {}
+        AudioRequest(AudioInstanceHandle id, float fade_out) : Type(AudioRequestType::AUDIO_REQUEST_STOP), HandleID(id), FadeOutSeconds(fade_out) {}
 
     } AudioRequest;
 
@@ -287,7 +287,7 @@ private:
      *  IDs of requests submitted to RequestQueue but not yet processed by the worker.
      *  Allows Query_Is_Playing to return true for in-flight requests without polling.
      */
-    std::unordered_set<AudioHandleID> PendingHandleIDs;
+    std::unordered_set<AudioInstanceHandle> PendingHandleIDs;
     std::mutex PendingMutex;
 
     /**

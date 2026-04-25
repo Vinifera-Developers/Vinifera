@@ -28,7 +28,7 @@
  *
  *  @author: CCHyper
  */
-AudioInstanceClass::AudioInstanceClass(AudioSampleClass * tmpl, AudioHandleID id) :
+AudioInstanceClass::AudioInstanceClass(AudioSampleClass * tmpl, AudioInstanceHandle id) :
     Template(tmpl),
     HandleID(id)
 {

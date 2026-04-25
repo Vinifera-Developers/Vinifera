@@ -9,14 +9,78 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 
 /**
- *  Unique identifier type for tracking active audio playback instances.
+ *  Audio handle types — two deliberately distinct strong typedefs.
+ *
+ *  AudioInstanceHandle identifies one playing sample owned by AudioManager.
+ *  AudioEventHandle identifies one logical voc event owned by AudioEventSystem.
+ *
+ *  VOC playback (anything driven by AudioVocClass / SOUND.INI) returns
+ *  AudioEventHandle and is operated on through AudioEventSystem. Music,
+ *  EVA speech, and VQA streaming use AudioManager directly and therefore
+ *  return AudioInstanceHandle. The two types are not interchangeable —
+ *  a compile error here is the intended outcome, since an event may swap
+ *  the underlying AudioInstanceHandle it drives over its lifetime
+ *  (e.g. across body cycles, attack/decay tails, looped retriggers).
  */
-typedef uint32_t AudioHandleID; // Must be 32bit so it can be passed around in a register if required.
-#define INVALID_AUDIO_HANDLE_ID 0xDEAFDEAF
+
+
+/**
+ *  Low-level, miniaudio-backed handle for one playing sample inside
+ *  AudioManagerClass. Must be 32-bit so it can be passed around in a
+ *  register if required.
+ */
+struct AudioInstanceHandle
+{
+    uint32_t ID = 0xDEAFDEAF;
+
+    constexpr AudioInstanceHandle() = default;
+    constexpr explicit AudioInstanceHandle(uint32_t id) : ID(id) {}
+
+    constexpr bool Is_Valid() const { return ID != 0xDEAFDEAF; }
+    constexpr bool operator==(AudioInstanceHandle other) const { return ID == other.ID; }
+    constexpr bool operator!=(AudioInstanceHandle other) const { return ID != other.ID; }
+};
+
+inline constexpr AudioInstanceHandle INVALID_AUDIO_INSTANCE_HANDLE{};
+
+
+/**
+ *  Opaque public handle for one logical audio event owned by AudioEventSystem.
+ *  This is what voc playback returns to game code. Callers must operate on
+ *  this handle and route through the AudioEventSystem APIs — never pass it
+ *  to AudioManager directly.
+ */
+struct AudioEventHandle
+{
+    uint32_t ID = 0;
+
+    constexpr AudioEventHandle() = default;
+    constexpr explicit AudioEventHandle(uint32_t id) : ID(id) {}
+
+    constexpr bool Is_Valid() const { return ID != 0; }
+    constexpr bool operator==(AudioEventHandle other) const { return ID == other.ID; }
+    constexpr bool operator!=(AudioEventHandle other) const { return ID != other.ID; }
+};
+
+inline constexpr AudioEventHandle INVALID_AUDIO_EVENT_HANDLE{};
+
+
+namespace std
+{
+    template <>
+    struct hash<AudioInstanceHandle>
+    {
+        std::size_t operator()(AudioInstanceHandle h) const noexcept
+        {
+            return std::hash<uint32_t>()(h.ID);
+        }
+    };
+}
 
 
 /**
@@ -117,14 +181,16 @@ typedef enum AudioControlType
     AUDIO_CONTROL_RANDOM = 1 << 1,
 
     /**
-     *  TODO: x
+     *  Step through Sounds one entry per play (or per loop cycle), advancing
+     *  a persistent index on the voc. Combined with LOOP, each cycle plays
+     *  the next sample, wrapping around.
      */
-    //AUDIO_CONTROL_SEQUENTIAL = 1 << 2,
+    AUDIO_CONTROL_SEQUENTIAL = 1 << 2,
 
     /**
      *  Use all sounds in sound list.
      */
-    //AUDIO_CONTROL_ALL = 1 << 3,
+    AUDIO_CONTROL_ALL = 1 << 3,
 
     /**
      *  Normally if the DELAY attribute is specified the delay happens
@@ -160,14 +226,14 @@ typedef enum AudioControlType
      *  regardless, at the start of the audio event (see ATTACK attribute
      *  also). This sound is called the attack sound.
      */
-    //AUDIO_CONTROL_ATTACK = 1 << 8,
+    AUDIO_CONTROL_ATTACK = 1 << 8,
 
     /**
      *  Specifies that the last sound in the sound list gets played,
      *  regardless, at the end of the audio event. (see DECAY attribute
      *  also). This sound is called the decay sound.
      */
-    //AUDIO_CONTROL_DECAY = 1 << 9,
+    AUDIO_CONTROL_DECAY = 1 << 9,
 
     /**
      *  Marks this audio event as ambient/classified for compatibility.

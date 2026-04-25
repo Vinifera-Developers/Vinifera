@@ -25,6 +25,7 @@
 #include "vox.h"
 
 #include <algorithm>
+#include <cstring>
 #include <thread>
 
 
@@ -50,7 +51,7 @@ float AudioVoxClass::DefaultMaxVolume = AUDIO_VOLUME_MAX;
  *  The sound handle to the current speech being played. This is
  *  used to query if a speech is currently playing.
  */
-static AudioHandleID SpeechHandle = INVALID_AUDIO_HANDLE_ID;
+static AudioInstanceHandle SpeechHandle = INVALID_AUDIO_INSTANCE_HANDLE;
 
 
 /**
@@ -107,11 +108,11 @@ void AudioVoxClass::Read_INI(CCINIClass &ini)
     if (ini.Is_Present(name, "Volume")) {
         Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Get_Volume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     }
-    //if (ini.Is_Present(name, "Delay")) {
-    //    Delay = std::clamp<float>(ini.Get_Float(name, "Delay", Get_Delay()), 0.0f, 5.0f);
-    //}
     if (ini.Is_Present(name, "Delay")) {
-        FrequencyShift = std::clamp<float>(ini.Get_Float(name, "FShift", Get_FrequencyShift()), -5.0f, 5.0f);
+        Delay = std::clamp<float>(ini.Get_Float(name, "Delay", Get_Delay()), 0.0f, 5.0f);
+    }
+    if (ini.Is_Present(name, "FShift")) {
+        FrequencyShift = std::clamp<float>(ini.Get_Float(name, "FShift", Get_FrequencyShift()), 0.1f, 2.0f);
     }
 
     if (ini.Is_Present(name, "MinVolume")) {
@@ -125,6 +126,39 @@ void AudioVoxClass::Read_INI(CCINIClass &ini)
     SideSounds.resize(Sides.Count());
     for (int i = 0; i < Sides.Count(); i++) {
         SideSounds[i] = ini.Get_String(name, Sides[i]->IniName.c_str(), SideSounds[i]);
+    }
+
+    char buffer[256];
+    if (ini.Get_String(name, "Control", "", buffer, sizeof(buffer)) > 0) {
+        static struct {
+            std::string name;
+            AudioControlType control;
+        } _control_types[] = {
+            "NORMAL", AUDIO_CONTROL_NORMAL,
+            "QUEUE", AUDIO_CONTROL_QUEUE,
+            "QUEUED_INTERRUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
+            "QUEUED_INTERUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
+            "INTERRUPT", AUDIO_CONTROL_INTERRUPT,
+            "INTERUPT", AUDIO_CONTROL_INTERRUPT,
+        };
+
+        int flags = 0;
+        const char* type = std::strtok(buffer, ",");
+
+        while (type) {
+            std::string tmp = type;
+            string_to_upper(tmp);
+
+            for (auto& control_type : _control_types) {
+                if (control_type.name == tmp) {
+                    flags |= control_type.control;
+                }
+            }
+
+            type = std::strtok(nullptr, ",");
+        }
+
+        Control = static_cast<AudioControlType>(flags);
     }
 }
 
@@ -161,6 +195,7 @@ bool AudioVoxClass::Process(CCINIClass &ini)
     if (ini.Is_Present(DEFAULTS)) {
         DefaultPriority = ini.Get_Int(DEFAULTS, "Priority", DefaultPriority);
         DefaultDelay = ini.Get_Float(DEFAULTS, "Delay", DefaultDelay);
+        DefaultFrequencyShift = std::clamp<float>(ini.Get_Float(DEFAULTS, "FShift", DefaultFrequencyShift), 0.1f, 2.0f);
         DefaultVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "Volume", DefaultVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
         DefaultMinVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MinVolume", DefaultMinVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
         DefaultMaxVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
@@ -331,10 +366,6 @@ void AudioVoxClass::Speak(VoxType voice, bool now)
         return;
     }
 
-    if (SpeakQueue != VOX_NONE) {
-        return;
-    }
-
     if (!IsSpeechAllowed) {
         AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox::Speak - Speech is disabled!\n");
         return;
@@ -344,6 +375,17 @@ void AudioVoxClass::Speak(VoxType voice, bool now)
     if (!voxptr) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOX, "Vox::Speak - voxptr is null!\n");
         return;
+    }
+
+    const bool can_interrupt = now || (voxptr->Control & (AUDIO_CONTROL_INTERRUPT | AUDIO_CONTROL_QUEUED_INTERRUPT)) != 0;
+
+    if (SpeakQueue != VOX_NONE && !can_interrupt) {
+        return;
+    }
+
+    if (can_interrupt && AudioManager.Query_Is_Playing(SpeechHandle)) {
+        AudioManager.Request_Stop(SpeechHandle, 0.25f);
+        CurrentVoice = VOX_NONE;
     }
 
     SpeakQueue = voice;
@@ -397,8 +439,11 @@ void AudioVoxClass::AI()
     }
 
     if (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle)) {
-        CurrentVoice = VOX_NONE;
         return;
+    }
+
+    if (CurrentVoice != VOX_NONE) {
+        CurrentVoice = VOX_NONE;
     }
 
     if (SpeakQueue != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle)) {
@@ -420,7 +465,7 @@ void AudioVoxClass::AI()
     std::string name = voxptr->Name;
     std::string filename = voxptr->FileName;
 
-    AudioHandleID handle = INVALID_AUDIO_HANDLE_ID;
+    AudioInstanceHandle handle = INVALID_AUDIO_INSTANCE_HANDLE;
 
     // As Vox instances are now preloaded in a new thread, we must use a mutex
     {
@@ -438,10 +483,10 @@ void AudioVoxClass::AI()
         AudioControlType control = voxptr->Control;
 
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::AI - About to call AudioManager.Play with \"%s\".\n", filename.c_str());
-        handle = AudioManager.Request_Play(filename, AUDIO_GROUP_SPEECH, vol, pitch, 0.0f, priority, 0.0f, delay);
+        handle = AudioManager.Request_Play(filename, AUDIO_GROUP_SPEECH, vol, pitch, 0.0f, priority, 1, 0.0f, delay);
     }
 
-    if (handle == INVALID_AUDIO_HANDLE_ID) {
+    if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOX, "Vox::AI - Failed to play \"%s\"!\n", name.c_str());
         SpeakQueue = VOX_NONE;
         return;
@@ -488,7 +533,7 @@ bool AudioVoxClass::Is_Speaking()
         return false;
     }
 
-    return SpeakQueue != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle);
+    return (SpeakQueue != VOX_NONE) || (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle));
 }
 
 

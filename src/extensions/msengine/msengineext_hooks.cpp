@@ -240,7 +240,7 @@ public:
 
 private:
     int mVolume = 255;
-    AudioHandleID mSoundHandle = INVALID_AUDIO_HANDLE_ID;
+    AudioInstanceHandle mSoundHandle = INVALID_AUDIO_INSTANCE_HANDLE;
     char *mFileName = nullptr;
     char mPad[4] {};
 };
@@ -269,15 +269,15 @@ WDTVoiceSampleExt::~WDTVoiceSampleExt()
 
 bool WDTVoiceSampleExt::Playing() const
 {
-    return mSoundHandle != INVALID_AUDIO_HANDLE_ID && AudioManager.Query_Is_Playing(mSoundHandle);
+    return mSoundHandle != INVALID_AUDIO_INSTANCE_HANDLE && AudioManager.Query_Is_Playing(mSoundHandle);
 }
 
 
 void WDTVoiceSampleExt::Start()
 {
-    if (mSoundHandle == INVALID_AUDIO_HANDLE_ID && mFileName != nullptr) {
-        AudioHandleID handle = Audio_Play_UI_File(mFileName, AUDIO_TYPE_AUD, 255, static_cast<int>(static_cast<float>(mVolume) * Options.SoundVolume));
-        if (handle != INVALID_AUDIO_HANDLE_ID) {
+    if (mSoundHandle == INVALID_AUDIO_INSTANCE_HANDLE && mFileName != nullptr) {
+        AudioInstanceHandle handle = Audio_Play_UI_File(mFileName, AUDIO_TYPE_AUD, 255, static_cast<int>(static_cast<float>(mVolume) * Options.SoundVolume));
+        if (handle != INVALID_AUDIO_INSTANCE_HANDLE) {
             mSoundHandle = handle;
         }
     }
@@ -286,9 +286,9 @@ void WDTVoiceSampleExt::Start()
 
 void WDTVoiceSampleExt::Stop()
 {
-    if (mSoundHandle != INVALID_AUDIO_HANDLE_ID) {
+    if (mSoundHandle != INVALID_AUDIO_INSTANCE_HANDLE) {
         AudioManager.Request_Stop(mSoundHandle);
-        mSoundHandle = INVALID_AUDIO_HANDLE_ID;
+        mSoundHandle = INVALID_AUDIO_INSTANCE_HANDLE;
     }
 }
 
@@ -480,7 +480,7 @@ private:
     Rect mTextRect;
     char const* mQueuedVoiceOver;
     CDTimerClass<SystemTimerClass> mVoiceOverTimer;
-    AudioHandleID mPlayingVoiceOver;
+    AudioInstanceHandle mPlayingVoiceOver;
     Surface* mClickMap;
 };
 static_assert(sizeof(MapSelectExt) == 0xE0, "MapSelectExt must be 0xE0 in size!");
@@ -504,13 +504,13 @@ void MapSelectExt::DoVoiceOver(char const* name, int delay)
 
 void MapSelectExt::PlayVoiceOver(char const* name)
 {
-    if (mPlayingVoiceOver != INVALID_AUDIO_HANDLE_ID) {
+    if (mPlayingVoiceOver != INVALID_AUDIO_INSTANCE_HANDLE) {
         AudioManager.Request_Stop(mPlayingVoiceOver);
     }
 
     mPlayingVoiceOver = Audio_Play_UI_Sample(name, 255, static_cast<int>(static_cast<float>(255) * Options.VoiceVolume));
 
-    if (mPlayingVoiceOver != INVALID_AUDIO_HANDLE_ID) mQueuedVoiceOver = nullptr;
+    if (mPlayingVoiceOver != INVALID_AUDIO_INSTANCE_HANDLE) mQueuedVoiceOver = nullptr;
 
     mVoiceOverTimer = 0;
 }
@@ -518,14 +518,14 @@ void MapSelectExt::PlayVoiceOver(char const* name)
 
 void MapSelectExt::StopVoiceOver(bool fade)
 {
-    if (mPlayingVoiceOver != INVALID_AUDIO_HANDLE_ID) {
+    if (mPlayingVoiceOver != INVALID_AUDIO_INSTANCE_HANDLE) {
         if (fade == true) {
             AudioManager.Request_Stop(mPlayingVoiceOver, 0.33f);
         } else {
             AudioManager.Request_Stop(mPlayingVoiceOver);
         }
 
-        mPlayingVoiceOver = INVALID_AUDIO_HANDLE_ID;
+        mPlayingVoiceOver = INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     mQueuedVoiceOver = nullptr;
@@ -585,5 +585,5 @@ void MSEngineExtension_Hooks()
     Patch_Jump(0x00554550, &MapSelectExt::DoVoiceOver);
     Patch_Jump(0x005545D0, &MapSelectExt::PlayVoiceOver);
     Patch_Jump(0x00554640, &MapSelectExt::StopVoiceOver);
-    Patch_Dword(0x00553F38 + 6, INVALID_AUDIO_HANDLE_ID); // Initialize mPlayingVoiceOver to INVALID_AUDIO_HANDLE_ID instead of -1
+    Patch_Dword(0x00553F38 + 6, INVALID_AUDIO_INSTANCE_HANDLE.ID); // Initialize mPlayingVoiceOver to INVALID_AUDIO_INSTANCE_HANDLE instead of -1
 }

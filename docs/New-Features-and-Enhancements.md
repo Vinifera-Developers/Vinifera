@@ -1434,6 +1434,7 @@ MaxVolume=1.0  ; float, default maximum volume.
 Sounds=        ; list of filenames, alternate audio files for this sound. Omit extensions. Defaults to the sound's INI name.
 Limit=5        ; integer, maximum number of simultaneous instances of this sound.
 LoopLimit=0    ; integer, total number of plays for a looping sound. 0 means unlimited.
+Delay=0        ; float or float pair, delay in seconds. A pair chooses a random value in the range.
 Range=10       ; integer, audible range, in cells.
 Priority=10    ; integer, playback priority for this sound.
 Volume=1.0     ; float, volume multiplier.
@@ -1460,10 +1461,16 @@ Control=NORMAL ; list of playback control flags.
 | Flag | Description |
 |------|-------------|
 | `NORMAL` | Plays once with no special behavior. |
-| `LOOP` | Loops until stopped, unless `LoopLimit=` caps the number of plays. |
-| `RANDOM` | Picks a random basename from `Sounds=` each time the sound plays. |
-| `PREDELAY` | Applies a configured playback delay before the sound starts instead of after it ends. |
+| `LOOP` | Loops until stopped, unless `LoopLimit=` caps the number of plays. Each loop iteration is one full body cycle. |
+| `RANDOM` | Picks a random basename from `Sounds=` for each body cycle. Combined with `LOOP`, every loop iteration re-rolls — so a `LOOP,RANDOM` event walks through the `Sounds=` list at random instead of locking onto one pick at start. |
+| `SEQUENTIAL` | Picks the next basename from `Sounds=` for each body cycle, advancing a per-voc counter that persists across plays. Combined with `LOOP`, each iteration steps to the next entry, wrapping around. |
+| `ALL` | Plays all basenames from `Sounds=` in order. |
+| `PREDELAY` | Applies `Delay=` before the sound starts. Without this flag, ordered or looping events use `Delay=` between samples. |
 | `QUEUE` | Queues a playback request when this sound's simultaneous instance limit is already full. |
+| `QUEUED_INTERRUPT` | Allows a queued speech or sound request to replace a currently active instance of the same limited sample. |
+| `INTERRUPT` | Allows a new request to interrupt an existing instance of the same limited sample. |
+| `ATTACK` | Plays the first `Sounds=` entry as an ordered attack/start sample before the body samples. |
+| `DECAY` | Plays the last `Sounds=` entry as an ordered decay/end sample after the body samples or when the event is stopped. |
 | `AMBIENT` | Classification flag for ambient sounds. Use `LOOP` when the sound must keep playing. |
 
 ### Themes
@@ -1500,6 +1507,7 @@ Delay=0.2      ; float, default delay, in seconds, before speech starts.
 Volume=1.0     ; float, default speech volume multiplier.
 MinVolume=0.0  ; float, default minimum speech volume.
 MaxVolume=1.0  ; float, default maximum speech volume.
+FShift=1.0     ; float, default speech pitch multiplier.
 
 [DialogList]
 0=EVA_MissionAccomplished
@@ -1508,9 +1516,12 @@ MaxVolume=1.0  ; float, default maximum speech volume.
 Sound=        ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
 Text=         ; string, descriptive text for this entry. It is not spoken.
 Priority=153  ; integer, playback priority for this speech entry.
+Delay=0.2     ; float, delay, in seconds, before this speech starts.
+FShift=1.0    ; float, pitch multiplier for this speech entry.
 Volume=1.0    ; float, volume multiplier for this speech entry.
 MinVolume=0.0 ; float, minimum volume for this speech entry.
 MaxVolume=1.0 ; float, maximum volume for this speech entry.
+Control=QUEUE ; list of speech control flags. Supports QUEUE, QUEUED_INTERRUPT, and INTERRUPT.
 SOMESIDE=     ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
 ```
 

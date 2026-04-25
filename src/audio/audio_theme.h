@@ -73,7 +73,7 @@ private:
     /**
      *  Handle to current score.
      */
-    AudioHandleID ScoreHandle = INVALID_AUDIO_HANDLE_ID;
+    AudioInstanceHandle ScoreHandle = INVALID_AUDIO_INSTANCE_HANDLE;
 
     /**
      *  Score number currently being played.
