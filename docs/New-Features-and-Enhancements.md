@@ -1400,109 +1400,129 @@ The random map generator does not currently support new theater types.
     `DESERT.MIX`, `ISODES.MIX`, `DES.MIX`, `DESERT.INI`, `ISODES.PAL`, `DESERT.PAL`, `UNITDES.PAL`, and `SLOP#Z.DES` (where # is 1 to 4).
    :::
 
-## Sound Effects
+## Audio System
 
-Vinifera replaces the vanilla audio engine with a new system that supports additional audio file formats and a redesigned `SOUND.INI` format.
+Vinifera replaces the vanilla audio engine with a new system for sound effects, music themes, and EVA speech.
 
-### Supported File Formats
+### General Behavior
 
-Sound effects can now use the following formats in addition to the vanilla `AUD` format:
+- Supported file formats are `FLAC`, `WAV`, `OGG`, `MP3`, and the vanilla `AUD` format.
+- Use filenames without extensions in `SOUND.INI`, `THEME.INI`, and `EVA.INI`.
+- Formats are searched in this order: `FLAC`, `WAV`, `OGG`, `MP3`, then `AUD`.
+- Audio files are resolved through the normal game file system, so they may come from the game directory, subdirectories, or loaded `.MIX` archives.
+- When Firestorm is active, `SOUND01.INI` and `THEME01.INI` load after the base files. Repeating an existing sound or theme name updates that entry; new names are added.
 
-- Ogg Vorbis (`OGG`)
-- MP3 (`MP3`)
-- PCM audio (`WAV`)
-- FLAC (`FLAC`)
+### Sound Effects
 
-The file extension determines the format. The `Sounds=` key in `SOUND.INI` should list filenames without their extensions.
+`SOUND.INI` defines the `VocType` database used by sound effects. Sounds are listed in `[SoundList]`, and each listed sound may have its own section. `[Defaults]` can set fallback values for sounds that omit them.
 
-### SOUND.INI Format
-
-The `SOUND.INI` format has been redesigned. Sounds are declared in a `[SoundList]` section, and each sound has its own section with properties. Global defaults for all sounds can be set in a `[Defaults]` section.
-
+In `SOUND.INI`:
 ```ini
+[Defaults]
+Limit=5        ; integer, default maximum number of simultaneous instances of one sound.
+Range=10       ; integer, default audible range, in cells, for positional sounds.
+Priority=10    ; integer, default playback priority.
+Volume=1.0     ; float, default volume multiplier.
+MinVolume=0.0  ; float, default minimum volume for GLOBAL sounds.
+MaxVolume=1.0  ; float, default maximum volume.
+
 [SoundList]
-0=SOMESOUND
+0=MYSOUND
+1=MYALARM
 
-[Defaults]           ; Optional — sets global defaults for all sounds.
-Limit=5              ; integer, maximum concurrent instances (default for all sounds).
-Range=10             ; integer, audible range in cells (default for all sounds).
-Priority=10          ; integer, playback priority (default for all sounds).
-Volume=1.0           ; float (0.0–1.0), playback volume (default for all sounds).
-MinVolume=0.0        ; float (0.0–1.0), minimum volume for GLOBAL-type sounds (default for all sounds).
-
-[SOMESOUND]          ; VocType
-Sounds=              ; list of filenames (without extension), the audio files for this sound.
-Limit=5              ; integer, maximum number of concurrent instances.
-LoopLimit=0          ; integer, maximum number of times to loop. 0 means unlimited when Control includes LOOP.
-Range=10             ; integer, audible range in cells.
-Priority=10          ; integer, playback priority. Higher values take precedence when sounds compete.
-Volume=1.0           ; float (0.0–1.0), playback volume.
-MinVolume=0.0        ; float (0.0–1.0), minimum volume. Only applies when Type includes GLOBAL.
-VShift=0,0           ; two integers, minimum and maximum random volume shift (in percent) per play.
-FShift=0,0           ; two integers, minimum and maximum random frequency/pitch shift (in percent) per play.
-Type=NORMAL          ; comma-separated flags controlling how the sound is positioned and when it is audible.
-Control=NORMAL       ; comma-separated flags controlling playback behaviour.
+[MYSOUND]
+Sounds=        ; list of filenames, alternate audio files for this sound. Omit extensions. Defaults to the sound's INI name.
+Limit=5        ; integer, maximum number of simultaneous instances of this sound.
+LoopLimit=0    ; integer, total number of plays for a looping sound. 0 means unlimited.
+Range=10       ; integer, audible range, in cells.
+Priority=10    ; integer, playback priority for this sound.
+Volume=1.0     ; float, volume multiplier.
+MinVolume=0.0  ; float, minimum volume for GLOBAL sounds.
+MaxVolume=1.0  ; float, maximum volume.
+VShift=0,0     ; two integers, random volume variation, in percent.
+FShift=0,0     ; two integers, random pitch variation, in percent.
+Type=          ; list of sound type flags. Omit for standard screen-based positional behavior.
+Control=NORMAL ; list of playback control flags.
 ```
 
 #### Type Flags
 
 | Flag | Description |
 |------|-------------|
-| `NORMAL` | Standard positional sound. Volume fades based on distance from the screen edge. |
-| `GLOBAL` | Always audible at at least `MinVolume`, regardless of how far the source is from the screen. |
-| `LOCAL` | Only audible directly at the source position; volume fades from the source coordinate rather than the screen edge. |
-| `UNSHROUDED` | Only plays when the source cell is visible (not inside the shroud or fog of war). |
-| `SHROUDED` | Only plays when the source cell is inside the shroud or fog of war. |
+| `NORMAL` | Standard positional sound. Volume fades based on distance from the tactical screen. |
+| `GLOBAL` | Positional sound that does not fall below `MinVolume` when out of range. |
+| `LOCAL` | Uses falloff from the source position instead of the screen edge. |
+| `UNSHROUDED` | Only plays if the source cell is currently visible or fog-visible to the player. |
+| `SHROUDED` | Only plays if the source cell is currently hidden by shroud or fog of war. |
 
 #### Control Flags
 
 | Flag | Description |
 |------|-------------|
-| `NORMAL` | Play once with no special behaviour. |
-| `LOOP` | Loop continuously until explicitly stopped. Use `LoopLimit` to cap the number of loops. |
-| `RANDOM` | Pick a random file from the `Sounds` list each play. |
-| `PREDELAY` | Apply any playback delay before the sound starts rather than after it ends. |
-| `AMBIENT` | Marks the sound as ambient, separating it from standard effect sounds. |
+| `NORMAL` | Plays once with no special behavior. |
+| `LOOP` | Loops until stopped, unless `LoopLimit=` caps the number of plays. |
+| `RANDOM` | Picks a random basename from `Sounds=` each time the sound plays. |
+| `PREDELAY` | Applies a configured playback delay before the sound starts instead of after it ends. |
+| `QUEUE` | Queues a playback request when this sound's simultaneous instance limit is already full. |
+| `AMBIENT` | Classification flag for ambient sounds. Use `LOOP` when the sound must keep playing. |
 
-### SOUND01.INI
+### Themes
 
-When the Firestorm expansion is active, `SOUND01.INI` is loaded after `SOUND.INI` and its entries are merged into the sound database. This allows new sounds to be added without modifying the base file.
-
-## Themes
-
-Vinifera expands the music theme system with new per-theme keys and global playback settings.
-
-### New Theme Keys
-
-- Themes can now specify a custom audio filename, a full display name, and an artist name.
-- Per-theme volume is now supported.
+`THEME.INI` defines music themes used by the jukebox, menus, scripted music, and normal in-game playback. Vinifera adds per-theme file and display controls, per-theme volume, and configurable fade behavior.
 
 In `THEME.INI`:
 ```ini
-[SOMETHEME]        ; ThemeType
-Sound=             ; filename (without extension), the audio file for this theme. Supports AUD, OGG, MP3, WAV and FLAC.
-Name=              ; string, the full display name of this theme as shown in the jukebox.
-Artist=            ; string, the artist name for this theme.
-Volume=1.0         ; float (0.0–1.0), playback volume for this theme.
-RequiredAddon=0    ; AddonType, the addon required for this theme to be available. 0 = base game, 1 = Firestorm.
-```
-
-### Cross-Fading and Fade-Out
-
-- Vinifera supports a configurable fade-out duration and optional cross-fading between music tracks.
-
-These are set in a `[General]` section in `THEME.INI`:
-
-```ini
 [General]
-FadeOutSeconds=1.5     ; float, duration in seconds for the fade-out when a theme ends or is stopped. Defaults to 1.5.
-CrossFading=no         ; boolean, whether themes cross-fade into each other instead of fading out then fading in.
-CrossFadeSeconds=10.0  ; float, duration in seconds for cross-fade transitions when CrossFading is enabled. Defaults to 10.0.
+FadeOutSeconds=1.5     ; float, fade-out duration, in seconds, used when a theme is stopped with fading.
+CrossFading=no         ; boolean, whether theme changes cross-fade instead of stopping one track before starting the next.
+CrossFadeSeconds=10.0  ; float, cross-fade duration, in seconds.
+
+[Themes]
+0=MYTRACK
+
+[MYTRACK]
+Sound=                 ; filename, audio file for this theme. Omit the extension. Defaults to the theme's INI name.
+Name=                  ; string, full display name shown by music UI.
+Artist=                ; string, artist name shown by music UI.
+Volume=1.0             ; float, per-theme volume multiplier.
+RequiredAddon=0        ; AddonType, addon required for the theme. 0 = base game, 1 = Firestorm.
 ```
 
-### THEME01.INI
+### EVA Speech
 
-When the Firestorm expansion is active, `THEME01.INI` is loaded after `THEME.INI` and its entries are merged, allowing new themes to be added without modifying the base file.
+`EVA.INI` defines the EVA and mission speech database. It is optional: if it is not present, Vinifera uses the built-in speech list. However, if it is provided, no default speeches are added to it.
+
+In `EVA.INI`:
+```ini
+[Defaults]
+Priority=153   ; integer, default speech priority.
+Delay=0.2      ; float, default delay, in seconds, before speech starts.
+Volume=1.0     ; float, default speech volume multiplier.
+MinVolume=0.0  ; float, default minimum speech volume.
+MaxVolume=1.0  ; float, default maximum speech volume.
+
+[DialogList]
+0=EVA_MissionAccomplished
+
+[EVA_MissionAccomplished]
+Sound=        ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
+Text=         ; string, descriptive text for this entry. It is not spoken.
+Priority=153  ; integer, playback priority for this speech entry.
+Volume=1.0    ; float, volume multiplier for this speech entry.
+MinVolume=0.0 ; float, minimum volume for this speech entry.
+MaxVolume=1.0 ; float, maximum volume for this speech entry.
+SOMESIDE=     ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
+```
+
+### Trigger Audio Actions
+
+Vinifera changes the mapper-facing sound trigger actions so sounds started at waypoints can be stopped reliably.
+
+- `Play Sound At` is vanilla trigger action `99`. It plays the selected `VocType` at the action waypoint.
+- If the waypoint contains a building or terrain object, the sound is attached to that object.
+- If the waypoint is empty, Vinifera tracks the sound at that coordinate so it can be stopped later.
+- `Stop Sounds At` is Vinifera trigger action `137`. It stops sounds started by `Play Sound At` at the same waypoint.
+- `Stop Sounds At` does not stop arbitrary one-shot sounds, music themes, EVA speech, or an object's own ambient loop.
 
 ## Tiberiums
 
