@@ -133,7 +133,7 @@ DEFINE_HOOK(0x005E6155, _ScoreClass_Input_Name_Type_Sound_Patch, 0)
     GET(ScoreClassExt *, this_ptr, ESI);
 
     this_ptr->DoSound("Type", 128);
-    return 0x005E61CF;
+    return 0x005E61C6;
 }
 
 
