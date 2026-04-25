@@ -90,6 +90,7 @@ New:
 - Add DetectDisguise to TechnoTypes (by Rampastring)
 - Allow customizing whether AI sees through disguise (by Rampastring)
 - Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
+- Make spawners respect `IonSensitive` on weapons (by ZivDero)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

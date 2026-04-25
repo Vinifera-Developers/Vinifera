@@ -354,3 +354,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix game end text being stretched horizontally.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
   - Fix a bug where upon restoring focus to the window the last theme would play twice.
+  - Make spawners respect `IonSensitive` on weapons.
