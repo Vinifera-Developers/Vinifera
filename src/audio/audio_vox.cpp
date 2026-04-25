@@ -1218,4 +1218,5 @@ const char* EvaNames[VOX_COUNT] = {
     "Mis_FSGDI05_CultistBExistenceIsFutile",
     "Mis_FSGDI05_CultistBComingToJoinYou",
     "Mis_FSGDI05_JebMessenger",
-    "Mis_FSGDI05_JebComeToMe"};
+    "Mis_FSGDI05_JebComeToMe"
+};

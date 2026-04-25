@@ -454,13 +454,19 @@ void Audio_Hooks()
     /**
      *  Replace the speech handler with the new AudioVoxClass.
      */
-    Patch_Jump(0x00665800, &Speak_Wrapper);
     Patch_Jump(0x00665940, &AudioVoxClass::AI);
     Patch_Jump(0x00665AF0, &AudioVoxClass::Stop_Speaking);
     Patch_Jump(0x00665B20, &AudioVoxClass::Is_Speaking);
     Patch_Jump(0x00665B70, &AudioVoxClass::Set_Speech_Volume);
     Patch_Jump(0x00665BC0, &AudioVoxClass::Set_Speech_Allowed);
     Patch_Jump(0x00665BD0, &AudioVoxClass::Is_Speech_Allowed);
+
+    // Speak() is generally patched to go through the wrapper for name-based speaking
+    Patch_Jump(0x00665800, &Speak_Wrapper);
+    // But TeamClass::TMission_PLAY_SPEECH and its inlined copy get passed through the normal play-by-index function
+    // In TAction this is handled by re-implementing the action completely.
+    Patch_Call(0x00622E75, static_cast<void (*)(VoxType, bool)>(&AudioVoxClass::Speak));
+    Patch_Call(0x0062683C, static_cast<void (*)(VoxType, bool)>(&AudioVoxClass::Speak));
 
     /**
      *  Replace VocClass with the new AudioVocClass.

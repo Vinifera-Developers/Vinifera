@@ -1514,6 +1514,87 @@ MaxVolume=1.0 ; float, maximum volume for this speech entry.
 SOMESIDE=     ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
 ```
 
+### Hardcoded Speeches
+
+Speeches that are hardcoded to be played by the game are now played by name. If you provide `EVA.INI`, ensure that these speeches are present. Their position in the list is not important.
+
+- :::{dropdown} List of hardcoded speech names
+
+    | Index | File Name | New Name |
+    |------|------|------|
+    | 0 | 00-I026 | EVA_MissionAccomplished |
+    | 1 | 00-I028 | EVA_MissionFailed |
+    | 2 | 00-I064 | EVA_UnableToComply |
+    | 3 | 00-I018 | EVA_ConstructionComplete |
+    | 4 | 00-I076 | EVA_UnitReady |
+    | 5 | 00-I032 | EVA_NewConstructionOptions |
+    | 6 | 00-I016 | EVA_CannotDeployHere |
+    | 7 | 00-I008 | EVA_GDIStructureDestroyed |
+    | 8 | 00-I022 | EVA_InsufficientFunds |
+    | 9 | 00-I012 | EVA_BattleControlOffline |
+    | 10 | 00-I038 | EVA_ReinforcementsHaveArrived |
+    | 11 | 00-I220 | EVA_Canceled |
+    | 12 | 00-I216 | EVA_Building |
+    | 13 | 00-I024 | EVA_LowPower |
+    | 14 | 00-I082 | EVA_BaseUnderAttack |
+    | 15 | 00-I034 | EVA_PrimaryBuildingSet |
+    | 16 | 00-I074 | EVA_UnitLost |
+    | 17 | 00-I042 | EVA_SelectTarget |
+    | 18 | 00-I044 | EVA_SilosNeeded |
+    | 19 | 00-I218 | EVA_OnHold |
+    | 20 | 00-I040 | EVA_Repairing |
+    | 21 | 00-I062 | EVA_Training |
+    | 22 | 00-I068 | EVA_UnitArmorUpgraded |
+    | 23 | 00-I070 | EVA_UnitFirepowerUpgraded |
+    | 24 | 00-I080 | EVA_UnitSpeedUpgraded |
+    | 25 | 00-I078 | EVA_UnitRepaired |
+    | 26 | 00-I228 | EVA_StructureSold |
+    | 27 | 00-I090 | EVA_HarvesterUnderAttack |
+    | 28 | 00-I172 | EVA_CloakedUnitDetected |
+    | 29 | 00-I174 | EVA_SubterraneanUnitDetected |
+    | 37 | 00-I226 | EVA_UnitSold |
+    | 38 | 00-I056 | EVA_BuildingCaptured |
+    | 39 | 00-I200 | EVA_EstablishBattlefieldControl |
+    | 40 | 00-I176 | EVA_IonStormApproaching |
+    | 41 | 00-I178 | EVA_MeteorStormApproaching |
+    | 42 | 00-I198 | EVA_NewTerrainDiscovered |
+    | 43 | 00-I150 | EVA_MissileLaunchDetected |
+    | 49 | 00-I170 | EVA_FirestormDefenseOffline |
+    | 58 | 00-I014 | EVA_BuildingInfiltrated |
+    | 59 | 00-I058 | EVA_TimerStarted |
+    | 60 | 00-I060 | EVA_TimerStopped |
+    | 61 | 00-I118 | EVA_BridgeRepaired |
+    | 63 | 00-I230 | EVA_BuildingOffline |
+    | 64 | 00-I232 | EVA_BuildingOnline |
+    | 66 | 00-I268 | EVA_PlayerWasDefeated |
+    | 67 | 00-I284 | EVA_YouAreVictorious |
+    | 68 | 00-I286 | EVA_YouHaveLost |
+    | 71 | 00-I304 | EVA_AllianceFormed |
+    | 72 | 00-I306 | EVA_AllianceBroken |
+    | 73 | 00-I308 | EVA_OurAllyIsUnderAttack |
+    | 79 | 00-I344 | EVA_EvaTaunt01 |
+    | 80 | 00-I346 | EVA_EvaTaunt02 |
+    | 81 | 00-I348 | EVA_EvaTaunt03 |
+    | 82 | 00-I352 | EVA_EvaTaunt04 |
+    | 83 | 00-I356 | EVA_EvaTaunt05 |
+    | 84 | 00-I360 | EVA_EvaTaunt06 |
+    | 85 | 00-I370 | EVA_EvaTaunt07 |
+    | 86 | 00-I372 | EVA_EvaTaunt08 |
+    | 87 | 00-I374 | EVA_EvaTaunt09 |
+    | 88 | 00-I376 | EVA_EvaTaunt10 |
+    | 89 | 01-I342 | EVA_CabalTaunt01 |
+    | 90 | 01-I350 | EVA_CabalTaunt02 |
+    | 91 | 01-I352 | EVA_CabalTaunt03 |
+    | 92 | 01-I356 | EVA_CabalTaunt04 |
+    | 93 | 01-I360 | EVA_CabalTaunt05 |
+    | 94 | 01-I362 | EVA_CabalTaunt06 |
+    | 95 | 01-I364 | EVA_CabalTaunt07 |
+    | 96 | 01-I366 | EVA_CabalTaunt08 |
+    | 97 | 01-I368 | EVA_CabalTaunt09 |
+    | 98 | 01-I378 | EVA_CabalTaunt10 |
+    | 312 | 00-I020 | EVA_IncomingTransmission |
+:::
+
 ### Trigger Audio Actions
 
 Vinifera changes the mapper-facing sound trigger actions so sounds started at waypoints can be stopped reliably.
