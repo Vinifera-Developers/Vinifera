@@ -516,37 +516,70 @@ bool AudioManagerClass::Init(HWND hWnd)
  */
 void AudioManagerClass::End()
 {
+    const bool has_runtime_state = IsInitialized || Engine != nullptr || CleanupThread.joinable();
+    if (!has_runtime_state) {
+        return;
+    }
+
+    /*
+     *  Stop the worker before tearing down miniaudio state so it cannot race
+     *  with handle destruction or touch the engine after it is gone.
+     */
+    IsInitialized = false;
+    ThreadExitFlag = true;
+    RequestCV.notify_all();
+    ThreadWakeSignal.notify_all();
+    if (CleanupThread.joinable()) {
+        CleanupThread.join();
+    }
+
+    if (Engine != nullptr) {
+        Stop_Engine();
+    }
+
+    {
+        std::scoped_lock lock(RequestMutex);
+        RequestQueue = {};
+    }
+
+    {
+        std::scoped_lock lock(PendingMutex);
+        PendingHandleIDs.clear();
+    }
+
+    DeferredPlayQueue = {};
+
+    /**
+     *  Clear all active audio handles while the engine and groups still exist.
+     */
+    Clear_All_Active_Handles();
+
+    {
+        std::scoped_lock lock(SubmissionMutex);
+        SamplesMap.clear();
+    }
+
     /**
      *  Uninitialize the sound groups.
      */
-    for (int i = 0; i < AUDIO_GROUP_COUNT; ++i) {
-        ma_sound_group_uninit(SoundGroups[i]);
-        delete SoundGroups[i];
-        SoundGroups[i] = nullptr;
+    for (auto& sound_group : SoundGroups) {
+        if (sound_group != nullptr) {
+            ma_sound_group_uninit(sound_group);
+            delete sound_group;
+            sound_group = nullptr;
+        }
     }
 
     /**
      *  Now we can uninitialize the engine.
      */
-    ma_engine_uninit(Engine);
-    delete Engine;
-    Engine = nullptr;
-
-    /**
-     *  Clear all active audio handles and sample data.
-     */
-    Clear_All_Active_Handles();
-    SamplesMap.clear();
-
-    IsInitialized = false;
-
-    //Audio_Cleanup_Thread_Active = false;
-
-    ThreadExitFlag = true;
-    ThreadWakeSignal.notify_all(); // Wake the thread if it's sleeping
-    if (CleanupThread.joinable()) {
-        CleanupThread.join();
+    if (Engine != nullptr) {
+        ma_engine_uninit(Engine);
+        delete Engine;
+        Engine = nullptr;
     }
+
+    ThreadExitFlag = false;
 }
 
 

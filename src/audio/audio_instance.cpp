@@ -86,7 +86,7 @@ bool AudioInstanceClass::Load(/*std::string filename, ma_sound_group *group*/)
         /**
          *  Create a new decoder object for handling any WS AUD files. This must
          *  be done within this branch to ensure we don't alloc the decoder object for
-         *  non custom decoder files. ma_sound_init_from_data_source takes ownership.
+         *  non custom decoder files.
          */
         Decoder = new ma_decoder;
         ASSERT(Decoder != nullptr);
@@ -119,7 +119,7 @@ bool AudioInstanceClass::Load(/*std::string filename, ma_sound_group *group*/)
             return false;
         }
 
-        DecoderIsOwnedBySound = true;
+        DecoderIsOwnedBySound = false;
 
     } else {
 
@@ -152,20 +152,27 @@ bool AudioInstanceClass::Free()
 
     if (Sound) {
         ma_sound_uninit(Sound);
+        delete Sound;
         Sound = nullptr;
         freed = true;
     }
 
-    //ma_decoder_uninit(Decoder);   // Don't do this! It results in a double free'ing of the sound object. If we passed the decoder object into ma_sound_init_from_data_source then ma_sound_uninit will clean it up for us.
-
-    // Only manually free Decoder if Sound doesn't exist or failed to take ownership
-    if (!Sound && Decoder) {
-        ma_decoder_uninit(Decoder);
+    /*
+     *  Custom decoders passed to ma_sound_init_from_data_source() remain
+     *  caller-owned, so we must tear them down after the sound is detached.
+     */
+    if (Decoder) {
+        if (DecoderInitialized) {
+            ma_decoder_uninit(Decoder);
+        }
         delete Decoder;
         Decoder = nullptr;
         DecoderInitialized = false;
+        DecoderIsOwnedBySound = false;
         freed = true;
     }
+
+    IsLoaded = false;
 
     return freed;
 }
