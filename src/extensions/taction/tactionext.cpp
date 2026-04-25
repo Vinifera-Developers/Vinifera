@@ -1505,7 +1505,7 @@ bool TActionClassExtension::Do_PRINT_LOCAL(HouseClass* house, ObjectClass* objec
  */
 bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Enable_Templated_Text(This()->Data.Value, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
+    TacticalMapExtension->Enable_Templated_Text(Text, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
     return true;
 }
 

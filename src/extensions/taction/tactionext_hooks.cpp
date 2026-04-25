@@ -101,7 +101,7 @@ void TActionClassExt::_Read_INI()
          *  Hack: for text triggers, we want text now, but we won't change the need code
          *  to preserve compatibility.
          */
-        if (Action == TACTION_TEXT_TRIGGER) {
+        if (Action == TACTION_TEXT_TRIGGER || Action == EXT_TACTION_ENABLE_TEMPLATED_TEXT) {
             extension.Text = text;
         } else {
             Data.Value = val;
