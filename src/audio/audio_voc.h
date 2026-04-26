@@ -35,7 +35,7 @@ class AudioVocClass
     size_t Advance_Sequential_Index() const;
 
 public:
-    AudioVocClass(const char* name);
+    AudioVocClass(std::string name);
     ~AudioVocClass();
 
     void Read_INI(CCINIClass& ini);

@@ -412,11 +412,9 @@ AudioEventHandle AudioVocClass::Internal_Play(Coord const& coord, int variation,
  *
  *  @author: CCHyper
  */
-AudioVocClass::AudioVocClass(const char *name) :
-    Name(name)
+AudioVocClass::AudioVocClass(std::string name) :
+    Name(std::move(name))
 {
-    string_to_upper(Name);
-
     AudioVocs.Add(this);
 }
 
@@ -757,8 +755,6 @@ void AudioVocClass::Process(CCINIClass &ini)
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Process(enter): AudioVocs.Count = %d\n", AudioVocs.Count());
 
-    char buffer[32];
-
     if (ini.Is_Present(DEFAULTS)) {
         DefaultLimit = std::clamp(ini.Get_Int(DEFAULTS, "Limit", DefaultLimit), 0, AUDIO_MAX_CONCURRENT_LIMIT);
         DefaultRange = std::max(0, ini.Get_Int(DEFAULTS, "Range", DefaultRange));
@@ -772,14 +768,14 @@ void AudioVocClass::Process(CCINIClass &ini)
         int count = ini.Entry_Count(SOUNDLIST);
 
         for (int index = 0; index < count; ++index) {
-            if (ini.Get_String(SOUNDLIST, ini.Get_Entry(SOUNDLIST, index), "", buffer, sizeof(buffer)-1) > 0) {
-                VocType voc = From_Name(buffer);
+            std::string name = ini.Get_String(SOUNDLIST, ini.Get_Entry(SOUNDLIST, index), "");
+            if (!name.empty()) {
+                VocType voc = From_Name(name.c_str());
 
                 AudioVocClass *vocptr = nullptr;
                 if (voc == VOC_NONE) {
-                    vocptr = new AudioVocClass(buffer);
+                    vocptr = new AudioVocClass(name);
                     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Process: Creating new Voc %s, processing.\n", vocptr->Name.c_str());
-
                 } else {
                     vocptr = AudioVocs[voc];
                     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Process: Found existing Voc %s, updating.\n", vocptr->Name.c_str());
@@ -838,12 +834,9 @@ VocType AudioVocClass::From_Name(const char *name)
         return VOC_NONE;
     }
 
-    std::string sname = name;
-    string_to_upper(sname);
-
     for (VocType index = VOC_FIRST; index < AudioVocs.Count(); ++index) {
         AudioVocClass* vocptr = AudioVocs[index];
-        if (vocptr->Name == sname) {
+        if (strcasecmp(vocptr->Name.c_str(), name) == 0) {
             return index;
         }
     }
@@ -868,7 +861,7 @@ AudioVocClass *AudioVocClass::Voc_From_Name(const char *name)
     if (name != nullptr) {
         for (VocType index = VOC_FIRST; index < AudioVocs.Count(); ++index) {
             AudioVocClass *vocptr = AudioVocs[index];
-            if (vocptr->Name == name) {
+            if (strcasecmp(vocptr->Name.c_str(), name) == 0) {
                 return vocptr;
             }
         }

@@ -545,8 +545,6 @@ int AudioThemeClass::Process(CCINIClass const &ini)
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Process(enter): Themes.Count = %d\n", Themes.Count());
 
-    char buffer[32];
-
     if (ini.Is_Present(GENERAL)) {
         FadeOutSeconds = ini.Get_Float(GENERAL, "FadeOutSeconds", FadeOutSeconds);
         CrossFade = ini.Get_Bool(GENERAL, "CrossFading", CrossFade);
@@ -554,17 +552,17 @@ int AudioThemeClass::Process(CCINIClass const &ini)
     }
 
     int count = ini.Entry_Count(THEMES);
-    for (int index = 0; index < count; ++index) {
 
-        if (ini.Get_String(THEMES, ini.Get_Entry(THEMES, index), "", buffer, sizeof(buffer)-1) > 0) {
-            ThemeType theme = From_Name(buffer);
+    for (int index = 0; index < count; ++index) {
+        std::string name = ini.Get_String(THEMES, ini.Get_Entry(THEMES, index), "");
+        if (!name.empty()) {
+            ThemeType theme = From_Name(name.c_str());
 
             ThemeControl *ctrl = nullptr;
             if (theme == THEME_NONE) {
-                ctrl = new ThemeControl(buffer);
+                ctrl = new ThemeControl(name);
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Process: Creating new Theme %s, processing.\n", ctrl->Name.c_str());
                 Themes.Add(ctrl);
-
             } else {
                 ctrl = Themes[theme];
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Process: Found existing Theme %s, updating.\n", ctrl->Name.c_str());
@@ -697,15 +695,12 @@ ThemeType AudioThemeClass::From_Name(const char * name) const
         return THEME_NONE;
     }
 
-    std::string sname = name;
-    string_to_upper(sname);
-
     /**
      *  First search for an exact name match with the filename
      *  of the theme. This is guaranteed to be unique.
      */
     for (ThemeType theme = THEME_FIRST; theme < Themes.Count(); ++theme) {
-        if (Themes[theme]->Name == sname) {
+        if (strcasecmp(Themes[theme]->Name.c_str(), name) == 0) {
             return theme;
         }
     }
@@ -715,8 +710,9 @@ ThemeType AudioThemeClass::From_Name(const char * name) const
      *  a substring within the full name of the score. This might
      *  yield a match, but is not guaranteed to be unique.
      */
+    const std::string needle = name;
     for (ThemeType theme = THEME_FIRST; theme < Themes.Count(); ++theme) {
-        if (std::strstr(Themes[theme]->Fullname.c_str(), sname.c_str()) != nullptr) {
+        if (string_icontains(Themes[theme]->Fullname, needle)) {
             return theme;
         }
     }

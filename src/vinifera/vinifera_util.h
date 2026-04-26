@@ -66,6 +66,21 @@ inline void string_to_upper(std::string& str)
     });
 }
 
+// Case-insensitive substring search. Returns true if 'needle' occurs in 'haystack'
+// regardless of letter casing. Empty needle always matches.
+inline bool string_icontains(const std::string& haystack, const std::string& needle)
+{
+    if (needle.empty()) return true;
+    if (haystack.size() < needle.size()) return false;
+
+    auto it = std::search(haystack.begin(), haystack.end(),
+                          needle.begin(), needle.end(),
+                          [](unsigned char a, unsigned char b) {
+                              return std::tolower(a) == std::tolower(b);
+                          });
+    return it != haystack.end();
+}
+
 // Trims leading characters up to (not including) 'start_index' in-place.
 // Erases str[0] through str[start_index - 1].
 inline void string_ltrim(std::string& str, std::size_t start_index)

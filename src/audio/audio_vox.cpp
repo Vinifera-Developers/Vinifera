@@ -69,10 +69,8 @@ static std::atomic<bool> IsVoxScanComplete{false};
  *  @author: CCHyper
  */
 AudioVoxClass::AudioVoxClass(std::string name) :
-    Name(name)
+    Name(std::move(name))
 {
-    string_to_upper(Name);
-
     Voxs.Add(this);
 }
 
@@ -194,9 +192,7 @@ void AudioVoxClass::One_Time()
 bool AudioVoxClass::Process(CCINIClass const& ini)
 {
     static char const * const DEFAULTS = "Defaults";
-    static char const * const SOUNDLIST = "DialogList";
-
-    char buffer[32];
+    static char const * const DIALOGLIST = "DialogList";
 
     /**
      *  Load the global default values for speech entries.
@@ -210,21 +206,18 @@ bool AudioVoxClass::Process(CCINIClass const& ini)
         DefaultMaxVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     }
 
-    if (ini.Is_Present(SOUNDLIST)) {
+    if (ini.Is_Present(DIALOGLIST)) {
+        int count = ini.Entry_Count(DIALOGLIST);
 
-        int counter = ini.Entry_Count(SOUNDLIST);
-
-        for (int index = 0; index < counter; ++index) {
-
-            if (ini.Get_String(SOUNDLIST, ini.Get_Entry(SOUNDLIST, index), "", buffer, sizeof(buffer)-1)) {
-                VoxType vox = From_Name(buffer);
+        for (int index = 0; index < count; ++index) {
+            std::string name = ini.Get_String(DIALOGLIST, ini.Get_Entry(DIALOGLIST, index), "");
+            if (!name.empty()) {
+                VoxType vox = From_Name(name.c_str());
 
                 AudioVoxClass *voxptr = nullptr;
                 if (vox == VOX_NONE) {
-                    voxptr = new AudioVoxClass(buffer);
+                    voxptr = new AudioVoxClass(name);
                     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::Process: Creating new Vox %s.\n", voxptr->Name.c_str());
-                    Voxs.Add(voxptr);
-
                 } else {
                     voxptr = Voxs[vox];
                     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::Process: Found exiting Vox %s.\n", voxptr->Name.c_str());
@@ -664,12 +657,9 @@ VoxType AudioVoxClass::From_Name(const char *name)
         return VOX_NONE;
     }
 
-    std::string sname = name;
-    string_to_upper(sname);
-
     for (VoxType index = VOX_FIRST; index < Voxs.Count(); ++index) {
         AudioVoxClass *vocptr = Voxs[index];
-        if (vocptr->Name == sname) {
+        if (strcasecmp(vocptr->Name.c_str(), name) == 0) {
             return index;
         }
     }
