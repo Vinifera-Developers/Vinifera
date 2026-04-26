@@ -19,12 +19,10 @@
 class AudioVocClass;
 class CCINIClass;
 class AudioEventClass;
-class AudioEventHandleClass;
 
 
 class AudioVocClass
 {
-    friend class AudioEventHandleClass;
     friend class AudioEventClass;
     friend class AudioAmbientClass;
 

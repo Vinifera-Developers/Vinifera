@@ -380,7 +380,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
          *  Submit the play request to the audio manager.
          */
         //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Play - About to call AudioManager.Play with \"%s\".\n", filename.c_str());
-        handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit);
+        handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit, Control);
         if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
             DEBUG_ERROR("Voc::Play - Failed to play \"%s\"!\n", Name.c_str());
             return handle;
@@ -542,9 +542,7 @@ void AudioVocClass::Read_INI(CCINIClass &ini)
             "PREDELAY", AUDIO_CONTROL_PREDELAY,
             "QUEUE", AUDIO_CONTROL_QUEUE,
             "QUEUED_INTERRUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
-            "QUEUED_INTERUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
             "INTERRUPT", AUDIO_CONTROL_INTERRUPT,
-            "INTERUPT", AUDIO_CONTROL_INTERRUPT,
             "ATTACK", AUDIO_CONTROL_ATTACK,
             "DECAY", AUDIO_CONTROL_DECAY,
             "AMBIENT", AUDIO_CONTROL_AMBIENT,

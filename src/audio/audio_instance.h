@@ -82,8 +82,6 @@ public:
 
     bool Is_Using_Custom_Decoder() const { return DecoderInitialized && Decoder != nullptr; }
 
-    bool Set_User_Data(void* user_data);
-
 private:
     bool Load();
     bool Free();

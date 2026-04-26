@@ -36,12 +36,12 @@
  */
 struct AudioInstanceHandle
 {
-    uint32_t ID = 0xDEAFDEAF;
+    uint32_t ID = 0;
 
     constexpr AudioInstanceHandle() = default;
     constexpr explicit AudioInstanceHandle(uint32_t id) : ID(id) {}
 
-    constexpr bool Is_Valid() const { return ID != 0xDEAFDEAF; }
+    constexpr bool Is_Valid() const { return ID != 0; }
     constexpr bool operator==(AudioInstanceHandle other) const { return ID == other.ID; }
     constexpr bool operator!=(AudioInstanceHandle other) const { return ID != other.ID; }
 };
@@ -76,6 +76,15 @@ namespace std
     struct hash<AudioInstanceHandle>
     {
         std::size_t operator()(AudioInstanceHandle h) const noexcept
+        {
+            return std::hash<uint32_t>()(h.ID);
+        }
+    };
+
+    template <>
+    struct hash<AudioEventHandle>
+    {
+        std::size_t operator()(AudioEventHandle h) const noexcept
         {
             return std::hash<uint32_t>()(h.ID);
         }
@@ -252,26 +261,6 @@ typedef enum AudioSoundType
     AUDIO_SOUND_NORMAL = 1 << 0,
 
     /**
-     *  Sound associated with violent or combat actions.
-     */
-    //AUDIO_SOUND_VIOLENT = 1 << 1,
-
-    /**
-     *  Sound associated with unit or object movement.
-     */
-    //AUDIO_SOUND_MOVEMENT = 1 << 2,
-
-    /**
-     *  Sound played at a reduced volume level.
-     */
-    //AUDIO_SOUND_QUIET = 1 << 3,
-
-    /**
-     *  Sound played at an elevated volume level.
-     */
-    //AUDIO_SOUND_LOUD = 1 << 4,
-
-    /**
      *  Positional audio event is always audible regardless of where in
      *  the world it is. Instead of fading to silence when out of range
      *  like normal events, global events do not fade below MINVOLUME.
@@ -287,36 +276,6 @@ typedef enum AudioSoundType
      *  Only audible are its point of origin in the game world.
      */
     AUDIO_SOUND_LOCAL = 1 << 7,
-
-    /**
-     *  Only audible by the player who triggerd this sound event.
-     */
-    //AUDIO_SOUND_PLAYER = 1 << 8,
-
-    /**
-     *  TODO: x
-     */
-    //AUDIO_SOUND_ALLIES = 1 << 9,
-
-    /**
-     *  TODO: x
-     */
-    //AUDIO_SOUND_ENEMIES = 1 << 10,
-
-    /**
-     *  TODO: x
-     */
-    //AUDIO_SOUND_EVERYONE = 1 << 11,
-
-    /**
-     *  Not audible if sounds with greater volume than us are playing.
-     */
-    //AUDIO_SOUND_GUN_SHY = 1 << 12,
-
-    /**
-     *  Not audible if other sounds are playing.
-     */
-    //AUDIO_SOUND_NOISE_SHY = 1 << 13,
 
     /**
      *  Not audible when not covered by shroud.

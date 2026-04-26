@@ -814,18 +814,3 @@ bool AudioInstanceClass::Update(float deltaTime)
 
     return (CurrentState != AudioHandleState::AUDIO_STATE_FINISHED); // Keep alive!
 }
-
-
-/**
- *  Assigns custom user data to the sound's end callback context.
- *
- *  @author: CCHyper
- */
-bool AudioInstanceClass::Set_User_Data(void * user_data)
-{
-    ASSERT(Sound != nullptr);
-
-    Sound->pEndCallbackUserData = user_data;
-
-    return true;
-}

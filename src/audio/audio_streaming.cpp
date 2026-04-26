@@ -20,12 +20,6 @@
 
 
 /**
- *  Mutex for synchronizing access to streaming audio resources.
- */
-static std::mutex AudioStreamingMutex;
-
-
-/**
  *  Default constructor for the audio streaming class.
  *
  *  @author: CCHyper
@@ -77,7 +71,7 @@ bool AudioStreamingClass::Open(const std::string& name, int sample_rate, int cha
  */
 void AudioStreamingClass::Close()
 {
-    std::scoped_lock lock(AudioStreamingMutex);
+    std::scoped_lock lock(StreamMutex);
 
     if (Sound) {
         ma_sound_uninit(Sound);
@@ -99,8 +93,6 @@ void AudioStreamingClass::Close()
     ChunkBuffer.clear();
 
     StreamInitialized = false;
-
-    HandleID = INVALID_AUDIO_INSTANCE_HANDLE;
 }
 
 
@@ -245,7 +237,7 @@ bool AudioStreamingClass::Initialize_AUD_Decoder(const void* initialData, size_t
  */
 bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
 {
-    std::scoped_lock lock(AudioStreamingMutex);
+    std::scoped_lock lock(StreamMutex);
 
     if (IsPCM) {
 
@@ -308,7 +300,7 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
  */
 bool AudioStreamingClass::Play()
 {
-    std::scoped_lock lock(AudioStreamingMutex);
+    std::scoped_lock lock(StreamMutex);
     if (!Sound) {
         return false;
     }
@@ -323,7 +315,7 @@ bool AudioStreamingClass::Play()
  */
 bool AudioStreamingClass::Pause()
 {
-    std::scoped_lock lock(AudioStreamingMutex);
+    std::scoped_lock lock(StreamMutex);
     if (!Sound) {
         return false;
     }
@@ -338,7 +330,7 @@ bool AudioStreamingClass::Pause()
  */
 bool AudioStreamingClass::Stop()
 {
-    std::scoped_lock lock(AudioStreamingMutex);
+    std::scoped_lock lock(StreamMutex);
     if (!Sound) {
         return false;
     }

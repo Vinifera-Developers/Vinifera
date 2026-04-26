@@ -387,6 +387,11 @@ bool AudioEventClass::Stop(float fade_out_seconds)
 
 bool AudioEventClass::Update_Position(Coord coord)
 {
+    /**
+     *  Always cache the latest coord first so the next sample picks it up
+     *  at start time, even if we're currently in an inter-sample silence
+     *  gap with no live CurrentHandle to push pan/volume to.
+     */
     Position = coord;
 
     if (CurrentHandle == INVALID_AUDIO_INSTANCE_HANDLE || Voc == nullptr) {

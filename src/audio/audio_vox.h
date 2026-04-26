@@ -25,11 +25,11 @@ public:
     AudioVoxClass(std::string name);
     ~AudioVoxClass();
 
-    void Read_INI(CCINIClass& ini);
+    void Read_INI(CCINIClass const& ini);
 
     static void One_Time();
 
-    static bool Process(CCINIClass& ini);
+    static bool Process(CCINIClass const& ini);
     static void Scan();
     static void ScanAsync();
     static void Preload();

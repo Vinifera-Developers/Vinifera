@@ -91,7 +91,7 @@ AudioVoxClass::~AudioVoxClass()
  *
  *  @author: CCHyper
  */
-void AudioVoxClass::Read_INI(CCINIClass &ini)
+void AudioVoxClass::Read_INI(CCINIClass const& ini)
 {
     const char *name = Name.c_str();
 
@@ -137,9 +137,7 @@ void AudioVoxClass::Read_INI(CCINIClass &ini)
             "NORMAL", AUDIO_CONTROL_NORMAL,
             "QUEUE", AUDIO_CONTROL_QUEUE,
             "QUEUED_INTERRUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
-            "QUEUED_INTERUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
             "INTERRUPT", AUDIO_CONTROL_INTERRUPT,
-            "INTERUPT", AUDIO_CONTROL_INTERRUPT,
         };
 
         int flags = 0;
@@ -182,7 +180,7 @@ void AudioVoxClass::One_Time()
  *
  *  @author: CCHyper
  */
-bool AudioVoxClass::Process(CCINIClass &ini)
+bool AudioVoxClass::Process(CCINIClass const& ini)
 {
     static char const * const DEFAULTS = "Defaults";
     static char const * const SOUNDLIST = "DialogList";

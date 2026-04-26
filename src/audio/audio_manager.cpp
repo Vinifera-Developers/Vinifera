@@ -121,13 +121,13 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                                 }
 
                                 if (activeCount >= limit) {
-                                    const bool can_interrupt = (sample->Control & (AUDIO_CONTROL_INTERRUPT | AUDIO_CONTROL_QUEUED_INTERRUPT)) != 0;
+                                    const bool can_interrupt = (req.Control & (AUDIO_CONTROL_INTERRUPT | AUDIO_CONTROL_QUEUED_INTERRUPT)) != 0;
                                     if (lowestPriority && (req.Priority > lowestPriority->Get_Sample_Template().Get_Priority() || can_interrupt)) {
                                         // Replace lower priority sound
                                         lowestPriority->Set_Fade(0.1f, true, true);
                                         //lowestPriority->Stop(0.1f); // Fade out a little bit.
                                     } else {
-                                        if (sample->Control & AUDIO_CONTROL_QUEUE) {
+                                        if (req.Control & AUDIO_CONTROL_QUEUE) {
                                             // ID stays in PendingHandleIDs so Query_Is_Playing
                                             // returns true while the request waits for a slot.
                                             _this->DeferredPlayQueue.push(req);
@@ -319,40 +319,25 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
  */
 AudioInstanceHandle AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType group)
 {
-    static std::atomic<uint32_t> AudioIDCounter{1};  // Avoid 0 to ensure no invalid numbers are generated first.
+    /**
+     *  ID 0 is reserved as the invalid sentinel for AudioInstanceHandle, so
+     *  start the counter at 1 and skip 0 on wrap-around. The group bits are
+     *  preserved for human-readable debug output.
+     */
+    static std::atomic<uint32_t> AudioIDCounter{1};
 
-    constexpr uint32_t kAudioIDMagic = 0xA5;     // Any 8-bit unique tag
-    constexpr uint32_t kMagicShift   = 24 + 4;   // Store magic in upper 4 bits
-    constexpr uint32_t kGroupShift   = 24;       // 'Group' uses bits 24�27
+    constexpr uint32_t kGroupShift   = 24;       // 'Group' uses bits 24-27
     constexpr uint32_t kGroupMask    = 0xF;      // 4 bits for group (16 groups max)
     constexpr uint32_t kCounterMask  = 0xFFFFFF; // Lower 24 bits
 
-    // Upper 8 bits (0x50) represent the audio group.
-    // Lower 24 bits (0x000001) represent the counter (i.e. the instance number).
-
     uint32_t counter = AudioIDCounter.fetch_add(1, std::memory_order_relaxed) & kCounterMask;
-
-    uint32_t id = ((kAudioIDMagic & 0xF) << kMagicShift) |                       // Upper 4 bits: magic
-                  ((static_cast<uint32_t>(group) & kGroupMask) << kGroupShift) | // Next 4 bits: group
-                  counter;                                                       // Lower 24 bits: counter
-
-    return AudioInstanceHandle{id};
-}
-
-/**
- *  Validates an audio handle ID by checking its magic tag and group bits.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Is_Valid_Audio_ID(AudioInstanceHandle id, AudioGroupType group)
-{
-    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
-        return false;
+    if (counter == 0) {
+        counter = AudioIDCounter.fetch_add(1, std::memory_order_relaxed) & kCounterMask;
     }
 
-    // Extract top 8 bits and compare with the group enum
-    AudioGroupType embeddedGroup = static_cast<AudioGroupType>((id.ID >> 24) & 0xFF);
-    return embeddedGroup == group;
+    uint32_t id = ((static_cast<uint32_t>(group) & kGroupMask) << kGroupShift) | counter;
+
+    return AudioInstanceHandle{id};
 }
 
 // Causes a deadlock as its called within other locking functions, NoLock instead.
@@ -385,7 +370,7 @@ AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioInstanceHa
         return it->second.get();  // Return raw pointer to object, not ownership
     }
 
-    AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Failed to find 0x%08X!.\n", id.ID);
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Failed to find 0x%08X.\n", id.ID);
 
     return nullptr; // Not found!
 }
@@ -597,42 +582,6 @@ bool AudioManagerClass::Is_Available() const
 
 
 /**
- *  Returns whether the audio engine is enabled (always true for this driver).
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Is_Enabled() const
-{
-    // Audio engine is always enabled as its a direct replacement.
-    return true; // IsEnabled;
-}
-
-
-/**
- *  Stub for enabling the audio engine; no-op as this driver is always enabled.
- *
- *  @author: CCHyper
- */
-void AudioManagerClass::Enable()
-{
-    // Audio engine is always enabled as its a direct replacement, do nothing.
-    //IsEnabled = true;
-}
-
-
-/**
- *  Stub for disabling the audio engine; no-op as this driver is always enabled.
- *
- *  @author: CCHyper
- */
-void AudioManagerClass::Disable()
-{
-    // Audio engine is always enabled as its a direct replacement, do nothing.
-    //IsEnabled = false;
-}
-
-
-/**
  *  Starts the miniaudio engine for audio playback.
  *
  *  @author: CCHyper
@@ -729,29 +678,16 @@ void AudioManagerClass::Sound_Callback()
  *
  *  @author: CCHyper
  */
-AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fade_in_seconds, float delay_in_seconds, bool start, bool looping, int loop_limit)
+AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fade_in_seconds, float delay_in_seconds, bool start, bool looping, int loop_limit, AudioControlType control)
 {
-    // With modern hardware, its possible there is a race condition with the game ready to play
-    // a sound before the audio manager has finished preloading all submitted samples. In the event
-    // of this, we will block the game from doing anything until the sample is ready. I hope this never happens...
-    static constexpr uint32_t max_wait_ms = 5000; // Wait for 5 seconds.
-    static constexpr uint32_t poll_interval_ms = 25; // Reduced check frequency
-
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(max_wait_ms);
-    bool is_sample_ready = AudioManager.Query_Sample_Ready(filename, group);
-    if (!is_sample_ready) {
-        DEBUG_INFO("AudioMgr::Request_Play - Sample \"%s\" is not yet ready to play, waiting on thread...\n", filename.c_str());
-        while (std::chrono::steady_clock::now() < deadline) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
-            is_sample_ready = AudioManager.Query_Sample_Ready(filename, group);
-            if (is_sample_ready) {
-                break;
-            }
-        }
-        if (!is_sample_ready) {
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Request_Play - Sample was not loaded in time, returning error!\n", filename.c_str());
-            return INVALID_AUDIO_INSTANCE_HANDLE;
-        }
+    /**
+     *  If the sample preloader (ScanAsync) hasn't finished with this file yet,
+     *  drop the play and warn — we never want to stall the game thread waiting
+     *  on disk I/O. Missing an early one-shot is preferable to a visible hitch.
+     */
+    if (!AudioManager.Query_Sample_Ready(filename, group)) {
+        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Request_Play - Sample \"%s\" not ready, dropping request.\n", filename.c_str());
+        return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     AudioInstanceHandle id = Generate_Unique_Audio_ID(group);
@@ -782,7 +718,8 @@ AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename,
             delay_in_seconds,
             start,
             looping,
-            loop_limit
+            loop_limit,
+            control
         );
     }
 
@@ -1259,13 +1196,6 @@ bool AudioManagerClass::Stop_Group(AudioGroupType group) const
  */
 bool AudioManagerClass::Stop_And_Fade_Out_Group(AudioGroupType group, float duration)
 {
-    //for (int i = 0; i < ActiveAudioHandles.Raw(group)) {
-    //    auto group = AudioManager.ActiveAudioHandles.Raw(group);
-    //    if (handle->Group == group && handle->IsPlaying()) {
-    //        handle->BeginFadeOut(duration);
-    //    }
-    //}
-    // TODO: miniaudio doesn�t support fade directly...
     if (duration <= 0.0f) {
         Stop_Group(group);
         return true;

@@ -53,10 +53,6 @@ public:
     void End();
 
     bool Is_Available() const;
-    bool Is_Enabled() const;
-
-    void Enable();
-    void Disable();
 
     bool Start_Engine(bool forced = false);
     bool Stop_Engine();
@@ -69,7 +65,7 @@ public:
     /**
      *  Sound playback control.
      */
-    AudioInstanceHandle Request_Play(const std::string& filename, AudioGroupType group, float volume = 1.0f, float pitch = 1.0f, float pan = 0.0f, AudioPriorityType priority = AUDIO_PRIORITY_NORMAL, int limit = -1, float fade_in_seconds = 0.0f, float delay_in_seconds = 0.0f, bool start = true, bool looping = false, int loop_limit = 0);
+    AudioInstanceHandle Request_Play(const std::string& filename, AudioGroupType group, float volume = 1.0f, float pitch = 1.0f, float pan = 0.0f, AudioPriorityType priority = AUDIO_PRIORITY_NORMAL, int limit = -1, float fade_in_seconds = 0.0f, float delay_in_seconds = 0.0f, bool start = true, bool looping = false, int loop_limit = 0, AudioControlType control = AUDIO_CONTROL_NORMAL);
     bool Request_Stop(AudioInstanceHandle id, float fade_out = 0.0f);
 
     bool Request_Pause(AudioInstanceHandle id);
@@ -161,7 +157,6 @@ private:
      *  Utility functions to handle unique handle id's
      */
     static AudioInstanceHandle Generate_Unique_Audio_ID(AudioGroupType group);
-    static bool Is_Valid_Audio_ID(AudioInstanceHandle id, AudioGroupType group);
     static AudioInstanceClass* Find_Handle_By_ID(AudioInstanceHandle id);
     static AudioInstanceClass* Find_Handle_By_ID_NoLock(AudioInstanceHandle id);
 
@@ -240,6 +235,7 @@ private:
         bool StartImmediately = true;
         bool Loops = false;
         int LoopLimit = 0;
+        AudioControlType Control = AUDIO_CONTROL_NORMAL;
 
         // Only for Stop
         float FadeOutSeconds = 0.0f;
@@ -247,7 +243,7 @@ private:
         AudioRequest() = default;
 
         // Constructor for Play
-        AudioRequest(AudioInstanceHandle id, std::string filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fadeIn, float delay, bool start, bool looping, int loop_limit) :
+        AudioRequest(AudioInstanceHandle id, std::string filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fadeIn, float delay, bool start, bool looping, int loop_limit, AudioControlType control) :
             Type(AudioRequestType::AUDIO_REQUEST_PLAY),
             HandleID(id),
             Filename(std::move(filename)),
@@ -261,7 +257,8 @@ private:
             DelayInSeconds(delay),
             StartImmediately(start),
             Loops(looping),
-            LoopLimit(loop_limit)
+            LoopLimit(loop_limit),
+            Control(control)
         {
         }
 
