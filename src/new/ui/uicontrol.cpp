@@ -84,7 +84,15 @@ UIControlsClass::UIControlsClass() :
     BeaconAnimFramesPerSecond(25),
     RadarBeaconAnimFramesPerSecond(25),
     BeaconTextOffset(32),
-    BeaconPreviewTextOffset(20)
+    BeaconPreviewTextOffset(20),
+    SubtitleFontName("Arial"),
+    SubtitleFontHeight(22),
+    SubtitleFontWeight(700), // FW_BOLD
+    SubtitleTextColor{ 255, 255, 255 },
+    SubtitleOutlineColor{ 0, 0, 0 },
+    SubtitleOutlineWidth(2),
+    SubtitleMarginX(40),
+    SubtitleMarginBottom(24)
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
     BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
@@ -210,6 +218,15 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
             BeaconPreviewText[i] = buffer;
         }
     }
+
+    SubtitleFontName = ini.Get_String(INGAME, "SubtitleFontName", SubtitleFontName);
+    SubtitleFontHeight = ini.Get_Int(INGAME, "SubtitleFontHeight", SubtitleFontHeight);
+    SubtitleFontWeight = ini.Get_Int(INGAME, "SubtitleFontWeight", SubtitleFontWeight);
+    SubtitleTextColor = ini.Get_RGBColor(INGAME, "SubtitleTextColor", SubtitleTextColor);
+    SubtitleOutlineColor = ini.Get_RGBColor(INGAME, "SubtitleOutlineColor", SubtitleOutlineColor);
+    SubtitleOutlineWidth = ini.Get_Int(INGAME, "SubtitleOutlineWidth", SubtitleOutlineWidth);
+    SubtitleMarginX = ini.Get_Int(INGAME, "SubtitleMarginX", SubtitleMarginX);
+    SubtitleMarginBottom = ini.Get_Int(INGAME, "SubtitleMarginBottom", SubtitleMarginBottom);
 
     return true;
 }

@@ -100,6 +100,41 @@ const char* OptionsClassExtension::Get_Renderer_Driver_SDL_Name(RendererDriverTy
 
 
 /**
+ *  Parses a SubtitleMode INI string into the internal enum value.
+ *
+ *  @author: ZivDero
+ */
+OptionsClassExtension::SubtitleModeType OptionsClassExtension::Parse_Subtitle_Mode(const char* name)
+{
+    if (name == nullptr || *name == '\0') {
+        return SUBTITLE_MODE_ALL;
+    }
+    if (stricmp(name, "None") == 0)   return SUBTITLE_MODE_NONE;
+    if (stricmp(name, "All") == 0)    return SUBTITLE_MODE_ALL;
+    if (stricmp(name, "Story") == 0)  return SUBTITLE_MODE_STORY;
+    if (stricmp(name, "System") == 0) return SUBTITLE_MODE_SYSTEM;
+    return SUBTITLE_MODE_ALL;
+}
+
+
+/**
+ *  Returns the INI-facing string for a given SubtitleMode value.
+ *
+ *  @author: ZivDero
+ */
+const char* OptionsClassExtension::Subtitle_Mode_Config_Name(SubtitleModeType mode)
+{
+    switch (mode) {
+    case SUBTITLE_MODE_NONE:   return "None";
+    case SUBTITLE_MODE_ALL:    return "All";
+    case SUBTITLE_MODE_STORY:  return "Story";
+    case SUBTITLE_MODE_SYSTEM: return "System";
+    }
+    return "All";
+}
+
+
+/**
  *  Class constructor.
  *
  *  @author: CCHyper
@@ -116,7 +151,8 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     ScaleMode(SDL_SCALEMODE_PIXELART),
     CursorScale(0),
     IsVSync(false),
-    RendererDriver(RENDERER_DRIVER_AUTO)
+    RendererDriver(RENDERER_DRIVER_AUTO),
+    SubtitleMode(SUBTITLE_MODE_ALL)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -237,6 +273,11 @@ void OptionsClassExtension::Load_Settings()
 
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
+
+    char subtitle_mode_buf[32];
+    if (ConfigINI.Get_String("Options", "SubtitleMode", "", subtitle_mode_buf, sizeof(subtitle_mode_buf)) > 0) {
+        SubtitleMode = Parse_Subtitle_Mode(subtitle_mode_buf);
+    }
 
     /**
      *  Read keys from Keyboard.ini.

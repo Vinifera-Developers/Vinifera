@@ -315,6 +315,19 @@ class UIControlsClass
          *  Text presets for beacons *shown as a tooltip* when holding modifier keys when placing.
          */
         std::string BeaconPreviewText[7];
+
+        /**
+         *  Subtitle styling. Used by TacticalExtension::Draw_Subtitle to render
+         *  the currently playing VOX's text at the bottom of the tactical view.
+         */
+        std::string SubtitleFontName;
+        int SubtitleFontHeight;
+        int SubtitleFontWeight;
+        RGBStruct SubtitleTextColor;
+        RGBStruct SubtitleOutlineColor;
+        int SubtitleOutlineWidth;
+        int SubtitleMarginX;
+        int SubtitleMarginBottom;
 };
 
 extern UIControlsClass *UIControls;

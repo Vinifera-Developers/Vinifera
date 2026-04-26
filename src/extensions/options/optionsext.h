@@ -32,6 +32,13 @@ public:
         RENDERER_DRIVER_VULKAN
     };
 
+    enum SubtitleModeType {
+        SUBTITLE_MODE_NONE,
+        SUBTITLE_MODE_ALL,
+        SUBTITLE_MODE_STORY,
+        SUBTITLE_MODE_SYSTEM
+    };
+
 public:
     OptionsClassExtension(const OptionsClass* this_ptr);
     OptionsClassExtension(const NoInitClass& noinit);
@@ -57,6 +64,9 @@ public:
     static RendererDriverType Parse_Renderer_Driver(const char* name);
     static const char* Get_Renderer_Driver_Config_Name(RendererDriverType driver);
     static const char* Get_Renderer_Driver_SDL_Name(RendererDriverType driver);
+
+    static SubtitleModeType Parse_Subtitle_Mode(const char* name);
+    static const char* Subtitle_Mode_Config_Name(SubtitleModeType mode);
 
 public:
     /**
@@ -101,4 +111,9 @@ public:
      *  Preferred SDL renderer backend.
      */
     RendererDriverType RendererDriver;
+
+    /**
+     *  Which VOX subtitles should be displayed.
+     */
+    SubtitleModeType SubtitleMode;
 };

@@ -15,11 +15,13 @@
 #include "audio_debug.h"
 #include "audio_sample.h"
 #include "ccini.h"
+#include "extension_globals.h"
 #include "house.h"
 #include "housetype.h"
 #include "options.h"
 #include "scenario.h"
 #include "side.h"
+#include "tacticalext.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
 #include "vox.h"
@@ -102,6 +104,15 @@ void AudioVoxClass::Read_INI(CCINIClass const& ini)
     Sound = ini.Get_String(name, "Sound", Sound);
     DescriptionText = ini.Get_String(name, "Text", DescriptionText);
 
+    char catbuf[32];
+    if (ini.Get_String(name, "Category", "", catbuf, sizeof(catbuf)) > 0) {
+        if (stricmp(catbuf, "Story") == 0) {
+            SubtitleCategory = SUBTITLE_CATEGORY_STORY;
+        } else if (stricmp(catbuf, "System") == 0) {
+            SubtitleCategory = SUBTITLE_CATEGORY_SYSTEM;
+        }
+    }
+
     if (ini.Is_Present(name, "Priority")) {
         Priority = ini.Get_Int(name, "Priority", Get_Priority());
     }
@@ -168,7 +179,7 @@ void AudioVoxClass::Read_INI(CCINIClass const& ini)
  */
 void AudioVoxClass::One_Time()
 {
-    for (VoxType vox = VOX_FIRST; vox < VOX_COUNT; ++vox) {
+    for (VoxType vox = VOX_FIRST; vox < std::size(EvaNames); ++vox) {
         AudioVoxClass *voxptr = new AudioVoxClass(EvaNames[vox]);
         voxptr->Sound = Speech[vox];
     }
@@ -350,7 +361,7 @@ void AudioVoxClass::Clear()
 void AudioVoxClass::Speak(VoxType voice, bool now)
 {
     //ASSERT(voice != VOX_NONE);    // Removed, triggers when some superweapons enable for some reason...
-    ASSERT(voice < VOX_COUNT);
+    ASSERT(voice < Voxs.Count());
 
     if (!AudioManager.Is_Available() || Debug_Quiet) {
         return;
@@ -442,6 +453,9 @@ void AudioVoxClass::AI()
 
     if (CurrentVoice != VOX_NONE) {
         CurrentVoice = VOX_NONE;
+        if (TacticalMapExtension) {
+            TacticalMapExtension->Clear_Subtitle();
+        }
     }
 
     if (SpeakQueue != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle)) {
@@ -498,6 +512,14 @@ void AudioVoxClass::AI()
     CurrentVoice = SpeakQueue;
 
     SpeakQueue = VOX_NONE;
+
+    if (TacticalMapExtension) {
+        if (!voxptr->DescriptionText.empty()) {
+            TacticalMapExtension->Set_Subtitle(voxptr->DescriptionText.c_str(), voxptr->SubtitleCategory);
+        } else {
+            TacticalMapExtension->Clear_Subtitle();
+        }
+    }
 }
 
 
@@ -511,6 +533,10 @@ void AudioVoxClass::Stop_Speaking()
     SpeakQueue = VOX_NONE;
 
     AudioManager.Request_Stop(SpeechHandle, 0.5f); // sounds better when it fades out.
+
+    if (TacticalMapExtension) {
+        TacticalMapExtension->Clear_Subtitle();
+    }
 }
 
 
@@ -532,6 +558,26 @@ bool AudioVoxClass::Is_Speaking()
     }
 
     return (SpeakQueue != VOX_NONE) || (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle));
+}
+
+
+/**
+ *  Returns the text and category of the currently playing VOX, if any.
+ *
+ *  @author: ZivDero
+ */
+bool AudioVoxClass::Get_Current(const char*& out_text, SubtitleCategoryType& out_cat)
+{
+    if (CurrentVoice == VOX_NONE || CurrentVoice >= Voxs.Count()) {
+        return false;
+    }
+    AudioVoxClass* v = Voxs[CurrentVoice];
+    if (!v || v->DescriptionText.empty()) {
+        return false;
+    }
+    out_text = v->DescriptionText.c_str();
+    out_cat = v->SubtitleCategory;
+    return true;
 }
 
 

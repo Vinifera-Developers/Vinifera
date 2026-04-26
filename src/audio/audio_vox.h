@@ -22,10 +22,22 @@ class CCINIClass;
 class AudioVoxClass
 {
 public:
+    /**
+     *  Subtitle category for filtering by user preference (sun.ini SubtitleMode).
+     */
+    enum SubtitleCategoryType {
+        SUBTITLE_CATEGORY_SYSTEM,   // EVA-style alerts ("Unit lost", "Low power", etc.)
+        SUBTITLE_CATEGORY_STORY     // Narrative / mission lines.
+    };
+
     AudioVoxClass(std::string name);
     ~AudioVoxClass();
 
     void Read_INI(CCINIClass const& ini);
+
+    const std::string& Text() const { return DescriptionText; }
+    SubtitleCategoryType Category() const { return SubtitleCategory; }
+    static bool Get_Current(const char*& out_text, SubtitleCategoryType& out_cat);
 
     static void One_Time();
 
@@ -98,9 +110,18 @@ private:
     std::string Name;
 
     /**
-     *  Text description for this speech line, for debugging purposes only.
+     *  Player-facing subtitle text for this speech line. When non-empty and
+     *  the player has subtitles enabled, this is drawn at the bottom of the
+     *  tactical view while the VOX is playing.
      */
     std::string DescriptionText;
+
+    /**
+     *  Subtitle category for this speech line. Used by the SubtitleMode
+     *  option (sun.ini) to filter which lines actually get displayed.
+     *  Defaults to SYSTEM since the bulk of EVA lines are system alerts.
+     */
+    SubtitleCategoryType SubtitleCategory = SUBTITLE_CATEGORY_SYSTEM;
 
     /**
      *  The name override of this speech event.

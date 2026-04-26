@@ -9,12 +9,15 @@
 
 #pragma once
 
+#include "audio_vox.h"
 #include "extension.h"
 #include "point.h"
 #include "stimer.h"
 #include "tactical.h"
 #include "textprint.h"
 #include "ttimer.h"
+
+#include <string>
 
 
 class HouseClass;
@@ -66,6 +69,15 @@ public:
 
     void Beacon_Mode_Control(int control);
     void Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset);
+
+    /**
+     *  VOX subtitle rendering. Set/Clear are called from the audio code when
+     *  a VOX starts/stops; Draw_Subtitle is called from the overlay render hook.
+     */
+    void Set_Subtitle(const char* text, AudioVoxClass::SubtitleCategoryType cat);
+    void Clear_Subtitle();
+    void Draw_Subtitle();
+    void Invalidate_Subtitle_Font();
 
 #ifndef NDEBUG
     bool Debug_Draw_Facings();
@@ -164,4 +176,22 @@ public:
      *  Is the player currently editing a beacon's text?
      */
     bool IsEditingBeaconText;
+
+    /**
+     *  Currently displayed VOX subtitle (empty when nothing is playing or
+     *  the playing VOX has no Text=). Per-session UI state, not serialized.
+     */
+    std::string SubtitleText;
+    AudioVoxClass::SubtitleCategoryType SubtitleCategoryCur;
+
+    /**
+     *  Cached Win32 HFONT (type-erased to avoid pulling windows.h into this
+     *  header), built lazily on first draw and rebuilt only when the related
+     *  ui.ini fields change. Owned by the extension; freed in the destructor
+     *  and on Invalidate_Subtitle_Font.
+     */
+    void* SubtitleFont;
+    std::string SubtitleFontCacheName;
+    int SubtitleFontCacheHeight;
+    int SubtitleFontCacheWeight;
 };
