@@ -11,6 +11,7 @@
 
 #include "audio_defines.h"
 #include "audio_sample.h"
+#include "miniaudio.h"
 
 
 struct ma_sound;
@@ -145,6 +146,12 @@ private:
      *  Whether a start delay is pending.
      */
     bool IsDelaySet = false;
+
+    /**
+     *  Absolute engine timestamp (ms) at which the delayed sound is scheduled
+     *  to begin. Only valid while IsDelaySet is true.
+     */
+    ma_uint64 DelayedStartTimeMs = 0;
 
 public:
     // Disable copy semantics

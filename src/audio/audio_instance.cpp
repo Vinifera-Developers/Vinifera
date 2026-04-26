@@ -704,8 +704,10 @@ bool AudioInstanceClass::Set_Delay(float delay_in_seconds)
         return true;
     }
 
-    ma_sound_set_start_time_in_milliseconds(Sound, delay_in_seconds * 1000 + ma_engine_get_time_in_milliseconds(AudioManager.Engine));
+    ma_uint64 startTime = static_cast<ma_uint64>(delay_in_seconds * 1000.0f) + ma_engine_get_time_in_milliseconds(AudioManager.Engine);
+    ma_sound_set_start_time_in_milliseconds(Sound, startTime);
 
+    DelayedStartTimeMs = startTime;
     IsDelaySet = true;
 
     return true;
@@ -743,6 +745,19 @@ bool AudioInstanceClass::Update(float deltaTime)
 
         case AudioHandleState::AUDIO_STATE_PLAYING:
         {
+            /**
+             *  While a start delay is pending, miniaudio reports the sound as
+             *  not-yet-playing even though playback has been successfully requested.
+             *  Guard against prematurely transitioning to FINISHED by checking
+             *  whether the scheduled start time has actually elapsed.
+             */
+            if (IsDelaySet) {
+                if (ma_engine_get_time_in_milliseconds(AudioManager.Engine) < DelayedStartTimeMs) {
+                    break; // Still inside the delay window; keep waiting.
+                }
+                IsDelaySet = false; // Delay has elapsed; resume normal state tracking.
+            }
+
             if (!Is_Playing()) {
                 if (RemainingLoopRepeats > 0 && ma_sound_at_end(Sound) == MA_TRUE) {
                     if (!Restart() || !Play()) {
