@@ -363,7 +363,7 @@ void AudioVoxClass::Preload()
         }
 
         if (AudioManager.Has_Been_Submitted(voxptr->FileName, AUDIO_GROUP_SPEECH)) {
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOC, "Vox::Preload - File \"%s\" has already been submitted to the audio manager!\n", voxptr->Name.c_str());
+            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox::Preload - File \"%s\" has already been submitted to the audio manager!\n", voxptr->Name.c_str());
             continue;
         }
 
