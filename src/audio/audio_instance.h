@@ -22,6 +22,15 @@ class AudioSampleClass;
 
 /**
  *  An active instance of a sample.
+ *
+ *  THREADING CONTRACT: This class is NOT internally synchronized. All public
+ *  methods must be called with AudioManagerClass::ThreadMutex held by the
+ *  caller. The mutex covers both the lifetime of this object (via the
+ *  AudioManager's ActiveInstanceMap) and every member access made through it,
+ *  including the underlying ma_sound. The worker thread (CleanupThreadFunction)
+ *  always holds ThreadMutex while calling Update(); main-thread setters/getters
+ *  reach this object only through AudioManager methods that hold the same lock
+ *  end-to-end.
  */
 class AudioInstanceClass
 {

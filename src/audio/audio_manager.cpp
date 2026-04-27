@@ -315,14 +315,9 @@ AudioInstanceHandle AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType g
 }
 
 /**
- *  Thread-safe handle lookup. Do not call while already holding ThreadMutex — use NoLock variant.
+ *  Lookup a handle in ActiveInstanceMap. Caller MUST hold ThreadMutex —
+ *  the returned pointer is only valid for the duration of that lock.
  */
-AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID(AudioInstanceHandle id)
-{
-    std::scoped_lock lock(AudioManager.ThreadMutex);
-    return Find_Handle_By_ID_NoLock(id);
-}
-
 AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioInstanceHandle id)
 {
     if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
@@ -477,7 +472,6 @@ void AudioManagerClass::End()
     IsInitialized = false;
     ThreadExitFlag = true;
     RequestCV.notify_all();
-    ThreadWakeSignal.notify_all();
     if (CleanupThread.joinable()) {
         CleanupThread.join();
     }
@@ -486,17 +480,22 @@ void AudioManagerClass::End()
         Stop_Engine();
     }
 
+    /**
+     *  The CleanupThread.join() above is the synchronization point for both
+     *  RequestQueue and DeferredPlayQueue — once the worker is gone, no other
+     *  thread touches them, so the clears below need no mutex coverage of their
+     *  own (RequestMutex is taken purely for the in-flight invariant).
+     */
     {
         std::scoped_lock lock(RequestMutex);
         RequestQueue = {};
+        DeferredPlayQueue = {};
     }
 
     {
         std::scoped_lock lock(PendingMutex);
         PendingHandleIDs.clear();
     }
-
-    DeferredPlayQueue = {};
 
     /**
      *  Clear all active audio handles while the engine and groups still exist.
@@ -596,7 +595,7 @@ void AudioManagerClass::Focus_Loss()
 
     ma_result result;
 
-    FocusRestoreVolume = ma_engine_get_volume(Engine);
+    FocusRestoreVolume.store(ma_engine_get_volume(Engine), std::memory_order_relaxed);
 
     result = ma_engine_set_volume(Engine, 0.0f);
     if (result != MA_SUCCESS) {
@@ -616,7 +615,7 @@ void AudioManagerClass::Focus_Restore()
 
     ma_result result;
 
-    result = ma_engine_set_volume(Engine, FocusRestoreVolume);
+    result = ma_engine_set_volume(Engine, FocusRestoreVolume.load(std::memory_order_relaxed));
     if (result != MA_SUCCESS) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Focus_Restore - ma_engine_set_volume failed (%s)!\n", ma_result_description(result));
     }
@@ -705,18 +704,25 @@ bool AudioManagerClass::Request_Stop(AudioInstanceHandle id, float fade_out)
 
     {
         std::scoped_lock lock(RequestMutex);
-
         RequestQueue.emplace(id, fade_out);
+    }
 
-        AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
-        if (handle) {
+    RequestCV.notify_all();
+
+#ifndef NDEBUG
+    /**
+     *  Debug-only lookup of the filename for logging. Must use ThreadMutex
+     *  (which protects ActiveInstanceMap), not RequestMutex.
+     */
+    {
+        std::scoped_lock lock(ThreadMutex);
+        if (AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id)) {
             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Stop - Request to stop \"%s\" submitted.\n", handle->Get_FileName().c_str());
         } else {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Request_Stop - Handle not found for ID 0x%08X\n", id.ID);
         }
     }
-
-    RequestCV.notify_all();
+#endif
 
     return true;
 }
@@ -734,12 +740,11 @@ bool AudioManagerClass::Request_Pause(AudioInstanceHandle id)
         return false;
     }
 
-    AudioInstanceClass * handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        ASSERT_FATAL(handle != nullptr);
+    AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return handle->Pause();
@@ -758,12 +763,11 @@ bool AudioManagerClass::Request_Resume(AudioInstanceHandle id)
         return false;
     }
 
-    AudioInstanceClass * handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        ASSERT_FATAL(handle != nullptr);
+    AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return handle->Resume();
@@ -790,15 +794,11 @@ bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
         }
     }
 
-    AudioInstanceClass * handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        if (handle == nullptr) {
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
-            return false;
-        }
+    AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return handle->Is_Playing();
@@ -824,15 +824,11 @@ bool AudioManagerClass::Query_Is_Active(AudioInstanceHandle id)
         }
     }
 
-    AudioInstanceClass* handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        if (handle == nullptr) {
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Active - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
-            return false;
-        }
+    AudioInstanceClass* handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return !handle->Is_Finished();
@@ -851,12 +847,11 @@ bool AudioManagerClass::Query_Is_Paused(AudioInstanceHandle id)
         return false;
     }
 
-    AudioInstanceClass * handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        ASSERT_FATAL(handle != nullptr);
+    AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return handle->Is_Paused();
@@ -891,15 +886,12 @@ bool AudioManagerClass::Set_Volume(AudioInstanceHandle id, float volume)
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Set_Volume - Invalid handle!\n");
         return false;
     }
-    
-    AudioInstanceClass * handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        if (handle == nullptr) {
-            return false;
-        }
+    std::scoped_lock lock(ThreadMutex);
+
+    AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return handle->Set_Volume(volume);
@@ -918,14 +910,11 @@ bool AudioManagerClass::Set_Pan(AudioInstanceHandle id, float pan)
         return false;
     }
 
-    AudioInstanceClass * handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        if (handle == nullptr) {
-            return false;
-        }
+    AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return handle->Set_Pan(pan);
@@ -944,14 +933,11 @@ bool AudioManagerClass::Set_Pitch(AudioInstanceHandle id, float pitch)
         return false;
     }
 
-    AudioInstanceClass * handle = nullptr;
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        handle = Find_Handle_By_ID_NoLock(id);
-        if (handle == nullptr) {
-            return false;
-        }
+    AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
+    if (handle == nullptr) {
+        return false;
     }
 
     return handle->Set_Pitch(pitch);
@@ -1067,11 +1053,8 @@ bool AudioManagerClass::Is_Handle_Valid(AudioInstanceHandle id)
         return false;
     }
 
-    AudioInstanceClass * handle = Find_Handle_By_ID(id);
-#ifndef DEBUG
-    ASSERT_FATAL(handle != nullptr);
-#endif
-    return handle != nullptr;
+    std::scoped_lock lock(ThreadMutex);
+    return Find_Handle_By_ID_NoLock(id) != nullptr;
 }
 
 

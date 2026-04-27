@@ -12,6 +12,7 @@
 #include "audio_defines.h"
 #include "miniaudio.h"
 
+#include <atomic>
 #include <mutex>
 #include <vector>
 
@@ -76,7 +77,12 @@ private:
     int Channels = 1;
     int BitsPerSample = 16;
 
-    uint64_t FramesPushed = 0;
+    /**
+     *  Total frames pushed into the ring buffer. Atomic because the getters
+     *  read it lock-free from the main thread while Push_Chunk increments it
+     *  on the VQA feeder thread.
+     */
+    std::atomic<uint64_t> FramesPushed {0};
 
     std::vector<uint8_t> ChunkBuffer;
 

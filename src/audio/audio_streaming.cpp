@@ -274,7 +274,7 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
          *  size would make Get_Cursor_In_PCM_Frames over-report consumption, which
          *  skews the VQA library's audio-time estimate and can desync playback.
          */
-        FramesPushed += frames_pushed;
+        FramesPushed.fetch_add(frames_pushed, std::memory_order_relaxed);
 
     } else {
 
@@ -344,6 +344,7 @@ bool AudioStreamingClass::Stop()
  */
 bool AudioStreamingClass::Is_Playing() const
 {
+    std::scoped_lock lock(StreamMutex);
     if (!Sound) {
         return false;
     }
@@ -358,6 +359,8 @@ bool AudioStreamingClass::Is_Playing() const
  */
 uint64_t AudioStreamingClass::Get_Frames_Played() const
 {
+    std::scoped_lock lock(StreamMutex);
+
     if (IsPCM && Sound) {
         ma_uint64 cursor = 0;
         if (ma_sound_get_cursor_in_pcm_frames(Sound, &cursor) == MA_SUCCESS) {
@@ -365,13 +368,15 @@ uint64_t AudioStreamingClass::Get_Frames_Played() const
         }
     }
 
+    const uint64_t pushed = FramesPushed.load(std::memory_order_relaxed);
+
     // Fallback: estimate from push-side counter minus buffered frames.
     if (IsPCM && PCMBuffer) {
         ma_uint32 frames_in_buffer = ma_pcm_rb_available_read(PCMBuffer);
-        return (FramesPushed > frames_in_buffer) ? (FramesPushed - frames_in_buffer) : 0;
+        return (pushed > frames_in_buffer) ? (pushed - frames_in_buffer) : 0;
     }
 
-    return FramesPushed;
+    return pushed;
 }
 
 
@@ -382,6 +387,8 @@ uint64_t AudioStreamingClass::Get_Frames_Played() const
  */
 uint64_t AudioStreamingClass::Get_Cursor_In_PCM_Frames() const
 {
+    std::scoped_lock lock(StreamMutex);
+
     /**
      *  For file-backed sounds, use miniaudio's cursor directly.
      */
@@ -397,8 +404,9 @@ uint64_t AudioStreamingClass::Get_Cursor_In_PCM_Frames() const
      *  Estimate consumption as: total pushed minus what's still buffered.
      */
     if (IsPCM && PCMBuffer) {
+        const uint64_t pushed = FramesPushed.load(std::memory_order_relaxed);
         ma_uint32 frames_in_buffer = ma_pcm_rb_available_read(PCMBuffer);
-        return (FramesPushed > frames_in_buffer) ? (FramesPushed - frames_in_buffer) : 0;
+        return (pushed > frames_in_buffer) ? (pushed - frames_in_buffer) : 0;
     }
 
     return 0;
@@ -412,6 +420,7 @@ uint64_t AudioStreamingClass::Get_Cursor_In_PCM_Frames() const
  */
 ma_uint32 AudioStreamingClass::Get_Available_Read_Frames() const
 {
+    std::scoped_lock lock(StreamMutex);
     if (IsPCM && PCMBuffer) {
         return ma_pcm_rb_available_read(PCMBuffer);
     }

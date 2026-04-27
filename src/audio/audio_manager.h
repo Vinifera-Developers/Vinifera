@@ -157,7 +157,11 @@ private:
      *  Utility functions to handle unique handle id's
      */
     static AudioInstanceHandle Generate_Unique_Audio_ID(AudioGroupType group);
-    static AudioInstanceClass* Find_Handle_By_ID(AudioInstanceHandle id);
+
+    /**
+     *  Lookup a handle in ActiveInstanceMap. Caller MUST hold ThreadMutex —
+     *  the returned pointer is only valid for the duration of that lock.
+     */
     static AudioInstanceClass* Find_Handle_By_ID_NoLock(AudioInstanceHandle id);
 
 private:
@@ -178,9 +182,10 @@ private:
 
     /**
      *  When the window loses focus, the current engine volume is stored here
-     *  so it can be restored when focus is restored.
+     *  so it can be restored when focus is restored. Atomic because Focus_Loss
+     *  and Focus_Restore can be called from the WndProc thread.
      */
-    float FocusRestoreVolume = AUDIO_VOLUME_MAX;
+    std::atomic<float> FocusRestoreVolume {AUDIO_VOLUME_MAX};
 
     /**
      *  Tracks all the currently playing sounds.
@@ -265,7 +270,13 @@ private:
      */
     std::thread CleanupThread;
     std::atomic<bool> ThreadExitFlag {false};
-    std::condition_variable_any ThreadWakeSignal;
+
+    /**
+     *  Protects ActiveInstanceMap, GroupedActiveInstanceMap, AND every operation
+     *  on the AudioInstanceClass objects they own. AudioInstanceClass methods are
+     *  not internally synchronized — callers must hold this mutex end-to-end when
+     *  invoking them. Lock order: EventMutex (audio_event.cpp) -> ThreadMutex.
+     */
     std::mutex ThreadMutex;
 
     std::queue<AudioRequest> RequestQueue;

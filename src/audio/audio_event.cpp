@@ -432,19 +432,18 @@ AudioEventHandle AudioEventSystem::Start(AudioVocClass const& voc, Coord const& 
         return INVALID_AUDIO_EVENT_HANDLE;
     }
 
-    {
-        std::scoped_lock lock(EventMutex);
-        ActiveEvents.push_back(std::move(event));
-    }
-
-    AI();
-
+    /**
+     *  Hold EventMutex over the push and the first AI tick. Lock order is
+     *  EventMutex -> AudioManager::ThreadMutex (the AI() callbacks reach into
+     *  AudioManager); the manager never calls back into the event system, so
+     *  there is no inversion.
+     */
     std::scoped_lock lock(EventMutex);
-    const auto found = std::find_if(ActiveEvents.begin(), ActiveEvents.end(), [public_handle](const std::unique_ptr<AudioEventClass>& event_ptr) {
-        return event_ptr != nullptr && event_ptr->Get_Public_Handle() == public_handle;
-    });
+    AudioEventClass * raw = event.get();
+    ActiveEvents.push_back(std::move(event));
+    raw->AI();
 
-    return found != ActiveEvents.end() ? public_handle : INVALID_AUDIO_EVENT_HANDLE;
+    return raw->Is_Finished() ? INVALID_AUDIO_EVENT_HANDLE : public_handle;
 }
 
 
