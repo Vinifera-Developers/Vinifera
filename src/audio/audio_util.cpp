@@ -21,6 +21,11 @@
 #include <algorithm>
 
 
+/**
+ *  Fills in theme data from INI files for all registered themes.
+ *
+ *  @author: CCHyper
+ */
 bool Theme_Fill_In_All()
 {
     CCFileClass theme_file("THEME.INI");
@@ -68,6 +73,8 @@ static std::string Audio_GetFileExtension(const std::string& filename)
 
 /**
  *  Determines if the given file is a Westwood AUD (IMA-ADPCM) audio file.
+ *
+ *  @author: CCHyper
  */
 bool Audio_IsAUDFile(const std::string & filename)
 {
@@ -101,6 +108,11 @@ static std::string Audio_Normalize_Name(const std::string &name)
 }
 
 
+/**
+ *  Plays a UI sound effect by name with specified priority and volume.
+ *
+ *  @author: ZivDero
+ */
 AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, int volume)
 {
     if (!AudioManager.Is_Available() || name.empty()) {
@@ -132,6 +144,11 @@ AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, 
 }
 
 
+/**
+ *  Plays a UI sound effect from a file with specified priority and volume.
+ *
+ *  @author: ZivDero
+ */
 AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume)
 {
     if (!AudioManager.Is_Available() || filename.empty()) {
@@ -150,6 +167,11 @@ AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileTyp
     return AudioManager.Request_Play(filename, AUDIO_GROUP_UI, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
 }
 
+/**
+ *  Converts bits-per-sample to the corresponding miniaudio format.
+ *
+ *  @author: CCHyper
+ */
 ma_format Audio_GetMAFormatFromBPS(int bps)
 {
     switch (bps) {

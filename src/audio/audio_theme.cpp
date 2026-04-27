@@ -110,6 +110,8 @@ const char * AudioThemeClass::INI_Name(ThemeType theme) const
 
 /**
  *  Retrieves the full score name.
+ *
+ *  @author: CCHyper
  */
 const char * AudioThemeClass::Full_Name(ThemeType theme) const
 {
@@ -122,6 +124,8 @@ const char * AudioThemeClass::Full_Name(ThemeType theme) const
 
 /**
  *  Process the theme engine and restart songs.
+ *
+ *  @author: CCHyper, ZivDero
  */
 void AudioThemeClass::AI()
 {
@@ -174,6 +178,8 @@ void AudioThemeClass::AI()
 
 /**
  *  Calculates the next song number to play.
+ *
+ *  @author: CCHyper, ZivDero
  */
 ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
 {
@@ -228,6 +234,8 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
 
 /**
  *  Queues the song to the play queue.
+ *
+ *  @author: CCHyper, ZivDero
  */
 void AudioThemeClass::Queue_Song(ThemeType theme)
 {
@@ -262,10 +270,8 @@ void AudioThemeClass::Queue_Song(ThemeType theme)
         Pending = theme;
 
         if (Still_Playing()) {
-            //DEBUG_INFO("Theme::Queue_Song - Fading out \"%s\"...\n", Themes[Score]->Name.c_str());
             DEBUG_INFO("Theme::Queue_Song - Fading out current score...\n");
             AudioManager.Request_Stop(ScoreHandle, CrossFade ? CrossFadeSeconds : 0.0f);
-            //ScoreHandle->Stop(FadeOutSeconds, true);
         }
 
     }
@@ -274,6 +280,8 @@ void AudioThemeClass::Queue_Song(ThemeType theme)
 
 /**
  *  Starts the specified song play NOW.
+ *
+ *  @author: CCHyper, ZivDero
  */
 bool AudioThemeClass::Play_Song(ThemeType theme)
 {
@@ -341,7 +349,6 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
     if (ScoreHandle.Is_Valid() && current > THEME_NONE && current < Themes.Count()) {
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Play_Song - Stopping handle for \"%s\"\n", Themes[current]->Name.c_str());
         AudioManager.Request_Stop(ScoreHandle, CrossFade ? CrossFadeSeconds : 0.0f);
-        //ScoreHandle->Stop(CrossFade ? CrossFadeSeconds : 0.0f, CrossFade);
     }
 
     /**
@@ -366,6 +373,8 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
 
 /**
  *  Calculates the length of the song (in seconds).
+ *
+ *  @author: CCHyper
  */
 int AudioThemeClass::Track_Length(ThemeType theme) const
 {
@@ -383,7 +392,6 @@ int AudioThemeClass::Track_Length(ThemeType theme) const
  */
 void AudioThemeClass::Fade_Out()
 {
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Fade_Out - About to call Queue_Song with THEME_QUIET.\n");
     Queue_Song(THEME_QUIET);
 }
 
@@ -404,12 +412,10 @@ void AudioThemeClass::Stop(bool fade)
     }
 
     if (Score == THEME_NONE) {
-        //AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Stop - Score is null, nothing to stop.\n");
         return;
     }
 
     if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
-        //AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Stop - Handle is null, nothing to stop.\n");
         return;
     }
 
@@ -417,12 +423,9 @@ void AudioThemeClass::Stop(bool fade)
         if (fade) {
             DEBUG_INFO("Theme::Stop - Fading out \"%s\"...\n", Themes[Score]->Name.c_str());
             AudioManager.Request_Stop(ScoreHandle, FadeOutSeconds);
-            //ScoreHandle->Stop(FadeOutSeconds, true);
-
         } else {
             DEBUG_INFO("Theme::Stop - Forced \"%s\" to stop.\n", Themes[Score]->Name.c_str());
             AudioManager.Request_Stop(ScoreHandle);
-            //ScoreHandle->Stop();
         }
     }
 
@@ -450,10 +453,6 @@ bool AudioThemeClass::Suspend()
         return false;
     }
 
-    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
-    //    return false;
-    //}
-
     DEBUG_INFO("Theme::Suspend - Suspending score \"%s\"\n", Themes[Score]->Name.c_str());
     
     return AudioManager.Request_Pause(ScoreHandle);
@@ -479,10 +478,6 @@ bool AudioThemeClass::Resume()
         return false;
     }
 
-    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
-    //    return false;
-    //}
-
     DEBUG_INFO("Theme::Resume - Resuming score \"%s\"\n", Themes[Score]->Name.c_str());
     
     return AudioManager.Request_Resume(ScoreHandle);
@@ -496,10 +491,6 @@ bool AudioThemeClass::Resume()
  */
 bool AudioThemeClass::Is_Paused() const
 {
-    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
-    //    return false;
-    //}
-
     return AudioManager.Query_Is_Paused(ScoreHandle);
 }
 
@@ -511,12 +502,9 @@ bool AudioThemeClass::Is_Paused() const
  */
 void AudioThemeClass::Free_Themes()
 {
-    //Themes.Delete_All();
-
     while (Themes.Count() > 0) {
-        int index = Themes.Count()-1;
-        delete Themes[index];
-        Themes.Delete(index);
+        delete Themes[0];
+        Themes.Delete(0);
     }
 }
 
@@ -528,7 +516,7 @@ void AudioThemeClass::Free_Themes()
  */
 void AudioThemeClass::Set_Volume(int volume)
 {
-    float volf = std::clamp(float(volume/255.0f), 0.0f, 1.0f);
+    float volf = std::clamp(static_cast<float>(volume) /255.0f, 0.0f, 1.0f);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, volf);
 }
 
@@ -588,10 +576,6 @@ bool AudioThemeClass::Still_Playing() const
         return false;
     }
 
-    //if (ScoreHandle == INVALID_AUDIO_INSTANCE_HANDLE) {
-    //    return false;
-    //}
-
     return AudioManager.Query_Is_Playing(ScoreHandle);
 }
 
@@ -603,43 +587,16 @@ bool AudioThemeClass::Still_Playing() const
  */
 bool AudioThemeClass::Is_Allowed(ThemeType theme) const
 {
-    //ASSERT(index < Themes.Count()); // Removed as Next_Song goes out of bounds (by design).
-
     if (theme == THEME_QUIET || theme == THEME_PICK_ANOTHER) {
         return true;
     }
 
-#if 0
-    /**
-     *  Is the required theme within the available range?
-     * 
-     *  #NOTE: Removed as Next_Song goes out of bounds (by design).
-     */
-    if (theme >= Themes.Count()) {
-        return false;
-    }
-
-    /**
-     *  If the theme is not present, then it certainly isn't allowed.
-     */
-    if (!Themes[theme]->Available) {
-        return false;
-    }
-
-    /**
-     *  Only normal themes (playable during battle) are considered allowed.
-     */
-    if (!Themes[theme]->Normal) {
-        return false;
-    }
-#else
     /**
      *  Only normal themes (playable during battle) are considered allowed.
      */
     if (!Is_Playable(theme)) {
         return false;
     }
-#endif
 
     /**
      *  #issue-764
@@ -651,7 +608,6 @@ bool AudioThemeClass::Is_Allowed(ThemeType theme) const
     AddonType addon = Themes[theme]->RequiredAddon;
     if (addon != ADDON_BASE_GAME) {
         if (!Addon_Installed(addon)) {
-            //AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Is_Allowed - \"%s\" is only available for addon %d.\n", Themes[index]->Name.c_str(), addon);
             return false;
         }
     }
@@ -671,11 +627,8 @@ bool AudioThemeClass::Is_Allowed(ThemeType theme) const
      *  scenario check only makes sense for solo play.
      */
     if (Session.Type == GAME_NORMAL && Scen->Scenario < Themes[theme]->Scenario) {
-        //AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Is_Allowed - \"%s\" is not yet available for this scenario (\"%d\").\n", Themes[index]->Name.c_str(), Scen->Scenario);
         return false;
     }
-
-    //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Is_Allowed - \"%s\" is allowed to be played!\n", Themes[index]->Name.c_str());
 
     /**
      *  Since all tests passed, return with the "is allowed" flag.
@@ -757,18 +710,15 @@ void AudioThemeClass::Scan()
         AudioManager.Get_File_Info(name,  tctrl->FileType, tctrl->FileName);
     }
 
-#if 0//#ifndef NDEBUG
-    AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme dump...\n");
-    for (int index = 0; index < Themes.Count(); ++index) {
-        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "  %03d  %s\n", index, Themes[index]->Name.c_str());
-    }
-#endif
-
-    // Call preload here to reduce patches.
     Preload();
 }
 
 
+/**
+ *  Preloads all available themes into the audio manager.
+ *
+ *  @author: CCHyper
+ */
 void AudioThemeClass::Preload()
 {
     if (!AudioManager.Is_Available() || Debug_Quiet || !ScoresPresent) {
@@ -851,14 +801,13 @@ bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass const &ini)
      *
      *  @author: CCHyper
      */
-    RequiredAddon = (AddonType)ini.Get_Int(name, "RequiredAddon", RequiredAddon);
+    RequiredAddon = static_cast<AddonType>(ini.Get_Int(name, "RequiredAddon", RequiredAddon));
 
     /**
      *  Parse the comma-separated side ownership list for this theme.
      *
-     *  @author: CCHyper
+     *  @author: CCHyper, ZivDero
      */
-     //Owner = ini.Get_SideType(name, "Side", Owner);
     if (ini.Get_String(name, "Side", "", buffer, sizeof(buffer)) > 0) {
         const char * token = std::strtok(buffer, ",");
         while (token) {
@@ -875,17 +824,9 @@ bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass const &ini)
     }
 
     Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-
-    char tmp[512];
-
-    ini.Get_String(name, "Sound", "", tmp, sizeof(tmp));
-    Sound = tmp;
-
-    ini.Get_String(name, "Name", "", tmp, sizeof(tmp));
-    Fullname = tmp;
-
-    ini.Get_String(name, "Artist", "", tmp, sizeof(tmp));
-    Artist = tmp;
+    Sound = ini.Get_String(name, "Sound", "");
+    Fullname = ini.Get_String(name, "Name", "");
+    Artist = ini.Get_String(name, "Artist", "");
 
     return true;
 }
@@ -900,7 +841,7 @@ bool AudioThemeClass::Init_Themes(CCINIClass const &ini)
 {
     for (ThemeType theme = THEME_FIRST; theme < Themes.Count(); ++theme) {
 
-        ThemeControl *tctrl = Themes[theme];
+        ThemeControl* tctrl = Themes[theme];
 
         if (!ini.Is_Present(tctrl->Name.c_str())) {
             continue;

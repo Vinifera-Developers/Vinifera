@@ -434,6 +434,11 @@ static void AudioSubmitToDebugLog(AudioDebugLogType type, AudioDebugLogLevel lev
     AudioDebugLogQueue.push_back({type, level, msg});
 }
 
+/**
+ *  Logs an audio debug message with timestamp to the debug queue.
+ *
+ *  @author: CCHyper
+ */
 void __cdecl Audio_Debug_Log(AudioDebugLogLevel level, AudioDebugLogType type, const char * message, ...)
 {
     if (!Vinifera_AudioDebug) {

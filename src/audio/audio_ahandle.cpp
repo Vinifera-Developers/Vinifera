@@ -101,6 +101,11 @@ unsigned __stdcall Audio_Handler_Thread(void * context)
 }
 
 
+/**
+ *  Timer callback for VQA audio playback that tracks time in 60Hz ticks.
+ *
+ *  @author: CCHyper
+ */
 unsigned long __cdecl AudioHandleClass::Timer_Callback_Audio_Handler(VQAHandle *vqa)
 {
     VQAHandleP* vqap = (VQAHandleP*)vqa;
@@ -158,6 +163,11 @@ unsigned long AudioHandleClass::Get_Total_Bytes_Played(VQAHandle *vqa, VQAConfig
 }
 
 
+/**
+ *  Main streaming dispatch function for VQA audio operations.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Stream_Audio_Handler(VQAHandle *vqa, long action, void *buffer, long nbytes)
 {
     VQAHandleP *vqap = (VQAHandleP *)vqa;
@@ -199,6 +209,11 @@ long __cdecl AudioHandleClass::Stream_Audio_Handler(VQAHandle *vqa, long action,
 }
 
 
+/**
+ *  Opens the audio handler for VQA playback and initializes the streaming instance.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitParams *params, long b)
 {
     DEBUG_INFO("AudioHandle: Opening VQ audio handler\n");
@@ -259,6 +274,11 @@ long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitP
 }
 
 
+/**
+ *  Closes the audio handler and releases all VQA audio resources.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Close_Audio_Handler(VQAHandleP *vqap)
 {
     DEBUG_INFO("AudioHandle: Closing VQ audio handler\n");
@@ -301,6 +321,11 @@ long __cdecl AudioHandleClass::Close_Audio_Handler(VQAHandleP *vqap)
 }
 
 
+/**
+ *  Starts VQA audio playback by preloading initial chunks and beginning playback.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Start_Audio_Handler(VQAHandleP *vqap)
 {
     if (!IsHandleOpen || StreamInstance == nullptr) {
@@ -329,6 +354,11 @@ long __cdecl AudioHandleClass::Start_Audio_Handler(VQAHandleP *vqap)
 }
 
 
+/**
+ *  Loads an audio chunk into the streaming buffer for VQA playback.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Load_Audio_Handler(VQAHandleP *vqap, void *buffer, long nbytes)
 {
     if (!StreamInstance || !buffer || nbytes <= 0)
@@ -352,6 +382,11 @@ long __cdecl AudioHandleClass::Load_Audio_Handler(VQAHandleP *vqap, void *buffer
 }
 
 
+/**
+ *  Pauses VQA audio playback.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Pause_Audio_Handler(VQAHandleP *vqap)
 {
     std::scoped_lock lock(AudioHandleMutex);
@@ -364,6 +399,11 @@ long __cdecl AudioHandleClass::Pause_Audio_Handler(VQAHandleP *vqap)
 }
 
 
+/**
+ *  Resumes or starts VQA audio playback.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Play_Audio_Handler(VQAHandleP *vqap)
 {
     std::scoped_lock lock(AudioHandleMutex);
@@ -376,6 +416,11 @@ long __cdecl AudioHandleClass::Play_Audio_Handler(VQAHandleP *vqap)
 }
 
 
+/**
+ *  Stops VQA audio playback.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Stop_Audio_Handler(VQAHandleP *vqap)
 {
     std::scoped_lock lock(AudioHandleMutex);
@@ -387,12 +432,22 @@ long __cdecl AudioHandleClass::Stop_Audio_Handler(VQAHandleP *vqap)
 }
 
 
+/**
+ *  Simple timer callback that returns the current game time in 60Hz ticks.
+ *
+ *  @author: CCHyper
+ */
 unsigned long __cdecl AudioHandleClass::Simple_Timer_Callback_Audio_Handler(VQAHandle *vqa)
 {
     return Get_Game_Time_60Hz();
 }
 
 
+/**
+ *  Legacy lock function for compatibility with original VQA audio interface.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Lock_Audio_Handler(void)
 {
     DEBUG_INFO("AudioHandle: Locking handler\n");
@@ -400,6 +455,11 @@ long __cdecl AudioHandleClass::Lock_Audio_Handler(void)
 }
 
 
+/**
+ *  Legacy unlock function for compatibility with original VQA audio interface.
+ *
+ *  @author: CCHyper
+ */
 long __cdecl AudioHandleClass::Unlock_Audio_Handler(void)
 {
     DEBUG_INFO("AudioHandle: Unlocking handler\n");

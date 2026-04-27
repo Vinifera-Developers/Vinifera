@@ -29,6 +29,11 @@ namespace {
 }
 
 
+/**
+ *  Plays a static positional sound and registers it for later control.
+ *
+ *  @author: ZivDero
+ */
 bool Play_Tracked_Static_Sound(VocType voc, Coord const& coord)
 {
     if (voc < VOC_FIRST || voc >= AudioVocs.Count()) {
@@ -50,6 +55,11 @@ bool Play_Tracked_Static_Sound(VocType voc, Coord const& coord)
 }
 
 
+/**
+ *  Stops all static sounds playing at a specific coordinate.
+ *
+ *  @author: ZivDero
+ */
 int Stop_Tracked_Static_Sounds_At(Coord const& coord, float fade_out_seconds)
 {
     int stopped = 0;
@@ -67,6 +77,11 @@ int Stop_Tracked_Static_Sounds_At(Coord const& coord, float fade_out_seconds)
 }
 
 
+/**
+ *  Updates all tracked static sounds and removes finished ones.
+ *
+ *  @author: ZivDero
+ */
 void Tracked_Static_Sounds_AI()
 {
     auto it = TrackedSounds.begin();
@@ -81,6 +96,11 @@ void Tracked_Static_Sounds_AI()
 }
 
 
+/**
+ *  Stops and clears all tracked static sounds.
+ *
+ *  @author: ZivDero
+ */
 void Clear_Tracked_Static_Sounds()
 {
     for (auto& entry : TrackedSounds) {

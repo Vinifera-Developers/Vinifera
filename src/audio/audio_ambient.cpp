@@ -33,6 +33,11 @@ AudioAmbientClass::AudioAmbientClass(VocType voc)
     }
 }
 
+/**
+ *  Constructor; initializes the ambient sound from a voc name string.
+ *
+ *  @author: ZivDero
+ */
 AudioAmbientClass::AudioAmbientClass(const char* name) :
     AudioAmbientClass(AudioVocClass::From_Name(name))
 {
@@ -160,12 +165,22 @@ float OldMusicVolume = 1.0f;
 } // namespace IonAmbient
 
 
+/**
+ *  Returns the VocType for the ion storm ambient sound.
+ *
+ *  @author: ZivDero
+ */
 VocType IonAmbient::Voc_Type()
 {
     return AudioVocClass::From_Name("IONSTORM");
 }
 
 
+/**
+ *  Checks whether the ion storm ambient sound is available for playback.
+ *
+ *  @author: ZivDero
+ */
 bool IonAmbient::Is_Available()
 {
     VocType ion = Voc_Type();
@@ -173,12 +188,22 @@ bool IonAmbient::Is_Available()
 }
 
 
+/**
+ *  Checks whether the ion storm ambient sound is currently playing.
+ *
+ *  @author: ZivDero
+ */
 bool IonAmbient::Is_Playing()
 {
     return Handle != nullptr && Handle->Is_Playing();
 }
 
 
+/**
+ *  Starts playback of the ion storm ambient sound and reduces music volume.
+ *
+ *  @author: ZivDero
+ */
 bool IonAmbient::Start()
 {
     if (!Is_Available()) return false;
@@ -199,6 +224,11 @@ bool IonAmbient::Start()
 }
 
 
+/**
+ *  Stops playback of the ion storm ambient sound and restores music volume.
+ *
+ *  @author: ZivDero
+ */
 bool IonAmbient::Stop()
 {
     if (!Is_Available()) return false;

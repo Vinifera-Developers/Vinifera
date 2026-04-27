@@ -204,6 +204,11 @@ DEFINE_HOOK(0x00593DAC, _OwnerDraw_Window_Procedure_Play_EMBLEM_Patch, 0)
 }
 
 
+/**
+ *  Reads and processes sound definitions from SOUND.INI and SOUND01.INI.
+ *
+ *  @author: CCHyper
+ */
 static bool Read_Sound_Ini()
 {
     CCFileClass file;
@@ -271,6 +276,11 @@ static bool Read_Sound_Ini()
     return sound_ini_found || sound01_ini_found;
 }
 
+/**
+ *  Reads and processes theme definitions from THEME.INI and THEME01.INI.
+ *
+ *  @author: CCHyper
+ */
 static bool Read_Theme_Ini()
 {
     CCFileClass file;
@@ -322,6 +332,11 @@ static bool Read_Theme_Ini()
     return true;
 }
 
+/**
+ *  Reads and processes speech definitions from EVA.INI.
+ *
+ *  @author: CCHyper
+ */
 static bool Read_Speech_Ini()
 {
     /**
