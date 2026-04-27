@@ -116,7 +116,7 @@ AudioPriorityType To_Audio_Priority(VoxPriorityType p)
  */
 VoxPriorityType Priority_From_Name(const char* name, VoxPriorityType fallback)
 {
-    if (!name || !*name) return fallback;
+    if (name == nullptr || name[0] == '\0') return fallback;
     if (stricmp(name, "LOW") == 0)       return VOX_PRIORITY_LOW;
     if (stricmp(name, "NORMAL") == 0)    return VOX_PRIORITY_NORMAL;
     if (stricmp(name, "IMPORTANT") == 0) return VOX_PRIORITY_IMPORTANT;

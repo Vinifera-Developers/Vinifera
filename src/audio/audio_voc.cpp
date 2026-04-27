@@ -19,6 +19,7 @@
 #include "ccini.h"
 #include "debughandler.h"
 #include "iomap.h"
+#include "miscutil.h"
 #include "tactical.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
@@ -81,6 +82,62 @@ float Parse_Delay_Seconds(const char* value, Point2D& delay)
 
     delay = {min_ms, max_ms};
     return static_cast<float>(min_ms) / 1000.0f;
+}
+
+AudioSoundType Parse_Sound_Type(char const * value)
+{
+    static struct {
+        char const * Name;
+        AudioSoundType Value;
+    } _sound_types[] = {
+        {"NORMAL", AUDIO_SOUND_NORMAL},
+        {"GLOBAL", AUDIO_SOUND_GLOBAL},
+        {"LOCAL", AUDIO_SOUND_LOCAL},
+        {"UNSHROUDED", AUDIO_SOUND_UNSHROUDED},
+        {"SHROUDED", AUDIO_SOUND_SHROUDED},
+    };
+
+    int flags = 0;
+    for (auto& token : SplitView(value, ',')) {
+        for (auto& sound_type : _sound_types) {
+            std::string type = std::string(token);
+            if (strcasecmp(type.c_str(), sound_type.Name) == 0) {
+                flags |= sound_type.Value;
+            }
+        }
+    }
+
+    return static_cast<AudioSoundType>(flags);
+}
+
+AudioControlType Parse_Control_Type(char const* value)
+{
+    static struct {
+        char const* Name;
+        AudioControlType Value;
+    } _control_types[] = {
+        {"NORMAL", AUDIO_CONTROL_NORMAL},
+        {"LOOP", AUDIO_CONTROL_LOOP},
+        {"RANDOM", AUDIO_CONTROL_RANDOM},
+        {"SEQUENTIAL", AUDIO_CONTROL_SEQUENTIAL},
+        {"ALL", AUDIO_CONTROL_ALL},
+        {"PREDELAY", AUDIO_CONTROL_PREDELAY},
+        {"QUEUE", AUDIO_CONTROL_QUEUE},
+        {"INTERRUPT", AUDIO_CONTROL_INTERRUPT},
+        {"ATTACK", AUDIO_CONTROL_ATTACK},
+        {"DECAY", AUDIO_CONTROL_DECAY}};
+
+    int flags = 0;
+    for (auto& token : SplitView(value, ',')) {
+        for (auto& control_type : _control_types) {
+            std::string type = std::string(token);
+            if (strcasecmp(type.c_str(), control_type.Name) == 0) {
+                flags |= control_type.Value;
+            }
+        }
+    }
+
+    return static_cast<AudioControlType>(flags);
 }
 
 } // namespace
@@ -438,88 +495,11 @@ void AudioVocClass::Read_INI(CCINIClass &ini)
     FrequencyShift.Y = std::clamp(FrequencyShift.Y, AUDIO_FSHIFT_MIN, AUDIO_FSHIFT_MAX);
 
     if (ini.Get_String(name, "Type", "", buffer, sizeof(buffer)) > 0) {
-
-        static struct {
-            std::string name;
-            AudioSoundType type;
-        } _sound_types[] = {
-            // NOTE: Update this if you modify AudioSoundType!
-            "NORMAL", AUDIO_SOUND_NORMAL,
-            //"VIOLENT", ,
-            //"MOVEMENT", ,
-            //"QUIET", ,
-            //"LOUD", ,
-            "GLOBAL", AUDIO_SOUND_GLOBAL,
-            //"SCREEN", ,
-            "LOCAL", AUDIO_SOUND_LOCAL,
-            //"PLAYER", ,
-            //"ALLIES", ,
-            //"ENEMIES", ,
-            //"EVERYONE", ,
-            //"GUN_SHY", ,
-            //"NOISE_SHY", ,
-            "UNSHROUDED", AUDIO_SOUND_UNSHROUDED,
-            "SHROUDED", AUDIO_SOUND_SHROUDED,
-            //"AMBIENT", ,
-            //"VOICE", ,
-            //"UI", ,
-        };
-
-        int flags = 0;
-        const char * type = strtok(buffer, ",");
-
-        while (type) {
-            std::string tmp = type;
-            string_to_upper(tmp);
-
-            for (auto& sound_type : _sound_types) {
-                if (sound_type.name == tmp) {
-                    flags |= sound_type.type;
-                }
-            }
-
-            type = strtok(nullptr, ",");
-        }
-
-        Type = static_cast<AudioSoundType>(flags);
+        Type = Parse_Sound_Type(buffer);
     }
 
     if (ini.Get_String(name, "Control", "", buffer, sizeof(buffer)) > 0) {
-
-        static struct {
-            std::string name;
-            AudioControlType control;
-        } _control_types[] = {
-            // NOTE: Update this if you modify AudioControlType!
-            "NORMAL", AUDIO_CONTROL_NORMAL,
-            "LOOP", AUDIO_CONTROL_LOOP,
-            "RANDOM", AUDIO_CONTROL_RANDOM,
-            "SEQUENTIAL", AUDIO_CONTROL_SEQUENTIAL,
-            "ALL", AUDIO_CONTROL_ALL,
-            "PREDELAY", AUDIO_CONTROL_PREDELAY,
-            "QUEUE", AUDIO_CONTROL_QUEUE,
-            "INTERRUPT", AUDIO_CONTROL_INTERRUPT,
-            "ATTACK", AUDIO_CONTROL_ATTACK,
-            "DECAY", AUDIO_CONTROL_DECAY
-        };
-
-        int flags = 0;
-        const char * type = strtok(buffer, ",");
-
-        while (type) {
-            std::string tmp = type;
-            string_to_upper(tmp);
-
-            for (auto& control_type : _control_types) {
-                if (control_type.name == tmp) {
-                    flags |= control_type.control;
-                }
-            }
-
-            type = strtok(nullptr, ",");
-        }
-
-        Control = static_cast<AudioControlType>(flags);
+        Control = Parse_Control_Type(buffer);
     }
 }
 
