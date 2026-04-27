@@ -35,7 +35,7 @@ constexpr ma_uint8 MA_AUD_FLAG_16BIT = 2;       // Flag bit for 16-bit samples (
 /**
  *  AUD header and chunk struct
  */
-#pragma pack(1) // Header must be packed!
+#pragma pack(push, 1) // Header must be packed!
 typedef struct {
     ma_uint16 sampleRate; // Sample rate of the audio (e.g., 11025, 22050, 44100 Hz)
     ma_uint32 compSize; // Total size of compressed audio data (in bytes)
@@ -45,7 +45,7 @@ typedef struct {
 } ma_aud_header;
 #pragma pack(pop)
 
-#pragma pack(1) // Header must be packed!
+#pragma pack(push, 1) // Header must be packed!
 typedef struct {
     ma_uint16 compSize; // Size of compressed chunk data following this header (in bytes)
     ma_uint16 decompSize; // Expected output size after decompression (in bytes)
@@ -321,6 +321,16 @@ static ma_result ma_sos_aud_read_pcm_frames(
     // Report how many frames were actually read
     if (pFramesRead) {
         *pFramesRead = totalFramesRead;
+    }
+
+    /**
+     *  Signal end-of-stream when the compressed input is exhausted and the
+     *  decoded ring buffer is drained.
+     */
+    if (totalFramesRead < frameCount
+        && pDecoder->compCursor >= pDecoder->compressedSize
+        && ma_rb_available_read(&pDecoder->rbDecodedPCM) == 0) {
+        return MA_AT_END;
     }
 
     return MA_SUCCESS;
