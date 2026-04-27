@@ -104,12 +104,19 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 | NeedTrigger      | 2                 | PARAM1 is parsed as a trigger name, PARAM6 is parsed as a waypoint |
 | NeedTag          | 3                 | PARAM1 is parsed as a tag name, PARAM6 is parsed as a waypoint     |
 | NeedTeamAndTime  | 4                 | PARAM1 is parsed as a team name, PARAM6 is parsed as a number      |
+| NeedSpeech       | 5                 | PARAM1 is parsed as a speech name, PARAM6 is parsed as a waypoint  |
+| NeedSound        | 6                 | PARAM1 is parsed as a sound name, PARAM6 is parsed as a waypoint   |
+| NeedTheme        | 7                 | PARAM1 is parsed as a theme name, PARAM6 is parsed as a waypoint   |
 
 - A trigger action is parsed from the map as follows:
 
 ```ini
 [Actions]
 NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
+```
+
+```{note}
+Any action that takes a `VocType` (sound), `VoxType` (speech/EVA), or `ThemeType` (music), including vanilla actions, can be used with with need code 0 (`NeedOther`), specifying the ordinal number of the relevant type as `PARAM1`, or with need codes 5, 6, or 7 (`NeedSpeech`, `NeedSound`, `NeedTheme` respectively), specifying the INI name of the type.
 ```
 
 ### Operation Types
@@ -208,6 +215,10 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 |          | Applies Iron Curtain to attached objects. Can optionally bypass legality checks. | Other (0) | Boolean (skip legality check)           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 | 137      | Stop Sounds At             |
 |          | Stops sounds started by Play Sound At at the specified waypoint. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
+| 138      | Attach sound             |
+|          | Attaches an ambient sound to all objects associated with the trigger. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
+| 139      | Detach sound             |
+|          | Detaches any ambient sound from all objects associated with the trigger. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 
 ### [135] Adjust House Modifier — Modifier Types
 

@@ -12,6 +12,7 @@
 #include "tactionext.h"
 
 #include "audio_static_sound.h"
+#include "audio_voc.h"
 #include "audio_vox.h"
 #include "building.h"
 #include "debughandler.h"
@@ -71,7 +72,9 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Disable templated text", "Removes the currently active templated text from the screen." },
     { "Adjust House Modifier", "Adjusts a house modifier by given percentage points." },
     { "Apply Iron Curtain", "Applies Iron Curtain to attached objects. Can optionally bypass legality checks." },
-    { "Stop Sounds At", "Stops all sounds at waypoint that were started using the Play Sound At trigger" },
+    { "Stop Sounds At", "Stops all sounds at the waypoint that were started using the Play Sound At trigger."},
+    { "Attach sound", "Attaches an ambient sound to all objects associated with the trigger." },
+    { "Detach sound", "Detaches any ambient sound from all objects associated with the trigger." },
 };
 
 
@@ -321,6 +324,8 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
         EXT_DISPATCH(APPLY_IRON_CURTAIN);
         EXT_DISPATCH(STOP_SOUNDS_AT);
+        EXT_DISPATCH(ATTACH_SOUND);
+        EXT_DISPATCH(DETACH_SOUND);
 
         /**
          *  Unexpected TActionType.
@@ -1679,4 +1684,55 @@ bool TActionClassExtension::Do_STOP_SOUNDS_AT(HouseClass*, ObjectClass*, Trigger
         Stop_Tracked_Static_Sounds_At(coord);
     }
     return true;
+}
+
+
+/**
+ *  Attaches an ambient sound to all objects associated with the trigger.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_ATTACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    VocType sound = This()->Data.Sound;
+    if (sound < VOC_FIRST || sound >= AudioVocs.Count()) {
+        return false;
+    }
+
+    bool success = false;
+
+    for (int index = 0; index < Objects.Count(); index++) {
+        ObjectClass* obj = Objects[index];
+        if (obj->IsActive && obj->IsDown && !obj->IsInLimbo && obj->Tag != nullptr && obj->Tag->Is_Trigger_Attached(trig)) {
+            auto extension = Extension::Fetch(obj);
+            if (extension != nullptr) {
+                extension->Attach_Ambient(sound);
+                success = true;
+            }
+        }
+    }
+    return success;
+}
+
+
+/**
+ *  Attaches any ambient sounds from all objects associated with the trigger.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DETACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    bool success = false;
+
+    for (int index = 0; index < Objects.Count(); index++) {
+        ObjectClass* obj = Objects[index];
+        if (obj->IsActive && obj->IsDown && !obj->IsInLimbo && obj->Tag != nullptr && obj->Tag->Is_Trigger_Attached(trig)) {
+            auto extension = Extension::Fetch(obj);
+            if (extension != nullptr) {
+                extension->Attach_Ambient(VOC_NONE);
+                success = true;
+            }
+        }
+    }
+    return success;
 }
