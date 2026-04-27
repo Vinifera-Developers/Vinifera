@@ -1470,7 +1470,6 @@ Control=NORMAL ; list of playback control flags.
 | `INTERRUPT` | Allows a new request to interrupt an existing instance of the same limited sample. |
 | `ATTACK` | Plays the first `Sounds=` entry as an ordered attack/start sample before the body samples. |
 | `DECAY` | Plays the last `Sounds=` entry as an ordered decay/end sample after the body samples or when the event is stopped. |
-| `AMBIENT` | Classification flag for ambient sounds. Use `LOOP` when the sound must keep playing. |
 
 ### Themes
 

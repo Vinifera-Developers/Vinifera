@@ -541,8 +541,7 @@ void AudioVocClass::Read_INI(CCINIClass &ini)
             "QUEUE", AUDIO_CONTROL_QUEUE,
             "INTERRUPT", AUDIO_CONTROL_INTERRUPT,
             "ATTACK", AUDIO_CONTROL_ATTACK,
-            "DECAY", AUDIO_CONTROL_DECAY,
-            "AMBIENT", AUDIO_CONTROL_AMBIENT,
+            "DECAY", AUDIO_CONTROL_DECAY
         };
 
         int flags = 0;

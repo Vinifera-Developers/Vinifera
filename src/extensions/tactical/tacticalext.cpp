@@ -70,7 +70,7 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     TemplatedTextCache {""},
     IsBeaconPlacementMode(false),
     IsEditingBeaconText(false),
-    SubtitleCategoryCur(AudioVoxClass::SUBTITLE_CATEGORY_SYSTEM),
+    SubtitleCategoryCur(SUBTITLE_CATEGORY_SYSTEM),
     SubtitleFont(nullptr),
     SubtitleFontCacheHeight(0),
     SubtitleFontCacheWeight(0)
@@ -990,7 +990,7 @@ void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme& s
  *
  *  @author: ZivDero
  */
-void TacticalExtension::Set_Subtitle(const char* text, AudioVoxClass::SubtitleCategoryType cat)
+void TacticalExtension::Set_Subtitle(const char* text, SubtitleCategoryType cat)
 {
     if (text == nullptr || *text == '\0') {
         SubtitleText.clear();
@@ -1047,9 +1047,9 @@ bool TacticalExtension::Should_Show_Subtitle() const
     case OptionsClassExtension::SUBTITLE_MODE_ALL:
         return true;
     case OptionsClassExtension::SUBTITLE_MODE_STORY:
-        return SubtitleCategoryCur == AudioVoxClass::SUBTITLE_CATEGORY_STORY;
+        return SubtitleCategoryCur == SUBTITLE_CATEGORY_STORY;
     case OptionsClassExtension::SUBTITLE_MODE_SYSTEM:
-        return SubtitleCategoryCur == AudioVoxClass::SUBTITLE_CATEGORY_SYSTEM;
+        return SubtitleCategoryCur == SUBTITLE_CATEGORY_SYSTEM;
     }
     return true;
 }

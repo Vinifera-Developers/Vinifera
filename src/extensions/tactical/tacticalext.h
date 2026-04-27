@@ -74,7 +74,7 @@ public:
      *  VOX subtitle rendering. Set/Clear are called from the audio code when
      *  a VOX starts/stops; Draw_Subtitle is called from the overlay render hook.
      */
-    void Set_Subtitle(const char* text, AudioVoxClass::SubtitleCategoryType cat);
+    void Set_Subtitle(const char* text, SubtitleCategoryType cat);
     void Clear_Subtitle();
     void Draw_Subtitle();
     bool Should_Show_Subtitle() const;
@@ -183,7 +183,7 @@ public:
      *  the playing VOX has no Text=). Per-session UI state, not serialized.
      */
     std::string SubtitleText;
-    AudioVoxClass::SubtitleCategoryType SubtitleCategoryCur;
+    SubtitleCategoryType SubtitleCategoryCur;
 
     /**
      *  Cached Win32 HFONT (type-erased to avoid pulling windows.h into this

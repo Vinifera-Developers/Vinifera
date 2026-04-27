@@ -236,12 +236,6 @@ typedef enum AudioControlType
      */
     AUDIO_CONTROL_DECAY = 1 << 8,
 
-    /**
-     *  Marks this audio event as ambient/classified for compatibility.
-     *  This flag does not enable looping by itself.
-     */
-    AUDIO_CONTROL_AMBIENT = 1 << 9,
-
 } AudioControlType;
 
 
@@ -257,66 +251,87 @@ typedef enum AudioSoundType
      *  the world it is. Instead of fading to silence when out of range
      *  like normal events, global events do not fade below MINVOLUME.
      */
-    AUDIO_SOUND_GLOBAL = 1 << 5,
+    AUDIO_SOUND_GLOBAL = 1 << 1,
 
     /**
      *  Audio event fades out only when it moves off the edge of the screen.
      */
-    AUDIO_SOUND_SCREEN = 1 << 6,
+    AUDIO_SOUND_SCREEN = 1 << 2,
 
     /**
      *  Only audible are its point of origin in the game world.
      */
-    AUDIO_SOUND_LOCAL = 1 << 7,
+    AUDIO_SOUND_LOCAL = 1 << 3,
 
     /**
      *  Not audible when not covered by shroud.
      */
-    AUDIO_SOUND_UNSHROUDED = 1 << 14,
+    AUDIO_SOUND_UNSHROUDED = 1 << 4,
 
     /**
      *  Not audible when shrouded.
      * 
      *  If this flag is present, the sound will not play if its
-     *  position is inside the shroud or fog of war. 
+     *  position is inside the shroud or fog of war.
      */
-    AUDIO_SOUND_SHROUDED = 1 << 15,
+    AUDIO_SOUND_SHROUDED = 1 << 5,
 
     /**
-     *  TODO: Ambient background sound, not affected by INTERRUPT.
+     *  Reserved for use by EVA speech.
      */
-    //AUDIO_SOUND_AMBIENT = 1 << 16,
+    AUDIO_SOUND_VOICE = 1 << 6,
 
     /**
-     *  
-     * 
-     *  Reserved for use by eva speech!
+     *  Reserved for use by UI sound effects.
      */
-    AUDIO_SOUND_VOICE = 1 << 18,
-
-    /**
-     *
-     *
-     *  Reserved for use ui sound effects!
-     */
-     AUDIO_SOUND_UI = 1 << 19,
+     AUDIO_SOUND_UI = 1 << 7,
 
 } AudioSoundType;
 
 
 /**
+ *  Speech-only playback policy. Mutually exclusive (not a bitfield) and
+ *  decoupled from the global AudioControlType used by other audio.
+ */
+enum VoxControlType {
+    VOX_CONTROL_QUEUE,            // Insert into the normal queue.
+    VOX_CONTROL_STANDARD,         // Play only if nothing is currently speaking and both queues are empty.
+    VOX_CONTROL_INTERRUPT,        // Stop current speech, clear both queues, play immediately.
+    VOX_CONTROL_QUEUED_INTERRUPT, // Insert into the interrupt queue (drains before the normal queue).
+};
+
+
+/**
+ *  Speech-only priority used to order entries within a queue.
+ *  Higher values drain first; equal values are FIFO.
+ */
+enum VoxPriorityType {
+    VOX_PRIORITY_LOW,
+    VOX_PRIORITY_NORMAL,
+    VOX_PRIORITY_IMPORTANT,
+    VOX_PRIORITY_CRITICAL,
+};
+
+
+/**
+ *  Subtitle category for filtering by user preference (sun.ini SubtitleMode).
+ */
+enum SubtitleCategoryType {
+    SUBTITLE_CATEGORY_SYSTEM, // EVA-style alerts ("Unit lost", "Low power", etc.)
+    SUBTITLE_CATEGORY_STORY   // Narrative / mission lines.
+};
+
+
+/**
  *  Composite key for looking up audio samples by filename and group.
  */
-typedef struct AudioSampleKey
-{
+struct AudioSampleKey {
     std::string Filename;
     AudioGroupType Group;
 
-    bool operator==(const AudioSampleKey& other) const
-    {
-        return Filename == other.Filename && Group == other.Group;
-    }
-} AudioSampleKey;
+    bool operator==(const AudioSampleKey& other) const { return Filename == other.Filename && Group == other.Group; }
+    bool operator!=(const AudioSampleKey& other) const { return !(*this == other); }
+};
 
 // Custom hasher for the unordered_map
 namespace std

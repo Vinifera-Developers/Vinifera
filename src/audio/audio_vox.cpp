@@ -41,7 +41,7 @@ DynamicVectorClass<AudioVoxClass *> Voxs;
 /**
  *  AudioVoxClass statics.
  */
-AudioVoxClass::VoxPriorityType AudioVoxClass::DefaultPriority = AudioVoxClass::VOX_PRIORITY_NORMAL;
+VoxPriorityType AudioVoxClass::DefaultPriority = VOX_PRIORITY_NORMAL;
 float AudioVoxClass::DefaultDelay = 0.2f; // We add a fake delay so the speech is not played on top of the building placement sound effect etc.
 float AudioVoxClass::DefaultFrequencyShift = 1.0f;
 float AudioVoxClass::DefaultVolume = AUDIO_VOLUME_MAX;
@@ -65,7 +65,7 @@ namespace {
 struct VoxQueueEntry
 {
     VoxType voice;
-    AudioVoxClass::VoxPriorityType priority;
+    VoxPriorityType priority;
 };
 
 std::deque<VoxQueueEntry> NormalQueue;
@@ -99,13 +99,13 @@ bool Is_Queued(VoxType voice)
  *  Map our queue priority enum to the audio engine's priority enum so the
  *  sample-slot arbitration in the audio thread stays in sync.
  */
-AudioPriorityType To_Audio_Priority(AudioVoxClass::VoxPriorityType p)
+AudioPriorityType To_Audio_Priority(VoxPriorityType p)
 {
     switch (p) {
-    case AudioVoxClass::VOX_PRIORITY_LOW:       return AUDIO_PRIORITY_LOW;
-    case AudioVoxClass::VOX_PRIORITY_NORMAL:    return AUDIO_PRIORITY_NORMAL;
-    case AudioVoxClass::VOX_PRIORITY_IMPORTANT: return AUDIO_PRIORITY_HIGH;
-    case AudioVoxClass::VOX_PRIORITY_CRITICAL:  return AUDIO_PRIORITY_CRITICAL;
+    case VOX_PRIORITY_LOW:       return AUDIO_PRIORITY_LOW;
+    case VOX_PRIORITY_NORMAL:    return AUDIO_PRIORITY_NORMAL;
+    case VOX_PRIORITY_IMPORTANT: return AUDIO_PRIORITY_HIGH;
+    case VOX_PRIORITY_CRITICAL:  return AUDIO_PRIORITY_CRITICAL;
     }
     return AUDIO_PRIORITY_NORMAL;
 }
@@ -114,24 +114,24 @@ AudioPriorityType To_Audio_Priority(AudioVoxClass::VoxPriorityType p)
 /**
  *  Parse a priority name (case-insensitive). Returns the fallback if no match.
  */
-AudioVoxClass::VoxPriorityType Priority_From_Name(const char* name, AudioVoxClass::VoxPriorityType fallback)
+VoxPriorityType Priority_From_Name(const char* name, VoxPriorityType fallback)
 {
     if (!name || !*name) return fallback;
-    if (stricmp(name, "LOW") == 0)       return AudioVoxClass::VOX_PRIORITY_LOW;
-    if (stricmp(name, "NORMAL") == 0)    return AudioVoxClass::VOX_PRIORITY_NORMAL;
-    if (stricmp(name, "IMPORTANT") == 0) return AudioVoxClass::VOX_PRIORITY_IMPORTANT;
-    if (stricmp(name, "CRITICAL") == 0)  return AudioVoxClass::VOX_PRIORITY_CRITICAL;
+    if (stricmp(name, "LOW") == 0)       return VOX_PRIORITY_LOW;
+    if (stricmp(name, "NORMAL") == 0)    return VOX_PRIORITY_NORMAL;
+    if (stricmp(name, "IMPORTANT") == 0) return VOX_PRIORITY_IMPORTANT;
+    if (stricmp(name, "CRITICAL") == 0)  return VOX_PRIORITY_CRITICAL;
     return fallback;
 }
 
 
-const char* Name_From_Priority(AudioVoxClass::VoxPriorityType p)
+const char* Name_From_Priority(VoxPriorityType p)
 {
     switch (p) {
-    case AudioVoxClass::VOX_PRIORITY_LOW:       return "LOW";
-    case AudioVoxClass::VOX_PRIORITY_NORMAL:    return "NORMAL";
-    case AudioVoxClass::VOX_PRIORITY_IMPORTANT: return "IMPORTANT";
-    case AudioVoxClass::VOX_PRIORITY_CRITICAL:  return "CRITICAL";
+    case VOX_PRIORITY_LOW:       return "LOW";
+    case VOX_PRIORITY_NORMAL:    return "NORMAL";
+    case VOX_PRIORITY_IMPORTANT: return "IMPORTANT";
+    case VOX_PRIORITY_CRITICAL:  return "CRITICAL";
     }
     return "NORMAL";
 }
@@ -140,13 +140,13 @@ const char* Name_From_Priority(AudioVoxClass::VoxPriorityType p)
 /**
  *  Parse a control name (case-insensitive). Returns the fallback if no match.
  */
-AudioVoxClass::VoxControlType Control_From_Name(const char* name, AudioVoxClass::VoxControlType fallback)
+VoxControlType Control_From_Name(const char* name, VoxControlType fallback)
 {
     if (!name || !*name) return fallback;
-    if (stricmp(name, "QUEUE") == 0)             return AudioVoxClass::VOX_CONTROL_QUEUE;
-    if (stricmp(name, "STANDARD") == 0)          return AudioVoxClass::VOX_CONTROL_STANDARD;
-    if (stricmp(name, "INTERRUPT") == 0)         return AudioVoxClass::VOX_CONTROL_INTERRUPT;
-    if (stricmp(name, "QUEUED_INTERRUPT") == 0)  return AudioVoxClass::VOX_CONTROL_QUEUED_INTERRUPT;
+    if (stricmp(name, "QUEUE") == 0)             return VOX_CONTROL_QUEUE;
+    if (stricmp(name, "STANDARD") == 0)          return VOX_CONTROL_STANDARD;
+    if (stricmp(name, "INTERRUPT") == 0)         return VOX_CONTROL_INTERRUPT;
+    if (stricmp(name, "QUEUED_INTERRUPT") == 0)  return VOX_CONTROL_QUEUED_INTERRUPT;
     return fallback;
 }
 

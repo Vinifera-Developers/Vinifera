@@ -22,36 +22,6 @@ class CCINIClass;
 class AudioVoxClass
 {
 public:
-    /**
-     *  Subtitle category for filtering by user preference (sun.ini SubtitleMode).
-     */
-    enum SubtitleCategoryType {
-        SUBTITLE_CATEGORY_SYSTEM,   // EVA-style alerts ("Unit lost", "Low power", etc.)
-        SUBTITLE_CATEGORY_STORY     // Narrative / mission lines.
-    };
-
-    /**
-     *  Speech-only playback policy. Mutually exclusive (not a bitfield) and
-     *  decoupled from the global AudioControlType used by other audio.
-     */
-    enum VoxControlType {
-        VOX_CONTROL_QUEUE,              // Insert into the normal queue.
-        VOX_CONTROL_STANDARD,           // Play only if nothing is currently speaking and both queues are empty.
-        VOX_CONTROL_INTERRUPT,          // Stop current speech, clear both queues, play immediately.
-        VOX_CONTROL_QUEUED_INTERRUPT,   // Insert into the interrupt queue (drains before the normal queue).
-    };
-
-    /**
-     *  Speech-only priority used to order entries within a queue.
-     *  Higher values drain first; equal values are FIFO.
-     */
-    enum VoxPriorityType {
-        VOX_PRIORITY_LOW,
-        VOX_PRIORITY_NORMAL,
-        VOX_PRIORITY_IMPORTANT,
-        VOX_PRIORITY_CRITICAL,
-    };
-
     AudioVoxClass(std::string name);
     ~AudioVoxClass();
 
