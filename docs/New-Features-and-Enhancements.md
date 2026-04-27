@@ -1466,8 +1466,7 @@ Control=NORMAL ; list of playback control flags.
 | `SEQUENTIAL` | Picks the next basename from `Sounds=` for each body cycle, advancing a per-voc counter that persists across plays. Combined with `LOOP`, each iteration steps to the next entry, wrapping around. |
 | `ALL` | Plays all basenames from `Sounds=` in order. |
 | `PREDELAY` | Applies `Delay=` before the sound starts. Without this flag, ordered or looping events use `Delay=` between samples. |
-| `QUEUE` | Queues a playback request when this sound's simultaneous instance limit is already full. |
-| `QUEUED_INTERRUPT` | Allows a queued speech or sound request to replace a currently active instance of the same limited sample. |
+| `QUEUE` | When this sound's simultaneous instance limit is already full, defer the request until a slot frees up instead of dropping it. |
 | `INTERRUPT` | Allows a new request to interrupt an existing instance of the same limited sample. |
 | `ATTACK` | Plays the first `Sounds=` entry as an ordered attack/start sample before the body samples. |
 | `DECAY` | Plays the last `Sounds=` entry as an ordered decay/end sample after the body samples or when the event is stopped. |
@@ -1499,31 +1498,53 @@ RequiredAddon=0        ; AddonType, addon required for the theme. 0 = base game,
 
 `EVA.INI` defines the EVA and mission speech database. It is optional: if it is not present, Vinifera uses the built-in speech list. However, if it is provided, no default speeches are added to it.
 
+Speech runs through a dedicated two-tier priority queue, separate from the sound effect engine. Each entry's `Control=` chooses how it is enqueued; its `Priority=` determines where it lands within its queue. Within a queue, higher priorities drain first; equal priorities are FIFO. The interrupt queue always drains before the normal queue.
+
 In `EVA.INI`:
 ```ini
 [Defaults]
-Priority=153   ; integer, default speech priority.
-Delay=0.2      ; float, default delay, in seconds, before speech starts.
-Volume=1.0     ; float, default speech volume multiplier.
-MinVolume=0.0  ; float, default minimum speech volume.
-MaxVolume=1.0  ; float, default maximum speech volume.
-FShift=1.0     ; float, default speech pitch multiplier.
+Priority=NORMAL ; speech priority, see Priority Values below.
+Delay=0.2       ; float, default delay, in seconds, before speech starts.
+Volume=1.0      ; float, default speech volume multiplier.
+MinVolume=0.0   ; float, default minimum speech volume.
+MaxVolume=1.0   ; float, default maximum speech volume.
+FShift=1.0      ; float, default speech pitch multiplier.
 
 [DialogList]
 0=EVA_MissionAccomplished
 
 [EVA_MissionAccomplished]
-Sound=        ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
-Text=         ; string, descriptive text for this entry. It is not spoken.
-Priority=153  ; integer, playback priority for this speech entry.
-Delay=0.2     ; float, delay, in seconds, before this speech starts.
-FShift=1.0    ; float, pitch multiplier for this speech entry.
-Volume=1.0    ; float, volume multiplier for this speech entry.
-MinVolume=0.0 ; float, minimum volume for this speech entry.
-MaxVolume=1.0 ; float, maximum volume for this speech entry.
-Control=QUEUE ; list of speech control flags. Supports QUEUE, QUEUED_INTERRUPT, and INTERRUPT.
-SOMESIDE=     ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
+Sound=          ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
+Text=           ; string, descriptive text for this entry. It is not spoken.
+Priority=NORMAL ; speech priority for this entry, see Priority Values below.
+Delay=0.2       ; float, delay, in seconds, before this speech starts.
+FShift=1.0      ; float, pitch multiplier for this speech entry.
+Volume=1.0      ; float, volume multiplier for this speech entry.
+MinVolume=0.0   ; float, minimum volume for this speech entry.
+MaxVolume=1.0   ; float, maximum volume for this speech entry.
+Control=QUEUE   ; speech playback policy, see Control Values below.
+SOMESIDE=       ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
 ```
+
+#### Control Values
+
+`Control=` is a single value (not a list).
+
+| Value | Description |
+|------|-------------|
+| `QUEUE` | Insert into the normal queue. Plays after the currently-speaking line and any higher-priority queued lines. This is the default. |
+| `STANDARD` | Play only if nothing is currently speaking and both queues are empty. Otherwise the request is dropped. |
+| `INTERRUPT` | Stop the currently-playing line, clear both queues, and play immediately. |
+| `QUEUED_INTERRUPT` | Insert into the interrupt queue, which drains before the normal queue. Does not stop the line that is already playing. |
+
+#### Priority Values
+
+| Value | Description |
+|------|-------------|
+| `LOW` | Lowest priority. |
+| `NORMAL` | Default priority. |
+| `IMPORTANT` | Drains before `NORMAL` within the same queue. |
+| `CRITICAL` | Drains first within its queue. |
 
 ### Hardcoded Speeches
 
