@@ -152,7 +152,7 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     CursorScale(0),
     IsVSync(false),
     RendererDriver(RENDERER_DRIVER_AUTO),
-    SubtitleMode(SUBTITLE_MODE_ALL)
+    SubtitleMode(SUBTITLE_MODE_NONE)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
