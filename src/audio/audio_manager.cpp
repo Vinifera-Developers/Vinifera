@@ -828,7 +828,7 @@ bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
     // "playing" from the caller's perspective — report it as active.
     {
         std::scoped_lock plock(PendingMutex);
-        if (PendingHandleIDs.count(id)) {
+        if (PendingHandleIDs.contains(id)) {
             return true;
         }
     }
@@ -846,6 +846,43 @@ bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
     }
 
     return handle->Is_Playing();
+}
+
+
+/**
+ *  Queries whether the audio instance with the given handle is currently active (i.e. exists and is not done).
+ *
+ *  @author: CCHyper, ZivDero
+ */
+bool AudioManagerClass::Query_Is_Active(AudioInstanceHandle id)
+{
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
+        // AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Invalid handle!\n");
+        return false;
+    }
+
+    // A request that is submitted but not yet processed by the worker is still
+    // "playing" from the caller's perspective — report it as active.
+    {
+        std::scoped_lock plock(PendingMutex);
+        if (PendingHandleIDs.contains(id)) {
+            return true;
+        }
+    }
+
+    AudioInstanceClass* handle = nullptr;
+    {
+        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+
+        handle = Find_Handle_By_ID_NoLock(id);
+        // ASSERT_FATAL(handle != nullptr);
+        if (handle == nullptr) { // Sometimes the returned handle is just null when a track ends and the thread cleans it before this query is performed.
+            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
+            return false;
+        }
+    }
+
+    return !handle->Is_Finished();
 }
 
 
@@ -993,7 +1030,7 @@ bool AudioManagerClass::Submit_Sample(
     {
         std::scoped_lock lock(SubmissionMutex);
 
-        if (SamplesMap.find(key) != SamplesMap.end()) {
+        if (SamplesMap.contains(key)) {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Submit_Sample - Sample with the filename \"%s\" already exists!\n", filename.c_str());
             return false; // Sample with this filename/group already exists
         }
@@ -1064,7 +1101,7 @@ bool AudioManagerClass::Has_Been_Submitted(const std::string& filename, AudioGro
         }
         return false;
     } else {
-        return SamplesMap.find(key) != SamplesMap.end();
+        return SamplesMap.contains(key);
     }
 }
 

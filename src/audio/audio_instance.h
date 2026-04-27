@@ -35,8 +35,6 @@ public:
     AudioInstanceHandle Get_ID() const { return HandleID; }
     AudioSampleClass const& Get_Sample_Template() const { return *Template; }
 
-    bool Is_Ready_To_Play() const { return CurrentState == AudioHandleState::AUDIO_STATE_READY; }
-
     bool Is_Playing() const;
     bool Is_Paused() const { return CurrentState == AudioHandleState::AUDIO_STATE_PAUSED; }
 

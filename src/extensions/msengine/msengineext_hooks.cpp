@@ -269,7 +269,7 @@ WDTVoiceSampleExt::~WDTVoiceSampleExt()
 
 bool WDTVoiceSampleExt::Playing() const
 {
-    return mSoundHandle != INVALID_AUDIO_INSTANCE_HANDLE && AudioManager.Query_Is_Playing(mSoundHandle);
+    return mSoundHandle != INVALID_AUDIO_INSTANCE_HANDLE && AudioManager.Query_Is_Active(mSoundHandle);
 }
 
 

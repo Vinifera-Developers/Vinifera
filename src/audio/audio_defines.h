@@ -147,7 +147,6 @@ typedef enum AudioFileType
  */
 typedef enum AudioHandleState {
     AUDIO_STATE_NEW,
-    AUDIO_STATE_READY,
     AUDIO_STATE_PLAYING,
     AUDIO_STATE_PAUSED,
     AUDIO_STATE_FINISHED,

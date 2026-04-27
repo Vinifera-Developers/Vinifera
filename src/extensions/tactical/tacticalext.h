@@ -77,6 +77,7 @@ public:
     void Set_Subtitle(const char* text, AudioVoxClass::SubtitleCategoryType cat);
     void Clear_Subtitle();
     void Draw_Subtitle();
+    bool Should_Show_Subtitle() const;
     void Invalidate_Subtitle_Font();
 
 #ifndef NDEBUG

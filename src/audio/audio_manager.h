@@ -75,6 +75,7 @@ public:
      *  Query functions.
      */
     bool Query_Is_Playing(AudioInstanceHandle id);
+    bool Query_Is_Active(AudioInstanceHandle id);
     bool Query_Is_Paused(AudioInstanceHandle id);
 
     // bool Query_Sample_Ready(AudioInstanceHandle handle, AudioGroupType group);

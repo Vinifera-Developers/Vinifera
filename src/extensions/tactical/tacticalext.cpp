@@ -1022,7 +1022,7 @@ void TacticalExtension::Clear_Subtitle()
 void TacticalExtension::Invalidate_Subtitle_Font()
 {
     if (SubtitleFont) {
-        DeleteObject(static_cast<HFONT>(SubtitleFont));
+        DeleteObject(SubtitleFont);
         SubtitleFont = nullptr;
     }
     SubtitleFontCacheName.clear();
@@ -1037,15 +1037,19 @@ void TacticalExtension::Invalidate_Subtitle_Font()
  *
  *  @author: ZivDero
  */
-static bool Should_Show_Subtitle(const std::string& text, AudioVoxClass::SubtitleCategoryType cat)
+bool TacticalExtension::Should_Show_Subtitle() const
 {
-    if (text.empty()) return false;
-    if (!OptionsExtension) return true;
+    if (SubtitleText.empty()) return false;
+
     switch (OptionsExtension->SubtitleMode) {
-    case OptionsClassExtension::SUBTITLE_MODE_NONE:   return false;
-    case OptionsClassExtension::SUBTITLE_MODE_ALL:    return true;
-    case OptionsClassExtension::SUBTITLE_MODE_STORY:  return cat == AudioVoxClass::SUBTITLE_CATEGORY_STORY;
-    case OptionsClassExtension::SUBTITLE_MODE_SYSTEM: return cat == AudioVoxClass::SUBTITLE_CATEGORY_SYSTEM;
+    case OptionsClassExtension::SUBTITLE_MODE_NONE:
+        return false;
+    case OptionsClassExtension::SUBTITLE_MODE_ALL:
+        return true;
+    case OptionsClassExtension::SUBTITLE_MODE_STORY:
+        return SubtitleCategoryCur == AudioVoxClass::SUBTITLE_CATEGORY_STORY;
+    case OptionsClassExtension::SUBTITLE_MODE_SYSTEM:
+        return SubtitleCategoryCur == AudioVoxClass::SUBTITLE_CATEGORY_SYSTEM;
     }
     return true;
 }
@@ -1085,7 +1089,7 @@ static HFONT Get_Or_Build_Subtitle_Font(TacticalExtension& ext)
  */
 void TacticalExtension::Draw_Subtitle()
 {
-    if (!Should_Show_Subtitle(SubtitleText, SubtitleCategoryCur)) {
+    if (!Should_Show_Subtitle()) {
         return;
     }
     if (Debug_Map) {

@@ -180,6 +180,9 @@ void AudioVoxClass::One_Time()
     for (VoxType vox = VOX_FIRST; vox < std::size(EvaNames); ++vox) {
         AudioVoxClass *voxptr = new AudioVoxClass(EvaNames[vox]);
         voxptr->Sound = Speech[vox];
+        if (strstr(EvaNames[vox], "EVA_") != nullptr) {
+            voxptr->SubtitleCategory = SUBTITLE_CATEGORY_SYSTEM;
+        }
     }
 }
 
@@ -385,7 +388,7 @@ void AudioVoxClass::Speak(VoxType voice, bool now)
         return;
     }
 
-    if (can_interrupt && AudioManager.Query_Is_Playing(SpeechHandle)) {
+    if (can_interrupt && AudioManager.Query_Is_Active(SpeechHandle)) {
         AudioManager.Request_Stop(SpeechHandle, 0.25f);
         CurrentVoice = VOX_NONE;
     }
@@ -440,7 +443,7 @@ void AudioVoxClass::AI()
         return;
     }
 
-    if (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle)) {
+    if (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle)) {
         return;
     }
 
@@ -451,7 +454,7 @@ void AudioVoxClass::AI()
         }
     }
 
-    if (SpeakQueue != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle)) {
+    if (SpeakQueue != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle)) {
         return;
     }
 
@@ -497,7 +500,7 @@ void AudioVoxClass::AI()
         return;
     }
 
-    if (AudioManager.Query_Is_Playing(SpeechHandle)) {
+    if (AudioManager.Query_Is_Active(SpeechHandle)) {
         AudioManager.Request_Stop(SpeechHandle, 0.5f); // A small fade out sounds better.
     }
 
@@ -550,7 +553,7 @@ bool AudioVoxClass::Is_Speaking()
         return false;
     }
 
-    return (SpeakQueue != VOX_NONE) || (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Playing(SpeechHandle));
+    return (SpeakQueue != VOX_NONE) || (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle));
 }
 
 
