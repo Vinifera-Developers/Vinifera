@@ -636,28 +636,7 @@ bool AudioVoxClass::Is_Speaking()
         return false;
     }
 
-    return !NormalQueue.empty() || !InterruptQueue.empty()
-        || (ActiveVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle));
-}
-
-
-/**
- *  Returns the text and category of the currently playing VOX, if any.
- *
- *  @author: ZivDero
- */
-bool AudioVoxClass::Get_Current(const char*& out_text, SubtitleCategoryType& out_cat)
-{
-    if (ActiveVoice == VOX_NONE || ActiveVoice >= Voxs.Count()) {
-        return false;
-    }
-    AudioVoxClass* v = Voxs[ActiveVoice];
-    if (!v || v->DescriptionText.empty()) {
-        return false;
-    }
-    out_text = v->DescriptionText.c_str();
-    out_cat = v->SubtitleCategory;
-    return true;
+    return !NormalQueue.empty() || !InterruptQueue.empty() || (ActiveVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle));
 }
 
 
@@ -668,7 +647,7 @@ bool AudioVoxClass::Get_Current(const char*& out_text, SubtitleCategoryType& out
  */
 void AudioVoxClass::Set_Speech_Volume(int vol)
 {
-    float volf = std::clamp(float(vol/255.0f), 0.0f, 1.0f);
+    float volf = std::clamp(static_cast<float>(vol) / 255.0f, 0.0f, 1.0f);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_SPEECH, volf);
 }
 

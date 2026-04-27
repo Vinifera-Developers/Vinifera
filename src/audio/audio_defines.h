@@ -210,44 +210,37 @@ typedef enum AudioControlType
     AUDIO_CONTROL_PREDELAY = 1 << 4,
 
     /**
-     *  TODO: x
-     * 
-     *  Reserved for eva speech!
+     *  When the per-sample concurrency limit is hit, defer this request into
+     *  the audio thread's DeferredPlayQueue instead of dropping it. The
+     *  request will be retried as soon as a slot frees up.
      */
-     AUDIO_CONTROL_QUEUE = 1 << 5,
-
-     /**
-      *  TODO: x
-      * 
-      *  Reserved for eva speech!
-      */
-     AUDIO_CONTROL_QUEUED_INTERRUPT = 1 << 6,
+    AUDIO_CONTROL_QUEUE = 1 << 5,
 
     /**
      *  This new instances of this type sound event have priority over
      *  already playing instances.
      */
-    AUDIO_CONTROL_INTERRUPT = 1 << 7,
+    AUDIO_CONTROL_INTERRUPT = 1 << 6,
 
     /**
      *  Specifies that the first sound in the sound list gets played,
      *  regardless, at the start of the audio event (see ATTACK attribute
      *  also). This sound is called the attack sound.
      */
-    AUDIO_CONTROL_ATTACK = 1 << 8,
+    AUDIO_CONTROL_ATTACK = 1 << 7,
 
     /**
      *  Specifies that the last sound in the sound list gets played,
      *  regardless, at the end of the audio event. (see DECAY attribute
      *  also). This sound is called the decay sound.
      */
-    AUDIO_CONTROL_DECAY = 1 << 9,
+    AUDIO_CONTROL_DECAY = 1 << 8,
 
     /**
      *  Marks this audio event as ambient/classified for compatibility.
      *  This flag does not enable looping by itself.
      */
-    AUDIO_CONTROL_AMBIENT = 1 << 10,
+    AUDIO_CONTROL_AMBIENT = 1 << 9,
 
 } AudioControlType;
 

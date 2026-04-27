@@ -59,7 +59,6 @@ public:
 
     const std::string& Text() const { return DescriptionText; }
     SubtitleCategoryType Category() const { return SubtitleCategory; }
-    static bool Get_Current(const char*& out_text, SubtitleCategoryType& out_cat);
 
     static void One_Time();
 

@@ -121,8 +121,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                                 }
 
                                 if (activeCount >= limit) {
-                                    const bool can_interrupt = (req.Control & (AUDIO_CONTROL_INTERRUPT | AUDIO_CONTROL_QUEUED_INTERRUPT)) != 0;
-                                    if (lowestPriority && (req.Priority > lowestPriority->Get_Sample_Template().Get_Priority() || can_interrupt)) {
+                                    if (lowestPriority && (req.Priority > lowestPriority->Get_Sample_Template().Get_Priority() || (req.Control & AUDIO_CONTROL_INTERRUPT))) {
                                         // Replace lower priority sound
                                         lowestPriority->Set_Fade(0.1f, true, true);
                                         //lowestPriority->Stop(0.1f); // Fade out a little bit.
