@@ -19,9 +19,6 @@ struct ma_decoder;
 typedef ma_sound ma_sound_group;
 
 
-/**
- *
- */
 class AudioSampleClass
 {
     friend class AudioManagerClass;
@@ -86,7 +83,6 @@ protected:
     int ConcurrentLimit = AUDIO_MAX_CONCURRENT_LIMIT / 4;
 
 public:
-    // Disable copy semantics
     AudioSampleClass(const AudioSampleClass&) = delete;
     AudioSampleClass& operator=(const AudioSampleClass&) = delete;
 };

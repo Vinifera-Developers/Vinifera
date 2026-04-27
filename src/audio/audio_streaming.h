@@ -17,7 +17,7 @@
 
 
 /**
- *  An active instance of a sample.
+ *  Streaming audio playback class, used for VQA movie audio.
  */
 class AudioStreamingClass
 {
@@ -67,7 +67,7 @@ private:
 
     bool IsStreaming = false;
 
-    bool IsPCM = false; // True if raw PCM, false if AUD compressed
+    bool IsPCM = false;
     ma_pcm_rb* PCMBuffer = nullptr;
 
     std::string LogicalName;
@@ -78,11 +78,9 @@ private:
 
     uint64_t FramesPushed = 0;
 
-    // Optional: Ring buffer or chunk buffer
     std::vector<uint8_t> ChunkBuffer;
 
 public:
-    // Disable copy semantics
     AudioStreamingClass(const AudioStreamingClass&) = delete;
     AudioStreamingClass& operator=(const AudioStreamingClass&) = delete;
 };

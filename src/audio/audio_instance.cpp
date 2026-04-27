@@ -51,13 +51,10 @@ AudioInstanceClass::~AudioInstanceClass()
  *
  *  @author: CCHyper
  */
-bool AudioInstanceClass::Load(/*std::string filename, ma_sound_group *group*/)
+bool AudioInstanceClass::Load()
 {
     ma_result result;
 
-    /**
-     *  Sound is already loaded, return true.
-     */
     if (IsLoaded) {
         AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_INSTANCE, "AudioInstance::Load - Sound is already loaded, why are you calling Load()?!\n");
         return true;
@@ -68,11 +65,7 @@ bool AudioInstanceClass::Load(/*std::string filename, ma_sound_group *group*/)
         return false;
     }
 
-    /**
-     *  Create a new sound object.
-     */
     Sound = new ma_sound;
-    ASSERT(Sound != nullptr);
 
     Decoder = nullptr;
 
@@ -80,26 +73,19 @@ bool AudioInstanceClass::Load(/*std::string filename, ma_sound_group *group*/)
     //       instead of streaming, which adds unnecessary I/O overhead for tiny samples.
     ma_sound_flags flags = ma_sound_flags(MA_SOUND_FLAG_NO_SPATIALIZATION | MA_SOUND_FLAG_STREAM);
 
-    // Check if the file is a Westwood AUD (IMA-ADPCM) file.
     if (Audio_IsAUDFile(Template->Get_FileName())) {
 
         /**
-         *  Create a new decoder object for handling any WS AUD files. This must
-         *  be done within this branch to ensure we don't alloc the decoder object for
-         *  non custom decoder files.
+         *  AUD files require a custom decoder; allocate one only for this path to
+         *  avoid touching the decoder for standard formats.
          */
         Decoder = new ma_decoder;
-        ASSERT(Decoder != nullptr);
 
-        // Create a decoder config and register the custom backends.
         ma_decoder_config decoderConfig = ma_decoder_config_init_default();
         decoderConfig.pCustomBackendUserData = nullptr;
         decoderConfig.ppCustomBackendVTables = (ma_decoding_backend_vtable **)ma_custom_backend_vtable;
         decoderConfig.customBackendCount = sizeof(ma_custom_backend_vtable) / sizeof(ma_custom_backend_vtable[0]);
 
-        //error in ma_decoder_init_from_vtable__internal?
-
-        // Initialize the decoder using our custom VFS.
         result = ma_decoder_init_vfs(&ma_custom_vfs_callbacks, Template->Get_FileName().c_str(), &decoderConfig, Decoder);
         if (result != MA_SUCCESS) {
             AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_decoder_init_vfs failed (%s)!\n", ma_result_description(result));
@@ -109,9 +95,8 @@ bool AudioInstanceClass::Load(/*std::string filename, ma_sound_group *group*/)
 
         ASSERT_FATAL(Decoder != nullptr);
 
-        DecoderInitialized = true; // Handy flag to ensure it was initialized correctly.
+        DecoderInitialized = true;
 
-        // Attach the decoder to the sound system as a streaming data source.
         result = ma_sound_init_from_data_source(AudioManager.Engine, Decoder, flags, AudioManager.SoundGroups[Template->Get_Group()], Sound);
         if (result != MA_SUCCESS) {
             AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_sound_init_from_data_source failed (%s)!\n", ma_result_description(result));
@@ -123,7 +108,7 @@ bool AudioInstanceClass::Load(/*std::string filename, ma_sound_group *group*/)
 
     } else {
 
-        // Not an AUD file � fall back to standard decoder set (MP3, WAV, OGG, etc.).
+        // Not a WS AUD file� fall back to standard decoder set (MP3, WAV, OGG, etc.).
         result = ma_sound_init_from_file(AudioManager.Engine, Template->Get_FileName().c_str(), flags, AudioManager.SoundGroups[Template->Get_Group()], nullptr, Sound);
         if (result != MA_SUCCESS) {
             AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_sound_init_from_file failed (%s)!\n", ma_result_description(result));
@@ -191,7 +176,6 @@ bool AudioInstanceClass::Is_Valid() const
     }
 
     if (!Sound) {
-        //AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Is_Valid - Sound is null!\n");  // Not really an error when making query.
         return false;
     }
 
@@ -232,7 +216,6 @@ bool AudioInstanceClass::End()
     ma_result result;
 
     if (!Sound) {
-        //AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::End - Sound is null!\n"); // Not really an error when stopping.
         return false;
     }
 
@@ -296,7 +279,6 @@ bool AudioInstanceClass::Resume()
         return false;
     }
 
-    // As long as we didn't call ma_sound_uninit on this instance, it will resume where we last paused it.
     ma_result result = ma_sound_start(Sound);
     if (result != MA_SUCCESS) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Resume - ma_sound_start failed (%s)!\n", ma_result_description(result));
@@ -387,20 +369,10 @@ bool AudioInstanceClass::Is_Finished() const
 }
 
 
-#if 0
-// A more passive version of checking if it has ended.
-bool AudioInstanceClass::Has_Ended() const
-{
-    ASSERT(!(Sound == nullptr && Decoder != nullptr));
-    return !Is_Playing() && Is_Finished();
-}
-#endif
-
-
 /**
  *  Initiates a volume fade over the specified duration.
  *
- *  NOTE: If 'out' is false, fade in assumed!
+ *  If 'out' is false, a fade-in is applied.
  *
  *  @author: CCHyper
  */
@@ -419,8 +391,6 @@ bool AudioInstanceClass::Set_Fade(float seconds, bool out, bool end_after_out)
         CurrentState = AudioHandleState::AUDIO_STATE_FADING_IN;
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Set_Fade - State changed: FADING_IN\n");
     }
-
-    //ma_sound_set_fade_in_milliseconds(Sound, Get_Volume(), 0.0f, 1000 * seconds);
 
     return true;
 }
@@ -607,9 +577,7 @@ bool AudioInstanceClass::Set_Volume(float volume)
 {
     ASSERT(Sound != nullptr);
 
-    // Clamp volume
-    if (volume < 0.0f) volume = 0.0f;
-    if (volume > 2.0f) volume = 2.0f;
+    volume = std::clamp(volume, 0.0f, 2.0f);
 
     ma_sound_set_volume(Sound, volume);
 
@@ -626,9 +594,7 @@ bool AudioInstanceClass::Set_Pitch(float pitch)
 {
     ASSERT(Sound != nullptr);
 
-    // Clamp pitch
-    if (pitch < 0.1f) pitch = 0.1f;
-    if (pitch > 2.0f) pitch = 2.0f;
+    pitch = std::clamp(pitch, 0.1f, 2.0f);
 
     ma_sound_set_pitch(Sound, pitch);
 
@@ -645,9 +611,7 @@ bool AudioInstanceClass::Set_Pan(float pan)
 {
     ASSERT(Sound != nullptr);
 
-    // Clamp pan
-    if (pan < -1.0f) pan = -1.0f;
-    if (pan > 1.0f) pan = 1.0f;
+    pan = std::clamp(pan, -1.0f, 1.0f);
 
     ma_sound_set_pan(Sound, pan);
 
@@ -807,25 +771,19 @@ bool AudioInstanceClass::Update(float deltaTime)
             if (FadeTime <= 0.0f || !Is_Fading_Out()) {
                 CurrentState = AudioHandleState::AUDIO_STATE_FINISHED;
                 AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Update - State changed: FADINGOUT > FINISHED\n");
-                return false; // Signal to manager that we can delete this handle
+                return false;
             }
 
             break;
         }
 
         case AudioHandleState::AUDIO_STATE_PAUSED:
-        {
-            // Do nothing while paused
             break;
-        }
 
         case AudioHandleState::AUDIO_STATE_FINISHED:
-        {
-            // Done, ready for cleaning up!
             return false;
-        }
 
     };
 
-    return (CurrentState != AudioHandleState::AUDIO_STATE_FINISHED); // Keep alive!
+    return CurrentState != AudioHandleState::AUDIO_STATE_FINISHED;
 }

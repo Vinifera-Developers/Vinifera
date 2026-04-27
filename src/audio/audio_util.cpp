@@ -150,9 +150,6 @@ AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileTyp
     return AudioManager.Request_Play(filename, AUDIO_GROUP_UI, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
 }
 
-/**
- *  Helper to convert bits per sample to Miniaudios ma_format enum
- */
 ma_format Audio_GetMAFormatFromBPS(int bps)
 {
     switch (bps) {

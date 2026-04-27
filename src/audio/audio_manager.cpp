@@ -40,7 +40,7 @@ AudioManagerClass AudioManager;
  */
 unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
 {
-    AudioManagerClass * _this = reinterpret_cast<AudioManagerClass *>(context);
+    AudioManagerClass * self = reinterpret_cast<AudioManagerClass *>(context);
 
     using clock = std::chrono::steady_clock;
 
@@ -48,30 +48,27 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
 
         auto lastTime = clock::now();
 
-        while (!_this->ThreadExitFlag.load()) {
+        while (!self->ThreadExitFlag.load()) {
 
             auto now = clock::now();
             std::chrono::duration<float> elapsed = now - lastTime;
-            float deltaTime = elapsed.count();  // in seconds
+            float deltaTime = elapsed.count();
             lastTime = now;
 
-            // Clamp to 250ms max step
             deltaTime = std::min(deltaTime, 0.25f);
 
             /**
-             *  STEP 1: Process requests first!
+             *  STEP 1: Process queued play/stop requests.
              */
-            { // local scope start
-            
-                // Ensure thread-safe access to audio handles.
-                std::scoped_lock lock(_this->RequestMutex);
+            {
+                std::scoped_lock lock(self->RequestMutex);
 
-                while (!_this->RequestQueue.empty()) {
+                while (!self->RequestQueue.empty()) {
 
                     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: RequestQueue - Woke up!\n");
 
-                    AudioRequest req = std::move(_this->RequestQueue.front());
-                    _this->RequestQueue.pop();
+                    AudioRequest req = std::move(self->RequestQueue.front());
+                    self->RequestQueue.pop();
 
                     switch (req.Type) {
                         case AudioRequestType::AUDIO_REQUEST_PLAY:
@@ -81,27 +78,25 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                             // Remove this ID from the pending set on any exit that does not
                             // result in a live instance or a deferred (queued) request.
                             auto drop_pending = [&]() {
-                                std::scoped_lock plock(_this->PendingMutex);
-                                _this->PendingHandleIDs.erase(req.HandleID);
+                                std::scoped_lock plock(self->PendingMutex);
+                                self->PendingHandleIDs.erase(req.HandleID);
                             };
 
-                            AudioSampleClass * sample = _this->Find_Sample(std::string(req.Filename.c_str()), req.Group);
+                            AudioSampleClass * sample = self->Find_Sample(std::string(req.Filename.c_str()), req.Group);
                             if (sample == nullptr || !sample->Is_Available()) {
-                                // TODO, debug print
                                 drop_pending();
                                 break;
                             }
 
-                            // Check the concurrent limit of this sample before playing.
-                            // A per-call limit from the request takes precedence over the sample template.
+                            // A per-call limit takes precedence over the sample template.
                             int limit = (req.Limit > 0) ? req.Limit : sample->Get_Limit();
                             if (limit <= 0) {
                                 drop_pending();
-                                break; // Just skip odd cases
+                                break;
                             }
 
                             if (limit > 0 && limit <= AUDIO_MAX_CONCURRENT_LIMIT) {
-                                auto& groupVec = _this->GroupedActiveInstanceMap[req.Group];
+                                auto& groupVec = self->GroupedActiveInstanceMap[req.Group];
 
                                 // Count instances from this sample
                                 int activeCount = 0;
@@ -122,14 +117,12 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
 
                                 if (activeCount >= limit) {
                                     if (lowestPriority && (req.Priority > lowestPriority->Get_Sample_Template().Get_Priority() || (req.Control & AUDIO_CONTROL_INTERRUPT))) {
-                                        // Replace lower priority sound
                                         lowestPriority->Set_Fade(0.1f, true, true);
-                                        //lowestPriority->Stop(0.1f); // Fade out a little bit.
                                     } else {
                                         if (req.Control & AUDIO_CONTROL_QUEUE) {
                                             // ID stays in PendingHandleIDs so Query_Is_Playing
                                             // returns true while the request waits for a slot.
-                                            _this->DeferredPlayQueue.push(req);
+                                            self->DeferredPlayQueue.push(req);
                                         } else {
                                             drop_pending();
                                         }
@@ -140,7 +133,6 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                         
                             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Creating instance of \"%s\".\n", req.Filename.c_str());
 
-                            // Create new instance from sample
                             auto instance = std::make_unique<AudioInstanceClass>(sample, req.HandleID);
                             ASSERT_FATAL(instance != nullptr, "Failed to create instance of sample \"%s\"!", sample->Get_FileName().c_str());
 
@@ -152,8 +144,6 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                                 break;
                             }
 
-                            // ThemeClass owns music repetition, so do not apply sound-level looping
-                            // to AUDIO_GROUP_MUSIC. Non-music requests may use infinite or finite loops.
                             const bool allow_sound_looping = req.Group != AUDIO_GROUP_MUSIC;
                             const bool infinite_loop = allow_sound_looping && req.Loops && req.LoopLimit <= 0;
                             const int loop_limit = allow_sound_looping && req.Loops ? req.LoopLimit : 0;
@@ -175,7 +165,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
 
                             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Adding \"%s\" to active handle tracker.\n", req.Filename.c_str());
 
-                            _this->Add_Active_Handle_NoLock(std::move(instance));
+                            self->Add_Active_Handle_NoLock(std::move(instance));
                             drop_pending();
 
                             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Added \"%s\" to active tracker!\n", req.Filename.c_str());
@@ -207,38 +197,31 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                     };
                 }
 
-            } // local scope end
+            }
 
             /**
-             *  STEP 3: Update active handles
+             *  STEP 2: Update active handles and prune finished instances.
              */
-            { // local scope start
+            {
+                std::scoped_lock lock(self->ThreadMutex);
 
-                // Ensure thread-safe access to the audio handles map.
-                std::scoped_lock lock(_this->ThreadMutex);
-
-                // 3.1 - Iterate over each audio group.
                 for (int group = 0; group < AUDIO_GROUP_COUNT; ++group) {
 
                     AudioGroupType groupType = static_cast<AudioGroupType>(group);
-                    auto& groupVec = _this->GroupedActiveInstanceMap[groupType];
+                    auto& groupVec = self->GroupedActiveInstanceMap[groupType];
 
-                    // Use iterator to safely erase while iterating
                     for (auto it = groupVec.begin(); it != groupVec.end();) {
 
                         auto& handle = *it;
-                     
-                        // Clean up null entries just in case.
+
                         if (handle == nullptr) {
                             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stay NULL ptr...\n");
                             it = groupVec.erase(it);
                             continue;
                         }
 
-                        // Update the handle with the time delta.
                         handle->Update(deltaTime);
 
-                        // If the handle has finished playback (e.g. stopped, completed fade out, etc.)
                         if (handle->Is_Finished()) {
                             AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed \"%s\" as it finished\n", handle->Get_FileName().c_str());
 
@@ -246,41 +229,40 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
                             const std::string finishedFile = handle->Get_FileName();
                             const AudioGroupType finishedGroup = handle->Get_Sample_Template().Get_Group();
 
-                            _this->Remove_Active_Handle_NoLock(handle->Get_ID()); // handles deletion and removal from both maps
+                            self->Remove_Active_Handle_NoLock(handle->Get_ID()); // handles deletion and removal from both maps
 
                             // Promote the first deferred request for this sample now that a
                             // concurrent slot has opened up.
-                            if (!_this->DeferredPlayQueue.empty()) {
+                            if (!self->DeferredPlayQueue.empty()) {
                                 std::queue<AudioRequest> stillDeferred;
                                 bool promoted = false;
-                                while (!_this->DeferredPlayQueue.empty()) {
-                                    AudioRequest deferred = std::move(_this->DeferredPlayQueue.front());
-                                    _this->DeferredPlayQueue.pop();
+                                while (!self->DeferredPlayQueue.empty()) {
+                                    AudioRequest deferred = std::move(self->DeferredPlayQueue.front());
+                                    self->DeferredPlayQueue.pop();
                                     if (!promoted && deferred.Filename == finishedFile && deferred.Group == finishedGroup) {
-                                        std::scoped_lock reqLock(_this->RequestMutex);
-                                        _this->RequestQueue.push(std::move(deferred));
+                                        std::scoped_lock reqLock(self->RequestMutex);
+                                        self->RequestQueue.push(std::move(deferred));
                                         promoted = true;
                                     } else {
                                         stillDeferred.push(std::move(deferred));
                                     }
                                 }
-                                _this->DeferredPlayQueue = std::move(stillDeferred);
+                                self->DeferredPlayQueue = std::move(stillDeferred);
                             }
 
-                            //it = groupVec.erase(it); // erase from vector     // Not required, Remove_Active_Handle now removes it for us.
-                            it = groupVec.begin(); // Start from beginning again
+                            it = groupVec.begin();
                         } else {
                             ++it;
                         }
                     }
 
-                } // local scope end
+                }
 
-                // 3.2 - Sanity cleanup � remove any nullptrs from ActiveInstanceMap
-                for (auto it = _this->ActiveInstanceMap.begin(); it != _this->ActiveInstanceMap.end(); ) {
+                // Prune any nullptrs from ActiveInstanceMap.
+                for (auto it = self->ActiveInstanceMap.begin(); it != self->ActiveInstanceMap.end(); ) {
                     if (it->second == nullptr) {
                         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stay NULL ptr...\n");
-                        it = _this->ActiveInstanceMap.erase(it);
+                        it = self->ActiveInstanceMap.erase(it);
                     } else {
                         ++it;
                     }
@@ -289,12 +271,10 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void * context)
             }
 
             /**
-             *  STEP 4: Wait up to 25ms or until a new request
-             * 
-             *  Sleep to avoid CPU spinning. 25ms (~40Hz update rate) is enough for audio responsiveness.
+             *  STEP 3: Sleep up to 25ms or until a new request arrives.
              */
-            std::unique_lock<std::mutex> wait_lock(_this->RequestMutex);
-            _this->RequestCV.wait_for(wait_lock, std::chrono::milliseconds(25));
+            std::unique_lock<std::mutex> wait_lock(self->RequestMutex);
+            self->RequestCV.wait_for(wait_lock, std::chrono::milliseconds(25));
         }
 
     } catch (const std::runtime_error& e) {
@@ -339,7 +319,9 @@ AudioInstanceHandle AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType g
     return AudioInstanceHandle{id};
 }
 
-// Causes a deadlock as its called within other locking functions, NoLock instead.
+/**
+ *  Thread-safe handle lookup. Do not call while already holding ThreadMutex — use NoLock variant.
+ */
 AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID(AudioInstanceHandle id)
 {
     std::scoped_lock lock(AudioManager.ThreadMutex);
@@ -348,30 +330,18 @@ AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID(AudioInstanceHandle id
 
 AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioInstanceHandle id)
 {
-    // Just to be safe...
-    //if (!AudioManager.Is_Available()) {
-    //    return nullptr;
-    //}
-
-    // Reject invalid ID immediately
     if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         return nullptr;
     }
 
-    for (const auto& pair : AudioManager.ActiveInstanceMap) {
-        //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: At this time, the map contains: 0x%08X %s...\n", pair.first, pair.second->Get_FileName().c_str());
-    }
-    //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Looking for: 0x%08X...\n", id);
-
     auto it = AudioManager.ActiveInstanceMap.find(id);
     if (it != AudioManager.ActiveInstanceMap.end()) {
-        //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Found 0x%08X - \"%s\".\n", id, it->second.get()Get_FileName().c_str());
-        return it->second.get();  // Return raw pointer to object, not ownership
+        return it->second.get();
     }
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Failed to find 0x%08X.\n", id.ID);
 
-    return nullptr; // Not found!
+    return nullptr;
 }
 
 
@@ -438,7 +408,6 @@ bool AudioManagerClass::Init(HWND hWnd)
     engineConfig.monoExpansionMode = ma_mono_expansion_mode_stereo_only;
 
     Engine = new ma_engine;
-    ASSERT(Engine != nullptr);
 
     result = ma_engine_init(&engineConfig, Engine);
     if (result != MA_SUCCESS) {
@@ -454,7 +423,6 @@ bool AudioManagerClass::Init(HWND hWnd)
     for (int group = 0; group < AUDIO_GROUP_COUNT; ++group) {
 
         SoundGroups[group] = new ma_sound_group;
-        ASSERT(SoundGroups[group] != nullptr);
 
         result = ma_sound_group_init(Engine, MA_SOUND_FLAG_NO_SPATIALIZATION, nullptr, SoundGroups[group]);
         if (result != MA_SUCCESS) {
@@ -692,19 +660,17 @@ AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename,
     AudioInstanceHandle id = Generate_Unique_Audio_ID(group);
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Play - Generated id '0x%08X' for request \"%s\".\n", id.ID, filename.c_str());
 
-    // Mark as pending before pushing to the queue so Query_Is_Playing returns true
-    // immediately. Insert first to eliminate the race where the worker processes
-    // the request before we can insert the ID.
+    // Insert into pending set before queuing to eliminate the race where the worker
+    // processes the request before we can add the ID.
     {
         std::scoped_lock plock(PendingMutex);
         PendingHandleIDs.insert(id);
     }
 
-    // Enqueue request
     {
         std::scoped_lock lock(RequestMutex);
 
-        RequestQueue.emplace( // Uses the "Play" constructor
+        RequestQueue.emplace(
             id,
             filename,
             group,
@@ -722,7 +688,6 @@ AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename,
         );
     }
 
-    // Notify the thread we did something!
     RequestCV.notify_all();
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Play - Request to play \"%s\" submitted.\n", filename.c_str());
@@ -746,7 +711,7 @@ bool AudioManagerClass::Request_Stop(AudioInstanceHandle id, float fade_out)
     {
         std::scoped_lock lock(RequestMutex);
 
-        RequestQueue.emplace(id, fade_out); // Uses the "Stop" constructor
+        RequestQueue.emplace(id, fade_out);
 
         AudioInstanceClass * handle = Find_Handle_By_ID_NoLock(id);
         if (handle) {
@@ -756,7 +721,6 @@ bool AudioManagerClass::Request_Stop(AudioInstanceHandle id, float fade_out)
         }
     }
 
-    // Notify the thread we did something!
     RequestCV.notify_all();
 
     return true;
@@ -777,7 +741,7 @@ bool AudioManagerClass::Request_Pause(AudioInstanceHandle id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
         ASSERT_FATAL(handle != nullptr);
@@ -801,7 +765,7 @@ bool AudioManagerClass::Request_Resume(AudioInstanceHandle id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
         ASSERT_FATAL(handle != nullptr);
@@ -823,8 +787,7 @@ bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
         return false;
     }
 
-    // A request that is submitted but not yet processed by the worker is still
-    // "playing" from the caller's perspective — report it as active.
+    // In-flight requests are still "playing" from the caller's perspective.
     {
         std::scoped_lock plock(PendingMutex);
         if (PendingHandleIDs.contains(id)) {
@@ -834,12 +797,11 @@ bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
-        //ASSERT_FATAL(handle != nullptr);
-        if (handle == nullptr) { // Sometimes the returned handle is just null when a track ends and the thread cleans it before this query is performed.
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
+        if (handle == nullptr) {
+            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
             return false;
         }
     }
@@ -856,12 +818,10 @@ bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
 bool AudioManagerClass::Query_Is_Active(AudioInstanceHandle id)
 {
     if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
-        // AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Invalid handle!\n");
         return false;
     }
 
-    // A request that is submitted but not yet processed by the worker is still
-    // "playing" from the caller's perspective — report it as active.
+    // In-flight requests are still "playing" from the caller's perspective.
     {
         std::scoped_lock plock(PendingMutex);
         if (PendingHandleIDs.contains(id)) {
@@ -871,12 +831,11 @@ bool AudioManagerClass::Query_Is_Active(AudioInstanceHandle id)
 
     AudioInstanceClass* handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
-        // ASSERT_FATAL(handle != nullptr);
-        if (handle == nullptr) { // Sometimes the returned handle is just null when a track ends and the thread cleans it before this query is performed.
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Playing - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
+        if (handle == nullptr) {
+            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Query_Is_Active - Find_Handle_By_ID returned null (ID: 0x%08X)!\n", id.ID);
             return false;
         }
     }
@@ -899,7 +858,7 @@ bool AudioManagerClass::Query_Is_Paused(AudioInstanceHandle id)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
         ASSERT_FATAL(handle != nullptr);
@@ -918,8 +877,7 @@ bool AudioManagerClass::Query_Sample_Ready(std::string name, AudioGroupType grou
 {
     std::scoped_lock lock(SubmissionMutex);
 
-    std::string str(name.c_str());
-    AudioSampleKey key { str, group };
+    AudioSampleKey key { name, group };
 
     auto it = SamplesMap.find(key);
 
@@ -941,7 +899,7 @@ bool AudioManagerClass::Set_Volume(AudioInstanceHandle id, float volume)
     
     AudioInstanceClass * handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
         if (handle == nullptr) {
@@ -967,7 +925,7 @@ bool AudioManagerClass::Set_Pan(AudioInstanceHandle id, float pan)
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
         if (handle == nullptr) {
@@ -987,13 +945,13 @@ bool AudioManagerClass::Set_Pan(AudioInstanceHandle id, float pan)
 bool AudioManagerClass::Set_Pitch(AudioInstanceHandle id, float pitch)
 {
     if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Set_Pan - Invalid handle!\n");
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Set_Pitch - Invalid handle!\n");
         return false;
     }
 
     AudioInstanceClass * handle = nullptr;
     {
-        std::scoped_lock lock(ThreadMutex); // Lock against Cleanup thread
+        std::scoped_lock lock(ThreadMutex);
 
         handle = Find_Handle_By_ID_NoLock(id);
         if (handle == nullptr) {
@@ -1023,15 +981,14 @@ bool AudioManagerClass::Submit_Sample(
         return false;
     }
 
-    std::string str(filename.c_str());
-    AudioSampleKey key { str, group };
+    AudioSampleKey key { filename, group };
 
     {
         std::scoped_lock lock(SubmissionMutex);
 
         if (SamplesMap.contains(key)) {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Submit_Sample - Sample with the filename \"%s\" already exists!\n", filename.c_str());
-            return false; // Sample with this filename/group already exists
+            return false;
         }
 
         std::unique_ptr<AudioSampleClass> sample = std::make_unique<AudioSampleClass>();
@@ -1065,15 +1022,14 @@ bool AudioManagerClass::Clear_Samples(AudioGroupType group)
         const auto& sample = it->second;
 
         if (sample != nullptr) {
-            // Clear matching group or all if AUDIO_GROUP_NONE
             if (group == AUDIO_GROUP_NONE || sample->Get_Group() == group) {
-                it = SamplesMap.erase(it); // Unique_ptr will auto-delete
+                it = SamplesMap.erase(it);
                 any_cleared = true;
                 continue;
             }
         }
 
-        ++it; // Advance normally if not erased
+        ++it;
     }
 
     return any_cleared;
@@ -1089,12 +1045,11 @@ bool AudioManagerClass::Has_Been_Submitted(const std::string& filename, AudioGro
 {
     std::scoped_lock lock(SubmissionMutex);
 
-    std::string str(filename.c_str());
-    AudioSampleKey key { str, group };
+    AudioSampleKey key { filename, group };
 
     if (group == AUDIO_GROUP_NONE) {
         for (const auto& pair : SamplesMap) {
-            if (pair.first.Filename == str) {
+            if (pair.first.Filename == filename) {
                 return true;
             }
         }
@@ -1297,10 +1252,10 @@ bool AudioManagerClass::Add_Active_Handle_NoLock(std::unique_ptr<AudioInstanceCl
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Add_Active_Handle: About to add 0x%08X to trackers...\n", id.ID);
 
-   AudioInstanceClass * raw_ptr = audio_handle.get();
+    AudioInstanceClass * raw_ptr = audio_handle.get();
 
-    ActiveInstanceMap[id] = std::move(audio_handle); // store ownership
-    GroupedActiveInstanceMap[group].push_back(raw_ptr); // just track, no ownership
+    ActiveInstanceMap[id] = std::move(audio_handle);
+    GroupedActiveInstanceMap[group].push_back(raw_ptr);
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Add_Active_Handle: 0x%08X added to trackers\n", id.ID);
 
@@ -1320,10 +1275,8 @@ bool AudioManagerClass::Remove_Active_Handle_NoLock(AudioInstanceHandle audio_id
         return false;
     }
 
-    // Get a raw pointer for comparison (but don't delete it manually!)
     AudioInstanceClass * audio_handle = it->second.get();
 
-    // Also remove from GroupedActiveInstanceMap
     if (audio_handle != nullptr) {
         AudioGroupType group = audio_handle->Get_Sample_Template().Get_Group();
 
@@ -1331,11 +1284,10 @@ bool AudioManagerClass::Remove_Active_Handle_NoLock(AudioInstanceHandle audio_id
         auto groupIt = std::find(groupVec.begin(), groupVec.end(), audio_handle);
 
         if (groupIt != groupVec.end()) {
-            groupVec.erase(groupIt);  // The instance is deleted here automatically
+            groupVec.erase(groupIt);
         }
     }
 
-    // Automatically deletes the instance when erased
     ActiveInstanceMap.erase(it);
 
     return true;
@@ -1350,9 +1302,8 @@ bool AudioManagerClass::Remove_Active_Handle_NoLock(AudioInstanceHandle audio_id
 bool AudioManagerClass::Clear_All_Active_Handles()
 {
     {
-        std::scoped_lock lock(ThreadMutex); // Protect both maps
+        std::scoped_lock lock(ThreadMutex);
 
-        // Smart pointers handle deletion automatically.
         ActiveInstanceMap.clear();
         GroupedActiveInstanceMap.clear();
     }
@@ -1363,19 +1314,16 @@ bool AudioManagerClass::Clear_All_Active_Handles()
 
 AudioSampleClass * AudioManagerClass::Find_Sample(const std::string & filename, AudioGroupType group)
 {
-    {
-        std::scoped_lock lock(SubmissionMutex);
+    std::scoped_lock lock(SubmissionMutex);
 
-        std::string str(filename.c_str());
-        AudioSampleKey key{ str, group };
+    AudioSampleKey key{ filename, group };
 
-        auto it = SamplesMap.find(key);
-        if (it != SamplesMap.end()) {
-            return it->second.get(); // safe: Return the raw pointer, caller doesn't take ownership.
-        }
-
-        return nullptr;
+    auto it = SamplesMap.find(key);
+    if (it != SamplesMap.end()) {
+        return it->second.get();
     }
+
+    return nullptr;
 }
 
 

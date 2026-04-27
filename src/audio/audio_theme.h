@@ -86,11 +86,6 @@ private:
     ThemeType Pending = THEME_NONE;
 
     /**
-     *  Volume for scores.
-     */
-    // int Volume = 255;
-
-    /**
      *  Score should repeat?
      */
     bool IsRepeat = false;

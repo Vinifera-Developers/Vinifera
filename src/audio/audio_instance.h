@@ -63,7 +63,6 @@ public:
     float Get_Pan() const;
     float Get_Time() const;
     float Get_Length() const;
-    // float Get_Delay() const;
 
     bool Set_Looping(bool loop);
     bool Set_Loop_Limit(int total_plays);
@@ -76,8 +75,6 @@ public:
 
     unsigned Get_Sample_Rate() const;
     unsigned Get_Channels() const;
-
-    // bool Assign_To_Group(ma_sound_group *group) const;
 
     bool Is_Using_Custom_Decoder() const { return DecoderInitialized && Decoder != nullptr; }
 
@@ -152,7 +149,6 @@ private:
     ma_uint64 DelayedStartTimeMs = 0;
 
 public:
-    // Disable copy semantics
     AudioInstanceClass(const AudioInstanceClass&) = delete;
     AudioInstanceClass& operator=(const AudioInstanceClass&) = delete;
 };

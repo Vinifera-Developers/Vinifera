@@ -150,7 +150,6 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
         Sound = nullptr;
     }
     Sound = new ma_sound;
-    ASSERT(Sound != nullptr);
 
     // In Miniaudio, the ring buffer itself is a data source
     result = ma_sound_init_from_data_source(AudioManager.Engine,
@@ -246,27 +245,27 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
         }
 
         size_t frames = size / (Channels * (BitsPerSample / 8));
-        size_t framesPushed = 0;
+        size_t frames_pushed = 0;
         const ma_uint8* src = (const ma_uint8*)data;
 
-        while (framesPushed < frames) {
+        while (frames_pushed < frames) {
 
-            ma_uint32 framesToWrite = (ma_uint32)(frames - framesPushed);
+            ma_uint32 frames_to_write = (ma_uint32)(frames - frames_pushed);
             void* dst;
-            ma_uint32 framesWritable;
+            ma_uint32 frames_writable;
 
-            ma_pcm_rb_acquire_write(PCMBuffer, &framesWritable, &dst);
-            if (framesWritable == 0) {
+            ma_pcm_rb_acquire_write(PCMBuffer, &frames_writable, &dst);
+            if (frames_writable == 0) {
                 break; // buffer full
             }
 
-            if (framesWritable > framesToWrite) framesWritable = (ma_uint32)framesToWrite;
+            if (frames_writable > frames_to_write) frames_writable = (ma_uint32)frames_to_write;
 
-            memcpy(dst, src + framesPushed * Channels * (BitsPerSample/8),
-                   framesWritable * Channels * (BitsPerSample/8));
+            memcpy(dst, src + frames_pushed * Channels * (BitsPerSample/8),
+                   frames_writable * Channels * (BitsPerSample/8));
 
-            ma_pcm_rb_commit_write(PCMBuffer, framesWritable);
-            framesPushed += framesWritable;
+            ma_pcm_rb_commit_write(PCMBuffer, frames_writable);
+            frames_pushed += frames_writable;
         }
 
         /**
@@ -275,7 +274,7 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
          *  size would make Get_Cursor_In_PCM_Frames over-report consumption, which
          *  skews the VQA library's audio-time estimate and can desync playback.
          */
-        FramesPushed += framesPushed;
+        FramesPushed += frames_pushed;
 
     } else {
 
@@ -368,8 +367,8 @@ uint64_t AudioStreamingClass::Get_Frames_Played() const
 
     // Fallback: estimate from push-side counter minus buffered frames.
     if (IsPCM && PCMBuffer) {
-        ma_uint32 framesInBuffer = ma_pcm_rb_available_read(PCMBuffer);
-        return (FramesPushed > framesInBuffer) ? (FramesPushed - framesInBuffer) : 0;
+        ma_uint32 frames_in_buffer = ma_pcm_rb_available_read(PCMBuffer);
+        return (FramesPushed > frames_in_buffer) ? (FramesPushed - frames_in_buffer) : 0;
     }
 
     return FramesPushed;
@@ -398,8 +397,8 @@ uint64_t AudioStreamingClass::Get_Cursor_In_PCM_Frames() const
      *  Estimate consumption as: total pushed minus what's still buffered.
      */
     if (IsPCM && PCMBuffer) {
-        ma_uint32 framesInBuffer = ma_pcm_rb_available_read(PCMBuffer);
-        return (FramesPushed > framesInBuffer) ? (FramesPushed - framesInBuffer) : 0;
+        ma_uint32 frames_in_buffer = ma_pcm_rb_available_read(PCMBuffer);
+        return (FramesPushed > frames_in_buffer) ? (FramesPushed - frames_in_buffer) : 0;
     }
 
     return 0;

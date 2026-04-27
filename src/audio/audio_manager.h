@@ -13,12 +13,12 @@
 #include "vector.h"
 
 #include <atomic>
-#include <chrono> // for time tracking
+#include <chrono>
 #include <condition_variable>
-#include <memory> // for std::shared_ptr
-#include <mutex>  // for std::mutex, std::lock_guard
-#include <queue>  // for std::queue
-#include <thread> // for sleep_until
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -78,7 +78,6 @@ public:
     bool Query_Is_Active(AudioInstanceHandle id);
     bool Query_Is_Paused(AudioInstanceHandle id);
 
-    // bool Query_Sample_Ready(AudioInstanceHandle handle, AudioGroupType group);
     bool Query_Sample_Ready(std::string name, AudioGroupType group);
 
     /**
@@ -219,11 +218,7 @@ private:
     typedef struct AudioRequest {
 
         AudioRequestType Type = AudioRequestType::AUDIO_REQUEST_PLAY;
-
-        // For both Play and Stop
         AudioInstanceHandle HandleID = INVALID_AUDIO_INSTANCE_HANDLE;
-
-        // Only for Play
         std::string Filename;
         AudioGroupType Group = AUDIO_GROUP_NONE;
         float Volume = 1.0f;
@@ -237,13 +232,10 @@ private:
         bool Loops = false;
         int LoopLimit = 0;
         AudioControlType Control = AUDIO_CONTROL_NORMAL;
-
-        // Only for Stop
         float FadeOutSeconds = 0.0f;
 
         AudioRequest() = default;
 
-        // Constructor for Play
         AudioRequest(AudioInstanceHandle id, std::string filename, AudioGroupType group, float volume, float pitch, float pan, AudioPriorityType priority, int limit, float fadeIn, float delay, bool start, bool looping, int loop_limit, AudioControlType control) :
             Type(AudioRequestType::AUDIO_REQUEST_PLAY),
             HandleID(id),
@@ -263,7 +255,6 @@ private:
         {
         }
 
-        // Constructor for Stop
         AudioRequest(AudioInstanceHandle id, float fade_out) : Type(AudioRequestType::AUDIO_REQUEST_STOP), HandleID(id), FadeOutSeconds(fade_out) {}
 
     } AudioRequest;

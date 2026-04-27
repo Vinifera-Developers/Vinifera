@@ -154,14 +154,8 @@ private:
     std::optional<float> MaxVolume;
 
     /**
-     *  The FShift attribute alows the playback frequency to be randomly changed
-     *  in order to give some variance to repetitive sounds. The engine uses a
-     *  percentage value to represent the frequency of a sound. 100 percent
-     *  means normal frequency. 50 percent means half the frequency. 200 percent
-     *  means twice the frequency, and so on.
-     *
-     *  The minDelta and maxDelta values describe a range relative to 100 percent
-     *  frequency. For example:
+     *  The VShift attribute allows the playback volume to be randomly varied.
+     *  Values specify a delta range as a percentage of full volume, e.g.:
      *
      *     Volume = 80
      *     VShift = -5, 5     ; vary "Volume" between 75 and 85.
@@ -202,7 +196,7 @@ private:
     AudioControlType Control = AUDIO_CONTROL_NORMAL;
 
     /**
-     *  Do not touch!
+     *  Sound group — always SFX for voc entries; not loaded from INI.
      */
     AudioGroupType Group = AUDIO_GROUP_SFX;
 

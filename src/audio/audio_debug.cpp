@@ -76,7 +76,6 @@ static bool CreateDeviceD3D(HWND hWnd)
         return false;
     }
 
-    // Setup swap chain
     DXGI_SWAP_CHAIN_DESC sd;
     ZeroMemory(&sd, sizeof(sd));
     sd.BufferCount = 2;
@@ -94,7 +93,6 @@ static bool CreateDeviceD3D(HWND hWnd)
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
     UINT createDeviceFlags = 0;
-    //createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
     D3D_FEATURE_LEVEL featureLevel;
     const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
     if (D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &SwapChain, &D3DDevice, &featureLevel, &D3DDeviceContext) != S_OK) {
@@ -125,11 +123,7 @@ static void CleanupDeviceD3D()
 }
 
 /**
- *  ImGui Win32 message handler
- *  You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
- *  - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
- *  - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
- *  Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+ *  Win32 message handler; forwards inputs to ImGui before processing.
  */
 static LRESULT WINAPI Main_Window_Procedure(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -165,7 +159,6 @@ static void New_Frame()
         return;
     }
 
-    // Start the Dear ImGui frame
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
@@ -177,7 +170,6 @@ static void Render_Frame()
         return;
     }
 
-    // Rendering
     ImGui::Render();
 
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -213,8 +205,7 @@ static float Get_Monitor_DPI_Scale(HWND hWnd)
 
     HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
     if (SUCCEEDED(GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &x, &y)) && (x > 0) && (y > 0)) {
-        scMon = 1.0f * x / USER_DEFAULT_SCREEN_DPI;           // 1.25
-        // scMon = MulDiv(100, x, USER_DEFAULT_SCREEN_DPI);  // 125
+        scMon = 1.0f * x / USER_DEFAULT_SCREEN_DPI;
     }
 
     return scMon;
@@ -271,7 +262,6 @@ DWORD WINAPI AudioImGuiWindowThread(LPVOID)
  */
 bool AudioManagerClass::Create_Debug_Window()
 {
-    // Reset error codes
     SetLastError(0);
 
     DEBUG_INFO("Audio::Debug - Creating window.\n");
@@ -299,8 +289,8 @@ bool AudioManagerClass::Create_Debug_Window()
         return false;
     }
 
-    int win_width = 1000; //Options.ScreenWidth;
-    int win_height = 800; //Options.ScreenHeight;
+    int win_width = 1000;
+    int win_height = 800;
 
     HWND hwnd = CreateWindowEx(
         0,
@@ -323,7 +313,6 @@ bool AudioManagerClass::Create_Debug_Window()
 
     DEBUG_INFO("Audio::Debug - Setting window size.\n");
 
-    // Resposition and resize the window based on the monitor scale.
     float scale = AudioUtil::Get_Monitor_DPI_Scale(hwnd);
 
     SetWindowPos(hwnd,
@@ -336,7 +325,6 @@ bool AudioManagerClass::Create_Debug_Window()
 
     DEBUG_INFO("Audio::Debug - Creating Direct3D device.\n");
 
-    // Initialize Direct3D
     if (!AudioImGui::CreateDeviceD3D(hwnd)) {
         DEBUG_ERROR("Audio::Debug - Failed to create Direct3D device!\n");
         AudioImGui::CleanupDeviceD3D();
@@ -344,24 +332,16 @@ bool AudioManagerClass::Create_Debug_Window()
         return false;
     }
 
-    // Store the window handle.
     AudioImGui::MainWindow = hwnd;
 
-    // Show the window
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     UpdateWindow(hwnd);
 
-    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
     // The game hides the system cursor, this makes it show only in the ImGui window.
@@ -377,27 +357,8 @@ bool AudioManagerClass::Create_Debug_Window()
 
     DEBUG_INFO("Audio::Debug - Setting up platform and renderer.\n");
 
-    // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(AudioImGui::MainWindow);
     ImGui_ImplDX11_Init(AudioImGui::D3DDevice, AudioImGui::D3DDeviceContext);
-
-    // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != nullptr);
-
-    //ImGuiIO& io = ImGui::GetIO();
-    //io.Fonts->
 
     DEBUG_INFO("Audio::Debug: Window created.\n");
 
@@ -418,7 +379,6 @@ bool AudioManagerClass::Create_Debug_Window()
  */
 bool AudioManagerClass::Close_Debug_Window()
 {
-    // Cleanup
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
 
@@ -427,7 +387,6 @@ bool AudioManagerClass::Close_Debug_Window()
     AudioImGui::CleanupDeviceD3D();
 
     DestroyWindow(AudioImGui::MainWindow);
-    //UnregisterClass(wc.lpszClassName, wc.hInstance);
 
     return true;
 }
@@ -446,8 +405,6 @@ void AudioManagerClass::Debug_Window_Message_Handler()
 
     MSG msg;
 
-    // Poll and handle messages (inputs, window resize, etc.)
-    // See the WndProc() function below for our to dispatch events to the Win32 backend.
     while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -461,7 +418,6 @@ void AudioManagerClass::Debug_Window_Message_Handler()
 /**
  *  Debug logging handler and queue
  */
-// Queue struct
 typedef struct AudioDebugMessage {
     AudioDebugLogType type;
     AudioDebugLogLevel level;
@@ -594,10 +550,8 @@ void AudioManagerClass::Debug_Window_Loop()
             if (ImGui::BeginMenuBar()) {
                 for (int i = 0; i < std::size(AudioLogTabNames); ++i) {
                     if (ImGui::Button(AudioLogTabNames[i])) {
-                        // Save scroll position of previous tab
                         LogScrollY[SelectedDebugLogTab] = ImGui::GetScrollY();
                         SelectedDebugLogTab = i;
-                        // Restore scroll of new tab
                         LogScrollToBottom[i] = false; // Prevent auto-scroll override
                     }
                     ImGui::SameLine();
@@ -625,10 +579,8 @@ void AudioManagerClass::Debug_Window_Loop()
             
             ImGui::SetNextWindowSize(ImVec2(900, 600), ImGuiCond_Always);
 
-            // --- Log Display Area ---
             ImGui::BeginChild("LogWindow", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
-            // --- Log Rendering ---
             std::scoped_lock lock(AudioDebugLogMutex);
 
             for (const auto& msg : AudioDebugLogQueue) {
@@ -645,7 +597,6 @@ void AudioManagerClass::Debug_Window_Loop()
                 ImGui::TextColored(color, "%s %s", msg.timestamp.c_str(), msg.message.c_str());
             }
 
-            // --- Scroll Management ---
             if (AutoScroll) {
                 if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 5.0f) {
                     // Auto-scroll only if already at bottom
@@ -671,7 +622,6 @@ void AudioManagerClass::Debug_Window_Loop()
 
             ImGui::Begin("Audio Debug", nullptr, ImGuiWindowFlags_MenuBar);
 
-            // Taskbar
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::Button("Audio")) AudioMgrSelectedTab = AUDIO_TAB_INFO;
                 ImGui::SameLine();
@@ -686,7 +636,6 @@ void AudioManagerClass::Debug_Window_Loop()
                 default:
                 case TAB_AUDIO_INFO:
                 {
-                    // Sub window for tracker counts & contents
                     ImGui::BeginChild("Trackers", ImVec2(300, 200), true);
 
                     ImGui::Text("Music.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_MUSIC].size());
@@ -700,7 +649,6 @@ void AudioManagerClass::Debug_Window_Loop()
                     ImGui::Text("ActiveInstanceMap.Count = %d", static_cast<int>(AudioManager.ActiveInstanceMap.size()));
                     ImGui::Text("SamplesMap.Count = %d", static_cast<int>(AudioManager.SamplesMap.size()));
 
-                    // lambda for printing the contents of a group list.
                     auto DisplayGroupList = [](const char* label, const std::vector<AudioInstanceClass*>& trackerGroup) {
                         if (ImGui::TreeNode(label)) {
                             for (size_t i = 0; i < trackerGroup.size(); ++i) {
@@ -730,7 +678,6 @@ void AudioManagerClass::Debug_Window_Loop()
                 }
                 case TAB_GLOBALS:
                 {
-                    // Globals tab content (stub)
                     ImGui::BeginChild("Globals", ImVec2(300, 200), true);
 
                     ImGui::Text("Globals section - not implemented yet.");
@@ -741,7 +688,6 @@ void AudioManagerClass::Debug_Window_Loop()
                 }
                 case TAB_MISC:
                 {
-                    // Misc tab content (stub)
                     ImGui::BeginChild("Misc", ImVec2(300, 200), true);
 
                     ImGui::Text("Misc section - not implemented yet.");

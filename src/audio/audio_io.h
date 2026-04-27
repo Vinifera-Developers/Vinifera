@@ -13,6 +13,6 @@
 #include "miniaudio.h"
 
 /**
- *  Backend table that declares all the custom VFS callabcks.
+ *  Backend table that declares all the custom VFS callbacks.
  */
 extern ma_vfs_callbacks ma_custom_vfs_callbacks;

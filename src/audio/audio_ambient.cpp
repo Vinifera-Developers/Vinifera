@@ -189,8 +189,8 @@ bool IonAmbient::Start()
 
     if (!Handle->Is_Playing()) {
         Handle->Start();
-    
-        // Reduce the music group to 1/3 so it plays softly in the background.
+
+        // Reduce music to 1/3 volume so the ion storm ambient is clearly audible.
         OldMusicVolume = AudioManager.Get_Group_Volume(AUDIO_GROUP_MUSIC);
         AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, OldMusicVolume * 0.33f);
     }
@@ -207,11 +207,7 @@ bool IonAmbient::Stop()
 
     if (Handle->Is_Playing()) {
         Handle->Stop();
-    
-        // Return the music group back to the original volume.
         AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, OldMusicVolume);
-
-        // Destroy the ambient
         Handle.reset();
     }
 

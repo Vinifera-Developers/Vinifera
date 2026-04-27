@@ -66,32 +66,29 @@ static ma_result Audio_CCFile_onOpen(ma_vfs *pVFS, const char *pFilePath, ma_uin
         return MA_INVALID_ARGS;
     }
 
-    CCFileClass * hFile = new CCFileClass(pFilePath);
-    if (hFile == nullptr) {
-        return MA_OUT_OF_MEMORY;
-    }
+    CCFileClass * file_handle = new CCFileClass(pFilePath);
 
-    if (!hFile->Is_Available()) {
+    if (!file_handle->Is_Available()) {
         return MA_DOES_NOT_EXIST;
     }
 
     bool opened = false;
 
     if ((openMode & MA_OPEN_MODE_READ) != 0) {
-        opened = hFile->Open(FILE_ACCESS_READ);
+        opened = file_handle->Open(FILE_ACCESS_READ);
 
     } else if ((openMode & MA_OPEN_MODE_WRITE) != 0) {
-        opened = hFile->Open(FILE_ACCESS_WRITE);
+        opened = file_handle->Open(FILE_ACCESS_WRITE);
     }
 
-    if (!opened || !hFile->Is_Open()) {
+    if (!opened || !file_handle->Is_Open()) {
         return MA_DOES_NOT_EXIST;
     }
 
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onOpen -> %s\n", hFile->File_Name());
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onOpen -> %s\n", file_handle->File_Name());
 
     if (pFile != nullptr) {
-        *pFile = hFile;
+        *pFile = file_handle;
     }
 
     return MA_SUCCESS;
@@ -106,34 +103,31 @@ static ma_result Audio_CCFile_onOpenW(ma_vfs *pVFS, const wchar_t *pFilePath, ma
     }
 
     // Convert the input path to UTF8 as CCFileClass does not support wide strings.
-    std::string _filePath = wchar_to_utf8(std::wstring(pFilePath));
+    std::string file_path = wchar_to_utf8(std::wstring(pFilePath));
 
-    CCFileClass * hFile = new CCFileClass(_filePath.c_str());
-    if (hFile == nullptr) {
-        return MA_OUT_OF_MEMORY;
-    }
+    CCFileClass * file_handle = new CCFileClass(file_path.c_str());
 
-    if (!hFile->Is_Available()) {
+    if (!file_handle->Is_Available()) {
         return MA_DOES_NOT_EXIST;
     }
 
     bool opened = false;
 
     if ((openMode & MA_OPEN_MODE_READ) != 0) {
-        opened = hFile->Open(FILE_ACCESS_READ);
+        opened = file_handle->Open(FILE_ACCESS_READ);
 
     } else if ((openMode & MA_OPEN_MODE_WRITE) != 0) {
-        opened = hFile->Open(FILE_ACCESS_WRITE);
+        opened = file_handle->Open(FILE_ACCESS_WRITE);
     }
 
-    if (!opened || !hFile->Is_Open()) {
+    if (!opened || !file_handle->Is_Open()) {
         return MA_DOES_NOT_EXIST;
     }
 
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onOpenW -> %s\n", hFile->File_Name());
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onOpenW -> %s\n", file_handle->File_Name());
 
     if (pFile != nullptr) {
-        *pFile = hFile;
+        *pFile = file_handle;
     }
 
     return MA_SUCCESS;
@@ -147,16 +141,16 @@ static ma_result Audio_CCFile_onClose(ma_vfs *pVFS, ma_vfs_file file)
         return MA_INVALID_ARGS;
     }
 
-    CCFileClass * hFile = reinterpret_cast<CCFileClass *>(file);
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
 
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onClose -> %s\n", hFile->File_Name());
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onClose -> %s\n", file_handle->File_Name());
 
-    if (hFile != nullptr) {
-        if (hFile->Is_Open()) {
-            hFile->Close();
+    if (file_handle != nullptr) {
+        if (file_handle->Is_Open()) {
+            file_handle->Close();
         }
-        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: Deleting file object at %p (%s)\n", hFile, hFile->File_Name());
-        delete hFile;
+        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: Deleting file object at %p (%s)\n", file_handle, file_handle->File_Name());
+        delete file_handle;
     }
 
     return MA_SUCCESS;
@@ -170,11 +164,11 @@ static ma_result Audio_CCFile_onRead(ma_vfs *pVFS, ma_vfs_file file, void *pDst,
         return MA_INVALID_ARGS;
     }
 
-    CCFileClass * hFile = reinterpret_cast<CCFileClass *>(file);
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
 
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onRead -> %s, Read %zu bytes\n", hFile->File_Name(), sizeInBytes);
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onRead -> %s, Read %zu bytes\n", file_handle->File_Name(), sizeInBytes);
 
-    long totalBytesRead = hFile->Read(pDst, sizeInBytes);
+    long totalBytesRead = file_handle->Read(pDst, sizeInBytes);
     if (totalBytesRead == 0) {
         *pBytesRead = 0; // #BUGFIX: This will be fixed upstream in Miniaudio soon?
         return MA_AT_END;
@@ -199,9 +193,9 @@ static ma_result Audio_CCFile_onWrite(ma_vfs *pVFS, ma_vfs_file file, const void
         return MA_INVALID_ARGS;
     }
 
-    CCFileClass * hFile = reinterpret_cast<CCFileClass *>(file);
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
 
-    long totalBytesWritten = hFile->Write(pSrc, sizeInBytes);
+    long totalBytesWritten = file_handle->Write(pSrc, sizeInBytes);
     if (totalBytesWritten == 0) {
         *pBytesWritten = 0; // #BUGFIX: This will be fixed upstream in Miniaudio soon?
         return MA_AT_END;
@@ -223,7 +217,7 @@ static ma_result Audio_CCFile_onSeek(ma_vfs *pVFS, ma_vfs_file file, ma_int64 of
         return MA_INVALID_ARGS;
     }
 
-    CCFileClass * hFile = reinterpret_cast<CCFileClass *>(file);
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
 
     off_t off = (uint32_t)(offset);
     off_t retoff = 0;
@@ -231,15 +225,15 @@ static ma_result Audio_CCFile_onSeek(ma_vfs *pVFS, ma_vfs_file file, ma_int64 of
     switch (origin) {
         default:
         case ma_seek_origin_start:
-            retoff = hFile->Seek(off, FILE_SEEK_START);
+            retoff = file_handle->Seek(off, FILE_SEEK_START);
             break;
 
         case ma_seek_origin_current:
-            retoff = hFile->Seek(off, FILE_SEEK_CURRENT);
+            retoff = file_handle->Seek(off, FILE_SEEK_CURRENT);
             break;
 
         case ma_seek_origin_end:
-            retoff = hFile->Seek(off, FILE_SEEK_END);
+            retoff = file_handle->Seek(off, FILE_SEEK_END);
             break;
     };
 
@@ -258,10 +252,10 @@ static ma_result Audio_CCFile_onTell(ma_vfs *pVFS, ma_vfs_file file, ma_int64 *p
         return MA_INVALID_ARGS;
     }
 
-    CCFileClass * hFile = reinterpret_cast<CCFileClass *>(file);
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
 
     if (pCursor != nullptr) {
-        *pCursor = hFile->Tell();
+        *pCursor = file_handle->Tell();
     }
 
     return MA_SUCCESS;
@@ -275,10 +269,10 @@ static ma_result Audio_CCFile_onInfo(ma_vfs *pVFS, ma_vfs_file file, ma_file_inf
         return MA_INVALID_ARGS;
     }
 
-    CCFileClass * hFile = reinterpret_cast<CCFileClass *>(file);
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
 
     if (pInfo != nullptr) {
-        pInfo->sizeInBytes = hFile->Size();
+        pInfo->sizeInBytes = file_handle->Size();
     }
 
     return MA_SUCCESS;

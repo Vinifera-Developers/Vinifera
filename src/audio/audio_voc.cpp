@@ -104,94 +104,61 @@ void AudioVocClass::Calculate_Pan_And_Volume(Coord const& coord, float& pan_resu
     // Full screen width, used later for pan scaling.
     float tact_center_x_sq = tact_center_x + tact_center_x;
 
-     // Convert logical range in map cells to pixel range.
+    // Convert logical range in map cells to pixel range.
     float range = CELL_PIXEL_W * Get_Range();
 
     float volume = AUDIO_VOLUME_MIN;
     float pan = 0.0f;
 
-    /**
-     *  Adjust the volume of the sound.
-     */
     Point2D pixel;
-    //if (!TacticalMap->Coord_To_Pixel(coord, pixel)) {
     TacticalMap->Coord_To_Pixel(coord, pixel);
 
-        // Compute offset from center of screen in pixels.
-        float x_delta = static_cast<float>(pixel.X) - tact_center_x;
-        float y_delta = static_cast<float>(pixel.Y) - tact_center_y;
+    // Compute offset from center of screen in pixels.
+    float x_delta = static_cast<float>(pixel.X) - tact_center_x;
+    float y_delta = static_cast<float>(pixel.Y) - tact_center_y;
 
-        // Get unsigned distances from center.
-        float abs_dist_x = static_cast<float>(std::abs(static_cast<int>(x_delta)));
-        float abs_dist_y = static_cast<float>(std::abs(static_cast<int>(y_delta)));
+    float abs_dist_x = static_cast<float>(std::abs(static_cast<int>(x_delta)));
+    float abs_dist_y = static_cast<float>(std::abs(static_cast<int>(y_delta)));
 
-        // If not a "local" sound, push back distance artificially.
-        // This reduces volume for sounds near edge of screen or offscreen.
-        if ((Type & AUDIO_SOUND_LOCAL) == 0) {
-            abs_dist_x = abs_dist_x - tact_center_x;
-            abs_dist_y = abs_dist_y - tact_center_y;
-            abs_dist_x = std::max(abs_dist_x, 0.0f);
-            abs_dist_y = std::max(abs_dist_y, 0.0f);
-        }
+    // Non-local sounds fade based on distance from the screen edge, not center.
+    if ((Type & AUDIO_SOUND_LOCAL) == 0) {
+        abs_dist_x = std::max(abs_dist_x - tact_center_x, 0.0f);
+        abs_dist_y = std::max(abs_dist_y - tact_center_y, 0.0f);
+    }
 
-        // Stretch Y distance to weight vertical positioning more heavily.
-        float abs_dist_y_doubled = abs_dist_y + abs_dist_y;
+    // Stretch Y distance to weight vertical positioning more heavily.
+    float abs_dist_y_doubled = abs_dist_y + abs_dist_y;
 
-        // If position is within range, compute linearly scaled volume.
-        // Loudest at center, fades to 0 as it reaches outer edge of 'range'`'.
-        if (abs_dist_x < range && abs_dist_y_doubled < range && range > 0.0f) {
-            float subval = abs_dist_x > abs_dist_y_doubled ? abs_dist_x : abs_dist_y_doubled;
-            volume = (range - subval) / range;
-        }
+    // Linear volume falloff from center to the edge of the audible range.
+    if (abs_dist_x < range && abs_dist_y_doubled < range && range > 0.0f) {
+        float subval = abs_dist_x > abs_dist_y_doubled ? abs_dist_x : abs_dist_y_doubled;
+        volume = (range - subval) / range;
+    }
 
-        // If this is a global sound, enforce a minimum volume threshold.
-        if ((Type & AUDIO_SOUND_GLOBAL) != 0) {
-            volume = std::max(volume, Get_MinVolume());
-        }
+    // Global sounds enforce a floor so they remain audible everywhere.
+    if ((Type & AUDIO_SOUND_GLOBAL) != 0) {
+        volume = std::max(volume, Get_MinVolume());
+    }
 
-    //}
-
-    // If final volume is very low, cut it completely (optimization/mute).
-    if (volume < 0.05) {
+    if (volume < 0.05f) {
         volume = AUDIO_VOLUME_MIN;
     }
 
-    /**
-     * Calculate stereo panning based on X position.
-     * 
-     * - x_delta < 0 = left side of screen
-     * - x_delta > 0 = right side of screen
-     * - Pan is clamped to visible screen width * 2
-     */
-    if (x_delta < -tact_center_x_sq) {
-        x_delta = -tact_center_x_sq;
+    // Clamp X offset to ±2× the screen half-width before converting to pan.
+    x_delta = std::clamp(x_delta, -tact_center_x_sq, tact_center_x_sq);
 
-    } else if (x_delta > tact_center_x_sq) {
-        x_delta = tact_center_x_sq;
-    }
-
-    // Use 16K fixed-point scale for internal pan math.
-    // Converts X offset into a pan value in [0 .. pan_scale]
+    // Map x_delta in [-tact_center_x_sq, +tact_center_x_sq] to pan in [-1.0, +1.0].
     constexpr float pan_scale = 16384.0f;
-
     pan = (x_delta * (pan_scale / 2.0f) / tact_center_x_sq + (pan_scale / 2.0f));
-
-    // Normalize to float range [-1.0 .. +1.0] for audio API.
-    // Center is 0.0, left is -1.0, right is +1.0
     pan = (pan / (pan_scale / 2.0f)) - 1.0f;
 
-    /**
-     *  Finally, clamp the results within the expected ranges.
-     */
     volume_result = std::clamp(volume, AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     pan_result = std::clamp(pan, -1.0f, 1.0f);
-
-    //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Play - V %f P %f\n", volume_result, pan_result);
 }
 
 
 /**
- *  Plays a sound effect with positional volume/panning adjustments and shroud visibility checks.
+ *  Resolves a sound name to its on-disk filename and file type.
  *
  *  @author: CCHyper
  */
@@ -372,22 +339,15 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
 
     AudioInstanceHandle handle = INVALID_AUDIO_INSTANCE_HANDLE;
 
-    // As Voc instances are now preloaded in a new thread, we must use a mutex
     {
         std::scoped_lock lock(VocScanMutex);
 
-        /**
-         *  Submit the play request to the audio manager.
-         */
-        //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Play - About to call AudioManager.Play with \"%s\".\n", filename.c_str());
         handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit, Control);
         if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
             DEBUG_ERROR("Voc::Play - Failed to play \"%s\"!\n", Name.c_str());
             return handle;
         }
     }
-
-    //AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Play - Playing effect \"%s\".\n", Name.c_str());
 
     return handle;
 }
@@ -404,7 +364,6 @@ AudioEventHandle AudioVocClass::Internal_Play(Coord const& coord, int variation,
 {
     return AudioEventSystem::Start(*this, coord, variation, volume, fade_in_seconds);
 }
-
 
 
 /**
@@ -667,7 +626,6 @@ void AudioVocClass::Scan()
         vocptr->FileName = filename;
     }
 
-    // Call preload here to reduce patches.
     Preload();
 }
 
@@ -735,9 +693,9 @@ void AudioVocClass::ScanAsync()
 {
     std::thread([] {
         IsVocScanComplete.store(false);
-        Scan(); // Also calls preload for us
+        Scan();
         IsVocScanComplete.store(true);
-    }).detach(); // Fire-and-forget
+    }).detach();
 }
 
 
@@ -856,12 +814,10 @@ AudioVocClass *AudioVocClass::Voc_From_Name(const char *name)
         return nullptr;
     }
 
-    if (name != nullptr) {
-        for (VocType index = VOC_FIRST; index < AudioVocs.Count(); ++index) {
-            AudioVocClass *vocptr = AudioVocs[index];
-            if (strcasecmp(vocptr->Name.c_str(), name) == 0) {
-                return vocptr;
-            }
+    for (VocType index = VOC_FIRST; index < AudioVocs.Count(); ++index) {
+        AudioVocClass *vocptr = AudioVocs[index];
+        if (strcasecmp(vocptr->Name.c_str(), name) == 0) {
+            return vocptr;
         }
     }
 

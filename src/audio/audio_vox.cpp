@@ -300,7 +300,7 @@ bool AudioVoxClass::Process(CCINIClass const& ini)
                     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::Process: Creating new Vox %s.\n", voxptr->Name.c_str());
                 } else {
                     voxptr = Voxs[vox];
-                    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::Process: Found exiting Vox %s.\n", voxptr->Name.c_str());
+                    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::Process: Found existing Vox %s.\n", voxptr->Name.c_str());
                 }
                 voxptr->Read_INI(ini);
             }
@@ -342,7 +342,6 @@ void AudioVoxClass::Scan()
         AudioManager.Get_File_Info(name, voxptr->FileType, voxptr->FileName);
     }
 
-    // Call preload here to reduce patches.
     Preload();
 }
 
@@ -402,9 +401,9 @@ void AudioVoxClass::ScanAsync()
 {
     std::thread([] {
         IsVoxScanComplete.store(false);
-        Scan(); // Also calls preload for us
+        Scan();
         IsVoxScanComplete.store(true);
-    }).detach(); // Fire-and-forget
+    }).detach();
 }
 
 
@@ -563,7 +562,6 @@ void AudioVoxClass::AI()
 
     AudioInstanceHandle handle = INVALID_AUDIO_INSTANCE_HANDLE;
 
-    // As Vox instances are now preloaded in a new thread, we must use a mutex
     {
         std::scoped_lock lock(VoxScanMutex);
 
@@ -585,7 +583,7 @@ void AudioVoxClass::AI()
     }
 
     if (AudioManager.Query_Is_Active(SpeechHandle)) {
-        AudioManager.Request_Stop(SpeechHandle, 0.5f); // A small fade out sounds better.
+        AudioManager.Request_Stop(SpeechHandle, 0.5f);
     }
 
     SpeechHandle = handle;
@@ -611,7 +609,7 @@ void AudioVoxClass::Stop_Speaking()
     NormalQueue.clear();
     InterruptQueue.clear();
 
-    AudioManager.Request_Stop(SpeechHandle, 0.5f); // sounds better when it fades out.
+    AudioManager.Request_Stop(SpeechHandle, 0.5f);
 
     if (TacticalMapExtension) {
         TacticalMapExtension->Clear_Subtitle();
@@ -701,8 +699,6 @@ bool AudioVoxClass::Write_Default_Speech_INI(CCINIClass &ini)
         /**
          *  Now write the keys for its section.
          */
-        //ini.Put_Int(vox_name, "Priority", DefaultPriority);
-
     }
 
     return true;

@@ -14,18 +14,10 @@
 
 
 /**
- *  Audio handle types — two deliberately distinct strong typedefs.
- *
- *  AudioInstanceHandle identifies one playing sample owned by AudioManager.
- *  AudioEventHandle identifies one logical voc event owned by AudioEventSystem.
- *
- *  VOC playback (anything driven by AudioVocClass / SOUND.INI) returns
- *  AudioEventHandle and is operated on through AudioEventSystem. Music,
- *  EVA speech, and VQA streaming use AudioManager directly and therefore
- *  return AudioInstanceHandle. The two types are not interchangeable —
- *  a compile error here is the intended outcome, since an event may swap
- *  the underlying AudioInstanceHandle it drives over its lifetime
- *  (e.g. across body cycles, attack/decay tails, looped retriggers).
+ *  Two deliberately distinct handle types. VOC playback routes through
+ *  AudioEventSystem (AudioEventHandle); music, speech, and VQA streaming
+ *  go directly to AudioManager (AudioInstanceHandle). The types are not
+ *  interchangeable — a compile error here is the intended outcome.
  */
 
 
@@ -259,7 +251,7 @@ typedef enum AudioSoundType
     AUDIO_SOUND_SCREEN = 1 << 2,
 
     /**
-     *  Only audible are its point of origin in the game world.
+     *  Only audible at its point of origin in the game world.
      */
     AUDIO_SOUND_LOCAL = 1 << 3,
 
@@ -284,7 +276,7 @@ typedef enum AudioSoundType
     /**
      *  Reserved for use by UI sound effects.
      */
-     AUDIO_SOUND_UI = 1 << 7,
+    AUDIO_SOUND_UI = 1 << 7,
 
 } AudioSoundType;
 
@@ -333,7 +325,6 @@ struct AudioSampleKey {
     bool operator!=(const AudioSampleKey& other) const { return !(*this == other); }
 };
 
-// Custom hasher for the unordered_map
 namespace std
 {
     template <>
