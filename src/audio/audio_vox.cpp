@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <deque>
 #include <thread>
 
 
@@ -40,8 +41,7 @@ DynamicVectorClass<AudioVoxClass *> Voxs;
 /**
  *  AudioVoxClass statics.
  */
-bool AudioVoxClass::IsSpeechAllowed = true;
-int AudioVoxClass::DefaultPriority = AudioManagerClass::AudioPriority_To_Priority(AUDIO_PRIORITY_NORMAL);
+AudioVoxClass::VoxPriorityType AudioVoxClass::DefaultPriority = AudioVoxClass::VOX_PRIORITY_NORMAL;
 float AudioVoxClass::DefaultDelay = 0.2f; // We add a fake delay so the speech is not played on top of the building placement sound effect etc.
 float AudioVoxClass::DefaultFrequencyShift = 1.0f;
 float AudioVoxClass::DefaultVolume = AUDIO_VOLUME_MAX;
@@ -54,6 +54,103 @@ float AudioVoxClass::DefaultMaxVolume = AUDIO_VOLUME_MAX;
  *  used to query if a speech is currently playing.
  */
 static AudioInstanceHandle SpeechHandle = INVALID_AUDIO_INSTANCE_HANDLE;
+
+
+/**
+ *  Vinifera-owned speech queue state. The vanilla TS SpeakQueue/CurrentVoice
+ *  globals (declared in TSpp/src/vox.h) are no longer used.
+ */
+namespace {
+
+struct VoxQueueEntry
+{
+    VoxType voice;
+    AudioVoxClass::VoxPriorityType priority;
+};
+
+std::deque<VoxQueueEntry> NormalQueue;
+std::deque<VoxQueueEntry> InterruptQueue;
+VoxType ActiveVoice = VOX_NONE;
+
+
+/**
+ *  Insert into a queue keeping it sorted by priority desc, FIFO within priority.
+ */
+void Insert_Sorted(std::deque<VoxQueueEntry>& q, VoxQueueEntry entry)
+{
+    auto it = std::find_if(q.begin(), q.end(),
+        [&](const VoxQueueEntry& x) { return x.priority < entry.priority; });
+    q.insert(it, entry);
+}
+
+
+/**
+ *  Returns true if the voice is already pending in either queue.
+ */
+bool Is_Queued(VoxType voice)
+{
+    auto match = [&](const VoxQueueEntry& x) { return x.voice == voice; };
+    return std::any_of(NormalQueue.begin(), NormalQueue.end(), match)
+        || std::any_of(InterruptQueue.begin(), InterruptQueue.end(), match);
+}
+
+
+/**
+ *  Map our queue priority enum to the audio engine's priority enum so the
+ *  sample-slot arbitration in the audio thread stays in sync.
+ */
+AudioPriorityType To_Audio_Priority(AudioVoxClass::VoxPriorityType p)
+{
+    switch (p) {
+    case AudioVoxClass::VOX_PRIORITY_LOW:       return AUDIO_PRIORITY_LOW;
+    case AudioVoxClass::VOX_PRIORITY_NORMAL:    return AUDIO_PRIORITY_NORMAL;
+    case AudioVoxClass::VOX_PRIORITY_IMPORTANT: return AUDIO_PRIORITY_HIGH;
+    case AudioVoxClass::VOX_PRIORITY_CRITICAL:  return AUDIO_PRIORITY_CRITICAL;
+    }
+    return AUDIO_PRIORITY_NORMAL;
+}
+
+
+/**
+ *  Parse a priority name (case-insensitive). Returns the fallback if no match.
+ */
+AudioVoxClass::VoxPriorityType Priority_From_Name(const char* name, AudioVoxClass::VoxPriorityType fallback)
+{
+    if (!name || !*name) return fallback;
+    if (stricmp(name, "LOW") == 0)       return AudioVoxClass::VOX_PRIORITY_LOW;
+    if (stricmp(name, "NORMAL") == 0)    return AudioVoxClass::VOX_PRIORITY_NORMAL;
+    if (stricmp(name, "IMPORTANT") == 0) return AudioVoxClass::VOX_PRIORITY_IMPORTANT;
+    if (stricmp(name, "CRITICAL") == 0)  return AudioVoxClass::VOX_PRIORITY_CRITICAL;
+    return fallback;
+}
+
+
+const char* Name_From_Priority(AudioVoxClass::VoxPriorityType p)
+{
+    switch (p) {
+    case AudioVoxClass::VOX_PRIORITY_LOW:       return "LOW";
+    case AudioVoxClass::VOX_PRIORITY_NORMAL:    return "NORMAL";
+    case AudioVoxClass::VOX_PRIORITY_IMPORTANT: return "IMPORTANT";
+    case AudioVoxClass::VOX_PRIORITY_CRITICAL:  return "CRITICAL";
+    }
+    return "NORMAL";
+}
+
+
+/**
+ *  Parse a control name (case-insensitive). Returns the fallback if no match.
+ */
+AudioVoxClass::VoxControlType Control_From_Name(const char* name, AudioVoxClass::VoxControlType fallback)
+{
+    if (!name || !*name) return fallback;
+    if (stricmp(name, "QUEUE") == 0)             return AudioVoxClass::VOX_CONTROL_QUEUE;
+    if (stricmp(name, "STANDARD") == 0)          return AudioVoxClass::VOX_CONTROL_STANDARD;
+    if (stricmp(name, "INTERRUPT") == 0)         return AudioVoxClass::VOX_CONTROL_INTERRUPT;
+    if (stricmp(name, "QUEUED_INTERRUPT") == 0)  return AudioVoxClass::VOX_CONTROL_QUEUED_INTERRUPT;
+    return fallback;
+}
+
+} // namespace
 
 
 /**
@@ -112,7 +209,10 @@ void AudioVoxClass::Read_INI(CCINIClass const& ini)
     }
 
     if (ini.Is_Present(name, "Priority")) {
-        Priority = ini.Get_Int(name, "Priority", Get_Priority());
+        char prioritybuf[32];
+        if (ini.Get_String(name, "Priority", "", prioritybuf, sizeof(prioritybuf)) > 0) {
+            Priority = Priority_From_Name(prioritybuf, Get_Priority());
+        }
     }
     if (ini.Is_Present(name, "Volume")) {
         Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Get_Volume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
@@ -137,35 +237,9 @@ void AudioVoxClass::Read_INI(CCINIClass const& ini)
         SideSounds[i] = ini.Get_String(name, Sides[i]->IniName.c_str(), SideSounds[i]);
     }
 
-    char buffer[256];
+    char buffer[64];
     if (ini.Get_String(name, "Control", "", buffer, sizeof(buffer)) > 0) {
-        static struct {
-            std::string name;
-            AudioControlType control;
-        } _control_types[] = {
-            "NORMAL", AUDIO_CONTROL_NORMAL,
-            "QUEUE", AUDIO_CONTROL_QUEUE,
-            "QUEUED_INTERRUPT", AUDIO_CONTROL_QUEUED_INTERRUPT,
-            "INTERRUPT", AUDIO_CONTROL_INTERRUPT,
-        };
-
-        int flags = 0;
-        const char* type = std::strtok(buffer, ",");
-
-        while (type) {
-            std::string tmp = type;
-            string_to_upper(tmp);
-
-            for (auto& control_type : _control_types) {
-                if (control_type.name == tmp) {
-                    flags |= control_type.control;
-                }
-            }
-
-            type = std::strtok(nullptr, ",");
-        }
-
-        Control = static_cast<AudioControlType>(flags);
+        Control = Control_From_Name(buffer, Control);
     }
 }
 
@@ -201,7 +275,10 @@ bool AudioVoxClass::Process(CCINIClass const& ini)
      *  Load the global default values for speech entries.
      */
     if (ini.Is_Present(DEFAULTS)) {
-        DefaultPriority = ini.Get_Int(DEFAULTS, "Priority", DefaultPriority);
+        char prioritybuf[32];
+        if (ini.Get_String(DEFAULTS, "Priority", "", prioritybuf, sizeof(prioritybuf)) > 0) {
+            DefaultPriority = Priority_From_Name(prioritybuf, DefaultPriority);
+        }
         DefaultDelay = ini.Get_Float(DEFAULTS, "Delay", DefaultDelay);
         DefaultFrequencyShift = std::clamp<float>(ini.Get_Float(DEFAULTS, "FShift", DefaultFrequencyShift), 0.1f, 2.0f);
         DefaultVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "Volume", DefaultVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
@@ -292,15 +369,17 @@ void AudioVoxClass::Preload()
         }
 
         /**
-         *  Submit this speech sample to the audio manager with its configured properties.
+         *  Submit this speech sample to the audio manager. Speech is always voice-typed
+         *  and the queue/interrupt logic is owned by AudioVoxClass, not the audio engine,
+         *  so we hardcode AUDIO_SOUND_VOICE / AUDIO_CONTROL_NORMAL here.
          */
         bool submitted = AudioManager.Submit_Sample(
             voxptr->FileName,
             voxptr->FileType,
             AUDIO_GROUP_SPEECH,
-            AudioManagerClass::Priority_To_AudioPriority(voxptr->Get_Priority()),
-            voxptr->Control,
-            voxptr->Type,
+            To_Audio_Priority(voxptr->Get_Priority()),
+            AUDIO_CONTROL_NORMAL,
+            AUDIO_SOUND_VOICE,
             1);
 
         if (submitted) {
@@ -337,26 +416,18 @@ void AudioVoxClass::ScanAsync()
 void AudioVoxClass::Clear()
 {
     while (Voxs.Count() > 0) {
-        //int index = Voxs.Count()-1;
         delete Voxs[0];
-        //Voxs.Delete(index);
     }
-
-#ifndef NDEBUG
-    // To help find duplicate loading errors.
-    ASSERT_FATAL_PRINT(Voxs.Count() == 0, "Voxs.Count == %d.", Voxs.Count());
-#endif
 }
 
 
 /**
  *  EVA speaks to the player.
- * 
- *  @author: CCHyper
+ *
+ *  @author: CCHyper, ZivDero
  */
 void AudioVoxClass::Speak(VoxType voice, bool now)
 {
-    //ASSERT(voice != VOX_NONE);    // Removed, triggers when some superweapons enable for some reason...
     ASSERT(voice < Voxs.Count());
 
     if (!AudioManager.Is_Available() || Debug_Quiet) {
@@ -367,11 +438,11 @@ void AudioVoxClass::Speak(VoxType voice, bool now)
         return;
     }
 
-    if (voice == VOX_NONE || voice == SpeakQueue || voice == CurrentVoice) {
+    if (voice == VOX_NONE || voice == ActiveVoice || Is_Queued(voice)) {
         return;
     }
 
-    if (!IsSpeechAllowed) {
+    if (!SpeechEnabled) {
         AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox::Speak - Speech is disabled!\n");
         return;
     }
@@ -382,23 +453,39 @@ void AudioVoxClass::Speak(VoxType voice, bool now)
         return;
     }
 
-    const bool can_interrupt = now || (voxptr->Control & (AUDIO_CONTROL_INTERRUPT | AUDIO_CONTROL_QUEUED_INTERRUPT)) != 0;
+    const VoxControlType ctrl = now ? VOX_CONTROL_INTERRUPT : voxptr->Control;
+    const VoxQueueEntry entry { voice, voxptr->Get_Priority() };
 
-    if (SpeakQueue != VOX_NONE && !can_interrupt) {
-        return;
-    }
-
-    if (can_interrupt && AudioManager.Query_Is_Active(SpeechHandle)) {
-        AudioManager.Request_Stop(SpeechHandle, 0.25f);
-        CurrentVoice = VOX_NONE;
-    }
-
-    SpeakQueue = voice;
-
-    if (now) {
+    switch (ctrl) {
+    case VOX_CONTROL_STANDARD:
+        if (ActiveVoice != VOX_NONE || !NormalQueue.empty() || !InterruptQueue.empty()) {
+            return;
+        }
+        InterruptQueue.push_front(entry);
         SpeakTimer = 0;
         AI();
         return;
+
+    case VOX_CONTROL_INTERRUPT:
+        if (AudioManager.Query_Is_Active(SpeechHandle)) {
+            AudioManager.Request_Stop(SpeechHandle, 0.25f);
+        }
+        ActiveVoice = VOX_NONE;
+        NormalQueue.clear();
+        InterruptQueue.clear();
+        InterruptQueue.push_back(entry);
+        SpeakTimer = 0;
+        AI();
+        return;
+
+    case VOX_CONTROL_QUEUED_INTERRUPT:
+        Insert_Sorted(InterruptQueue, entry);
+        break;
+
+    case VOX_CONTROL_QUEUE:
+    default:
+        Insert_Sorted(NormalQueue, entry);
+        break;
     }
 
     if (SpeakTimer.Expired()) {
@@ -427,7 +514,7 @@ void AudioVoxClass::Speak(std::string const& name, bool now)
 /**
  *  Handles starting the EVA voices.
  *
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 void AudioVoxClass::AI()
 {
@@ -443,28 +530,29 @@ void AudioVoxClass::AI()
         return;
     }
 
-    if (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle)) {
-        return;
-    }
+    if (ActiveVoice != VOX_NONE) {
+        if (AudioManager.Query_Is_Active(SpeechHandle)) {
+            return;
+        }
 
-    if (CurrentVoice != VOX_NONE) {
-        CurrentVoice = VOX_NONE;
+        ActiveVoice = VOX_NONE;
         if (TacticalMapExtension) {
             TacticalMapExtension->Clear_Subtitle();
         }
     }
 
-    if (SpeakQueue != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle)) {
+    if (InterruptQueue.empty() && NormalQueue.empty()) {
         return;
     }
 
-    if (SpeakQueue == VOX_NONE) {
-        return;
-    }
+    /**
+     *  Pop the next entry: interrupt queue drains before the normal queue.
+     */
+    std::deque<VoxQueueEntry>& source = !InterruptQueue.empty() ? InterruptQueue : NormalQueue;
+    VoxQueueEntry next = source.front();
+    source.pop_front();
 
-    CurrentVoice = VOX_NONE;
-
-    AudioVoxClass *voxptr = Voxs[SpeakQueue];
+    AudioVoxClass *voxptr = Voxs[next.voice];
     if (!voxptr) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOX, "Vox::AI - voxptr is null!\n");
         return;
@@ -482,13 +570,10 @@ void AudioVoxClass::AI()
         /**
          *  Speech file was found, now play it.
          */
-        VoxType vox = SpeakQueue;
         float vol = std::clamp(voxptr->Get_Volume(), voxptr->Get_MinVolume(), voxptr->Get_MaxVolume());
         float pitch = voxptr->Get_FrequencyShift();
         float delay = voxptr->Get_Delay();
-        AudioPriorityType priority = AudioManagerClass::Priority_To_AudioPriority(voxptr->Get_Priority());
-        AudioSoundType type = voxptr->Type;
-        AudioControlType control = voxptr->Control;
+        AudioPriorityType priority = To_Audio_Priority(voxptr->Get_Priority());
 
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::AI - About to call AudioManager.Play with \"%s\".\n", filename.c_str());
         handle = AudioManager.Request_Play(filename, AUDIO_GROUP_SPEECH, vol, pitch, 0.0f, priority, 1, 0.0f, delay);
@@ -496,7 +581,6 @@ void AudioVoxClass::AI()
 
     if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOX, "Vox::AI - Failed to play \"%s\"!\n", name.c_str());
-        SpeakQueue = VOX_NONE;
         return;
     }
 
@@ -505,9 +589,7 @@ void AudioVoxClass::AI()
     }
 
     SpeechHandle = handle;
-    CurrentVoice = SpeakQueue;
-
-    SpeakQueue = VOX_NONE;
+    ActiveVoice = next.voice;
 
     if (TacticalMapExtension) {
         if (!voxptr->DescriptionText.empty()) {
@@ -521,12 +603,13 @@ void AudioVoxClass::AI()
 
 /**
  *  Forces the EVA voice to stop talking.
- * 
+ *
  *  @author: CCHyper
  */
 void AudioVoxClass::Stop_Speaking()
 {
-    SpeakQueue = VOX_NONE;
+    NormalQueue.clear();
+    InterruptQueue.clear();
 
     AudioManager.Request_Stop(SpeechHandle, 0.5f); // sounds better when it fades out.
 
@@ -538,12 +621,12 @@ void AudioVoxClass::Stop_Speaking()
 
 /**
  *  Checks to see if the eva voice is still playing.
- * 
+ *
  *  @author: CCHyper
  */
 bool AudioVoxClass::Is_Speaking()
 {
-    Speak_AI();
+    AI();
 
     if (!AudioManager.Is_Available() || Debug_Quiet) {
         return false;
@@ -553,7 +636,8 @@ bool AudioVoxClass::Is_Speaking()
         return false;
     }
 
-    return (SpeakQueue != VOX_NONE) || (CurrentVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle));
+    return !NormalQueue.empty() || !InterruptQueue.empty()
+        || (ActiveVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle));
 }
 
 
@@ -564,10 +648,10 @@ bool AudioVoxClass::Is_Speaking()
  */
 bool AudioVoxClass::Get_Current(const char*& out_text, SubtitleCategoryType& out_cat)
 {
-    if (CurrentVoice == VOX_NONE || CurrentVoice >= Voxs.Count()) {
+    if (ActiveVoice == VOX_NONE || ActiveVoice >= Voxs.Count()) {
         return false;
     }
-    AudioVoxClass* v = Voxs[CurrentVoice];
+    AudioVoxClass* v = Voxs[ActiveVoice];
     if (!v || v->DescriptionText.empty()) {
         return false;
     }
@@ -613,7 +697,7 @@ bool AudioVoxClass::Write_Default_Speech_INI(CCINIClass &ini)
     /**
      *  Save the default sound values.
      */
-    ini.Put_Int(DEFAULTS, "Priority", DefaultPriority);
+    ini.Put_String(DEFAULTS, "Priority", Name_From_Priority(DefaultPriority));
     ini.Put_Float(DEFAULTS, "Delay", DefaultDelay);
     ini.Put_Float(DEFAULTS, "FrequencyShift", DefaultFrequencyShift);
     ini.Put_Float(DEFAULTS, "Volume", DefaultVolume);
@@ -689,7 +773,7 @@ const char *AudioVoxClass::Name_From(VoxType type)
  */
 void AudioVoxClass::Set_Speech_Allowed(bool set)
 {
-    IsSpeechAllowed = set;
+    SpeechEnabled = set;
 }
 
 
@@ -700,7 +784,7 @@ void AudioVoxClass::Set_Speech_Allowed(bool set)
  */
 bool AudioVoxClass::Is_Speech_Allowed()
 {
-    return IsSpeechAllowed;
+    return SpeechEnabled;
 }
 
 

@@ -30,6 +30,28 @@ public:
         SUBTITLE_CATEGORY_STORY     // Narrative / mission lines.
     };
 
+    /**
+     *  Speech-only playback policy. Mutually exclusive (not a bitfield) and
+     *  decoupled from the global AudioControlType used by other audio.
+     */
+    enum VoxControlType {
+        VOX_CONTROL_QUEUE,              // Insert into the normal queue.
+        VOX_CONTROL_STANDARD,           // Play only if nothing is currently speaking and both queues are empty.
+        VOX_CONTROL_INTERRUPT,          // Stop current speech, clear both queues, play immediately.
+        VOX_CONTROL_QUEUED_INTERRUPT,   // Insert into the interrupt queue (drains before the normal queue).
+    };
+
+    /**
+     *  Speech-only priority used to order entries within a queue.
+     *  Higher values drain first; equal values are FIFO.
+     */
+    enum VoxPriorityType {
+        VOX_PRIORITY_LOW,
+        VOX_PRIORITY_NORMAL,
+        VOX_PRIORITY_IMPORTANT,
+        VOX_PRIORITY_CRITICAL,
+    };
+
     AudioVoxClass(std::string name);
     ~AudioVoxClass();
 
@@ -65,22 +87,18 @@ public:
     static bool Is_Speech_Allowed();
 
 private:
-    /**
-     *  Controls whether EVA speech playback is globally enabled.
-     */
-    static bool IsSpeechAllowed;
 
     /**
      *  These are the defaults for all speeches loaded from the ini database.
      */
-    static int DefaultPriority;
+    static VoxPriorityType DefaultPriority;
     static float DefaultDelay;
     static float DefaultFrequencyShift;
     static float DefaultVolume;
     static float DefaultMinVolume;
     static float DefaultMaxVolume;
 
-    int Get_Priority() const { return Priority.value_or(DefaultPriority); }
+    VoxPriorityType Get_Priority() const { return Priority.value_or(DefaultPriority); }
     float Get_Delay() const { return Delay.value_or(DefaultDelay); }
     float Get_FrequencyShift() const { return FrequencyShift.value_or(DefaultFrequencyShift); }
     float Get_Volume() const { return Volume.value_or(DefaultVolume); }
@@ -134,14 +152,11 @@ private:
     std::vector<std::string> SideSounds;
 
     /**
-     *  Priority and Limit are the most important attributes of them all. While
-     *  possibly hundreds of audio events want to trigger every frame, only a few
-     *  will be chosen. It is vitally important to ensure that important events
-     *  do not get dropped. The audio engine uses the priority of the audio event
-     *  when choosing which events to drop. So make priorities are set correctly
-     *  for all events.
+     *  Priority used to order entries within a queue. Higher priorities drain
+     *  first; equal priorities are FIFO. This is also forwarded to the audio
+     *  engine for sample-slot arbitration.
      */
-    std::optional<int> Priority;
+    std::optional<VoxPriorityType> Priority;
 
     /**
      *  The playback volume for this speech entry.
@@ -165,14 +180,9 @@ private:
     std::optional<float> FrequencyShift;
 
     /**
-     *  The sound type flags for this speech entry.
+     *  The playback policy for this speech entry.
      */
-    AudioSoundType Type = AUDIO_SOUND_VOICE;
-
-    /**
-     *  The playback control flags for this speech entry.
-     */
-    AudioControlType Control = AUDIO_CONTROL_QUEUE;
+    VoxControlType Control = VOX_CONTROL_QUEUE;
 };
 
 extern DynamicVectorClass<AudioVoxClass*> Voxs;
