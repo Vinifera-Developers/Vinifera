@@ -1,8 +1,8 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Classic sidebar view — two single-column strips side by
- *          side, matching the vanilla Tiberian Sun layout.
+ *  @brief  Classic sidebar view implementation. Two single-column strips
+ *          side by side, matching the vanilla Tiberian Sun layout.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors

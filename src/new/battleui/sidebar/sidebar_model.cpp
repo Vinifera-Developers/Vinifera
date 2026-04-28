@@ -1,7 +1,8 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Sidebar data model implementation.
+ *  @brief  Sidebar data model. Holds the buildable items grouped
+ *          into categories, with production state queries and sorting.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors

@@ -1,9 +1,8 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Power bar view. Renders the animated pip-based power bar
- *          on the sidebar surface. Ported from the original Tiberian
- *          Sun PowerClass rendering and animation logic.
+ *  @brief  Power bar view implementation. Ported from the original
+ *          Tiberian Sun PowerClass rendering and animation logic.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors

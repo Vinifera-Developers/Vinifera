@@ -1,8 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Power bar component. Owns the power data model and view,
- *          and implements the IBattleUIComponent lifecycle interface.
+ *  @brief  Power bar component.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
