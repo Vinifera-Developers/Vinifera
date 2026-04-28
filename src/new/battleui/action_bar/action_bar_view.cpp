@@ -35,6 +35,23 @@ const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 }
 
 
+/**
+ *  Returns the action bar button table bound to the active sidebar layout.
+ *
+ *  @author: ZivDero
+ */
+std::array<ActionBarView::ButtonInfo, 4> ActionBarView::Get_Button_Info()
+{
+    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
+    return { {
+        { RepairButton,   layout.RepairButton,   SidebarClass::BUTTON_REPAIR,   TXT_REPAIR_MODE,  layout.RepairButtonShape },
+        { SellButton,     layout.SellButton,     SidebarClass::BUTTON_SELL,     TXT_SELL_MODE,    layout.SellButtonShape },
+        { PowerButton,    layout.PowerButton,    SidebarClass::BUTTON_POWER,    TXT_POWER_MODE,   layout.PowerButtonShape },
+        { WaypointButton, layout.WaypointButton, SidebarClass::BUTTON_WAYPOINT, TXT_WAYPOINTMODE, layout.WaypointButtonShape },
+    } };
+}
+
+
 /***************************************************************************
 **  Lifecycle and layout
 ***************************************************************************/
@@ -48,15 +65,11 @@ const BattleSidebarLayoutBase& Get_Sidebar_Layout(SidebarViewType view_type)
 void ActionBarView::Init_Clear()
 {
     IsActive = false;
-    RepairButton.IsPressed = false;
-    SellButton.IsPressed = false;
-    PowerButton.IsPressed = false;
-    WaypointButton.IsPressed = false;
 
-    if (RepairButton.IsOn) RepairButton.Turn_Off();
-    if (SellButton.IsOn) SellButton.Turn_Off();
-    if (PowerButton.IsOn) PowerButton.Turn_Off();
-    if (WaypointButton.IsOn) WaypointButton.Turn_Off();
+    for (auto info : Get_Button_Info()) {
+        info.Button.IsPressed = false;
+        if (info.Button.IsOn) info.Button.Turn_Off();
+    }
 }
 
 
@@ -71,34 +84,26 @@ void ActionBarView::Init_IO()
         return;
     }
 
-    ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
-    const int button_ids[] = {
-        SidebarClass::BUTTON_REPAIR,
-        SidebarClass::BUTTON_SELL,
-        SidebarClass::BUTTON_POWER,
-        SidebarClass::BUTTON_WAYPOINT
-    };
-    const int button_x[] = {
-        TacticalRect.Width + TacticalRect.X,
-        TacticalRect.Width + TacticalRect.X + 27,
-        TacticalRect.Width + TacticalRect.X + 54,
-        TacticalRect.Width + TacticalRect.X + 81
-    };
-
-    for (int i = 0; i < 4; ++i) {
-        buttons[i]->X = button_x[i];
-        buttons[i]->Y = 148;
-        buttons[i]->IsSticky = true;
-        buttons[i]->ID = button_ids[i];
-        buttons[i]->DrawX = -480;
-        buttons[i]->DrawY = 3;
-        buttons[i]->DrawnOnSidebarSurface = true;
-        buttons[i]->ShapeDrawer = SidebarDrawer;
-        buttons[i]->IsPressed = false;
-        buttons[i]->IsToggleType = true;
-        buttons[i]->ReflectButtonState = true;
+    const int base_x = TacticalRect.Width + TacticalRect.X;
+    int i = 0;
+    for (auto info : Get_Button_Info()) {
+        ShapeButtonClass& btn = info.Button;
+        btn.X = base_x + i * 27;
+        btn.Y = 148;
+        btn.IsSticky = true;
+        btn.ID = info.ID;
+        btn.DrawX = -480;
+        btn.DrawY = 3;
+        btn.DrawnOnSidebarSurface = true;
+        btn.ShapeDrawer = SidebarDrawer;
+        btn.IsPressed = false;
+        btn.IsToggleType = true;
+        btn.ReflectButtonState = true;
+        ++i;
     }
 
+    // The waypoint button is always enabled, so enable it now.
+    // Other buttons may be disabled
     WaypointButton.Enable();
 }
 
@@ -114,19 +119,10 @@ void ActionBarView::Init_For_House()
         return;
     }
 
-    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-
-    SellButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.SellButtonShape.c_str()));
-    SellButton.ShapeDrawer = SidebarDrawer;
-
-    PowerButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.PowerButtonShape.c_str()));
-    PowerButton.ShapeDrawer = SidebarDrawer;
-
-    WaypointButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.WaypointButtonShape.c_str()));
-    WaypointButton.ShapeDrawer = SidebarDrawer;
-
-    RepairButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(layout.RepairButtonShape.c_str()));
-    RepairButton.ShapeDrawer = SidebarDrawer;
+    for (auto info : Get_Button_Info()) {
+        info.Button.Set_Shape(MFCD::RetrieveT<ShapeSet>(info.ShapeName.c_str()));
+        info.Button.ShapeDrawer = SidebarDrawer;
+    }
 }
 
 
@@ -146,19 +142,10 @@ void ActionBarView::Shift_Sidebar()
         Activate(0);
     }
 
-    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-    ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
-    const SidebarButtonLayout* button_layouts[] = {
-        &layout.RepairButton,
-        &layout.SellButton,
-        &layout.PowerButton,
-        &layout.WaypointButton
-    };
-
-    for (int i = 0; i < 4; ++i) {
-        buttons[i]->Set_Position(SidebarRect.X + button_layouts[i]->Position.X, SidebarRect.Y + button_layouts[i]->Position.Y);
-        buttons[i]->Flag_To_Redraw();
-        buttons[i]->DrawX = -SidebarRect.X;
+    for (auto info : Get_Button_Info()) {
+        info.Button.Set_Position(SidebarRect.X + info.Layout.Position.X, SidebarRect.Y + info.Layout.Position.Y);
+        info.Button.Flag_To_Redraw();
+        info.Button.DrawX = -SidebarRect.X;
     }
 
     Register_Tooltips();
@@ -183,28 +170,16 @@ void ActionBarView::Activate(int control)
     IsActive = control != 0;
 
     if (control) {
-        const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-        ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
-        const bool button_visible[] = {
-            layout.RepairButton.IsVisible,
-            layout.SellButton.IsVisible,
-            layout.PowerButton.IsVisible,
-            layout.WaypointButton.IsVisible
-        };
-
-        for (int i = 0; i < 4; ++i) {
-            if (!button_visible[i]) {
-                continue;
+        for (auto info : Get_Button_Info()) {
+            if (info.Layout.IsVisible) {
+                info.Button.Zap();
+                Map.Add_A_Button(info.Button);
             }
-
-            buttons[i]->Zap();
-            Map.Add_A_Button(*buttons[i]);
         }
     } else {
-        Map.Remove_A_Button(RepairButton);
-        Map.Remove_A_Button(SellButton);
-        Map.Remove_A_Button(PowerButton);
-        Map.Remove_A_Button(WaypointButton);
+        for (auto info : Get_Button_Info()) {
+            Map.Remove_A_Button(info.Button);
+        }
     }
 }
 
@@ -269,22 +244,10 @@ void ActionBarView::Draw()
     Surface* oldsurface = LogicalSurface;
     LogicalSurface = SidebarSurface;
 
-    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-
-    if (layout.RepairButton.IsVisible) {
-        RepairButton.Draw_Me(true);
-    }
-
-    if (layout.SellButton.IsVisible) {
-        SellButton.Draw_Me(true);
-    }
-
-    if (layout.PowerButton.IsVisible) {
-        PowerButton.Draw_Me(true);
-    }
-
-    if (layout.WaypointButton.IsVisible) {
-        WaypointButton.Draw_Me(true);
+    for (auto info : Get_Button_Info()) {
+        if (info.Layout.IsVisible) {
+            info.Button.Draw_Me(true);
+        }
     }
 
     LogicalSurface = oldsurface;
@@ -302,38 +265,17 @@ void ActionBarView::Register_Tooltips()
         return;
     }
 
-    const BattleSidebarLayoutBase& layout = Get_Sidebar_Layout(ViewType);
-    ShapeButtonClass* buttons[] = { &RepairButton, &SellButton, &PowerButton, &WaypointButton };
-    const SidebarButtonLayout* button_layouts[] = {
-        &layout.RepairButton,
-        &layout.SellButton,
-        &layout.PowerButton,
-        &layout.WaypointButton
-    };
-    const int button_ids[] = {
-        SidebarClass::BUTTON_REPAIR,
-        SidebarClass::BUTTON_SELL,
-        SidebarClass::BUTTON_POWER,
-        SidebarClass::BUTTON_WAYPOINT
-    };
-    const int tooltip_text[] = {
-        TXT_REPAIR_MODE,
-        TXT_SELL_MODE,
-        TXT_POWER_MODE,
-        TXT_WAYPOINTMODE
-    };
-
     ToolTip tooltip;
-    for (int i = 0; i < 4; ++i) {
-        tooltip.ID = button_ids[i];
+    for (auto info : Get_Button_Info()) {
+        tooltip.ID = info.ID;
         ToolTips->Remove(tooltip.ID);
 
-        if (!button_layouts[i]->IsVisible) {
+        if (!info.Layout.IsVisible) {
             continue;
         }
 
-        tooltip.Region = Rect(buttons[i]->X, buttons[i]->Y, buttons[i]->Width, buttons[i]->Height);
-        tooltip.Text = tooltip_text[i];
+        tooltip.Region = Rect(info.Button.X, info.Button.Y, info.Button.Width, info.Button.Height);
+        tooltip.Text = info.TooltipText;
         ToolTips->Add(&tooltip);
     }
 }

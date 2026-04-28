@@ -13,6 +13,8 @@
 #include "uicontrol.h"
 #include "wwkeyboard.h"
 
+#include <array>
+
 
 class ActionBarView
 {
@@ -40,6 +42,16 @@ public:
     void Set_Sidebar_View_Type(SidebarViewType view_type) { ViewType = view_type; }
 
 private:
+    struct ButtonInfo {
+        ShapeButtonClass& Button;
+        const SidebarButtonLayout& Layout;
+        int ID;
+        int TooltipText;
+        const std::string& ShapeName;
+    };
+
+    std::array<ButtonInfo, 4> Get_Button_Info();
+
     /**
      *  Tooltip helpers.
      */
