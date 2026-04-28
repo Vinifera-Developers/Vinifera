@@ -14,6 +14,7 @@
 #include "tibsun_globals.h"
 
 #include <chrono>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -71,7 +72,6 @@ private:
     int CompletedBodyCycles = 0;
     bool SeenCurrentPlaying = false;
     bool StopRequested = false;
-    bool DecayStarted = false;
     bool Finished = false;
 
     /**
@@ -83,12 +83,13 @@ private:
     EventClock::time_point NextStartTime = EventClock::now();
 
     /**
-     *  Attack/Decay are consumed (popped) as their samples play. BodyFilenames
-     *  is the stable pool for the body cycle; BodyOrder is the index sequence
-     *  for the current cycle and is rebuilt by Build_Body_Order_For_Cycle().
+     *  Attack/Decay hold at most one sample each and are cleared when consumed.
+     *  BodyFilenames is the stable pool for the body cycle; BodyOrder is the
+     *  index sequence for the current cycle and is rebuilt by
+     *  Build_Body_Order_For_Cycle().
      */
-    std::vector<std::string> Attack;
-    std::vector<std::string> Decay;
+    std::optional<std::string> Attack;
+    std::optional<std::string> Decay;
     std::vector<std::string> BodyFilenames;
     std::vector<size_t> BodyOrder;
     size_t BodyIndex = 0;

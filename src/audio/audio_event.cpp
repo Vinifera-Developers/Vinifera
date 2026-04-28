@@ -19,10 +19,19 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <numeric>
 
 
 namespace {
 
+/**
+ *  Allocates a unique handle for a new audio event. The upper-nibble tag
+ *  0xE0000000 makes event handles visually distinct from audio manager
+ *  instance handles in debug output. ID 0 is the invalid sentinel and is
+ *  skipped on counter wrap-around.
+ *
+ *  @author: ZivDero
+ */
 AudioEventHandle Generate_Event_Handle()
 {
     /**
@@ -45,6 +54,14 @@ std::vector<std::unique_ptr<AudioEventClass>> ActiveEvents;
 } // namespace
 
 
+/**
+ *  Initializes the event state from the given voc definition. Resolves
+ *  filenames, applies the PREDELAY offset, splits attack and decay tails
+ *  from the body pool, and determines which body mode drives sample
+ *  selection. Sets Finished immediately if no filenames resolve.
+ *
+ *  @author: ZivDero
+ */
 AudioEventClass::AudioEventClass(AudioEventHandle public_handle, AudioVocClass const& voc, Coord const& coord, int variation, float volume, float fade_in_seconds) :
     PublicHandle(public_handle),
     Voc(&voc),
@@ -71,12 +88,12 @@ AudioEventClass::AudioEventClass(AudioEventHandle public_handle, AudioVocClass c
      *  more than one sample, so the body always has at least one entry.
      */
     if ((voc.Control & AUDIO_CONTROL_ATTACK) != 0 && filenames.size() > 1) {
-        Attack.push_back(filenames.front());
+        Attack = std::move(filenames.front());
         filenames.erase(filenames.begin());
     }
 
     if ((voc.Control & AUDIO_CONTROL_DECAY) != 0 && filenames.size() > 1) {
-        Decay.push_back(filenames.back());
+        Decay = std::move(filenames.back());
         filenames.pop_back();
     }
 
@@ -103,8 +120,9 @@ AudioEventClass::AudioEventClass(AudioEventHandle public_handle, AudioVocClass c
      *  If only Decay was specified (no body samples remained after the split),
      *  treat the decay sample as the single body sample so something plays.
      */
-    if (BodyFilenames.empty() && Attack.empty() && !Decay.empty()) {
-        BodyFilenames.swap(Decay);
+    if (BodyFilenames.empty() && !Attack.has_value() && Decay.has_value()) {
+        BodyFilenames.push_back(std::move(*Decay));
+        Decay.reset();
         Mode = BodyMode::Single;
     }
 
@@ -112,6 +130,11 @@ AudioEventClass::AudioEventClass(AudioEventHandle public_handle, AudioVocClass c
 }
 
 
+/**
+ *  Returns true if this event owns the given public handle.
+ *
+ *  @author: ZivDero
+ */
 bool AudioEventClass::Matches(AudioEventHandle handle) const
 {
     return PublicHandle == handle;
@@ -119,9 +142,11 @@ bool AudioEventClass::Matches(AudioEventHandle handle) const
 
 
 /**
- *  Rebuilds BodyOrder for the upcoming body cycle. This is the heart of
- *  the LOOP+RANDOM fix — Random mode re-rolls every cycle, so each loop
- *  iteration gets a fresh random sample instead of repeating one pick.
+ *  Rebuilds BodyOrder for the upcoming body cycle. Random mode re-rolls
+ *  on every cycle so each loop iteration selects a different sample from
+ *  the pool. Sequential mode advances the voc's persistent index.
+ *
+ *  @author: ZivDero
  */
 void AudioEventClass::Build_Body_Order_For_Cycle()
 {
@@ -136,10 +161,8 @@ void AudioEventClass::Build_Body_Order_For_Cycle()
 
     switch (Mode) {
     case BodyMode::AllSequence:
-        BodyOrder.reserve(pool_size);
-        for (size_t i = 0; i < pool_size; ++i) {
-            BodyOrder.push_back(i);
-        }
+        BodyOrder.resize(pool_size);
+        std::iota(BodyOrder.begin(), BodyOrder.end(), size_t{0});
         break;
 
     case BodyMode::Random:
@@ -162,9 +185,11 @@ void AudioEventClass::Build_Body_Order_For_Cycle()
 
 /**
  *  Returns true if this event qualifies for miniaudio-native looping —
- *  a single sample looping in place with no per-iteration variation,
- *  delays, or staged samples. This avoids the audible gap that the
- *  per-sample retrigger model introduces.
+ *  a single sample looping with no per-iteration variation, delays, or
+ *  staged samples. Native looping eliminates the inter-iteration gap
+ *  that the retrigger model produces.
+ *
+ *  @author: ZivDero
  */
 bool AudioEventClass::Should_Use_Native_Loop() const
 {
@@ -180,7 +205,7 @@ bool AudioEventClass::Should_Use_Native_Loop() const
         return false;
     }
 
-    if (!Attack.empty() || !Decay.empty()) {
+    if (Attack.has_value() || Decay.has_value()) {
         return false;
     }
 
@@ -213,6 +238,13 @@ bool AudioEventClass::Should_Use_Native_Loop() const
 }
 
 
+/**
+ *  Selects and starts the next sample in sequence. Consumes attack
+ *  entries first, then advances through the current body cycle, then
+ *  plays the decay tail. Sets Finished when nothing remains to play.
+ *
+ *  @author: ZivDero
+ */
 void AudioEventClass::Start_Next()
 {
     if (Voc == nullptr) {
@@ -223,30 +255,20 @@ void AudioEventClass::Start_Next()
     std::string filename;
     bool launch_native_loop = false;
 
-    if (!Attack.empty()) {
-        filename = Attack.front();
-        Attack.erase(Attack.begin());
+    if (Attack.has_value()) {
+        filename = std::move(*Attack);
+        Attack.reset();
 
     } else if (StopRequested) {
-        if (!Decay.empty() && !DecayStarted) {
-            filename = Decay.front();
-            Decay.erase(Decay.begin());
-            DecayStarted = true;
+        if (Decay.has_value()) {
+            filename = std::move(*Decay);
+            Decay.reset();
         } else {
             Finished = true;
             return;
         }
 
     } else if (!BodyOrder.empty()) {
-
-        if (BodyIndex >= BodyOrder.size()) {
-            ++CompletedBodyCycles;
-            Build_Body_Order_For_Cycle();
-            if (BodyOrder.empty()) {
-                Finished = true;
-                return;
-            }
-        }
 
         filename = BodyFilenames[BodyOrder[BodyIndex]];
         ++BodyIndex;
@@ -261,10 +283,9 @@ void AudioEventClass::Start_Next()
             launch_native_loop = true;
         }
 
-    } else if (!Decay.empty() && !DecayStarted) {
-        filename = Decay.front();
-        Decay.erase(Decay.begin());
-        DecayStarted = true;
+    } else if (Decay.has_value()) {
+        filename = std::move(*Decay);
+        Decay.reset();
 
     } else {
         Finished = true;
@@ -287,6 +308,13 @@ void AudioEventClass::Start_Next()
 }
 
 
+/**
+ *  Per-frame update. Drives the sample sequence, inter-sample delays,
+ *  loop cycle counting, and stop/decay transitions. Called under
+ *  EventMutex by AudioEventSystem::AI().
+ *
+ *  @author: ZivDero
+ */
 void AudioEventClass::AI()
 {
     if (Finished || Voc == nullptr) {
@@ -313,19 +341,13 @@ void AudioEventClass::AI()
 
     /**
      *  The native-loop sample has finished (miniaudio applied LoopLimit, or
-     *  Stop was requested and the underlying sound stopped). The event has
-     *  no further samples to play unless a Decay tail is queued.
+     *  Stop was requested and the underlying sound stopped). Native looping
+     *  requires no attack, decay, or variation, so nothing more can play.
      */
     if (NativeLoopActive) {
         CurrentHandle = INVALID_AUDIO_INSTANCE_HANDLE;
         SeenCurrentPlaying = false;
         NativeLoopActive = false;
-
-        if (StopRequested && !Decay.empty() && !DecayStarted) {
-            NextStartTime = now;
-            return;
-        }
-
         Finished = true;
         return;
     }
@@ -357,7 +379,7 @@ void AudioEventClass::AI()
         }
     }
 
-    if (StopRequested && Decay.empty() && Attack.empty() && BodyOrder.empty()) {
+    if (StopRequested && !Decay.has_value() && !Attack.has_value() && BodyOrder.empty()) {
         Finished = true;
         return;
     }
@@ -367,6 +389,13 @@ void AudioEventClass::AI()
 }
 
 
+/**
+ *  Requests a graceful stop with the given fade-out duration. Fades out
+ *  any currently-playing sample. If a decay tail is queued it will play
+ *  next; otherwise the event is marked finished immediately.
+ *
+ *  @author: ZivDero
+ */
 bool AudioEventClass::Stop(float fade_out_seconds)
 {
     StopRequested = true;
@@ -375,7 +404,9 @@ bool AudioEventClass::Stop(float fade_out_seconds)
         return AudioManager.Request_Stop(CurrentHandle, fade_out_seconds);
     }
 
-    if (!Decay.empty()) {
+    Attack.reset();
+
+    if (Decay.has_value()) {
         NextStartTime = EventClock::now();
     } else {
         Finished = true;
@@ -385,13 +416,15 @@ bool AudioEventClass::Stop(float fade_out_seconds)
 }
 
 
+/**
+ *  Updates the world position and pushes new pan and volume values to the
+ *  currently-playing sample. Caches the coord regardless so the next
+ *  sample in the sequence picks it up even during inter-sample silence gaps.
+ *
+ *  @author: ZivDero
+ */
 bool AudioEventClass::Update_Position(Coord coord)
 {
-    /**
-     *  Always cache the latest coord first so the next sample picks it up
-     *  at start time, even if we're currently in an inter-sample silence
-     *  gap with no live CurrentHandle to push pan/volume to.
-     */
     Position = coord;
 
     if (CurrentHandle == INVALID_AUDIO_INSTANCE_HANDLE || Voc == nullptr) {
@@ -411,6 +444,12 @@ bool AudioEventClass::Update_Position(Coord coord)
 }
 
 
+/**
+ *  Immediately stops any live sample and marks the event finished,
+ *  with no fade-out and no decay tail.
+ *
+ *  @author: ZivDero
+ */
 void AudioEventClass::Clear()
 {
     if (CurrentHandle != INVALID_AUDIO_INSTANCE_HANDLE) {
@@ -423,12 +462,20 @@ void AudioEventClass::Clear()
 }
 
 
+/**
+ *  Creates a new event for the given voc, registers it in the active list,
+ *  runs its first AI tick, and returns the public handle. Returns
+ *  INVALID_AUDIO_EVENT_HANDLE if the event finished immediately (e.g. no
+ *  files resolved, or the audio manager rejected the sample).
+ *
+ *  @author: ZivDero
+ */
 AudioEventHandle AudioEventSystem::Start(AudioVocClass const& voc, Coord const& coord, int variation, float volume, float fade_in_seconds)
 {
     const AudioEventHandle public_handle = Generate_Event_Handle();
     auto event = std::make_unique<AudioEventClass>(public_handle, voc, coord, variation, volume, fade_in_seconds);
 
-    if (event == nullptr || event->Is_Finished()) {
+    if (event->Is_Finished()) {
         return INVALID_AUDIO_EVENT_HANDLE;
     }
 
@@ -447,6 +494,11 @@ AudioEventHandle AudioEventSystem::Start(AudioVocClass const& voc, Coord const& 
 }
 
 
+/**
+ *  Ticks all active events and removes any that have finished.
+ *
+ *  @author: ZivDero
+ */
 void AudioEventSystem::AI()
 {
     std::scoped_lock lock(EventMutex);
@@ -465,6 +517,12 @@ void AudioEventSystem::AI()
 }
 
 
+/**
+ *  Requests a stop on the event matching the given handle, fading out
+ *  over the specified duration.
+ *
+ *  @author: ZivDero
+ */
 bool AudioEventSystem::Stop(AudioEventHandle handle, float fade_out_seconds)
 {
     if (!handle.Is_Valid()) {
@@ -483,6 +541,11 @@ bool AudioEventSystem::Stop(AudioEventHandle handle, float fade_out_seconds)
 }
 
 
+/**
+ *  Returns true if the event matching the given handle is still active.
+ *
+ *  @author: ZivDero
+ */
 bool AudioEventSystem::Is_Playing(AudioEventHandle handle)
 {
     if (!handle.Is_Valid()) {
@@ -501,6 +564,11 @@ bool AudioEventSystem::Is_Playing(AudioEventHandle handle)
 }
 
 
+/**
+ *  Pushes a new world position to the event matching the given handle.
+ *
+ *  @author: ZivDero
+ */
 bool AudioEventSystem::Update_Position(AudioEventHandle handle, Coord coord)
 {
     if (!handle.Is_Valid()) {
@@ -519,6 +587,11 @@ bool AudioEventSystem::Update_Position(AudioEventHandle handle, Coord coord)
 }
 
 
+/**
+ *  Immediately stops and removes all active events, with no fade-out.
+ *
+ *  @author: ZivDero
+ */
 void AudioEventSystem::Clear()
 {
     std::scoped_lock lock(EventMutex);
