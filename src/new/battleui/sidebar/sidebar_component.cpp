@@ -357,7 +357,11 @@ SidebarComponent::SidebarComponent() :
  */
 SidebarComponent::~SidebarComponent()
 {
-    Shutdown();
+    if (ActiveView != nullptr) {
+        Activate(false);
+        delete ActiveView;
+        ActiveView = nullptr;
+    }
 }
 
 
@@ -504,21 +508,6 @@ void SidebarComponent::Blit(bool complete)
 {
     if (ActiveView) {
         ActiveView->Blit(complete);
-    }
-}
-
-
-/**
- *  Shuts down the sidebar and cleans up resources.
- *
- *  @author: ZivDero
- */
-void SidebarComponent::Shutdown()
-{
-    if (ActiveView != nullptr) {
-        Activate(false);
-        delete ActiveView;
-        ActiveView = nullptr;
     }
 }
 

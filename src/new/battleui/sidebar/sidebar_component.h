@@ -40,7 +40,6 @@ public:
     virtual void Draw() override;
     virtual void Blit(bool complete) override;
     virtual void Shift_Sidebar() override;
-    virtual void Shutdown() override;
 
     virtual const char *Help_Text(int gadget_id) override;
 

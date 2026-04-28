@@ -30,7 +30,7 @@ BattleUISystem BattleUI;
  */
 BattleUISystem::~BattleUISystem()
 {
-    Shutdown();
+
 }
 
 
@@ -133,18 +133,6 @@ void BattleUISystem::Shift_Sidebar()
     Sidebar.Shift_Sidebar();
     Power.Set_Height(Sidebar.Visible_Buttons_Per_Column() * UIControls->Get_Battle_Sidebar_Config(Sidebar.Get_View_Type()).CameoSize.Y);
     Power.Shift_Sidebar();
-}
-
-
-/**
- *  Shuts down all battle UI components.
- *
- *  @author: ZivDero
- */
-void BattleUISystem::Shutdown()
-{
-    Sidebar.Shutdown();
-    Power.Shutdown();
 }
 
 

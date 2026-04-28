@@ -134,16 +134,6 @@ void PowerComponent::Set_Sidebar_View_Type(SidebarViewType view_type)
 
 
 /**
- *  Shuts down the power component.
- *
- *  @author: ZivDero
- */
-void PowerComponent::Shutdown()
-{
-}
-
-
-/**
  *  Returns help text for the power bar tooltip.
  *
  *  @author: ZivDero

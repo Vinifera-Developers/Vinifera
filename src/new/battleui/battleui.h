@@ -36,7 +36,6 @@ public:
     void Draw();
     void Blit(bool complete);
     void Shift_Sidebar();
-    void Shutdown();
 
     /**
      *  Queries and persistence.
