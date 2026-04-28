@@ -27,9 +27,8 @@ class AudioVocClass
     friend class AudioVocHandle;
 
     void Calculate_Pan_And_Volume(Coord const& coord, float& pan_result, float& volume_result) const;
-    AudioEventHandle Internal_Play(Coord const& coord = COORD_NONE, int variation = -1, float volume = 1.0f, float fade_in_seconds = 0.0f) const;
     AudioInstanceHandle Start_File(const std::string& filename, Coord const& coord, float volume, float fade_in_seconds, bool looping, int loop_limit, float delay_seconds = 0.0f) const;
-    bool Resolve_Sound_Filename(const std::string& sound, std::string& filename, AudioFileType& filetype) const;
+
     std::vector<std::string> Build_Filename_Pool(int variation) const;
     float Random_Delay_Seconds() const;
     size_t Advance_Sequential_Index() const;

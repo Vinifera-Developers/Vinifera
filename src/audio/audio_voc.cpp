@@ -215,24 +215,6 @@ void AudioVocClass::Calculate_Pan_And_Volume(Coord const& coord, float& pan_resu
 
 
 /**
- *  Resolves a sound name to its on-disk filename and file type.
- *
- *  @author: CCHyper
- */
-bool AudioVocClass::Resolve_Sound_Filename(const std::string& sound, std::string& filename, AudioFileType& filetype) const
-{
-    filename.clear();
-    filetype = AUDIO_TYPE_NONE;
-
-    if (sound.empty()) {
-        return false;
-    }
-
-    return AudioManager.Get_File_Info(sound, filetype, filename, true);
-}
-
-
-/**
  *  Resolves the full set of candidate filenames for this voc. The event
  *  system is responsible for picking which one(s) actually play based on
  *  Control flags. If a fixed variation index is provided, only that one
@@ -243,10 +225,13 @@ std::vector<std::string> AudioVocClass::Build_Filename_Pool(int variation) const
     std::vector<std::string> filenames;
 
     auto add_sound = [&](const std::string& sound) {
+        if (sound.empty()) {
+            return;
+        }
         std::string filename;
         AudioFileType filetype = AUDIO_TYPE_NONE;
-        if (Resolve_Sound_Filename(sound, filename, filetype) && !filename.empty()) {
-            filenames.push_back(filename);
+        if (AudioManager.Get_File_Info(sound, filetype, filename, true)) {
+            filenames.push_back(std::move(filename));
         }
     };
 
@@ -411,19 +396,6 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
 
 
 /**
- *  Routes every voc playback through the audio event system. The event
- *  takes ownership of the public handle and drives sample selection,
- *  cycling, looping, decay, and per-iteration randomization uniformly.
- *
- *  @author: CCHyper, ZivDero
- */
-AudioEventHandle AudioVocClass::Internal_Play(Coord const& coord, int variation, float volume, float fade_in_seconds) const
-{
-    return AudioEventSystem::Start(*this, coord, variation, volume, fade_in_seconds);
-}
-
-
-/**
  *  Constructor for a sound effect entry, initialised with default values.
  *
  *  @author: CCHyper
@@ -520,21 +492,21 @@ bool AudioVocClass::Can_Play() const
  *  vanilla call sites (Sound_Effect / Voice_Sound_Effect / Static_Sound)
  *  keep their original `int` return signature. Vanilla never reads the
  *  returned value, and Vinifera-side code that needs a long-lived handle
- *  uses the AudioEventHandle-returning paths (Internal_Play directly via
- *  AudioVocHandle / AudioEventSystem). Always return -1.
+ *  uses AudioEventSystem::Start directly via AudioVocHandle. Always
+ *  return -1.
  *
  *  @author: CCHyper
  */
 int AudioVocClass::Play(float volume, int variation)
 {
-    Internal_Play(COORD_NONE, variation, volume);
+    AudioEventSystem::Start(*this, COORD_NONE, variation, volume, 0.0f);
     return -1;
 }
 
 
 int AudioVocClass::Play(float volume)
 {
-    Internal_Play(COORD_NONE, -1, volume);
+    AudioEventSystem::Start(*this, COORD_NONE, -1, volume, 0.0f);
     return -1;
 }
 
@@ -542,7 +514,7 @@ int AudioVocClass::Play(float volume)
 int AudioVocClass::Play(VocType voc, float volume, int variation)
 {
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
-        AudioVocs[voc]->Internal_Play(COORD_NONE, variation, volume);
+        AudioEventSystem::Start(*AudioVocs[voc], COORD_NONE, variation, volume, 0.0f);
     }
     return -1;
 }
@@ -551,7 +523,7 @@ int AudioVocClass::Play(VocType voc, float volume, int variation)
 int AudioVocClass::Play(VocType voc, float volume)
 {
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
-        AudioVocs[voc]->Internal_Play(COORD_NONE, -1, volume);
+        AudioEventSystem::Start(*AudioVocs[voc], COORD_NONE, -1, volume, 0.0f);
     }
     return -1;
 }
@@ -560,7 +532,7 @@ int AudioVocClass::Play(VocType voc, float volume)
 int AudioVocClass::Play(VocType voc, Coord const &coord)
 {
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
-        AudioVocs[voc]->Internal_Play(coord);
+        AudioEventSystem::Start(*AudioVocs[voc], coord, -1, 1.0f, 0.0f);
     }
     return -1;
 }
@@ -627,9 +599,12 @@ void AudioVocClass::Preload()
         }
 
         auto submit_sound = [&](const std::string& sound) {
+            if (sound.empty()) {
+                return;
+            }
             std::string filename;
             AudioFileType filetype = AUDIO_TYPE_NONE;
-            if (!vocptr->Resolve_Sound_Filename(sound, filename, filetype)) {
+            if (!AudioManager.Get_File_Info(sound, filetype, filename, true)) {
                 return;
             }
 
