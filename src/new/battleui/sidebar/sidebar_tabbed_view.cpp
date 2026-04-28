@@ -619,7 +619,7 @@ void TabbedSidebarView::AI(KeyNumType& input, Point2D& xy)
 void TabbedSidebarView::Tab_Button_AI(int tab_index)
 {
     BuildCategory* cat = Strip[tab_index].Get_Category();
-    if (!cat) {
+    if (cat == nullptr) {
         return;
     }
 
@@ -696,27 +696,22 @@ void TabbedSidebarView::Draw()
      *  fully refreshed before blitting.
      */
     int y = SidebarRect.Y;
-    Point2D xy(0, y);
-    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundTopShape, 0, xy, rect, SHAPE_WIN_REL);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundTopShape, 0, Point2D(0, y), rect, SHAPE_WIN_REL);
     y += BackgroundTopShape->Get_Height();
 
     int rows = Background_Row_Count();
     for (int i = 0; i < rows; i++, y += BackgroundMiddleShape->Get_Height()) {
-        xy = Point2D(0, y);
-        Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
+        Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundMiddleShape, 0, Point2D(0, y), rect, SHAPE_WIN_REL);
     }
 
-    xy = Point2D(0, y);
-    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundBottomShape, 0, xy, rect, SHAPE_WIN_REL);
-
-    xy = Point2D(0, y + BackgroundBottomShape->Get_Height());
-    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundAddonShape, 0, xy, rect, SHAPE_WIN_REL);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundBottomShape, 0, Point2D(0, y), rect, SHAPE_WIN_REL);
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, BackgroundAddonShape, 0, Point2D(0, y + BackgroundBottomShape->Get_Height()), rect, SHAPE_WIN_REL);
 
     /**
      *  Tab buttons always redraw (they might be flashing).
      */
-    for (auto& TabButton : TabButtons) {
-        TabButton.Draw_Me(true);
+    for (auto& button : TabButtons) {
+        button.Draw_Me(true);
     }
 
     /**
