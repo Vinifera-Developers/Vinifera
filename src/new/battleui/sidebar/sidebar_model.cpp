@@ -195,7 +195,7 @@ void BuildCategory::Clear()
  *  Across different RTTI types: Specials > Infantry > Aircraft > Units > Buildings.
  *  Final tiebreaker: by ID.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 static int __cdecl Build_Item_Compare(const void* p1, const void* p2)
 {
