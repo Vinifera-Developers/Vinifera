@@ -66,7 +66,7 @@ void ActionBarView::Init_Clear()
 {
     IsActive = false;
 
-    for (auto info : Get_Button_Info()) {
+    for (const auto& info : Get_Button_Info()) {
         info.Button.IsPressed = false;
         if (info.Button.IsOn) info.Button.Turn_Off();
     }
@@ -86,7 +86,7 @@ void ActionBarView::Init_IO()
 
     const int base_x = TacticalRect.Width + TacticalRect.X;
     int i = 0;
-    for (auto info : Get_Button_Info()) {
+    for (const auto& info : Get_Button_Info()) {
         ShapeButtonClass& btn = info.Button;
         btn.X = base_x + i * 27;
         btn.Y = 148;
@@ -119,7 +119,7 @@ void ActionBarView::Init_For_House()
         return;
     }
 
-    for (auto info : Get_Button_Info()) {
+    for (const auto& info : Get_Button_Info()) {
         info.Button.Set_Shape(MFCD::RetrieveT<ShapeSet>(info.ShapeName.c_str()));
         info.Button.ShapeDrawer = SidebarDrawer;
     }
@@ -139,10 +139,10 @@ void ActionBarView::Shift_Sidebar()
 
     const bool was_active = IsActive;
     if (was_active) {
-        Activate(0);
+        Activate(false);
     }
 
-    for (auto info : Get_Button_Info()) {
+    for (const auto& info : Get_Button_Info()) {
         info.Button.Set_Position(SidebarRect.X + info.Layout.Position.X, SidebarRect.Y + info.Layout.Position.Y);
         info.Button.Flag_To_Redraw();
         info.Button.DrawX = -SidebarRect.X;
@@ -151,7 +151,7 @@ void ActionBarView::Shift_Sidebar()
     Register_Tooltips();
 
     if (was_active) {
-        Activate(1);
+        Activate(true);
     }
 }
 
@@ -161,23 +161,23 @@ void ActionBarView::Shift_Sidebar()
  *
  *  @author: ZivDero
  */
-void ActionBarView::Activate(int control)
+void ActionBarView::Activate(bool enabled)
 {
     if (Debug_Map) {
         return;
     }
 
-    IsActive = control != 0;
+    IsActive = enabled;
 
-    if (control) {
-        for (auto info : Get_Button_Info()) {
+    if (enabled) {
+        for (const auto& info : Get_Button_Info()) {
             if (info.Layout.IsVisible) {
                 info.Button.Zap();
                 Map.Add_A_Button(info.Button);
             }
         }
     } else {
-        for (auto info : Get_Button_Info()) {
+        for (const auto& info : Get_Button_Info()) {
             Map.Remove_A_Button(info.Button);
         }
     }
@@ -244,7 +244,7 @@ void ActionBarView::Draw()
     Surface* oldsurface = LogicalSurface;
     LogicalSurface = SidebarSurface;
 
-    for (auto info : Get_Button_Info()) {
+    for (const auto& info : Get_Button_Info()) {
         if (info.Layout.IsVisible) {
             info.Button.Draw_Me(true);
         }
@@ -266,7 +266,7 @@ void ActionBarView::Register_Tooltips()
     }
 
     ToolTip tooltip;
-    for (auto info : Get_Button_Info()) {
+    for (const auto& info : Get_Button_Info()) {
         tooltip.ID = info.ID;
         ToolTips->Remove(tooltip.ID);
 

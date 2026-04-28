@@ -354,9 +354,9 @@ void ClassicSidebarView::Blit(bool complete)
  *
  *  @author: ZivDero
  */
-void ClassicSidebarView::Activate(int control)
+void ClassicSidebarView::Activate(bool enabled)
 {
-    if (control) {
+    if (enabled) {
         Background.Zap();
         Map.Add_A_Button(Background);
 

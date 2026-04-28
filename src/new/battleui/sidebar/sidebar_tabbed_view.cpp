@@ -788,9 +788,9 @@ void TabbedSidebarView::Blit(bool complete)
  *
  *  @author: ZivDero
  */
-void TabbedSidebarView::Activate(int control)
+void TabbedSidebarView::Activate(bool enabled)
 {
-    if (control) {
+    if (enabled) {
         Background.Zap();
         Map.Add_A_Button(Background);
 

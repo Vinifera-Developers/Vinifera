@@ -333,13 +333,11 @@ void SidebarStripView::Deactivate()
  *
  *  @author: ZivDero
  */
-bool SidebarStripView::AI(KeyNumType& input, Point2D& xy)
+bool SidebarStripView::AI(KeyNumType& input, Point2D&)
 {
     if (Category == nullptr) {
         return false;
     }
-
-    (void)xy;
 
     /**
      *  Handle scroll button presses.

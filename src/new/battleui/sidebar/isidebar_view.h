@@ -36,7 +36,7 @@ public:
     virtual void AI(KeyNumType& input, Point2D& xy) = 0;
     virtual void Draw() = 0;
     virtual void Blit(bool complete) = 0;
-    virtual void Activate(int control) = 0;
+    virtual void Activate(bool enabled) = 0;
 
     virtual bool Scroll(bool up, int column) = 0;
     virtual bool Scroll_Page(bool up, int column) = 0;
@@ -46,7 +46,7 @@ public:
     virtual int Visible_Buttons_Per_Column() const = 0;
 
     virtual bool Change_Tab(int index) { return false; }
-    virtual void Notify_Production_Complete(int category_index) { (void)category_index; }
+    virtual void Notify_Production_Complete(int) {}
     virtual void Prepare_Model_Recalc() {}
     virtual void Finish_Model_Recalc() {}
 

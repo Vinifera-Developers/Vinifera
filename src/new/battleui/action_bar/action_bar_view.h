@@ -32,7 +32,7 @@ public:
     void Init_IO();
     void Init_For_House();
     void Shift_Sidebar();
-    void Activate(int control);
+    void Activate(bool enabled);
 
     /**
      *  Runtime behavior.

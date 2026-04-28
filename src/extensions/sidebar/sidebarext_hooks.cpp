@@ -229,13 +229,13 @@ bool SidebarClassExt::_Activate(int control)
             RadarButton.Zap();
             Add_A_Button(RadarButton);
 
-            BattleUI.Get_Sidebar().Activate(1);
+            BattleUI.Get_Sidebar().Activate(true);
         } else {
             End_Ingame_Movie();
 
             Remove_A_Button(RadarButton);
 
-            BattleUI.Get_Sidebar().Activate(0);
+            BattleUI.Get_Sidebar().Activate(false);
         }
 
         Flag_To_Redraw(GS_REDRAW_ALL);
@@ -398,10 +398,8 @@ int SidebarClassExt::_Which_Column(RTTIType type)
  *
  *  @author: ZivDero
  */
-void SidebarClassExt::_Blit_Sidebar(bool complete)
+void SidebarClassExt::_Blit_Sidebar(bool)
 {
-    (void)complete;
-
     if (IsSidebarActive && GameActive && ScenarioActive) {
 
         /**

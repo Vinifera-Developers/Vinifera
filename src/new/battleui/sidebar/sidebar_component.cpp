@@ -516,7 +516,7 @@ void SidebarComponent::Blit(bool complete)
 void SidebarComponent::Shutdown()
 {
     if (ActiveView != nullptr) {
-        Activate(0);
+        Activate(false);
         delete ActiveView;
         ActiveView = nullptr;
     }
@@ -706,12 +706,12 @@ void SidebarComponent::Detach(AbstractClass* target)
  *
  *  @author: ZivDero
  */
-void SidebarComponent::Activate(int control)
+void SidebarComponent::Activate(bool enabled)
 {
-    ActionBar.Activate(control);
+    ActionBar.Activate(enabled);
 
     if (ActiveView) {
-        ActiveView->Activate(control);
+        ActiveView->Activate(enabled);
     }
 }
 

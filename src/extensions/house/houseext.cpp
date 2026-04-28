@@ -475,9 +475,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     }
 
     if (result) {
-        if (fptr->QueuedObjects.Count() && !resume && !skipset) {
-            //BattleUI.Flag_To_Redraw();
-        } else {
+        if (fptr->QueuedObjects.Count() == 0 || resume || skipset) {
             fptr->Start(onhold);
 
             /*

@@ -144,7 +144,7 @@ public:
     virtual void AI(KeyNumType& input, Point2D& xy) override;
     virtual void Draw() override;
     virtual void Blit(bool complete) override;
-    virtual void Activate(int control) override;
+    virtual void Activate(bool enabled) override;
 
     virtual bool Scroll(bool up, int column) override;
     virtual bool Scroll_Page(bool up, int column) override;

@@ -77,7 +77,7 @@ public:
     bool Is_On_Sidebar(RTTIType type, int id) const;
     bool Change_Tab(int index);
     void Detach(AbstractClass* target);
-    void Activate(int control);
+    void Activate(bool enabled);
     int Visible_Button_Count() const;
     int Visible_Buttons_Per_Column() const;
     SidebarViewType Get_View_Type() const { return ActiveViewType; }
