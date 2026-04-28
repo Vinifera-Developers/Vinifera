@@ -29,14 +29,11 @@ public:
     AudioVocHandle(const char* name);
     ~AudioVocHandle();
 
-    bool Start(Coord const& coord = COORD_NONE);
+    bool Start(Coord const& coord = COORD_NONE, float fade_in_seconds = 1.0f);
     bool Stop(float fade_out_seconds = 1.0f);
-
-    bool Update_Position(Coord coord);
-
     bool Is_Playing();
 
-    void Set_Fade_In(float seconds) { FadeInSeconds = seconds; }
+    bool Update_Position(Coord coord);
 
 private:
     /**
@@ -50,11 +47,6 @@ private:
      *  underlying samples (decay tail, looped retrigger) without us caring.
      */
     AudioEventHandle Handle{};
-
-    /**
-     *  Fade-in applied on Start().
-     */
-    float FadeInSeconds = 1.0f;
 };
 
 namespace IonAmbient

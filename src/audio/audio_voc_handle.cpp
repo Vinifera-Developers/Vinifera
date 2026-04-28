@@ -64,7 +64,7 @@ AudioVocHandle::~AudioVocHandle()
  *
  *  @author: ZivDero
  */
-bool AudioVocHandle::Start(Coord const& coord)
+bool AudioVocHandle::Start(Coord const& coord, float fade_in_seconds)
 {
     if (!AudioManager.Is_Available() || Debug_Quiet) {
         return false;
@@ -81,7 +81,7 @@ bool AudioVocHandle::Start(Coord const& coord)
         return false;
     }
 
-    Handle = Voc->Internal_Play(coord, -1, 1.0f, FadeInSeconds);
+    Handle = Voc->Internal_Play(coord, -1, 1.0f, fade_in_seconds);
 
     if (!Handle.Is_Valid()) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "AudioVocHandle::Start - Failed to start \"%s\"!\n", Voc->Name.c_str());
