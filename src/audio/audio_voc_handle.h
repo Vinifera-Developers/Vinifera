@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Live playback instance of a voc sound owned by a long-lived caller.
+ *  @brief  Long-lived owned handle to a voc sound played via AudioEventSystem.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -17,14 +17,17 @@ class AudioVocClass;
 
 
 /**
- *  Manages playback of an ambient sound with fade-in/out support.
+ *  Long-lived RAII handle around a single AudioEventSystem event for a voc.
+ *  Use this when a caller owns the lifetime of a sound (e.g. a looping
+ *  ambient tied to a game object) - fire-and-forget VOC plays should go
+ *  through AudioVocClass::Play() directly.
  */
-class AudioAmbientClass
+class AudioVocHandle
 {
 public:
-    AudioAmbientClass(VocType voc);
-    AudioAmbientClass(const char* name);
-    ~AudioAmbientClass();
+    AudioVocHandle(VocType voc);
+    AudioVocHandle(const char* name);
+    ~AudioVocHandle();
 
     bool Start(Coord const& coord = COORD_NONE);
     bool Stop(float fade_out_seconds = 1.0f);
@@ -42,7 +45,7 @@ private:
     AudioVocClass* Voc = nullptr;
 
     /**
-     *  Active event handle for this ambient, or invalid when not playing.
+     *  Active event handle for this voc, or invalid when not playing.
      *  Operations route through AudioEventSystem so the event can swap
      *  underlying samples (decay tail, looped retrigger) without us caring.
      */

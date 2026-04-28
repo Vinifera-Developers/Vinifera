@@ -15,7 +15,7 @@
 
 class AircraftClass;
 class HouseClass;
-class AudioAmbientClass;
+class AudioVocHandle;
 
 
 class ObjectClassExtension : public AbstractClassExtension
@@ -49,11 +49,11 @@ public:
     /**
      *  The object's own ambient sound.
      */
-    AudioAmbientClass* AmbientSound;
+    AudioVocHandle* AmbientSound;
 
     /**
      *  The ambient sound attached to this object by something else (usually a trigger).
      */
     VocType AttachedAmbientSoundType;
-    AudioAmbientClass* AttachedAmbientSound;
+    AudioVocHandle* AttachedAmbientSound;
 };

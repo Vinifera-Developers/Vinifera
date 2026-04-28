@@ -14,7 +14,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "asserthandler.h"
-#include "audio_ambient.h"
+#include "audio_voc_handle.h"
 #include "cell.h"
 #include "colorscheme.h"
 #include "extension.h"

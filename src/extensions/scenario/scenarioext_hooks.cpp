@@ -14,7 +14,7 @@
 #include "addon.h"
 #include "aircrafttracker.h"
 #include "asserthandler.h"
-#include "audio_ambient.h"
+#include "audio_voc_handle.h"
 #include "audio_static_sound.h"
 #include "ccfile.h"
 #include "ccini.h"

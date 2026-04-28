@@ -11,7 +11,7 @@
 
 #include "objectext.h"
 
-#include "audio_ambient.h"
+#include "audio_voc_handle.h"
 #include "extension.h"
 #include "objecttype.h"
 #include "objecttypeext.h"
@@ -153,7 +153,7 @@ void ObjectClassExtension::Ambient_AI()
     auto classext = Extension::Fetch(classof);
 
     if (classext->AmbientSound != VOC_NONE && AmbientSound == nullptr) {
-        AmbientSound = new AudioAmbientClass(classext->AmbientSound);
+        AmbientSound = new AudioVocHandle(classext->AmbientSound);
         AmbientSound->Start(This()->PositionCoord);
     }
     if (AmbientSound != nullptr) {
@@ -161,7 +161,7 @@ void ObjectClassExtension::Ambient_AI()
     }
 
     if (AttachedAmbientSoundType != VOC_NONE && AttachedAmbientSound == nullptr) {
-        AttachedAmbientSound = new AudioAmbientClass(AttachedAmbientSoundType);
+        AttachedAmbientSound = new AudioVocHandle(AttachedAmbientSoundType);
         AttachedAmbientSound->Start(This()->PositionCoord);
     }
     if (AttachedAmbientSound != nullptr) {

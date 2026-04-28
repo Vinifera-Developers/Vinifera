@@ -24,7 +24,7 @@ class AudioEventClass;
 class AudioVocClass
 {
     friend class AudioEventClass;
-    friend class AudioAmbientClass;
+    friend class AudioVocHandle;
 
     void Calculate_Pan_And_Volume(Coord const& coord, float& pan_result, float& volume_result) const;
     AudioEventHandle Internal_Play(Coord const& coord = COORD_NONE, int variation = -1, float volume = 1.0f, float fade_in_seconds = 0.0f) const;

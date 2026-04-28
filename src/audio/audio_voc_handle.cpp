@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Live playback instance of a voc sound owned by a long-lived caller.
+ *  @brief  Long-lived owned handle to a voc sound played via AudioEventSystem.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -9,7 +9,7 @@
 
 #include "always.h"
 
-#include "audio_ambient.h"
+#include "audio_voc_handle.h"
 
 #include "asserthandler.h"
 #include "audio_debug.h"
@@ -20,11 +20,11 @@
 
 
 /**
- *  Constructor; initializes the ambient sound from a VocType.
+ *  Constructor; initializes the handle from a VocType.
  *
  *  @author: ZivDero
  */
-AudioAmbientClass::AudioAmbientClass(VocType voc)
+AudioVocHandle::AudioVocHandle(VocType voc)
 {
     ASSERT(voc >= VOC_FIRST && voc < AudioVocs.Count());
 
@@ -34,23 +34,23 @@ AudioAmbientClass::AudioAmbientClass(VocType voc)
 }
 
 /**
- *  Constructor; initializes the ambient sound from a voc name string.
+ *  Constructor; initializes the handle from a voc name string.
  *
  *  @author: ZivDero
  */
-AudioAmbientClass::AudioAmbientClass(const char* name) :
-    AudioAmbientClass(AudioVocClass::From_Name(name))
+AudioVocHandle::AudioVocHandle(const char* name) :
+    AudioVocHandle(AudioVocClass::From_Name(name))
 {
 }
 
 
 /**
- *  Destructor; stops playback (immediate, no fade) and unregisters this
- *  ambient from the global list.
+ *  Destructor; stops playback (immediate, no fade) and releases the event
+ *  handle.
  *
  *  @author: ZivDero
  */
-AudioAmbientClass::~AudioAmbientClass()
+AudioVocHandle::~AudioVocHandle()
 {
     if (Handle.Is_Valid()) {
         AudioEventSystem::Stop(Handle, 0.0f);
@@ -60,11 +60,11 @@ AudioAmbientClass::~AudioAmbientClass()
 
 
 /**
- *  Starts playback of the ambient sound with fade-in.
+ *  Starts playback of the voc with fade-in.
  *
  *  @author: ZivDero
  */
-bool AudioAmbientClass::Start(Coord const& coord)
+bool AudioVocHandle::Start(Coord const& coord)
 {
     if (!AudioManager.Is_Available() || Debug_Quiet) {
         return false;
@@ -84,7 +84,7 @@ bool AudioAmbientClass::Start(Coord const& coord)
     Handle = Voc->Internal_Play(coord, -1, 1.0f, FadeInSeconds);
 
     if (!Handle.Is_Valid()) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "AudioAmbient::Start - Failed to start \"%s\"!\n", Voc->Name.c_str());
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "AudioVocHandle::Start - Failed to start \"%s\"!\n", Voc->Name.c_str());
         return false;
     }
 
@@ -93,12 +93,12 @@ bool AudioAmbientClass::Start(Coord const& coord)
 
 
 /**
- *  Stops playback of the ambient sound with a fade-out (event system honors
- *  Decay control flag and fade duration).
+ *  Stops playback of the voc with a fade-out (event system honors Decay
+ *  control flag and fade duration).
  *
  *  @author: ZivDero
  */
-bool AudioAmbientClass::Stop(float fade_out_seconds)
+bool AudioVocHandle::Stop(float fade_out_seconds)
 {
     if (!Handle.Is_Valid()) {
         return false;
@@ -111,11 +111,11 @@ bool AudioAmbientClass::Stop(float fade_out_seconds)
 
 
 /**
- *  Updates the position of the ambient sound.
+ *  Updates the position of the voc.
  *
  *  @author: ZivDero
  */
-bool AudioAmbientClass::Update_Position(Coord coord)
+bool AudioVocHandle::Update_Position(Coord coord)
 {
     if (!Handle.Is_Valid() || Voc == nullptr) {
         return false;
@@ -136,11 +136,11 @@ bool AudioAmbientClass::Update_Position(Coord coord)
 
 
 /**
- *  Checks whether the ambient sound is currently playing.
+ *  Checks whether the voc is currently playing.
  *
  *  @author: ZivDero
  */
-bool AudioAmbientClass::Is_Playing()
+bool AudioVocHandle::Is_Playing()
 {
     if (!Handle.Is_Valid()) {
         return false;
@@ -160,7 +160,7 @@ bool AudioAmbientClass::Is_Playing()
 
 namespace IonAmbient
 {
-std::unique_ptr<AudioAmbientClass> Handle = nullptr;
+std::unique_ptr<AudioVocHandle> Handle = nullptr;
 float OldMusicVolume = 1.0f;
 } // namespace IonAmbient
 
@@ -209,7 +209,7 @@ bool IonAmbient::Start()
     if (!Is_Available()) return false;
 
     if (Handle == nullptr) {
-        Handle = std::make_unique<AudioAmbientClass>(Voc_Type());
+        Handle = std::make_unique<AudioVocHandle>(Voc_Type());
     }
 
     if (!Handle->Is_Playing()) {

@@ -521,7 +521,7 @@ bool AudioVocClass::Can_Play() const
  *  keep their original `int` return signature. Vanilla never reads the
  *  returned value, and Vinifera-side code that needs a long-lived handle
  *  uses the AudioEventHandle-returning paths (Internal_Play directly via
- *  AudioAmbientClass / AudioEventSystem). Always return -1.
+ *  AudioVocHandle / AudioEventSystem). Always return -1.
  *
  *  @author: CCHyper
  */
