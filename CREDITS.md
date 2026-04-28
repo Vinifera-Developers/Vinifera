@@ -151,6 +151,8 @@ This page lists all the individual contributions to the project by their author.
 - **JoyfulShush**:
   - Allow customizing self healing cap and rate game-wide and per-unit.
   - Allow customizing whether AI can repair buildings created as base nodes.
+  - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
+  - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -352,5 +354,6 @@ This page lists all the individual contributions to the project by their author.
   - Fix game end text being stretched horizontally.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
   - Fix a bug where upon restoring focus to the window the last theme would play twice.
+  - Make spawners respect `IonSensitive` on weapons.
   - Fix a bug where the sidebar could only contain up to 75 items on a strip.
   - Extended sidebar customizability.

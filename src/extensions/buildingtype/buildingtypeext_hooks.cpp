@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended BuildingTypeClass.
  *
- *  @project       Vinifera
- *
- *  @file          BUILDINGTYPEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended BuildingTypeClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -111,126 +92,6 @@ void BuildingTypeClassExt::_Set_Base_Defense_Values()
             }
         }
     }
-}
-
-
-/**
- *  Write to the debug log when freeing up pre-loaded buildup images.
- * 
- *  #NOTE:
- *  These patches are also done to remove the incorrect freeing
- *  of memory the game does not actually allocate, and as a result
- *  of this, Vinifera's new memory management triggers an assertion
- *  because this is not allowed. The original game silently failed
- *  when doing this.
- * 
- *  @author: CCHyper
- */
-static void BuildingTypeClass_Free_Buildup_Image(BuildingTypeClass *this_ptr)
-{
-    if (this_ptr->IsDemandLoadBuildup && this_ptr->BuildupData) {
-        DEV_DEBUG_WARNING("Freeing loaded buildup image for %s\n", this_ptr->Name());
-
-        /**
-         *  The original function would incorrectly try to free memory
-         *  that the game does not actually allocate, and as a result of
-         *  this, Vinifera's new memory management triggers an assertion
-         *  because this is no longer allowed. The original game silently
-         *  failed when doing this.
-         *
-         *  We now remove this and just correctly nullify the pointer.
-         */
-        //delete this_ptr->BuildupData;
-
-        this_ptr->BuildupData = nullptr;
-    }
-}
-
-
-/**
- *  Write to the debug log when freeing up pre-loaded buildup images.
- *
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x00444052, _BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch, 0)
-{
-    GET(BuildingTypeClass*, this_ptr, ESI);
-    BuildingTypeClass_Free_Buildup_Image(this_ptr);
-    return 0x00444079;
-}
-
-DEFINE_HOOK(0x0043FDB0, _BuildingTypeClass_Init_Free_Buildup_Image_Patch, 0)
-{
-    GET(BuildingTypeClass*, this_ptr, ESI);
-    BuildingTypeClass_Free_Buildup_Image(this_ptr);
-    return 0x0043FDBF;
-}
-
-DEFINE_HOOK(0x0043F936, _BuildingTypeClass_DTOR_Free_Buildup_Image_Patch, 0)
-{
-    GET(BuildingTypeClass*, this_ptr, ESI);
-    BuildingTypeClass_Free_Buildup_Image(this_ptr);
-    return 0x0043F949;
-}
-
-
-/**
- *  Write to the debug log when freeing up pre-loaded images.
- * 
- *  #NOTE:
- *  These patches are also done to remove the incorrect freeing
- *  of memory the game does not actually allocate, and as a result
- *  of this, Vinifera's new memory management triggers an assertion
- *  because this is not allowed. The original game silently failed
- *  when doing this.
- * 
- *  @author: CCHyper
- */
-static void BuildingTypeClass_Free_Image(BuildingTypeClass *this_ptr)
-{
-    if (this_ptr->IsDemandLoad && this_ptr->Image) {
-        DEV_DEBUG_WARNING("Building: Freeing loaded image for %s\n", this_ptr->Name());
-
-        /**
-         *  The original function would incorrectly try to free memory
-         *  that the game does not actually allocate, and as a result of
-         *  this, Vinifera's new memory management triggers an assertion
-         *  because this is no longer allowed. The original game silently
-         *  failed when doing this.
-         *
-         *  We now remove this and just correctly nullify the pointer.
-         */
-        //delete this_ptr->Image;
-
-        this_ptr->Image = nullptr;
-    }
-}
-
-
-/**
- *  Write to the debug log when freeing up pre-loaded buildup images.
- *
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x0044403B, _BuildingTypeClass_SDDTOR_Free_Image_Patch, 0)
-{
-    GET(BuildingTypeClass*, this_ptr, ESI);
-    BuildingTypeClass_Free_Image(this_ptr);
-    return 0x00444052;
-}
-
-DEFINE_HOOK(0x0043FD83, _BuildingTypeClass_Init_Free_Image_Patch, 0)
-{
-    GET(BuildingTypeClass*, this_ptr, ESI);
-    BuildingTypeClass_Free_Image(this_ptr);
-    return 0x0043FD9E;
-}
-
-DEFINE_HOOK(0x0043F90B, _BuildingTypeClass_DTOR_Free_Image_Patch, 0)
-{
-    GET(BuildingTypeClass*, this_ptr, ESI);
-    BuildingTypeClass_Free_Image(this_ptr);
-    return 0x0043F922;
 }
 
 

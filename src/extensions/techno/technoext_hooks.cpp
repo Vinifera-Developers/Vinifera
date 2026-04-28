@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended TechnoClass.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended TechnoClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -2805,6 +2786,15 @@ bool TechnoClassExt::_Should_Self_Heal_Now() const
      *  Prevents overhealing - allowing Strength to get above 100%.
      */
     if (Get_Health_Ratio() >= 1) {
+        return false;
+    }
+
+    /*
+    * Prevents units that have died from self-healing. 
+    * This resolves an issue where self-healing aircraft would heal while tumbling down, 
+    * becoming indestructible and being stuck in an looping tumbling animation until they land.
+    */
+    if (Get_Health_Ratio() <= 0) {
         return false;
     }
 

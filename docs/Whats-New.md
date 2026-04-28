@@ -90,6 +90,7 @@ New:
 - Add DetectDisguise to TechnoTypes (by Rampastring)
 - Allow customizing whether AI sees through disguise (by Rampastring)
 - Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
+- Make spawners respect `IonSensitive` on weapons (by ZivDero)
 - Extended sidebar customizability (by ZivDero)
 
 Vinifera fixes:
@@ -391,5 +392,7 @@ Vanilla fixes:
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction (by ZivDero)
 - Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation (by JoyfulShush)
+- Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
 
 :::

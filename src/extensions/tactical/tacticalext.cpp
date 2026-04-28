@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended Tactical class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTICALEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended Tactical class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -76,7 +57,7 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     InfoTextTimer(0),
     CellRedrawCount(0),
     IsTemplatedTextVisible(false),
-    TemplatedTextIndex(0),
+    TemplatedTextIndex(""),
     TemplatedTextPosition(TOP_RIGHT),
     TemplatedTextColor(COLORSCHEME_NONE),
     TemplatedTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
@@ -98,7 +79,8 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
  */
 TacticalExtension::TacticalExtension(const NoInitClass& noinit) :
     GlobalExtensionClass(noinit),
-    InfoTextTimer(noinit)
+    InfoTextTimer(noinit),
+    TemplatedTextIndex(noinit)
 {
     //EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -209,7 +191,7 @@ void TacticalExtension::Set_Info_Text(const char* text)
  *
  *  @authors: ZivDero
  */
-void TacticalExtension::Enable_Templated_Text(int label, ColorSchemeType color)
+void TacticalExtension::Enable_Templated_Text(std::string_view label, ColorSchemeType color)
 {
     IsTemplatedTextVisible = true;
     TemplatedTextIndex = label;
@@ -766,7 +748,7 @@ void TacticalExtension::Draw_Templated_Text()
 
     int padding = 2;
 
-    if (!TutorialText.Is_Present(TemplatedTextIndex)) {
+    if (!Vinifera_TutorialText.contains(std::string(TemplatedTextIndex))) {
         return;
     }
 
@@ -774,7 +756,7 @@ void TacticalExtension::Draw_Templated_Text()
      *  Substitute the placeholders in the tutorial string.
      */
     if (!IsTemplatedTextCached) {
-        std::strncpy(TemplatedTextCache, ScenarioClassExtension::Substitute_Variable_Placeholders(TutorialText[TemplatedTextIndex]).c_str(), sizeof(TemplatedTextCache));
+        std::strncpy(TemplatedTextCache, ScenarioClassExtension::Substitute_Variable_Placeholders(Vinifera_TutorialText[std::string(TemplatedTextIndex)]).c_str(), sizeof(TemplatedTextCache));
         IsTemplatedTextCached = true;
     }
 
