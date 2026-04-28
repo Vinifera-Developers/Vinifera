@@ -159,6 +159,7 @@ Vanilla fixes:
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it (by Rampastring)
 
 :::
 
