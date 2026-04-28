@@ -469,7 +469,7 @@ DEFINE_HOOK(0x0063F9A6, _TerrainClass_Set_Occupy_Bit_Theater_Patch, 0)
     }
 
 snow_bits:
-    return 0x0063F9BB;  
+    return 0x0063F9BB;
 
 temperate_bits:
     return 0x0063F9B0;
@@ -493,7 +493,7 @@ DEFINE_HOOK(0x0063F916, _TerrainClass_Clear_Occupy_Bit_Theater_Patch, 0)
     }
 
 snow_bits:
-    return 0x0063F92B;  
+    return 0x0063F92B;
 
 temperate_bits:
     return 0x0063F920;
@@ -580,7 +580,7 @@ continue_check:
     return 0x005209C2;
 
 return_false:
-    _asm { xor eax, eax }
+    R->EAX(0);
     return 0x00520D8F;
 }
 
@@ -775,22 +775,9 @@ DEFINE_HOOK(0x004F51DF, _IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_P
 DEFINE_HOOK(0x00451EC4, _CellClass_Cell_Color_Theater_Patch_1, 0)
 {
     GET(TheaterType, theater, EDX);
-    long rgb;    // Actually is a RGBClass instance.
-    long val;
 
-    rgb = R->ECX();
+    R->EAX(TheaterTypeClass::As_Reference(theater).LowRadarBrightness1);
 
-    /**
-     *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
-     *  forces the use of general registers rather than the FPU.
-     * 
-     *  See:
-     *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
-     */
-    val  = *(long *)&TheaterTypeClass::As_Reference(theater).LowRadarBrightness1;
-
-    R->ECX(rgb);
-    R->EAX(val);
     return 0x00451ECB;
 }
 
@@ -803,22 +790,9 @@ DEFINE_HOOK(0x00451EC4, _CellClass_Cell_Color_Theater_Patch_1, 0)
 DEFINE_HOOK(0x00451EF5, _CellClass_Cell_Color_Theater_Patch_2, 0)
 {
     GET(TheaterType, theater, EDX);
-    long rgb;    // Actually is a RGBClass instance.
-    long val;
 
-    rgb = R->ECX();
+    R->EAX(TheaterTypeClass::As_Reference(theater).LowRadarBrightness2);
 
-    /**
-     *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
-     *  forces the use of general registers rather than the FPU.
-     * 
-     *  See:
-     *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
-     */
-    val  = *(long *)&TheaterTypeClass::As_Reference(theater).LowRadarBrightness2;
-
-    R->ECX(rgb);
-    R->EAX(val);
     return 0x00451EFC;
 }
 
@@ -831,22 +805,9 @@ DEFINE_HOOK(0x00451EF5, _CellClass_Cell_Color_Theater_Patch_2, 0)
 DEFINE_HOOK(0x00451F26, _CellClass_Cell_Color_Theater_Patch_3, 0)
 {
     GET(TheaterType, theater, EDX);
-    long rgb;    // Actually is a RGBClass instance.
-    long val;
-    
-    rgb = R->ECX();
 
-    /**
-     *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
-     *  forces the use of general registers rather than the FPU.
-     * 
-     *  See:
-     *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
-     */
-    val  = *(long *)&TheaterTypeClass::As_Reference(theater).HighRadarBrightness1;
-    
-    R->ECX(rgb);
-    R->EAX(val);
+    R->EAX(TheaterTypeClass::As_Reference(theater).HighRadarBrightness1);
+
     return 0x00451F2D;
 }
 
@@ -859,22 +820,9 @@ DEFINE_HOOK(0x00451F26, _CellClass_Cell_Color_Theater_Patch_3, 0)
 DEFINE_HOOK(0x00451F48, _CellClass_Cell_Color_Theater_Patch_4, 0)
 {
     GET(TheaterType, theater, EAX);
-    static long rgb;    // Actually is an address to a RGBClass instance.
-    static long val;
-    
-    rgb = R->EDX();
 
-    /**
-     *  Evil trick borrowed from Quake III Arena's "Q_rsqrt" which also
-     *  forces the use of general registers rather than the FPU.
-     * 
-     *  See:
-     *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
-     */
-    val  = *(long *)&TheaterTypeClass::As_Reference(theater).HighRadarBrightness2;
+    R->ECX(TheaterTypeClass::As_Reference(theater).HighRadarBrightness2);
 
-    R->EDX(rgb);
-    R->ECX(val);
     return 0x00451F4F;
 }
 
