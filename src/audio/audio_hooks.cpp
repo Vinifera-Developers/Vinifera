@@ -496,12 +496,6 @@ void Audio_Hooks()
     Patch_Jump(0x006651C0, &AudioVocClass::VocType_From_Voc);
 
     /**
-     *  Replace Ion Storm theme control with the new ambient sound handler.
-     */
-    //Patch_Jump(0x004ECA19, 0x004ECA28); // Removes the code stopping music
-    //Patch_Jump(0x004ECD11, 0x004ECD1D); // Removes the code stopping ion storm track
-
-    /**
      *  Replace audio driver interface for the VQA player (AHandle).
      */
     Patch_Jump(0x004072D0, &AudioHandleClass::Timer_Callback_Audio_Handler);
@@ -512,7 +506,7 @@ void Audio_Hooks()
 
     /**
      *  #BUGFIX:
-     *  Fixes a bug where themes would restart ofter focus loss and regain. The
+     *  Fixes a bug where themes would restart after focus loss and regain. The
      *  new audio manager system handles the focus loss and gain, so this is no
      *  longer required.
      * 
