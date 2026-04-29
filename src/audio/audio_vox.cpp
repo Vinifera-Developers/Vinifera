@@ -211,9 +211,9 @@ constexpr std::array <std::string_view, 24> DialogPriority_LOW = {
 
 SubtitleCategoryType Vanilla_Category_For_Name(const char* name)
 {
-    if (name != nullptr && std::strncmp(name, "EVA_", 4) != 0) {
+    if (name != nullptr && std::strncmp(name, "EVA_", 4) == 0) {
         // EVA_Tutorial# are designated as scenario despite starting with EVA_
-        if (std::strstr(name, "EVA_Tutorial") == nullptr) {
+        if (std::strncmp(name, "EVA_Tutorial", 12) != 0) {
             return SUBTITLE_CATEGORY_SYSTEM;
         }
     }
