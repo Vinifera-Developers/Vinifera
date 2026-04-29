@@ -165,6 +165,7 @@ AUDIO_ENGINE_SOUND_CALLBACK_PATCH(0x00643E65, _ThemeClass_AI_Sound_Callback_Patc
 AUDIO_ENGINE_FOCUS_RESTORE_PATCH(0x00685A1F, _Focus_Restore_Start_Primary_Sound_Buffer_Patch_1, 0x00685A2B);
 AUDIO_ENGINE_FOCUS_LOSS_PATCH(0x006859BA, _Focus_Loss_Stop_Primary_Sound_Buffer_Patch_1, 0x006859C4);
 
+#if 0 // Sounds the same to me - ZivDero
 /**
  *  Forces a playback limit on the credits tick sound, otherwise it runs wild, brother!
  * 
@@ -188,6 +189,7 @@ DEFINE_HOOK(0x00471493, _CreditsClass_Graphic_Logic_Limit_Sfx_Patch, 0)
 
     return 0x004714CC;
 }
+#endif
 
 
 /**
