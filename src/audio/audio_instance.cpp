@@ -21,6 +21,14 @@
 #include "miniaudio.h"
 
 #include <chrono>
+#include <limits>
+#include <vector>
+
+
+namespace {
+    constexpr ma_uint64 AUD_PREDECODE_FRAME_LIMIT = 4096;
+    constexpr ma_uint64 AUD_PREDECODE_TAIL_MS = 150;
+}
 
 
 /**
@@ -69,11 +77,11 @@ bool AudioInstanceClass::Load()
 
     Decoder = nullptr;
 
-    // TODO: Short one-shot SFX should use MA_SOUND_FLAG_DECODE to decode into memory
-    //       instead of streaming, which adds unnecessary I/O overhead for tiny samples.
-    ma_sound_flags flags = ma_sound_flags(MA_SOUND_FLAG_NO_SPATIALIZATION | MA_SOUND_FLAG_STREAM);
+    ma_sound_flags base_flags = ma_sound_flags(MA_SOUND_FLAG_NO_SPATIALIZATION);
+    ma_sound_flags stream_flags = ma_sound_flags(base_flags | MA_SOUND_FLAG_STREAM);
 
     if (Audio_IsAUDFile(Template->Get_FileName())) {
+        bool aud_sound_initialized = false;
 
         /**
          *  AUD files require a custom decoder; allocate one only for this path to
@@ -97,19 +105,102 @@ bool AudioInstanceClass::Load()
 
         DecoderInitialized = true;
 
-        result = ma_sound_init_from_data_source(AudioManager.Engine, Decoder, flags, AudioManager.SoundGroups[Template->Get_Group()], Sound);
-        if (result != MA_SUCCESS) {
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_sound_init_from_data_source failed (%s)!\n", ma_result_description(result));
-            Free();
-            return false;
+        ma_format decoder_format = ma_format_unknown;
+        ma_uint32 decoder_channels = 0;
+        ma_uint32 decoder_sample_rate = 0;
+        ma_uint64 decoder_length = 0;
+        ma_result format_result = ma_decoder_get_data_format(Decoder, &decoder_format, &decoder_channels, &decoder_sample_rate, nullptr, 0);
+        ma_result length_result = ma_decoder_get_length_in_pcm_frames(Decoder, &decoder_length);
+
+        if (format_result == MA_SUCCESS
+            && length_result == MA_SUCCESS
+            && decoder_length > 0
+            && decoder_length <= AUD_PREDECODE_FRAME_LIMIT) {
+
+            const ma_uint64 bytes_per_frame = ma_get_bytes_per_frame(decoder_format, decoder_channels);
+            const ma_uint64 decoded_size = decoder_length * bytes_per_frame;
+            if (bytes_per_frame > 0 && decoded_size > 0 && decoded_size <= SIZE_MAX) {
+                std::vector<ma_uint8> decoded_pcm(static_cast<size_t>(decoded_size));
+                ma_uint64 frames_read = 0;
+
+                result = ma_decoder_read_pcm_frames(Decoder, decoded_pcm.data(), decoder_length, &frames_read);
+                if ((result == MA_SUCCESS || result == MA_AT_END) && frames_read > 0) {
+                    ma_uint64 tail_frames = 0;
+                    if (decoder_sample_rate > 0) {
+                        tail_frames = (static_cast<ma_uint64>(decoder_sample_rate) * AUD_PREDECODE_TAIL_MS + 999) / 1000;
+                    }
+
+                    const bool can_predecode = tail_frames <= std::numeric_limits<ma_uint64>::max() - frames_read
+                        && (frames_read + tail_frames) <= (static_cast<ma_uint64>(SIZE_MAX) / bytes_per_frame);
+                    if (!can_predecode) {
+                        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_INSTANCE, "AudioInstance::Load - Tiny AUD predecode buffer too large for \"%s\"; falling back to streaming.\n", Template->Get_FileName().c_str());
+                        ma_decoder_seek_to_pcm_frame(Decoder, 0);
+                    } else {
+                        const ma_uint64 buffer_frames = frames_read + tail_frames;
+                        decoded_pcm.resize(static_cast<size_t>(buffer_frames * bytes_per_frame));
+
+                        if (tail_frames > 0) {
+                            ma_silence_pcm_frames(
+                                decoded_pcm.data() + static_cast<size_t>(frames_read * bytes_per_frame),
+                                tail_frames,
+                                decoder_format,
+                                decoder_channels);
+                        }
+
+                        AudioBuffer = new ma_audio_buffer;
+
+                        ma_audio_buffer_config buffer_config = ma_audio_buffer_config_init(
+                            decoder_format,
+                            decoder_channels,
+                            buffer_frames,
+                            decoded_pcm.data(),
+                            nullptr);
+                        buffer_config.sampleRate = decoder_sample_rate;
+
+                        result = ma_audio_buffer_init_copy(&buffer_config, AudioBuffer);
+                        if (result == MA_SUCCESS) {
+                            AudioBufferInitialized = true;
+
+                            ma_decoder_uninit(Decoder);
+                            delete Decoder;
+                            Decoder = nullptr;
+                            DecoderInitialized = false;
+
+                            result = ma_sound_init_from_data_source(AudioManager.Engine, AudioBuffer, base_flags, AudioManager.SoundGroups[Template->Get_Group()], Sound);
+                            if (result != MA_SUCCESS) {
+                                AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_sound_init_from_data_source(AUD buffer) failed (%s)!\n", ma_result_description(result));
+                                Free();
+                                return false;
+                            }
+                            aud_sound_initialized = true;
+                        } else {
+                            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_audio_buffer_init_copy failed (%s)!\n", ma_result_description(result));
+                            Free();
+                            return false;
+                        }
+                    }
+                } else {
+                    AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_INSTANCE, "AudioInstance::Load - Failed to predecode \"%s\" (%s, frames=%llu); falling back to streaming.\n", Template->Get_FileName().c_str(), ma_result_description(result), frames_read);
+                    ma_decoder_seek_to_pcm_frame(Decoder, 0);
+                }
+            }
+        }
+
+        if (!aud_sound_initialized) {
+            result = ma_sound_init_from_data_source(AudioManager.Engine, Decoder, stream_flags, AudioManager.SoundGroups[Template->Get_Group()], Sound);
+            if (result != MA_SUCCESS) {
+                AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_sound_init_from_data_source failed (%s)!\n", ma_result_description(result));
+                Free();
+                return false;
+            }
         }
 
         DecoderIsOwnedBySound = false;
 
     } else {
 
-        // Not a WS AUD file� fall back to standard decoder set (MP3, WAV, OGG, etc.).
-        result = ma_sound_init_from_file(AudioManager.Engine, Template->Get_FileName().c_str(), flags, AudioManager.SoundGroups[Template->Get_Group()], nullptr, Sound);
+        // Not a WS AUD file - fall back to standard decoder set (MP3, WAV, OGG, etc.).
+        result = ma_sound_init_from_file(AudioManager.Engine, Template->Get_FileName().c_str(), stream_flags, AudioManager.SoundGroups[Template->Get_Group()], nullptr, Sound);
         if (result != MA_SUCCESS) {
             AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_sound_init_from_file failed (%s)!\n", ma_result_description(result));
             Free();
@@ -154,6 +245,16 @@ bool AudioInstanceClass::Free()
         Decoder = nullptr;
         DecoderInitialized = false;
         DecoderIsOwnedBySound = false;
+        freed = true;
+    }
+
+    if (AudioBuffer) {
+        if (AudioBufferInitialized) {
+            ma_audio_buffer_uninit(AudioBuffer);
+        }
+        delete AudioBuffer;
+        AudioBuffer = nullptr;
+        AudioBufferInitialized = false;
         freed = true;
     }
 

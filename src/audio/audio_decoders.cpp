@@ -72,6 +72,7 @@ typedef struct ma_sos_aud_decoder
     ma_uint8* pCompressed;           // Pointer to the full compressed data loaded in memory
     ma_uint64 compressedSize;        // Total size of the compressed buffer in bytes
     ma_uint64 compCursor;            // Current byte offset in the compressed data stream
+    ma_uint64 pcmCursor;             // Current PCM frame position in the decoded stream
     ma_uint64 totalFrameCount;       // Total number of PCM frames after full decompression
     ma_uint32 frameSize;             // Size of a single PCM frame in bytes (sample size * channel count)
 
@@ -218,10 +219,14 @@ static ma_result ma_sos_aud_read_pcm_frames(
         if (bytesToRead > 0) {
             void* pRead;
             ma_rb_acquire_read(&pDecoder->rbDecodedPCM, &bytesToRead, &pRead); // Lock read region
-            memcpy(dst, pRead, bytesToRead); // Copy data to output
+            if (dst != nullptr) {
+                memcpy(dst, pRead, bytesToRead); // Copy data to output
+            }
             ma_rb_commit_read(&pDecoder->rbDecodedPCM, bytesToRead); // Commit read
 
-            dst += bytesToRead;
+            if (dst != nullptr) {
+                dst += bytesToRead;
+            }
             bytesRequested -= bytesToRead;
             totalFramesRead += bytesToRead / pDecoder->frameSize;
         }
@@ -309,14 +314,20 @@ static ma_result ma_sos_aud_read_pcm_frames(
         if (bytesToRead > 0) {
             void* pRead;
             ma_rb_acquire_read(&pDecoder->rbDecodedPCM, &bytesToRead, &pRead); // Lock read region
-            memcpy(dst, pRead, bytesToRead); // Copy to output
+            if (dst != nullptr) {
+                memcpy(dst, pRead, bytesToRead); // Copy to output
+            }
             ma_rb_commit_read(&pDecoder->rbDecodedPCM, bytesToRead); // Commit read
 
-            dst += bytesToRead;
+            if (dst != nullptr) {
+                dst += bytesToRead;
+            }
             bytesRequested -= bytesToRead;
             totalFramesRead += bytesToRead / pDecoder->frameSize;
         }
     }
+
+    pDecoder->pcmCursor += totalFramesRead;
 
     // Report how many frames were actually read
     if (pFramesRead) {
@@ -327,7 +338,7 @@ static ma_result ma_sos_aud_read_pcm_frames(
      *  Signal end-of-stream when the compressed input is exhausted and the
      *  decoded ring buffer is drained.
      */
-    if (totalFramesRead < frameCount
+    if (totalFramesRead == 0
         && pDecoder->compCursor >= pDecoder->compressedSize
         && ma_rb_available_read(&pDecoder->rbDecodedPCM) == 0) {
         return MA_AT_END;
@@ -353,8 +364,10 @@ static ma_result ma_sos_aud_seek_to_pcm_frame(ma_data_source* pDataSource, ma_ui
 
     // Reset the decoder's internal state.
     pDecoder->compCursor = 0;              // Start at the beginning of the compressed buffer.
+    pDecoder->pcmCursor = 0;               // Reset the decoded PCM cursor.
     pDecoder->compInfo.dwPredicted = 0;    // Reset internal predictor state (SOS-specific).
     pDecoder->compInfo.wIndex = 0;         // Reset index used for ADPCM step table.
+    ma_rb_reset(&pDecoder->rbDecodedPCM);
 
     // Reinitialize the decompression stream state.
     sosCODEC2InitStream(&pDecoder->compInfo);
@@ -399,10 +412,7 @@ static ma_result ma_sos_aud_get_cursor(ma_data_source* pDataSource, ma_uint64* p
     ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)pDataSource;
 
     if (pCursor) {
-        // Each decoded chunk is typically 2048 bytes (or similar), and each frame is 2 or 4 bytes.
-        // Since compCursor is in compressed bytes, we estimate frame position by dividing.
-        // Adjust divisor if necessary based on format specifics.
-        *pCursor = pDecoder->compCursor / pDecoder->frameSize;
+        *pCursor = pDecoder->pcmCursor;
     }
 
     return MA_SUCCESS;
@@ -469,7 +479,7 @@ static ma_result ma_sos_aud_init(
     // Save the compressed size and calculate uncompressed frame info.
     pDecoder->compressedSize = pDecoder->header.compSize;
     pDecoder->frameSize = pDecoder->channels * ma_get_bytes_per_sample(pDecoder->format);;
-    pDecoder->totalFrameCount = pDecoder->header.uncompSize / (sizeof(ma_int16) * pDecoder->channels);
+    pDecoder->totalFrameCount = pDecoder->header.uncompSize / pDecoder->frameSize;
 
     // Reject large files for safety (arbitrary 64MB limit).
     ma_uint64 compSize = pDecoder->header.compSize;
