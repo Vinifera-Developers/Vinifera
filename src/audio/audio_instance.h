@@ -105,13 +105,6 @@ private:
     bool DecoderIsOwnedBySound = false;
 
     /**
-     *  Holds predecoded PCM for very small AUD one-shots. These sounds can be
-     *  consumed to EOF inside the first mixer callback when streamed.
-     */
-    ma_audio_buffer* AudioBuffer = nullptr;
-    bool AudioBufferInitialized = false;
-
-    /**
      *  Back-reference to template
      */
     AudioSampleClass* Template = nullptr;
