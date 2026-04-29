@@ -125,15 +125,9 @@ VoxPriorityType Priority_From_Name(const char* name, VoxPriorityType fallback)
 }
 
 
-const char* Name_From_Priority(VoxPriorityType p)
+SubtitleCategoryType Default_Category_For_Name(const char* name)
 {
-    switch (p) {
-    case VOX_PRIORITY_LOW:       return "LOW";
-    case VOX_PRIORITY_NORMAL:    return "NORMAL";
-    case VOX_PRIORITY_IMPORTANT: return "IMPORTANT";
-    case VOX_PRIORITY_CRITICAL:  return "CRITICAL";
-    }
-    return "NORMAL";
+    return name != nullptr && std::strncmp(name, "EVA_", 4) != 0 ? SUBTITLE_CATEGORY_STORY : SUBTITLE_CATEGORY_SYSTEM;
 }
 
 
@@ -254,9 +248,7 @@ void AudioVoxClass::One_Time()
     for (VoxType vox = VOX_FIRST; vox < std::size(EvaNames); ++vox) {
         AudioVoxClass *voxptr = new AudioVoxClass(EvaNames[vox]);
         voxptr->Sound = Speech[vox];
-        if (strstr(EvaNames[vox], "EVA_") != nullptr) {
-            voxptr->SubtitleCategory = SUBTITLE_CATEGORY_SYSTEM;
-        }
+        voxptr->SubtitleCategory = Default_Category_For_Name(EvaNames[vox]);
     }
 }
 
@@ -658,35 +650,19 @@ void AudioVoxClass::Set_Speech_Volume(int vol)
  */
 bool AudioVoxClass::Write_Default_Speech_INI(CCINIClass &ini)
 {
-    static char const * const DEFAULTS = "Defaults";
-    static char const * const SPEECHLIST = "SpeechList";
-
-    char buffer[256];
+    static char const * const DIALOGLIST = "DialogList";
 
     /**
      *  Clear out all existing base data from the ini file.
      */
-    ini.Clear(DEFAULTS);
-    ini.Clear(SPEECHLIST);
-
     ini.Clear();
 
     /**
-     *  Save the default sound values.
+     *  Write out each speech entry to the DialogList section.
      */
-    ini.Put_String(DEFAULTS, "Priority", Name_From_Priority(DefaultPriority));
-    ini.Put_Float(DEFAULTS, "Delay", DefaultDelay);
-    ini.Put_Float(DEFAULTS, "FrequencyShift", DefaultFrequencyShift);
-    ini.Put_Float(DEFAULTS, "Volume", DefaultVolume);
-    ini.Put_Float(DEFAULTS, "MinVolume", DefaultMinVolume);
-    ini.Put_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume);
-
-    /**
-     *  Write out each speech entry to the SpeechList section.
-     */
-    for (VoxType vox = VOX_FIRST; vox < std::size(Speech); ++vox) {
-
-        const char * vox_name = Speech[vox];
+    for (VoxType vox = VOX_FIRST; vox < std::size(EvaNames); ++vox) {
+        const char * vox_name = EvaNames[vox];
+        const char * sound_name = Speech[vox] != nullptr ? Speech[vox] : "";
 
         /**
          *  Format the entry index as the INI key.
@@ -694,11 +670,17 @@ bool AudioVoxClass::Write_Default_Speech_INI(CCINIClass &ini)
         char entrybuff[8];
         std::snprintf(entrybuff, sizeof(entrybuff), "%d", vox);
 
-        ini.Put_String(SPEECHLIST, entrybuff, vox_name);
+        ini.Put_String(DIALOGLIST, entrybuff, vox_name);
 
         /**
          *  Now write the keys for its section.
          */
+        if (sound_name[0] != '\0' && std::strcmp(vox_name, sound_name) != 0) {
+            ini.Put_String(vox_name, "Sound", sound_name);
+        }
+        if (Default_Category_For_Name(vox_name) == SUBTITLE_CATEGORY_STORY) {
+            ini.Put_String(vox_name, "Category", "Story");
+        }
     }
 
     return true;
@@ -770,7 +752,7 @@ bool AudioVoxClass::Is_Speech_Allowed()
  */
 std::string const& AudioVoxClass::Get_Sound_Name() const
 {
-    if (Scen != nullptr && Scen->SpeechSide >= SIDE_FIRST && Scen->SpeechSide < SideSounds.size()) {
+    if (Scen != nullptr && Scen->SpeechSide >= SIDE_FIRST && static_cast<size_t>(Scen->SpeechSide) < SideSounds.size()) {
         if (!SideSounds[Scen->SpeechSide].empty()) {
             return SideSounds[Scen->SpeechSide];
         }
