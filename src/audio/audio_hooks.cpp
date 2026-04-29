@@ -216,31 +216,26 @@ static bool Read_Sound_Ini()
 
     /**
      *  General note of warning here: TS Client packages removes SOUND.INI in
-     *  favour of SOUND01.INI, but this breaks the games designed system. Exit
-     *  on failing of reading SOUND.INI for now!
+     *  favour of SOUND01.INI.
      */
     bool sound_ini_found = false;
     bool sound01_ini_found = false;
+
+    AudioVocClass::Clear();
 
     DEBUG_INFO("Reading SOUND.INI\n");
 
     file.Set_Name("SOUND.INI");
     if (file.Is_Available()) {
         if (ini.Load(file, false)) {
-
             DEBUG_INFO("About to call VocClass::Process(SOUND.INI)...\n");
-            AudioVocClass::Clear();
             AudioVocClass::Process(ini);
-
             sound_ini_found = true;
-
         } else {
             DEBUG_ERROR("Failed to load SOUND.INI!\n");
-            //return false;
         }
     } else {
         DEBUG_ERROR("Failed to find SOUND.INI!\n");
-        //return false;
     }
 
     if (Addon_Installed(ADDON_FIRESTORM)) {
@@ -250,17 +245,9 @@ static bool Read_Sound_Ini()
         file.Set_Name("SOUND01.INI");
         if (file.Is_Available()) {
             if (ini.Load(file, false)) {
-
-                /**
-                 *  We no longer clear before loading SOUND01.INI as it
-                 *  is now loaded as an "addition" to SOUND.INI.
-                 */
                 DEBUG_INFO("About to call VocClass::Process(SOUND01.INI) as addition...\n");
-                //AudioVocClass::Clear();
                 AudioVocClass::Process(ini);
-
                 sound01_ini_found = true;
-
             } else {
                 DEBUG_ERROR("Failed to load SOUND01.INI!\n");
             }
@@ -270,7 +257,6 @@ static bool Read_Sound_Ini()
     }
 
     DEBUG_INFO("About to call VocClass::Scan()...\n");
-    //AudioVocClass::Scan();
     AudioVocClass::ScanAsync();
 
     return sound_ini_found || sound01_ini_found;
@@ -309,15 +295,8 @@ static bool Read_Theme_Ini()
         file.Set_Name("THEME01.INI");
         if (file.Is_Available()) {
             if (ini.Load(file, false)) {
-
-                /**
-                 *  We no longer clear before loading THEME01.INI as it
-                 *  is now loaded as an "addition" to THEME.INI.
-                 */
                 DEBUG_INFO("About to call Theme.Process(THEME01.INI) as addition...\n");
-                //AudioTheme.Clear();
                 AudioTheme.Process(ini);
-
             } else {
                 DEBUG_ERROR("Failed to load THEME01.INI!\n");
             }

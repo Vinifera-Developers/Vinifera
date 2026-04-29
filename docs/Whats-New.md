@@ -81,7 +81,6 @@ New:
 - Add "Only Harvesters" quarry (by Rampastring)
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
 - Implement INI inheritance/includes (by ZivDero)
-- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
 - Add RA2-style `SOUND.INI` sequencing controls (`ALL`, `ATTACK`, `DECAY`, `INTERRUPT`, `QUEUED_INTERRUPT`) and functional sound `Delay`/`PREDELAY` support (by ZivDero)
 - Fix audio priority mapping, master volume application, sound limits, group fade-out, and EVA speech delay/interrupt handling (by ZivDero)
 - Add "Building Does Not Exist" trigger event (by Rampastring)

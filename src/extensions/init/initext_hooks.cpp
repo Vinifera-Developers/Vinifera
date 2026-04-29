@@ -251,43 +251,6 @@ void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, i
 
 
 /**
- *  Reads SOUND.INI and SOUND01.INI if Firestorm is installed.
- *
- *  @author: ZivDero
- */
-static bool Read_Sound_INI()
-{
-    DEBUG_INFO("Reading SOUND.INI\n");
-    CCINIClass vini;
-
-    bool found = false;
-    CCFileClass vfile("SOUND.INI");
-    if (vfile.Is_Available() && vini.Load(vfile, false)) {
-        found = true;
-        DEBUG_INFO("Read SOUND.INI.\n");
-    }
-
-    if (Addon_Installed(ADDON_FIRESTORM)) {
-        vfile.Set_Name("SOUND01.INI");
-        if (vfile.Is_Available() && vini.Load(vfile, false)) {
-            found = true;
-            DEBUG_INFO("Read SOUND01.INI.\n");
-        }
-    }
-
-    if (!found) {
-        DEBUG_FATAL("Failed to load SOUND.INI!\n");
-        return false;
-    }
-
-    VocClass::Clear();
-    VocClass::Process(vini);
-
-    return true;
-}
-
-
-/**
  *  Reimplementation of Prep_For_Side()
  *  
  *  Prepare the mixfiles for the player side.
@@ -394,11 +357,6 @@ bool Vinifera_Prep_For_Side(SideType side)
 
     Map.Init_For_House();
 
-    /**
-     *  Re-initialize sounds in case the side mixes override them.
-     */
-    //Read_Sound_INI();
-
     return true;
 }
 
@@ -484,30 +442,6 @@ bool Vinifera_Prep_Speech_For_Side(SideType side)
     UIControls->Read_INI_File("UIOVERRIDES.INI");
 
     return true;
-}
-
-
-/**
- *  Replace the sound reading routine in Init_Game().
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x004E08EE, _Init_Game_Read_SOUND_INI_Patch, 0)
-{
-    REF_STACK(CCFileClass, file, 0x48);
-    REF_STACK(CCINIClass, ini, 0xAC);
-
-    /**
-     *  Construct classes where the game would so that it can destroy them later.
-     */
-    new (&file) CCFileClass("SOUND.INI");
-    new (&ini) CCINIClass();
-
-    if (!Read_Sound_INI()) {
-        R->EAX(-1);
-        return 0x004E0964;
-    } 
-    return 0x004E09C8;
 }
 
 
