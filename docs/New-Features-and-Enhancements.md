@@ -1402,14 +1402,14 @@ The random map generator does not currently support new theater types.
 
 ## Audio System
 
-Vinifera replaces the vanilla audio engine with a new system for sound effects, music themes, and EVA speech.
+Vinifera replaces the vanilla audio engine with a miniaudio-backed system for sound effects, music themes, EVA speech, subtitles, and VQA movie audio. The original miniaudio implementation was by CCHyper.
 
 ### General Behavior
 
 - Supported file formats are `FLAC`, `WAV`, `OGG`, `MP3`, and the vanilla `AUD` format.
 - Use filenames without extensions in `SOUND.INI`, `THEME.INI`, and `EVA.INI`.
 - Formats are searched in this order: `FLAC`, `WAV`, `OGG`, `MP3`, then `AUD`.
-- Audio files are resolved through the normal game file system, so they may come from the game directory, subdirectories, or loaded `.MIX` archives.
+- Audio files are resolved through the normal game file system, so they may come from the game directory, the `SOUNDS`, `SPEECH`, and `MUSIC` search directories, or loaded `.MIX` archives.
 - When Firestorm is active, `SOUND01.INI` and `THEME01.INI` load after the base files. Repeating an existing sound or theme name updates that entry; new names are added.
 
 ### Sound Effects
@@ -1489,6 +1489,11 @@ CrossFadeSeconds=10.0  ; float, cross-fade duration, in seconds.
 Sound=                 ; filename, audio file for this theme. Omit the extension. Defaults to the theme's INI name.
 Name=                  ; string, full display name shown by music UI.
 Artist=                ; string, artist name shown by music UI.
+Length=0               ; float, track length in seconds, used by music UI.
+Normal=no              ; boolean, whether this theme can be selected during normal in-game music playback.
+Repeat=no              ; boolean, whether this theme should repeat when played.
+Scenario=0             ; integer, minimum single-player scenario number required before this theme can play normally.
+Side=                  ; list of Sides, which player sides are allowed to hear this theme. Omit for any side.
 Volume=1.0             ; float, per-theme volume multiplier.
 RequiredAddon=0        ; AddonType, addon required for the theme. 0 = base game, 1 = Firestorm.
 ```
@@ -1515,6 +1520,7 @@ FShift=1.0      ; float, default speech pitch multiplier.
 [EVA_MissionAccomplished]
 Sound=          ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
 Text=           ; string, descriptive text for this entry. It is not spoken.
+Category=System ; subtitle category, valid options are "System" and "Story".
 Priority=NORMAL ; speech priority for this entry, see Priority Values below.
 Delay=0.2       ; float, delay, in seconds, before this speech starts.
 FShift=1.0      ; float, pitch multiplier for this speech entry.
@@ -1544,6 +1550,31 @@ SOMESIDE=       ; filename, side-specific audio file for the side named SOMESIDE
 | `NORMAL` | Default priority. |
 | `IMPORTANT` | Drains before `NORMAL` within the same queue. |
 | `CRITICAL` | Drains first within its queue. |
+
+### Subtitles
+
+`EVA.INI` speech entries can display subtitles using their `Text=` value. Subtitle filtering is controlled by `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Options]
+SubtitleMode=None  ; subtitle display mode. Valid options are "None", "All", "Story", and "System".
+```
+
+Subtitle appearance is controlled in `UI.INI`.
+
+In `UI.INI`:
+```ini
+[Ingame]
+SubtitleFontName=Arial          ; string, font face used for subtitles.
+SubtitleFontHeight=22           ; integer, font height.
+SubtitleFontWeight=700          ; integer, font weight.
+SubtitleTextColor=255,255,255   ; RGB color, subtitle text color.
+SubtitleOutlineColor=0,0,0      ; RGB color, subtitle outline color.
+SubtitleOutlineWidth=2          ; integer, outline thickness in pixels.
+SubtitleMarginX=40              ; integer, horizontal margin from the tactical view edges.
+SubtitleMarginBottom=24         ; integer, bottom margin from the tactical view.
+```
 
 ### Hardcoded Speeches
 

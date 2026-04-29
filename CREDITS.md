@@ -144,6 +144,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
+  - Replace DirectSound with miniaudio, implement customizations for themes, sounds and speeches.
 - **CrimRecya**:
   - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **hacklex**:
@@ -358,3 +359,4 @@ This page lists all the individual contributions to the project by their author.
   - Make spawners respect `IonSensitive` on weapons.
   - Fix a bug where the sidebar could only contain up to 75 items on a strip.
   - Extended sidebar customizability.
+  - Replace DirectSound with miniaudio, implement customizations for themes, sounds and speeches.

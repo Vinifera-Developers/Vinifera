@@ -330,6 +330,8 @@ The argument supports multiple entries separated by the `;` character. Below are
 
 - `-NO_VERSION_STRING` can be used to hide the build version number from the in-game view.
 
+- `-AUDIO_DEBUG` enables extensive logging for the new audio engine. In debug builds, it also opens the audio debug window.
+
 ```{note}
 If you are using Vinifera with the TS Client, you can add these to the `ExtraCommandLineParams=` in `Resources\ClientDefinitions.ini`
 
