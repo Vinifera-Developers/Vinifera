@@ -75,6 +75,7 @@ private:
     float Get_MaxVolume() const { return MaxVolume.value_or(DefaultMaxVolume); }
 
     std::string const& Get_Sound_Name() const;
+    void Set_Vanilla_Defaults();
 
     /**
      *  The file type of this speech.
@@ -151,7 +152,7 @@ private:
     /**
      *  The playback policy for this speech entry.
      */
-    VoxControlType Control = VOX_CONTROL_QUEUE;
+    VoxControlType Control = VOX_CONTROL_STANDARD;
 };
 
 extern DynamicVectorClass<AudioVoxClass*> Voxs;

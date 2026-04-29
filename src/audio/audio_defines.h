@@ -286,8 +286,8 @@ typedef enum AudioSoundType
  *  decoupled from the global AudioControlType used by other audio.
  */
 enum VoxControlType {
+    VOX_CONTROL_STANDARD,         // Use the single replaceable standard pending slot.
     VOX_CONTROL_QUEUE,            // Insert into the normal queue.
-    VOX_CONTROL_STANDARD,         // Play only if nothing is currently speaking and both queues are empty.
     VOX_CONTROL_INTERRUPT,        // Stop current speech, clear both queues, play immediately.
     VOX_CONTROL_QUEUED_INTERRUPT, // Insert into the interrupt queue (drains before the normal queue).
 };

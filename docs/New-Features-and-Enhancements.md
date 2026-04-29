@@ -1502,7 +1502,9 @@ RequiredAddon=0        ; AddonType, addon required for the theme. 0 = base game,
 
 `EVA.INI` defines the EVA and mission speech database. It is optional: if it is not present, Vinifera uses the built-in speech list. However, if it is provided, no default speeches are added to it.
 
-Speech runs through a dedicated two-tier priority queue, separate from the sound effect engine. Each entry's `Control=` chooses how it is enqueued; its `Priority=` determines where it lands within its queue. Within a queue, higher priorities drain first; equal priorities are FIFO. The interrupt queue always drains before the normal queue.
+Speech runs through a dedicated scheduler, separate from the sound effect engine. Each entry's `Control=` chooses whether it uses the single standard slot, the normal queue, or the interrupt queue; its `Priority=` determines ordering within queued speech. Within a queue, higher priorities drain first; equal priorities are FIFO. The interrupt queue drains before the normal queue.
+
+If no `EVA.INI` is provided, some built-in speeches also have different appripriate defaults for `Category=`, `Control=`, and `Priority=`.
 
 In `EVA.INI`:
 ```ini
@@ -1518,17 +1520,17 @@ FShift=1.0      ; float, default speech pitch multiplier.
 0=EVA_MissionAccomplished
 
 [EVA_MissionAccomplished]
-Sound=          ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
-Text=           ; string, descriptive text for this entry. It is not spoken.
-Category=System ; subtitle category, valid options are "System" and "Story".
-Priority=NORMAL ; speech priority for this entry, see Priority Values below.
-Delay=0.2       ; float, delay, in seconds, before this speech starts.
-FShift=1.0      ; float, pitch multiplier for this speech entry.
-Volume=1.0      ; float, volume multiplier for this speech entry.
-MinVolume=0.0   ; float, minimum volume for this speech entry.
-MaxVolume=1.0   ; float, maximum volume for this speech entry.
-Control=QUEUE   ; speech playback policy, see Control Values below.
-SOMESIDE=       ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
+Sound=            ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
+Text=             ; string, descriptive text for this entry. It is not spoken.
+Category=System   ; subtitle category, valid options are "System" and "Story".
+Priority=NORMAL   ; speech priority for this entry, see Priority Values below.
+Delay=0.2         ; float, delay, in seconds, before this speech starts.
+FShift=1.0        ; float, pitch multiplier for this speech entry.
+Volume=1.0        ; float, volume multiplier for this speech entry.
+MinVolume=0.0     ; float, minimum volume for this speech entry.
+MaxVolume=1.0     ; float, maximum volume for this speech entry.
+Control=STANDARD  ; speech playback policy, see Control Values below.
+SOMESIDE=         ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
 ```
 
 #### Control Values
@@ -1537,8 +1539,8 @@ SOMESIDE=       ; filename, side-specific audio file for the side named SOMESIDE
 
 | Value | Description |
 |------|-------------|
-| `QUEUE` | Insert into the normal queue. Plays after the currently-speaking line and any higher-priority queued lines. This is the default. |
-| `STANDARD` | Play only if nothing is currently speaking and both queues are empty. Otherwise the request is dropped. |
+| `STANDARD` | Use a single replaceable pending slot. If a `STANDARD` line is already pending, only a higher-priority `STANDARD` line replaces it. If a queued-interrupt or critical line is already pending, the request is dropped. The slot drains before the normal queue. This is the default. |
+| `QUEUE` | Insert into the normal queue. Plays after the currently-speaking line and any higher-priority queued lines. |
 | `INTERRUPT` | Stop the currently-playing line, clear both queues, and play immediately. |
 | `QUEUED_INTERRUPT` | Insert into the interrupt queue, which drains before the normal queue. Does not stop the line that is already playing. |
 

@@ -27,8 +27,10 @@
 #include "vox.h"
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <deque>
+#include <optional>
 #include <thread>
 
 
@@ -69,7 +71,9 @@ struct VoxQueueEntry
 };
 
 std::deque<VoxQueueEntry> NormalQueue;
+std::deque<VoxQueueEntry> CriticalQueue;
 std::deque<VoxQueueEntry> InterruptQueue;
+std::optional<VoxQueueEntry> StandardQueue;
 VoxType ActiveVoice = VOX_NONE;
 
 
@@ -85,13 +89,15 @@ void Insert_Sorted(std::deque<VoxQueueEntry>& q, VoxQueueEntry entry)
 
 
 /**
- *  Returns true if the voice is already pending in either queue.
+ *  Returns true if the voice is already pending in any queue or slot.
  */
 bool Is_Queued(VoxType voice)
 {
     auto match = [&](const VoxQueueEntry& x) { return x.voice == voice; };
     return std::any_of(NormalQueue.begin(), NormalQueue.end(), match)
-        || std::any_of(InterruptQueue.begin(), InterruptQueue.end(), match);
+        || std::any_of(CriticalQueue.begin(), CriticalQueue.end(), match)
+        || std::any_of(InterruptQueue.begin(), InterruptQueue.end(), match)
+        || (StandardQueue.has_value() && StandardQueue->voice == voice);
 }
 
 
@@ -125,9 +131,113 @@ VoxPriorityType Priority_From_Name(const char* name, VoxPriorityType fallback)
 }
 
 
-SubtitleCategoryType Default_Category_For_Name(const char* name)
+const char* Priority_Name(VoxPriorityType priority)
+{
+    switch (priority) {
+    case VOX_PRIORITY_LOW:       return "LOW";
+    case VOX_PRIORITY_NORMAL:    return "NORMAL";
+    case VOX_PRIORITY_IMPORTANT: return "IMPORTANT";
+    case VOX_PRIORITY_CRITICAL:  return "CRITICAL";
+    }
+    return "NORMAL";
+}
+
+/**
+ *  Defaults for vanilla speeches.
+ */
+constexpr std::array<std::string_view, 16> DialogType_QUEUE = {
+    "EVA_ChemicalMissileReady",
+    "EVA_ClusterMissileReady",
+    "EVA_IonCannonReady",
+    "EVA_EMPulseCannonReady",
+    "EVA_FirestormDefenseReady",
+    "EVA_FirestormDefenseOffline",
+    "EVA_PlayerResigned",
+    "EVA_PlayerDefeated",
+    "EVA_ReinforcementsHaveArrived",
+    "EVA_NewTerrainDiscovered",
+    "EVA_AllianceFormed",
+    "EVA_AllianceBroken",
+    "EVA_OurAllyIsUnderAttack",
+    "EVA_NewConstructionOptions",
+    "EVA_LowPower",
+    "EVA_BuildingCaptured",
+};
+
+constexpr std::array<std::string_view, 4> DialogPriority_CRITICAL = {
+    "EVA_MissileLaunchDetected",
+    "EVA_IonStormApproaching",
+    "EVA_MeteorStormApproaching",
+    "EVA_EstablishBattlefieldControl",
+};
+
+constexpr std::array<std::string_view, 8> DialogPriority_IMPORTANT = {
+    "EVA_PlayerResigned",
+    "EVA_PlayerDefeated",
+    "EVA_ReinforcementsHaveArrived",
+    "EVA_NewTerrainDiscovered",
+    "EVA_AllianceFormed",
+    "EVA_AllianceBroken",
+    "EVA_LowPower",
+    "EVA_UnitLost",
+};
+
+constexpr std::array <std::string_view, 24> DialogPriority_LOW = {
+    "EVA_OurAllyIsUnderAttack",
+    "EVA_BridgeRepaired",
+    "EVA_UnableToComply",
+    "EVA_ConstructionComplete",
+    "EVA_NewConstructionOptions",
+    "EVA_Canceled",
+    "EVA_Building",
+    "EVA_PrimaryBuildingSet",
+    "EVA_OnHold",
+    "EVA_Repairing",
+    "EVA_StructureSold",
+    "EVA_BaseDefensesOffLine",
+    "EVA_BuildingOffLine",
+    "EVA_BuildingOnLine",
+    "EVA_UnitReady",
+    "EVA_CannotDeployHere",
+    "EVA_SelectTarget",
+    "EVA_Training",
+    "EVA_UnitRepaired",
+    "EVA_UnitSold",
+    "EVA_UnitFirePowerUpgraded",
+    "EVA_UnitArmorUpgraded",
+    "EVA_UnitSpeedUpgraded",
+};
+
+
+SubtitleCategoryType Vanilla_Category_For_Name(const char* name)
 {
     return name != nullptr && std::strncmp(name, "EVA_", 4) != 0 ? SUBTITLE_CATEGORY_STORY : SUBTITLE_CATEGORY_SYSTEM;
+}
+
+
+std::optional<VoxControlType> Vanilla_Control_For_Name(std::string_view name)
+{
+    if (std::ranges::find(DialogType_QUEUE.begin(), DialogType_QUEUE.end(), name) != DialogType_QUEUE.end()) {
+        return VOX_CONTROL_QUEUE;
+    }
+
+    return std::nullopt;
+}
+
+
+std::optional<VoxPriorityType> Vanilla_Priority_For_Name(const char* name)
+{
+    if (std::ranges::find(DialogPriority_CRITICAL.begin(), DialogPriority_CRITICAL.end(), name) != DialogPriority_CRITICAL.end()) {
+        return VOX_PRIORITY_CRITICAL;
+    }
+    if (std::ranges::find(DialogPriority_IMPORTANT.begin(), DialogPriority_IMPORTANT.end(), name) != DialogPriority_IMPORTANT.end()) {
+        return VOX_PRIORITY_IMPORTANT;
+    }
+    if (std::ranges::find(DialogPriority_LOW.begin(), DialogPriority_LOW.end(), name) != DialogPriority_LOW.end()) {
+        return VOX_PRIORITY_LOW;
+    }
+
+    return std::nullopt;
 }
 
 
@@ -174,6 +284,27 @@ AudioVoxClass::AudioVoxClass(std::string name) :
 AudioVoxClass::~AudioVoxClass()
 {
     Voxs.Delete(this);
+}
+
+
+/**
+ *  Applies the built-in vanilla defaults for this speech entry.
+ *
+ *  @author: ZivDero
+ */
+void AudioVoxClass::Set_Vanilla_Defaults()
+{
+    const char *name = Name.c_str();
+
+    SubtitleCategory = Vanilla_Category_For_Name(name);
+
+    if (auto control = Vanilla_Control_For_Name(name)) {
+        Control = *control;
+    }
+
+    if (auto priority = Vanilla_Priority_For_Name(name)) {
+        Priority = *priority;
+    }
 }
 
 
@@ -248,7 +379,7 @@ void AudioVoxClass::One_Time()
     for (VoxType vox = VOX_FIRST; vox < std::size(EvaNames); ++vox) {
         AudioVoxClass *voxptr = new AudioVoxClass(EvaNames[vox]);
         voxptr->Sound = Speech[vox];
-        voxptr->SubtitleCategory = Default_Category_For_Name(EvaNames[vox]);
+        voxptr->Set_Vanilla_Defaults();
     }
 }
 
@@ -449,13 +580,21 @@ void AudioVoxClass::Speak(VoxType voice, bool now)
 
     switch (ctrl) {
     case VOX_CONTROL_STANDARD:
-        if (ActiveVoice != VOX_NONE || !NormalQueue.empty() || !InterruptQueue.empty()) {
+        if (entry.priority == VOX_PRIORITY_CRITICAL) {
+            Insert_Sorted(CriticalQueue, entry);
+            break;
+        }
+
+        if (!InterruptQueue.empty() || !CriticalQueue.empty()) {
             return;
         }
-        InterruptQueue.push_front(entry);
-        SpeakTimer = 0;
-        AI();
-        return;
+
+        if (StandardQueue.has_value() && StandardQueue->priority >= entry.priority) {
+            return;
+        }
+
+        StandardQueue = entry;
+        break;
 
     case VOX_CONTROL_INTERRUPT:
         if (AudioManager.Query_Is_Active(SpeechHandle)) {
@@ -463,7 +602,9 @@ void AudioVoxClass::Speak(VoxType voice, bool now)
         }
         ActiveVoice = VOX_NONE;
         NormalQueue.clear();
+        CriticalQueue.clear();
         InterruptQueue.clear();
+        StandardQueue.reset();
         InterruptQueue.push_back(entry);
         SpeakTimer = 0;
         AI();
@@ -532,16 +673,28 @@ void AudioVoxClass::AI()
         }
     }
 
-    if (InterruptQueue.empty() && NormalQueue.empty()) {
+    if (CriticalQueue.empty() && InterruptQueue.empty() && !StandardQueue.has_value() && NormalQueue.empty()) {
         return;
     }
 
     /**
-     *  Pop the next entry: interrupt queue drains before the normal queue.
+     *  Pop the next entry: critical entries and queued interrupts drain before
+     *  the single standard slot, which drains before the normal queue.
      */
-    std::deque<VoxQueueEntry>& source = !InterruptQueue.empty() ? InterruptQueue : NormalQueue;
-    VoxQueueEntry next = source.front();
-    source.pop_front();
+    VoxQueueEntry next = { VOX_NONE, VOX_PRIORITY_LOW };
+    if (!CriticalQueue.empty()) {
+        next = CriticalQueue.front();
+        CriticalQueue.pop_front();
+    } else if (!InterruptQueue.empty()) {
+        next = InterruptQueue.front();
+        InterruptQueue.pop_front();
+    } else if (StandardQueue.has_value()) {
+        next = *StandardQueue;
+        StandardQueue.reset();
+    } else {
+        next = NormalQueue.front();
+        NormalQueue.pop_front();
+    }
 
     AudioVoxClass *voxptr = Voxs[next.voice];
     if (!voxptr) {
@@ -599,7 +752,9 @@ void AudioVoxClass::AI()
 void AudioVoxClass::Stop_Speaking()
 {
     NormalQueue.clear();
+    CriticalQueue.clear();
     InterruptQueue.clear();
+    StandardQueue.reset();
 
     AudioManager.Request_Stop(SpeechHandle, 0.5f);
 
@@ -626,7 +781,8 @@ bool AudioVoxClass::Is_Speaking()
         return false;
     }
 
-    return !NormalQueue.empty() || !InterruptQueue.empty() || (ActiveVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle));
+    return !NormalQueue.empty() || !CriticalQueue.empty() || !InterruptQueue.empty() || StandardQueue.has_value() ||
+        (ActiveVoice != VOX_NONE && AudioManager.Query_Is_Active(SpeechHandle));
 }
 
 
@@ -678,8 +834,14 @@ bool AudioVoxClass::Write_Default_Speech_INI(CCINIClass &ini)
         if (sound_name[0] != '\0' && std::strcmp(vox_name, sound_name) != 0) {
             ini.Put_String(vox_name, "Sound", sound_name);
         }
-        if (Default_Category_For_Name(vox_name) == SUBTITLE_CATEGORY_STORY) {
+        if (Vanilla_Category_For_Name(vox_name) == SUBTITLE_CATEGORY_STORY) {
             ini.Put_String(vox_name, "Category", "Story");
+        }
+        if (auto control = Vanilla_Control_For_Name(vox_name); control && *control == VOX_CONTROL_QUEUE) {
+            ini.Put_String(vox_name, "Control", "QUEUE");
+        }
+        if (auto priority = Vanilla_Priority_For_Name(vox_name)) {
+            ini.Put_String(vox_name, "Priority", Priority_Name(*priority));
         }
     }
 
@@ -832,8 +994,8 @@ const char* EvaNames[VOX_COUNT] = {
     "EVA_BaseDefensesOffline",
     "EVA_BuildingOffline",
     "EVA_BuildingOnline",
-    "EVA_PlayerHasResigned",
-    "EVA_PlayerWasDefeated",
+    "EVA_PlayerResigned",
+    "EVA_PlayerDefeated",
     "EVA_YouAreVictorious",
     "EVA_YouHaveLost",
     "EVA_YouHaveResigned",
