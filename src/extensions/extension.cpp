@@ -78,7 +78,6 @@
 #include "session.h"
 #include "sessionext.h"
 #include "side.h"
-#include "sidebarext.h"
 #include "sideext.h"
 #include "smudge.h"
 #include "smudgeext.h"
@@ -801,9 +800,6 @@ bool Extension::Save(IStream *pStm)
     if (FAILED(ScenExtension->Save(pStm, true))) { return false; }
     DEBUG_INFO("Saved \"%s\" extension\n", ScenExtension->Name());
 
-    if (FAILED(SidebarExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", SidebarExtension->Name());
-
     if (FAILED(SessionExtension->Save(pStm, true))) { return false; }
     DEBUG_INFO("Saved \"%s\" extension\n", SessionExtension->Name());
 
@@ -903,10 +899,6 @@ bool Extension::Load(IStream *pStm)
     if (FAILED(ScenExtension->Load(pStm))) { return false; }
     DEBUG_INFO("Loaded \"%s\" extension.\n", ScenExtension->Name());
     ScenExtension->Assign_This(Scen);
-
-    if (FAILED(SidebarExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", SidebarExtension->Name());
-    SidebarExtension->Assign_This(&Map);
 
     if (FAILED(SessionExtension->Load(pStm))) { return false; }
     DEBUG_INFO("Loaded \"%s\" extension.\n", SessionExtension->Name());
@@ -2181,7 +2173,6 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(TacticalExtension);                                       // We ignore the fact that Tactical is an abstract derived class, as we treat the extension as a global.
     version += sizeof(RulesClassExtension);
     version += sizeof(ScenarioClassExtension);
-    version += sizeof(SidebarClassExtension);
     version += sizeof(SessionClassExtension);
 
     /**

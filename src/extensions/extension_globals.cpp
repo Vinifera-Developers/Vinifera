@@ -53,6 +53,5 @@ TacticalExtension *TacticalMapExtension = nullptr;
 
 RulesClassExtension *RuleExtension = nullptr;
 ScenarioClassExtension *ScenExtension = nullptr;
-SidebarClassExtension *SidebarExtension = nullptr;
 SessionClassExtension *SessionExtension = nullptr;
 OptionsClassExtension *OptionsExtension = nullptr;

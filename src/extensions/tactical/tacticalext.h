@@ -13,6 +13,7 @@
 #include "extension.h"
 #include "point.h"
 #include "stimer.h"
+#include "stringid.h"
 #include "tactical.h"
 #include "textprint.h"
 #include "ttimer.h"
@@ -51,7 +52,7 @@ public:
     virtual const char* Full_Name() const override { return "TacticalMap"; }
 
     void Set_Info_Text(const char* text);
-    void Enable_Templated_Text(int label, ColorSchemeType color);
+    void Enable_Templated_Text(std::string_view label, ColorSchemeType color);
     void Disable_Templated_Text();
     void Clear_Templated_Text_Cache() { IsTemplatedTextCached = false; }
 
@@ -141,7 +142,7 @@ public:
     /**
      *  Index of the tutorial text to show as the templated text.
      */
-    int TemplatedTextIndex;
+    FixedString<128> TemplatedTextIndex;
 
     /**
      *  Where on the screen shall the templated text be printed?

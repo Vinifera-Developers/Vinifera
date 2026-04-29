@@ -2789,6 +2789,15 @@ bool TechnoClassExt::_Should_Self_Heal_Now() const
         return false;
     }
 
+    /*
+    * Prevents units that have died from self-healing. 
+    * This resolves an issue where self-healing aircraft would heal while tumbling down, 
+    * becoming indestructible and being stuck in an looping tumbling animation until they land.
+    */
+    if (Get_Health_Ratio() <= 0) {
+        return false;
+    }
+
     if (!TClass->IsSelfHealing) {
         if (!Has_Ability(ABILITY_SELF_HEAL)) {
             return false;

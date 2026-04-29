@@ -19,6 +19,7 @@
 #include "asserthandler.h"
 #include "audio_theme.h"
 #include "base.h"
+#include "battleui.h"
 #include "beacon.h"
 #include "building.h"
 #include "buildingtype.h"
@@ -42,6 +43,7 @@
 #include "language.h"
 #include "minidump.h"
 #include "miscutil.h"
+#include "mouse.h"
 #include "overlaytype.h"
 #include "particlesystype.h"
 #include "particletype.h"
@@ -51,17 +53,19 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
-#include "sidebarext.h"
+#include "sidebar_tabbed_view.h"
 #include "smudgetype.h"
 #include "super.h"
 #include "tactical.h"
 #include "tacticalext.h"
 #include "tag.h"
 #include "tagtype.h"
+#include "technotypeext.h"
 #include "terraintype.h"
 #include "theme.h"
 #include "tiberium.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "tibsun_util.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -530,7 +534,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
         return false;
     }
 
@@ -600,7 +604,7 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
         return false;
     }
 
@@ -670,7 +674,7 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
         return false;
     }
 
@@ -740,7 +744,7 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
         return false;
     }
 
@@ -1174,8 +1178,8 @@ const char* SetStructureTabCommandClass::Get_Description() const
 
 bool SetStructureTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
-    bool result = SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_STRUCTURE;
+    bool result = BattleUI.Get_Sidebar().Change_Tab(newtab);
 
     /**
      *  Enter the manual placement mode when a building is complete
@@ -1264,8 +1268,8 @@ const char* SetInfantryTabCommandClass::Get_Description() const
 
 bool SetInfantryTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_INFANTRY;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_INFANTRY;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1296,8 +1300,8 @@ const char* SetUnitTabCommandClass::Get_Description() const
 
 bool SetUnitTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_UNIT;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_UNIT;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1328,8 +1332,8 @@ const char* SetSpecialTabCommandClass::Get_Description() const
 
 bool SetSpecialTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_SPECIAL;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_SPECIAL;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -2354,11 +2358,6 @@ bool SpecialWeaponsCommandClass::Process()
         PlayerPtr->SuperWeapon[i]->Enable(true, true, true);
         PlayerPtr->SuperWeapon[i]->Forced_Charge(true);
         Map.Add(RTTI_SPECIAL, i);
-
-        /**
-         *  Redraw the right column.
-         */
-        Map.Column[1].Flag_To_Redraw();
     }
 
     return true;

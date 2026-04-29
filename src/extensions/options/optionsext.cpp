@@ -297,8 +297,8 @@ void OptionsClassExtension::Load_Settings()
         Options.KeyForceAttack2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL));
         Options.KeySelect1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
         Options.KeySelect2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
-        Options.KeyQueueMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
-        Options.KeyQueueMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
+        Options.KeyQueueMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z));
+        Options.KeyQueueMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z));
 
         KeyChatToAll1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll", KeyChatToAll1));
         KeyChatToAll2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll2", KeyChatToAll2));
