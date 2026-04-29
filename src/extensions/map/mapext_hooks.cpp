@@ -17,7 +17,7 @@
 #include "map.h"
 #include "object.h"
 #include "objecttype.h"
-#include "sidebarext.h"
+#include "battleui.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
 
@@ -105,7 +105,7 @@ void MapClassExt::_Detach(AbstractClass* target, bool all)
     MapClass::Detach(target, all);
 
     if (target->RTTI == RTTI_FACTORY) {
-        SidebarExtension->Detach(target);
+        BattleUI.Get_Sidebar().Detach(target);
     }
 }
 

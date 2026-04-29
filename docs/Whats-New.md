@@ -92,6 +92,7 @@ New:
 - Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
 - Make spawners respect `IonSensitive` on weapons (by ZivDero)
 - Vinifera's Developer mode now prints information on executed trigger actions (by Rampastring)
+- Extended sidebar customizability (by ZivDero)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -161,6 +162,7 @@ Vanilla fixes:
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it (by Rampastring)
+- Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 
 :::
 

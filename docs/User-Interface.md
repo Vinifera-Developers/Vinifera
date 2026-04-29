@@ -4,34 +4,123 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ## Sidebar
 
-### Tabs
+Vinifera replaces the vanilla Tiberian Sun sidebar with a new system designed for flexibility and modding.
 
 ```{note}
 You don't need to follow these instructions if you change the TS Client's update channel to `Vinifera Beta` (under the `Updater` tab of the `Options` menu) and then update to the latest version after the client has restarted. The TS Client will then enable the tabs for you. Do keep in mind that updating will cause the TS Client to undo any modifications that you might have already made.
 ```
 
-- Vinifera enhances the Tiberian Sun sidebar by introducing tabs similar to those found in Red Alert 2.
-- There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons, aircraft and naval units.
-- Vinifera also introduces new hotkeys for quick tab switching and placing the currently available building (in the case of the Structure tab).
-- The new sidebar feature must be enabled in `VINIFERA.INI`.
+The sidebar supports two layouts, switchable via a single INI key:
 
-In `VINIFERA.INI`:
-```ini
-[Features]
-NewSidebar=no                   ; boolean, whether the game should use the new sidebar.
-```
+- **Classic** — the vanilla-style 2-column layout, with independent left and right strips.
+- **Tabbed** — a 4-tab layout similar to Red Alert 2 (Structure, Infantry, Unit, Special). Since there is no defense queue, the "Defenses" tab is replaced by "Special", which contains Superweapons, aircraft and naval units.
 
-- Optionally, sidebar buttons like repair, etc. can be centered on the radar, like in vanilla, as opposed to being centered on the tab buttons.
+### Layout Configuration
+
+Nearly every aspect of the sidebar — positions, sizes, shapes, visibility — can be customized in `UI.INI` without changing the radar, credits area, or sidebar width.
+
+- All positions are relative to the internal sidebar area (under the radar).
+- `[Sidebar]` selects which layout to use. `[SidebarClassic]` and `[SidebarTabbed]` are self-contained configs for their respective layouts.
+- Leaving scroll button position entries blank auto-places them from the strip layout.
+- After loading side-specific mixes, the game also reads `UIOVERRIDES.INI` if present. This file uses the same keys as `UI.INI` and layers on top of the already loaded base config, allowing side-specific UI overrides.
+
+Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
 In `UI.INI`:
 ```ini
-[Ingame]
-CenterSidebarButtonsOnRadar=no  ; boolean, should the repair, etc. buttons be centered to the radar, instead of the tab buttons/cameo strips?
+[Sidebar]
+ViewType=Classic                ; string, Classic or Tabbed.
+
+[SidebarClassic]
+LeftStripPos=24,26              ; point, left strip origin.
+RightStripPos=91,26             ; point, right strip origin.
+RowSpacing=0                    ; integer, vertical gap between cameo rows (added to CameoSize height to get the row pitch)    .
+CameoSize=64,51                 ; point, cameo width,height.
+CameoNameOffset=41              ; integer, Y offset for the cameo name.
+CameoTextOffset=30,2            ; point, READY/HOLD text offset.
+QueueCountOffset=60,2           ; point, queue count text offset.
+LeftUpButtonPos=                ; point, optional explicit left up button position.
+LeftUpButtonVisible=yes         ; boolean, show the left up button.
+LeftDownButtonPos=              ; point, optional explicit left down button position.
+LeftDownButtonVisible=yes       ; boolean, show the left down button.
+RightUpButtonPos=               ; point, optional explicit right up button position.
+RightUpButtonVisible=yes        ; boolean, show the right up button.
+RightDownButtonPos=             ; point, optional explicit right down button position.
+RightDownButtonVisible=yes      ; boolean, show the right down button.
+RepairButtonPos=31,-9           ; point, repair button position.
+RepairButtonVisible=yes         ; boolean, show the repair button.
+RepairButtonShape=REPAIR.SHP    
+SellButtonPos=58,-9             ; point, sell button position.
+SellButtonVisible=yes           ; boolean, show the sell button.
+SellButtonShape=SELL.SHP    
+PowerButtonPos=85,-9            ; point, power button position.
+PowerButtonVisible=yes          ; boolean, show the power button.
+PowerButtonShape=POWER.SHP    
+WaypointButtonPos=112,-9        ; point, waypoint button position.
+WaypointButtonVisible=yes       ; boolean, show the waypoint button.
+WaypointButtonShape=WAYP.SHP    
+PowerBarPos=8,25                ; point, power bar position.
+PowerBarWidth=12                ; integer, power bar draw/tooltip width.
+PowerPipHeight=4                ; integer, vertical spacing between power pips.
+PowerBarHeightAdjust=1          ; integer, vertical offset applied to the power bar height calculation.
+PowerPipShape=POWERP.SHP
+SidebarShape=SIDE1.SHP
+SidebarMiddleShape=SIDE2.SHP
+SidebarBottomShape=SIDE3.SHP
+SidebarAddonShape=ADDON.SHP
+ClockShape=GCLOCK2.SHP
+RechargeClockShape=RCLOCK2.SHP
+DarkenShape=DARKEN.SHP
+ScrollUpButtonShape=R-UP.SHP
+ScrollDownButtonShape=R-DN.SHP
+
+[SidebarTabbed]
+Tab1Pos=20,24                  ; point, Structure tab position.
+Tab2Pos=55,24                  ; point, Infantry tab position.
+Tab3Pos=90,24                  ; point, Unit tab position.
+Tab4Pos=125,24                 ; point, Special tab position.
+StripPos=24,54                 ; point, 2-column strip origin.
+RowSpacing=0                   ; integer, vertical gap between cameo rows (added to CameoSize height to get the row pitch).    
+ColumnSpacing=2                ; integer, horizontal gap between the two strip columns (added to CameoSize width to get the     column pitch).
+CameoSize=64,51                ; point, cameo width,height.
+CameoNameOffset=41             ; integer, Y offset for the cameo name.
+CameoTextOffset=30,2           ; point, READY/HOLD text offset.
+QueueCountOffset=60,2          ; point, queue count text offset.
+UpButtonPos=                   ; point, optional explicit up button position.
+UpButtonVisible=yes            ; boolean, show the up button.
+DownButtonPos=                 ; point, optional explicit down button position.
+DownButtonVisible=yes          ; boolean, show the down button.
+RepairButtonPos=31,-9          ; point, repair button position.
+RepairButtonVisible=yes        ; boolean, show the repair button.
+RepairButtonShape=REPAIR.SH    P
+SellButtonPos=58,-9            ; point, sell button position.
+SellButtonVisible=yes          ; boolean, show the sell button.
+SellButtonShape=SELL.SHP    
+PowerButtonPos=85,-9           ; point, power button position.
+PowerButtonVisible=yes         ; boolean, show the power button.
+PowerButtonShape=POWER.SHP    
+WaypointButtonPos=112,-9       ; point, waypoint button position.
+WaypointButtonVisible=yes      ; boolean, show the waypoint button.
+WaypointButtonShape=WAYP.SHP
+PowerBarPos=8,25               ; point, power bar position.
+PowerBarWidth=12               ; integer, power bar draw/tooltip width.
+PowerPipHeight=4               ; integer, vertical spacing between power pips.
+PowerBarHeightAdjust=28        ; integer, vertical offset applied to the power bar height calculation.
+PowerPipShape=POWERP.SHP
+SidebarShape=SIDE1.SHP
+SidebarMiddleShape=SIDE2.SHP
+SidebarBottomShape=SIDE3.SHP
+SidebarAddonShape=ADDON.SHP
+ClockShape=GCLOCK2.SHP
+RechargeClockShape=RCLOCK2.SHP
+DarkenShape=DARKEN.SHP
+ScrollUpButtonShape=R-UP.SHP
+ScrollDownButtonShape=R-DN.SHP
+StructureTabShape=TAB-BLD.SHP
+InfantryTabShape=TAB-INF.SHP
+UnitTabShape=TAB-UNT.SHP
+SpecialTabShape=TAB-SPC.SHP
 ```
-
-- When `NewSidebar=yes` is set, the game loads an additional mix file `SIDECT##.MIX`, where `##` is `side index + 1`. Files found in `SIDECT##.MIX` override files from other side mixes.
-
-- Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
 ### Cameo Sorting
 
@@ -350,7 +439,7 @@ BuildingWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for bu
 AircraftWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for aircraft with pips.
 
 UnitVeterancyPipOffset=10,6            ; Point2D, the veterancy pip offset for units.
-InfantryVeterancyPipOffset=5,4         ; Point2D, the veterancy pip offset for infantry.
+InfantryVeterancyPipOffset=5,2         ; Point2D, the veterancy pip offset for infantry.
 BuildingVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for buildings.
 AircraftVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for aircraft.
 
@@ -417,7 +506,7 @@ TargetLineThick=no                 ; boolean, should target lines be drawn with 
 TargetLineColor=173,0,0            ; RGB color, color to draw movement lines with.
 TargetLineDropShadowColor=0,0,0    ; RGB color, color to draw target lines' drop shadow with.
 
-TargetLaserDashed=no               ; boolean, should target lasers be drawn with dashes?
+TargetLaserDashed=yes              ; boolean, should target lasers be drawn with dashes?
 TargetLaserDropShadow=no           ; boolean, should target lasers be drawn with a drop shadow?
 TargetLaserThick=no                ; boolean, should target lasers be drawn with a thick line?
 TargetLaserColor=173,0,0           ; RGB color, color to draw the target lasers with.

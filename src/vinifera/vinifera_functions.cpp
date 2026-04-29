@@ -116,7 +116,6 @@ bool Vinifera_Load_INI()
 
     Vinifera_NoTacticalVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoTacticalVersionString);
 
-    Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
     ini.Get_String("General", "SavedGamesDirectory", "", buffer, std::size(buffer));
     if (std::strlen(buffer) > 0) {
         std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);
@@ -538,9 +537,6 @@ bool Vinifera_Startup()
 #endif
     }
 
-    DEBUG_INFO("Setting up conditional hooks.\n");
-    Setup_Conditional_Hooks();
-
     /**
      *  Current path (perhaps set set with -CD) should go next.
      */
@@ -649,9 +645,6 @@ bool Vinifera_Shutdown()
     delete IsoGenericMix;
     IsoGenericMix = nullptr;
 
-    delete SideCTMix;
-    SideCTMix = nullptr;
-
     ViniferaMapsMixes.Clear();
     ViniferaMoviesMixes.Clear();
 
@@ -698,13 +691,9 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
     UIControls = new UIControlsClass;
 
     CCFileClass ui_file("UI.INI");
-    CCINIClass ui_ini;
 
     if (ui_file.Is_Available()) {
-
-        ui_ini.Load(ui_file, false);
-
-        if (!UIControls->Read_INI(ui_ini)) {
+        if (!UIControls->Read_INI_File("UI.INI", true)) {
             DEV_DEBUG_ERROR("Failed to read UI.INI!\n");
             //return EXIT_FAILURE;
         }

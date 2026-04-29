@@ -21,7 +21,7 @@
 #include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"
-#include "sidebarext.h"
+#include "battleui.h"
 #include "techno.h"
 #include "technotype.h"
 #include "tibsun_globals.h"
@@ -92,10 +92,6 @@ void FactoryClassExt::_Sanitize_Queue()
     }
 
     if (need_update) {
-        if (House == PlayerPtr) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, TechnoTypeClassExtension::Get_Production_Flags(producing_type));
-        }
-
         House->Update_Factories(type);
         Resume_Queue();
     }

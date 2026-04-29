@@ -20,6 +20,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
+#include "battleui.h"
 #include "beacon.h"
 #include "building.h"
 #include "buildinglight.h"
@@ -93,7 +94,6 @@
 #include "verses.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_savever.h"
-#include "vinifera_util.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
@@ -367,6 +367,12 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
         return false;
     }
 
+    /**
+     *  Save the battle UI state.
+     */
+    DEBUG_INFO("Saving BattleUI...\n");
+    if (FAILED(BattleUI.Save(pStm))) { return false; }
+
     return true;
 }
 
@@ -615,7 +621,13 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         return false;
     }
 
-    Map.Flag_To_Redraw(2);
+    /**
+     *  Load the battle UI state.
+     */
+    DEBUG_INFO("Loading BattleUI...\n");
+    if (FAILED(BattleUI.Load(pStm))) { return false; }
+
+    Map.Flag_To_Redraw(GS_REDRAW_ALL);
 
     //Vinifera_Remap_Extension_Pointers();
 
@@ -916,6 +928,12 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Init_IO();
     Map.Activate(1);
     Map.Shift_Sidebar();
+
+    /**
+     *  Relink factories to the sidebar model items.
+     */
+    BattleUI.Get_Sidebar().Relink_Factories();
+
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
