@@ -109,7 +109,7 @@ private:
      *  option (sun.ini) to filter which lines actually get displayed.
      *  Defaults to SYSTEM since the bulk of EVA lines are system alerts.
      */
-    SubtitleCategoryType SubtitleCategory = SUBTITLE_CATEGORY_SYSTEM;
+    SubtitleCategoryType SubtitleCategory = SUBTITLE_CATEGORY_SCENARIO;
 
     /**
      *  The name override of this speech event.

@@ -211,7 +211,13 @@ constexpr std::array <std::string_view, 24> DialogPriority_LOW = {
 
 SubtitleCategoryType Vanilla_Category_For_Name(const char* name)
 {
-    return name != nullptr && std::strncmp(name, "EVA_", 4) != 0 ? SUBTITLE_CATEGORY_STORY : SUBTITLE_CATEGORY_SYSTEM;
+    if (name != nullptr && std::strncmp(name, "EVA_", 4) != 0) {
+        // EVA_Tutorial# are designated as scenario despite starting with EVA_
+        if (std::strstr(name, "EVA_Tutorial") == nullptr) {
+            return SUBTITLE_CATEGORY_SYSTEM;
+        }
+    }
+    return SUBTITLE_CATEGORY_SCENARIO;
 }
 
 
@@ -326,8 +332,8 @@ void AudioVoxClass::Read_INI(CCINIClass const& ini)
 
     char catbuf[32];
     if (ini.Get_String(name, "Category", "", catbuf, sizeof(catbuf)) > 0) {
-        if (stricmp(catbuf, "Story") == 0) {
-            SubtitleCategory = SUBTITLE_CATEGORY_STORY;
+        if (stricmp(catbuf, "Scenario") == 0) {
+            SubtitleCategory = SUBTITLE_CATEGORY_SCENARIO;
         } else if (stricmp(catbuf, "System") == 0) {
             SubtitleCategory = SUBTITLE_CATEGORY_SYSTEM;
         }
@@ -834,8 +840,8 @@ bool AudioVoxClass::Write_Default_Speech_INI(CCINIClass &ini)
         if (sound_name[0] != '\0' && std::strcmp(vox_name, sound_name) != 0) {
             ini.Put_String(vox_name, "Sound", sound_name);
         }
-        if (Vanilla_Category_For_Name(vox_name) == SUBTITLE_CATEGORY_STORY) {
-            ini.Put_String(vox_name, "Category", "Story");
+        if (Vanilla_Category_For_Name(vox_name) == SUBTITLE_CATEGORY_SCENARIO) {
+            ini.Put_String(vox_name, "Category", "Scenario");
         }
         if (auto control = Vanilla_Control_For_Name(vox_name); control && *control == VOX_CONTROL_QUEUE) {
             ini.Put_String(vox_name, "Control", "QUEUE");

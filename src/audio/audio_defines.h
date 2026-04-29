@@ -309,8 +309,8 @@ enum VoxPriorityType {
  *  Subtitle category for filtering by user preference (sun.ini SubtitleMode).
  */
 enum SubtitleCategoryType {
-    SUBTITLE_CATEGORY_SYSTEM, // EVA-style alerts ("Unit lost", "Low power", etc.)
-    SUBTITLE_CATEGORY_STORY   // Narrative / mission lines.
+    SUBTITLE_CATEGORY_SYSTEM,   // EVA-style alerts ("Unit lost", "Low power", etc.)
+    SUBTITLE_CATEGORY_SCENARIO  // Narrative / mission lines.
 };
 
 

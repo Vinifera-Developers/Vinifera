@@ -109,10 +109,10 @@ OptionsClassExtension::SubtitleModeType OptionsClassExtension::Parse_Subtitle_Mo
     if (name == nullptr || *name == '\0') {
         return SUBTITLE_MODE_ALL;
     }
-    if (stricmp(name, "None") == 0)   return SUBTITLE_MODE_NONE;
-    if (stricmp(name, "All") == 0)    return SUBTITLE_MODE_ALL;
-    if (stricmp(name, "Story") == 0)  return SUBTITLE_MODE_STORY;
-    if (stricmp(name, "System") == 0) return SUBTITLE_MODE_SYSTEM;
+    if (stricmp(name, "None") == 0)       return SUBTITLE_MODE_NONE;
+    if (stricmp(name, "All") == 0)        return SUBTITLE_MODE_ALL;
+    if (stricmp(name, "Scenario") == 0)   return SUBTITLE_MODE_SCENARIO;
+    if (stricmp(name, "System") == 0)     return SUBTITLE_MODE_SYSTEM;
     return SUBTITLE_MODE_ALL;
 }
 
@@ -125,10 +125,10 @@ OptionsClassExtension::SubtitleModeType OptionsClassExtension::Parse_Subtitle_Mo
 const char* OptionsClassExtension::Subtitle_Mode_Config_Name(SubtitleModeType mode)
 {
     switch (mode) {
-    case SUBTITLE_MODE_NONE:   return "None";
-    case SUBTITLE_MODE_ALL:    return "All";
-    case SUBTITLE_MODE_STORY:  return "Story";
-    case SUBTITLE_MODE_SYSTEM: return "System";
+    case SUBTITLE_MODE_NONE:      return "None";
+    case SUBTITLE_MODE_ALL:       return "All";
+    case SUBTITLE_MODE_SCENARIO:  return "Scenario";
+    case SUBTITLE_MODE_SYSTEM:    return "System";
     }
     return "All";
 }

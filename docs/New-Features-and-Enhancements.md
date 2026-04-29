@@ -1520,17 +1520,17 @@ FShift=1.0      ; float, default speech pitch multiplier.
 0=EVA_MissionAccomplished
 
 [EVA_MissionAccomplished]
-Sound=            ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
-Text=             ; string, descriptive text for this entry. It is not spoken.
-Category=System   ; subtitle category, valid options are "System" and "Story".
-Priority=NORMAL   ; speech priority for this entry, see Priority Values below.
-Delay=0.2         ; float, delay, in seconds, before this speech starts.
-FShift=1.0        ; float, pitch multiplier for this speech entry.
-Volume=1.0        ; float, volume multiplier for this speech entry.
-MinVolume=0.0     ; float, minimum volume for this speech entry.
-MaxVolume=1.0     ; float, maximum volume for this speech entry.
-Control=STANDARD  ; speech playback policy, see Control Values below.
-SOMESIDE=         ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
+Sound=             ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
+Text=              ; string, descriptive text for this entry. It is not spoken.
+Category=Scenario  ; subtitle category, valid options are "System" and "Scenario".
+Priority=NORMAL    ; speech priority for this entry, see Priority Values below.
+Delay=0.2          ; float, delay, in seconds, before this speech starts.
+FShift=1.0         ; float, pitch multiplier for this speech entry.
+Volume=1.0         ; float, volume multiplier for this speech entry.
+MinVolume=0.0      ; float, minimum volume for this speech entry.
+MaxVolume=1.0      ; float, maximum volume for this speech entry.
+Control=STANDARD   ; speech playback policy, see Control Values below.
+SOMESIDE=          ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
 ```
 
 #### Control Values
@@ -1560,7 +1560,7 @@ SOMESIDE=         ; filename, side-specific audio file for the side named SOMESI
 In `SUN.INI`:
 ```ini
 [Options]
-SubtitleMode=None  ; subtitle display mode. Valid options are "None", "All", "Story", and "System".
+SubtitleMode=None  ; subtitle display mode. Valid options are "None", "All", "Scenario", and "System".
 ```
 
 Subtitle appearance is controlled in `UI.INI`.

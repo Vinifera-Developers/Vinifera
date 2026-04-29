@@ -1047,8 +1047,8 @@ bool TacticalExtension::Should_Show_Subtitle() const
         return false;
     case OptionsClassExtension::SUBTITLE_MODE_ALL:
         return true;
-    case OptionsClassExtension::SUBTITLE_MODE_STORY:
-        return SubtitleCategoryCur == SUBTITLE_CATEGORY_STORY;
+    case OptionsClassExtension::SUBTITLE_MODE_SCENARIO:
+        return SubtitleCategoryCur == SUBTITLE_CATEGORY_SCENARIO;
     case OptionsClassExtension::SUBTITLE_MODE_SYSTEM:
         return SubtitleCategoryCur == SUBTITLE_CATEGORY_SYSTEM;
     }

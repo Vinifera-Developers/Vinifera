@@ -35,7 +35,7 @@ public:
     enum SubtitleModeType {
         SUBTITLE_MODE_NONE,
         SUBTITLE_MODE_ALL,
-        SUBTITLE_MODE_STORY,
+        SUBTITLE_MODE_SCENARIO,
         SUBTITLE_MODE_SYSTEM
     };
 
