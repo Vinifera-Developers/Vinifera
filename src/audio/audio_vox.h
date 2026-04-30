@@ -51,6 +51,7 @@ public:
 #endif
 
     static VoxType From_Name(const char* name);
+    static VoxType From_Sound_Name(const char* name);
     static const char* Name_From(VoxType type);
 
     static void Set_Speech_Allowed(bool set);

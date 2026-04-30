@@ -906,6 +906,40 @@ VoxType AudioVoxClass::From_Name(const char *name)
 
 
 /**
+ *  Looks up a VoxType by any configured sound filename slot.
+ *
+ *  @author: ZivDero
+ */
+VoxType AudioVoxClass::From_Sound_Name(const char *name)
+{
+    ASSERT(name != nullptr);
+
+    if (name == nullptr || !strcasecmp(name, "<none>") || !strcasecmp(name, "none")) {
+        return VOX_NONE;
+    }
+
+    for (VoxType index = VOX_FIRST; index < Voxs.Count(); ++index) {
+        AudioVoxClass *voxptr = Voxs[index];
+        if (voxptr == nullptr) {
+            continue;
+        }
+
+        if (!voxptr->Sound.empty() && strcasecmp(voxptr->Sound.c_str(), name) == 0) {
+            return index;
+        }
+
+        for (const std::string& side_sound : voxptr->SideSounds) {
+            if (!side_sound.empty() && strcasecmp(side_sound.c_str(), name) == 0) {
+                return index;
+            }
+        }
+    }
+
+    return VOX_NONE;
+}
+
+
+/**
  *  Returns the name string for a given VoxType, or "<none>" if invalid.
  *
  *  @author: CCHyper
