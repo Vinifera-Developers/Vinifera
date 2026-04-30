@@ -196,11 +196,6 @@ private:
     AudioControlType Control = AUDIO_CONTROL_NORMAL;
 
     /**
-     *  Sound group — always SFX for voc entries; not loaded from INI.
-     */
-    AudioGroupType Group = AUDIO_GROUP_SFX;
-
-    /**
      *  Persistent index used by AUDIO_CONTROL_SEQUENTIAL to advance through
      *  the Sounds list across plays / body cycles. Mutable so const Play()
      *  paths can advance it.

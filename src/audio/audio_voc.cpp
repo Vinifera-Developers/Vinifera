@@ -304,7 +304,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
     /**
      *  Skip if the sound group volume is muted.
      */
-    if (AudioManager.Get_Group_Volume(Group) <= AUDIO_VOLUME_MIN) {
+    if (AudioManager.Get_Group_Volume(AUDIO_GROUP_SFX) <= AUDIO_VOLUME_MIN) {
         return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
@@ -399,7 +399,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
     {
         std::scoped_lock lock(VocScanMutex);
 
-        handle = AudioManager.Request_Play(filename, Group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit, Control);
+        handle = AudioManager.Request_Play(filename, AUDIO_GROUP_SFX, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit, Control);
         if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
             DEBUG_ERROR("Voc::Play - Failed to play \"%s\"!\n", Name.c_str());
             return handle;
@@ -623,7 +623,7 @@ void AudioVocClass::Preload()
                 return;
             }
 
-            if (AudioManager.Has_Been_Submitted(filename, vocptr->Group)) {
+            if (AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_SFX)) {
                 AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOC, "Voc::Preload - File \"%s\" has already been submitted to the audio manager!\n", filename.c_str());
                 return;
             }
@@ -631,7 +631,7 @@ void AudioVocClass::Preload()
             bool submitted = AudioManager.Submit_Sample(
                 filename,
                 filetype,
-                vocptr->Group,
+                AUDIO_GROUP_SFX,
                 AudioManagerClass::Priority_To_AudioPriority(vocptr->Get_Priority()),
                 vocptr->Control,
                 vocptr->Type,
