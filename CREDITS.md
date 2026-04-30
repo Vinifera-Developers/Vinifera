@@ -233,6 +233,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
   - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
   - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+  - Vinifera's Developer mode now prints information on executed trigger actions.
+  - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -355,3 +357,5 @@ This page lists all the individual contributions to the project by their author.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
   - Fix a bug where upon restoring focus to the window the last theme would play twice.
   - Make spawners respect `IonSensitive` on weapons.
+  - Fix a bug where the sidebar could only contain up to 75 items on a strip.
+  - Extended sidebar customizability.

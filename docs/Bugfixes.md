@@ -113,3 +113,6 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
 - Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation.
 - Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors.
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
+- Fix a bug where the map would accept input while the user was in a dialog window.
+- Fix a bug where the sidebar could only contain up to 75 items on a strip.

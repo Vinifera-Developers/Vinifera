@@ -99,7 +99,6 @@ extern DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
 extern MFCD *GenericMix;
 extern MFCD *IsoGenericMix;
-extern MFCD *SideCTMix;
 
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
@@ -132,9 +131,6 @@ extern bool Vinifera_SkipToSkirmish;
 extern bool Vinifera_SkipToCampaign;
 extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
-
-
-extern bool Vinifera_NewSidebar;
 
 
 /**

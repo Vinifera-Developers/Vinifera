@@ -57,7 +57,7 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     InfoTextTimer(0),
     CellRedrawCount(0),
     IsTemplatedTextVisible(false),
-    TemplatedTextIndex(0),
+    TemplatedTextIndex(""),
     TemplatedTextPosition(TOP_RIGHT),
     TemplatedTextColor(COLORSCHEME_NONE),
     TemplatedTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
@@ -79,7 +79,8 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
  */
 TacticalExtension::TacticalExtension(const NoInitClass& noinit) :
     GlobalExtensionClass(noinit),
-    InfoTextTimer(noinit)
+    InfoTextTimer(noinit),
+    TemplatedTextIndex(noinit)
 {
     //EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -190,7 +191,7 @@ void TacticalExtension::Set_Info_Text(const char* text)
  *
  *  @authors: ZivDero
  */
-void TacticalExtension::Enable_Templated_Text(int label, ColorSchemeType color)
+void TacticalExtension::Enable_Templated_Text(std::string_view label, ColorSchemeType color)
 {
     IsTemplatedTextVisible = true;
     TemplatedTextIndex = label;
@@ -747,7 +748,7 @@ void TacticalExtension::Draw_Templated_Text()
 
     int padding = 2;
 
-    if (!TutorialText.Is_Present(TemplatedTextIndex)) {
+    if (!Vinifera_TutorialText.contains(std::string(TemplatedTextIndex))) {
         return;
     }
 
@@ -755,7 +756,7 @@ void TacticalExtension::Draw_Templated_Text()
      *  Substitute the placeholders in the tutorial string.
      */
     if (!IsTemplatedTextCached) {
-        std::strncpy(TemplatedTextCache, ScenarioClassExtension::Substitute_Variable_Placeholders(TutorialText[TemplatedTextIndex]).c_str(), sizeof(TemplatedTextCache));
+        std::strncpy(TemplatedTextCache, ScenarioClassExtension::Substitute_Variable_Placeholders(Vinifera_TutorialText[std::string(TemplatedTextIndex)]).c_str(), sizeof(TemplatedTextCache));
         IsTemplatedTextCached = true;
     }
 

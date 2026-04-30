@@ -56,7 +56,6 @@ class TacticalExtension;
 
 class RulesClassExtension;
 class ScenarioClassExtension;
-class SidebarClassExtension;
 class SessionClassExtension;
 class OptionsClassExtension;
 
@@ -133,7 +132,6 @@ extern TacticalExtension *TacticalMapExtension;
  */
 extern RulesClassExtension *RuleExtension;
 extern ScenarioClassExtension *ScenExtension;
-extern SidebarClassExtension* SidebarExtension;
 extern SessionClassExtension *SessionExtension;
 extern OptionsClassExtension *OptionsExtension;
 
