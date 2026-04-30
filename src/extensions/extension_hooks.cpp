@@ -43,6 +43,7 @@
 #include "fetchres_hooks.h"
 #include "filepcx_hooks.h"
 #include "footext_hooks.h"
+#include "gadgetext_hooks.h"
 #include "houseext_hooks.h"
 #include "housetypeext_hooks.h"
 #include "infantryext_hooks.h"
@@ -224,6 +225,7 @@ void Extension_Hooks()
     ScrollClassExtension_Hooks();
     SidebarClassExtension_Hooks();
     MouseClassExtension_Hooks();
+    GadgetClassExtension_Hooks();
 
     /**
      *  Various modules and functions.

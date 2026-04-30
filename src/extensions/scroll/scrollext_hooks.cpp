@@ -18,6 +18,7 @@
 #include "techno.h"
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
+#include "windialog.h"
 
 
 bool Passes_Cloak_Check(TechnoClass* techno)
@@ -94,6 +95,20 @@ DEFINE_HOOK(0x006167E3, _Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch
 
     // Target object is cloaked and not visible to us.
     return 0x00616811;
+}
+
+
+/**
+ *  Blocks the map from receiving inputs while any Windows dialogs are open.
+ *
+ *  Author: ZivDero
+ */
+DEFINE_HOOK(0x005E934E, _ScrollClass_Message_Handler_Block_Inputs_In_Dialogs_Patch, 6)
+{
+    if (WSDialogCount != 0) {
+        return 0x005E961E;
+    }
+    return 0;
 }
 
 

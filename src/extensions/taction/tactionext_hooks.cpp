@@ -12,6 +12,7 @@
 #include "tactionext_hooks.h"
 
 #include "asserthandler.h"
+#include "debughandler.h"
 #include "hooker.h"
 #include "house.h"
 #include "mouse.h"
@@ -46,11 +47,15 @@ public:
  *  Intercept for TActionClass::operator() to add the
  *  execution of our new TActions.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell)
 {
     bool success = true;
+
+    if (Vinifera_DeveloperMode) {
+        DEBUG_INFO("Executing TAction %d %s. Trigger: \"%s\", Frame: %d\n", Action, TActionClassExtension::Action_Name(Action), trigger->Class->GivenName.c_str(), Frame);
+    }
 
     /**
      *  If this is a Vinifera TAction, execute it.

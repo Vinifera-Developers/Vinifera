@@ -91,6 +91,8 @@ New:
 - Allow customizing whether AI sees through disguise (by Rampastring)
 - Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
 - Make spawners respect `IonSensitive` on weapons (by ZivDero)
+- Vinifera's Developer mode now prints information on executed trigger actions (by Rampastring)
+- Extended sidebar customizability (by ZivDero)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -115,6 +117,7 @@ Vinifera fixes:
 - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
+- Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
 
 
 Vanilla fixes:
@@ -158,6 +161,8 @@ Vanilla fixes:
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it (by Rampastring)
+- Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 
 :::
 

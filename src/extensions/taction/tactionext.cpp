@@ -558,6 +558,18 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* ob
     if (This()->Trigger != nullptr) {
         for (int index = 0; index < Triggers.Count(); index++) {
             if (Triggers[index]->Class == This()->Trigger) {
+
+                /**
+                 *  #issue-1608
+                 *
+                 *  Bugfix: if the trigger is already enabled, there's nothing to do here.
+                 *
+                 *  @author: Rampastring
+                 */
+                if (Triggers[index]->Is_Enabled()) {
+                    continue;
+                }
+
                 bool really_enable = true;
 
                 /**

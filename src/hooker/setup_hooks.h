@@ -11,4 +11,3 @@
 
 
 void Setup_Hooks();
-void Setup_Conditional_Hooks();
