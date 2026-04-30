@@ -2140,6 +2140,15 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
         }
 
         if (Class->IsHospital || Class->IsArmory) {
+            if (Ammo <= 0) {
+                if (ArchiveTarget != nullptr) {
+                    auto techno = from->As_Techno();
+                    techno->Assign_Mission(MISSION_MOVE);
+                    techno->Assign_Destination(ArchiveTarget);
+                }
+                return RADIO_NEGATIVE;
+            }
+
             if (Contact_With_Whom() != from) {
                 if (Transmit_Message(RADIO_NEED_REPAIR) != RADIO_NEGATIVE) {
                     return RADIO_ROGER;

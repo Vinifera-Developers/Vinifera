@@ -631,6 +631,67 @@ DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehi
     return 0x004D7277;
 }
 
+DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
+{
+    GET(BuildingClass*, object, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    ActionType action = ACTION_ENTER;
+
+    if (this_ptr->Crew.Is_Elite()) {
+        action = ACTION_NO_ENTER;
+    }
+
+    if (object->Ammo <= 0) {
+        action = ACTION_NO_ENTER;
+    }
+
+    R->EBX(action);
+
+    return 0x004D738E;
+}
+
+DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
+{
+    GET(BuildingClass*, object, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    ActionType action = ACTION_ENTER;
+
+    if (this_ptr->Strength >= this_ptr->Class->MaxStrength) {
+        action = ACTION_NO_ENTER;
+    }
+
+    if (object->Ammo <= 0) {
+        action = ACTION_NO_ENTER;
+    }
+
+    R->EBX(action);
+
+    return 0x004D731A;
+}
+
+DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
+{
+    GET(InfantryClass*, this_ptr, EBP);
+    GET(BuildingClass*, object, EBX);    
+    
+    if (object->Class->IsHospital || object->Class->IsArmory) {
+        if (object->Ammo >= 0) {
+            this_ptr->Assign_Archive_Target(object);
+            this_ptr->field_20C = object;
+            this_ptr->Assign_Mission(MISSION_MOVE);
+            goto success;
+        }
+    }
+
+    // original behavior
+    this_ptr->Assign_Archive_Target(nullptr);
+    
+    success:
+    return 0x004D425A;
+}
+
 
 /**
  *  Main function for patching the hooks.
