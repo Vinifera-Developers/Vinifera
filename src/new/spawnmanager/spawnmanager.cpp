@@ -320,7 +320,11 @@ void SpawnManagerClass::AI()
                 /**
                  *  No spawning during an Ion Storm.
                  */
-                if (IonStorm_Is_Active())
+                WeaponTypeClass* primary = Owner->PrimaryWeapon;
+                WeaponTypeClass* secondary = Owner->SecondaryWeapon;
+                bool ion_sensitive = (primary && Extension::Fetch(primary)->IsSpawner && primary->IsIonSensitive) ||
+                    (secondary && Extension::Fetch(secondary)->IsSpawner && secondary->IsIonSensitive);
+                if (ion_sensitive && IonStorm_Is_Active())
                     continue;
 
                 /**

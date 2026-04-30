@@ -151,8 +151,13 @@ This page lists all the individual contributions to the project by their author.
 - **JoyfulShush**:
   - Allow customizing self healing cap and rate game-wide and per-unit.
   - Allow customizing whether AI can repair buildings created as base nodes.
+  - Allow revealing maps with any radius (previously was clamped to 10)
+  - Remove logic related to incremental radius movement when setting `RevealByHeight=no` which could cause units to not reveal shroud in some cases.
+  - Allow Reveal Around Waypoints trigger actions to set their reveal radius, and whether they take elevation into account per action.
   - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
   - Fix a few vanilla bugs where units with death frames (such as Reapers) would count as dead multiple times, and be allowed to be issued move orders by players.
+  - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
+  - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -233,6 +238,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
   - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
   - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+  - Vinifera's Developer mode now prints information on executed trigger actions.
+  - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -354,3 +361,6 @@ This page lists all the individual contributions to the project by their author.
   - Fix game end text being stretched horizontally.
   - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
   - Fix a bug where upon restoring focus to the window the last theme would play twice.
+  - Make spawners respect `IonSensitive` on weapons.
+  - Fix a bug where the sidebar could only contain up to 75 items on a strip.
+  - Extended sidebar customizability.

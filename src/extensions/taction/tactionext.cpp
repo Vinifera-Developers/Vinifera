@@ -11,11 +11,12 @@
 
 #include "tactionext.h"
 
-#include "debughandler.h"
 #include "building.h"
+#include "debughandler.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
+#include "mouse.h"
 #include "object.h"
 #include "rules.h"
 #include "scenario.h"
@@ -278,6 +279,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         DISPATCH(ENABLE_TRIGGER);
         DISPATCH(DESTROY_TAG);
         DISPATCH(PLAY_SOUND_RANDOM);
+        DISPATCH(REVEAL_SOME);
 
         /**
          *  New Vinifera TActions.
@@ -361,6 +363,7 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     case TACTION_ENABLE_TRIGGER:
     case TACTION_DESTROY_TAG:
     case TACTION_PLAY_SOUND_RANDOM:
+    case TACTION_REVEAL_SOME:
         return true;
 
     default:
@@ -558,6 +561,18 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* ob
     if (This()->Trigger != nullptr) {
         for (int index = 0; index < Triggers.Count(); index++) {
             if (Triggers[index]->Class == This()->Trigger) {
+
+                /**
+                 *  #issue-1608
+                 *
+                 *  Bugfix: if the trigger is already enabled, there's nothing to do here.
+                 *
+                 *  @author: Rampastring
+                 */
+                if (Triggers[index]->Is_Enabled()) {
+                    continue;
+                }
+
                 bool really_enable = true;
 
                 /**
@@ -1505,7 +1520,7 @@ bool TActionClassExtension::Do_PRINT_LOCAL(HouseClass* house, ObjectClass* objec
  */
 bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Enable_Templated_Text(This()->Data.Value, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
+    TacticalMapExtension->Enable_Templated_Text(Text, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
     return true;
 }
 
@@ -1593,5 +1608,41 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
     }
 
     houseext->Expend_Iron_Curtain();
+    return true;
+}
+
+/**
+ *  Reimplements Reveal Around Waypoint trigger action.
+ *  This reimplementation allows accepting a second optional value which defines the radius of the reveal.
+ *  If this value is 0 or negative, falls back to the original radius through `RevealTriggerRadius` from Rules.
+ *
+ *  @author: JoyfulShush
+ */
+bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    if (!PlayerPtr->IsVisionary) {
+        Cell waypoint_cell = Scen->Waypoint_Cell(This()->Data.Value);
+        
+        const auto& cell = Map[waypoint_cell];
+        int height = cell.Height;
+
+        if (cell.IsUnderBridge || cell.WasUnderBridge) {
+            height += BRIDGE_CELL_HEIGHT;
+        }
+
+        /* Allows for a custom reveal radius for the trigger */
+        int radius = This()->TriggerRect.X; // P3 value
+        if (radius <= 0) {
+            radius = Rule->RevealTriggerRadius;
+        }
+
+        /*
+        *  Requires 'RevealByHeight=yes' (default) to consider elevation, even when set to true, since it is checked in 'Map.Sight_From'
+        *  The value is default 0 for true in order to be backwards compatible
+        */        
+        int consider_elevation = This()->TriggerRect.Y == 0 ? true : false; // P4 value
+
+        Map.Sight_From(Coord(waypoint_cell - Cell(height / 2, height / 2)) + Coord(0, 0, height * LEVEL_LEPTON_H), radius, PlayerPtr, false, false, false, consider_elevation);
+    }
     return true;
 }

@@ -108,6 +108,14 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
     if (this->Class->IsCanUnitRepair)
         return true;
 
+    /**     
+     *  Makes it possible to give rally points to Hospitals and Armories
+     *
+     *  @author: JoyfulShush
+     */
+    if (this->Class->IsArmory || this->Class->IsHospital) 
+        return true;
+
     return false;
 }
 
@@ -2132,6 +2140,20 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
         }
 
         if (Class->IsHospital || Class->IsArmory) {
+            /**
+             *  If a unit is asking to go ("dock") into the armory or hospital and they don't have ammo for it, turn it away.
+             *  If the armory or hospital has a rally point, tell the unit to move to it instead.
+             *  This makes the all units that were ordered to go into it regroup at the rally position.
+             */ 
+            if (Ammo <= 0) {
+                if (ArchiveTarget != nullptr) {
+                    auto techno = from->As_Techno();
+                    techno->Assign_Mission(MISSION_MOVE);
+                    techno->Assign_Destination(ArchiveTarget);
+                }
+                return RADIO_NEGATIVE;
+            }
+
             if (Contact_With_Whom() != from) {
                 if (Transmit_Message(RADIO_NEED_REPAIR) != RADIO_NEGATIVE) {
                     return RADIO_ROGER;
@@ -2431,6 +2453,45 @@ DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
     return 0;
 }
 
+/*
+*  Patches a portion of BuildingClass::Captured where laser fence connections are updated (or more correctly - removed)
+*  At this point, the House of the captured building is NOT updated yet - and belongs to the original owner of this building.
+*  This allows us to add an additional check where if a sensor array is captured, the original owner loses that sensor array's sensing capabilities.
+* 
+*  @author: JoyfulShush
+*/
+DEFINE_HOOK(0x0042F749, _BuildingClass_Captured_Disable_Sensors, 6)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_type = this_ptr->Class;    
+
+    if (building_type->IsSensorArray) {
+        this_ptr->Disable_Sensor_Array();
+    }
+
+    return 0;
+}
+
+/*
+ *  Patches a portion of BuildingClass::Captured where a building that gets captured lets players reveal shroud around it with Look().
+ *  At this point, the House of the captured building is already updated - and belongs to the new owner of this building.
+ *  This allows us to add an additional check where if a sensor array is captured, the new owner gains that sensor array's sensing capabilities.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_type = this_ptr->Class;
+
+    if (building_type->IsSensorArray) {
+        this_ptr->Enable_Sensor_Array();
+    }
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.

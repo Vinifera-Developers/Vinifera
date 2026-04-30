@@ -30,6 +30,7 @@
 #include "theme.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 
 #include <bcrypt.h>
@@ -311,29 +312,11 @@ bool Vinifera_Prep_For_Side(SideType side)
         SideCDMix = nullptr;
     }
 
-    if (SideCTMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCTMix->Filename);
-        delete SideCTMix;
-        SideCTMix = nullptr;
-    }
-
     int id = static_cast<int>(side) + 1; // Mix id
 
     while (ExpandSideMix.Count() > 0) {
         delete ExpandSideMix[0];
         ExpandSideMix.Delete(0);
-    }
-
-    /**
-     *  New Vinifera sidebar (Tabs) side-specific mix.
-     */
-    if (Vinifera_NewSidebar) {
-        std::snprintf(name, sizeof(name), "SIDECT%02d.MIX", id);
-        if (CCFileClass(name).Is_Available()) {
-            DEBUG_INFO("     Initializing %s\n", name);
-            SideCTMix = new MFCD(name, &FastKey);
-            SideCTMix->Cache();
-        }
     }
 
     /**
@@ -406,6 +389,13 @@ bool Vinifera_Prep_For_Side(SideType side)
      *  Re-initialize sounds in case the side mixes override them.
      */
     Read_Sound_INI();
+
+    /**
+     *  Reload UI.INI after the side mixes are mounted, then layer any
+     *  side-specific UI overrides on top.
+     */
+    UIControls->Read_INI_File("UI.INI", true);
+    UIControls->Read_INI_File("UIOVERRIDES.INI");
 
     return true;
 }
