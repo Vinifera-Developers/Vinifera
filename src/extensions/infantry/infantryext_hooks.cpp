@@ -631,14 +631,14 @@ DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehi
     return 0x004D7277;
 }
 
-/*
-*  Patches InfantryClass::What_Action when the target object is an armory.
-*  No longer transmits a message to the armory requesting it to establish radio connection (which only allows one unit at a time).
-*  Instead, simply checks for the armory's conditions (unit's veterancy and armory's ammo) to determine if the unit can go in or not.
-*  This also allows additional units to be ordered into the armory even if other unit(s) are already on their way to it.
-* 
-*  @author: JoyfulShush
-*/
+/**
+ *  Patches InfantryClass::What_Action when the target object is an armory.
+ *  No longer transmits a message to the armory requesting it to establish radio connection (which only allows one unit at a time).
+ *  Instead, simply checks for the armory's conditions (unit's veterancy and armory's ammo) to determine if the unit can go in or not.
+ *  This also allows additional units to be ordered into the armory even if other unit(s) are already on their way to it.
+ * 
+ *  @author: JoyfulShush
+ */
 DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
 {
     GET(BuildingClass*, object, ESI);
@@ -659,7 +659,7 @@ DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
     return 0x004D738E;
 }
 
-/*
+/**
  *  Patches InfantryClass::What_Action when the target object is a hospital.
  *  No longer transmits a message to the hospital requesting it to establish radio connection (which only allows one unit at a time).
  *  Instead, simply checks for the hospital's conditions (unit's health and hospital's ammo) to determine if the unit can go in or not.
@@ -687,7 +687,7 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
     return 0x004D731A;
 }
 
-/*
+/**
  *  Patches InfantryClass::Assign_Destination at the part that identifies infantry units with mission "MISSION_ENTER",
  *  at a part where units are communicating with a building that has a radio buddy.
  *  For hospitals and armories, this typically means that a unit got the permission to dock into the hospital/armory.
