@@ -155,6 +155,7 @@ This page lists all the individual contributions to the project by their author.
   - Remove logic related to incremental radius movement when setting `RevealByHeight=no` which could cause units to not reveal shroud in some cases.
   - Allow Reveal Around Waypoints trigger actions to set their reveal radius, and whether they take elevation into account per action.
   - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
+  - Fix a few vanilla bugs where units with death frames (such as Reapers) would count as dead multiple times, and be allowed to be issued move orders by players.
   - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
   - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.
 - **Kerbiter (Metadorius)**:
