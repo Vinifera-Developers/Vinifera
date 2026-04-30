@@ -65,15 +65,11 @@ private:
     static float DefaultDelay;
     static float DefaultFrequencyShift;
     static float DefaultVolume;
-    static float DefaultMinVolume;
-    static float DefaultMaxVolume;
 
     VoxPriorityType Get_Priority() const { return Priority.value_or(DefaultPriority); }
     float Get_Delay() const { return Delay.value_or(DefaultDelay); }
     float Get_FrequencyShift() const { return FrequencyShift.value_or(DefaultFrequencyShift); }
     float Get_Volume() const { return Volume.value_or(DefaultVolume); }
-    float Get_MinVolume() const { return MinVolume.value_or(DefaultMinVolume); }
-    float Get_MaxVolume() const { return MaxVolume.value_or(DefaultMaxVolume); }
 
     std::string const& Get_Sound_Name() const;
     void Set_Vanilla_Defaults();
@@ -133,12 +129,6 @@ private:
      *  The playback volume for this speech entry.
      */
     std::optional<float> Volume;
-
-    /**
-     *  The minimum and maximum volume bounds for this speech entry.
-     */
-    std::optional<float> MinVolume;
-    std::optional<float> MaxVolume;
 
     /**
      *  Delay in seconds before this speech begins playback.

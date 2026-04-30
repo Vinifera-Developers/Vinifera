@@ -71,14 +71,12 @@ private:
     static int DefaultPriority;
     static float DefaultVolume;
     static float DefaultMinVolume;
-    static float DefaultMaxVolume;
 
     int Get_Limit() const { return Limit.value_or(DefaultLimit); }
     int Get_Range() const { return Range.value_or(DefaultRange); }
     int Get_Priority() const { return Priority.value_or(DefaultPriority); }
     float Get_Volume() const { return Volume.value_or(DefaultVolume); }
     float Get_MinVolume() const { return MinVolume.value_or(DefaultMinVolume); }
-    float Get_MaxVolume() const { return MaxVolume.value_or(DefaultMaxVolume); }
 
     /**
      *  Name of the sound event (up to 31 characters).
@@ -149,9 +147,6 @@ private:
      *  The minimum volume for the GLOBAL Type event (ignored for all other types).
      */
     std::optional<float> MinVolume;
-
-    // Not loaded from the INI!
-    std::optional<float> MaxVolume;
 
     /**
      *  The VShift attribute allows the playback volume to be randomly varied.

@@ -1424,7 +1424,6 @@ Range=10       ; integer, default audible range, in cells, for positional sounds
 Priority=10    ; integer, default playback priority.
 Volume=1.0     ; float, default volume multiplier.
 MinVolume=0.0  ; float, default minimum volume for GLOBAL sounds.
-MaxVolume=1.0  ; float, default maximum volume.
 
 [SoundList]
 0=MYSOUND
@@ -1439,7 +1438,6 @@ Range=10       ; integer, audible range, in cells.
 Priority=10    ; integer, playback priority for this sound.
 Volume=1.0     ; float, volume multiplier.
 MinVolume=0.0  ; float, minimum volume for GLOBAL sounds.
-MaxVolume=1.0  ; float, maximum volume.
 VShift=0,0     ; two integers, random volume variation, in percent.
 FShift=0,0     ; two integers, random pitch variation, in percent.
 Type=          ; list of sound type flags. Omit for standard screen-based positional behavior.
@@ -1512,8 +1510,6 @@ In `EVA.INI`:
 Priority=NORMAL ; speech priority, see Priority Values below.
 Delay=0.2       ; float, default delay, in seconds, before speech starts.
 Volume=1.0      ; float, default speech volume multiplier.
-MinVolume=0.0   ; float, default minimum speech volume.
-MaxVolume=1.0   ; float, default maximum speech volume.
 FShift=1.0      ; float, default speech pitch multiplier.
 
 [DialogList]
@@ -1527,8 +1523,6 @@ Priority=NORMAL    ; speech priority for this entry, see Priority Values below.
 Delay=0.2          ; float, delay, in seconds, before this speech starts.
 FShift=1.0         ; float, pitch multiplier for this speech entry.
 Volume=1.0         ; float, volume multiplier for this speech entry.
-MinVolume=0.0      ; float, minimum volume for this speech entry.
-MaxVolume=1.0      ; float, maximum volume for this speech entry.
 Control=STANDARD   ; speech playback policy, see Control Values below.
 SOMESIDE=          ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
 ```

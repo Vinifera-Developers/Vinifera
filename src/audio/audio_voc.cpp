@@ -42,7 +42,6 @@ int AudioVocClass::DefaultRange = 10;
 int AudioVocClass::DefaultPriority = AudioManagerClass::Priority_To_AudioPriority(10);
 float AudioVocClass::DefaultVolume = AUDIO_VOLUME_MAX;
 float AudioVocClass::DefaultMinVolume = AUDIO_VOLUME_MIN;
-float AudioVocClass::DefaultMaxVolume = AUDIO_VOLUME_MAX;
 static float AUDIO_VOLUME_CUTOFF_THRESHOLD = 0.05f;
 
 
@@ -374,7 +373,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
 
     }
 
-    vol = std::min(std::clamp((Get_Volume() * vol + vshift), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX), Get_MaxVolume());
+    vol = std::clamp((Get_Volume() * vol + vshift), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
 
     /**
      *  If the volume drops below this level, just skip it. Otherwise the sounds
@@ -469,10 +468,6 @@ void AudioVocClass::Read_INI(CCINIClass &ini)
     if (ini.Is_Present(name, "MinVolume")) {
         MinVolume = std::clamp<float>(ini.Get_Float(name, "MinVolume", Get_MinVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     }
-    if (ini.Is_Present(name, "MaxVolume")) {
-        MaxVolume = std::clamp<float>(ini.Get_Float(name, "MaxVolume", Get_MaxVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    }
-
     VolumeShift = ini.Get_Point(name, "VShift", VolumeShift);
     VolumeShift.X = std::clamp(VolumeShift.X, AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MAX);
     VolumeShift.Y = std::clamp(VolumeShift.Y, AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MAX);
@@ -705,7 +700,6 @@ void AudioVocClass::Process(CCINIClass &ini)
         DefaultPriority = ini.Get_Int(DEFAULTS, "Priority", DefaultPriority);
         DefaultVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "Volume", DefaultVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
         DefaultMinVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MinVolume", DefaultMinVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-        DefaultMaxVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     }
 
     if (ini.Is_Present(SOUNDLIST)) {

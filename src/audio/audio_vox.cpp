@@ -47,8 +47,6 @@ VoxPriorityType AudioVoxClass::DefaultPriority = VOX_PRIORITY_NORMAL;
 float AudioVoxClass::DefaultDelay = 0.2f; // We add a fake delay so the speech is not played on top of the building placement sound effect etc.
 float AudioVoxClass::DefaultFrequencyShift = 1.0f;
 float AudioVoxClass::DefaultVolume = AUDIO_VOLUME_MAX;
-float AudioVoxClass::DefaultMinVolume = AUDIO_VOLUME_MIN;
-float AudioVoxClass::DefaultMaxVolume = AUDIO_VOLUME_MAX;
 
 
 /**
@@ -371,13 +369,6 @@ void AudioVoxClass::Read_INI(CCINIClass const& ini)
         FrequencyShift = std::clamp<float>(ini.Get_Float(name, "FShift", Get_FrequencyShift()), 0.1f, 2.0f);
     }
 
-    if (ini.Is_Present(name, "MinVolume")) {
-        MinVolume = std::clamp<float>(ini.Get_Float(name, "MinVolume", Get_MinVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    }
-    if (ini.Is_Present(name, "MaxVolume")) {
-        MaxVolume = std::clamp<float>(ini.Get_Float(name, "MaxVolume", Get_MaxVolume()), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    }
-
     // Read the per-side filenames
     SideSounds.resize(Sides.Count());
     for (int i = 0; i < Sides.Count(); i++) {
@@ -429,8 +420,6 @@ bool AudioVoxClass::Process(CCINIClass const& ini)
         DefaultDelay = ini.Get_Float(DEFAULTS, "Delay", DefaultDelay);
         DefaultFrequencyShift = std::clamp<float>(ini.Get_Float(DEFAULTS, "FShift", DefaultFrequencyShift), 0.1f, 2.0f);
         DefaultVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "Volume", DefaultVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-        DefaultMinVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MinVolume", DefaultMinVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-        DefaultMaxVolume = std::clamp<float>(ini.Get_Float(DEFAULTS, "MaxVolume", DefaultMaxVolume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     }
 
     if (ini.Is_Present(DIALOGLIST)) {
@@ -755,7 +744,7 @@ void AudioVoxClass::AI()
         /**
          *  Speech file was found, now play it.
          */
-        float vol = std::clamp(voxptr->Get_Volume(), voxptr->Get_MinVolume(), voxptr->Get_MaxVolume());
+        float vol = std::clamp(voxptr->Get_Volume(), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
         float pitch = voxptr->Get_FrequencyShift();
         float delay = voxptr->Get_Delay();
         AudioPriorityType priority = To_Audio_Priority(voxptr->Get_Priority());
