@@ -11,11 +11,12 @@
 
 #include "tactionext.h"
 
-#include "debughandler.h"
 #include "building.h"
+#include "debughandler.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
+#include "mouse.h"
 #include "object.h"
 #include "rules.h"
 #include "scenario.h"
@@ -33,7 +34,6 @@
 #include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "voc.h"
-#include "mouse.h"
 
 
 TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST] = {
@@ -1630,17 +1630,15 @@ bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerCla
             height += BRIDGE_CELL_HEIGHT;
         }
 
-        /*
-        * Allows for a custom reveal radius for the trigger
-        */
+        /* Allows for a custom reveal radius for the trigger */
         int radius = This()->TriggerRect.X; // P3 value
         if (radius <= 0) {
             radius = Rule->RevealTriggerRadius;
         }
 
         /*
-        * Requires 'RevealByHeight=yes' (default) to consider elevation, even when set to true, since it is checked in 'Map.Sight_From'
-        * The value is default 0 for true in order to be backwards compatible
+        *  Requires 'RevealByHeight=yes' (default) to consider elevation, even when set to true, since it is checked in 'Map.Sight_From'
+        *  The value is default 0 for true in order to be backwards compatible
         */        
         int consider_elevation = This()->TriggerRect.Y == 0 ? true : false; // P4 value
 

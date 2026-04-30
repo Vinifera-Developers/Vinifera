@@ -15,6 +15,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
 - Improve alternative factory selection when the primary factory is blocked.
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+- When revealing shroud via a unit, structure, or triggers, TS had a maximum allowed sight radius of 10. This meant units could not have a `Sight=` value above 10, and Reveal Around Waypoint trigger actions could not reveal in radius higher than 10 even if specified in `RevealTriggerRadius`. Vinifera now allows and handles revealing shroud in any desired range, with no limit.
 
 ## INI
 
@@ -324,12 +325,6 @@ The argument supports multiple entries separated by the `;` character. Below are
 `-CD.` - Sets the games root directory as the location to search for the CD contents.
 `-CDcd_path` - Sets the `cd_path` sub-directory as the location to search for the CD contents.
 `-CDcd1;cd2;cd3` - Sets the sub-directories `cd1`, `cd2`, and `cd3` as the search locations for the CD contents.
-
-## Sight Radius
-
-- When revealing shroud via a unit, structure, or triggers, TS had a maximum allowed sight radius of 10. This meant units could not have a `Sight=` value above 10, and Reveal Around Waypoint trigger actions could not reveal in radius higher than 10 even if specified in `RevealTriggerRadius`.
-
-- Vinifera now allows and handles revealing shroud in any desired range, with no limit.
 
 ## Developer Features
 
