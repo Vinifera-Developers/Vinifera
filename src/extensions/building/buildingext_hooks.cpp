@@ -2140,11 +2140,11 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
         }
 
         if (Class->IsHospital || Class->IsArmory) {
-            /*
-            *  If a unit is asking to go ("dock") into the armory or hospital and they don't have ammo for it, turn it away.
-            *  If the armory or hospital has a rally point, tell the unit to move to it instead.
-            *  This makes the all units that were ordered to go into it regroup at the rally position.
-            */ 
+            /**
+             *  If a unit is asking to go ("dock") into the armory or hospital and they don't have ammo for it, turn it away.
+             *  If the armory or hospital has a rally point, tell the unit to move to it instead.
+             *  This makes the all units that were ordered to go into it regroup at the rally position.
+             */ 
             if (Ammo <= 0) {
                 if (ArchiveTarget != nullptr) {
                     auto techno = from->As_Techno();
