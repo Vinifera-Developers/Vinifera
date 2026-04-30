@@ -776,7 +776,7 @@ DEFINE_HOOK(0x00451EC4, _CellClass_Cell_Color_Theater_Patch_1, 0)
 {
     GET(TheaterType, theater, EDX);
 
-    R->EAX(TheaterTypeClass::As_Reference(theater).LowRadarBrightness1);
+    R->EAX(reinterpret_cast<DWORD const&>(TheaterTypeClass::As_Reference(theater).LowRadarBrightness1));
 
     return 0x00451ECB;
 }
@@ -791,7 +791,7 @@ DEFINE_HOOK(0x00451EF5, _CellClass_Cell_Color_Theater_Patch_2, 0)
 {
     GET(TheaterType, theater, EDX);
 
-    R->EAX(TheaterTypeClass::As_Reference(theater).LowRadarBrightness2);
+    R->EAX(reinterpret_cast<DWORD const&>(TheaterTypeClass::As_Reference(theater).LowRadarBrightness2));
 
     return 0x00451EFC;
 }
@@ -806,7 +806,7 @@ DEFINE_HOOK(0x00451F26, _CellClass_Cell_Color_Theater_Patch_3, 0)
 {
     GET(TheaterType, theater, EDX);
 
-    R->EAX(TheaterTypeClass::As_Reference(theater).HighRadarBrightness1);
+    R->EAX(reinterpret_cast<DWORD const&>(TheaterTypeClass::As_Reference(theater).HighRadarBrightness1));
 
     return 0x00451F2D;
 }
@@ -821,7 +821,7 @@ DEFINE_HOOK(0x00451F48, _CellClass_Cell_Color_Theater_Patch_4, 0)
 {
     GET(TheaterType, theater, EAX);
 
-    R->ECX(TheaterTypeClass::As_Reference(theater).HighRadarBrightness2);
+    R->ECX(reinterpret_cast<DWORD const&>(TheaterTypeClass::As_Reference(theater).HighRadarBrightness2));
 
     return 0x00451F4F;
 }
