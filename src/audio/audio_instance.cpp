@@ -203,7 +203,9 @@ bool AudioInstanceClass::Play()
         return false;
     }
 
-    CurrentState = AudioHandleState::AUDIO_STATE_PLAYING;
+    if (CurrentState != AudioHandleState::AUDIO_STATE_FADING_IN && CurrentState != AudioHandleState::AUDIO_STATE_FADING_OUT) {
+        CurrentState = AudioHandleState::AUDIO_STATE_PLAYING;
+    }
 
     return true;
 }
@@ -383,6 +385,10 @@ bool AudioInstanceClass::Set_Fade(float seconds, bool out, bool end_after_out)
 {
     ASSERT(Sound != nullptr);
 
+    if (seconds <= 0.0f) {
+        return true;
+    }
+
     FadeStartVolume = Get_Volume();
     FadeTime = seconds;
     FadeDuration = seconds;
@@ -391,6 +397,7 @@ bool AudioInstanceClass::Set_Fade(float seconds, bool out, bool end_after_out)
         CurrentState = AudioHandleState::AUDIO_STATE_FADING_OUT;
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Set_Fade - State changed: FADING_OUT\n");
     } else {
+        Set_Volume(AUDIO_VOLUME_MIN);
         CurrentState = AudioHandleState::AUDIO_STATE_FADING_IN;
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_INSTANCE, "AudioInstance::Set_Fade - State changed: FADING_IN\n");
     }

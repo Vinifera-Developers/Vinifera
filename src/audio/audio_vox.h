@@ -35,6 +35,7 @@ public:
     static bool Process(CCINIClass const& ini);
     static void Scan();
     static void ScanAsync();
+    static void Wait_For_Scan();
     static void Preload();
     static void Clear();
 

@@ -51,6 +51,8 @@ static float AUDIO_VOLUME_CUTOFF_THRESHOLD = 0.05f;
  */
 static std::mutex VocScanMutex;
 static std::atomic<bool> IsVocScanComplete {false};
+static std::mutex VocScanThreadMutex;
+static std::thread VocScanThread;
 
 
 /**
@@ -59,6 +61,19 @@ static std::atomic<bool> IsVocScanComplete {false};
 DynamicVectorClass<AudioVocClass*> AudioVocs;
 
 namespace {
+
+/**
+ *  Joins the owned asynchronous sound scan thread, if one is active.
+ *
+ *  @author: ZivDero
+ */
+void Join_Voc_Scan_Thread()
+{
+    std::scoped_lock lock(VocScanThreadMutex);
+    if (VocScanThread.joinable()) {
+        VocScanThread.join();
+    }
+}
 
 float Parse_Delay_Seconds(const char* value, Point2D& delay)
 {
@@ -646,11 +661,27 @@ void AudioVocClass::Preload()
  */
 void AudioVocClass::ScanAsync()
 {
-    std::thread([] {
-        IsVocScanComplete.store(false);
+    std::scoped_lock lock(VocScanThreadMutex);
+    if (VocScanThread.joinable()) {
+        VocScanThread.join();
+    }
+    IsVocScanComplete.store(false);
+
+    VocScanThread = std::thread([] {
         Scan();
         IsVocScanComplete.store(true);
-    }).detach();
+    });
+}
+
+
+/**
+ *  Waits for any asynchronous sound effect scan to finish.
+ *
+ *  @author: ZivDero
+ */
+void AudioVocClass::Wait_For_Scan()
+{
+    Join_Voc_Scan_Thread();
 }
 
 
@@ -661,6 +692,8 @@ void AudioVocClass::ScanAsync()
  */
 void AudioVocClass::Process(CCINIClass &ini)
 {
+    Join_Voc_Scan_Thread();
+
     static char const * const DEFAULTS = "Defaults";
     static char const * const SOUNDLIST = "SoundList";
 
@@ -707,6 +740,7 @@ void AudioVocClass::Process(CCINIClass &ini)
  */
 void AudioVocClass::Clear()
 {
+    Join_Voc_Scan_Thread();
     AudioEventSystem::Clear();
 
     while (AudioVocs.Count() > 0) {

@@ -54,6 +54,7 @@ bool AudioStreamingClass::Open(const std::string& name, int sample_rate, int cha
     Channels = channels;
     BitsPerSample = bits_per_sample;
     IsPCM = is_pcm;
+    FramesPushed.store(0, std::memory_order_relaxed);
 
     if (IsPCM) {
         return Initialize_PCM_Stream();
@@ -91,6 +92,7 @@ void AudioStreamingClass::Close()
     }
 
     ChunkBuffer.clear();
+    FramesPushed.store(0, std::memory_order_relaxed);
 
     StreamInitialized = false;
 }

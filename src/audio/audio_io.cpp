@@ -69,6 +69,7 @@ static ma_result Audio_CCFile_onOpen(ma_vfs *pVFS, const char *pFilePath, ma_uin
     CCFileClass * file_handle = new CCFileClass(pFilePath);
 
     if (!file_handle->Is_Available()) {
+        delete file_handle;
         return MA_DOES_NOT_EXIST;
     }
 
@@ -82,6 +83,7 @@ static ma_result Audio_CCFile_onOpen(ma_vfs *pVFS, const char *pFilePath, ma_uin
     }
 
     if (!opened || !file_handle->Is_Open()) {
+        delete file_handle;
         return MA_DOES_NOT_EXIST;
     }
 
@@ -108,6 +110,7 @@ static ma_result Audio_CCFile_onOpenW(ma_vfs *pVFS, const wchar_t *pFilePath, ma
     CCFileClass * file_handle = new CCFileClass(file_path.c_str());
 
     if (!file_handle->Is_Available()) {
+        delete file_handle;
         return MA_DOES_NOT_EXIST;
     }
 
@@ -121,6 +124,7 @@ static ma_result Audio_CCFile_onOpenW(ma_vfs *pVFS, const wchar_t *pFilePath, ma
     }
 
     if (!opened || !file_handle->Is_Open()) {
+        delete file_handle;
         return MA_DOES_NOT_EXIST;
     }
 

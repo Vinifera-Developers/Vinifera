@@ -268,6 +268,22 @@ VoxControlType Control_From_Name(const char* name, VoxControlType fallback)
  */
 static std::mutex VoxScanMutex;
 static std::atomic<bool> IsVoxScanComplete{false};
+static std::mutex VoxScanThreadMutex;
+static std::thread VoxScanThread;
+
+
+/**
+ *  Joins the owned asynchronous EVA/voice scan thread, if one is active.
+ *
+ *  @author: ZivDero
+ */
+static void Join_Vox_Scan_Thread()
+{
+    std::scoped_lock lock(VoxScanThreadMutex);
+    if (VoxScanThread.joinable()) {
+        VoxScanThread.join();
+    }
+}
 
 
 /**
@@ -397,6 +413,8 @@ void AudioVoxClass::One_Time()
  */
 bool AudioVoxClass::Process(CCINIClass const& ini)
 {
+    Join_Vox_Scan_Thread();
+
     static char const * const DEFAULTS = "Defaults";
     static char const * const DIALOGLIST = "DialogList";
 
@@ -528,11 +546,27 @@ void AudioVoxClass::Preload()
  */
 void AudioVoxClass::ScanAsync()
 {
-    std::thread([] {
-        IsVoxScanComplete.store(false);
+    std::scoped_lock lock(VoxScanThreadMutex);
+    if (VoxScanThread.joinable()) {
+        VoxScanThread.join();
+    }
+    IsVoxScanComplete.store(false);
+
+    VoxScanThread = std::thread([] {
         Scan();
         IsVoxScanComplete.store(true);
-    }).detach();
+    });
+}
+
+
+/**
+ *  Waits for any asynchronous EVA/voice scan to finish.
+ *
+ *  @author: ZivDero
+ */
+void AudioVoxClass::Wait_For_Scan()
+{
+    Join_Vox_Scan_Thread();
 }
 
 
@@ -543,6 +577,8 @@ void AudioVoxClass::ScanAsync()
  */
 void AudioVoxClass::Clear()
 {
+    Join_Vox_Scan_Thread();
+
     while (Voxs.Count() > 0) {
         delete Voxs[0];
     }

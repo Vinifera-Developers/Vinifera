@@ -18,6 +18,8 @@
 #include "audio_io.h"
 #include "audio_sample.h"
 #include "audio_static_sound.h"
+#include "audio_voc.h"
+#include "audio_vox.h"
 #include "ccfile.h"
 #include "debughandler.h"
 #include "miniaudio.h"
@@ -60,145 +62,33 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
             /**
              *  STEP 1: Process queued play/stop requests.
              */
+            std::queue<AudioRequest> requests;
             {
                 std::scoped_lock lock(self->RequestMutex);
+                std::swap(requests, self->RequestQueue);
+            }
 
-                while (!self->RequestQueue.empty()) {
+            while (!requests.empty()) {
+                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: RequestQueue - Woke up!\n");
 
-                    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: RequestQueue - Woke up!\n");
+                AudioRequest req = std::move(requests.front());
+                requests.pop();
 
-                    AudioRequest req = std::move(self->RequestQueue.front());
-                    self->RequestQueue.pop();
+                switch (req.Type) {
+                case AudioRequestType::AUDIO_REQUEST_PLAY:
+                    self->Process_Play_Request(std::move(req));
+                    break;
 
-                    switch (req.Type) {
-                    case AudioRequestType::AUDIO_REQUEST_PLAY: {
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Got request to play sample \"%s\"...\n", req.Filename.c_str());
-
-                        // Remove this ID from the pending set on any exit that does not
-                        // result in a live instance or a deferred (queued) request.
-                        auto drop_pending = [&]() {
-                            std::scoped_lock plock(self->PendingMutex);
-                            self->PendingHandleIDs.erase(req.HandleID);
-                        };
-
-                        AudioSampleClass* sample = self->Find_Sample(std::string(req.Filename.c_str()), req.Group);
-                        if (sample == nullptr || !sample->Is_Available()) {
-                            drop_pending();
-                            break;
-                        }
-
-                        // A per-call limit takes precedence over the sample template.
-                        int limit = (req.Limit > 0) ? req.Limit : sample->Get_Limit();
-                        if (limit <= 0) {
-                            drop_pending();
-                            break;
-                        }
-
-                        if (limit > 0 && limit <= AUDIO_MAX_CONCURRENT_LIMIT) {
-                            auto& group_vec = self->GroupedActiveInstanceMap[req.Group];
-
-                            // Count instances from this sample
-                            int active_count = 0;
-                            AudioInstanceClass* lowest_priority = nullptr;
-
-                            for (auto* instance : group_vec) {
-                                if (!instance) {
-                                    continue;
-                                }
-                                if (&instance->Get_Sample_Template() == sample) {
-                                    ++active_count;
-
-                                    if (!lowest_priority || instance->Get_Sample_Template().Get_Priority() < lowest_priority->Get_Sample_Template().Get_Priority()) {
-                                        lowest_priority = instance;
-                                    }
-                                }
-                            }
-
-                            if (active_count >= limit) {
-                                if (lowest_priority && (req.Priority > lowest_priority->Get_Sample_Template().Get_Priority() || (req.Control & AUDIO_CONTROL_INTERRUPT))) {
-                                    lowest_priority->Set_Fade(0.1f, true, true);
-                                } else {
-                                    if (req.Control & AUDIO_CONTROL_QUEUE) {
-                                        // ID stays in PendingHandleIDs so Query_Is_Playing
-                                        // returns true while the request waits for a slot.
-                                        self->DeferredPlayQueue.push(req);
-                                    } else {
-                                        drop_pending();
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Creating instance of \"%s\".\n", req.Filename.c_str());
-
-                        auto instance = std::make_unique<AudioInstanceClass>(sample, req.HandleID);
-                        ASSERT_FATAL(instance != nullptr, "Failed to create instance of sample \"%s\"!", sample->Get_FileName().c_str());
-
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: About to load sample for \"%s\".\n", req.Filename.c_str());
-
-                        if (!instance->Load()) {
-                            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: Failed to load sample for \"%s\"!\n", req.Filename.c_str());
-                            drop_pending();
-                            break;
-                        }
-
-                        const bool allow_sound_looping = req.Group != AUDIO_GROUP_MUSIC;
-                        const bool infinite_loop = allow_sound_looping && req.Loops && req.LoopLimit <= 0;
-                        const int loop_limit = allow_sound_looping && req.Loops ? req.LoopLimit : 0;
-                        instance->Set_Looping(infinite_loop);
-                        instance->Set_Loop_Limit(loop_limit);
-
-                        instance->Set_Fade(req.FadeInSeconds, false);
-                        instance->Set_Volume(req.Volume);
-                        instance->Set_Pitch(req.Pitch);
-                        instance->Set_Pan(req.Pan);
-                        instance->Set_Delay(req.DelayInSeconds);
-
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Sample loaded for \"%s\"!\n", req.Filename.c_str());
-
-                        if (req.StartImmediately) {
-                            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Triggering \"%s\" to start playing!\n", req.Filename.c_str());
-                            instance->Play();
-                        }
-
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Adding \"%s\" to active handle tracker.\n", req.Filename.c_str());
-
-                        self->Add_Active_Handle_NoLock(std::move(instance));
-                        drop_pending();
-
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Added \"%s\" to active tracker!\n", req.Filename.c_str());
-
-                        break;
-                    }
-
-                    case AudioRequestType::AUDIO_REQUEST_STOP: {
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Got request to stop \"%s\"...\n", req.Filename.c_str());
-
-                        AudioInstanceClass* instance = Find_Handle_By_ID_NoLock(req.HandleID);
-                        if (!instance) {
-                            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THREAD, "AudioThread: Stop request - handle not found for ID 0x%08X!\n", req.HandleID.ID);
-                            break;
-                        }
-
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: It was \"%s\"!\n", instance->Get_FileName().c_str());
-
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Stopping \"%s\" (with fade seconds %f)...\n", req.Filename.c_str(), req.FadeOutSeconds);
-                        if (req.FadeOutSeconds > 0.0f) {
-                            instance->Set_Fade(req.FadeOutSeconds, true, true);
-                        } else {
-                            instance->End();
-                        }
-
-                        break;
-                    }
-                    };
+                case AudioRequestType::AUDIO_REQUEST_STOP:
+                    self->Process_Stop_Request(std::move(req));
+                    break;
                 }
             }
 
             /**
              *  STEP 2: Update active handles and prune finished instances.
              */
+            std::queue<AudioRequest> promoted_requests;
             {
                 std::scoped_lock lock(self->ThreadMutex);
 
@@ -225,8 +115,10 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                             // Capture identity before the handle is freed.
                             const std::string finished_file = handle->Get_FileName();
                             const AudioGroupType finished_group = handle->Get_Sample_Template().Get_Group();
+                            const AudioInstanceHandle finished_id = handle->Get_ID();
 
                             self->Remove_Active_Handle_NoLock(handle->Get_ID()); // handles deletion and removal from both maps
+                            self->Clear_Request_State(finished_id);
 
                             // Promote the first deferred request for this sample now that a
                             // concurrent slot has opened up.
@@ -236,10 +128,17 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                                 while (!self->DeferredPlayQueue.empty()) {
                                     AudioRequest deferred = std::move(self->DeferredPlayQueue.front());
                                     self->DeferredPlayQueue.pop();
+
+                                    if (self->Is_Request_Canceled(deferred.HandleID)) {
+                                        self->Clear_Request_State(deferred.HandleID);
+                                        continue;
+                                    }
+
                                     if (!promoted && deferred.Filename == finished_file && deferred.Group == finished_group) {
-                                        std::scoped_lock req_lock(self->RequestMutex);
-                                        self->RequestQueue.push(std::move(deferred));
-                                        promoted = true;
+                                        if (self->Try_Set_Request_State(deferred.HandleID, AUDIO_REQUEST_STATE_QUEUED)) {
+                                            promoted_requests.push(std::move(deferred));
+                                            promoted = true;
+                                        }
                                     } else {
                                         still_deferred.push(std::move(deferred));
                                     }
@@ -265,6 +164,17 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                 }
             }
 
+            if (!promoted_requests.empty()) {
+                {
+                    std::scoped_lock req_lock(self->RequestMutex);
+                    while (!promoted_requests.empty()) {
+                        self->RequestQueue.push(std::move(promoted_requests.front()));
+                        promoted_requests.pop();
+                    }
+                }
+                self->RequestCV.notify_all();
+            }
+
             /**
              *  STEP 3: Sleep up to 25ms or until a new request arrives.
              */
@@ -273,10 +183,13 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
         }
 
     } catch (const std::runtime_error& e) {
+        (void)e;
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::runtime_error - %s\n", e.what());
     } catch (const std::logic_error& e) {
+        (void)e;
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::logic_error - %s\n", e.what());
     } catch (const std::exception& ex) {
+        (void)ex;
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::exception - %s\n", ex.what());
     } catch (...) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - Unknown non-std exception occurred!\n");
@@ -332,6 +245,277 @@ AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioInstanceHa
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Find_Handle_By_ID: Failed to find 0x%08X.\n", id.ID);
 
     return nullptr;
+}
+
+
+/**
+ *  Sets the lifecycle state for a request handle.
+ *
+ *  @author: ZivDero
+ */
+void AudioManagerClass::Set_Request_State(AudioInstanceHandle id, AudioRequestState state)
+{
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
+        return;
+    }
+
+    std::scoped_lock lock(RequestStateMutex);
+    RequestStateMap[id] = state;
+}
+
+
+/**
+ *  Moves a request handle to a new lifecycle state if it has not been canceled.
+ *
+ *  @author: ZivDero
+ */
+bool AudioManagerClass::Try_Set_Request_State(AudioInstanceHandle id, AudioRequestState state)
+{
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
+        return false;
+    }
+
+    std::scoped_lock lock(RequestStateMutex);
+    auto it = RequestStateMap.find(id);
+    if (it == RequestStateMap.end()) {
+        return false;
+    }
+
+    if (it->second == AUDIO_REQUEST_STATE_CANCELING || it->second == AUDIO_REQUEST_STATE_FINISHED) {
+        RequestStateMap.erase(it);
+        return false;
+    }
+
+    it->second = state;
+    return true;
+}
+
+
+/**
+ *  Returns the current lifecycle state for a request handle.
+ *
+ *  @author: ZivDero
+ */
+AudioManagerClass::AudioRequestState AudioManagerClass::Get_Request_State(AudioInstanceHandle id)
+{
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
+        return AUDIO_REQUEST_STATE_FINISHED;
+    }
+
+    std::scoped_lock lock(RequestStateMutex);
+    auto it = RequestStateMap.find(id);
+    return it != RequestStateMap.end() ? it->second : AUDIO_REQUEST_STATE_FINISHED;
+}
+
+
+/**
+ *  Returns whether the request handle has been canceled before active playback.
+ *
+ *  @author: ZivDero
+ */
+bool AudioManagerClass::Is_Request_Canceled(AudioInstanceHandle id)
+{
+    return Get_Request_State(id) == AUDIO_REQUEST_STATE_CANCELING;
+}
+
+
+/**
+ *  Cancels a queued or deferred request before an AudioInstanceClass is created.
+ *
+ *  @author: ZivDero
+ */
+bool AudioManagerClass::Cancel_Queued_Request(AudioInstanceHandle id)
+{
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
+        return false;
+    }
+
+    std::scoped_lock lock(RequestStateMutex);
+    auto it = RequestStateMap.find(id);
+    if (it == RequestStateMap.end()) {
+        return false;
+    }
+
+    if (it->second == AUDIO_REQUEST_STATE_QUEUED || it->second == AUDIO_REQUEST_STATE_DEFERRED) {
+        it->second = AUDIO_REQUEST_STATE_CANCELING;
+        return true;
+    }
+
+    return it->second == AUDIO_REQUEST_STATE_CANCELING;
+}
+
+
+/**
+ *  Clears the lifecycle state for a request handle.
+ *
+ *  @author: ZivDero
+ */
+void AudioManagerClass::Clear_Request_State(AudioInstanceHandle id)
+{
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
+        return;
+    }
+
+    std::scoped_lock lock(RequestStateMutex);
+    RequestStateMap.erase(id);
+}
+
+
+/**
+ *  Processes a queued play request on the audio thread.
+ *
+ *  @author: CCHyper
+ */
+void AudioManagerClass::Process_Play_Request(AudioRequest req)
+{
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Got request to play sample \"%s\"...\n", req.Filename.c_str());
+
+    auto finish_request = [&]() {
+        Clear_Request_State(req.HandleID);
+    };
+
+    if (Is_Request_Canceled(req.HandleID)) {
+        finish_request();
+        return;
+    }
+
+    AudioSampleClass* sample = Find_Sample(std::string(req.Filename.c_str()), req.Group);
+    if (sample == nullptr || !sample->Is_Available()) {
+        finish_request();
+        return;
+    }
+
+    // A per-call limit takes precedence over the sample template.
+    int limit = (req.Limit > 0) ? req.Limit : sample->Get_Limit();
+    if (limit <= 0) {
+        finish_request();
+        return;
+    }
+
+    if (limit > 0 && limit <= AUDIO_MAX_CONCURRENT_LIMIT) {
+        std::scoped_lock lock(ThreadMutex);
+
+        auto& group_vec = GroupedActiveInstanceMap[req.Group];
+
+        // Count instances from this sample.
+        int active_count = 0;
+        AudioInstanceClass* lowest_priority = nullptr;
+
+        for (auto* instance : group_vec) {
+            if (!instance) {
+                continue;
+            }
+            if (&instance->Get_Sample_Template() == sample) {
+                ++active_count;
+
+                if (!lowest_priority || instance->Get_Sample_Template().Get_Priority() < lowest_priority->Get_Sample_Template().Get_Priority()) {
+                    lowest_priority = instance;
+                }
+            }
+        }
+
+        if (active_count >= limit) {
+            if (lowest_priority && (req.Priority > lowest_priority->Get_Sample_Template().Get_Priority() || (req.Control & AUDIO_CONTROL_INTERRUPT))) {
+                lowest_priority->Set_Fade(0.1f, true, true);
+            } else {
+                if (req.Control & AUDIO_CONTROL_QUEUE) {
+                    if (Try_Set_Request_State(req.HandleID, AUDIO_REQUEST_STATE_DEFERRED)) {
+                        DeferredPlayQueue.push(std::move(req));
+                    }
+                } else {
+                    finish_request();
+                }
+                return;
+            }
+        }
+    }
+
+    if (Is_Request_Canceled(req.HandleID)) {
+        finish_request();
+        return;
+    }
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Creating instance of \"%s\".\n", req.Filename.c_str());
+
+    auto instance = std::make_unique<AudioInstanceClass>(sample, req.HandleID);
+    ASSERT_FATAL(instance != nullptr, "Failed to create instance of sample \"%s\"!", sample->Get_FileName().c_str());
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: About to load sample for \"%s\".\n", req.Filename.c_str());
+
+    if (!instance->Load()) {
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: Failed to load sample for \"%s\"!\n", req.Filename.c_str());
+        finish_request();
+        return;
+    }
+
+    const bool allow_sound_looping = req.Group != AUDIO_GROUP_MUSIC;
+    const bool infinite_loop = allow_sound_looping && req.Loops && req.LoopLimit <= 0;
+    const int loop_limit = allow_sound_looping && req.Loops ? req.LoopLimit : 0;
+    instance->Set_Looping(infinite_loop);
+    instance->Set_Loop_Limit(loop_limit);
+
+    instance->Set_Volume(req.Volume);
+    if (req.FadeInSeconds > 0.0f) {
+        instance->Set_Fade(req.FadeInSeconds, false);
+    }
+    instance->Set_Pitch(req.Pitch);
+    instance->Set_Pan(req.Pan);
+    instance->Set_Delay(req.DelayInSeconds);
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Sample loaded for \"%s\"!\n", req.Filename.c_str());
+
+    if (req.StartImmediately) {
+        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Triggering \"%s\" to start playing!\n", req.Filename.c_str());
+        instance->Play();
+    }
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Adding \"%s\" to active handle tracker.\n", req.Filename.c_str());
+
+    {
+        std::scoped_lock lock(ThreadMutex);
+
+        {
+            std::scoped_lock state_lock(RequestStateMutex);
+            auto state_it = RequestStateMap.find(req.HandleID);
+            if (state_it == RequestStateMap.end() || state_it->second == AUDIO_REQUEST_STATE_CANCELING) {
+                RequestStateMap.erase(req.HandleID);
+                return;
+            }
+            state_it->second = AUDIO_REQUEST_STATE_ACTIVE;
+        }
+
+        Add_Active_Handle_NoLock(std::move(instance));
+    }
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Added \"%s\" to active tracker!\n", req.Filename.c_str());
+}
+
+
+/**
+ *  Processes a queued stop request on the audio thread.
+ *
+ *  @author: CCHyper
+ */
+void AudioManagerClass::Process_Stop_Request(AudioRequest req)
+{
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Got request to stop \"%s\"...\n", req.Filename.c_str());
+
+    std::scoped_lock lock(ThreadMutex);
+
+    AudioInstanceClass* instance = Find_Handle_By_ID_NoLock(req.HandleID);
+    if (!instance) {
+        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THREAD, "AudioThread: Stop request - handle not found for ID 0x%08X!\n", req.HandleID.ID);
+        return;
+    }
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: It was \"%s\"!\n", instance->Get_FileName().c_str());
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Stopping \"%s\" (with fade seconds %f)...\n", req.Filename.c_str(), req.FadeOutSeconds);
+    if (req.FadeOutSeconds > 0.0f) {
+        instance->Set_Fade(req.FadeOutSeconds, true, true);
+    } else {
+        instance->End();
+    }
 }
 
 
@@ -402,6 +586,8 @@ bool AudioManagerClass::Init(HWND hWnd)
     result = ma_engine_init(&engineConfig, Engine);
     if (result != MA_SUCCESS) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr: Failed to initialize engine (%s)!\n", ma_result_description(result));
+        delete Engine;
+        Engine = nullptr;
         return false;
     }
 
@@ -412,38 +598,55 @@ bool AudioManagerClass::Init(HWND hWnd)
      */
     for (int group = 0; group < AUDIO_GROUP_COUNT; ++group) {
 
-        SoundGroups[group] = new ma_sound_group;
+        std::unique_ptr<ma_sound_group> sound_group = std::make_unique<ma_sound_group>();
 
-        result = ma_sound_group_init(Engine, MA_SOUND_FLAG_NO_SPATIALIZATION, nullptr, SoundGroups[group]);
+        result = ma_sound_group_init(Engine, MA_SOUND_FLAG_NO_SPATIALIZATION, nullptr, sound_group.get());
         if (result != MA_SUCCESS) {
             AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr: Failed to initialize sound group %d (%s)!\n", group, ma_result_description(result));
+            End();
             return false;
         }
 
-        result = ma_sound_group_start(SoundGroups[group]);
+        result = ma_sound_group_start(sound_group.get());
         if (result != MA_SUCCESS) {
             AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr: Failed to start sound group %d (%s)!\n", group, ma_result_description(result));
+            ma_sound_group_uninit(sound_group.get());
+            End();
             return false;
         }
 
+        SoundGroups[group] = sound_group.release();
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr: Sound group %d initialized.\n", group);
     }
 
     /**
      *  Set the initial master volume to maximum.
      */
-    Set_Master_Volume(AUDIO_VOLUME_MAX);
+    if (!Set_Master_Volume(AUDIO_VOLUME_MAX)) {
+        End();
+        return false;
+    }
 
     /**
      *  Start the background cleanup and request processing thread.
      */
     ThreadExitFlag = false;
-    CleanupThread = std::thread(&AudioManagerClass::CleanupThreadFunction, this);
+    try {
+        CleanupThread = std::thread(&AudioManagerClass::CleanupThreadFunction, this);
+    } catch (const std::exception& ex) {
+        (void)ex;
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr: Failed to start cleanup thread (%s)!\n", ex.what());
+        End();
+        return false;
+    }
 
     /**
      *  Start the miniaudio engine for audio playback.
      */
-    Start_Engine(true);
+    if (!Start_Engine(true)) {
+        End();
+        return false;
+    }
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr: Init done!\n");
 
@@ -470,6 +673,8 @@ void AudioManagerClass::End()
      *  with handle destruction or touch the engine after it is gone.
      */
     IsInitialized = false;
+    AudioVocClass::Wait_For_Scan();
+    AudioVoxClass::Wait_For_Scan();
     ThreadExitFlag = true;
     RequestCV.notify_all();
     if (CleanupThread.joinable()) {
@@ -493,8 +698,8 @@ void AudioManagerClass::End()
     }
 
     {
-        std::scoped_lock lock(PendingMutex);
-        PendingHandleIDs.clear();
+        std::scoped_lock lock(RequestStateMutex);
+        RequestStateMap.clear();
     }
 
     /**
@@ -654,12 +859,9 @@ AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename,
     AudioInstanceHandle id = Generate_Unique_Audio_ID(group);
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Play - Generated id '0x%08X' for request \"%s\".\n", id.ID, filename.c_str());
 
-    // Insert into pending set before queuing to eliminate the race where the worker
-    // processes the request before we can add the ID.
-    {
-        std::scoped_lock plock(PendingMutex);
-        PendingHandleIDs.insert(id);
-    }
+    // Insert into the state map before queuing to eliminate the race where the
+    // worker processes the request before the handle becomes queryable.
+    Set_Request_State(id, AUDIO_REQUEST_STATE_QUEUED);
 
     {
         std::scoped_lock lock(RequestMutex);
@@ -700,6 +902,12 @@ bool AudioManagerClass::Request_Stop(AudioInstanceHandle id, float fade_out)
     if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Request_Stop - Invalid handle!\n");
         return false;
+    }
+
+    if (Cancel_Queued_Request(id)) {
+        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Stop - Canceled queued/deferred handle 0x%08X.\n", id.ID);
+        RequestCV.notify_all();
+        return true;
     }
 
     {
@@ -786,12 +994,12 @@ bool AudioManagerClass::Query_Is_Playing(AudioInstanceHandle id)
         return false;
     }
 
-    // In-flight requests are still "playing" from the caller's perspective.
-    {
-        std::scoped_lock plock(PendingMutex);
-        if (PendingHandleIDs.contains(id)) {
-            return true;
-        }
+    AudioRequestState request_state = Get_Request_State(id);
+    if (request_state == AUDIO_REQUEST_STATE_QUEUED || request_state == AUDIO_REQUEST_STATE_DEFERRED) {
+        return true;
+    }
+    if (request_state == AUDIO_REQUEST_STATE_CANCELING) {
+        return false;
     }
 
     std::scoped_lock lock(ThreadMutex);
@@ -816,12 +1024,12 @@ bool AudioManagerClass::Query_Is_Active(AudioInstanceHandle id)
         return false;
     }
 
-    // In-flight requests are still "playing" from the caller's perspective.
-    {
-        std::scoped_lock plock(PendingMutex);
-        if (PendingHandleIDs.contains(id)) {
-            return true;
-        }
+    AudioRequestState request_state = Get_Request_State(id);
+    if (request_state == AUDIO_REQUEST_STATE_QUEUED || request_state == AUDIO_REQUEST_STATE_DEFERRED) {
+        return true;
+    }
+    if (request_state == AUDIO_REQUEST_STATE_CANCELING) {
+        return false;
     }
 
     std::scoped_lock lock(ThreadMutex);

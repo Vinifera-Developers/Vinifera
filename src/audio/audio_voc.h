@@ -50,6 +50,7 @@ public:
 
     static void Scan();
     static void ScanAsync();
+    static void Wait_For_Scan();
     static void Preload();
     static void Process(CCINIClass& ini);
     static void Clear();

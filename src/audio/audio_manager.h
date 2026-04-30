@@ -20,7 +20,6 @@
 #include <queue>
 #include <thread>
 #include <unordered_map>
-#include <unordered_set>
 
 
 /**
@@ -218,6 +217,19 @@ private:
     } AudioRequestType;
 
     /**
+     *  Lightweight lifecycle for requests that have a public handle but may
+     *  not have an AudioInstanceClass yet. This doubles as the cancellation
+     *  token for queued/deferred playback.
+     */
+    typedef enum AudioRequestState {
+        AUDIO_REQUEST_STATE_QUEUED,
+        AUDIO_REQUEST_STATE_DEFERRED,
+        AUDIO_REQUEST_STATE_ACTIVE,
+        AUDIO_REQUEST_STATE_CANCELING,
+        AUDIO_REQUEST_STATE_FINISHED
+    } AudioRequestState;
+
+    /**
      *  Queued audio playback or stop request with all associated parameters.
      */
     typedef struct AudioRequest {
@@ -264,6 +276,15 @@ private:
 
     } AudioRequest;
 
+    void Set_Request_State(AudioInstanceHandle id, AudioRequestState state);
+    bool Try_Set_Request_State(AudioInstanceHandle id, AudioRequestState state);
+    AudioRequestState Get_Request_State(AudioInstanceHandle id);
+    bool Is_Request_Canceled(AudioInstanceHandle id);
+    bool Cancel_Queued_Request(AudioInstanceHandle id);
+    void Clear_Request_State(AudioInstanceHandle id);
+    void Process_Play_Request(AudioRequest req);
+    void Process_Stop_Request(AudioRequest req);
+
 private:
     /**
      *  Background thread and synchronization primitives for cleanup and request processing.
@@ -275,7 +296,11 @@ private:
      *  Protects ActiveInstanceMap, GroupedActiveInstanceMap, AND every operation
      *  on the AudioInstanceClass objects they own. AudioInstanceClass methods are
      *  not internally synchronized — callers must hold this mutex end-to-end when
-     *  invoking them. Lock order: EventMutex (audio_event.cpp) -> ThreadMutex.
+     *  invoking them. Lock order: EventMutex (audio_event.cpp) -> RequestMutex
+     *  for queue insertion, and EventMutex -> ThreadMutex for instance access.
+     *  Never hold RequestMutex while waiting on ThreadMutex.
+     *  RequestStateMutex may be taken while holding ThreadMutex; do not take
+     *  ThreadMutex while holding RequestStateMutex.
      */
     std::mutex ThreadMutex;
 
@@ -284,11 +309,12 @@ private:
     std::condition_variable_any RequestCV;
 
     /**
-     *  IDs of requests submitted to RequestQueue but not yet processed by the worker.
-     *  Allows Query_Is_Playing to return true for in-flight requests without polling.
+     *  Request states for handles that may be queued, deferred, active, or
+     *  canceling. This is the authoritative cancellation token for handles
+     *  before an AudioInstanceClass exists.
      */
-    std::unordered_set<AudioInstanceHandle> PendingHandleIDs;
-    std::mutex PendingMutex;
+    std::unordered_map<AudioInstanceHandle, AudioRequestState> RequestStateMap;
+    std::mutex RequestStateMutex;
 
     /**
      *  Requests with AUDIO_CONTROL_QUEUE that were deferred due to concurrent limit.
