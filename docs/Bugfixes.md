@@ -111,6 +111,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+- Removes incremental reveal logic when setting `RevealByHeight=no`, which could in some cases cause units with high `Sight` value to not reveal shroud close to them.
 - Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation.
 - Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors.
 - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.

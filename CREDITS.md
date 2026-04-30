@@ -151,6 +151,9 @@ This page lists all the individual contributions to the project by their author.
 - **JoyfulShush**:
   - Allow customizing self healing cap and rate game-wide and per-unit.
   - Allow customizing whether AI can repair buildings created as base nodes.
+  - Allow revealing maps with any radius (previously was clamped to 10)
+  - Remove logic related to incremental radius movement when setting `RevealByHeight=no` which could cause units to not reveal shroud in some cases.
+  - Allow Reveal Around Waypoints trigger actions to set their reveal radius, and whether they take elevation into account per action.
   - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
   - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
   - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.
