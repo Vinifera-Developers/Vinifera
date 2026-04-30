@@ -108,11 +108,11 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
     if (this->Class->IsCanUnitRepair)
         return true;
 
-    /*
-    *  Makes it possible to give rally points to Hospitals and Armories
-    * 
-    *  @author: JoyfulShush
-    */
+    /**     
+     *  Makes it possible to give rally points to Hospitals and Armories
+     *
+     *  @author: JoyfulShush
+     */
     if (this->Class->IsArmory || this->Class->IsHospital) 
         return true;
 
