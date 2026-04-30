@@ -631,6 +631,14 @@ DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehi
     return 0x004D7277;
 }
 
+/*
+*  Reimplements InfantryClass::What_Action when the identified object is an armory.
+*  No longer transmits a message to the armory requesting it to establish radio connection (which only allows one unit at a time).
+*  Instead, simply checks for the armory's conditions (unit's veterancy and armory's ammo) to determine if the unit can go in or not.
+*  This also allows additional units to be ordered into the armory even if other unit(s) are already on their way to it.
+* 
+*  @author: JoyfulShush
+*/
 DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
 {
     GET(BuildingClass*, object, ESI);
@@ -651,6 +659,14 @@ DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
     return 0x004D738E;
 }
 
+/*
+ *  Reimplements InfantryClass::What_Action when the identified object is a hospital.
+ *  No longer transmits a message to the hospital requesting it to establish radio connection (which only allows one unit at a time).
+ *  Instead, simply checks for the hospital's conditions (unit's health and hospital's ammo) to determine if the unit can go in or not.
+ *  This also allows additional units to be ordered into the hospital even if other unit(s) are already on their way to it.
+ * 
+ *  @author: JoyfulShush
+ */
 DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
 {
     GET(BuildingClass*, object, ESI);
@@ -671,6 +687,17 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
     return 0x004D731A;
 }
 
+/*
+ *  Reimplements InfantryClass::Assign_Destination at the part that identifies units with mission "MISSION_ENTER",
+ *  at a part where units are communicating with a building that has a radio buddy.
+ *  For hospitals and armories, this typically means that a unit got the permission to dock into the hospital/armory.
+ *  Other units will then go near the hospital/armory (due to being assigned MISSION_MOVE) and will constantly contact the hospital/armory to try to enter it.
+ *  Once the hospital/armory finish with the unit inside them, they dismiss contact with them and are available to accept requests from another unit.
+ * 
+ *  All other buildings preserve the original behavior that they had before.
+ * 
+ *  @author: JoyfulShush
+ */
 DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
 {
     GET(InfantryClass*, this_ptr, EBP);
@@ -679,7 +706,7 @@ DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
     if (object->Class->IsHospital || object->Class->IsArmory) {
         if (object->Ammo >= 0) {
             this_ptr->Assign_Archive_Target(object);
-            this_ptr->field_20C = object;
+            this_ptr->field_20C = object; // in IDA: "__ObjectCloseToMe"; in practice, seems to be the object that becomes the "target" of this unit.
             this_ptr->Assign_Mission(MISSION_MOVE);
             goto success;
         }

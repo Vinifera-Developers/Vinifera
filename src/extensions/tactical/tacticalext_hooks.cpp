@@ -488,7 +488,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
         {
             const BuildingClass* bldg = static_cast<const BuildingClass*>(obj);
             /**
-             *  We draw rally point for factories, as well as repair bays (Rampastring).
+             *  We draw rally point for factories, as well as repair bays (Rampastring) and armories/hospitals (JoyfulShush).
              */
             if (bldg->Class->ToBuild == RTTI_UNITTYPE || bldg->Class->ToBuild == RTTI_INFANTRYTYPE || bldg->Class->ToBuild == RTTI_AIRCRAFTTYPE || bldg->Class->IsCanUnitRepair || bldg->Class->IsArmory || bldg->Class->IsHospital)
             {
