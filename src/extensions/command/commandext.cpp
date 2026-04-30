@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended hotkey command class.
  *
- *  @project       Vinifera
- *
- *  @file          COMMANDEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended hotkey command class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -37,6 +18,7 @@
 #include "armortype.h"
 #include "asserthandler.h"
 #include "base.h"
+#include "battleui.h"
 #include "beacon.h"
 #include "building.h"
 #include "buildingtype.h"
@@ -60,6 +42,7 @@
 #include "language.h"
 #include "minidump.h"
 #include "miscutil.h"
+#include "mouse.h"
 #include "overlaytype.h"
 #include "particlesystype.h"
 #include "particletype.h"
@@ -69,17 +52,19 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
-#include "sidebarext.h"
+#include "sidebar_tabbed_view.h"
 #include "smudgetype.h"
 #include "super.h"
 #include "tactical.h"
 #include "tacticalext.h"
 #include "tag.h"
 #include "tagtype.h"
+#include "technotypeext.h"
 #include "terraintype.h"
 #include "theme.h"
 #include "tiberium.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "tibsun_util.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -548,7 +533,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
         return false;
     }
 
@@ -618,7 +603,7 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
         return false;
     }
 
@@ -688,7 +673,7 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
         return false;
     }
 
@@ -758,7 +743,7 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
         return false;
     }
 
@@ -1192,8 +1177,8 @@ const char* SetStructureTabCommandClass::Get_Description() const
 
 bool SetStructureTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
-    bool result = SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_STRUCTURE;
+    bool result = BattleUI.Get_Sidebar().Change_Tab(newtab);
 
     /**
      *  Enter the manual placement mode when a building is complete
@@ -1282,8 +1267,8 @@ const char* SetInfantryTabCommandClass::Get_Description() const
 
 bool SetInfantryTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_INFANTRY;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_INFANTRY;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1314,8 +1299,8 @@ const char* SetUnitTabCommandClass::Get_Description() const
 
 bool SetUnitTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_UNIT;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_UNIT;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1346,8 +1331,8 @@ const char* SetSpecialTabCommandClass::Get_Description() const
 
 bool SetSpecialTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_SPECIAL;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_SPECIAL;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -2372,11 +2357,6 @@ bool SpecialWeaponsCommandClass::Process()
         PlayerPtr->SuperWeapon[i]->Enable(true, true, true);
         PlayerPtr->SuperWeapon[i]->Forced_Charge(true);
         Map.Add(RTTI_SPECIAL, i);
-
-        /**
-         *  Redraw the right column.
-         */
-        Map.Column[1].Flag_To_Redraw();
     }
 
     return true;

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended BuildingClass.
  *
- *  @project       Vinifera
- *
- *  @file          BUILDINGEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended BuildingClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -2450,6 +2431,45 @@ DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
     return 0;
 }
 
+/*
+*  Patches a portion of BuildingClass::Captured where laser fence connections are updated (or more correctly - removed)
+*  At this point, the House of the captured building is NOT updated yet - and belongs to the original owner of this building.
+*  This allows us to add an additional check where if a sensor array is captured, the original owner loses that sensor array's sensing capabilities.
+* 
+*  @author: JoyfulShush
+*/
+DEFINE_HOOK(0x0042F749, _BuildingClass_Captured_Disable_Sensors, 6)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_type = this_ptr->Class;    
+
+    if (building_type->IsSensorArray) {
+        this_ptr->Disable_Sensor_Array();
+    }
+
+    return 0;
+}
+
+/*
+ *  Patches a portion of BuildingClass::Captured where a building that gets captured lets players reveal shroud around it with Look().
+ *  At this point, the House of the captured building is already updated - and belongs to the new owner of this building.
+ *  This allows us to add an additional check where if a sensor array is captured, the new owner gains that sensor array's sensing capabilities.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_type = this_ptr->Class;
+
+    if (building_type->IsSensorArray) {
+        this_ptr->Enable_Sensor_Array();
+    }
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.

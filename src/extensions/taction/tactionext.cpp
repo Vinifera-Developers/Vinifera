@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TActionClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTIONEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TActionClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -580,6 +561,18 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* ob
     if (This()->Trigger != nullptr) {
         for (int index = 0; index < Triggers.Count(); index++) {
             if (Triggers[index]->Class == This()->Trigger) {
+
+                /**
+                 *  #issue-1608
+                 *
+                 *  Bugfix: if the trigger is already enabled, there's nothing to do here.
+                 *
+                 *  @author: Rampastring
+                 */
+                if (Triggers[index]->Is_Enabled()) {
+                    continue;
+                }
+
                 bool really_enable = true;
 
                 /**
@@ -1527,7 +1520,7 @@ bool TActionClassExtension::Do_PRINT_LOCAL(HouseClass* house, ObjectClass* objec
  */
 bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Enable_Templated_Text(This()->Data.Value, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
+    TacticalMapExtension->Enable_Templated_Text(Text, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
     return true;
 }
 
