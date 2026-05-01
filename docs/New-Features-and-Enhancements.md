@@ -24,6 +24,10 @@ In `RULES.INI`:
 ReloadRate=     ; float, the rate that this aircraft will reload its ammo when docked with a helipad. Defaults to [General]->ReloadRate.
 ```
 
+### Helipad Docking
+- Aircraft can now click on Helipad that are occupied or about to be occupied by other aircraft, which reassigns them to a different free Helipad, or near the existing Helipad if no free Helipads exist. 
+
+
 ## Animations
 
 ### Additional Animation Spawning
@@ -1525,6 +1529,9 @@ TurretFacings=32     ; integer, the turret facing count.
 
 - Similarly, the `Anim=` INI key for WeaponTypes now also supports 16, 32 and 64 entries.
 - Because of the new extended facing support, it was observed that the buffer size was too small and has now been increased to allow a larger entry to accommodate a larger facing count. Mind that the maximum string length is 506 characters now, so be sure to use short names if you want to have 64 entries.
+
+### Service Depot Docking
+* Units and aircraft can now click on a Service Depot it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
 
 ## Voxel Animations
 
