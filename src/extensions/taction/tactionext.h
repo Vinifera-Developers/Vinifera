@@ -73,6 +73,7 @@ private:
     bool Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DESTROY_TAG(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_REVEAL_SOME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
     /**
