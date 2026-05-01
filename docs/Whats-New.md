@@ -317,6 +317,7 @@ New:
 - Allow customizing if Veins can grow on a tile (by ZivDero)
 - Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
 - Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
+- Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points (by JoyfulShush)
 - Units and Reveal Around Waypoints trigger actions can now reveal any desired radius (by JoyfulShush)
 - Allow Reveal Around Waypoints trigger actions to specify their reveal radius and whether they take elevation into account (by JoyfulShush)
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
@@ -399,6 +400,9 @@ Vanilla fixes:
 - Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
 - Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation (by JoyfulShush)
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, granting massive veterancy bonuses to their attackers.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
 - Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
 
 :::
