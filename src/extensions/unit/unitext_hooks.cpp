@@ -1278,6 +1278,31 @@ DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hij
     return 0x0065602B;
 }
 
+/**
+ *  Patches the MISSION_HARVEST logic that handles harvesters becoming idle due to being unable to find tiberium in its area.
+ *  It does this by removing the MISSION_GUARD assignment inside the function and instead sets it to MISSION_GUARD_AREA,
+ *  which naturally seeks out tiberium to harvest.
+ * 
+ *  Skips to the end of the function in this case to prevent additional mission assignments.
+ *
+ *  Author: JoyfulShush
+ */
+DEFINE_HOOK(0x0065516A, _UnitClass_Do_MISSION_HARVEST_Idle_Harvester_Prevention, 0)
+{
+    GET(UnitClass*, this_ptr, ESI);
+    
+    BuildingClass* bptr = Map[(Coord&)this_ptr->PositionCoord].Cell_Building();
+    if (bptr != NULL) {
+        if (bptr->Class->IsRefinery || bptr->Class->IsWeeder) {
+            this_ptr->Assign_Destination(&Map[this_ptr->Nearby_Location(bptr)]);
+        }
+    }
+    this_ptr->Assign_Mission(MISSION_GUARD_AREA);
+    this_ptr->Current_Mission_Control();
+
+    return 0x00654AA3;
+}
+
 
 /**
  *  Main function for patching the hooks.

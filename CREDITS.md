@@ -159,6 +159,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a few vanilla bugs where units with death frames (such as Reapers) would count as dead multiple times, and be allowed to be issued move orders by players.
   - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
   - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.
+  - Fix a vanilla bug where harvesters will become permanently idle if they exhaust all resources to mine, even if new resources appears (e.g. tib tree)
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
