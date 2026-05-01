@@ -141,11 +141,11 @@ Vinifera enhances a few existing trigger actions to allow them to be customizabl
 
 |  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** | **PARAM7** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|------------|
-| 11       | Text Trigger (Enhanced)     |
+| 11       | Text Trigger     |
 |          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text ID (string)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   | *unused* |
-| 17       | Reveal Around Waypoint (Enhanced)     |
+| 17       | Reveal Around Waypoint     |
 |          | Reveals a region of the map to the player around the waypoint specified. | Other (0) | *unused*     | Waypoint (#) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused* | *unused* | *unused*
-| 45       | Center Camera on Waypoint (Enhanced)     |
+| 45       | Center Camera on Waypoint     |
 |          | Moves the tactical view to a specified waypoint with the given speed (-1 to 4). | Other (0) | *unused*     | Number (-1 - 4) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused* | *unused* | Waypoint (#)
 
 #### [11] Text Trigger
@@ -156,8 +156,8 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 
 Text Trigger trigger action now comes with 2 new parameters that can be set by mappers:
 * Text: the text index of `[Tutorial]` in `Tutorial.ini` that should be shown. If the text includes `{{g_variableName}}`, its value will be replaced with the value of the provided global variable. If the text includes `{{l_variableName}}`, its value will be replaced with the value of the provided local variable.
-* Color: the color that the text should appear with. The color is picked based on the index of `[Colors]` in `Rules.ini`. If set to 0, defaults to the default message color.
-* Duration: the duration, in real-time seconds, that the text should stay on the screen. If set to 0, defaults to the default message duration.
+* Color: the color that the text should appear with. The color is picked based on the index of `[Colors]` in `Rules.ini`. If set to 0, uses the default message color.
+* Duration: the duration, in real-time seconds, that the text should stay on the screen. If set to 0, uses the default message duration.
 
 
 #### [17] Reveal Around Waypoint
