@@ -141,10 +141,20 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 Trigger action 11 `Text Trigger` now takes a string key for the tutorial text entry, not an interer!
 ```
 
+### [17] Reveal Around Waypoint Improvements
+
+Reveal Around Waypoint trigger action now comes with 2 new parameters that can be set by mappers: 
+* Reveal Radius: specify the radius to reveal in this instance of the trigger action. If set to 0 or a negative value, falls back to the value specified in `RevealTriggerRadius` in `Rules.ini`.
+* Ignore Elevation: specifies whether the reveal should ignore elevation. When elevation is taken into account, cells that are higher than 3 elevations will not be revealed. Possible values: 0 = No (default), any other value = Yes. 
+  * Requires `RevealByHeight=yes` (or omitted) for elevation to be taken into account.
+
+
 |  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
 | 11       | Text Trigger (Enhanced)     |
 |          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text ID (string)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
+| 17       | Reveal Around Waypoint (Enhanced)     |
+|          | Reveals a region of the map to the player around the waypoint specified. | Other (0) | *unused*     | Waypoint (#) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused*   | *unused*   |
 | 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
 | 107      | Enable Short Game        |

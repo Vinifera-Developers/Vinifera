@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  UI controls and overrides.
  *
- *  @project       Vinifera
- *
- *  @file          UICONTROL.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         UI controls and overrides.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -31,113 +12,231 @@
 #include "uicontrol.h"
 
 #include "asserthandler.h"
+#include "ccfile.h"
 #include "ccini.h"
+
+#include <algorithm>
 
 
 UIControlsClass *UIControls = nullptr;
 
 
+/***************************************************************************
+**  Battle sidebar layout config
+***************************************************************************/
+
+
 /**
- *  Class constructor.
- *  
+ *  Reads shared battle sidebar layout values from the given INI section.
+ *
  *  @author: CCHyper
  */
-UIControlsClass::UIControlsClass() :
-    /**
-     *  #issue-541
-     * 
-     *  The health bar graphics "Y" position on selection boxes is off by 1 pixel.
-     * 
-     *  @author: CCHyper
-     */
-    UnitHealthBarDrawPos(-25, -16), // Y was -15
-    InfantryHealthBarDrawPos(-24, -5),
-    IsTextLabelOutline(true),
-    TextLabelBackgroundTransparency(50),
-    UnitGroupNumberOffset(-4, -4),
-    InfantryGroupNumberOffset(-4, -4),
-    BuildingGroupNumberOffset(-4, -4),
-    AircraftGroupNumberOffset(-4, -4),
-    UnitWithPipGroupNumberOffset(-4, -8),
-    InfantryWithPipGroupNumberOffset(-4, -8),
-    BuildingWithPipGroupNumberOffset(-4, -8),
-    AircraftWithPipGroupNumberOffset(-4, -8),
-    UnitVeterancyPipOffset(10, 6),
-    InfantryVeterancyPipOffset(5, 2),
-    BuildingVeterancyPipOffset(10, 6),
-    AircraftVeterancyPipOffset(10, 6),
-    UnitSpecialPipOffset(0, -8),
-    InfantrySpecialPipOffset(0, -8),
-    BuildingSpecialPipOffset(0, -8),
-    AircraftSpecialPipOffset(0, -8),
-    IsBandBoxDropShadow(false),
-    IsBandBoxThick(false),
-    BandBoxColor{ 255, 255, 255 },
-    BandBoxDropShadowColor{ 0, 0, 0 },
-    BandBoxTintTransparency(0),
-    BandBoxTintColors(),
-    IsAlwaysShowActionLines(false),
-    IsMovementLineDashed(false),
-    IsMovementLineDropShadow(false),
-    IsMovementLineThick(false),
-    MovementLineColor{ 0, 170, 0 }, // COLOR_GREEN
-    MovementLineDropShadowColor{ 0, 0, 0 },
-    IsTargetLineDashed(false),
-    IsTargetLineDropShadow(false),
-    IsTargetLineThick(false),
-    TargetLineColor{ 173, 0, 0 }, // COLOR_RED
-    TargetLineDropShadowColor{ 0, 0, 0 },
-    IsTargetLaserDashed(true),
-    IsTargetLaserDropShadow(false),
-    IsTargetLaserThick(false),
-    TargetLaserColor{ 173, 0, 0 }, // COLOR_RED
-    TargetLaserDropShadowColor{ 0, 0, 0 },
-    TargetLaserTime(15),
-    IsShowNavComQueueLines(true),
-    IsNavComQueueLineDashed(false),
-    IsNavComQueueLineDropShadow(false),
-    IsNavComQueueLineThick(false),
-    NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
-    NavComQueueLineDropShadowColor{ 0, 0, 0 },
-    IsCenterSidebarButtonsOnRadar(false),
-    BeaconAnimFramesPerSecond(25),
-    RadarBeaconAnimFramesPerSecond(25),
-    BeaconTextOffset(32),
-    BeaconPreviewTextOffset(20)
+void BattleSidebarLayoutBase::Read_INI(CCINIClass const& ini, const char* section)
 {
-    BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
-    BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
+    RepairButton.Position = ini.Get_Point(section, "RepairButtonPos", RepairButton.Position);
+    RepairButton.IsVisible = ini.Get_Bool(section, "RepairButtonVisible", RepairButton.IsVisible);
+    SellButton.Position = ini.Get_Point(section, "SellButtonPos", SellButton.Position);
+    SellButton.IsVisible = ini.Get_Bool(section, "SellButtonVisible", SellButton.IsVisible);
+    PowerButton.Position = ini.Get_Point(section, "PowerButtonPos", PowerButton.Position);
+    PowerButton.IsVisible = ini.Get_Bool(section, "PowerButtonVisible", PowerButton.IsVisible);
+    WaypointButton.Position = ini.Get_Point(section, "WaypointButtonPos", WaypointButton.Position);
+    WaypointButton.IsVisible = ini.Get_Bool(section, "WaypointButtonVisible", WaypointButton.IsVisible);
+    PowerBarPosition = ini.Get_Point(section, "PowerBarPos", PowerBarPosition);
+    PowerBarWidth = std::max(1, ini.Get_Int(section, "PowerBarWidth", PowerBarWidth));
+    PowerPipHeight = std::max(1, ini.Get_Int(section, "PowerPipHeight", PowerPipHeight));
+    CameoSize = ini.Get_Point(section, "CameoSize", CameoSize);
+    CameoSize.X = std::max(1, CameoSize.X);
+    CameoSize.Y = std::max(1, CameoSize.Y);
+    CameoNameOffset = ini.Get_Int(section, "CameoNameOffset", CameoNameOffset);
+    CameoTextOffset = ini.Get_Point(section, "CameoTextOffset", CameoTextOffset);
+    QueueCountOffset = ini.Get_Point(section, "QueueCountOffset", QueueCountOffset);
 
-    BeaconText[0] = "Expand";
-    BeaconText[1] = "Attack";
-    BeaconText[2] = "Move";
-    BeaconText[5] = "Defend";
-
-    BeaconPreviewText[0] = "Expand";
-    BeaconPreviewText[1] = "Attack";
-    BeaconPreviewText[2] = "Move";
-    BeaconPreviewText[5] = "Defend";
+    SidebarShape = ini.Get_String(section, "SidebarShape", SidebarShape);
+    SidebarMiddleShape = ini.Get_String(section, "SidebarMiddleShape", SidebarMiddleShape);
+    SidebarBottomShape = ini.Get_String(section, "SidebarBottomShape", SidebarBottomShape);
+    SidebarAddonShape = ini.Get_String(section, "SidebarAddonShape", SidebarAddonShape);
+    ClockShape = ini.Get_String(section, "ClockShape", ClockShape);
+    RechargeClockShape = ini.Get_String(section, "RechargeClockShape", RechargeClockShape);
+    DarkenShape = ini.Get_String(section, "DarkenShape", DarkenShape);
+    ScrollUpButtonShape = ini.Get_String(section, "ScrollUpButtonShape", ScrollUpButtonShape);
+    ScrollDownButtonShape = ini.Get_String(section, "ScrollDownButtonShape", ScrollDownButtonShape);
+    RepairButtonShape = ini.Get_String(section, "RepairButtonShape", RepairButtonShape);
+    SellButtonShape = ini.Get_String(section, "SellButtonShape", SellButtonShape);
+    PowerButtonShape = ini.Get_String(section, "PowerButtonShape", PowerButtonShape);
+    WaypointButtonShape = ini.Get_String(section, "WaypointButtonShape", WaypointButtonShape);
+    PowerPipShape = ini.Get_String(section, "PowerPipShape", PowerPipShape);
 }
 
 
 /**
- *  Class no-init constructor.
- *  
+ *  Reads classic sidebar-specific layout values from the given INI section.
+ *
  *  @author: CCHyper
  */
-UIControlsClass::UIControlsClass(const NoInitClass &noinit) :
-    BandBoxTintColors(noinit)
+void SidebarClassicLayout::Read_INI(CCINIClass const& ini, const char* section)
 {
+    BattleSidebarLayoutBase::Read_INI(ini, section);
+
+    LeftStripPosition = ini.Get_Point(section, "LeftStripPos", LeftStripPosition);
+    RightStripPosition = ini.Get_Point(section, "RightStripPos", RightStripPosition);
+    RowSpacing = std::max(0, ini.Get_Int(section, "RowSpacing", RowSpacing));
+    LeftUpButtonPosition = ini.Get_Point(section, "LeftUpButtonPos", LeftUpButtonPosition);
+    LeftDownButtonPosition = ini.Get_Point(section, "LeftDownButtonPos", LeftDownButtonPosition);
+    RightUpButtonPosition = ini.Get_Point(section, "RightUpButtonPos", RightUpButtonPosition);
+    RightDownButtonPosition = ini.Get_Point(section, "RightDownButtonPos", RightDownButtonPosition);
+    IsLeftUpButtonVisible = ini.Get_Bool(section, "LeftUpButtonVisible", IsLeftUpButtonVisible);
+    IsLeftDownButtonVisible = ini.Get_Bool(section, "LeftDownButtonVisible", IsLeftDownButtonVisible);
+    IsRightUpButtonVisible = ini.Get_Bool(section, "RightUpButtonVisible", IsRightUpButtonVisible);
+    IsRightDownButtonVisible = ini.Get_Bool(section, "RightDownButtonVisible", IsRightDownButtonVisible);
+    PowerBarHeightAdjust = ini.Get_Int(section, "PowerBarHeightAdjust", PowerBarHeightAdjust);
 }
 
 
 /**
- *  Class destructor.
- *  
+ *  Reads tabbed sidebar-specific layout values from the given INI section.
+ *
  *  @author: CCHyper
  */
-UIControlsClass::~UIControlsClass()
+void SidebarTabbedLayout::Read_INI(CCINIClass const& ini, const char* section)
 {
+    BattleSidebarLayoutBase::Read_INI(ini, section);
+
+    TabButtonPosition[0] = ini.Get_Point(section, "Tab1Pos", TabButtonPosition[0]);
+    TabButtonPosition[1] = ini.Get_Point(section, "Tab2Pos", TabButtonPosition[1]);
+    TabButtonPosition[2] = ini.Get_Point(section, "Tab3Pos", TabButtonPosition[2]);
+    TabButtonPosition[3] = ini.Get_Point(section, "Tab4Pos", TabButtonPosition[3]);
+    StripPosition = ini.Get_Point(section, "StripPos", StripPosition);
+    RowSpacing = std::max(0, ini.Get_Int(section, "RowSpacing", RowSpacing));
+    ColumnSpacing = std::max(0, ini.Get_Int(section, "ColumnSpacing", ColumnSpacing));
+    UpButtonPosition = ini.Get_Point(section, "UpButtonPos", UpButtonPosition);
+    DownButtonPosition = ini.Get_Point(section, "DownButtonPos", DownButtonPosition);
+    IsUpButtonVisible = ini.Get_Bool(section, "UpButtonVisible", IsUpButtonVisible);
+    IsDownButtonVisible = ini.Get_Bool(section, "DownButtonVisible", IsDownButtonVisible);
+    StructureTabShape = ini.Get_String(section, "StructureTabShape", StructureTabShape);
+    InfantryTabShape = ini.Get_String(section, "InfantryTabShape", InfantryTabShape);
+    UnitTabShape = ini.Get_String(section, "UnitTabShape", UnitTabShape);
+    SpecialTabShape = ini.Get_String(section, "SpecialTabShape", SpecialTabShape);
+    PowerBarHeightAdjust = ini.Get_Int(section, "PowerBarHeightAdjust", PowerBarHeightAdjust);
+}
+
+
+/***************************************************************************
+**  UI offset queries
+***************************************************************************/
+
+
+/**
+ *  Returns the group number offset for the given object type and pip state.
+ *
+ *  @author: CCHyper
+ */
+TPoint2D<int> UIControlsClass::Get_Group_Number_Offset(RTTIType type, bool has_pip) const
+{
+    switch (type)
+    {
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return has_pip ? UnitWithPipGroupNumberOffset : UnitGroupNumberOffset;
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return has_pip ? InfantryWithPipGroupNumberOffset : InfantryGroupNumberOffset;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return has_pip ? BuildingWithPipGroupNumberOffset : BuildingGroupNumberOffset;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return has_pip ? AircraftWithPipGroupNumberOffset : AircraftGroupNumberOffset;
+    default:
+        return {0, 0};
+    }
+}
+
+
+/**
+ *  Returns the veterancy pip offset for the given object type.
+ *
+ *  @author: CCHyper
+ */
+TPoint2D<int> UIControlsClass::Get_Veterancy_Pip_Offset(RTTIType type) const
+{
+    switch (type)
+    {
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return UnitVeterancyPipOffset;
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return InfantryVeterancyPipOffset;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return BuildingVeterancyPipOffset;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return AircraftVeterancyPipOffset;
+    default:
+        return {0, 0};
+    }
+}
+
+
+/**
+ *  Returns the special pip offset for the given object type.
+ *
+ *  @author: CCHyper
+ */
+TPoint2D<int> UIControlsClass::Get_Special_Pip_Offset(RTTIType type) const
+{
+    switch (type)
+    {
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return UnitSpecialPipOffset;
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return InfantrySpecialPipOffset;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return BuildingSpecialPipOffset;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return AircraftSpecialPipOffset;
+    default:
+        return {0, 0};
+    }
+}
+
+
+/***************************************************************************
+**  INI loading
+***************************************************************************/
+
+
+/**
+ *  Loads UI controls from an INI file on disk.
+ *
+ *  @author: CCHyper
+ */
+bool UIControlsClass::Read_INI_File(const char* filename, bool reset_to_defaults)
+{
+    if (reset_to_defaults) {
+        *this = UIControlsClass();
+    }
+
+    if (filename == nullptr || filename[0] == '\0') {
+        return false;
+    }
+
+    CCFileClass file(filename);
+    if (!file.Is_Available()) {
+        return false;
+    }
+
+    CCINIClass ini;
+    if (!ini.Load(file, false)) {
+        return false;
+    }
+
+    return Read_INI(ini);
 }
 
 
@@ -146,9 +245,19 @@ UIControlsClass::~UIControlsClass()
  *  
  *  @author: CCHyper
  */
-bool UIControlsClass::Read_INI(CCINIClass &ini)
+bool UIControlsClass::Read_INI(CCINIClass const& ini)
 {
     static char const * const INGAME = "Ingame";
+    static char const * const SIDEBAR_SECTION = "Sidebar";
+    static char const * const SIDEBAR_CLASSIC_SECTION = "SidebarClassic";
+    static char const * const SIDEBAR_TABBED_SECTION = "SidebarTabbed";
+
+    std::string sidebar_view = ini.Get_String(SIDEBAR_SECTION, "ViewType", BattleSidebarViewType == SIDEBAR_TABBED ? "Tabbed" : "Classic");
+    if (_stricmp(sidebar_view.c_str(), "Tabbed") == 0) {
+        BattleSidebarViewType = SIDEBAR_TABBED;
+    } else {
+        BattleSidebarViewType = SIDEBAR_CLASSIC;
+    }
 
     UnitHealthBarDrawPos = ini.Get_Point(INGAME, "UnitHealthBarPos", UnitHealthBarDrawPos);
     InfantryHealthBarDrawPos = ini.Get_Point(INGAME, "InfantryHealthBarPos", InfantryHealthBarDrawPos);
@@ -211,7 +320,8 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     NavComQueueLineColor = ini.Get_RGBColor(INGAME, "NavComQueueLineColor", NavComQueueLineColor);
     NavComQueueLineDropShadowColor = ini.Get_RGBColor(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
 
-    IsCenterSidebarButtonsOnRadar = ini.Get_Bool(INGAME, "CenterSidebarButtonsOnRadar", IsCenterSidebarButtonsOnRadar);
+    ClassicSidebarLayoutConfig.Read_INI(ini, SIDEBAR_CLASSIC_SECTION);
+    TabbedSidebarLayoutConfig.Read_INI(ini, SIDEBAR_TABBED_SECTION);
 
     BeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "BeaconAnimFramesPerSecond", BeaconAnimFramesPerSecond);
     RadarBeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "RadarBeaconAnimFramesPerSecond", RadarBeaconAnimFramesPerSecond);

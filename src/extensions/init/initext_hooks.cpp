@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains any hooks for the game init process.
  *
- *  @project       Vinifera
- *
- *  @file          INITEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains any hooks for the game init process.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -49,6 +30,7 @@
 #include "theme.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 
 #include <bcrypt.h>
@@ -330,29 +312,11 @@ bool Vinifera_Prep_For_Side(SideType side)
         SideCDMix = nullptr;
     }
 
-    if (SideCTMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCTMix->Filename);
-        delete SideCTMix;
-        SideCTMix = nullptr;
-    }
-
     int id = static_cast<int>(side) + 1; // Mix id
 
     while (ExpandSideMix.Count() > 0) {
         delete ExpandSideMix[0];
         ExpandSideMix.Delete(0);
-    }
-
-    /**
-     *  New Vinifera sidebar (Tabs) side-specific mix.
-     */
-    if (Vinifera_NewSidebar) {
-        std::snprintf(name, sizeof(name), "SIDECT%02d.MIX", id);
-        if (CCFileClass(name).Is_Available()) {
-            DEBUG_INFO("     Initializing %s\n", name);
-            SideCTMix = new MFCD(name, &FastKey);
-            SideCTMix->Cache();
-        }
     }
 
     /**
@@ -425,6 +389,13 @@ bool Vinifera_Prep_For_Side(SideType side)
      *  Re-initialize sounds in case the side mixes override them.
      */
     Read_Sound_INI();
+
+    /**
+     *  Reload UI.INI after the side mixes are mounted, then layer any
+     *  side-specific UI overrides on top.
+     */
+    UIControls->Read_INI_File("UI.INI", true);
+    UIControls->Read_INI_File("UIOVERRIDES.INI");
 
     return true;
 }

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended InfantryClass.
  *
- *  @project       Vinifera
- *
- *  @file          INFANTRYEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended InfantryClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -648,6 +629,96 @@ DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehi
 
     // Move to harvester truce check.
     return 0x004D7277;
+}
+
+/**
+ *  Patches InfantryClass::What_Action when the target object is an armory.
+ *  No longer transmits a message to the armory requesting it to establish radio connection (which only allows one unit at a time).
+ *  Instead, simply checks for the armory's conditions (unit's veterancy and armory's ammo) to determine if the unit can go in or not.
+ *  This also allows additional units to be ordered into the armory even if other unit(s) are already on their way to it.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
+{
+    GET(BuildingClass*, object, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    ActionType action = ACTION_ENTER;
+
+    if (this_ptr->Crew.Is_Elite()) {
+        action = ACTION_NO_ENTER;
+    }
+
+    if (object->Ammo <= 0) {
+        action = ACTION_NO_ENTER;
+    }
+
+    R->EBX(action);
+
+    return 0x004D738E;
+}
+
+/**
+ *  Patches InfantryClass::What_Action when the target object is a hospital.
+ *  No longer transmits a message to the hospital requesting it to establish radio connection (which only allows one unit at a time).
+ *  Instead, simply checks for the hospital's conditions (unit's health and hospital's ammo) to determine if the unit can go in or not.
+ *  This also allows additional units to be ordered into the hospital even if other unit(s) are already on their way to it.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
+{
+    GET(BuildingClass*, object, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    ActionType action = ACTION_ENTER;
+
+    if (this_ptr->Strength >= this_ptr->Class->MaxStrength) {
+        action = ACTION_NO_ENTER;
+    }
+
+    if (object->Ammo <= 0) {
+        action = ACTION_NO_ENTER;
+    }
+
+    R->EBX(action);
+
+    return 0x004D731A;
+}
+
+/**
+ *  Patches InfantryClass::Assign_Destination at the part that identifies infantry units with mission "MISSION_ENTER",
+ *  at a part where units are communicating with a building that has a radio buddy.
+ *  For hospitals and armories, this typically means that a unit got the permission to dock into the hospital/armory.
+ *  Other units will then go near the hospital/armory (due to being assigned MISSION_MOVE) and will constantly contact the hospital/armory to try to enter it.
+ *  Once the hospital/armory finish with the unit inside them, they dismiss contact with them and are available to accept requests from another unit.
+ * 
+ *  All other buildings preserve the original behavior that they had before.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
+{
+    GET(InfantryClass*, this_ptr, EBP);
+    GET(BuildingClass*, object, EBX);
+
+    bool assigned_archive_target = false;
+    if (object->Class->IsHospital || object->Class->IsArmory) {
+        if (object->Ammo >= 0) {
+            this_ptr->Assign_Archive_Target(object);
+            this_ptr->field_20C = object; // Seems to be the object that becomes the "entry target" of this unit.
+            this_ptr->Assign_Mission(MISSION_MOVE);
+            assigned_archive_target = true;
+        }
+    }
+
+    // original behavior
+    if (!assigned_archive_target) {
+        this_ptr->Assign_Archive_Target(nullptr);
+    }
+    
+    return 0x004D425A;
 }
 
 

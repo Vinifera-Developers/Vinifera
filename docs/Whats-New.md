@@ -90,6 +90,9 @@ New:
 - Add DetectDisguise to TechnoTypes (by Rampastring)
 - Allow customizing whether AI sees through disguise (by Rampastring)
 - Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
+- Make spawners respect `IonSensitive` on weapons (by ZivDero)
+- Vinifera's Developer mode now prints information on executed trigger actions (by Rampastring)
+- Extended sidebar customizability (by ZivDero)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -114,6 +117,7 @@ Vinifera fixes:
 - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
+- Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
 
 
 Vanilla fixes:
@@ -157,6 +161,8 @@ Vanilla fixes:
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it (by Rampastring)
+- Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 
 :::
 
@@ -312,6 +318,10 @@ New:
 - Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
 - Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
 - Add the ability to snap camera position instantly when using the Center Camera At Waypoint trigger action (by JoyfulShush)
+- Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points (by JoyfulShush)
+- Units and Reveal Around Waypoints trigger actions can now reveal any desired radius (by JoyfulShush)
+- Allow Reveal Around Waypoints trigger actions to specify their reveal radius and whether they take elevation into account (by JoyfulShush)
+- Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -390,5 +400,10 @@ Vanilla fixes:
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction (by ZivDero)
 - Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation (by JoyfulShush)
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, granting massive veterancy bonuses to their attackers.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
+- Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
 
 :::

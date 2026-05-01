@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended OptionsClass class.
  *
- *  @project       Vinifera
- *
- *  @file          OPTIONSEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended OptionsClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -266,8 +247,8 @@ void OptionsClassExtension::Load_Settings()
         Options.KeyForceAttack2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL));
         Options.KeySelect1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
         Options.KeySelect2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
-        Options.KeyQueueMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
-        Options.KeyQueueMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
+        Options.KeyQueueMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z));
+        Options.KeyQueueMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z));
 
         KeyChatToAll1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll", KeyChatToAll1));
         KeyChatToAll2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll2", KeyChatToAll2));

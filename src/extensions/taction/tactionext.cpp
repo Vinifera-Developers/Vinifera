@@ -1,40 +1,22 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TActionClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTIONEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TActionClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
 
 #include "tactionext.h"
 
-#include "debughandler.h"
 #include "building.h"
+#include "debughandler.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
+#include "mouse.h"
 #include "object.h"
 #include "rules.h"
 #include "scenario.h"
@@ -299,6 +281,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         DISPATCH(DESTROY_TAG);
         DISPATCH(PLAY_SOUND_RANDOM);
         DISPATCH(CENTER_VIEWPOINT);
+        DISPATCH(REVEAL_SOME);
 
         /**
          *  New Vinifera TActions.
@@ -383,6 +366,7 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     case TACTION_DESTROY_TAG:
     case TACTION_PLAY_SOUND_RANDOM:
     case TACTION_CENTER_VIEWPOINT:
+    case TACTION_REVEAL_SOME:
         return true;
 
     default:
@@ -580,6 +564,18 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* ob
     if (This()->Trigger != nullptr) {
         for (int index = 0; index < Triggers.Count(); index++) {
             if (Triggers[index]->Class == This()->Trigger) {
+
+                /**
+                 *  #issue-1608
+                 *
+                 *  Bugfix: if the trigger is already enabled, there's nothing to do here.
+                 *
+                 *  @author: Rampastring
+                 */
+                if (Triggers[index]->Is_Enabled()) {
+                    continue;
+                }
+
                 bool really_enable = true;
 
                 /**
@@ -1527,7 +1523,7 @@ bool TActionClassExtension::Do_PRINT_LOCAL(HouseClass* house, ObjectClass* objec
  */
 bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Enable_Templated_Text(This()->Data.Value, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
+    TacticalMapExtension->Enable_Templated_Text(Text, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
     return true;
 }
 
@@ -1660,5 +1656,41 @@ bool TActionClassExtension::Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* 
     }
 
     TacticalMap->Setup_Trigger_Scroll(coord, This()->Data.Speed);
+    return true;
+}
+
+/**
+ *  Reimplements Reveal Around Waypoint trigger action.
+ *  This reimplementation allows accepting a second optional value which defines the radius of the reveal.
+ *  If this value is 0 or negative, falls back to the original radius through `RevealTriggerRadius` from Rules.
+ *
+ *  @author: JoyfulShush
+ */
+bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    if (!PlayerPtr->IsVisionary) {
+        Cell waypoint_cell = Scen->Waypoint_Cell(This()->Data.Value);
+        
+        const auto& cell = Map[waypoint_cell];
+        int height = cell.Height;
+
+        if (cell.IsUnderBridge || cell.WasUnderBridge) {
+            height += BRIDGE_CELL_HEIGHT;
+        }
+
+        /* Allows for a custom reveal radius for the trigger */
+        int radius = This()->TriggerRect.X; // P3 value
+        if (radius <= 0) {
+            radius = Rule->RevealTriggerRadius;
+        }
+
+        /*
+        *  Requires 'RevealByHeight=yes' (default) to consider elevation, even when set to true, since it is checked in 'Map.Sight_From'
+        *  The value is default 0 for true in order to be backwards compatible
+        */        
+        int consider_elevation = This()->TriggerRect.Y == 0 ? true : false; // P4 value
+
+        Map.Sight_From(Coord(waypoint_cell - Cell(height / 2, height / 2)) + Coord(0, 0, height * LEVEL_LEPTON_H), radius, PlayerPtr, false, false, false, consider_elevation);
+    }
     return true;
 }
