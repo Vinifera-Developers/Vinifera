@@ -457,25 +457,32 @@ void AudioVoxClass::Scan()
     for (int index = 0; index < Voxs.Count(); ++index) {
         AudioVoxClass *voxptr = Voxs[index];
 
-        /**
-         *  Use the sound name override if one has been specified.
-         */
-        std::string name = voxptr->Name;
-        if (!voxptr->Get_Sound_Name().empty()) {
-            name = voxptr->Get_Sound_Name();
+        voxptr->Available = false;
+        voxptr->FileType = AUDIO_TYPE_NONE;
+        voxptr->FileName.clear();
+
+        std::string preferred_name = voxptr->Get_Sound_Name().empty() ? voxptr->Name : voxptr->Get_Sound_Name();
+        bool available = AudioManager.Get_File_Info(preferred_name, voxptr->FileType, voxptr->FileName, true);
+
+        auto try_fallback = [&](const std::string& sound) {
+            if (available || sound.empty() || sound == preferred_name) {
+                return;
+            }
+            available = AudioManager.Get_File_Info(sound, voxptr->FileType, voxptr->FileName, true);
+        };
+
+        try_fallback(voxptr->Name);
+        try_fallback(voxptr->Sound);
+        for (const std::string& side_sound : voxptr->SideSounds) {
+            try_fallback(side_sound);
         }
 
-        if (!AudioManager.Is_File_Available(name)) {
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox::Scan - File \"%s\" was not found in any supported formats!\n", name.c_str());
+        if (!available) {
+            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox::Scan - File \"%s\" was not found in any supported formats!\n", preferred_name.c_str());
             continue;
         }
 
-        voxptr->Available = true;
-
-        /**
-         *  Resolve the file type and full filename for this vox entry.
-         */
-        AudioManager.Get_File_Info(name, voxptr->FileType, voxptr->FileName);
+        voxptr->Available = available;
     }
 
     Preload();
@@ -498,29 +505,47 @@ void AudioVoxClass::Preload()
             continue;
         }
 
-        if (AudioManager.Has_Been_Submitted(voxptr->FileName, AUDIO_GROUP_SPEECH)) {
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox::Preload - File \"%s\" has already been submitted to the audio manager!\n", voxptr->Name.c_str());
-            continue;
-        }
+        auto submit_sound = [&](const std::string& sound) {
+            if (sound.empty()) {
+                return;
+            }
 
-        /**
-         *  Submit this speech sample to the audio manager. Speech is always voice-typed
-         *  and the queue/interrupt logic is owned by AudioVoxClass, not the audio engine,
-         *  so we hardcode AUDIO_SOUND_VOICE / AUDIO_CONTROL_NORMAL here.
-         */
-        bool submitted = AudioManager.Submit_Sample(
-            voxptr->FileName,
-            voxptr->FileType,
-            AUDIO_GROUP_SPEECH,
-            To_Audio_Priority(voxptr->Get_Priority()),
-            AUDIO_CONTROL_NORMAL,
-            AUDIO_SOUND_VOICE,
-            1);
+            std::string filename;
+            AudioFileType filetype = AUDIO_TYPE_NONE;
+            if (!AudioManager.Get_File_Info(sound, filetype, filename, true)) {
+                return;
+            }
 
-        if (submitted) {
-            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::Preload - Submitted \"%s\" to audio manager.\n", voxptr->FileName.c_str());
-        } else {
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOX, "Vox::Preload - Failed to submit \"%s\" to audio manager!\n", voxptr->FileName.c_str());
+            if (AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_SPEECH)) {
+                AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOX, "Vox::Preload - File \"%s\" has already been submitted to the audio manager!\n", filename.c_str());
+                return;
+            }
+
+            /**
+             *  Submit this speech sample to the audio manager. Speech is always voice-typed
+             *  and the queue/interrupt logic is owned by AudioVoxClass, not the audio engine,
+             *  so we hardcode AUDIO_SOUND_VOICE / AUDIO_CONTROL_NORMAL here.
+             */
+            bool submitted = AudioManager.Submit_Sample(
+                filename,
+                filetype,
+                AUDIO_GROUP_SPEECH,
+                To_Audio_Priority(voxptr->Get_Priority()),
+                AUDIO_CONTROL_NORMAL,
+                AUDIO_SOUND_VOICE,
+                1);
+
+            if (submitted) {
+                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOX, "Vox::Preload - Submitted \"%s\" to audio manager.\n", filename.c_str());
+            } else {
+                AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOX, "Vox::Preload - Failed to submit \"%s\" to audio manager!\n", filename.c_str());
+            }
+        };
+
+        submit_sound(voxptr->Name);
+        submit_sound(voxptr->Sound);
+        for (const std::string& side_sound : voxptr->SideSounds) {
+            submit_sound(side_sound);
         }
     }
 }
@@ -567,6 +592,7 @@ void AudioVoxClass::Wait_For_Scan()
 void AudioVoxClass::Clear()
 {
     Join_Vox_Scan_Thread();
+    Stop_Speaking();
 
     while (Voxs.Count() > 0) {
         delete Voxs[0];
@@ -734,12 +760,22 @@ void AudioVoxClass::AI()
     }
 
     std::string name = voxptr->Name;
-    std::string filename = voxptr->FileName;
+    std::string filename;
 
     AudioInstanceHandle handle = INVALID_AUDIO_INSTANCE_HANDLE;
 
     {
         std::scoped_lock lock(VoxScanMutex);
+
+        std::string sound_name = voxptr->Get_Sound_Name().empty() ? voxptr->Name : voxptr->Get_Sound_Name();
+        AudioFileType filetype = AUDIO_TYPE_NONE;
+        if (!AudioManager.Get_File_Info(sound_name, filetype, filename, true)) {
+            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOX, "Vox::AI - Failed to resolve \"%s\"!\n", sound_name.c_str());
+            return;
+        }
+
+        voxptr->FileType = filetype;
+        voxptr->FileName = filename;
 
         /**
          *  Speech file was found, now play it.
@@ -787,7 +823,13 @@ void AudioVoxClass::Stop_Speaking()
     InterruptQueue.clear();
     StandardQueue.reset();
 
-    AudioManager.Request_Stop(SpeechHandle, 0.5f);
+    if (AudioManager.Is_Available() && SpeechHandle.Is_Valid()) {
+        AudioManager.Request_Stop(SpeechHandle, 0.5f);
+    }
+
+    SpeechHandle = INVALID_AUDIO_INSTANCE_HANDLE;
+    ActiveVoice = VOX_NONE;
+    SpeakTimer = 0;
 
     if (TacticalMapExtension) {
         TacticalMapExtension->Clear_Subtitle();
@@ -824,7 +866,7 @@ bool AudioVoxClass::Is_Speaking()
  */
 void AudioVoxClass::Set_Speech_Volume(int vol)
 {
-    float volf = std::clamp(static_cast<float>(vol) / 255.0f, 0.0f, 1.0f);
+    float volf = std::clamp(AudioManagerClass::iVolume_To_fVolume(vol), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_SPEECH, volf);
 }
 

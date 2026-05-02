@@ -516,7 +516,7 @@ void AudioThemeClass::Free_Themes()
  */
 void AudioThemeClass::Set_Volume(int volume)
 {
-    float volf = std::clamp(static_cast<float>(volume) /255.0f, 0.0f, 1.0f);
+    float volf = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, volf);
 }
 
@@ -690,6 +690,8 @@ void AudioThemeClass::Scan()
         ThemeControl *tctrl = Themes[theme];
 
         tctrl->Available = false;
+        tctrl->FileType = AUDIO_TYPE_NONE;
+        tctrl->FileName.clear();
 
         std::string name = tctrl->Name;
 
@@ -697,17 +699,12 @@ void AudioThemeClass::Scan()
             name = tctrl->Sound;
         }
 
-        if (!AudioManager.Is_File_Available(name)) {
+        if (!AudioManager.Get_File_Info(name, tctrl->FileType, tctrl->FileName, true)) {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Scan - File \"%s\" was not found in any supported formats!\n", name.c_str());
             continue;
         }
 
         tctrl->Available = true;
-
-        /**
-         *  Retrieve the file type and full filename for this theme.
-         */
-        AudioManager.Get_File_Info(name,  tctrl->FileType, tctrl->FileName);
     }
 
     Preload();
@@ -735,7 +732,7 @@ void AudioThemeClass::Preload()
         }
 
         if (AudioManager.Has_Been_Submitted(tctrl->FileName, AUDIO_GROUP_MUSIC)) {
-            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOC, "Theme::Preload - File \"%s\" has already been submitted to the audio manager!\n", tctrl->Name.c_str());
+            AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Preload - File \"%s\" has already been submitted to the audio manager!\n", tctrl->Name.c_str());
             continue;
         }
 

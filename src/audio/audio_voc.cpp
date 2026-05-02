@@ -559,6 +559,10 @@ void AudioVocClass::Scan()
 
         AudioVocClass *vocptr = AudioVocs[index];
 
+        vocptr->Available = false;
+        vocptr->FileType = AUDIO_TYPE_NONE;
+        vocptr->FileName.clear();
+
         /**
          *  Check if the audio file is available. As Voc's can have multiple sounds
          *  defined which can be picked at random (if the RANDOM flag is set), we also
