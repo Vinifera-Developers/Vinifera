@@ -34,6 +34,7 @@
 #include "unittypeext.h"
 #include "voc.h"
 #include "weapontype.h"
+#include "debughandler.h"
 
 
 /**
@@ -627,7 +628,7 @@ DEFINE_HOOK(0x0040B3A6, _AircraftClass_Enter_Idle_Mode_Spawner_Patch, 0)
 {
     GET(AircraftClass*, this_ptr, ESI);
     GET(int, layer, EAX);
-    GET(int, landingaltitude, EBP);
+    GET(int, landingaltitude, EBP);    
 
     AircraftTypeClassExtension* aircrafttypeext = Extension::Fetch(this_ptr->Class);
 
@@ -795,6 +796,63 @@ DEFINE_HOOK(0x0040A195, _AircraftClass_Fire_At_No_Reveal_On_Fire_For_Spawned_Air
     return 0x0040A1C8;
 }
 
+// Enables Q-Move
+DEFINE_HOOK(0x0040B78E, _ASSIGN_MISSION_QMOVE_AIRCRAFT, 8)
+{
+    DEBUG_INFO("HIIII");
+    GET(AircraftClass*, this_ptr, ESI);
+    GET(MissionType, mission, EDI);
+
+    DEBUG_INFO("Aircraft is %s", this_ptr ? this_ptr->Full_Name() : "no ptr");
+
+    if (mission == MISSION_MOVE && (Keyboard->Down(Options.KeyQueueMove1) || Keyboard->Down(Options.KeyQueueMove2))) {
+        mission = MISSION_QMOVE;
+        this_ptr->Assign_Target(nullptr);
+    }
+
+    R->EDI(mission);
+
+    return 0;
+}
+
+DEFINE_HOOK(0x0040B35A, _ENTER_IDLE_MODE_TEST_ME, 6)
+{    
+    GET(AircraftClass*, this_ptr, ESI);
+
+    this_ptr->Handle_Navigation_List();
+    if (this_ptr->NavCom != nullptr) {
+        this_ptr->Assign_Mission(MISSION_MOVE);
+        return 0x0040B340;
+    }
+
+    return 0;
+}
+
+DEFINE_HOOK(0x0040ADC3, _CARRYALL_DROP_ME_OFF_AND_MOVE, 5)
+{
+    DEBUG_INFO("CARRYALL_DROP ME OFF\n");
+    GET(AircraftClass*, this_ptr, ESI);
+
+    this_ptr->Handle_Navigation_List();
+    if (this_ptr->NavCom != nullptr) {
+        this_ptr->Status = 0;
+        this_ptr->Assign_Mission(MISSION_MOVE);
+    }
+
+    return 0;
+}
+
+DEFINE_HOOK(0x0040A5CC, _ORCA_NEXT_POSITION, 6)
+{
+    DEBUG_INFO("NEXT POSITION!\n");
+    GET(AircraftClass*, this_ptr, ESI);
+
+    if (this_ptr->NavCom != nullptr) {
+        this_ptr->Enter_Idle_Mode();
+    }
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.
