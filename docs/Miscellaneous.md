@@ -14,6 +14,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Pre-placed units can now have missions in multiplayer.
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
 - Improve alternative factory selection when the primary factory is blocked.
+- When revealing shroud via a unit, structure, or triggers, TS had a maximum allowed sight radius of 10. This meant units could not have a `Sight=` value above 10, and Reveal Around Waypoint trigger actions could not reveal in radius higher than 10 even if specified in `RevealTriggerRadius`. Vinifera now allows and handles revealing shroud in any desired range, with no limit.
 
 ## INI
 
@@ -206,7 +207,7 @@ EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity che
                                    ; For buildings with ConstructionYard=yes this defaults to yes, otherwise it defaults to no.
 ```
 
-### AI Repair Base Nodes
+## AI Repair Base Nodes
 
 - You can now customize whether the AI can repair structures created as base nodes. 
 - Applies globally to all AI houses, and only affects non-skirmish games. 
@@ -217,6 +218,11 @@ In a scenario file:
 [AI]
 AIRepairBaseNodes=no   ; boolean, can the AI can repair structures created as base nodes?
 ```
+
+## Armory and Hospital Improvements
+- Hospitals and armories can now set rally points, similarly to production buildings and service depots.
+- Hospitals and armories can now accept multiple infantry, which will form a queue around them. Units will go in one at a time.
+- If charges (ammo) deplete while units are still waiting in the queue, remaining units will be dismissed and be ordered to go to the respective rally point instead.
 
 ## Window Title, Cursor and Icon
 

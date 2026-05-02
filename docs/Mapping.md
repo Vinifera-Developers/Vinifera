@@ -8,6 +8,7 @@ This page describes all mapping-related additions and changes introduced by Vini
 - Tutorial messages are now loaded from scenarios. This can be used to replace/update an existing entry from `TUTORIAL.INI`, or to add a new tutorial message index which can be used by trigger actions.
 - Remove a hardcoded limitation where the remap color of `Neutral` and `Special` could not be overridden in multiplayer games. Due to the inconsistencies between the official maps, values of `Grey` and `LightGrey` will be forced to `LightGrey`.
 - `[Basic]->SkipScore` is now considered when showing the multiplayer score screen. Setting to `SkipScore=yes` in the map file will now be all that is required for skip the score screen.
+- The game now supports using a negative value (such as `-1`) in the Center Camera At Waypoint trigger action in order to snap the camera position to the waypoint instead of scrolling to it over time.
 
 ## Increased Overlay Limit
 
@@ -141,16 +142,51 @@ Any action that takes a `VocType` (sound), `VoxType` (speech/EVA), or `ThemeType
 | 14       | Maximum            | x = max(x, y)  |
 | 15       | Minimum            | x = min(x, y)  |
 
-### New Trigger Actions
+### Enhanced Trigger Actions
+
+Vinifera enhances a few existing trigger actions to allow them to be customizable for mappers.
+
+|  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** | **PARAM7** |
+|----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|------------|
+| 11       | Text Trigger     |
+|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text ID (string)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   | *unused* |
+| 17       | Reveal Around Waypoint     |
+|          | Reveals a region of the map to the player around the waypoint specified. | Other (0) | *unused*     | Waypoint (#) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused* | *unused* | *unused*
+| 45       | Center Camera on Waypoint     |
+|          | Moves the tactical view to a specified waypoint with the given speed (-1 to 4). | Other (0) | *unused*     | Number (-1 - 4) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused* | *unused* | Waypoint (#)
+
+#### [11] Text Trigger
 
 ```{warning}
-Trigger action 11 `Text Trigger` now takes a string key for the tutorial text entry, not an interer!
+Trigger action 11 `Text Trigger` now takes a string key for the tutorial text entry, not an integer!
 ```
+
+Text Trigger trigger action now comes with 2 new parameters that can be set by mappers:
+* Text: the text index of `[Tutorial]` in `Tutorial.ini` that should be shown. If the text includes `{{g_variableName}}`, its value will be replaced with the value of the provided global variable. If the text includes `{{l_variableName}}`, its value will be replaced with the value of the provided local variable.
+* Color: the color that the text should appear with. The color is picked based on the index of `[Colors]` in `Rules.ini`. If set to 0, uses the default message color.
+* Duration: the duration, in real-time seconds, that the text should stay on the screen. If set to 0, uses the default message duration.
+
+
+#### [17] Reveal Around Waypoint
+
+Reveal Around Waypoint trigger action now comes with 2 new parameters that can be set by mappers: 
+* Reveal Radius: specify the radius to reveal in this instance of the trigger action. If set to 0 or a negative value, falls back to the value specified in `RevealTriggerRadius` in `Rules.ini`.
+* Ignore Elevation: specifies whether the reveal should ignore elevation. When elevation is taken into account, cells that are higher than 3 elevations will not be revealed. Possible values: 0 = No (default), any other value = Yes. 
+  * Requires `RevealByHeight=yes` (or omitted) for elevation to be taken into account.
+
+#### [45] Center Camera at Waypoint
+
+Center Camera at Waypoint action now supports the -1 for the camera scroll rate, which snaps the camera instantly to the target position.
+
+### New Trigger Actions
+
 
 |  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
 | 11       | Text Trigger (Enhanced)     |
 |          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text ID (string)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
+| 17       | Reveal Around Waypoint (Enhanced)     |
+|          | Reveals a region of the map to the player around the waypoint specified. | Other (0) | *unused*     | Waypoint (#) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused*   | *unused*   |
 | 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
 | 107      | Enable Short Game        |
