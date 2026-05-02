@@ -17,7 +17,7 @@
  *  Two deliberately distinct handle types. VOC playback routes through
  *  AudioEventSystem (AudioEventHandle); music, speech, and VQA streaming
  *  go directly to AudioManager (AudioInstanceHandle). The types are not
- *  interchangeable — a compile error here is the intended outcome.
+ *  interchangeable - a compile error here is the intended outcome.
  */
 
 
@@ -44,7 +44,7 @@ inline constexpr AudioInstanceHandle INVALID_AUDIO_INSTANCE_HANDLE{};
 /**
  *  Opaque public handle for one logical audio event owned by AudioEventSystem.
  *  This is what voc playback returns to game code. Callers must operate on
- *  this handle and route through the AudioEventSystem APIs — never pass it
+ *  this handle and route through the AudioEventSystem APIs - never pass it
  *  to AudioManager directly.
  */
 struct AudioEventHandle

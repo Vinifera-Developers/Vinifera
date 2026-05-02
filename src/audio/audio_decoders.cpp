@@ -59,11 +59,11 @@ typedef struct {
 
 
 /**
- *  The main decoder structure/context for SOS-compressed AUD files using MiniAudio.
+ *  The main decoder structure/context for SOS-compressed AUD files using miniaudio.
  */
 typedef struct ma_sos_aud_decoder
 {
-    ma_data_source_base base;       // Required by MiniAudio. Must be the first member to support polymorphism.
+    ma_data_source_base base;       // Required by miniaudio. Must be the first member to support polymorphism.
 
     /**
      *  Compressed input state
@@ -93,7 +93,7 @@ typedef struct ma_sos_aud_decoder
     /**
      *  Ring buffer for decoded audio (used for streaming)
      */
-    ma_rb rbDecodedPCM;              // MiniAudio ring buffer for buffering decompressed PCM frames
+    ma_rb rbDecodedPCM;              // miniaudio ring buffer for buffering decompressed PCM frames
     void* rbDecodedPCMData;          // Backing memory for ring buffer data (allocated in init)
 
 } ma_sos_aud_decoder;
@@ -120,7 +120,7 @@ static void ma_sos_aud_uninit(void* pUserData, ma_data_source* pBackend, const m
 
 
 /**
- *  MiniAudio data source virtual function table for the SOS AUD decoder.
+ *  miniaudio data source virtual function table for the SOS AUD decoder.
  */
 static ma_data_source_vtable g_ma_sos_aud_decoder_vtable = {
     ma_sos_aud_read_pcm_frames,
@@ -132,7 +132,7 @@ static ma_data_source_vtable g_ma_sos_aud_decoder_vtable = {
 
 /**
  *  Decoding backend vtable for the SOS ADPCM decoder.
- *  This registers the decoder with MiniAudio's decoding system.
+ *  This registers the decoder with miniaudio's decoding system.
  */
 static ma_decoding_backend_vtable ma_decoding_backend_vtable_sos = {
     ma_sos_aud_init,
@@ -378,12 +378,12 @@ static ma_result ma_sos_aud_seek_to_pcm_frame(ma_data_source* pDataSource, ma_ui
 
 /**
  *  Reports the format of the audio stream: sample format, number of channels, and sample rate.
- *  This function is called by MiniAudio when it wants to know how to configure the playback pipeline.
+ *  This function is called by miniaudio when it wants to know how to configure the playback pipeline.
  */
 static ma_result ma_sos_aud_get_data_format(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap)
 {
-   // This decoder does not currently provide a channel map.
-    // MiniAudio will use its default if these are not set.
+    // This decoder does not currently provide a channel map.
+    // miniaudio will use its default if these are not set.
     (void)pChannelMap;
     (void)channelMapCap;
 
@@ -405,7 +405,7 @@ static ma_result ma_sos_aud_get_data_format(ma_data_source* pDataSource, ma_form
 
 /**
  *  Reports the current playback position in PCM frames.
- *  This is used by MiniAudio to determine where in the stream the playback is.
+ *  This is used by miniaudio to determine where in the stream the playback is.
  */
 static ma_result ma_sos_aud_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor)
 {
@@ -436,7 +436,7 @@ static ma_result ma_sos_aud_get_length(ma_data_source* pDataSource, ma_uint64* p
 
 
 /**
- *  Initializes the custom AUD decoder and prepares it for use by MiniAudio.
+ *  Initializes the custom AUD decoder and prepares it for use by miniaudio.
  */
 static ma_result ma_sos_aud_init(
     void* pUserData,
@@ -516,7 +516,7 @@ static ma_result ma_sos_aud_init(
     // Call SOS codec init function to prepare for decompression.
     sosCODEC2InitStream(&pDecoder->compInfo);
 
-    // Initialize the MiniAudio data source system with our virtual method table.
+    // Initialize the miniaudio data source system with our virtual method table.
     ma_data_source_config dsConfig = ma_data_source_config_init();
     dsConfig.vtable = &g_ma_sos_aud_decoder_vtable;
 
@@ -548,7 +548,7 @@ static ma_result ma_sos_aud_init(
 
 /**
  *  This function cleans up and releases all resources used by the custom AUD decoder.
- *  It is called by MiniAudio when the decoder is being destroyed.
+ *  It is called by miniaudio when the decoder is being destroyed.
  */
 static void ma_sos_aud_uninit(void* pUserData, ma_data_source* pBackend, const ma_allocation_callbacks* pAllocationCallbacks)
 {
@@ -567,7 +567,7 @@ static void ma_sos_aud_uninit(void* pUserData, ma_data_source* pBackend, const m
     ma_rb_uninit(&pDecoder->rbDecodedPCM);                    // Clean up the ring buffer
     ma_free(pDecoder->rbDecodedPCMData, pAllocationCallbacks);    // Free the ring buffer's allocated memory
 
-    // Uninitialize the MiniAudio data source base (required cleanup step).
+    // Uninitialize the miniaudio data source base (required cleanup step).
     ma_data_source_uninit(&pDecoder->base);
 
     // Finally, free the decoder structure itself.

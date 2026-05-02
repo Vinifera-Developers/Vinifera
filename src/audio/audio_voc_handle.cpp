@@ -151,7 +151,7 @@ bool AudioVocHandle::Is_Playing()
     }
 
     /**
-     *  Event finished — clear our cached handle so we don't keep referring
+     *  Event finished - clear our cached handle so we don't keep referring
      *  to a dead event.
      */
     Handle = INVALID_AUDIO_EVENT_HANDLE;

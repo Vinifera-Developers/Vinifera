@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Simple stdio wrappers for Miniaudio�s read/seek/tell procs that are
+ *  @brief  Simple stdio wrappers for miniaudio's read/seek/tell procs that are
  *          required for the custom audio decoder.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later

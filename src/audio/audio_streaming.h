@@ -14,7 +14,6 @@
 
 #include <atomic>
 #include <mutex>
-#include <vector>
 
 
 /**
@@ -44,7 +43,6 @@ public:
 
 private:
     bool Initialize_PCM_Stream();
-    bool Initialize_AUD_Decoder(const void* initialData, size_t size);
 
 private:
     /**
@@ -53,20 +51,9 @@ private:
     ma_sound* Sound = nullptr;
 
     /**
-     *  Holds the optional decoder for streaming the WS AUD format
-     */
-    ma_decoder* Decoder = nullptr;
-    bool DecoderInitialized = false;
-    bool DecoderIsOwnedBySound = false;
-
-    bool StreamInitialized = false;
-
-    /**
      *  Serializes Open/Close/Push_Chunk/Play/Pause/Stop on this stream.
      */
     mutable std::mutex StreamMutex;
-
-    bool IsStreaming = false;
 
     bool IsPCM = false;
     ma_pcm_rb* PCMBuffer = nullptr;
@@ -83,8 +70,6 @@ private:
      *  on the VQA feeder thread.
      */
     std::atomic<uint64_t> FramesPushed {0};
-
-    std::vector<uint8_t> ChunkBuffer;
 
 public:
     AudioStreamingClass(const AudioStreamingClass&) = delete;

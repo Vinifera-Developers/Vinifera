@@ -107,8 +107,6 @@ bool AudioInstanceClass::Load()
             return false;
         }
 
-        DecoderIsOwnedBySound = false;
-
     } else {
 
         // Not a WS AUD file - fall back to standard decoder set (MP3, WAV, OGG, etc.).
@@ -156,7 +154,6 @@ bool AudioInstanceClass::Free()
         delete Decoder;
         Decoder = nullptr;
         DecoderInitialized = false;
-        DecoderIsOwnedBySound = false;
         freed = true;
     }
 
@@ -253,7 +250,7 @@ bool AudioInstanceClass::Pause()
     ASSERT(Sound != nullptr);
 
     if (CurrentState != AudioHandleState::AUDIO_STATE_PLAYING) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Pause - Attmpted to pause a sound that is not playing!\n");
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Pause - Attempted to pause a sound that is not playing!\n");
         return false;
     }
 
@@ -280,7 +277,7 @@ bool AudioInstanceClass::Resume()
     ASSERT(Sound != nullptr);
 
     if (CurrentState != AudioHandleState::AUDIO_STATE_PAUSED) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Resume - Attmpted to resume a sound that is not paused!\n");
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Resume - Attempted to resume a sound that is not paused!\n");
         return false;
     }
 
@@ -381,7 +378,7 @@ bool AudioInstanceClass::Is_Finished() const
  *
  *  @author: CCHyper
  */
-bool AudioInstanceClass::Set_Fade(float seconds, bool out, bool end_after_out)
+bool AudioInstanceClass::Set_Fade(float seconds, bool out)
 {
     ASSERT(Sound != nullptr);
 
@@ -646,8 +643,6 @@ bool AudioInstanceClass::Set_Time(float time_in_seconds)
         AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Set_Time - pDataSource is null!\n");
         return false;
     }
-
-    float timePCM = 0;
 
     result = ma_data_source_get_data_format(Sound->pDataSource, nullptr, nullptr, &sampleRate, nullptr, 0);
     if (result != MA_SUCCESS) {

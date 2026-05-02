@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Simple stdio wrappers for Miniaudio�s read/seek/tell procs that are
+ *  @brief  Simple stdio wrappers for miniaudio's read/seek/tell procs that are
  *          required for the custom audio decoder.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
@@ -30,7 +30,7 @@ static std::string wchar_to_utf8(const std::wstring & wstr)
 
 
 /**
- *  MiniAudio callback functions that use the C&C engine file io.
+ *  miniaudio callback functions that use the C&C engine file io.
  * 
  *  Read:
  *    Function used to read data from memory.
@@ -187,30 +187,16 @@ static ma_result Audio_CCFile_onRead(ma_vfs *pVFS, ma_vfs_file file, void *pDst,
 
 static ma_result Audio_CCFile_onWrite(ma_vfs *pVFS, ma_vfs_file file, const void *pSrc, size_t sizeInBytes, size_t *pBytesWritten)
 {
-    // We don't need to support writing files out, so just return MA_NOT_IMPLEMENTED to flag an error.
-    return MA_NOT_IMPLEMENTED;
-
-#if 0
     (void)pVFS;
-
-    if (file == nullptr || pSrc == nullptr || sizeInBytes <= 0 || pBytesWritten == nullptr) {
-        return MA_INVALID_ARGS;
-    }
-
-    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
-
-    long totalBytesWritten = file_handle->Write(pSrc, sizeInBytes);
-    if (totalBytesWritten == 0) {
-        *pBytesWritten = 0; // #BUGFIX: This will be fixed upstream in Miniaudio soon?
-        return MA_AT_END;
-    }
+    (void)file;
+    (void)pSrc;
+    (void)sizeInBytes;
 
     if (pBytesWritten != nullptr) {
-        *pBytesWritten = totalBytesWritten;
+        *pBytesWritten = 0;
     }
 
-    return MA_SUCCESS;
-#endif
+    return MA_NOT_IMPLEMENTED;
 }
 
 static ma_result Audio_CCFile_onSeek(ma_vfs *pVFS, ma_vfs_file file, ma_int64 offset, ma_seek_origin origin)
@@ -293,7 +279,7 @@ static ma_result Audio_CCFile_onInfo(ma_vfs *pVFS, ma_vfs_file file, ma_file_inf
     Audio_CCFile_onOpenW,
     Audio_CCFile_onClose,
     Audio_CCFile_onRead,
-    Audio_CCFile_onWrite,    // Not required, we don't needs to write audio files.
+    Audio_CCFile_onWrite,    // Not required, we don't need to write audio files.
     Audio_CCFile_onSeek,
     Audio_CCFile_onTell,
     Audio_CCFile_onInfo

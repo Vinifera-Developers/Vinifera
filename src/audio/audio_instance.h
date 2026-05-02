@@ -75,7 +75,7 @@ public:
 
     bool Set_Looping(bool loop);
     bool Set_Loop_Limit(int total_plays);
-    bool Set_Fade(float seconds, bool out, bool end_after_out = true);
+    bool Set_Fade(float seconds, bool out);
     bool Set_Volume(float volume);
     bool Set_Pitch(float pitch);
     bool Set_Pan(float pan);
@@ -102,7 +102,6 @@ private:
      */
     ma_decoder* Decoder = nullptr;
     bool DecoderInitialized = false;
-    bool DecoderIsOwnedBySound = false;
 
     /**
      *  Back-reference to template

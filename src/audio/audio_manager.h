@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Installable MiniAudio audio driver.
+ *  @brief  Central miniaudio-backed audio manager.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -158,7 +158,7 @@ private:
     static AudioInstanceHandle Generate_Unique_Audio_ID(AudioGroupType group);
 
     /**
-     *  Lookup a handle in ActiveInstanceMap. Caller MUST hold ThreadMutex —
+     *  Lookup a handle in ActiveInstanceMap. Caller MUST hold ThreadMutex -
      *  the returned pointer is only valid for the duration of that lock.
      */
     static AudioInstanceClass* Find_Handle_By_ID_NoLock(AudioInstanceHandle id);
@@ -295,7 +295,7 @@ private:
     /**
      *  Protects ActiveInstanceMap, GroupedActiveInstanceMap, AND every operation
      *  on the AudioInstanceClass objects they own. AudioInstanceClass methods are
-     *  not internally synchronized — callers must hold this mutex end-to-end when
+     *  not internally synchronized - callers must hold this mutex end-to-end when
      *  invoking them. Lock order: EventMutex (audio_event.cpp) -> RequestMutex
      *  for queue insertion, and EventMutex -> ThreadMutex for instance access.
      *  Never hold RequestMutex while waiting on ThreadMutex.
@@ -318,7 +318,7 @@ private:
 
     /**
      *  Requests with AUDIO_CONTROL_QUEUE that were deferred due to concurrent limit.
-     *  Worker-thread-only — no mutex required.
+     *  Worker-thread-only - no mutex required.
      */
     std::queue<AudioRequest> DeferredPlayQueue;
 

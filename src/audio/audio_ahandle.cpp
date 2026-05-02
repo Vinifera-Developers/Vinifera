@@ -229,7 +229,6 @@ long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitP
 
     std::scoped_lock lock(AudioHandleMutex);
 
-    // TODO break this down!
     SampleRate = (config->AudioRate != -1) ? config->AudioRate
                  : (config->FrameRate != vqap->FrameRate)
                    ? params->SampleRate * (unsigned)config->FrameRate / vqap->FrameRate
@@ -239,8 +238,8 @@ long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitP
     BitsPerSample = params->BitsPerSample;
     Flags = params->Flags;
 
-	MoveHMIAudioBlock_Callback = params->Callback1; // 006A98D0, Move HMI Audio Block -> feeds next chunk to audio
-	VQASync_Callback = params->Callback2; // 006A9A20, Sync callback -> informs VQA player that block is processed
+    MoveHMIAudioBlock_Callback = params->Callback1; // 006A98D0, Move HMI Audio Block -> feeds next chunk to audio
+    VQASync_Callback = params->Callback2; // 006A9A20, Sync callback -> informs VQA player that block is processed
 
     /**
      *  Reset timing state for the new VQA playback session.
@@ -298,7 +297,7 @@ long __cdecl AudioHandleClass::Close_Audio_Handler(VQAHandleP *vqap)
     }
 
     /**
-     *  Now safe to lock and clean up — the thread is no longer running.
+     *  Now safe to lock and clean up - the thread is no longer running.
      */
     std::scoped_lock lock(AudioHandleMutex);
 

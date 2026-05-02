@@ -184,7 +184,7 @@ void AudioEventClass::Build_Body_Order_For_Cycle()
 
 
 /**
- *  Returns true if this event qualifies for miniaudio-native looping —
+ *  Returns true if this event qualifies for miniaudio-native looping -
  *  a single sample looping with no per-iteration variation, delays, or
  *  staged samples. Native looping eliminates the inter-iteration gap
  *  that the retrigger model produces.
@@ -358,7 +358,7 @@ void AudioEventClass::AI()
     /**
      *  When BodyOrder is exhausted we've completed a full body cycle.
      *  Decide whether to start another or wind down. Skip if a Stop is
-     *  already pending — we must not rebuild a fresh cycle when winding
+     *  already pending - we must not rebuild a fresh cycle when winding
      *  down (e.g. after a Decay sample finishes at the end of a cycle).
      */
     if (BodyIndex >= BodyOrder.size() && !StopRequested) {

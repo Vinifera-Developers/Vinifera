@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Installable MiniAudio audio driver.
+ *  @brief  Central miniaudio-backed audio manager.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -33,6 +33,16 @@
  *  Global audio manager instance.
  */
 AudioManagerClass AudioManager;
+
+
+namespace {
+
+bool Is_Valid_Audio_Group(AudioGroupType group)
+{
+    return group >= 0 && group < AUDIO_GROUP_COUNT;
+}
+
+}
 
 
 /**
@@ -95,15 +105,15 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                 for (int group = 0; group < AUDIO_GROUP_COUNT; ++group) {
 
                     AudioGroupType groupType = static_cast<AudioGroupType>(group);
-                    auto& grou_vec = self->GroupedActiveInstanceMap[groupType];
+                    auto& group_vec = self->GroupedActiveInstanceMap[groupType];
 
-                    for (auto it = grou_vec.begin(); it != grou_vec.end();) {
+                    for (auto it = group_vec.begin(); it != group_vec.end();) {
 
                         auto& handle = *it;
 
                         if (handle == nullptr) {
-                            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stay NULL ptr...\n");
-                            it = grou_vec.erase(it);
+                            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stale null pointer.\n");
+                            it = group_vec.erase(it);
                             continue;
                         }
 
@@ -146,7 +156,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                                 self->DeferredPlayQueue = std::move(still_deferred);
                             }
 
-                            it = grou_vec.begin();
+                            it = group_vec.begin();
                         } else {
                             ++it;
                         }
@@ -156,7 +166,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                 // Prune any nullptrs from ActiveInstanceMap.
                 for (auto it = self->ActiveInstanceMap.begin(); it != self->ActiveInstanceMap.end();) {
                     if (it->second == nullptr) {
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stay NULL ptr...\n");
+                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stale null pointer.\n");
                         it = self->ActiveInstanceMap.erase(it);
                     } else {
                         ++it;
@@ -228,7 +238,7 @@ AudioInstanceHandle AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType g
 }
 
 /**
- *  Lookup a handle in ActiveInstanceMap. Caller MUST hold ThreadMutex —
+ *  Lookup a handle in ActiveInstanceMap. Caller MUST hold ThreadMutex -
  *  the returned pointer is only valid for the duration of that lock.
  */
 AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioInstanceHandle id)
@@ -416,7 +426,7 @@ void AudioManagerClass::Process_Play_Request(AudioRequest req)
 
         if (active_count >= limit) {
             if (lowest_priority && (req.Priority > lowest_priority->Get_Sample_Template().Get_Priority() || (req.Control & AUDIO_CONTROL_INTERRUPT))) {
-                lowest_priority->Set_Fade(0.1f, true, true);
+                lowest_priority->Set_Fade(0.1f, true);
             } else {
                 if (req.Control & AUDIO_CONTROL_QUEUE) {
                     if (Try_Set_Request_State(req.HandleID, AUDIO_REQUEST_STATE_DEFERRED)) {
@@ -510,9 +520,9 @@ void AudioManagerClass::Process_Stop_Request(AudioRequest req)
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: It was \"%s\"!\n", instance->Get_FileName().c_str());
 
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Stopping \"%s\" (with fade seconds %f)...\n", req.Filename.c_str(), req.FadeOutSeconds);
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Stopping \"%s\" (fade seconds %f)...\n", instance->Get_FileName().c_str(), req.FadeOutSeconds);
     if (req.FadeOutSeconds > 0.0f) {
-        instance->Set_Fade(req.FadeOutSeconds, true, true);
+        instance->Set_Fade(req.FadeOutSeconds, true);
     } else {
         instance->End();
     }
@@ -687,7 +697,7 @@ void AudioManagerClass::End()
 
     /**
      *  The CleanupThread.join() above is the synchronization point for both
-     *  RequestQueue and DeferredPlayQueue — once the worker is gone, no other
+     *  RequestQueue and DeferredPlayQueue - once the worker is gone, no other
      *  thread touches them, so the clears below need no mutex coverage of their
      *  own (RequestMutex is taken purely for the in-flight invariant).
      */
@@ -756,6 +766,11 @@ bool AudioManagerClass::Start_Engine(bool forced)
 {
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Start_Engine().\n");
 
+    if (Engine == nullptr || (!forced && !IsInitialized)) {
+        AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr::Start_Engine - Engine is not initialized.\n");
+        return false;
+    }
+
     ma_result result;
 
     result = ma_engine_start(Engine);
@@ -776,6 +791,10 @@ bool AudioManagerClass::Start_Engine(bool forced)
 bool AudioManagerClass::Stop_Engine()
 {
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Stop_Engine().\n");
+
+    if (Engine == nullptr) {
+        return true;
+    }
 
     ma_result result;
 
@@ -798,6 +817,10 @@ void AudioManagerClass::Focus_Loss()
 {
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Focus_Loss().\n");
 
+    if (Engine == nullptr) {
+        return;
+    }
+
     ma_result result;
 
     FocusRestoreVolume.store(ma_engine_get_volume(Engine), std::memory_order_relaxed);
@@ -817,6 +840,10 @@ void AudioManagerClass::Focus_Loss()
 void AudioManagerClass::Focus_Restore()
 {
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Focus_Restore().\n");
+
+    if (Engine == nullptr) {
+        return;
+    }
 
     ma_result result;
 
@@ -848,7 +875,7 @@ AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename,
 {
     /**
      *  If the sample preloader (ScanAsync) hasn't finished with this file yet,
-     *  drop the play and warn — we never want to stall the game thread waiting
+     *  drop the play and warn - we never want to stall the game thread waiting
      *  on disk I/O. Missing an early one-shot is preferable to a visible hitch.
      */
     if (!AudioManager.Query_Sample_Ready(filename, group)) {
@@ -1292,7 +1319,11 @@ bool AudioManagerClass::Set_Master_Volume(float volume) const
  */
 bool AudioManagerClass::Set_Group_Volume(AudioGroupType group, float volume)
 {
-    ma_sound_group_set_volume(SoundGroups[group], volume);
+    if (!Is_Valid_Audio_Group(group) || SoundGroups[group] == nullptr) {
+        return false;
+    }
+
+    ma_sound_group_set_volume(SoundGroups[group], std::clamp(volume, AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX));
 
     return true;
 }
@@ -1305,7 +1336,9 @@ bool AudioManagerClass::Set_Group_Volume(AudioGroupType group, float volume)
  */
 float AudioManagerClass::Get_Group_Volume(AudioGroupType group)
 {
-    if (group < 0 || group >= AUDIO_GROUP_COUNT) return 0.0f;
+    if (!Is_Valid_Audio_Group(group) || SoundGroups[group] == nullptr) {
+        return 0.0f;
+    }
 
     float volume = ma_sound_group_get_volume(SoundGroups[group]);
 
@@ -1320,6 +1353,10 @@ float AudioManagerClass::Get_Group_Volume(AudioGroupType group)
  */
 bool AudioManagerClass::Is_Group_Playing(AudioGroupType group) const
 {
+    if (!Is_Valid_Audio_Group(group) || SoundGroups[group] == nullptr) {
+        return false;
+    }
+
     ma_bool32 result;
 
     result = ma_sound_group_is_playing(SoundGroups[group]);
@@ -1335,6 +1372,10 @@ bool AudioManagerClass::Is_Group_Playing(AudioGroupType group) const
  */
 bool AudioManagerClass::Start_Group(AudioGroupType group) const
 {
+    if (!Is_Valid_Audio_Group(group) || SoundGroups[group] == nullptr) {
+        return false;
+    }
+
     ma_result result;
 
     result = ma_sound_group_start(SoundGroups[group]);
@@ -1354,6 +1395,10 @@ bool AudioManagerClass::Start_Group(AudioGroupType group) const
  */
 bool AudioManagerClass::Stop_Group(AudioGroupType group) const
 {
+    if (!Is_Valid_Audio_Group(group) || SoundGroups[group] == nullptr) {
+        return false;
+    }
+
     ma_result result;
 
     result = ma_sound_group_stop(SoundGroups[group]);
@@ -1373,6 +1418,10 @@ bool AudioManagerClass::Stop_Group(AudioGroupType group) const
  */
 bool AudioManagerClass::Stop_And_Fade_Out_Group(AudioGroupType group, float duration)
 {
+    if (!Is_Valid_Audio_Group(group) || SoundGroups[group] == nullptr) {
+        return false;
+    }
+
     if (duration <= 0.0f) {
         Stop_Group(group);
         return true;
@@ -1384,7 +1433,7 @@ bool AudioManagerClass::Stop_And_Fade_Out_Group(AudioGroupType group, float dura
     bool faded_any = false;
     for (auto* handle : groupVec) {
         if (handle != nullptr && handle->Is_Playing()) {
-            handle->Set_Fade(duration, true, true);
+            handle->Set_Fade(duration, true);
             faded_any = true;
         }
     }
@@ -1569,7 +1618,7 @@ std::string AudioManagerClass::Build_Filename_From_Type(AudioFileType type, std:
         default: break;
     };
 
-    return nullptr;
+    return {};
 }
 
 
@@ -1620,7 +1669,7 @@ AudioPriorityType AudioManagerClass::Priority_To_AudioPriority(int priority)
 
 
 /**
- *  Utility functions for converting the integer audio volume (orignal DSAudio values) to and from float (Miniaudio).
+ *  Utility functions for converting integer audio volume (original DSAudio values) to and from float (miniaudio).
  *
  *  @author: CCHyper
  */
@@ -1731,7 +1780,8 @@ bool AudioManagerClass::Is_File_Available(AudioFileType type, std::string name) 
             name += ".AUD";
             break;
 #endif
-        default: break;
+        default:
+            return false;
     };
 
     /**

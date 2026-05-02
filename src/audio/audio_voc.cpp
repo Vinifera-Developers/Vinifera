@@ -215,7 +215,7 @@ void AudioVocClass::Calculate_Pan_And_Volume(Coord const& coord, float& pan_resu
         volume = AUDIO_VOLUME_MIN;
     }
 
-    // Clamp X offset to ±2× the screen half-width before converting to pan.
+    // Clamp X offset to +/- 2x the screen half-width before converting to pan.
     x_delta = std::clamp(x_delta, -tact_center_x_sq, tact_center_x_sq);
 
     // Map x_delta in [-tact_center_x_sq, +tact_center_x_sq] to pan in [-1.0, +1.0].

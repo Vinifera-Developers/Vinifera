@@ -11,12 +11,12 @@
 
 #include "audio_streaming.h"
 
-#include "asserthandler.h"
 #include "audio_debug.h"
-#include "audio_decoders.h"
 #include "audio_manager.h"
 #include "audio_util.h"
 #include "miniaudio.h"
+
+#include <cstring>
 
 
 /**
@@ -58,15 +58,15 @@ bool AudioStreamingClass::Open(const std::string& name, int sample_rate, int cha
 
     if (IsPCM) {
         return Initialize_PCM_Stream();
-    } else {
-        // AUD stream will be initialized on first Push_Chunk
-        return true;
     }
+
+    AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioStreaming::Open - Non-PCM streaming is not implemented for \"%s\".\n", LogicalName.c_str());
+    return false;
 }
 
 
 /**
- *  Closes the stream, releasing the sound, decoder, and PCM buffer resources.
+ *  Closes the stream, releasing the sound and PCM buffer resources.
  *
  *  @author: CCHyper
  */
@@ -80,21 +80,13 @@ void AudioStreamingClass::Close()
         Sound = nullptr;
     }
 
-    if (DecoderInitialized) {
-        ma_decoder_uninit(Decoder);
-        DecoderInitialized = false;
-    }
-
     if (PCMBuffer) {
         ma_pcm_rb_uninit(PCMBuffer);
         delete PCMBuffer;
         PCMBuffer = nullptr;
     }
 
-    ChunkBuffer.clear();
     FramesPushed.store(0, std::memory_order_relaxed);
-
-    StreamInitialized = false;
 }
 
 
@@ -107,12 +99,17 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
 {
     ma_result result;
 
+    if (Channels <= 0 || BitsPerSample <= 0) {
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioStreaming::Initialize_PCM_Stream - Invalid format for \"%s\".\n", LogicalName.c_str());
+        return false;
+    }
+
     ma_format format = Audio_GetMAFormatFromBPS(BitsPerSample);
 
     /**
      *  Size the ring buffer to hold several VQA audio chunks. A VQA chunk is
      *  HMIBufSize = 8192 bytes = 4096 frames for 16-bit mono, and the feeder
-     *  thread refills when the available read count drops below 2048 frames —
+     *  thread refills when the available read count drops below 2048 frames -
      *  which means the buffer must hold "leftover + one full chunk" without
      *  dropping. Previously the ring buffer was sized to exactly one chunk
      *  (4096 frames), so every refill overflowed and the tail of each chunk was
@@ -121,12 +118,7 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
      *  and the game loop.
      */
     PCMBuffer = new ma_pcm_rb;
-    result = ma_pcm_rb_init(format,
-                                   Channels,
-                                   4096 * 4,
-                                   nullptr,
-                                   nullptr,
-                                   PCMBuffer);
+    result = ma_pcm_rb_init(format, Channels, 4096 * 4, nullptr, nullptr, PCMBuffer);
     if (result != MA_SUCCESS) {
         delete PCMBuffer;
         PCMBuffer = nullptr;
@@ -136,7 +128,7 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
     /**
      *  ma_pcm_rb_init leaves the ring buffer's sample rate at 0, which causes the
      *  data source to report an unknown rate. Miniaudio then treats the data as if
-     *  it were already at the engine rate and does not set up a resampler — in
+     *  it were already at the engine rate and does not set up a resampler - in
      *  that state ma_sound_set_pitch has nothing to act on, so attempts to
      *  compensate via pitch are silently ignored and the audio plays at engine
      *  rate (too fast). Tell the ring buffer the actual source rate up front so
@@ -153,12 +145,14 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
     }
     Sound = new ma_sound;
 
-    // In Miniaudio, the ring buffer itself is a data source
+    ma_sound_flags flags = ma_sound_flags(MA_SOUND_FLAG_NO_SPATIALIZATION | MA_SOUND_FLAG_STREAM);
+
+    // In miniaudio, the ring buffer itself is a data source.
     result = ma_sound_init_from_data_source(AudioManager.Engine,
-                                        &PCMBuffer->ds,
-                                        AUDIO_GROUP_STREAMING,
-                                        AudioManager.SoundGroups[AUDIO_GROUP_STREAMING],
-                                        Sound);
+                                            &PCMBuffer->ds,
+                                            flags,
+                                            AudioManager.SoundGroups[AUDIO_GROUP_STREAMING],
+                                            Sound);
     if (result != MA_SUCCESS) {
         ma_pcm_rb_uninit(PCMBuffer);
         delete PCMBuffer;
@@ -169,67 +163,8 @@ bool AudioStreamingClass::Initialize_PCM_Stream()
     ma_sound_set_volume(Sound, 1.0f);
     ma_sound_set_spatialization_enabled(Sound, MA_FALSE);
 
-    StreamInitialized = true;
-
     return true;
 }
-
-#if 0
-/**
- *  Initializes a custom AUD decoder from a memory buffer for streaming playback.
- *
- *  @author: CCHyper
- */
-bool AudioStreamingClass::Initialize_AUD_Decoder(const void* initialData, size_t size)
-{
-    ma_result result;
-
-    if (DecoderInitialized) {
-        return true;
-    }
-
-    ma_sound_flags flags = ma_sound_flags(MA_SOUND_FLAG_NO_SPATIALIZATION | MA_SOUND_FLAG_STREAM);
-
-    /**
-     *  Create a new decoder object for handling any WS AUD files. This must
-     *  be done within this branch to ensure we don't alloc the decoder object for
-     *  non custom decoder files. ma_sound_init_from_data_source takes ownership.
-     */
-    Decoder = new ma_decoder;
-    ASSERT(Decoder != nullptr);
-
-    // Create a decoder config and register the custom backends.
-    ma_decoder_config decoderConfig = ma_decoder_config_init_default();
-    decoderConfig.pCustomBackendUserData = nullptr;
-    decoderConfig.ppCustomBackendVTables = (ma_decoding_backend_vtable **)ma_custom_backend_vtable;
-    decoderConfig.customBackendCount = sizeof(ma_custom_backend_vtable) / sizeof(ma_custom_backend_vtable[0]);
-
-    //error in ma_decoder_init_from_vtable__internal?
-
-    // Initialize the decoder using from a memory buffer with the AUD decoder backend.
-    result = ma_decoder_init_memory(initialData, size, &decoderConfig, Decoder);
-    if (result != MA_SUCCESS) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_decoder_init_vfs failed (%s)!\n", ma_result_description(result));
-        return false;
-    }
-
-    ASSERT_FATAL(Decoder != nullptr);
-
-    DecoderInitialized = true; // Handy flag to ensure it was initialized correctly.
-
-    // Attach the decoder to the sound system as a streaming data source.
-    result = ma_sound_init_from_data_source(AudioManager.Engine, Decoder, flags, AudioManager.SoundGroups[AUDIO_GROUP_STREAMING], Sound);
-    if (result != MA_SUCCESS) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_INSTANCE, "AudioInstance::Load - ma_sound_init_from_data_source failed (%s)!\n", ma_result_description(result));
-        return false;
-    }
-
-    DecoderIsOwnedBySound = true;
-
-    return true;
-}
-#endif
-
 
 /**
  *  Pushes a chunk of audio data into the stream's ring buffer.
@@ -240,55 +175,55 @@ bool AudioStreamingClass::Push_Chunk(const void* data, size_t size)
 {
     std::scoped_lock lock(StreamMutex);
 
-    if (IsPCM) {
-
-        if (!PCMBuffer) {
-            return false;
-        }
-
-        size_t frames = size / (Channels * (BitsPerSample / 8));
-        size_t frames_pushed = 0;
-        const ma_uint8* src = (const ma_uint8*)data;
-
-        while (frames_pushed < frames) {
-
-            ma_uint32 frames_to_write = (ma_uint32)(frames - frames_pushed);
-            void* dst;
-            ma_uint32 frames_writable;
-
-            ma_pcm_rb_acquire_write(PCMBuffer, &frames_writable, &dst);
-            if (frames_writable == 0) {
-                break; // buffer full
-            }
-
-            if (frames_writable > frames_to_write) frames_writable = (ma_uint32)frames_to_write;
-
-            memcpy(dst, src + frames_pushed * Channels * (BitsPerSample/8),
-                   frames_writable * Channels * (BitsPerSample/8));
-
-            ma_pcm_rb_commit_write(PCMBuffer, frames_writable);
-            frames_pushed += frames_writable;
-        }
-
-        /**
-         *  Only count what actually made it into the ring buffer. If the buffer is
-         *  full and we break out early, inflating FramesPushed by the full chunk
-         *  size would make Get_Cursor_In_PCM_Frames over-report consumption, which
-         *  skews the VQA library's audio-time estimate and can desync playback.
-         */
-        FramesPushed.fetch_add(frames_pushed, std::memory_order_relaxed);
-
-    } else {
-
-        // AUD stream: Initialize decoder on first chunk
-        //if (!DecoderInitialized) {
-        //    return Initialize_AUD_Decoder(data, size);
-        //}
-
-        // For full streaming AUD: a custom streaming data source would be needed.
-        return true;
-
+    if (data == nullptr || size == 0) {
+        return false;
     }
+
+    if (!IsPCM) {
+        return false;
+    }
+
+    if (PCMBuffer == nullptr || Channels <= 0 || BitsPerSample <= 0) {
+        return false;
+    }
+
+    const size_t bytes_per_frame = static_cast<size_t>(Channels) * static_cast<size_t>(BitsPerSample / 8);
+    if (bytes_per_frame == 0) {
+        return false;
+    }
+
+    const size_t frames = size / bytes_per_frame;
+    size_t frames_pushed = 0;
+    const ma_uint8* src = static_cast<const ma_uint8*>(data);
+
+    while (frames_pushed < frames) {
+
+        ma_uint32 frames_to_write = static_cast<ma_uint32>(frames - frames_pushed);
+        void* dst;
+        ma_uint32 frames_writable;
+
+        ma_pcm_rb_acquire_write(PCMBuffer, &frames_writable, &dst);
+        if (frames_writable == 0) {
+            break; // buffer full
+        }
+
+        if (frames_writable > frames_to_write) {
+            frames_writable = frames_to_write;
+        }
+
+        memcpy(dst, src + frames_pushed * bytes_per_frame, frames_writable * bytes_per_frame);
+
+        ma_pcm_rb_commit_write(PCMBuffer, frames_writable);
+        frames_pushed += frames_writable;
+    }
+
+    /**
+     *  Only count what actually made it into the ring buffer. If the buffer is
+     *  full and we break out early, inflating FramesPushed by the full chunk
+     *  size would make Get_Cursor_In_PCM_Frames over-report consumption, which
+     *  skews the VQA library's audio-time estimate and can desync playback.
+     */
+    FramesPushed.fetch_add(frames_pushed, std::memory_order_relaxed);
 
     return true;
 }
