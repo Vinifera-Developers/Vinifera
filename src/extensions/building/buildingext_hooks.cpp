@@ -130,45 +130,39 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
  */
 void BuildingClassExt::_Update_Buildables()
 {
-    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsOn)
-    {
-        switch (Class->ToBuild)
-        {
+    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsOn) {
+        switch (Class->ToBuild) {
         case RTTI_AIRCRAFTTYPE:
-            for (int i = 0; i < AircraftTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(AircraftTypes[i], false, true) && AircraftTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < AircraftTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(AircraftTypes[i], false, true); // 0 = not allowed, 1 = allowed, -1 = build limit
+                if (can_build && (can_build == -1 || AircraftTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_AIRCRAFTTYPE, i);
                 }
             }
             break;
 
         case RTTI_BUILDINGTYPE:
-            for (int i = 0; i < BuildingTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(BuildingTypes[i], false, true) && BuildingTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < BuildingTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(BuildingTypes[i], false, true);
+                if (can_build && (can_build == -1 || BuildingTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_BUILDINGTYPE, i);
                 }
             }
             break;
 
         case RTTI_INFANTRYTYPE:
-            for (int i = 0; i < InfantryTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(InfantryTypes[i], false, true) && InfantryTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < InfantryTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(InfantryTypes[i], false, true);
+                if (can_build && (can_build == -1 || InfantryTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_INFANTRYTYPE, i);
                 }
             }
             break;
 
         case RTTI_UNITTYPE:
-            for (int i = 0; i < UnitTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(UnitTypes[i], false, true) && UnitTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < UnitTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(UnitTypes[i], false, true);
+                if (can_build && (can_build == -1 || UnitTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_UNITTYPE, i);
                 }
             }
