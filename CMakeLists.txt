@@ -245,7 +245,7 @@ GlobSources(GLOB HOOKER_SOURCES ${HOOKER_INCLUDE_DIR})
 
 
 ################################################################################
-# Include the TS++ and SDL submodules in the solution.
+# Include the TS++ and external dependency submodules in the solution.
 ################################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/TSpp)
 
@@ -253,6 +253,16 @@ set(SDL_STATIC ON)
 set(SDL_SHARED OFF)
 set(SDL_TEST_LIBRARY OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/SDL)
+
+set(MINIAUDIO_NO_EXTRA_NODES ON)
+set(MINIAUDIO_NO_LIBVORBIS ON)
+set(MINIAUDIO_NO_LIBOPUS ON)
+set(MINIAUDIO_NO_GENERATION ON)
+set(MINIAUDIO_NO_ENCODING ON)
+set(MINIAUDIO_INSTALL OFF)
+set(MINIAUDIO_FORCE_CXX ON)
+add_subdirectory(${CMAKE_SOURCE_DIR}/miniaudio)
+target_compile_options(miniaudio PRIVATE /Gr)
 
 
 ################################################################################
@@ -446,6 +456,12 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_PDB="${TARGET_
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_SIZE=${TARGET_SIZE})
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_HASH="${TARGET_HASH}")
 
+# Keep Vinifera's direct miniaudio.h includes in sync with the miniaudio target.
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    MA_NO_GENERATION
+    MA_NO_ENCODING
+)
+
 # Set the build type defines.
 if(OPTION_TS_CLIENT_BUILD)
 target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RelWithDebInfo>:TS_CLIENT>")
@@ -557,6 +573,7 @@ target_link_libraries(${PROJECT_NAME} TSpp)
 add_dependencies(${PROJECT_NAME} TSpp)
 
 target_link_libraries(${PROJECT_NAME} SDL3::SDL3)
+target_link_libraries(${PROJECT_NAME} miniaudio)
 
 set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi shcore version comctl32 dxguid dxgi d3d11 d3dcompiler)
 
