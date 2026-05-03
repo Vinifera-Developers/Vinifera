@@ -219,7 +219,9 @@ AudioInstanceHandle AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType g
     /**
      *  ID 0 is reserved as the invalid sentinel for AudioInstanceHandle, so
      *  start the counter at 1 and skip 0 on wrap-around. The group bits are
-     *  preserved for human-readable debug output.
+     *  preserved for human-readable debug output. Once the 24-bit counter
+     *  wraps, skip any ID that is still owned by an active, queued, or
+     *  deferred request.
      */
     static std::atomic<uint32_t> AudioIDCounter{1};
 
@@ -227,14 +229,35 @@ AudioInstanceHandle AudioManagerClass::Generate_Unique_Audio_ID(AudioGroupType g
     constexpr uint32_t kGroupMask    = 0xF;      // 4 bits for group (16 groups max)
     constexpr uint32_t kCounterMask  = 0xFFFFFF; // Lower 24 bits
 
-    uint32_t counter = AudioIDCounter.fetch_add(1, std::memory_order_relaxed) & kCounterMask;
-    if (counter == 0) {
-        counter = AudioIDCounter.fetch_add(1, std::memory_order_relaxed) & kCounterMask;
+    static std::atomic<bool> AudioIDCounterWrapped{false};
+
+    for (uint32_t attempt = 0; attempt < kCounterMask; ++attempt) {
+        const uint32_t counter_value = AudioIDCounter.fetch_add(1, std::memory_order_relaxed);
+        uint32_t counter = counter_value & kCounterMask;
+        bool check_collision = (counter_value & ~kCounterMask) != 0 || AudioIDCounterWrapped.load(std::memory_order_acquire);
+
+        if (counter == 0) {
+            AudioIDCounterWrapped.store(true, std::memory_order_release);
+            continue;
+        }
+
+        uint32_t raw_id = ((static_cast<uint32_t>(group) & kGroupMask) << kGroupShift) | counter;
+        AudioInstanceHandle id { raw_id };
+
+        if (!check_collision) {
+            return id;
+        }
+
+        std::scoped_lock thread_lock(AudioManager.ThreadMutex);
+        std::scoped_lock state_lock(AudioManager.RequestStateMutex);
+        if (!AudioManager.ActiveInstanceMap.contains(id) && !AudioManager.RequestStateMap.contains(id)) {
+            return id;
+        }
     }
 
-    uint32_t id = ((static_cast<uint32_t>(group) & kGroupMask) << kGroupShift) | counter;
+    AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Generate_Unique_Audio_ID - Exhausted audio handle IDs for group %d!\n", group);
 
-    return AudioInstanceHandle{id};
+    return INVALID_AUDIO_INSTANCE_HANDLE;
 }
 
 /**
@@ -256,7 +279,6 @@ AudioInstanceClass * AudioManagerClass::Find_Handle_By_ID_NoLock(AudioInstanceHa
 
     return nullptr;
 }
-
 
 /**
  *  Sets the lifecycle state for a request handle.
@@ -871,6 +893,11 @@ AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename,
     }
 
     AudioInstanceHandle id = Generate_Unique_Audio_ID(group);
+    if (id == INVALID_AUDIO_INSTANCE_HANDLE) {
+        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr::Request_Play - Unable to allocate handle for request \"%s\".\n", filename.c_str());
+        return INVALID_AUDIO_INSTANCE_HANDLE;
+    }
+
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Play - Generated id '0x%08X' for request \"%s\".\n", id.ID, filename.c_str());
 
     // Insert into the state map before queuing to eliminate the race where the

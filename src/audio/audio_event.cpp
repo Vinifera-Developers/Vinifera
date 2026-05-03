@@ -11,6 +11,7 @@
 
 #include "audio_event.h"
 
+#include "audio_debug.h"
 #include "audio_manager.h"
 #include "audio_voc.h"
 #include "tibsun_inline.h"
@@ -24,11 +25,15 @@
 
 namespace {
 
+std::mutex EventMutex;
+std::vector<std::unique_ptr<AudioEventClass>> ActiveEvents;
+
 /**
  *  Allocates a unique handle for a new audio event. The upper-nibble tag
  *  0xE0000000 makes event handles visually distinct from audio manager
  *  instance handles in debug output. ID 0 is the invalid sentinel and is
- *  skipped on counter wrap-around.
+ *  skipped on counter wrap-around. Once the 28-bit counter wraps, skip any
+ *  handle still owned by an active event.
  *
  *  @author: ZivDero
  */
@@ -41,15 +46,42 @@ AudioEventHandle Generate_Event_Handle()
      *  handle is visually distinguishable from a manager handle).
      */
     static std::atomic<uint32_t> EventIDCounter{1};
-    uint32_t counter = EventIDCounter.fetch_add(1, std::memory_order_relaxed) & 0x0FFFFFFF;
-    if (counter == 0) {
-        counter = EventIDCounter.fetch_add(1, std::memory_order_relaxed) & 0x0FFFFFFF;
-    }
-    return AudioEventHandle{0xE0000000u | counter};
-}
 
-std::mutex EventMutex;
-std::vector<std::unique_ptr<AudioEventClass>> ActiveEvents;
+    constexpr uint32_t kEventTag = 0xE0000000u;
+    constexpr uint32_t kCounterMask = 0x0FFFFFFFu;
+
+    static std::atomic<bool> EventIDCounterWrapped{false};
+
+    for (uint32_t attempt = 0; attempt < kCounterMask; ++attempt) {
+        const uint32_t counter_value = EventIDCounter.fetch_add(1, std::memory_order_relaxed);
+        uint32_t counter = counter_value & kCounterMask;
+        bool check_collision = (counter_value & ~kCounterMask) != 0 || EventIDCounterWrapped.load(std::memory_order_acquire);
+
+        if (counter == 0) {
+            EventIDCounterWrapped.store(true, std::memory_order_release);
+            continue;
+        }
+
+        AudioEventHandle handle { kEventTag | counter };
+
+        if (!check_collision) {
+            return handle;
+        }
+
+        std::scoped_lock lock(EventMutex);
+        const bool in_use = std::any_of(ActiveEvents.begin(), ActiveEvents.end(), [handle](const std::unique_ptr<AudioEventClass>& event) {
+            return event != nullptr && event->Get_Public_Handle() == handle;
+        });
+
+        if (!in_use) {
+            return handle;
+        }
+    }
+
+    AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "AudioEventSystem::Generate_Event_Handle - Exhausted audio event handle IDs!\n");
+
+    return INVALID_AUDIO_EVENT_HANDLE;
+}
 
 } // namespace
 
@@ -473,6 +505,10 @@ void AudioEventClass::Clear()
 AudioEventHandle AudioEventSystem::Start(AudioVocClass const& voc, Coord const& coord, int variation, float volume, float fade_in_seconds)
 {
     const AudioEventHandle public_handle = Generate_Event_Handle();
+    if (public_handle == INVALID_AUDIO_EVENT_HANDLE) {
+        return INVALID_AUDIO_EVENT_HANDLE;
+    }
+
     auto event = std::make_unique<AudioEventClass>(public_handle, voc, coord, variation, volume, fade_in_seconds);
 
     if (event->Is_Finished()) {
