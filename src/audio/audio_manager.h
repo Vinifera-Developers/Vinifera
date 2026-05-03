@@ -131,10 +131,7 @@ public:
     bool Is_Handle_Valid(AudioInstanceHandle id);
 
 #ifndef NDEBUG
-    bool Create_Debug_Window();
-    bool Close_Debug_Window();
-    void Debug_Window_Message_Handler();
-    void Debug_Window_Loop();
+    void Draw_Debug_UI();
 #endif
 
 private:

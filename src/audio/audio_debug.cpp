@@ -17,402 +17,17 @@
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 
+#include <cstdarg>
 #include <chrono>
-#include <d3d11.h>
+#include <cstdio>
+#include <ctime>
 #include <imgui.h>
-#include <imgui_impl_dx11.h>
-#include <imgui_impl_win32.h>
-#include <shellscalingapi.h>
-#include <tchar.h>
-#include <thread>
+#include <iterator>
+#include <mutex>
+#include <string>
+#include <vector>
 
 #ifndef NDEBUG
-
-
-/**
- *  Forward declare message handler from imgui_impl_win32.cpp
- */
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-
-namespace AudioImGui
-{
-
-// Window handle
-static HWND MainWindow = nullptr;
-
-// Data
-static ID3D11Device * D3DDevice = nullptr;
-static ID3D11DeviceContext * D3DDeviceContext = nullptr;
-static IDXGISwapChain * SwapChain = nullptr;
-static ID3D11RenderTargetView * MainRenderTargetView = nullptr;
-
-/**
- *  ImGui helper functions
- */
-static void CreateRenderTarget()
-{
-    if (!D3DDevice) {
-        return;
-    }
-
-    ID3D11Texture2D* pBackBuffer;
-    SwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-    D3DDevice->CreateRenderTargetView(pBackBuffer, NULL, &MainRenderTargetView);
-    pBackBuffer->Release();
-}
-
-static void CleanupRenderTarget()
-{
-    if (MainRenderTargetView) {
-        MainRenderTargetView->Release();
-        MainRenderTargetView = nullptr;
-    }
-}
-
-static bool CreateDeviceD3D(HWND hWnd)
-{
-    if (D3DDevice) {
-        return false;
-    }
-
-    DXGI_SWAP_CHAIN_DESC sd;
-    ZeroMemory(&sd, sizeof(sd));
-    sd.BufferCount = 2;
-    sd.BufferDesc.Width = 0;
-    sd.BufferDesc.Height = 0;
-    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    sd.BufferDesc.RefreshRate.Numerator = 60;
-    sd.BufferDesc.RefreshRate.Denominator = 1;
-    sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    sd.OutputWindow = hWnd;
-    sd.SampleDesc.Count = 1;
-    sd.SampleDesc.Quality = 0;
-    sd.Windowed = TRUE;
-    sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-
-    UINT createDeviceFlags = 0;
-    D3D_FEATURE_LEVEL featureLevel;
-    const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
-    if (D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &SwapChain, &D3DDevice, &featureLevel, &D3DDeviceContext) != S_OK) {
-        return false;
-    }
-
-    CreateRenderTarget();
-
-    return true;
-}
-
-static void CleanupDeviceD3D()
-{
-    CleanupRenderTarget();
-
-    if (SwapChain) {
-        SwapChain->Release();
-        SwapChain = nullptr;
-    }
-    if (D3DDeviceContext) {
-        D3DDeviceContext->Release();
-        D3DDeviceContext = nullptr;
-    }
-    if (D3DDevice) {
-        D3DDevice->Release();
-        D3DDevice = nullptr;
-    }
-}
-
-/**
- *  Win32 message handler; forwards inputs to ImGui before processing.
- */
-static LRESULT WINAPI Main_Window_Procedure(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
-{
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, Message, wParam, lParam)) {
-        return true;
-    }
-
-    switch (Message)
-    {
-        case WM_SIZE:
-            if (D3DDevice != nullptr && wParam != SIZE_MINIMIZED)
-            {
-                CleanupRenderTarget();
-                SwapChain->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
-                CreateRenderTarget();
-            }
-            return 0;
-        case WM_SYSCOMMAND:
-            if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
-                return 0;
-            break;
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-    }
-
-    return DefWindowProc(hWnd, Message, wParam, lParam);
-}
-
-static void New_Frame()
-{
-    if (!D3DDeviceContext || !SwapChain) {
-        return;
-    }
-
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-}
-
-static void Render_Frame()
-{
-    if (!D3DDeviceContext || !SwapChain) {
-        return;
-    }
-
-    ImGui::Render();
-
-    static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-    D3DDeviceContext->OMSetRenderTargets(1, &MainRenderTargetView, nullptr);
-    D3DDeviceContext->ClearRenderTargetView(MainRenderTargetView, clear_color_with_alpha);
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-    UINT sync_interval = 1; // 1 = with vsync, 0 = without vsync
-    SwapChain->Present(sync_interval, 0);
-}
-
-static void End_Frame()
-{
-    ImGui::EndFrame();
-}
-
-}; // namespace AudioImGui end
-
-
-namespace AudioUtil
-{
-
-/**
- *  Get the DPI scale of the monitor that the requested window is currently on.
- *
- *  @author: 273K @ https://stackoverflow.com/a/70794377
- */
-static float Get_Monitor_DPI_Scale(HWND hWnd)
-{
-    float scMon = 1.0f;
-    UINT x, y;
-
-    HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-    if (SUCCEEDED(GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &x, &y)) && (x > 0) && (y > 0)) {
-        scMon = 1.0f * x / USER_DEFAULT_SCREEN_DPI;
-    }
-
-    return scMon;
-}
-
-}; // namespace AudioUtil end
-
-
-/**
- *  State tracking for the audio debug ImGui window thread.
- */
-static std::thread AudioDebugThread;
-static std::atomic<bool> AudioDebugThread_Active{false};
-static std::atomic<bool> AudioDebugThread_Running{false};
-static std::atomic<bool> AudioDebugThread_InLoop{false};
-
-/**
- *  Thread entry point that continuously runs the debug ImGui window loop.
- *
- *  @author: CCHyper
- */
-DWORD WINAPI AudioImGuiWindowThread(LPVOID)
-{
-    static bool _window_created = false;
-
-    DEBUG_INFO("Audio::Debug - Entering thread.\n");
-
-    AudioDebugThread_Running.store(true, std::memory_order_relaxed);
-
-    while (AudioDebugThread_Active.load(std::memory_order_relaxed)) {
-
-        AudioDebugThread_InLoop.store(true, std::memory_order_relaxed);
-
-        AudioManager.Debug_Window_Loop();
-
-        // Sleep the thread to avoid busy-spinning.
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-        AudioDebugThread_InLoop.store(false, std::memory_order_relaxed);
-    }
-
-    AudioDebugThread_Running.store(false, std::memory_order_relaxed);
-
-    DEBUG_INFO("Audio::Debug - Exiting thread.\n");
-
-    return 0;
-}
-
-
-/**
- *  Creates the debug ImGui window.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Create_Debug_Window()
-{
-    SetLastError(0);
-
-    DEBUG_INFO("Audio::Debug - Creating window.\n");
-
-    ImGui_ImplWin32_EnableDpiAwareness();
-
-    WNDCLASSEX wc;
-    ZeroMemory(&wc, sizeof(WNDCLASSEX));
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_CLASSDC;
-    wc.lpfnWndProc = AudioImGui::Main_Window_Procedure;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = ProgramInstance;
-    wc.hIcon = nullptr;
-    wc.hCursor = nullptr;
-    wc.hbrBackground = nullptr;
-    wc.lpszMenuName = nullptr;
-    wc.lpszClassName = "Audio Debug Window";
-    wc.hIconSm = nullptr;
-
-    BOOL rc = RegisterClassEx(&wc);
-    if (!rc) {
-        DEBUG_ERROR("Audio::Debug - Failed to register window class!\n");
-        return false;
-    }
-
-    int win_width = 1000;
-    int win_height = 800;
-
-    HWND hwnd = CreateWindowEx(
-        0,
-        wc.lpszClassName,
-        "Audio Debug Window",
-        WS_OVERLAPPEDWINDOW|WS_VISIBLE|WS_POPUP,
-        0,
-        0,
-        win_width,
-        win_height,
-        nullptr,
-        nullptr,
-        wc.hInstance,
-        nullptr);
-
-    if (!hwnd) {
-        DEBUG_ERROR("Audio::Debug - Failed to create window!\n");
-        return false;
-    }
-
-    DEBUG_INFO("Audio::Debug - Setting window size.\n");
-
-    float scale = AudioUtil::Get_Monitor_DPI_Scale(hwnd);
-
-    SetWindowPos(hwnd,
-        nullptr,
-        GetSystemMetrics(SM_CXSCREEN) - win_width,
-        GetSystemMetrics(SM_CYSCREEN) - win_height,
-        win_width * scale,
-        win_height * scale,
-        SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
-
-    DEBUG_INFO("Audio::Debug - Creating Direct3D device.\n");
-
-    if (!AudioImGui::CreateDeviceD3D(hwnd)) {
-        DEBUG_ERROR("Audio::Debug - Failed to create Direct3D device!\n");
-        AudioImGui::CleanupDeviceD3D();
-        UnregisterClass(wc.lpszClassName, wc.hInstance);
-        return false;
-    }
-
-    AudioImGui::MainWindow = hwnd;
-
-    ShowWindow(hwnd, SW_SHOWDEFAULT);
-    UpdateWindow(hwnd);
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-    ImGui::StyleColorsDark();
-
-    // The game hides the system cursor, this makes it show only in the ImGui window.
-    io.MouseDrawCursor = true;
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
-
-    DEBUG_INFO("Audio::Debug - Setting up platform and renderer.\n");
-
-    ImGui_ImplWin32_Init(AudioImGui::MainWindow);
-    ImGui_ImplDX11_Init(AudioImGui::D3DDevice, AudioImGui::D3DDeviceContext);
-
-    DEBUG_INFO("Audio::Debug: Window created.\n");
-
-    /**
-     *  Start the ImGui window thread.
-     */
-    AudioDebugThread_Active.store(true, std::memory_order_relaxed);
-    CreateThread(nullptr, 0, AudioImGuiWindowThread, nullptr, 0, nullptr);
-
-    return true;
-}
-
-
-/**
- *  Shuts down the debug ImGui window and releases its D3D resources.
- *
- *  @author: CCHyper
- */
-bool AudioManagerClass::Close_Debug_Window()
-{
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-
-    ImGui::DestroyContext();
-
-    AudioImGui::CleanupDeviceD3D();
-
-    DestroyWindow(AudioImGui::MainWindow);
-
-    return true;
-}
-
-
-/**
- *  Polls and dispatches Win32 messages for the debug ImGui window.
- *
- *  @author: CCHyper
- */
-void AudioManagerClass::Debug_Window_Message_Handler()
-{
-    if (!AudioImGui::MainWindow) {
-        return;
-    }
-
-    MSG msg;
-
-    while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-        if (msg.message == WM_QUIT) {
-            break;
-        }
-    }
-}
 
 
 /**
@@ -427,12 +42,6 @@ typedef struct AudioDebugMessage {
 
 static std::mutex AudioDebugLogMutex;
 static std::vector<AudioDebugMessage> AudioDebugLogQueue;
-
-static void AudioSubmitToDebugLog(AudioDebugLogType type, AudioDebugLogLevel level, const std::string& msg)
-{
-    std::scoped_lock lock(AudioDebugLogMutex);
-    AudioDebugLogQueue.push_back({type, level, msg});
-}
 
 /**
  *  Logs an audio debug message with timestamp to the debug queue.
@@ -465,36 +74,23 @@ void __cdecl Audio_Debug_Log(AudioDebugLogLevel level, AudioDebugLogType type, c
 
 
 /**
- *  Main debug window loop which draws the ImGui elements and child windows.
+ *  Draws the audio debug ImGui elements.
  *
  *  @author: CCHyper
  */
-void AudioManagerClass::Debug_Window_Loop()
+void AudioManagerClass::Draw_Debug_UI()
 {
-    if (!AudioImGui::MainWindow) {
-        return;
-    }
-
     // Must match AudioDebugLogType!
     static const char * AudioLogTabNames[] = {
         "Manager",
         "Instance",
         "Sample",
-        "Ambient",
         "Thread",
         "Decoder",
         "IO",
         "Voc",
         "Vox",
-        "Theme",
-        "Hooks"
-    };
-
-    // Must match AudioDebugLogLevel!
-    static const char * AudioLogLevelNames[] = {
-        "Info",
-        "Warning",
-        "Error"
+        "Theme"
     };
 
     static ImGuiTextFilter LogFilter;
@@ -503,21 +99,9 @@ void AudioManagerClass::Debug_Window_Loop()
     static float LogScrollY[std::size(AudioLogTabNames)] = { 0.0f };
     static bool LogScrollToBottom[std::size(AudioLogTabNames)] = { true };
 
-    /**
-     *  Window begin!
-     */
-
-    AudioImGui::New_Frame();
-
     enum SelectedTabEnum {
         TAB_AUDIO_INFO = 0,
-        TAB_AUDIO_LOG,
-        TAB_GLOBALS,
-        TAB_MISC,
-
-        AUDIO_TAB_INFO = 100,
-        AUDIO_TAB_TRACKER,
-        AUDIO_TAB_MISC,
+        TAB_AUDIO_LOG
     };
 
     static SelectedTabEnum MenuBarSelectedTab = TAB_AUDIO_LOG;
@@ -538,10 +122,6 @@ void AudioManagerClass::Debug_Window_Loop()
     if (ImGui::Button("Audio Info", ImVec2(buttonWidth, 0))) MenuBarSelectedTab = TAB_AUDIO_INFO;
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Audio Logs", ImVec2(buttonWidth, 0))) MenuBarSelectedTab = TAB_AUDIO_LOG;
-    ImGui::SameLine(0, spacing);
-    if (ImGui::Button("Globals", ImVec2(buttonWidth, 0))) MenuBarSelectedTab = TAB_GLOBALS;
-    ImGui::SameLine(0, spacing);
-    if (ImGui::Button("Misc", ImVec2(buttonWidth, 0))) MenuBarSelectedTab = TAB_MISC;
 
     ImGui::End();
 
@@ -623,104 +203,52 @@ void AudioManagerClass::Debug_Window_Loop()
 
         case TAB_AUDIO_INFO:
         {
-            static SelectedTabEnum AudioMgrSelectedTab = AUDIO_TAB_INFO;
+            ImGui::Begin("Audio Debug");
 
-            ImGui::Begin("Audio Debug", nullptr, ImGuiWindowFlags_MenuBar);
+            ImGui::BeginChild("Trackers", ImVec2(300, 200), true);
 
-            if (ImGui::BeginMenuBar()) {
-                if (ImGui::Button("Audio")) AudioMgrSelectedTab = AUDIO_TAB_INFO;
-                ImGui::SameLine();
-                if (ImGui::Button("Globals")) AudioMgrSelectedTab = AUDIO_TAB_TRACKER;
-                ImGui::SameLine();
-                if (ImGui::Button("Misc")) AudioMgrSelectedTab = AUDIO_TAB_MISC;
-                ImGui::EndMenuBar();
-            }
+            ImGui::Text("Music.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_MUSIC].size());
+            ImGui::Text("MusicAmbient.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_AMBIENT].size());
+            ImGui::Text("Speech.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SPEECH].size());
+            ImGui::Text("SoundEffect.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX].size());
+            ImGui::Text("Event.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_EVENT].size());
 
-            switch (AudioMgrSelectedTab)
-            {
-                default:
-                case TAB_AUDIO_INFO:
-                {
-                    ImGui::BeginChild("Trackers", ImVec2(300, 200), true);
+            ImGui::Separator();
 
-                    ImGui::Text("Music.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_MUSIC].size());
-                    ImGui::Text("MusicAmbient.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_AMBIENT].size());
-                    ImGui::Text("Speech.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SPEECH].size());
-                    ImGui::Text("SoundEffect.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX].size());
-                    ImGui::Text("Event.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_EVENT].size());
+            ImGui::Text("ActiveInstanceMap.Count = %d", static_cast<int>(AudioManager.ActiveInstanceMap.size()));
+            ImGui::Text("SamplesMap.Count = %d", static_cast<int>(AudioManager.SamplesMap.size()));
 
-                    ImGui::Separator();
-
-                    ImGui::Text("ActiveInstanceMap.Count = %d", static_cast<int>(AudioManager.ActiveInstanceMap.size()));
-                    ImGui::Text("SamplesMap.Count = %d", static_cast<int>(AudioManager.SamplesMap.size()));
-
-                    auto DisplayGroupList = [](const char* label, const std::vector<AudioInstanceClass*>& trackerGroup) {
-                        if (ImGui::TreeNode(label)) {
-                            for (size_t i = 0; i < trackerGroup.size(); ++i) {
-                                const auto* item = trackerGroup[i];
-                                if (item) {
-                                    ImGui::Text("[%zu] Name: %s", i,
-                                        !item->Get_FileName().empty()
-                                            ? item->Get_FileName().c_str()
-                                            : "<unnamed>");
-                                } else {
-                                    ImGui::Text("[%zu] <null>", i);
-                                }
-                            }
-                            ImGui::TreePop();
+            auto DisplayGroupList = [](const char* label, const std::vector<AudioInstanceClass*>& trackerGroup) {
+                if (ImGui::TreeNode(label)) {
+                    for (size_t i = 0; i < trackerGroup.size(); ++i) {
+                        const auto* item = trackerGroup[i];
+                        if (item) {
+                            ImGui::Text("[%zu] Name: %s", i,
+                                !item->Get_FileName().empty()
+                                    ? item->Get_FileName().c_str()
+                                    : "<unnamed>");
+                        } else {
+                            ImGui::Text("[%zu] <null>", i);
                         }
-                    };
-
-                    DisplayGroupList("Music", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_MUSIC]);
-                    DisplayGroupList("Music Ambient", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_AMBIENT]);
-                    DisplayGroupList("Speech", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SPEECH]);
-                    DisplayGroupList("Sound Effects", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX]);
-                    DisplayGroupList("Events", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_EVENT]);
-
-                    ImGui::EndChild();
-
-                    break;
-                }
-                case TAB_GLOBALS:
-                {
-                    ImGui::BeginChild("Globals", ImVec2(300, 200), true);
-
-                    ImGui::Text("Globals section - not implemented yet.");
-
-                    ImGui::EndChild();
-
-                    break;
-                }
-                case TAB_MISC:
-                {
-                    ImGui::BeginChild("Misc", ImVec2(300, 200), true);
-
-                    ImGui::Text("Misc section - not implemented yet.");
-
-                    ImGui::EndChild();
-
-                    break;
+                    }
+                    ImGui::TreePop();
                 }
             };
+
+            DisplayGroupList("Music", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_MUSIC]);
+            DisplayGroupList("Music Ambient", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_AMBIENT]);
+            DisplayGroupList("Speech", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SPEECH]);
+            DisplayGroupList("Sound Effects", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX]);
+            DisplayGroupList("Events", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_EVENT]);
+
+            ImGui::EndChild();
 
             ImGui::End();
 
             break;
         }
-
-        case TAB_GLOBALS:
-            break;
-
-        case TAB_MISC:
-            break;
     }
 
-    /**
-     *  Window end!
-     */
-
-    AudioImGui::Render_Frame();
-    AudioImGui::End_Frame();
 }
 
 #endif // NDEBUG

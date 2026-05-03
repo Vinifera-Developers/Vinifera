@@ -616,7 +616,7 @@ add_dependencies(${PROJECT_NAME} TSpp)
 target_link_libraries(${PROJECT_NAME} SDL3::SDL3)
 target_link_libraries(${PROJECT_NAME} miniaudio)
 
-set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi shcore version comctl32 dxguid dxgi d3d11 d3dcompiler)
+set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32)
 
 # Link to any required libraries.
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBRARIES})

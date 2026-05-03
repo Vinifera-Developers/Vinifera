@@ -566,19 +566,6 @@ bool AudioManagerClass::Init(HWND hWnd)
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr: Init...\n");
 
-#ifndef NDEBUG
-    /**
-     *  Create the audio debug window if debug mode is enabled.
-     */
-    if (Vinifera_AudioDebug) {
-        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr: About to create debug window.\n");
-        if (!Create_Debug_Window()) {
-            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr: Failed to create debug window!\n");
-            return false;
-        }
-    }
-#endif
-
     /**
      *  Assign our custom vfs using the engine io.
      */

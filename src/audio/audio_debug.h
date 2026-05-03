@@ -21,16 +21,12 @@ typedef enum AudioDebugLogType {
     TYPE_MANAGER,
     TYPE_INSTANCE,
     TYPE_SAMPLE,
-    TYPE_AMBIENT,
     TYPE_THREAD,
     TYPE_DECODER,
     TYPE_IO,
     TYPE_VOC,
     TYPE_VOX,
-    TYPE_THEME,
-
-    // Special for anything else
-    TYPE_HOOKS
+    TYPE_THEME
 } AudioDebugLogType;
 
 
