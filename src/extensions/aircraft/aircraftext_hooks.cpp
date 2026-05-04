@@ -861,6 +861,13 @@ DEFINE_HOOK(0x0040AD38, _AIRCRAFT_CARRYALL_FLY_NEXT_POSITION, 6)
     GET(AircraftClass*, this_ptr, ESI);
 
     if (this_ptr->NavCom != nullptr) {
+        
+        // if the current navcom is a unit, then we want to stop by and pick it up.
+        // Defer to pick up patch to handle Q-Move instead
+        if (this_ptr->NavCom->Fetch_RTTI() == RTTI_UNIT) {
+            return 0;
+        }
+
         Coord dest_coords = this_ptr->NavCom->Center_Coord();
         Coord current_coords = this_ptr->Get_Coord();
 
