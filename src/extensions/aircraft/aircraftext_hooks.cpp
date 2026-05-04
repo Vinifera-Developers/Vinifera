@@ -828,20 +828,6 @@ DEFINE_HOOK(0x0040B35A, _ENTER_IDLE_MODE_TEST_ME, 6)
     return 0;
 }
 
-DEFINE_HOOK(0x0040ADC3, _CARRYALL_DROP_ME_OFF_AND_MOVE, 5)
-{
-    DEBUG_INFO("CARRYALL_DROP ME OFF\n");
-    GET(AircraftClass*, this_ptr, ESI);
-
-    this_ptr->Handle_Navigation_List();
-    if (this_ptr->NavCom != nullptr) {
-        this_ptr->Status = 0;
-        this_ptr->Assign_Mission(MISSION_MOVE);
-    }
-
-    return 0;
-}
-
 DEFINE_HOOK(0x0040A655, _AIRCRAFT_FLY_NEXT_POSITION, 6)
 {    
     GET(AircraftClass*, this_ptr, ESI);
@@ -866,12 +852,36 @@ DEFINE_HOOK(0x0040A655, _AIRCRAFT_FLY_NEXT_POSITION, 6)
             }
         }
     }
-
-    if (!this_ptr->Locomotion->Is_Moving()) {
-        return 0x0040A725; // goto label34 (setting status 3)
-    }
     
-    return 0x0040A669; // jump to next statement
+    return 0;
+}
+
+DEFINE_HOOK(0x0040AD38, _AIRCRAFT_CARRYALL_FLY_NEXT_POSITION, 6)
+{
+    GET(AircraftClass*, this_ptr, ESI);
+
+    if (this_ptr->NavCom != nullptr) {
+        Coord dest_coords = this_ptr->NavCom->Center_Coord();
+        Coord current_coords = this_ptr->Get_Coord();
+
+        Coord sanitized_dest_coords(dest_coords.X, dest_coords.Y, 0);
+        Coord sanitized_current_coords(current_coords.X, current_coords.Y, 0);
+
+        auto distance = Distance(sanitized_dest_coords, sanitized_current_coords);
+
+        if (distance < CELL_LEPTON) {
+            if (this_ptr->NavQueue.Count() > 0) {
+                this_ptr->NavCom = nullptr;
+
+                this_ptr->Handle_Navigation_List();
+                if (this_ptr->NavCom != nullptr) {
+                    return 0x0040ACFC; // jump to statement resetting status to 0 and returning 1
+                }
+            }
+        }
+    }
+
+    return 0;
 }
 
 /**
