@@ -23,6 +23,7 @@
 #include "miscutil.h"
 #include "mouse.h"
 #include "object.h"
+#include "optionsext.h"
 #include "palette.h"
 #include "sidebar.h"
 #include "sidebar_classic_view.h"
@@ -372,7 +373,7 @@ SidebarComponent::~SidebarComponent()
  */
 void SidebarComponent::One_Time()
 {
-    SidebarViewType view_type = UIControls->BattleSidebarViewType;
+    SidebarViewType view_type = OptionsExtension->Get_Sidebar_View_Type();
     ActiveViewType = view_type;
 
     /**

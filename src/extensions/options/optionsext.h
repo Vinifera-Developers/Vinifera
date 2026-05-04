@@ -12,6 +12,7 @@
 #include "SDL3/SDL_surface.h"
 #include "extension.h"
 #include "options.h"
+#include "uicontrol.h"
 
 
 class CCINIClass;
@@ -53,6 +54,7 @@ public:
     void Save_Settings();
 
     void Set();
+    SidebarViewType Get_Sidebar_View_Type() const;
 
     static RendererDriverType Parse_Renderer_Driver(const char* name);
     static const char* Get_Renderer_Driver_Config_Name(RendererDriverType driver);
@@ -68,6 +70,11 @@ public:
      *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
      */
     bool FilterBandBoxSelection;
+
+    /**
+     *  User override for the battle sidebar view type. SIDEBAR_COUNT means use UI.INI.
+     */
+    SidebarViewType SidebarViewTypeOverride;
 
     /**
      *  Customizable hotkeys for starting a chat.

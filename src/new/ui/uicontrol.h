@@ -30,6 +30,9 @@ enum SidebarViewType {
     SIDEBAR_COUNT
 };
 
+SidebarViewType Sidebar_View_From_Name(const char* name, SidebarViewType default_type);
+const char* Name_From_Sidebar_View_Type(SidebarViewType view_type);
+
 
 struct SidebarButtonLayout
 {
