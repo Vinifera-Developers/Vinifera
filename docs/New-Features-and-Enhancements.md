@@ -1778,3 +1778,10 @@ In `RULES.INI`:
 HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the AI builds per refinery by difficulty level, from hardest to easiest
 AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
 ```
+
+### Aircraft Q-Move
+
+- Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game.
+- Q-Moving aircraft will stay in the air as they move on to their next destination.
+- Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order.
+- Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
