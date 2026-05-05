@@ -857,7 +857,7 @@ bool _Aircraft_Do_Mission_Move_Apply_QMove(AircraftClass* aircraft)
         return false;
     }
 
-    // if the current navcom is a unit, then we want to stop by and pick it up.
+    // For carryalls, if the current navcom is a unit, then we want to stop by and pick it up.
     // Defer to pick up patch to handle Q-Move instead
     if (aircraft->Class->IsCarryall && aircraft->NavCom->Fetch_RTTI() == RTTI_UNIT) {
         return false;
@@ -869,7 +869,7 @@ bool _Aircraft_Do_Mission_Move_Apply_QMove(AircraftClass* aircraft)
     Coord sanitized_dest_coords(dest_coords.X, dest_coords.Y, 0);
     Coord sanitized_current_coords(current_coords.X, current_coords.Y, 0);
 
-    auto distance = Distance(sanitized_dest_coords, sanitized_current_coords);
+    int distance = Distance(sanitized_dest_coords, sanitized_current_coords);
 
     if (distance < CELL_LEPTON) {
         if (aircraft->NavQueue.Count() > 0) {
