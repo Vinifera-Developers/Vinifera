@@ -628,7 +628,7 @@ DEFINE_HOOK(0x0040B3A6, _AircraftClass_Enter_Idle_Mode_Spawner_Patch, 0)
 {
     GET(AircraftClass*, this_ptr, ESI);
     GET(int, layer, EAX);
-    GET(int, landingaltitude, EBP);    
+    GET(int, landingaltitude, EBP);
 
     AircraftTypeClassExtension* aircrafttypeext = Extension::Fetch(this_ptr->Class);
 
@@ -798,12 +798,9 @@ DEFINE_HOOK(0x0040A195, _AircraftClass_Fire_At_No_Reveal_On_Fire_For_Spawned_Air
 
 // Enables Q-Move
 DEFINE_HOOK(0x0040B78E, _ASSIGN_MISSION_QMOVE_AIRCRAFT, 8)
-{
-    DEBUG_INFO("HIIII");
+{    
     GET(AircraftClass*, this_ptr, ESI);
     GET(MissionType, mission, EDI);
-
-    DEBUG_INFO("Aircraft is %s", this_ptr ? this_ptr->Full_Name() : "no ptr");
 
     if (mission == MISSION_MOVE && (Keyboard->Down(Options.KeyQueueMove1) || Keyboard->Down(Options.KeyQueueMove2))) {
         mission = MISSION_QMOVE;
@@ -816,7 +813,7 @@ DEFINE_HOOK(0x0040B78E, _ASSIGN_MISSION_QMOVE_AIRCRAFT, 8)
 }
 
 DEFINE_HOOK(0x0040B35A, _ENTER_IDLE_MODE_TEST_ME, 6)
-{    
+{
     GET(AircraftClass*, this_ptr, ESI);
 
     this_ptr->Handle_Navigation_List();
@@ -886,6 +883,41 @@ DEFINE_HOOK(0x0040AD38, _AIRCRAFT_CARRYALL_FLY_NEXT_POSITION, 6)
                 }
             }
         }
+    }
+
+    return 0;
+}
+
+DEFINE_HOOK(0x0040AE92, _CARRYALL_ATTACH_AND_FLY_NEXT, 8)
+{
+    GET(AircraftClass*, this_ptr, ESI);
+
+    if (!this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT))
+        return 0;
+
+    if (this_ptr->NavQueue.Count() > 0) {
+        this_ptr->NavCom = nullptr;
+        
+        this_ptr->Handle_Navigation_List();
+        if (this_ptr->NavCom != nullptr) {
+            this_ptr->Status = 0;
+            this_ptr->Transmit_Message(RADIO_OVER_OUT);
+            this_ptr->Mark(MARK_DOWN);
+            this_ptr->field_370 = true;
+            return 0x0040AEC4; // jump to statement cleaning up and returning 1
+        }
+    }
+
+    return 0;
+}
+
+DEFINE_HOOK(0x0040ABEB, _Fix_Carryall_Lost_Contact, 6)
+{
+    GET(AircraftClass*, this_ptr, ESI);    
+    
+    if (this_ptr->Radio) {
+        this_ptr->NavCom = nullptr;
+        this_ptr->Enter_Idle_Mode();
     }
 
     return 0;
