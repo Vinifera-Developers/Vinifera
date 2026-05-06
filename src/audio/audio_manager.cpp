@@ -1596,9 +1596,7 @@ bool AudioManagerClass::Is_FileType_Supported(AudioFileType type) const
 #ifndef MA_NO_WAV
         case AUDIO_TYPE_WAV: return true;
 #endif
-#ifndef MA_NO_AUD
         case AUDIO_TYPE_AUD: return true;
-#endif
         default: break;
     };
 
@@ -1626,9 +1624,7 @@ std::string AudioManagerClass::Build_Filename_From_Type(AudioFileType type, std:
 #ifndef MA_NO_WAV
         case AUDIO_TYPE_WAV: return name + ".WAV";
 #endif
-#ifndef MA_NO_AUD
         case AUDIO_TYPE_AUD: return name + ".AUD";
-#endif
         default: break;
     };
 
@@ -1745,14 +1741,12 @@ bool AudioManagerClass::Get_File_Info(const std::string& name, AudioFileType& fi
     }
 #endif
 
-#ifndef MA_NO_AUD
     if (Is_File_Available(AUDIO_TYPE_AUD, name)) {
         filetype = AUDIO_TYPE_AUD;
         filename = Build_Filename_From_Type(AUDIO_TYPE_AUD, name);
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr: Found \"%s\".\n", filename.c_str());
         return true;
     }
-#endif
 
     if (ignore_error) {
         AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_MANAGER, "AudioMgr: Unable to find \"%s\" in a supported format!\n", name.c_str());
@@ -1789,11 +1783,9 @@ bool AudioManagerClass::Is_File_Available(AudioFileType type, std::string name) 
             name += ".WAV";
             break;
 #endif
-#ifndef MA_NO_AUD
         case AUDIO_TYPE_AUD:
             name += ".AUD";
             break;
-#endif
         default:
             return false;
     };
@@ -1839,11 +1831,9 @@ bool AudioManagerClass::Is_File_Available(std::string name) const
     }
 #endif
 
-#ifndef MA_NO_AUD
     if (Is_File_Available(AUDIO_TYPE_AUD, name)) {
         return true;
     }
-#endif
 
     return false;
 }

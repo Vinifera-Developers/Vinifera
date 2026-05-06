@@ -15,17 +15,22 @@
 #include "audio_debug.h"
 #include "ccfile.h"
 
-#include <codecvt>
-#include <locale>
-
 
 /**
  *  Helper function to convert wchar to char.
  */
-static std::string wchar_to_utf8(const std::wstring & wstr)
+static std::string wchar_to_utf8(const std::wstring& wstr)
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-    return conv.to_bytes(wstr);
+    if (wstr.empty()) {
+        return {};
+    }
+    int size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr);
+    if (size <= 0) {
+        return {};
+    }
+    std::string result(size, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.size()), &result[0], size, nullptr, nullptr);
+    return result;
 }
 
 

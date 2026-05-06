@@ -21,8 +21,6 @@
  * MHI SOS ADPCM decoder for Westwood Studios AUD encapsulated files for Miniaudio
  * 
  */
-#ifndef MA_NO_AUD
-
 /**
  *  AUD format Format constants
  */
@@ -539,6 +537,10 @@ static ma_result ma_sos_aud_init(
     // Initialize the ring buffer with our allocation.
     result = ma_rb_init(AUD_RING_BUFFER_CAPACITY, pDecoder->rbDecodedPCMData, pAllocationCallbacks, &pDecoder->rbDecodedPCM);
     if (result != MA_SUCCESS) {
+        ma_free(pDecoder->rbDecodedPCMData, pAllocationCallbacks);
+        ma_data_source_uninit(&pDecoder->base);
+        ma_free(pDecoder->pCompressed, pAllocationCallbacks);
+        ma_free(pDecoder, pAllocationCallbacks);
         return result;
     }
 
@@ -575,16 +577,11 @@ static void ma_sos_aud_uninit(void* pUserData, ma_data_source* pBackend, const m
 }
 
 
-#endif // MA_NO_SOS
-
-
 /**
  *  Define our custom decoders here!
  * 
  *  NOTE: This must be the last in the file as the vtables and functions are local to this source file.
  */
 /*static*/ const ma_decoding_backend_vtable * ma_custom_backend_vtable[1] = {
-#ifndef MA_NO_AUD
     &ma_decoding_backend_vtable_sos     // SOS decoder (that parses the Westwood AUD container)
-#endif
 };
