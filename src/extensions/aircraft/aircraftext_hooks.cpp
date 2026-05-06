@@ -797,9 +797,6 @@ DEFINE_HOOK(0x0040A195, _AircraftClass_Fire_At_No_Reveal_On_Fire_For_Spawned_Air
 
 /**
  *  Patches AircraftClass::Assign_Mission to allow Q-Move missions to be registered.
- *  Unlike ground units, aircraft cannot fire and move at the same time,
- *  and instead have to apply their appropriate firing logic, which is either bombing or curley shuffling.
- *  This means that if a Q-Move order is given to an aircraft, it will lose any target in its TarCom.
  *
  *  @author: JoyfulShush
  */
@@ -809,8 +806,7 @@ DEFINE_HOOK(0x0040B78E, _AircraftClass_Assign_Mission_QMove_Patch, 8)
     GET(MissionType, mission, EDI);
 
     if (mission == MISSION_MOVE && (Keyboard->Down(Options.KeyQueueMove1) || Keyboard->Down(Options.KeyQueueMove2))) {
-        mission = MISSION_QMOVE;
-        this_ptr->Assign_Target(nullptr);
+        mission = MISSION_QMOVE;        
     }
 
     R->EDI(mission);
