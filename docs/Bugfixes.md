@@ -121,3 +121,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
 - Fix a bug where the map would accept input while the user was in a dialog window.
 - Fix a bug where the sidebar could only contain up to 75 items on a strip.
+- Fix a bug where pre-placed buildings would become repairable when `AIRepairBaseNodes` is set to yes.

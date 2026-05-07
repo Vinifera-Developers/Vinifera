@@ -150,7 +150,7 @@ This page lists all the individual contributions to the project by their author.
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
   - Allow customizing self healing cap and rate game-wide and per-unit.
-  - Allow customizing whether AI can repair buildings created as base nodes.
+  - Allow customizing whether AI can repair buildings created as base nodes. Includes fix for pre-placed buildings being repaired as well even when they should not.
   - Add the ability to snap the camera to waypoint using the Center Camera at Waypoint trigger action
   - Allow revealing maps with any radius (previously was clamped to 10)
   - Remove logic related to incremental radius movement when setting `RevealByHeight=no` which could cause units to not reveal shroud in some cases.
