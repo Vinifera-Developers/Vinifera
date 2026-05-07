@@ -17,6 +17,7 @@
 #include "options.h"
 #include "rawfile.h"
 #include "tibsun_globals.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 
 
@@ -107,6 +108,7 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     SortDefensesAsLast(true),
     FilterBandBoxSelection(true),
+    SidebarViewTypeOverride(SIDEBAR_COUNT),
     KeyChatToAll1(KN_RETURN),
     KeyChatToAll2(KN_F8),
     KeyChatToAllies(KN_BACKSPACE),
@@ -229,6 +231,17 @@ void OptionsClassExtension::Load_Settings()
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
 
+    SidebarViewTypeOverride = SIDEBAR_COUNT;
+
+    std::string sidebar_view = ConfigINI.Get_String("Options", "SidebarViewType", "");
+    if (!sidebar_view.empty()) {
+        SidebarViewTypeOverride = Sidebar_View_From_Name(sidebar_view.c_str(), SIDEBAR_COUNT);
+
+        if (SidebarViewTypeOverride == SIDEBAR_COUNT) {
+            DEBUG_WARNING("Unknown sidebar view type \"%s\", using UI.INI setting.\n", sidebar_view.c_str());
+        }
+    }
+
     /**
      *  Read keys from Keyboard.ini.
      *
@@ -339,4 +352,23 @@ void OptionsClassExtension::Save_Settings()
 void OptionsClassExtension::Set()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Set - 0x%08X\n", (uintptr_t)(This()));
+}
+
+
+/**
+ *  Returns the effective sidebar view type, with user options overriding UI.INI.
+ *
+ *  @author: ZivDero
+ */
+SidebarViewType OptionsClassExtension::Get_Sidebar_View_Type() const
+{
+    if (SidebarViewTypeOverride != SIDEBAR_COUNT) {
+        return SidebarViewTypeOverride;
+    }
+
+    if (UIControls != nullptr) {
+        return UIControls->BattleSidebarViewType;
+    }
+
+    return SIDEBAR_CLASSIC;
 }

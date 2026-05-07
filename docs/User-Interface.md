@@ -15,6 +15,12 @@ The sidebar supports two layouts, switchable via a single INI key:
 - **Classic** — the vanilla-style 2-column layout, with independent left and right strips.
 - **Tabbed** — a 4-tab layout similar to Red Alert 2 (Structure, Infantry, Unit, Special). Since there is no defense queue, the "Defenses" tab is replaced by "Special", which contains Superweapons, aircraft and naval units.
 
+Players can override the mod default in `SUN.INI`:
+```ini
+[Options]
+SidebarViewType=Classic  ; string, Classic or Tabbed. Overrides UI.INI's [Sidebar]->ViewType when set.
+```
+
 ### Layout Configuration
 
 Nearly every aspect of the sidebar — positions, sizes, shapes, visibility — can be customized in `UI.INI` without changing the radar, credits area, or sidebar width.
@@ -102,10 +108,10 @@ PowerButtonShape=POWER.SHP
 WaypointButtonPos=112,-9       ; point, waypoint button position.
 WaypointButtonVisible=yes      ; boolean, show the waypoint button.
 WaypointButtonShape=WAYP.SHP
-PowerBarPos=8,25               ; point, power bar position.
+PowerBarPos=8,53               ; point, power bar position.
 PowerBarWidth=12               ; integer, power bar draw/tooltip width.
 PowerPipHeight=4               ; integer, vertical spacing between power pips.
-PowerBarHeightAdjust=28        ; integer, vertical offset applied to the power bar height calculation.
+PowerBarHeightAdjust=0         ; integer, vertical offset applied to the power bar height calculation.
 PowerPipShape=POWERP.SHP
 SidebarShape=SIDE1.SHP
 SidebarMiddleShape=SIDE2.SHP
