@@ -213,7 +213,6 @@ EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity che
 - You can now customize whether the AI can repair structures created as base nodes. 
 - Applies globally to all AI houses, and only affects non-skirmish games. 
 - Can be set and overridden at either game (Rules.ini) or map level.
-- Does not apply to pre-placed buildings.
 
 In a scenario file:
 ```ini
