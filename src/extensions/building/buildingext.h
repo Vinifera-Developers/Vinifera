@@ -79,4 +79,12 @@ BuildingClassExtension final : public TechnoClassExtension
          *  with building repair bringing it back to green health).
          */
         int LastFlameSpawnFrame;
+
+        /*
+         *  Whether the building is currently pausing its repairs.
+         *  This typically should only be set to true while the house no longer 
+         *  has funds to continue repairing the structure.
+         *  Used to determine which wrench frame should be shown on the building.
+         */
+        bool IsRepairsPaused;
 };

@@ -2492,6 +2492,75 @@ DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
     return 0;
 }
 
+/*
+ *  Patches the part of BuildingClass::Repair_AI where a building can no longer be repaired due to a house having insufficient funds.
+ *  Typically, it would stop repairs altoghether. However, if the rule for pausing repairs is enabled, then the repairs would be paused instead.
+ *  This is also used to instruct the game to draw a static wrench shape frame instead of the usual wrench animation.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x00435A38, _BuildingClass_Repair_AI_Pause_Repairs_Patch, 7)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    if (RuleExtension->IsPauseRepairs) {
+        Extension::Fetch(this_ptr)->IsRepairsPaused = true;
+        return 0x00435A3F;
+    }
+
+    return 0;
+}
+
+/*
+ *  Patches the part of BuildingClass::Repair_AI where a building can continue/resume repairs due to a house having sufficient funds.
+ *  If the structure repairs are paused, then unpause them.
+ *  This is mostly used to instruct the game to continue using the wrench shape animation.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004357AC, _BuildingClass_Repair_AI_Continue_Repairs_Patch, 6)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    if (RuleExtension->IsPauseRepairs) {
+        Extension::Fetch(this_ptr)->IsRepairsPaused = false;
+    }
+
+    return 0;
+}
+
+/*
+ *  Reimplements part of BuildingClass::Draw_Overlays where a building determines the wrench frame to use when drawing during repairs.
+ *  When the building's repairs are paused, the game draws a specific wrench frame to signal that the repairs are paused.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004288E1, _BuildingClass_Draw_Overlays_Wrench_Shape_Patch, 0)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(int, frame, ECX);
+    GET(Point2D*, point, EDI);
+    GET(Rect*, rect, EBP);
+
+    int draw_frame; 
+    if (RuleExtension->IsPauseRepairs && Extension::Fetch(this_ptr)->IsRepairsPaused) {
+        draw_frame = RuleExtension->PausedRepairsFrame;
+    } else {
+        draw_frame = 6 * (Frame % frame) / (frame - 1);
+    }
+
+    Draw_Shape(*LogicalSurface,
+        *MouseDrawer,
+        (ShapeSet const*)BuildingClass::WrenchShape, 
+        draw_frame,
+        *point,
+        *rect,
+        ShapeFlags_Type(SHAPE_CENTER | SHAPE_WIN_REL | SHAPE_ALPHA)        
+    );
+
+    return 0x00428925;
+}
+
 /**
  *  Main function for patching the hooks.
  */

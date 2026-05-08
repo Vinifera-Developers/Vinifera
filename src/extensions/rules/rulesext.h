@@ -254,4 +254,14 @@ public:
      *  Determines whether the AI is limited to one harvester in singleplayer scenarios, like in original Tiberian Sun.
      */
     bool IsAIOneHarvesterInSingleplayer;
+
+    /**
+     *  Determines whether repairs would pause instead of stopping when a house has insufficient funds.
+     */
+    bool IsPauseRepairs;
+
+    /**
+     *  Determines the wrench shape frame that should be used while repairs are paused.
+     */
+    int PausedRepairsFrame;
 };
