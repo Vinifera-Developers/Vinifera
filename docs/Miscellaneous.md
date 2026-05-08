@@ -329,7 +329,7 @@ In Rules.ini:
 PauseRepairs=no ; boolean, whether buildings pause repairs when a house doesn't have enough funds to complete the repairs.
 ```
 
-- While repairs are paused, the game draws a specific frame of the wrench shape (wrench.shp). This can be customized in order to draw a different frame.
+- While repairs are paused, the game draws a specific frame of the wrench shape (wrench.shp) on the building. This can be customized in order to draw a different frame.
 
 In Rules.ini:
 ```ini
