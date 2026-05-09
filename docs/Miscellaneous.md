@@ -322,6 +322,23 @@ BeachIsCrush=  ; boolean, are beaches considered as requiring crushing for pathf
 BuildingFlameSpawnBlockFrames=  ; integer, for how many frames buildings do not get flames spawned on them on damage state change after once catching fire.
 ```
 
+## Pause Building Repairs
+- Vinifera allows modders to make building repairs pause rather than outright stopping when the house doesn't have enough funds to finish repairs. 
+
+In `RULES.INI`:
+```ini
+[General]
+PauseRepairs=yes  ; boolean, whether buildings pause repairs when a house doesn't have enough funds to complete the repairs.
+```
+
+- While repairs are paused, the game draws a specific frame of the wrench shape (`WRENCH.SHP`) on the building. This can be customized in order to draw a different frame.
+
+In `RULES.INI`:
+```ini
+[General]
+PausedRepairsFrame=6  ; integer, the frame index on the wrench shape to show while building repairs are paused.
+```
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.
