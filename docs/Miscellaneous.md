@@ -328,7 +328,7 @@ BuildingFlameSpawnBlockFrames=  ; integer, for how many frames buildings do not 
 In Rules.ini:
 ```ini
 [General]
-PauseRepairs=no ; boolean, whether buildings pause repairs when a house doesn't have enough funds to complete the repairs.
+PauseRepairs=yes ; boolean, whether buildings pause repairs when a house doesn't have enough funds to complete the repairs.
 ```
 
 - While repairs are paused, the game draws a specific frame of the wrench shape (wrench.shp) on the building. This can be customized in order to draw a different frame.

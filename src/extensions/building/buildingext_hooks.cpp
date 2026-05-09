@@ -2514,27 +2514,8 @@ DEFINE_HOOK(0x00435A38, _BuildingClass_Repair_AI_Pause_Repairs_Patch, 7)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
-    if (RuleExtension->IsPauseRepairs) {
-        Extension::Fetch(this_ptr)->IsRepairsPaused = true;
+    if (RuleExtension->IsPauseRepairs) {        
         return 0x00435A3F;
-    }
-
-    return 0;
-}
-
-/*
- *  Patches the part of BuildingClass::Repair_AI where a building can continue/resume repairs due to a house having sufficient funds.
- *  If the structure repairs are paused, then unpause them.
- *  This is mostly used to instruct the game to continue using the wrench shape animation.
- *
- *  @author: JoyfulShush
- */
-DEFINE_HOOK(0x004357AC, _BuildingClass_Repair_AI_Continue_Repairs_Patch, 6)
-{
-    GET(BuildingClass*, this_ptr, ESI);
-
-    if (RuleExtension->IsPauseRepairs) {
-        Extension::Fetch(this_ptr)->IsRepairsPaused = false;
     }
 
     return 0;
@@ -2554,7 +2535,7 @@ DEFINE_HOOK(0x004288E1, _BuildingClass_Draw_Overlays_Wrench_Shape_Patch, 0)
     GET(Rect*, rect, EBP);
 
     int draw_frame; 
-    if (RuleExtension->IsPauseRepairs && Extension::Fetch(this_ptr)->IsRepairsPaused) {
+    if (RuleExtension->IsPauseRepairs && this_ptr->House->Available_Money() < this_ptr->Class->Repair_Step()) {
         draw_frame = RuleExtension->PausedRepairsFrame;
     } else {
         draw_frame = 6 * (Frame % frame) / (frame - 1);
