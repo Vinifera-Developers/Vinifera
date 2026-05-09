@@ -122,4 +122,3 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the map would accept input while the user was in a dialog window.
 - Fix a bug where the sidebar could only contain up to 75 items on a strip.
 - Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
-- Fix a bug where the sidebar could only contain up to 75 items on a strip.
