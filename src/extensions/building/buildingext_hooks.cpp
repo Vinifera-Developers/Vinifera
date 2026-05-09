@@ -2505,8 +2505,7 @@ DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
 
 /*
  *  Patches the part of BuildingClass::Repair_AI where a building can no longer be repaired due to a house having insufficient funds.
- *  Typically, it would stop repairs altoghether. However, if the rule for pausing repairs is enabled, then the repairs would be paused instead.
- *  This is also used to instruct the game to draw a static wrench shape frame instead of the usual wrench animation.
+ *  Typically, it would stop repairs altoghether. However, if the rule for pausing repairs is enabled, then it skips that.
  *
  *  @author: JoyfulShush
  */
