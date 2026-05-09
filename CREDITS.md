@@ -158,11 +158,11 @@ This page lists all the individual contributions to the project by their author.
   - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
   - Fix a few vanilla bugs where units with death frames (such as Reapers) would count as dead multiple times, and be allowed to be issued move orders by players.
   - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
-  - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.  
+  - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.
   - Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
   - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
-  - Add Q-Move support for aircraft
+  - Add Q-Move support for aircraft.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
