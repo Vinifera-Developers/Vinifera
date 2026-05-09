@@ -406,5 +406,6 @@ Vanilla fixes:
 - Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
 - Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
 - Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
+- Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use (by JoyfulShush)
 
 :::

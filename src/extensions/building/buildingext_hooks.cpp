@@ -2024,8 +2024,9 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
     case RADIO_CAN_LOAD:
         TechnoClass::Receive_Message(from, message, param);
         if (!House->Is_Ally(from)) return RADIO_STATIC;
-        if (Mission == MISSION_CONSTRUCTION || Mission == MISSION_DECONSTRUCTION || BState == BSTATE_CONSTRUCTION || (!ScenarioInit && In_Radio_Contact() && Contact_With_Whom() != from)) return RADIO_NEGATIVE;
+        if (Mission == MISSION_CONSTRUCTION || Mission == MISSION_DECONSTRUCTION || BState == BSTATE_CONSTRUCTION) return RADIO_NEGATIVE;
         if (!IsOn) return RADIO_NEGATIVE;
+
         if (Class->IsCanUnitRepair) {
             if (from->RTTI == RTTI_UNIT || from->RTTI == RTTI_AIRCRAFT) {
                 if (Transmit_Message(RADIO_ON_DEPOT, from) != RADIO_ROGER) {
@@ -2033,7 +2034,8 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
                 }
             }
             return RADIO_NEGATIVE;
-        }
+        }        
+
         if ((Class->IsArmory || Class->IsHospital) && from->RTTI == RTTI_INFANTRY) {
             if (Ammo != 0 && Mission != MISSION_REPAIR) {
                 return RADIO_ROGER;
@@ -2050,6 +2052,15 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
             }
             return RADIO_NEGATIVE;
         }
+
+        /*
+        *  Prevents units from requesting to load into the building if it's already in a radio contact with a unit.
+        *  This is typically used in order to only allow one unit to set up loading into it.
+        *  Originally, it was at the very top of this function to prevent any building from interacting with units while during contact,
+        *  however it was moved here in order to allow Helipads, Armories, Hospitals and Service Depots to communicate with
+        *  all units without limitation. Only one unit can still be accepted into being loaded at a time.
+        */ 
+        if (!ScenarioInit && In_Radio_Contact() && Contact_With_Whom() != from) return RADIO_NEGATIVE;
 
         /**
          *  #issue-129
