@@ -16,6 +16,8 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Improve alternative factory selection when the primary factory is blocked.
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
 - When revealing shroud via a unit, structure, or triggers, TS had a maximum allowed sight radius of 10. This meant units could not have a `Sight=` value above 10, and Reveal Around Waypoint trigger actions could not reveal in radius higher than 10 even if specified in `RevealTriggerRadius`. Vinifera now allows and handles revealing shroud in any desired range, with no limit.
+- Aircraft can now click on Helipad that are occupied or about to be occupied by other aircraft, which reassigns them to a different free Helipad, or near the existing Helipad if no free Helipads exist. 
+- Units and aircraft can now click on a Service Depot even it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
 
 ## INI
 
