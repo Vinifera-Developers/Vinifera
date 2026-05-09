@@ -268,7 +268,7 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
         /**
          *  #FIX: Allow any repair depot to repair aircraft, not just Rule->RepairBay
          */
-        if ((building->Class->IsCanUnitRepair || building->Class->IsHelipad) && !building->In_Radio_Contact() && !building->Cargo.Is_Something_Attached()) {
+        if ((building->Class->IsCanUnitRepair || building->Class->IsHelipad) && !building->Cargo.Is_Something_Attached()) {
             if (Transmit_Message(RADIO_CAN_LOAD, building) == RADIO_ROGER) {
                 action = ACTION_ENTER;
             }

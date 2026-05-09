@@ -30,6 +30,9 @@ enum SidebarViewType {
     SIDEBAR_COUNT
 };
 
+SidebarViewType Sidebar_View_From_Name(const char* name, SidebarViewType default_type);
+const char* Name_From_Sidebar_View_Type(SidebarViewType view_type);
+
 
 struct SidebarButtonLayout
 {
@@ -92,7 +95,11 @@ struct SidebarClassicLayout : BattleSidebarLayoutBase
 
 struct SidebarTabbedLayout : BattleSidebarLayoutBase
 {
-    SidebarTabbedLayout() { PowerBarHeightAdjust = 28; }
+    SidebarTabbedLayout()
+    {
+        PowerBarPosition = { 8, 53 };
+        PowerBarHeightAdjust = 0;
+    }
     void Read_INI(CCINIClass const& ini, const char* section) override;
 
     TPoint2D<int> TabButtonPosition[4] = { {20, 24}, {55, 24}, {90, 24}, {125, 24} };
