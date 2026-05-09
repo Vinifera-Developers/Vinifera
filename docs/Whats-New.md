@@ -163,6 +163,7 @@ Vanilla fixes:
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it (by Rampastring)
 - Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
+- Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree) (by JoyfulShush)
 - Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
 
 :::
