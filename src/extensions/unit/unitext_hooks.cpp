@@ -1278,6 +1278,7 @@ DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hij
     return 0x0065602B;
 }
 
+
 /**
  *  Main function for patching the hooks.
  */
