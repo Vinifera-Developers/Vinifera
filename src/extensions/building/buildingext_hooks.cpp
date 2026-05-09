@@ -130,45 +130,39 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
  */
 void BuildingClassExt::_Update_Buildables()
 {
-    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsOn)
-    {
-        switch (Class->ToBuild)
-        {
+    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsOn) {
+        switch (Class->ToBuild) {
         case RTTI_AIRCRAFTTYPE:
-            for (int i = 0; i < AircraftTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(AircraftTypes[i], false, true) && AircraftTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < AircraftTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(AircraftTypes[i], false, true); // 0 = not allowed, 1 = allowed, -1 = build limit
+                if (can_build && (can_build == -1 || AircraftTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_AIRCRAFTTYPE, i);
                 }
             }
             break;
 
         case RTTI_BUILDINGTYPE:
-            for (int i = 0; i < BuildingTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(BuildingTypes[i], false, true) && BuildingTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < BuildingTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(BuildingTypes[i], false, true);
+                if (can_build && (can_build == -1 || BuildingTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_BUILDINGTYPE, i);
                 }
             }
             break;
 
         case RTTI_INFANTRYTYPE:
-            for (int i = 0; i < InfantryTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(InfantryTypes[i], false, true) && InfantryTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < InfantryTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(InfantryTypes[i], false, true);
+                if (can_build && (can_build == -1 || InfantryTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_INFANTRYTYPE, i);
                 }
             }
             break;
 
         case RTTI_UNITTYPE:
-            for (int i = 0; i < UnitTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(UnitTypes[i], false, true) && UnitTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < UnitTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(UnitTypes[i], false, true);
+                if (can_build && (can_build == -1 || UnitTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_UNITTYPE, i);
                 }
             }
@@ -2030,8 +2024,9 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
     case RADIO_CAN_LOAD:
         TechnoClass::Receive_Message(from, message, param);
         if (!House->Is_Ally(from)) return RADIO_STATIC;
-        if (Mission == MISSION_CONSTRUCTION || Mission == MISSION_DECONSTRUCTION || BState == BSTATE_CONSTRUCTION || (!ScenarioInit && In_Radio_Contact() && Contact_With_Whom() != from)) return RADIO_NEGATIVE;
+        if (Mission == MISSION_CONSTRUCTION || Mission == MISSION_DECONSTRUCTION || BState == BSTATE_CONSTRUCTION) return RADIO_NEGATIVE;
         if (!IsOn) return RADIO_NEGATIVE;
+
         if (Class->IsCanUnitRepair) {
             if (from->RTTI == RTTI_UNIT || from->RTTI == RTTI_AIRCRAFT) {
                 if (Transmit_Message(RADIO_ON_DEPOT, from) != RADIO_ROGER) {
@@ -2039,7 +2034,8 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
                 }
             }
             return RADIO_NEGATIVE;
-        }
+        }        
+
         if ((Class->IsArmory || Class->IsHospital) && from->RTTI == RTTI_INFANTRY) {
             if (Ammo != 0 && Mission != MISSION_REPAIR) {
                 return RADIO_ROGER;
@@ -2056,6 +2052,15 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
             }
             return RADIO_NEGATIVE;
         }
+
+        /*
+        *  Prevents units from requesting to load into the building if it's already in a radio contact with a unit.
+        *  This is typically used in order to only allow one unit to set up loading into it.
+        *  Originally, it was at the very top of this function to prevent any building from interacting with units while during contact,
+        *  however it was moved here in order to allow Helipads, Armories, Hospitals and Service Depots to communicate with
+        *  all units without limitation. Only one unit can still be accepted into being loaded at a time.
+        */ 
+        if (!ScenarioInit && In_Radio_Contact() && Contact_With_Whom() != from) return RADIO_NEGATIVE;
 
         /**
          *  #issue-129
@@ -2445,6 +2450,11 @@ DEFINE_HOOK(0x0042CAB9, _BuildingClass_Exit_Object_Factory_Busy_Customized_Alter
 DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
 {
     GET(BuildingClass*, this_ptr, ESI);
+
+    // Ignore pre-placed buildings
+    if (ScenarioInit) {
+        return 0;
+    }
 
     if (Session.Type == GAME_NORMAL && !this_ptr->House->Is_Human_Player() && RuleExtension->IsAIRepairBaseNodes) {
         this_ptr->IsToRepair = true;
