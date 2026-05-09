@@ -12,6 +12,7 @@
 #include "ccfile.h"
 #include "extension_globals.h"
 #include "vector.h"
+#include "cell.h"
 
 #include <unordered_map>
 
@@ -158,3 +159,19 @@ struct ExceptionInfoDatabaseStruct
 };
 
 extern DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;
+
+struct CellHasher {
+    std::size_t operator()(const Cell cell) const
+    {
+        int X = cell.X;
+        int Y = cell.Y;
+
+        return X << 16 | Y;
+    }
+};
+
+struct CellEqual {
+    bool operator()(const Cell left_cell, const Cell right_cell) const { return left_cell.X == right_cell.X && left_cell.Y == right_cell.Y; }
+};
+
+extern std::unordered_map<Cell, int, CellHasher, CellEqual> BridgeHealths;
