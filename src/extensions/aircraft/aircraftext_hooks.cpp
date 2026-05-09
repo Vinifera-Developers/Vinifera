@@ -51,7 +51,8 @@ public:
     ActionType _What_Action(ObjectClass const* target, bool disallow_force);
     LONG STDMETHODCALLTYPE _Landing_Altitude();
     LONG STDMETHODCALLTYPE _Landing_Altitude_Thunk();
-    RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);
+    RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);    
+    bool Aircraft_Do_MISSION_MOVE_Apply_QMove();
 };
 
 
@@ -801,8 +802,7 @@ DEFINE_HOOK(0x0040A195, _AircraftClass_Fire_At_No_Reveal_On_Fire_For_Spawned_Air
  *  @author: JoyfulShush
  */
 DEFINE_HOOK(0x0040B78E, _AircraftClass_Assign_Mission_QMove_Patch, 8)
-{    
-    GET(AircraftClass*, this_ptr, ESI);
+{
     GET(MissionType, mission, EDI);
 
     if (mission == MISSION_MOVE && (Keyboard->Down(Options.KeyQueueMove1) || Keyboard->Down(Options.KeyQueueMove2))) {
@@ -843,36 +843,36 @@ DEFINE_HOOK(0x0040B35A, _AircraftClass_Enter_Idle_Mode_QMove_Patch, 6)
  *
  *  @author: JoyfulShush
  */
-bool _Aircraft_Do_Mission_Move_Apply_QMove(AircraftClass* aircraft)
+bool AircraftClassExt::Aircraft_Do_MISSION_MOVE_Apply_QMove()
 {
-    if (aircraft->NavQueue.Count() <= 0) {
+    if (NavQueue.Count() <= 0) {
         return false;
     }
 
-    if (aircraft->NavCom == nullptr) {
+    if (NavCom == nullptr) {
         return false;
     }
 
     // For carryalls, if the current navcom is a unit, then we want to stop by and pick it up.
     // Defer to pick up patch to handle Q-Move instead
-    if (aircraft->Class->IsCarryall && aircraft->NavCom->Fetch_RTTI() == RTTI_UNIT) {
+    if (Class->IsCarryall && NavCom->Fetch_RTTI() == RTTI_UNIT) {
         return false;
     }
 
-    Coord dest_coords = aircraft->NavCom->Center_Coord();
-    Coord current_coords = aircraft->Get_Coord();
+    Coord dest_coords = NavCom->Center_Coord();
+    Coord current_coords = Get_Coord();
 
-    Coord sanitized_dest_coords(dest_coords.X, dest_coords.Y, 0);
-    Coord sanitized_current_coords(current_coords.X, current_coords.Y, 0);
+    dest_coords.Z = 0;
+    current_coords.Z = 0;
 
-    int distance = Distance(sanitized_dest_coords, sanitized_current_coords);
+    int distance = dest_coords.Distance_To(current_coords);
 
     if (distance < CELL_LEPTON) {
-        if (aircraft->NavQueue.Count() > 0) {
-            aircraft->NavCom = nullptr;
+        if (NavQueue.Count() > 0) {
+            NavCom = nullptr;
 
-            aircraft->Handle_Navigation_List();
-            if (aircraft->NavCom != nullptr) {
+            Handle_Navigation_List();
+            if (NavCom != nullptr) {
                 return true;
             }
         }
@@ -882,17 +882,17 @@ bool _Aircraft_Do_Mission_Move_Apply_QMove(AircraftClass* aircraft)
 }
 
 /**
- *  Patches AircraftClass::Do_Mission_Move_ to support Q-Moving during movement in order to allow aircraft to stay in the air.
+ *  Patches AircraftClass::Do_MISSION_MOVE_ to support Q-Moving during movement in order to allow aircraft to stay in the air.
  *  Without this, they will land after each position, enter idle mode, trigger Q-Move processing, and move to the next position.
  *  During flight, if we have additional movements queued up, we trigger Q-Move processing once the aircraft is close enough to its target position. 
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x0040A655, _AircraftClass_Do_Mission_Move__QMove_Patch, 6)
+DEFINE_HOOK(0x0040A655, _AircraftClass_Do_MISSION_MOVE__QMove_Patch, 6)
 {    
-    GET(AircraftClass*, this_ptr, ESI);
+    GET(AircraftClassExt*, this_ptr, ESI);
 
-    bool qmove_applied = _Aircraft_Do_Mission_Move_Apply_QMove(this_ptr);
+    bool qmove_applied = this_ptr->Aircraft_Do_MISSION_MOVE_Apply_QMove();
 
     if (qmove_applied) {
         return 0x0040A711; // jump to statement resetting status to 0 and returning 1
@@ -902,17 +902,17 @@ DEFINE_HOOK(0x0040A655, _AircraftClass_Do_Mission_Move__QMove_Patch, 6)
 }
 
 /**
- *  Patches AircraftClass::Do_Mission_Move_ to support Q-Moving during movement in order to allow aircraft to stay in the air.
+ *  Patches AircraftClass::Do_MISSION_MOVE_Carryall to support Q-Moving during movement in order to allow aircraft to stay in the air.
  *  Without this, they will land after each position, enter idle mode, trigger Q-Move processing, and move to the next position.
  *  During flight, if we have additional movements queued up, we trigger Q-Move processing once the aircraft is close enough to its target position.
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x0040AD38, _AircraftClass_Do_Mission_Move_Carryall_QMove_Patch, 6)
+DEFINE_HOOK(0x0040AD38, _AircraftClass_Do_MISSION_MOVE_Carryall_QMove_Patch, 6)
 {
-    GET(AircraftClass*, this_ptr, ESI);
+    GET(AircraftClassExt*, this_ptr, ESI);
 
-    bool qmove_applied = _Aircraft_Do_Mission_Move_Apply_QMove(this_ptr);
+    bool qmove_applied = this_ptr->Aircraft_Do_MISSION_MOVE_Apply_QMove();
 
     if (qmove_applied) {
         return 0x0040ACFC; // jump to statement resetting status to 0 and returning 1
@@ -922,13 +922,13 @@ DEFINE_HOOK(0x0040AD38, _AircraftClass_Do_Mission_Move_Carryall_QMove_Patch, 6)
 }
 
 /**
- *  Patches AircraftClass::Do_Mission_Move_Carryall after possibly attaching a unit
+ *  Patches AircraftClass::Do_MISSION_MOVE_Carryall after possibly attaching a unit
  *  Reimplmements the parts between having a cargo and skipping over entering idle mode
  *  This allows a carryall to keep moving while holding its cargo until completing all queued movements orders.
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x0040AE92, _AircraftClass_Do_Mission_Move_Carryall_QMove_Attach_Cargo_Patch, 8)
+DEFINE_HOOK(0x0040AE92, _AircraftClass_Do_MISSION_MOVE_Carryall_QMove_Attach_Cargo_Patch, 8)
 {
     GET(AircraftClass*, this_ptr, ESI);
 
@@ -952,14 +952,14 @@ DEFINE_HOOK(0x0040AE92, _AircraftClass_Do_Mission_Move_Carryall_QMove_Attach_Car
 }
 
 /**
- *  Patches AircraftClass::Do_Mission_Move_Carryall to fix a bug where carryall can land on a unit without picking it up.
+ *  Patches AircraftClass::Do_MISSION_MOVE_Carryall to fix a bug where carryall can land on a unit without picking it up.
  *  This can happen if the player clicks on a Service Depot while the carryall is landing to pick up a unit
  *  which seems to break radio contact with the unit in order to talk with the Service Depot instead (RADIO_CAN_LOAD)
  *  Instead, this forces the carryall to go into a nearby valid cell.
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x0040ABEB, _Aircraft_Class_Do_Mission_Move_Carryall_Lost_Contact, 6)
+DEFINE_HOOK(0x0040ABEB, _Aircraft_Class_Do_MISSION_MOVE_Carryall_Lost_Contact, 6)
 {
     GET(AircraftClass*, this_ptr, ESI);    
     
