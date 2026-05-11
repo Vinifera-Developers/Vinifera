@@ -325,6 +325,7 @@ New:
 - Allow Reveal Around Waypoints trigger actions to specify their reveal radius and whether they take elevation into account (by JoyfulShush)
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 - Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush)
+- Allows aircraft to use Q-Move (by JoyfulShush)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
