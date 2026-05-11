@@ -186,12 +186,14 @@ bool ViniferaImGui::Process_Window_Message(HWND hwnd, UINT msg, WPARAM wparam, L
     }
 
     if (Is_Keyboard_Message(msg)) {
-        if (!io.WantCaptureKeyboard) {
-            return false;
-        }
-
+        /*
+        **  Always forward to ImGui so its key state stays consistent, but only
+        **  *consume* the message when a text widget is actually focused.
+        **  `WantCaptureKeyboard` would stay sticky under `NavEnableKeyboard`
+        **  and steal every game hotkey whenever any ImGui window is open.
+        */
         ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
-        return true;
+        return io.WantTextInput;
     }
 
     ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
