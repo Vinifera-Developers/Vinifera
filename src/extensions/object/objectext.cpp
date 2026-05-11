@@ -149,7 +149,12 @@ void ObjectClassExtension::Ambient_AI()
 {
     if (This()->IsInLimbo) return;
 
+    // Not all objects have a type class
     auto classof = This()->Class_Of();
+    if (classof == nullptr) {
+        return;
+    }
+
     auto classext = Extension::Fetch(classof);
 
     if (classext->AmbientSound != VOC_NONE && AmbientSound == nullptr) {
