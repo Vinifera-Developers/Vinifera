@@ -340,6 +340,8 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
 
 bool Damage_Bridge(Cell cell, int damage)
 {
+    // bool Is_Overlay_Any_Bridge() const { return Is_Overlay_Low_Bridge() || Is_Overlay_Bridge() || Is_Overlay_Rail_Bridge(); }
+
     DEBUG_INFO("Triggered damage bridge\n");
     CellClass* cellptr = &Map[cell];
     OverlayType overlay = cellptr->Overlay;
