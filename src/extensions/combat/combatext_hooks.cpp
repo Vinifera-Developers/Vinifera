@@ -341,6 +341,11 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
 bool Damage_Bridge(Cell cell, int damage)
 {
     DEBUG_INFO("Triggered damage bridge\n");
+    CellClass* cellptr = &Map[cell];
+    OverlayType overlay = cellptr->Overlay;
+    DEBUG_INFO("OVERLAY FOR CELL: %d\n", overlay);
+    DEBUG_INFO("OVERLAY DATA FOR CELL: %c", (char)cellptr->OverlayData);
+
     if (!BridgeHealths.contains(cell)) {
         BridgeHealths[cell] = Rule->BridgeStrength;
         DEBUG_INFO("Created cell health tracker with bridge strength of %d\n", Rule->BridgeStrength);
@@ -535,43 +540,39 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
     bool ion_cannon_warhead = warhead == Rule->IonCannonWarhead;
     if (Scen->Special.IsDestroyableBridges && warhead->IsWallDestroyer) {
         const CellClass* bridge_owner_cell = cellptr->Get_Bridge_Owner();
+        
+        bool is_standard_bridge = (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()) || cellptr->Is_Tile_Bridge_Middle();
+        bool is_rail_bridge = (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()) || cellptr->Is_Tile_Train_Bridge_Middle();
 
-        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
-            || cellptr->Is_Tile_Bridge_Middle()) {
-            if (!cellptr->IsUnderBridge || explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2)) {
-                if (ion_cannon_warhead || Damage_Bridge(cell, damage)) {
-                    for (int i = 0; i < (ion_cannon_warhead ? 4 : 1); i++) {
-                        if (Map.Destroy_Bridge_At(cell)) {
-                            TechnoClass::Update_Mission_Targets(cellptr);
-                            break;
-                        }
-                    }
-                    Point2D point;
-                    TacticalMap->Coord_To_Pixel(explosion_coord, point);
-                    TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
+        if (is_standard_bridge || is_rail_bridge) {            
+            if (!cellptr->IsUnderBridge || (explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2))) {
+                
+                bool should_damage_bridge = false;
+                if (ion_cannon_warhead) {
+                    should_damage_bridge = true;
+                } else {
+                    should_damage_bridge = Damage_Bridge(cell, damage);
                 }
-            }
-        }
 
-        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
-            || cellptr->Is_Tile_Train_Bridge_Middle()) {
-            if (!cellptr->IsUnderBridge || explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2)) {
-                if (ion_cannon_warhead || Random_Pick(1, Rule->BridgeStrength) < damage) {
+                if (should_damage_bridge) {                    
                     for (int i = 0; i < (ion_cannon_warhead ? 4 : 1); i++) {
                         if (Map.Destroy_Bridge_At(cell)) {
                             TechnoClass::Update_Mission_Targets(cellptr);
                             break;
                         }
                     }
+                    
+                    int radius = is_standard_bridge ? 128 : 96;
+
                     Point2D point;
                     TacticalMap->Coord_To_Pixel(explosion_coord, point);
-                    TacticalMap->Register_Dirty_Area(Rect(point.X - 96, point.Y - 96, 192, 192), false);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - radius, point.Y - radius, radius * 2, radius * 2), false);
                 }
             }
         }
 
         if (cellptr->Is_Overlay_Low_Bridge() && close_to_ground) {
-            if (ion_cannon_warhead || Random_Pick(1, Rule->BridgeStrength) < damage) {
+            if (ion_cannon_warhead || Damage_Bridge(cell, damage)) {
                 const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
                 Map.Destroy_Low_Bridge_At(cell);
                 if (destroyed) {
