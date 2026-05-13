@@ -17,7 +17,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
 - When revealing shroud via a unit, structure, or triggers, TS had a maximum allowed sight radius of 10. This meant units could not have a `Sight=` value above 10, and Reveal Around Waypoint trigger actions could not reveal in radius higher than 10 even if specified in `RevealTriggerRadius`. Vinifera now allows and handles revealing shroud in any desired range, with no limit.
 - Aircraft can now click on Helipad that are occupied or about to be occupied by other aircraft, which reassigns them to a different free Helipad, or near the existing Helipad if no free Helipads exist. 
-- Units and aircraft can now click on a Service Depot even it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
+- Players can now click on a Service Depot with units and aircraft even if it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
 - Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
 
 ## INI
