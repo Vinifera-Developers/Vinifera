@@ -440,7 +440,7 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 
             Vinifera_Output_Debug_String(buffer);
 
-            std::snprintf(filebuff, sizeof(filebuff), "%s", buffer);
+            std::snprintf(filebuff, sizeof(filebuff), "[GAME] %s", buffer);
 
             write_to_file = true;
 
@@ -481,7 +481,7 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 
             Vinifera_Output_Debug_String(buffer);
 
-            std::snprintf(filebuff, sizeof(filebuff), "%s", buffer);
+            std::snprintf(filebuff, sizeof(filebuff), "[INFO] %s", buffer);
 
             write_to_file = true;
 

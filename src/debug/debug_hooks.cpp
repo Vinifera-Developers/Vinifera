@@ -75,6 +75,32 @@ static void __cdecl Debug_Print_Line(const char *fmt, ...)
 
 
 /**
+ *  Prints an informal string to the debug handler.
+ * 
+ *  @author: CCHyper
+ */
+static void __cdecl Debug_Print_Info(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    std::string tmp = fmt;
+
+    char buffer[4096];
+    vsprintf(buffer, tmp.c_str(), args);
+
+    /**
+     *  Re-escape any % signs.
+     */
+    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
+
+    DEBUG_INFO(buffer);
+
+    va_end(args);
+}
+
+
+/**
  *  Prints an warning string to the debug handler.
  * 
  *  @author: CCHyper
@@ -143,346 +169,1361 @@ static void __cdecl Debug_Print_Dummy(const char *fmt, ...)
  */
 static void Debug_Print_Patch()
 {
-    Patch_Call(0x00419A4B, &Debug_Print_Warning);
-    Patch_Call(0x00419B67, &Debug_Print_Warning);
-    Patch_Call(0x0041D95C, &Debug_Print_Warning);
-    Patch_Call(0x0041D9A8, &Debug_Print_Warning);
-    Patch_Call(0x0041DA2F, &Debug_Print_Warning);
-    Patch_Call(0x0044EB65, &Debug_Print_Error);
-    Patch_Call(0x0044EBB9, &Debug_Print_Error);
-    Patch_Call(0x0044EC0D, &Debug_Print_Error);
-    Patch_Call(0x0044ECAE, &Debug_Print_Error);
-    Patch_Call(0x0044ED18, &Debug_Print_Error);
-    Patch_Call(0x0044ED36, &Debug_Print_Error);
-    Patch_Call(0x0044EE67, &Debug_Print_Error);
-    Patch_Call(0x0044EEAC, &Debug_Print_Error);
-    Patch_Call(0x0044EF5C, &Debug_Print_Error);
-    Patch_Call(0x0044F051, &Debug_Print_Error);
-    Patch_Call(0x0044F09A, &Debug_Print_Error);
-    Patch_Call(0x0044F0E7, &Debug_Print_Error);
-    Patch_Call(0x0044F119, &Debug_Print_Error);
-    Patch_Call(0x0044F22E, &Debug_Print_Error);
-    Patch_Call(0x0044F273, &Debug_Print_Error);
-    Patch_Call(0x0044F2C0, &Debug_Print_Error);
-    Patch_Call(0x0044F2F2, &Debug_Print_Error);
-    Patch_Call(0x0044F428, &Debug_Print_Error);
-    Patch_Call(0x0044F463, &Debug_Print_Error);
-    Patch_Call(0x0044F4B0, &Debug_Print_Error);
-    Patch_Call(0x0044F4E2, &Debug_Print_Error);
-    Patch_Call(0x0044F59F, &Debug_Print_Error);
-    Patch_Call(0x0044F61E, &Debug_Print_Error);
-    Patch_Call(0x0044F68E, &Debug_Print_Error);
-    Patch_Call(0x0044F6F7, &Debug_Print_Error);
-    Patch_Call(0x0044F752, &Debug_Print_Error);
-    Patch_Call(0x0044F797, &Debug_Print_Error);
-    Patch_Call(0x0044F843, &Debug_Print_Error);
-    Patch_Call(0x0044F88E, &Debug_Print_Error);
-    Patch_Call(0x0044F8D4, &Debug_Print_Error);
-    Patch_Call(0x0044F914, &Debug_Print_Error);
-    Patch_Call(0x0044F94A, &Debug_Print_Error);
-    Patch_Call(0x0044FA00, &Debug_Print_Error);
-    Patch_Call(0x0044FA4A, &Debug_Print_Error);
-    Patch_Call(0x0044FA97, &Debug_Print_Error);
-    Patch_Call(0x0044FAC9, &Debug_Print_Error);
-    Patch_Call(0x0044FB90, &Debug_Print_Error);
-    Patch_Call(0x0044FBDA, &Debug_Print_Error);
-    Patch_Call(0x0044FC27, &Debug_Print_Error);
-    Patch_Call(0x0044FC59, &Debug_Print_Error);
-    Patch_Call(0x0044FCDF, &Debug_Print_Error);
-    Patch_Call(0x0044FD0A, &Debug_Print_Error);
-    Patch_Call(0x0044FD7C, &Debug_Print_Error);
-    Patch_Call(0x0044FD96, &Debug_Print_Error);
-    Patch_Call(0x0044FE3D, &Debug_Print_Error);
-    Patch_Call(0x0044FE7F, &Debug_Print_Error);
-    Patch_Call(0x0044FF5D, &Debug_Print_Error);
-    Patch_Call(0x0044FF9F, &Debug_Print_Error);
-    Patch_Call(0x00450136, &Debug_Print_Error);
-    Patch_Call(0x00450158, &Debug_Print_Error);
-    Patch_Call(0x00450202, &Debug_Print_Error);
-    Patch_Call(0x00450294, &Debug_Print_Error);
-    Patch_Call(0x004503A0, &Debug_Print_Error);
-    Patch_Call(0x004503E5, &Debug_Print_Error);
-    Patch_Call(0x004503F4, &Debug_Print_Error);
-    Patch_Call(0x00450403, &Debug_Print_Error);
-    Patch_Call(0x00450412, &Debug_Print_Error);
-    Patch_Call(0x00450422, &Debug_Print_Error);
-    Patch_Call(0x004505AB, &Debug_Print_Error);
-    Patch_Call(0x00456241, &Debug_Print_Error);
-    Patch_Call(0x00460FE8, &Debug_Print_Error);
-    Patch_Call(0x00461004, &Debug_Print_Warning);
-    Patch_Call(0x004611FE, &Debug_Print_Error);
-    Patch_Call(0x00461F3C, &Debug_Print_Error);
-    Patch_Call(0x00463298, &Debug_Print_Error);
-    Patch_Call(0x004632E3, &Debug_Print_Error);
-    Patch_Call(0x004632F2, &Debug_Print_Error);
-    Patch_Call(0x00472B0E, &Debug_Print_Error);
-    Patch_Call(0x00472B4B, &Debug_Print_Error);
-    Patch_Call(0x00472E3E, &Debug_Print_Error);
-    Patch_Call(0x00472E79, &Debug_Print_Error);
-    Patch_Call(0x00472F78, &Debug_Print_Error);
-    Patch_Call(0x00472FB9, &Debug_Print_Error);
-    Patch_Call(0x00487B62, &Debug_Print_Error);
-    Patch_Call(0x00487C98, &Debug_Print_Error);
-    Patch_Call(0x00487CB4, &Debug_Print_Error);
-    Patch_Call(0x00487D3E, &Debug_Print_Error);
-    Patch_Call(0x00487EA2, &Debug_Print_Error);
-    Patch_Call(0x00487F6F, &Debug_Print_Error);
-    Patch_Call(0x00487F92, &Debug_Print_Warning);
-    Patch_Call(0x00488027, &Debug_Print_Error);
-    Patch_Call(0x0048803F, &Debug_Print_Warning);
-    Patch_Call(0x004880D8, &Debug_Print_Error);
-    Patch_Call(0x004881B0, &Debug_Print_Error);
-    Patch_Call(0x00488258, &Debug_Print_Error);
-    Patch_Call(0x004883AC, &Debug_Print_Warning);
-    Patch_Call(0x0048842D, &Debug_Print_Warning);
-    Patch_Call(0x004884BB, &Debug_Print_Warning);
-    Patch_Call(0x00488596, &Debug_Print_Warning);
-    Patch_Call(0x004886C2, &Debug_Print_Warning);
-    Patch_Call(0x00488716, &Debug_Print_Warning);
-    Patch_Call(0x004887FC, &Debug_Print_Warning);
-    Patch_Call(0x00488870, &Debug_Print_Warning);
-    Patch_Call(0x00488900, &Debug_Print_Warning);
-    Patch_Call(0x004889F8, &Debug_Print_Warning);
-    Patch_Call(0x00488B49, &Debug_Print_Warning);
-    Patch_Call(0x00488CB7, &Debug_Print_Error);
-    Patch_Call(0x0048966E, &Debug_Print_Warning);
-    Patch_Call(0x004896F4, &Debug_Print_Warning);
-    Patch_Call(0x00489A93, &Debug_Print_Warning);
-    Patch_Call(0x00489B61, &Debug_Print_Warning);
-    Patch_Call(0x00489DD7, &Debug_Print_Warning);
-    Patch_Call(0x00489E89, &Debug_Print_Warning);
-    Patch_Call(0x00489F94, &Debug_Print_Warning);
-    Patch_Call(0x0048A070, &Debug_Print_Warning);
-    Patch_Call(0x0048A1A1, &Debug_Print_Warning);
-    Patch_Call(0x0048A290, &Debug_Print_Warning);
-    Patch_Call(0x0048A380, &Debug_Print_Warning);
-    Patch_Call(0x0048A463, &Debug_Print_Warning);
-    Patch_Call(0x0048A583, &Debug_Print_Warning);
-    Patch_Call(0x0048A62C, &Debug_Print_Warning);
-    Patch_Call(0x0048AF1B, &Debug_Print_Error);
-    Patch_Call(0x0048B22A, &Debug_Print_Error);
-    Patch_Call(0x0049555A, &Debug_Print_Error);
-    Patch_Call(0x0049569A, &Debug_Print_Error);
-    Patch_Call(0x0049572D, &Debug_Print_Error);
-    Patch_Call(0x00495A24, &Debug_Print_Error);
-    Patch_Call(0x00496359, &Debug_Print_Error);
-    Patch_Call(0x00496454, &Debug_Print_Error);
-    Patch_Call(0x00498839, &Debug_Print_Error);
-    Patch_Call(0x0049886C, &Debug_Print_Error);
-    Patch_Call(0x004AB962, &Debug_Print_Warning);
-    Patch_Call(0x004BE280, &Debug_Print_Warning);
-    Patch_Call(0x004BE2D9, &Debug_Print_Warning);
-    Patch_Call(0x004BE30E, &Debug_Print_Warning);
-    Patch_Call(0x004BE3F7, &Debug_Print_Warning);
-    Patch_Call(0x004BECBD, &Debug_Print_Warning);
-    Patch_Call(0x004DFBAC, &Debug_Print_Error);
-    Patch_Call(0x004DFBF0, &Debug_Print_Error);
-    Patch_Call(0x004DFD28, &Debug_Print_Error);
-    Patch_Call(0x004E049B, &Debug_Print_Error);
-    Patch_Call(0x004E0509, &Debug_Print_Error);
-    Patch_Call(0x004E06DD, &Debug_Print_Error);
-    Patch_Call(0x004E06FA, &Debug_Print_Warning);
-    Patch_Call(0x004E08AB, &Debug_Print_Error);
-    Patch_Call(0x004E093A, &Debug_Print_Error);
-    Patch_Call(0x004E09AA, &Debug_Print_Error);
-    Patch_Call(0x004E09FC, &Debug_Print_Error);
-    Patch_Call(0x004E0A34, &Debug_Print_Error);
-    Patch_Call(0x004E0AD1, &Debug_Print_Error);
-    Patch_Call(0x004E0B1A, &Debug_Print_Error);
-    Patch_Call(0x004E1149, &Debug_Print_Error);
-    Patch_Call(0x004E123E, &Debug_Print_Error);
-    Patch_Call(0x004E15A3, &Debug_Print_Error);
-    Patch_Call(0x004E48C9, &Debug_Print_Error);
-    Patch_Call(0x004E493C, &Debug_Print_Error);
-    Patch_Call(0x004E723B, &Debug_Print_Error);
-    Patch_Call(0x004E816E, &Debug_Print_Error);
-    Patch_Call(0x004E8191, &Debug_Print_Error);
-    Patch_Call(0x004E8426, &Debug_Print_Error);
-    Patch_Call(0x004E86C5, &Debug_Print_Error);
-    Patch_Call(0x004EFE0A, &Debug_Print_Error);
-    Patch_Call(0x004F093F, &Debug_Print_Error);
-    Patch_Call(0x004F0D2B, &Debug_Print_Warning);
-    Patch_Call(0x004F0D7D, &Debug_Print_Error);
-    Patch_Call(0x0055372D, &Debug_Print_Error);
-    Patch_Call(0x00553CD0, &Debug_Print_Error);
-    Patch_Call(0x00553CFC, &Debug_Print_Error);
-    Patch_Call(0x0055C2D8, &Debug_Print_Error);
-    Patch_Call(0x0055FC7E, &Debug_Print_Error);
-    Patch_Call(0x00560915, &Debug_Print_Error);
-    Patch_Call(0x00560B91, &Debug_Print_Error);
-    Patch_Call(0x00560F2D, &Debug_Print_Error);
-    Patch_Call(0x00560F6A, &Debug_Print_Error);
-    Patch_Call(0x00561634, &Debug_Print_Error);
-    Patch_Call(0x005684BA, &Debug_Print_Error);
-    Patch_Call(0x0056E273, &Debug_Print_Error);
-    Patch_Call(0x0056E383, &Debug_Print_Error);
-    Patch_Call(0x0056E3D9, &Debug_Print_Error);
-    Patch_Call(0x0056E5F4, &Debug_Print_Error);
-    Patch_Call(0x005724E7, &Debug_Print_Error);
-    Patch_Call(0x0057B56E, &Debug_Print_Error);
-    Patch_Call(0x0057D78E, &Debug_Print_Warning);
-    Patch_Call(0x0057EDDF, &Debug_Print_Warning);
-    Patch_Call(0x00581BBC, &Debug_Print_Error);
-    Patch_Call(0x00581C8F, &Debug_Print_Error);
-    Patch_Call(0x00581D4D, &Debug_Print_Error);
-    Patch_Call(0x00581E2B, &Debug_Print_Error);
-    Patch_Call(0x00581E42, &Debug_Print_Error);
-    Patch_Call(0x00581E67, &Debug_Print_Error);
-    Patch_Call(0x00581E8C, &Debug_Print_Error);
-    Patch_Call(0x00581EAE, &Debug_Print_Error);
-    Patch_Call(0x00581ED0, &Debug_Print_Error);
-    Patch_Call(0x00581EF2, &Debug_Print_Error);
-    Patch_Call(0x005820BC, &Debug_Print_Error);
-    Patch_Call(0x0058218F, &Debug_Print_Error);
-    Patch_Call(0x0058224D, &Debug_Print_Error);
-    Patch_Call(0x00582306, &Debug_Print_Warning);
-    Patch_Call(0x0058231D, &Debug_Print_Warning);
-    Patch_Call(0x0058233F, &Debug_Print_Warning);
-    Patch_Call(0x00582361, &Debug_Print_Warning);
-    Patch_Call(0x00582383, &Debug_Print_Warning);
-    Patch_Call(0x00582893, &Debug_Print_Warning);
-    Patch_Call(0x00582E6F, &Debug_Print_Warning);
-    Patch_Call(0x00582F04, &Debug_Print_Error);
-    Patch_Call(0x005831ED, &Debug_Print_Error);
-    Patch_Call(0x00583489, &Debug_Print_Error);
-    Patch_Call(0x00583549, &Debug_Print_Error);
-    Patch_Call(0x0058360D, &Debug_Print_Error);
-    Patch_Call(0x005836BC, &Debug_Print_Error);
-    Patch_Call(0x0058384F, &Debug_Print_Error);
-    Patch_Call(0x00583898, &Debug_Print_Error);
-    Patch_Call(0x00583B24, &Debug_Print_Warning);
-    Patch_Call(0x00583EF1, &Debug_Print_Warning);
-    Patch_Call(0x0058C949, &Debug_Print_Warning);
-    Patch_Call(0x005B1E56, &Debug_Print_Error);
-    Patch_Call(0x005B226C, &Debug_Print_Warning);
-    Patch_Call(0x005B4300, &Debug_Print_Error);
-    Patch_Call(0x005B5974, &Debug_Print_Error);
-    Patch_Call(0x005B8478, &Debug_Print_Warning);
-    Patch_Call(0x005C0B07, &Debug_Print_Error);
-    Patch_Call(0x005C0C66, &Debug_Print_Error);
-    Patch_Call(0x005D515E, &Debug_Print_Error);
-    Patch_Call(0x005D51CE, &Debug_Print_Error);
-    Patch_Call(0x005D5288, &Debug_Print_Error);
-    Patch_Call(0x005D5341, &Debug_Print_Error);
-    Patch_Call(0x005D53F4, &Debug_Print_Error);
-    Patch_Call(0x005D5613, &Debug_Print_Error);
-    Patch_Call(0x005D565D, &Debug_Print_Error);
-    Patch_Call(0x005D6160, &Debug_Print_Error);
-    Patch_Call(0x005D639F, &Debug_Print_Error);
-    Patch_Call(0x005D63D3, &Debug_Print_Error);
-    Patch_Call(0x005D6407, &Debug_Print_Error);
-    Patch_Call(0x005D643B, &Debug_Print_Error);
-    Patch_Call(0x005D646F, &Debug_Print_Error);
-    Patch_Call(0x005D64A3, &Debug_Print_Error);
-    Patch_Call(0x005D64D7, &Debug_Print_Error);
-    Patch_Call(0x005D650B, &Debug_Print_Error);
-    Patch_Call(0x005D653F, &Debug_Print_Error);
-    Patch_Call(0x005D6573, &Debug_Print_Error);
-    Patch_Call(0x005D65A7, &Debug_Print_Error);
-    Patch_Call(0x005D65DB, &Debug_Print_Error);
-    Patch_Call(0x005D660F, &Debug_Print_Error);
-    Patch_Call(0x005D6643, &Debug_Print_Error);
-    Patch_Call(0x005D6677, &Debug_Print_Error);
-    Patch_Call(0x005D66AB, &Debug_Print_Error);
-    Patch_Call(0x005D66DF, &Debug_Print_Error);
-    Patch_Call(0x005D6713, &Debug_Print_Error);
-    Patch_Call(0x005D6747, &Debug_Print_Error);
-    Patch_Call(0x005D677B, &Debug_Print_Error);
-    Patch_Call(0x005D67AF, &Debug_Print_Error);
-    Patch_Call(0x005D67E3, &Debug_Print_Error);
-    Patch_Call(0x005D6817, &Debug_Print_Error);
-    Patch_Call(0x005D684B, &Debug_Print_Error);
-    Patch_Call(0x005D687A, &Debug_Print_Error);
-    Patch_Call(0x005D68A9, &Debug_Print_Error);
-    Patch_Call(0x005D68E5, &Debug_Print_Error);
-    Patch_Call(0x005D78D8, &Debug_Print_Error);
-    Patch_Call(0x005D91B2, &Debug_Print_Error);
-    Patch_Call(0x005DB8ED, &Debug_Print_Warning);
-    Patch_Call(0x005DB934, &Debug_Print_Warning);
-    Patch_Call(0x005DBED2, &Debug_Print_Error);
-    Patch_Call(0x005DD1C0, &Debug_Print_Error);
-    Patch_Call(0x005EA9E7, &Debug_Print_Warning);
-    Patch_Call(0x005EF1F7, &Debug_Print_Error);
-    Patch_Call(0x005FFCA8, &Debug_Print_Error);
-    Patch_Call(0x005FFCF8, &Debug_Print_Error);
-    Patch_Call(0x005FFD1C, &Debug_Print_Error);
-    Patch_Call(0x006655B3, &Debug_Print_Error);
-    Patch_Call(0x0066561F, &Debug_Print_Error);
-    Patch_Call(0x00681DBA, &Debug_Print_Error);
-    Patch_Call(0x00681EB5, &Debug_Print_Error);
-    Patch_Call(0x00681EF4, &Debug_Print_Error);
-    Patch_Call(0x00681FF0, &Debug_Print_Error);
-    Patch_Call(0x00682007, &Debug_Print_Error);
-    Patch_Call(0x0068204B, &Debug_Print_Error);
-    Patch_Call(0x00682106, &Debug_Print_Error);
-    Patch_Call(0x0068212B, &Debug_Print_Error);
-    Patch_Call(0x00682228, &Debug_Print_Error);
-    Patch_Call(0x006822F9, &Debug_Print_Error);
-    Patch_Call(0x00682404, &Debug_Print_Error);
-    Patch_Call(0x006825A7, &Debug_Print_Error);
-    Patch_Call(0x006829D9, &Debug_Print_Error);
-    Patch_Call(0x00682B1D, &Debug_Print_Error);
-    Patch_Call(0x00682CEC, &Debug_Print_Error);
-    Patch_Call(0x00682DDA, &Debug_Print_Error);
-    Patch_Call(0x00682DF3, &Debug_Print_Warning);
-    Patch_Call(0x00682E05, &Debug_Print_Error);
-    Patch_Call(0x00682E1E, &Debug_Print_Error);
-    Patch_Call(0x00682E37, &Debug_Print_Error);
-    Patch_Call(0x00682E50, &Debug_Print_Error);
-    Patch_Call(0x00682E69, &Debug_Print_Error);
-    Patch_Call(0x006885CA, &Debug_Print_Error);
-    Patch_Call(0x0068CAD6, &Debug_Print_Error);
-    Patch_Call(0x00692EB4, &Debug_Print_Error);
-    Patch_Call(0x00697FCF, &Debug_Print_Warning);
-    Patch_Call(0x0069A832, &Debug_Print_Warning);
-    Patch_Call(0x0069BED7, &Debug_Print_Error);
-    Patch_Call(0x0069C5FC, &Debug_Print_Error);
-    Patch_Call(0x0069C852, &Debug_Print_Error);
-    Patch_Call(0x006A03FF, &Debug_Print_Error);
-    Patch_Call(0x006A040E, &Debug_Print_Warning);
-    Patch_Call(0x006A0641, &Debug_Print_Error);
-    Patch_Call(0x006A0687, &Debug_Print_Error);
-    Patch_Call(0x006A075E, &Debug_Print_Error);
-    Patch_Call(0x006A07CC, &Debug_Print_Error);
-    Patch_Call(0x006A081D, &Debug_Print_Error);
-    Patch_Call(0x006A086E, &Debug_Print_Error);
-    Patch_Call(0x006A0B30, &Debug_Print_Warning);
-    Patch_Call(0x006A1058, &Debug_Print_Error);
-    Patch_Call(0x006A11FB, &Debug_Print_Error);
-    Patch_Call(0x006A126A, &Debug_Print_Error);
-    Patch_Call(0x006A1382, &Debug_Print_Error);
-    Patch_Call(0x006A1770, &Debug_Print_Error);
-    Patch_Call(0x006A17B5, &Debug_Print_Error);
-    Patch_Call(0x006A17F0, &Debug_Print_Error);
-    Patch_Call(0x006A223B, &Debug_Print_Error);
-    Patch_Call(0x006A2692, &Debug_Print_Warning);
-    Patch_Call(0x006A4E61, &Debug_Print_Warning);
-    Patch_Call(0x006A4F09, &Debug_Print_Warning);
-    Patch_Call(0x006A4F6E, &Debug_Print_Warning);
-    Patch_Call(0x006A52E9, &Debug_Print_Warning);
-    Patch_Call(0x006A5321, &Debug_Print_Warning);
-    Patch_Call(0x006A53EF, &Debug_Print_Warning);
-    Patch_Call(0x006A5741, &Debug_Print_Warning);
-    Patch_Call(0x006A5839, &Debug_Print_Warning);
-    Patch_Call(0x006A5A77, &Debug_Print_Warning);
-    Patch_Call(0x006A5C26, &Debug_Print_Warning);
-    Patch_Call(0x006A5E0B, &Debug_Print_Warning);
-    Patch_Call(0x006A5E64, &Debug_Print_Warning);
-    Patch_Call(0x006A5F5C, &Debug_Print_Warning);
-    Patch_Call(0x006A6025, &Debug_Print_Warning);
-    Patch_Call(0x006A6061, &Debug_Print_Warning);
-    Patch_Call(0x006A6184, &Debug_Print_Warning);
-    Patch_Call(0x006A61BF, &Debug_Print_Warning);
-    Patch_Call(0x006A629A, &Debug_Print_Warning);
-    Patch_Call(0x006A633A, &Debug_Print_Warning);
-    Patch_Call(0x006A648F, &Debug_Print_Warning);
-    Patch_Call(0x006A6505, &Debug_Print_Warning);
-    Patch_Call(0x006A65DD, &Debug_Print_Warning);
-    Patch_Call(0x006A66FA, &Debug_Print_Warning);
-    Patch_Call(0x006A679F, &Debug_Print_Warning);
-    Patch_Call(0x006A67FF, &Debug_Print_Warning);
-    Patch_Call(0x006A6862, &Debug_Print_Warning);
-    Patch_Call(0x006A68D5, &Debug_Print_Warning);
+    Patch_Call(0x004072FF, &Debug_Print_Info);    //"Ahandle: Paused %ld\n"
+    Patch_Call(0x00407580, &Debug_Print_Info);    //"Ahandle: PauseAdjust %ld\n"
+    Patch_Call(0x0040765A, &Debug_Print_Info);    //"Opening VQ audio handler\n"
+    Patch_Call(0x0040766E, &Debug_Print_Info);    //"Current thread ID is %08x\n"
+    Patch_Call(0x0040775D, &Debug_Print_Info);    //"Audio.Lock_Mutex\n"
+    Patch_Call(0x00407792, &Debug_Print_Info);    //"Ahandle detected emulated sound driver. LatencyAdjustment = %ld ticks\n"
+    Patch_Call(0x004077AB, &Debug_Print_Info);    //"Audio.Get_Primary_Buffer()\n"
+    Patch_Call(0x004077ED, &Debug_Print_Info);    //"Getting current primary buffer format\n"
+    Patch_Call(0x00407844, &Debug_Print_Info);    //"Changing primary buffer format\n"
+    Patch_Call(0x0040785B, &Debug_Print_Info);    //"Primary buffer stopped\n"
+    Patch_Call(0x004078C5, &Debug_Print_Info);    //"Primary buffer format changed\n"
+    Patch_Call(0x004078DE, &Debug_Print_Info);    //"Audio.Unlock_Mutex\n"
+    Patch_Call(0x00407918, &Debug_Print_Info);    //"Calling timeBeginPeriod\n"
+    Patch_Call(0x00407934, &Debug_Print_Info);    //"Creating VQ audio timer thread\n"
+    Patch_Call(0x00407956, &Debug_Print_Info);    //"VQ audio handler opened OK\n"
+    Patch_Call(0x00407987, &Debug_Print_Info);    //"Closing VQ audio handler\n"
+    Patch_Call(0x004079C6, &Debug_Print_Info);    //"Stop_Audio_Handler\n"
+    Patch_Call(0x00407A34, &Debug_Print_Info);    //"Calling timeKillEvent\n"
+    Patch_Call(0x00407A4E, &Debug_Print_Info);    //"Calling timeEndPeriod\n"
+    Patch_Call(0x00407A6F, &Debug_Print_Info);    //"Changing primary buffer format back to original\n"
+    Patch_Call(0x00407A7F, &Debug_Print_Info);    //"Audio.Lock_Mutex()\n"
+    Patch_Call(0x00407A96, &Debug_Print_Info);    //"Stopping primary buffer\n"
+    Patch_Call(0x00407AAD, &Debug_Print_Info);    //"Calling SetFormat\n"
+    Patch_Call(0x00407AD5, &Debug_Print_Info);    //"Audio.Unlock_Mutex()\n"
+    Patch_Call(0x00407AEC, &Debug_Print_Info);    //"Deleting the critical section object\n"
+    Patch_Call(0x00407B07, &Debug_Print_Info);    //"VQ audio handler closed OK\n"
+    Patch_Call(0x00407B90, &Debug_Print_Info);    //"Ahandle: PauseAdjust %ld\n"
+    Patch_Call(0x00407FA1, &Debug_Print_Info);    //"Ahandle: PauseAdjust %ld\n"
+    Patch_Call(0x0040A75D, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - LAND - Dropping off cargo\n"
+    Patch_Call(0x0040A97D, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - VALIDATE_LZ\n"
+    Patch_Call(0x0040A994, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - VALIDATE_LZ - NavCom == NULL\n"
+    Patch_Call(0x0040AA47, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - VALIDATE_LZ - target != NULL\n"
+    Patch_Call(0x0040AA84, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - VALIDATE_LZ - RADIO_HELLO got RADIO_ROGER\n"
+    Patch_Call(0x0040AAA9, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - VALIDATE_LZ - RADIO_WANT_RIDE did not get RADIO_ROGER\n"
+    Patch_Call(0x0040AB27, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - VALIDATE_LZ - Status = TAKE_OFF\n"
+    Patch_Call(0x0040ABE6, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - FLY_TO_LZ - Lost contact\n"
+    Patch_Call(0x0040AC66, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - FLY_TO_LZ - Begin landing\n"
+    Patch_Call(0x0040AD08, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - FLY_TO_LZ - Target moved\n"
+    Patch_Call(0x0040AD4D, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - FLY_TO_LZ - Stopped moving\n"
+    Patch_Call(0x0040AD6E, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - LAND\n"
+    Patch_Call(0x0040ADD5, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - LAND - Picking up cargo\n"
+    Patch_Call(0x0040AE40, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - LAND - Got Cell_Unit\n"
+    Patch_Call(0x0040AE64, &Debug_Print_Info);    //"Do_MISSION_MOVE_Carryall - LAND - RADIO_NEED_TO_MOVE got RADIO_ROGER\n"
+    Patch_Call(0x00419A4B, &Debug_Print_Warning); //"Demand loading image for %s\n"
+    Patch_Call(0x00419B67, &Debug_Print_Warning); //"Freeing loaded image for %s\n"
+    Patch_Call(0x0041D95C, &Debug_Print_Warning); //"Hierarchical findpath failure: (%d,%d) to (%d, %d)\n"
+    Patch_Call(0x0041D9A8, &Debug_Print_Warning); //"Warning.  A* without HS: (%d,%d) to (%d, %d)\n"
+    Patch_Call(0x0041DA2F, &Debug_Print_Warning); //"Regular findpath failure: (%d,%d) to (%d, %d)\n"
+    Patch_Call(0x0042BDAA, &Debug_Print_Info);    //"Creating survivor type '%s' from building type '%s'\n"
+    Patch_Call(0x0042BE80, &Debug_Print_Info);    //"Survivor unlimbo OK\n"
+    Patch_Call(0x00430031, &Debug_Print_Info);    //"Weapons factory clearing %s from bib\n"
+    Patch_Call(0x00430089, &Debug_Print_Info);    //"Weapons factory clearing %s from bib area\n"
+    Patch_Call(0x00433647, &Debug_Print_Info);    //"Weapons factory bib clear - kicking out unit\n"
+    Patch_Call(0x0044E987, &Debug_Print_Info);    //"***** Swapping to disk %d *****\n"
+    Patch_Call(0x0044E9BE, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x0044E9EE, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x0044EA1E, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x0044EA4E, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x0044EA7E, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x0044EAAE, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x0044EB13, &Debug_Print_Info);    //"     Initialized %s\n"
+    Patch_Call(0x0044EB33, &Debug_Print_Info);    //"     Initializing %s\n"
+    Patch_Call(0x0044EB65, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x0044EB87, &Debug_Print_Info);    //"     Initializing Multi.Mix\n"
+    Patch_Call(0x0044EBB9, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x0044EBDB, &Debug_Print_Info);    //"     Initializing SCORES.MIX\n"
+    Patch_Call(0x0044EC0D, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x0044EC7C, &Debug_Print_Info);    //"     Initializing SCORES01.MIX\n"
+    Patch_Call(0x0044ECAE, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x0044ECDA, &Debug_Print_Info);    //"     Initializing %s\n"
+    Patch_Call(0x0044ED18, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x0044ED36, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x0044EE15, &Debug_Print_Info);    //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044EE67, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044EEAC, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044EF5C, &Debug_Print_Error);   //"DeviceIoControl failed to eject media. Error %d - %s\n"
+    Patch_Call(0x0044EFB6, &Debug_Print_Info);    //"LockCount on drive %c is %d\n"
+    Patch_Call(0x0044EFFF, &Debug_Print_Info);    //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044F051, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044F09A, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044F0E7, &Debug_Print_Error);   //"DeviceIoControl failed to prevent media removal. Error %d - %s\n"
+    Patch_Call(0x0044F119, &Debug_Print_Error);   //"DeviceIoControl failed to unlock volume. Error %d - %s\n"
+    Patch_Call(0x0044F199, &Debug_Print_Info);    //"LockCount on drive %c is %d\n"
+    Patch_Call(0x0044F1E0, &Debug_Print_Error);   //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044F22E, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044F273, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044F2C0, &Debug_Print_Error);   //"DeviceIoControl failed to prevent media removal. Error %d - %s\n"
+    Patch_Call(0x0044F2F2, &Debug_Print_Error);   //"DeviceIoControl failed to unlock volume. Error %d - %s\n"
+    Patch_Call(0x0044F37C, &Debug_Print_Info);    //"LockCount on drive %c is %d\n"
+    Patch_Call(0x0044F3DC, &Debug_Print_Info);    //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044F428, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044F463, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044F4B0, &Debug_Print_Error);   //"DeviceIoControl failed to prevent media removal. Error %d - %s\n"
+    Patch_Call(0x0044F4E2, &Debug_Print_Error);   //"DeviceIoControl failed to unlock volume. Error %d - %s\n"
+    Patch_Call(0x0044F54A, &Debug_Print_Info);    //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044F59F, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044F61E, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044F68E, &Debug_Print_Error);   //"DeviceIoControl failed to unlock volume. Error %d - %s\n"
+    Patch_Call(0x0044F6F7, &Debug_Print_Error);   //"DeviceIoControl failed to dismount volume. Error %d - %s\n"
+    Patch_Call(0x0044F752, &Debug_Print_Error);   //"DeviceIoControl failed to prevent media removal. Error %d - %s\n"
+    Patch_Call(0x0044F797, &Debug_Print_Error);   //"DeviceIoControl failed to eject media. Error %d - %s\n"
+    Patch_Call(0x0044F7EF, &Debug_Print_Info);    //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044F843, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044F88E, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044F8D4, &Debug_Print_Error);   //"DeviceIoControl failed to dismount volume. Error %d - %s\n"
+    Patch_Call(0x0044F914, &Debug_Print_Error);   //"DeviceIoControl failed to prevent media removal. Error %d - %s\n"
+    Patch_Call(0x0044F94A, &Debug_Print_Error);   //"DeviceIoControl failed to eject media. Error %d - %s\n"
+    Patch_Call(0x0044F9AB, &Debug_Print_Info);    //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044FA00, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044FA4A, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044FA97, &Debug_Print_Error);   //"DeviceIoControl failed to prevent media removal. Error %d - %s\n"
+    Patch_Call(0x0044FAC9, &Debug_Print_Error);   //"DeviceIoControl failed to unlock volume. Error %d - %s\n"
+    Patch_Call(0x0044FB3B, &Debug_Print_Info);    //"Attempt to open non-removable volume for locking or ejection\n"
+    Patch_Call(0x0044FB90, &Debug_Print_Error);   //"Unable to open drive %c: for ejection\n"
+    Patch_Call(0x0044FBDA, &Debug_Print_Error);   //"DeviceIoControl failed to lock volume. Error %d - %s\n"
+    Patch_Call(0x0044FC27, &Debug_Print_Error);   //"DeviceIoControl failed to prevent media removal. Error %d - %s\n"
+    Patch_Call(0x0044FC59, &Debug_Print_Error);   //"DeviceIoControl failed to unlock volume. Error %d - %s\n"
+    Patch_Call(0x0044FCDF, &Debug_Print_Error);   //"Unable to lock volume %c:\n"
+    Patch_Call(0x0044FD0A, &Debug_Print_Error);   //"Could not unlock media from drive %c:\n"
+    Patch_Call(0x0044FD7C, &Debug_Print_Error);   //"DeviceIoControl failed to perform DOS IO control function. Error %d - %s\n"
+    Patch_Call(0x0044FD96, &Debug_Print_Error);   //"Could not eject media from drive %c:\n"
+    Patch_Call(0x0044FDCC, &Debug_Print_Info);    //"CDControlClass::Lock_CD_Drive_95\n"
+    Patch_Call(0x0044FDE6, &Debug_Print_Info);    //"Preventing ejection on CD drive %c\n"
+    Patch_Call(0x0044FE15, &Debug_Print_Info);    //"About to lock logical volume to enable exclusive access\n"
+    Patch_Call(0x0044FE3D, &Debug_Print_Error);   //"Unable to lock volume %c:\n"
+    Patch_Call(0x0044FE54, &Debug_Print_Info);    //"Volume locked OK\n"
+    Patch_Call(0x0044FE5E, &Debug_Print_Info);    //"About to prevent CD tray ejection\n"
+    Patch_Call(0x0044FE7F, &Debug_Print_Error);   //"Could not lock CD tray in drive %c:\n"
+    Patch_Call(0x0044FE90, &Debug_Print_Info);    //"CD tray ejection disabled OK\n"
+    Patch_Call(0x0044FEBF, &Debug_Print_Info);    //"CDControlClass::Lock_CD_Drive_95 returning %s\n"
+    Patch_Call(0x0044FEEC, &Debug_Print_Info);    //"CDControlClass::Unlock_CD_Drive_95\n"
+    Patch_Call(0x0044FF06, &Debug_Print_Info);    //"Allowing ejection on CD drive %c\n"
+    Patch_Call(0x0044FF35, &Debug_Print_Info);    //"About to lock logical volume to enable exclusive access\n"
+    Patch_Call(0x0044FF5D, &Debug_Print_Error);   //"Unable to lock volume %c:\n"
+    Patch_Call(0x0044FF74, &Debug_Print_Info);    //"Volume locked OK\n"
+    Patch_Call(0x0044FF7E, &Debug_Print_Info);    //"About to allow CD tray ejection\n"
+    Patch_Call(0x0044FF9F, &Debug_Print_Error);   //"Could not unlock CD tray in drive %c:\n"
+    Patch_Call(0x0044FFB0, &Debug_Print_Info);    //"CD tray ejection enabled OK\n"
+    Patch_Call(0x0044FFDF, &Debug_Print_Info);    //"CDControlClass::Unlock_CD_Drive_95 returning %s\n"
+    Patch_Call(0x0045009C, &Debug_Print_Info);    //"Apparent number of locks to undo = %d\n"
+    Patch_Call(0x00450136, &Debug_Print_Error);   //"DeviceIoControl failed to perform DOS IO control function. Error %d - %s\n"
+    Patch_Call(0x00450158, &Debug_Print_Error);   //"DeviceIoControl failed to perform DOS IO control function. Error %d - %s\n"
+    Patch_Call(0x00450202, &Debug_Print_Error);   //"DeviceIoControl failed to perform DOS IO control function. Error %d - %s\n"
+    Patch_Call(0x00450294, &Debug_Print_Error);   //"DeviceIoControl failed to perform DOS IO control function. Error %d - %s\n"
+    Patch_Call(0x004503A0, &Debug_Print_Error);   //"DeviceIoControl failed to perform DOS IO control function. Error %d - %s\n"
+    Patch_Call(0x004503E5, &Debug_Print_Error);   //"LOCK return eax error 'Function not supported'\n"
+    Patch_Call(0x004503F4, &Debug_Print_Error);   //"LOCK return eax error 'Volume not locked in drive'\n"
+    Patch_Call(0x00450403, &Debug_Print_Error);   //"LOCK return eax error 'Volume not removable'\n"
+    Patch_Call(0x00450412, &Debug_Print_Error);   //"LOCK return eax error 'Lock count exceeded'\n"
+    Patch_Call(0x00450422, &Debug_Print_Error);   //"LOCK return eax error %d\n"
+    Patch_Call(0x004505AB, &Debug_Print_Error);   //"DeviceIoControl failed to perform DOS IO control function. Error %d - %s\n"
+    Patch_Call(0x00456241, &Debug_Print_Error);   //"Invalid tile at (%d, %d)\n"
+    Patch_Call(0x00457C8E, &Debug_Print_Info);    //"Springing trigger on crate at %d,%d\n"
+    Patch_Call(0x00457F0C, &Debug_Print_Info);    //"Crate at %d,%d contains poison gas\n"
+    Patch_Call(0x00457FC7, &Debug_Print_Info);    //"Crate at %d,%d contains tiberium\n"
+    Patch_Call(0x0045809B, &Debug_Print_Info);    //"Crate at %d,%d contains 'shroud'\n"
+    Patch_Call(0x004580D4, &Debug_Print_Info);    //"Crate at %d,%d contains 'reveal'\n"
+    Patch_Call(0x00458127, &Debug_Print_Info);    //"Crate at %d,%d contains a unit\n"
+    Patch_Call(0x00458384, &Debug_Print_Info);    //"Crate at %d,%d contains money\n"
+    Patch_Call(0x00458405, &Debug_Print_Info);    //"Crate at %d,%d contains explosives\n"
+    Patch_Call(0x004585A9, &Debug_Print_Info);    //"Crate at %d,%d contains napalm\n"
+    Patch_Call(0x004586C2, &Debug_Print_Info);    //"Crate at %d,%d contains cloaking device\n"
+    Patch_Call(0x004587E9, &Debug_Print_Info);    //"Crate at %d,%d contains veterancy(TM)\n"
+    Patch_Call(0x00458979, &Debug_Print_Info);    //"Crate at %d,%d contains base healing\n"
+    Patch_Call(0x00458A3E, &Debug_Print_Info);    //"Crate at %d,%d contains ICBM\n"
+    Patch_Call(0x00458AF4, &Debug_Print_Info);    //"Crate at %d,%d contains armor\n"
+    Patch_Call(0x00458C64, &Debug_Print_Info);    //"Crate at %d,%d contains speed\n"
+    Patch_Call(0x00458DD4, &Debug_Print_Info);    //"Crate at %d,%d contains firepower\n"
+    Patch_Call(0x00460FE8, &Debug_Print_Error);   //"Queue_Send - No room in send queue\n"
+    Patch_Call(0x00461004, &Debug_Print_Warning); //"buflen > MaxPacketSize by %d bytes\n"
+    Patch_Call(0x004611FE, &Debug_Print_Error);   //"Can't queue incoming packet - Unable to find free slot in array.\n"
+    Patch_Call(0x00461F3C, &Debug_Print_Error);   //"d:\\Projects\\Sun\\CodeFS\\Connect.CPP""Error - unable to queue incoming packet. %s %s\n"
+    Patch_Call(0x004629B2, &Debug_Print_Info);    //"ExceptionReturnStack = %08X\n"
+    Patch_Call(0x004629C3, &Debug_Print_Info);    //"ExceptionReturnAddress = %08X\n"
+    Patch_Call(0x00462AEE, &Debug_Print_Info);    //"Game loop finished. Average FPS = %d\n"
+    Patch_Call(0x00462FCD, &Debug_Print_Info);    //"Received progress message - %d%% from %s\n"
+    Patch_Call(0x00463239, &Debug_Print_Info);    //"Checking available disk space\n"
+    Patch_Call(0x0046326B, &Debug_Print_Info);    //"Using GetDiskFreeSpaceEx\n"
+    Patch_Call(0x00463298, &Debug_Print_Error);   //"GetDiskFreeSpaceEx failed with error code %d - %s\n"
+    Patch_Call(0x004632C6, &Debug_Print_Info);    //"Free disk space is %d Mb\n"
+    Patch_Call(0x004632E3, &Debug_Print_Error);   //"GetProcAddress failed with error code %d - %s\n"
+    Patch_Call(0x004632F2, &Debug_Print_Error);   //"Failed to get module handle for KERNEL32.DLL\n"
+    Patch_Call(0x00463336, &Debug_Print_Info);    //"Free disk space is %d Mb\n"
+    Patch_Call(0x0047295A, &Debug_Print_Info);    //"Checking hardware region fill capability..."
+    Patch_Call(0x004729EB, &Debug_Print_Info);    //"Checking overlapped blit capability..."
+    Patch_Call(0x00472AD8, &Debug_Print_Info);    //"Prep direct draw.\n"
+    Patch_Call(0x00472B0E, &Debug_Print_Error);   //"DirectDrawCreate failed!\n"
+    Patch_Call(0x00472B4B, &Debug_Print_Error);   //"DirectDrawCreate failed!\n"
+    Patch_Call(0x00472CBB, &Debug_Print_Info);    //"DDraw returnded actual VRAM of %d bytes (%dMb)\n"
+    Patch_Call(0x00472D06, &Debug_Print_Info);    //"Current display size is %dx%dx%d. Pitch is %d\n"
+    Patch_Call(0x00472D39, &Debug_Print_Info);    //"Adjusted VRAM size is %d bytes (%dMb)\n"
+    Patch_Call(0x00472DFE, &Debug_Print_Info);    //"Prep direct draw.\n"
+    Patch_Call(0x00472E3E, &Debug_Print_Error);   //"DirectDrawCreate failed!\n"
+    Patch_Call(0x00472E56, &Debug_Print_Info);    //"SetDisplayMode: %dx%dx%d\n"
+    Patch_Call(0x00472E79, &Debug_Print_Error);   //"SetDisplayMode failed\n"
+    Patch_Call(0x00472F40, &Debug_Print_Info);    //"CreatePalette\n"
+    Patch_Call(0x00472F78, &Debug_Print_Error);   //"CreatePalette failed\n"
+    Patch_Call(0x00472FB9, &Debug_Print_Error);   //"CreatePalette failed\n"
+    Patch_Call(0x00472FD7, &Debug_Print_Info);    //"Display mode set\n"
+    Patch_Call(0x00475DDE, &Debug_Print_Info);    //"Set_View_Dimensions(%d,%d,%d,%d)\n"
+    Patch_Call(0x00475E3A, &Debug_Print_Info);    //"Deleting ZBuffer\n"
+    Patch_Call(0x00475EC1, &Debug_Print_Info);    //"Allocating ZBuffer (%dx%d)\n"
+    Patch_Call(0x00475ED7, &Debug_Print_Info);    //"Deleting ABuffer\n"
+    Patch_Call(0x00475F5B, &Debug_Print_Info);    //"Allocating ABuffer (%dx%d)\n"
+    Patch_Call(0x00476029, &Debug_Print_Info);    //"Set_View_Dimensions(exit)\n"
+    Patch_Call(0x0047C0A7, &Debug_Print_Info);    //"Display: Abort_Drag_Select()\n"
+    Patch_Call(0x00487B62, &Debug_Print_Error);   //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on multiple audio mutexes. %s, line %d\n"
+    Patch_Call(0x00487C98, &Debug_Print_Error);   //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on GlobalAudioMutex. %s, line %d\n"
+    Patch_Call(0x00487CB4, &Debug_Print_Error);   //"Failed to create direct sound object. Error code %d\n"
+    Patch_Call(0x00487D3E, &Debug_Print_Error);   //"Failed to set cooperative level. Error code %d\n"
+    Patch_Call(0x00487EA2, &Debug_Print_Error);   //"Failed to create the primary sound buffer. Error code %d\n"
+    Patch_Call(0x00487F6F, &Debug_Print_Error);   //"Failed to set primary buffer format\n"
+    Patch_Call(0x00487F92, &Debug_Print_Warning); //"Trying an 8 bit primary buffer format\n"
+    Patch_Call(0x00488027, &Debug_Print_Error);   //"Failed to set primary buffer format\n"
+    Patch_Call(0x0048803F, &Debug_Print_Warning); //"Trying a mono primary buffer format\n"
+    Patch_Call(0x004880D8, &Debug_Print_Error);   //"Failed to set any primary buffer format. Disabling audio.\n"
+    Patch_Call(0x004881B0, &Debug_Print_Error);   //"Failed to start primary sound buffer. Error code %d\n"
+    Patch_Call(0x00488258, &Debug_Print_Error);   //"Error - Failed to obtain timer resolution caps\n"
+    Patch_Call(0x004882A4, &Debug_Print_Info);    //"Audio timer resolution is %d milliseconds\n"
+    Patch_Call(0x004883AC, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on TimerMutex. %s, line %d\n"
+    Patch_Call(0x0048842D, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary sound buffer mutexes. %s, line %d\n"
+    Patch_Call(0x004884BB, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on GlobalAudioMutex. %s, line %d\n"
+    Patch_Call(0x00488596, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x004886C2, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00488716, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: GetStatus failed on secondary buffer %d. %s, line %d\n"
+    Patch_Call(0x004887FC, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00488870, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00488900, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x004889F8, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00488B49, &Debug_Print_Warning); //"DSAudio [%d]: Changing sample format\n"
+    Patch_Call(0x00488CB7, &Debug_Print_Error);   //"DSAudio: Bad sample format!\n"
+    Patch_Call(0x0048917B, &Debug_Print_Info);    //"Taking ownership of all audio mutexes\n"
+    Patch_Call(0x00489279, &Debug_Print_Info);    //"Released ownership of all audio mutexes\n"
+    Patch_Call(0x0048966E, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on streaming secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x004896F4, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on streaming secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00489968, &Debug_Print_Error);   //"DSAudio[%d]: ***ERROR*** Unable to obtain streaming buffer\n"
+    Patch_Call(0x004899A7, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on streaming secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00489A18, &Debug_Print_Error);   //"DSAudio[%d]: ***ERROR*** Unable to open file %s\n"
+    Patch_Call(0x00489A93, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00489B61, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00489DD7, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on multiple audio mutexes. %s, line %d\n"
+    Patch_Call(0x00489E89, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x00489F94, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x0048A070, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x0048A1A1, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x0048A290, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x0048A380, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x0048A463, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on secondary buffer mutex %d. %s, line %d\n"
+    Patch_Call(0x0048A583, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on GlobalAudioMutex. %s, line %d\n"
+    Patch_Call(0x0048A62C, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\DSAudio.Cpp""Warning: Probable deadlock occurred on GlobalAudioMutex. %s, line %d\n"
+    Patch_Call(0x0048AD70, &Debug_Print_Info);    //"DSurface::Create_Primary\n"
+    Patch_Call(0x0048ADA4, &Debug_Print_Info);    //"DSurface::AllowStretchBlits = %s\n"
+    Patch_Call(0x0048ADD3, &Debug_Print_Info);    //"DSurface::AllowHWFill = %s\n"
+    Patch_Call(0x0048AE77, &Debug_Print_Info);    //"DSurface::Create_Primary - Creating surface\n"
+    Patch_Call(0x0048AEA3, &Debug_Print_Info);    //"CreateSurface OK\n"
+    Patch_Call(0x0048AF1B, &Debug_Print_Error);   //"Failed to get description of primary surface\n"
+    Patch_Call(0x0048B177, &Debug_Print_Info);    //"DSurface::Create_Primary done\n"
+    Patch_Call(0x0048B1CF, &Debug_Print_Info);    //"DSurface::Create_Primary done\n"
+    Patch_Call(0x0048B206, &Debug_Print_Info);    //"DSurface::Create_Primary done\n"
+    Patch_Call(0x0048B22A, &Debug_Print_Error);   //"CreateSurface failed with error code %08x\n"
+    Patch_Call(0x00493D1C, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x00493D8C, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x00493DFC, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x00493E5C, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x00493ECC, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x00493F38, &Debug_Print_Info);    //"Adding event ANIMATION\n"
+    Patch_Call(0x00494018, &Debug_Print_Info);    //"Adding event MEGAMISSION_F\n"
+    Patch_Call(0x004940BC, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x0049412C, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x004941AC, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x0049422C, &Debug_Print_Info);    //"Adding event %s\n"
+    Patch_Call(0x00494EEF, &Debug_Print_Info);    //"Executing REMOVEPLAYER event. Frame is %d\n"
+    Patch_Call(0x00494F54, &Debug_Print_Info);    //"Executing LATENCYFUDGE event. Frame is %d\n"
+    Patch_Call(0x00494F67, &Debug_Print_Info);    //"LatencyFudge is %d\n"
+    Patch_Call(0x00495427, &Debug_Print_Info);    //"WM_INITDIALOG\n"
+    Patch_Call(0x00495530, &Debug_Print_Info);    //"Resource found\n"
+    Patch_Call(0x0049555A, &Debug_Print_Error);   //"Resource not found\n"
+    Patch_Call(0x00495623, &Debug_Print_Info);    //"Dump exception info\n"
+    Patch_Call(0x00495662, &Debug_Print_Info);    //"Found IMAGEHLP.DLL - linking to required functions\n"
+    Patch_Call(0x0049569A, &Debug_Print_Error);   //"Unable to locate IMAGEHLP.DLL\n""Unable to load IMAGEHLP.DLL\n"
+    Patch_Call(0x0049572D, &Debug_Print_Error);   //"SymLoad failed with code %d - %s\n"
+    Patch_Call(0x00495757, &Debug_Print_Info);    //"Exception is access violation\n"
+    Patch_Call(0x00495783, &Debug_Print_Warning); //"SymInitialize failed with code %d - %s\n""Exception code is %d\n"
+    Patch_Call(0x004957B6, &Debug_Print_Info);    //"Found exception description\n"
+    Patch_Call(0x00495A24, &Debug_Print_Error);   //"SymGetSymFromAddr failed with code %d - %s\n"
+    Patch_Call(0x00495A4C, &Debug_Print_Info);    //"context->Eip is bad code pointer\n"
+    Patch_Call(0x00495D1A, &Debug_Print_Info);    //"Register dump...\n"
+    Patch_Call(0x00495F83, &Debug_Print_Info);    //"EIP bytes dump...\n"
+    Patch_Call(0x004960A0, &Debug_Print_Info);    //"Stack dump...\n"
+    Patch_Call(0x00496359, &Debug_Print_Error);   //"Exception!\n"
+    Patch_Call(0x00496454, &Debug_Print_Error);   //"Can't bring up exception dialog due to Win16 mutex or threading issues\n"
+    Patch_Call(0x0049646F, &Debug_Print_Info);    //"Exception_Dialog()\n"
+    Patch_Call(0x00497356, &Debug_Print_Info);    //"Abandoning production of %s\n"
+    Patch_Call(0x0049776F, &Debug_Print_Info);    //"Frame == %d\n"
+    Patch_Call(0x0049777D, &Debug_Print_Info);    //"QueuedObjects.Count() == %d\n"
+    Patch_Call(0x00497793, &Debug_Print_Info);    //"Object->RTTI == %d\n"
+    Patch_Call(0x004977A9, &Debug_Print_Info);    //"Object->HeapID == %d\n"
+    Patch_Call(0x004977B9, &Debug_Print_Info);    //"IsSuspended\t= %d\n"
+    Patch_Call(0x004977C9, &Debug_Print_Info);    //"IsDifferent\t= %d\n"
+    Patch_Call(0x004977D7, &Debug_Print_Info);    //"Balance\t= %d\n"
+    Patch_Call(0x004977E5, &Debug_Print_Info);    //"OriginalBalance = %d\n"
+    Patch_Call(0x004977F3, &Debug_Print_Info);    //"SpecialItem\t= %d\n"
+    Patch_Call(0x0049780D, &Debug_Print_Info);    //"House->Fetch_ID()\t= %d\n"
+    Patch_Call(0x00497825, &Debug_Print_Info);    //"ID\t= %d\n"
+    Patch_Call(0x00498839, &Debug_Print_Error);   //"VirtualProtect failed with error code %d - %s\n"
+    Patch_Call(0x0049886C, &Debug_Print_Error);   //"VirtualProtect failed with error code %d - %s\n"
+    Patch_Call(0x004AA4B5, &Debug_Print_Info);    //"GameControls: GameSpeed = %d, ScrollRate = %d, Detail = %d\n"
+    Patch_Call(0x004AA576, &Debug_Print_Info);    //"GameControls: GameSpeed = %d, ScrollRate = %d, Detail = %d\n"
+    Patch_Call(0x004AB8CD, &Debug_Print_Info);    //"GetCDClass constructor\n"
+    Patch_Call(0x004AB916, &Debug_Print_Info);    //"CD drive found - %c:\n"
+    Patch_Call(0x004AB962, &Debug_Print_Warning); //"No CD drives found\n"
+    Patch_Call(0x004B6C54, &Debug_Print_Info);    //"LATENCYFUDGE event created - %d\n"
+    Patch_Call(0x004BE280, &Debug_Print_Warning); //"Request to Begin_Production of '%s' was rejected. No-one can build.\n"
+    Patch_Call(0x004BE2D9, &Debug_Print_Warning); //"Request to Begin_Production of '%s' was rejected. Unable to create factory\n"
+    Patch_Call(0x004BE30E, &Debug_Print_Warning); //"Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n"
+    Patch_Call(0x004BE3F7, &Debug_Print_Warning); //"Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n"
+    Patch_Call(0x004BE41F, &Debug_Print_Info);    //"type=%d\n"
+    Patch_Call(0x004BE430, &Debug_Print_Info);    //"Frame == %d\n"
+    Patch_Call(0x004BE43E, &Debug_Print_Info);    //"fptr->QueuedObjects.Count() == %d\n"
+    Patch_Call(0x004BE45D, &Debug_Print_Info);    //"Object->RTTI == %d\n"
+    Patch_Call(0x004BE47C, &Debug_Print_Info);    //"Object->HeapID == %d\n"
+    Patch_Call(0x004BE48C, &Debug_Print_Info);    //"IsSuspended\t= %d\n"
+    Patch_Call(0x004BECBD, &Debug_Print_Warning); //"Failed to exit object from factory - refunding money\n"
+    Patch_Call(0x004BF6EE, &Debug_Print_Info);    //"MPlayer_Defeated() - Opponent %s has been defeated\n"
+    Patch_Call(0x004BF772, &Debug_Print_Info);    //"MPlayer_Defeated() - Alive = %d, Humans = %d\n"
+    Patch_Call(0x004BF88F, &Debug_Print_Info);    //"Saw game completion due to player defeat\n"
+    Patch_Call(0x004BF899, &Debug_Print_Info);    //"MPlayer_Defeated() - All remaining players are allied\n"
+    Patch_Call(0x004BF8D2, &Debug_Print_Info);    //"MPlayer_Defeated() - Flag_To_Lose\n"
+    Patch_Call(0x004BF8F0, &Debug_Print_Info);    //"MPlayer_Defeated() - Flag_To_Win\n"
+    Patch_Call(0x004BFC23, &Debug_Print_Info);    //"Frame %d, BorrowedTime == %d\n"
+    Patch_Call(0x004BFD7F, &Debug_Print_Info);    //"Frame %d, BorrowedTime == %d\n"
+    Patch_Call(0x004BFF28, &Debug_Print_Info);    //"Frame %d, BorrowedTime == %d\n"
+    Patch_Call(0x004DFB7F, &Debug_Print_Info);    //"Init Game\n"
+    Patch_Call(0x004DFBAC, &Debug_Print_Error);   //"Failed to instantiate Scenario!\n"
+    Patch_Call(0x004DFBF0, &Debug_Print_Error);   //"Failed to instantiate Rules!\n"
+    Patch_Call(0x004DFC13, &Debug_Print_Info);    //"Init Encryption Keys.\n"
+    Patch_Call(0x004DFC1D, &Debug_Print_Info);    //"Init_Keys - declarations\n"
+    Patch_Call(0x004DFC59, &Debug_Print_Info);    //"Init_Keys - Load\n"
+    Patch_Call(0x004DFC7B, &Debug_Print_Info);    //"Init_Keys - Init fast key\n"
+    Patch_Call(0x004DFCC4, &Debug_Print_Info);    //"Bootstrap....."
+    Patch_Call(0x004DFD28, &Debug_Print_Error);   //"Failed to initialize bootstrap mixfiles!\n"
+    Patch_Call(0x004E0392, &Debug_Print_Info);    //"Init Mouse\n"
+    Patch_Call(0x004E045C, &Debug_Print_Info);    //"Init CDROM\n"
+    Patch_Call(0x004E0476, &Debug_Print_Info);    //"Calling Force_CD_Available\n"
+    Patch_Call(0x004E049B, &Debug_Print_Error);   //"Failed to find disk (user cancel)!\n"
+    Patch_Call(0x004E0509, &Debug_Print_Error);   //"VolumeCheck FAILED!!\n"
+    Patch_Call(0x004E0671, &Debug_Print_Info);    //"Init Secondary Mixfiles....."
+    Patch_Call(0x004E06DD, &Debug_Print_Error);   //"Failed to initialize CDROM access!\n"
+    Patch_Call(0x004E06FA, &Debug_Print_Warning); //"-CD parameter was specified. No CD init - all files must be local\n"
+    Patch_Call(0x004E0720, &Debug_Print_Info);    //"Init Campaigns\n"
+    Patch_Call(0x004E0732, &Debug_Print_Info);    //"Init Heaps\n"
+    Patch_Call(0x004E0751, &Debug_Print_Info);    //"Init Threads\n"
+    Patch_Call(0x004E075B, &Debug_Print_Info);    //"Reading Game Settings\n"
+    Patch_Call(0x004E0772, &Debug_Print_Info);    //"Init Anim System\n"
+    Patch_Call(0x004E0799, &Debug_Print_Info);    //"Playing first time intro sequence.\n"
+    Patch_Call(0x004E07B7, &Debug_Print_Info);    //"Playing startup movies.\n"
+    Patch_Call(0x004E0857, &Debug_Print_Info);    //"Init Color Remap Tables\n"
+    Patch_Call(0x004E086C, &Debug_Print_Info);    //"Creating TacticalMap\n"
+    Patch_Call(0x004E08AB, &Debug_Print_Error);   //"Failed to create TacticalMap!\n"
+    Patch_Call(0x004E08D9, &Debug_Print_Info);    //"Init Bulk Data\n"
+    Patch_Call(0x004E08F3, &Debug_Print_Info);    //"Reading SOUND.INI\n"
+    Patch_Call(0x004E093A, &Debug_Print_Error);   //"Failed to find SOUND.INI!\n"
+    Patch_Call(0x004E09AA, &Debug_Print_Error);   //"Failed to load SOUND.INI!\n"
+    Patch_Call(0x004E09CD, &Debug_Print_Info);    //"Reading THEME.INI\n"
+    Patch_Call(0x004E09FC, &Debug_Print_Error);   //"Failed to find THEME.INI!\n"
+    Patch_Call(0x004E0A34, &Debug_Print_Error);   //"Failed to load THEME.INI!\n"
+    Patch_Call(0x004E0AD1, &Debug_Print_Error);   //"Failed to load THEME01.INI!\n"
+    Patch_Call(0x004E0B04, &Debug_Print_Info);    //"Init Rules\n"
+    Patch_Call(0x004E0B1A, &Debug_Print_Error);   //"Failed to initialize Rules!\n"
+    Patch_Call(0x004E0BBE, &Debug_Print_Info);    //"Init Commands\n"
+    Patch_Call(0x004E0BD0, &Debug_Print_Info);    //"Game Init Completed.\n"
+    Patch_Call(0x004E1149, &Debug_Print_Error);   //"Failed to load ART.INI!\n"
+    Patch_Call(0x004E123E, &Debug_Print_Error);   //"Failed to load FIRESTRM.INI!\n"
+    Patch_Call(0x004E15A3, &Debug_Print_Error);   //"Failed to load AIFS.INI!\n"
+    Patch_Call(0x004E2458, &Debug_Print_Info);    //"About to initialise the network code\n"
+    Patch_Call(0x004E26A6, &Debug_Print_Info);    //"Return from WOL to play a %d player game\n"
+    Patch_Call(0x004E2C3A, &Debug_Print_Info);    //"Loaded recording values for scenario : %s\n"
+    Patch_Call(0x004E2C82, &Debug_Print_Info);    //"About to load a %d player game.\n"
+    Patch_Call(0x004E2ED8, &Debug_Print_Info);    //"Saving recording values for scenario : %s\n"
+    Patch_Call(0x004E2FCB, &Debug_Print_Info);    //"IsTGrowth = %d\n"
+    Patch_Call(0x004E2FE1, &Debug_Print_Info);    //"IsTSpread = %d\n"
+    Patch_Call(0x004E335B, &Debug_Print_Info);    //"Initializing Choose_Campaign() Dialog.\n"
+    Patch_Call(0x004E33B2, &Debug_Print_Info);    //"\tSkipping Campaign [%d] - %s\n"
+    Patch_Call(0x004E33C9, &Debug_Print_Info);    //"\tAdding Campaign [%d] - %s\n"
+    Patch_Call(0x004E38AD, &Debug_Print_Info);    //"Init random number\n"
+    Patch_Call(0x004E3A78, &Debug_Print_Info);    //"Seed is %08x\n"
+    Patch_Call(0x004E3B20, &Debug_Print_Info);    //"Seed is %08x\n"
+    Patch_Call(0x004E48C9, &Debug_Print_Error);   //"Failed to create VoxLib!\n"
+    Patch_Call(0x004E493C, &Debug_Print_Error);   //"Failed to create MotLib!\n"
+    Patch_Call(0x004E49E3, &Debug_Print_Info);    //"Saving recording values for scenario : %s\n"
+    Patch_Call(0x004E4AF7, &Debug_Print_Info);    //"Loaded recording values for scenario : %s\n"
+    Patch_Call(0x004E723B, &Debug_Print_Error);   //"Unable to load KEYBOARD.INI\n"
+    Patch_Call(0x004E731C, &Debug_Print_Info);    //"Allocating new surfaces\n"
+    Patch_Call(0x004E7334, &Debug_Print_Info);    //"Deleting AlternateSurface\n"
+    Patch_Call(0x004E735F, &Debug_Print_Info);    //"Deleting HiddenSurface\n"
+    Patch_Call(0x004E738A, &Debug_Print_Info);    //"Deleting CompositeSurface\n"
+    Patch_Call(0x004E73B5, &Debug_Print_Info);    //"Deleting TileSurface\n"
+    Patch_Call(0x004E73E0, &Debug_Print_Info);    //"Deleting SidebarSurface\n"
+    Patch_Call(0x004E7461, &Debug_Print_Info);    //"HiddenSurface (%dx%d) %s\n"
+    Patch_Call(0x004E74C6, &Debug_Print_Info);    //"CompositeSurface (%dx%d) %s\n"
+    Patch_Call(0x004E7530, &Debug_Print_Info);    //"TileSurface (%dx%d) %s\n"
+    Patch_Call(0x004E757C, &Debug_Print_Info);    //"Moving TileSurface and CompositeSurface into system memory\n"
+    Patch_Call(0x004E763A, &Debug_Print_Info);    //"SidebarSurface (%dx%d) %s\n"
+    Patch_Call(0x004E76AC, &Debug_Print_Info);    //"HiddenSurface (%dx%d) %s\n"
+    Patch_Call(0x004E7712, &Debug_Print_Info);    //"AlternateSurface (%dx%d) %s\n"
+    Patch_Call(0x004E7BAB, &Debug_Print_Info);    //"Init theater %s\n"
+    Patch_Call(0x004E7EC2, &Debug_Print_Info);    //"Preparing Mixfiles for Side %02d.\n"
+    Patch_Call(0x004E7EDE, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x004E7F0E, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x004E7F3E, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x004E8039, &Debug_Print_Info);    //"     Initializing %s\n"
+    Patch_Call(0x004E80ED, &Debug_Print_Info);    //"     Initializing %s\n"
+    Patch_Call(0x004E816E, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x004E8191, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x004E8231, &Debug_Print_Info);    //"     Initializing %s\n"
+    Patch_Call(0x004E82DD, &Debug_Print_Info);    //"     Initilizing %s\n"
+    Patch_Call(0x004E83A9, &Debug_Print_Info);    //"     Initilizing %s\n"
+    Patch_Call(0x004E8426, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x004E848C, &Debug_Print_Info);    //"     Releasing %s\n"
+    Patch_Call(0x004E8640, &Debug_Print_Info);    //"     Initilizing %s\n"
+    Patch_Call(0x004E86C5, &Debug_Print_Error);   //"     FAILED!\n"
+    Patch_Call(0x004EFE0A, &Debug_Print_Error);   //"Failed to ack global packet\n"
+    Patch_Call(0x004F05CE, &Debug_Print_Info);    //"IPX Manager: RetryDelta = %d\n"
+    Patch_Call(0x004F05DE, &Debug_Print_Info);    //"MaxAhead is %d\n"
+    Patch_Call(0x004F093F, &Debug_Print_Error);   //"Send overflow %d\n"
+    Patch_Call(0x004F0D2B, &Debug_Print_Warning); //"GlobalChannel recive buffer overflow %d\n""Recive buffer overflow %d\n"
+    Patch_Call(0x004F0D7D, &Debug_Print_Error);   //"Error - Connection %d has gone bad\n"
+    Patch_Call(0x004F5923, &Debug_Print_Info);    //"Loaded %d isometric tiles consuming %d Kb\n"
+    Patch_Call(0x0050AA8C, &Debug_Print_Info);    //"Creating IPX Interface\n"
+    Patch_Call(0x0050AAB5, &Debug_Print_Info);    //"Got address for network card %d\n"
+    Patch_Call(0x0050AAC4, &Debug_Print_Info);    //"Address is %s\n"
+    Patch_Call(0x0050AC40, &Debug_Print_Info);    //"About to set video mode\n"
+    Patch_Call(0x0050ACC3, &Debug_Print_Info);    //"VisibleRect: %dx%d\n"
+    Patch_Call(0x0050ACE0, &Debug_Print_Info);    //"Removing mouse handler\n"
+    Patch_Call(0x0050AD0B, &Debug_Print_Info);    //"Deleting primary surface\n"
+    Patch_Call(0x0050AD46, &Debug_Print_Info);    //"Set_Video_Mode failed.\n"
+    Patch_Call(0x0050AD50, &Debug_Print_Info);    //"Restoring primary surface\n"
+    Patch_Call(0x0050AD69, &Debug_Print_Info);    //"Restoring mouse handler\n"
+    Patch_Call(0x0050AE02, &Debug_Print_Info);    //"Mode apparently set OK\n"
+    Patch_Call(0x0050AE27, &Debug_Print_Info);    //"VisibleRect: %dx%d\n"
+    Patch_Call(0x0050AE3C, &Debug_Print_Info);    //"Deleting AlternateSurface\n"
+    Patch_Call(0x0050AE67, &Debug_Print_Info);    //"Deleting HiddenSurface\n"
+    Patch_Call(0x0050AE92, &Debug_Print_Info);    //"Deleting TileSurface\n"
+    Patch_Call(0x0050AEBD, &Debug_Print_Info);    //"Deleting SidebarSurface\n"
+    Patch_Call(0x0050AEE8, &Debug_Print_Info);    //"Deleting CompositeSurface\n"
+    Patch_Call(0x0050AF16, &Debug_Print_Info);    //"Setting new window size to %dx%d\n"
+    Patch_Call(0x0050AF37, &Debug_Print_Info);    //"Creating primary surface\n"
+    Patch_Call(0x0050AF4D, &Debug_Print_Info);    // "Setting new window size to %dx%d\n"
+    Patch_Call(0x0050B073, &Debug_Print_Info);    //"Recalc color remap tables\n"
+    Patch_Call(0x0050B17D, &Debug_Print_Info);    //"Mode change complete.\n"
+    Patch_Call(0x0050B1AD, &Debug_Print_Info);    //"Testing display mode @ %dx%d\n"
+    Patch_Call(0x0050B2FF, &Debug_Print_Info);    //"Resetting display mode @ %dx%d\n"
+    Patch_Call(0x0050B338, &Debug_Print_Info);    //"Keeping display mode @ %dx%d\n"
+    Patch_Call(0x0050F4DA, &Debug_Print_Info);    //"MapClass::Init_Clear entry\n"
+    Patch_Call(0x0050F57A, &Debug_Print_Info);    //"MapClass::Init_Clear done\n"
+    Patch_Call(0x0053A296, &Debug_Print_Info);    //"Cache filename is %s\n"
+    Patch_Call(0x0053C3FB, &Debug_Print_Info);    //"Saving random map: %s - %s\n"
+    Patch_Call(0x0053C712, &Debug_Print_Info);    //"Loading random map: %s\n"
+    Patch_Call(0x0053CF41, &Debug_Print_Info);    //"RMG: Init random map\n"
+    Patch_Call(0x0053CFAF, &Debug_Print_Info);    //"RMG: Seeding water\n"
+    Patch_Call(0x0053D03E, &Debug_Print_Info);    //"RMG: Smooting ice\n"
+    Patch_Call(0x0053D117, &Debug_Print_Info);    //"RMG: Init regions\n"
+    Patch_Call(0x0053D204, &Debug_Print_Info);    //"RMG: Making regions\n"
+    Patch_Call(0x0053D2AC, &Debug_Print_Info);    //"RMG: Recalculating cell attributes\n"
+    Patch_Call(0x0053D32B, &Debug_Print_Info);    //"RMG: Creating starting points\n"
+    Patch_Call(0x0053D34C, &Debug_Print_Info);    //"RMG: Adding lights\n"
+    Patch_Call(0x0053D360, &Debug_Print_Info);    //"RMG: Adding veinholes\n"
+    Patch_Call(0x0053D38D, &Debug_Print_Info);    //"RMG: Creating tiberium\n"
+    Patch_Call(0x0053D3C2, &Debug_Print_Info);    //"RMG: Recalculating cell attributes\n"
+    Patch_Call(0x0053D46C, &Debug_Print_Info);    //"RMG: Generating urban areas\n"
+    Patch_Call(0x0053D509, &Debug_Print_Info);    //"RMG: Recalculating cell attributes\n"
+    Patch_Call(0x0053D550, &Debug_Print_Info);    //"RMG: Creating hills\n"
+    Patch_Call(0x0053D5D1, &Debug_Print_Info);    //"RMG: Creating LATs, rocks etc\n"
+    Patch_Call(0x0053D694, &Debug_Print_Info);    //"RMG: Recalculating cell attributes\n"
+    Patch_Call(0x0053D6EC, &Debug_Print_Info);    //"RMG: Cleanup\n"
+    Patch_Call(0x0053D7C9, &Debug_Print_Info);    //"RMG: Compute Radar Image\n"
+    Patch_Call(0x0053D828, &Debug_Print_Info);    //"RMG: Done\n"
+    Patch_Call(0x0053D92A, &Debug_Print_Info);    //"RMG: Compute Radar Image\n"
+    Patch_Call(0x0053FC47, &Debug_Print_Info);    //"Generating swamp\n"
+    Patch_Call(0x00540628, &Debug_Print_Info);    //"Swamp heap size:?? -- Marker Index:%d\n"
+    Patch_Call(0x005499E5, &Debug_Print_Info);    //"Generating mold\n"
+    Patch_Call(0x0054A1BD, &Debug_Print_Info);    //"Mold heap size: %d -- Marker Index: %d\n"
+    Patch_Call(0x0054A243, &Debug_Print_Info);    //"Generating crystal\n"
+    Patch_Call(0x0054ACB8, &Debug_Print_Info);    //"Mold heap size: %d -- Marker Index: %d\n"
+    Patch_Call(0x00553620, &Debug_Print_Info);    //"MapSelect: Scenario - %s, Stage - %ld\n"
+    Patch_Call(0x0055372D, &Debug_Print_Error);   //"MapSelect: Invalid house!\n"
+    Patch_Call(0x00553746, &Debug_Print_Info);    //"MapSelect: House %s\n"
+    Patch_Call(0x00553769, &Debug_Print_Info);    //"MapSelect: Unable to initialize choices!\n"
+    Patch_Call(0x0055379A, &Debug_Print_Error);   //"MapSelect: Invalid stage!\n"
+    Patch_Call(0x0055388D, &Debug_Print_Info);    //"MapSelect: Stage: %s\n"
+    Patch_Call(0x00553C4D, &Debug_Print_Info);    //"Selected %s\n"
+    Patch_Call(0x00553CD0, &Debug_Print_Error);   //"MapSelect: Invalid Scenario pointer!\n"
+    Patch_Call(0x00553CFC, &Debug_Print_Error);   //"MapSelect: Invalid house!\n"
+    Patch_Call(0x00553D19, &Debug_Print_Info);    //"MapSelect: House %s\n"
+    Patch_Call(0x00553D3C, &Debug_Print_Info);    //"MapSelect: Unable to initialize choices!\n"
+    Patch_Call(0x00553D6C, &Debug_Print_Info);    //"MapSelect: Invalid stage!\n"
+    Patch_Call(0x00553D9E, &Debug_Print_Info);    //"MapSelect: Unable to create animation drawer!\n"
+    Patch_Call(0x00553DD2, &Debug_Print_Info);    //"MapSelect: Unable to create overlay drawer!\n"
+    Patch_Call(0x00553E4F, &Debug_Print_Info);    //"MapSelect: Unable to create font!\n"
+    Patch_Call(0x00557EEC, &Debug_Print_Info);    //"MillisecondTimerClass low = %d, high = %d\n"
+    Patch_Call(0x0055A771, &Debug_Print_Info);    //"ModemGuest.Dialog(enter)\n"
+    Patch_Call(0x0055A8AE, &Debug_Print_Info);    //"ModemGuest.Dialog(exit %s)\n"
+    Patch_Call(0x0055ACB5, &Debug_Print_Info);    //"ModemGuest.InitDialog(enter)\n"
+    Patch_Call(0x0055ACFB, &Debug_Print_Info);    //"Name: %s\n"
+    Patch_Call(0x0055AE15, &Debug_Print_Info);    //"Color: %d\n"
+    Patch_Call(0x0055AEED, &Debug_Print_Info);    //"UnitCount: %d\n"
+    Patch_Call(0x0055AF31, &Debug_Print_Info);    //"TechLevel: %d\n"
+    Patch_Call(0x0055AF88, &Debug_Print_Info);    //"Credits: %d\n"
+    Patch_Call(0x0055AFCB, &Debug_Print_Info);    //"AIPlayers: %d\n"
+    Patch_Call(0x0055B016, &Debug_Print_Info);    //"Game Speed: %d\n"
+    Patch_Call(0x0055B059, &Debug_Print_Info);    //"AIDifficulty: %d\n"
+    Patch_Call(0x0055B0A1, &Debug_Print_Info);    //"MCVRedeploy: %s\n"
+    Patch_Call(0x0055B0E9, &Debug_Print_Info);    //"Bases: %s\n"
+    Patch_Call(0x0055B131, &Debug_Print_Info);    //"Short Game: %s\n"
+    Patch_Call(0x0055B179, &Debug_Print_Info);    //"Crap Engineers: %s\n"
+    Patch_Call(0x0055B1C1, &Debug_Print_Info);    //"Crates: %s\n"
+    Patch_Call(0x0055B209, &Debug_Print_Info);    //"FogOfWar: %s\n"
+    Patch_Call(0x0055B251, &Debug_Print_Info);    //"BridgeDestroy: %s\n"
+    Patch_Call(0x0055B299, &Debug_Print_Info);    //"Harvester Truce: %s\n"
+    Patch_Call(0x0055B370, &Debug_Print_Info);    //"ModemGuest.InitDialog(exit)\n"
+    Patch_Call(0x0055B39A, &Debug_Print_Info);    //"ModemGuest.ReadDialog(enter)\n"
+    Patch_Call(0x0055B3CE, &Debug_Print_Info);    //"Name: %s\n"
+    Patch_Call(0x0055B407, &Debug_Print_Info);    //"Color: %d\n"
+    Patch_Call(0x0055B440, &Debug_Print_Info);    //"ModemGuest.ReadDialog(exit)\n"
+    Patch_Call(0x0055B82B, &Debug_Print_Info);    //"Settings change\n"
+    Patch_Call(0x0055BC9C, &Debug_Print_Info);    //"Received own packet back\n"
+    Patch_Call(0x0055BCF1, &Debug_Print_Info);    //"Received SignOff\n"
+    Patch_Call(0x0055BDAE, &Debug_Print_Info);    //"Received game options\n"
+    Patch_Call(0x0055BF53, &Debug_Print_Info);    //"Received go\n"
+    Patch_Call(0x0055C18E, &Debug_Print_Info);    //"Received serial message\n"
+    Patch_Call(0x0055C22B, &Debug_Print_Info);    //"Received timing packet\n""Received score screen packet\n"
+    Patch_Call(0x0055C262, &Debug_Print_Info);    //"Received SERIAL_PREVIEW_MODE packet\n"
+    Patch_Call(0x0055C29C, &Debug_Print_Info);    //"Received packet\n"
+    Patch_Call(0x0055C2D8, &Debug_Print_Error);   //"Timeout! %d ticks since last incoming message\n"
+    Patch_Call(0x0055C4F6, &Debug_Print_Info);    //"Decoding game options\n"
+    Patch_Call(0x0055C65E, &Debug_Print_Info);    //"Scenario has changed\n"
+    Patch_Call(0x0055CE85, &Debug_Print_Info);    //"Starting map preview download\n"
+    Patch_Call(0x0055CEAA, &Debug_Print_Info);    //"Sending preview mode ack\n"
+    Patch_Call(0x0055CF35, &Debug_Print_Info);    //"Preview mode ack sent\n"
+    Patch_Call(0x0055CF3F, &Debug_Print_Info);    //"Calling Get_File_From_Host to receive the file download\n"
+    Patch_Call(0x0055CF62, &Debug_Print_Warning); //"got_file is false. Download failed\n"
+    Patch_Call(0x0055CF7A, &Debug_Print_Info);    //"Loading the compressed preview image\n"
+    Patch_Call(0x0055CFBB, &Debug_Print_Info);    //"Decompressing the preview image\n"
+    Patch_Call(0x0055D029, &Debug_Print_Info);    //"Creating the new preview surface\n"
+    Patch_Call(0x0055D08B, &Debug_Print_Info);    //"Cleaning up the temporary decompression buffers\n"
+    Patch_Call(0x0055D331, &Debug_Print_Info);    //"ModemHost.Dialog(enter)\n"
+    Patch_Call(0x0055D4B0, &Debug_Print_Info);    //"ModemHost.Dialog(exit %s)\n"
+    Patch_Call(0x0055DE25, &Debug_Print_Info);    //"ModemHost.InitDialog(enter)\n"
+    Patch_Call(0x0055DEF9, &Debug_Print_Info);    //"Name: %s\n"
+    Patch_Call(0x0055E013, &Debug_Print_Info);    //"Color: %d\n"
+    Patch_Call(0x0055E0F2, &Debug_Print_Info);    //"UnitCount: %d\n"
+    Patch_Call(0x0055E13E, &Debug_Print_Info);    //"TechLevel: %d\n"
+    Patch_Call(0x0055E1AC, &Debug_Print_Info);    //"Credits: %d\n"
+    Patch_Call(0x0055E1F7, &Debug_Print_Info);    //"AIPlayers: %d\n"
+    Patch_Call(0x0055E242, &Debug_Print_Info);    //"Game Speed: %d\n"
+    Patch_Call(0x0055E28D, &Debug_Print_Info);    //"AIDifficulty: %d\n"
+    Patch_Call(0x0055E2D6, &Debug_Print_Info);    //"MCV Redeploy: %s\n"
+    Patch_Call(0x0055E31D, &Debug_Print_Info);    //"Bases: %s\n"
+    Patch_Call(0x0055E364, &Debug_Print_Info);    //"Crates: %s\n"
+    Patch_Call(0x0055E3AB, &Debug_Print_Info);    //"FogOfWar: %s\n"
+    Patch_Call(0x0055E3F2, &Debug_Print_Info);    //"BridgeDestroy: %s\n"
+    Patch_Call(0x0055E439, &Debug_Print_Info);    //"Harvester Truce: %s\n"
+    Patch_Call(0x0055E480, &Debug_Print_Info);    //"Short Game: %s\n"
+    Patch_Call(0x0055E4C7, &Debug_Print_Info);    //"Crap Engineers: %s\n"
+    Patch_Call(0x0055E696, &Debug_Print_Info);    //"ModemHost.InitDialog(exit)\n"
+    Patch_Call(0x0055E6C1, &Debug_Print_Info);    //"ModemHost.ReadDialog(enter)\n"
+    Patch_Call(0x0055E77C, &Debug_Print_Info);    //"Name: %s\n"
+    Patch_Call(0x0055E7AF, &Debug_Print_Info);    //"Color: %d\n"
+    Patch_Call(0x0055E80E, &Debug_Print_Info);    //"UnitCount: %d\n"
+    Patch_Call(0x0055E841, &Debug_Print_Info);    //"TechLevel: %d\n"
+    Patch_Call(0x0055E873, &Debug_Print_Info);    //"Credits: %d\n"
+    Patch_Call(0x0055E8A6, &Debug_Print_Info);    //"AIPlayers: %d\n"
+    Patch_Call(0x0055E8E3, &Debug_Print_Info);    //"Game Speed: %d\n"
+    Patch_Call(0x0055E916, &Debug_Print_Info);    //"AIDifficulty: %d\n"
+    Patch_Call(0x0055E95B, &Debug_Print_Info);    //"MCVRedeploy: %s\n"
+    Patch_Call(0x0055E9A0, &Debug_Print_Info);    //"Bases: %s\n"
+    Patch_Call(0x0055E9E5, &Debug_Print_Info);    //"Crates: %s\n"
+    Patch_Call(0x0055EA2A, &Debug_Print_Info);    //"FogOfWar: %s\n"
+    Patch_Call(0x0055EA6F, &Debug_Print_Info);    //"BridgeDestroy: %s\n"
+    Patch_Call(0x0055EAB4, &Debug_Print_Info);    //"Harvester Truce: %s\n"
+    Patch_Call(0x0055EAF9, &Debug_Print_Info);    //"Short Game: %s\n"
+    Patch_Call(0x0055EB3E, &Debug_Print_Info);    //"Crap Engineers: %s\n"
+    Patch_Call(0x0055EB48, &Debug_Print_Info);    //"ModemHost.ReadDialog(exit)\n"
+    Patch_Call(0x0055F2E1, &Debug_Print_Info);    //"ModemHost.SelectMultiMap(enter)\n"
+    Patch_Call(0x0055F4F2, &Debug_Print_Info);    //"ModemHost.SelectMultiMap(exit)\n"
+    Patch_Call(0x0055F51F, &Debug_Print_Info);    //"ModemHost.SelectRandomMap(enter)\n"
+    Patch_Call(0x0055F787, &Debug_Print_Info);    //"ModemHost.SelectMultiMap(exit)\n"
+    Patch_Call(0x0055F942, &Debug_Print_Info);    //"Received our own packet back\n"
+    Patch_Call(0x0055F9A8, &Debug_Print_Info);    //"Received SignOff!\n"
+    Patch_Call(0x0055FA72, &Debug_Print_Info);    //"Received game options\n"
+    Patch_Call(0x0055FC7E, &Debug_Print_Error);   //"Timeout! %d ticks since last incoming message\n"
+    Patch_Call(0x0055FCC5, &Debug_Print_Info);    //"Received Accept Options\n"
+    Patch_Call(0x0055FCEC, &Debug_Print_Info);    //"Received serial message\n"
+    Patch_Call(0x0055FD91, &Debug_Print_Info);    //"Received timing packet\n"
+    Patch_Call(0x0055FDBC, &Debug_Print_Info);    //"Received score screen packet\n"
+    Patch_Call(0x0055FDFE, &Debug_Print_Info);    //"Received packet\n"
+    Patch_Call(0x0055FE61, &Debug_Print_Info);    //"Sending game options packet\n"
+    Patch_Call(0x00560433, &Debug_Print_Info);    //"ModemHost.StartGame(enter)\n"
+    Patch_Call(0x00560457, &Debug_Print_Info);    //"LoadGame = %s\n"
+    Patch_Call(0x00560807, &Debug_Print_Info);    //"Waiting for 'GO' response.\n"
+    Patch_Call(0x00560865, &Debug_Print_Info);    //"Received message\n"
+    Patch_Call(0x005608C1, &Debug_Print_Info);    //"Received GO message\n"
+    Patch_Call(0x00560915, &Debug_Print_Error);   //"***Guest doesn't have scenario!\n"
+    Patch_Call(0x00560931, &Debug_Print_Info);    //"About to call 'Send_Remote_File'.\n"
+    Patch_Call(0x005609EF, &Debug_Print_Info);    //"ModemHost.StartGame(exit)\n"
+    Patch_Call(0x00560A7C, &Debug_Print_Info);    //"Starting map preview upload\n"
+    Patch_Call(0x00560B91, &Debug_Print_Error);   //"Failed to get SERIAL_PREVIEW_ACK\n"
+    Patch_Call(0x00560BC6, &Debug_Print_Info);    //"Preview size is %d bytes\n"
+    Patch_Call(0x00560C54, &Debug_Print_Info);    //"Compressed preview image is %d bytes\n"
+    Patch_Call(0x00560CBB, &Debug_Print_Info);    //"Calling Send_Remote_File to send the preview\n"
+    Patch_Call(0x00560F2D, &Debug_Print_Error);   //"Unable to find System\\CurrentControlSet\\Services\\Class\\Modem in registry\n"
+    Patch_Call(0x00560F6A, &Debug_Print_Error);   //"Unable to find System\\CurrentControlSet\\Control\\Class in registry\n"
+    Patch_Call(0x0056120E, &Debug_Print_Info);    //"Modem name is %s\n"
+    Patch_Call(0x005612D9, &Debug_Print_Info);    //"Modem attached to %s\n"
+    Patch_Call(0x0056134E, &Debug_Print_Info);    //"Modem error control enable string: %s\n"
+    Patch_Call(0x005613AB, &Debug_Print_Info);    //"Modem error control disable string: %s\n"
+    Patch_Call(0x00561408, &Debug_Print_Info);    //"Modem compression enable string: %s\n"
+    Patch_Call(0x00561465, &Debug_Print_Info);    //"Modem compression disable string: %s\n"
+    Patch_Call(0x005614C2, &Debug_Print_Info);    //"Modem hardware flow control enable string: %s\n"
+    Patch_Call(0x005615E3, &Debug_Print_Info);    //"PNP Modem attached to %s\n"
+    Patch_Call(0x00561634, &Debug_Print_Error);   //"Failed to find port for device %s\n"
+    Patch_Call(0x005637FD, &Debug_Print_Info);    //"Stretching movie %dx%d -> %dx%d\n"
+    Patch_Call(0x00563CE2, &Debug_Print_Info);    //"IngameVQ Pause\n"
+    Patch_Call(0x00563CF5, &Debug_Print_Info);    //"IngameVQ Resume\n"
+    Patch_Call(0x005684BA, &Debug_Print_Error);   //"MultiScore: Failed to create surface!\n"
+    Patch_Call(0x005685BE, &Debug_Print_Error);   //"MultiScore: Unable to create font!\n"
+    Patch_Call(0x00568A38, &Debug_Print_Info);    //"%s: %s\n Scheme: %d\n Lost = %d\n Kills = %d\n Economy = %d\n Score = %d\n"
+    Patch_Call(0x00568A5A, &Debug_Print_Info);    //" KillRatio = %f\n BuildEconomy = %f\n"
+    Patch_Call(0x0056ADC0, &Debug_Print_Info);    //"MSShapeAnim: AllocLoaded %s\n"
+    Patch_Call(0x0056E273, &Debug_Print_Error);   //"Failed to load MAPSEL.INI\n"
+    Patch_Call(0x0056E383, &Debug_Print_Error);   //"MapSelect: Failed to create stage %s\n"
+    Patch_Call(0x0056E3D9, &Debug_Print_Error);   //"MapSelect: There isn't any stages!\n"
+    Patch_Call(0x0056E5F4, &Debug_Print_Error);   //"Failed to create anim %s\n"
+    Patch_Call(0x0056F36E, &Debug_Print_Info);    //"MSSfxEntry: AllocLoaded %s\n"
+    Patch_Call(0x00571356, &Debug_Print_Info);    //"MSEngine - Pausing animations\n"
+    Patch_Call(0x0057138E, &Debug_Print_Info);    //"MSEngine - Sleeping\n"
+    Patch_Call(0x005713B0, &Debug_Print_Info);    //"MSEngine - Resuming animations\n"
+    Patch_Call(0x00572027, &Debug_Print_Info);    //"MSFont: AllocLoaded FULLFNT3.SHP\n"
+    Patch_Call(0x0057221F, &Debug_Print_Info);    //"MSFont: AllocLoaded TEXT1.AUD\n"
+    Patch_Call(0x00572277, &Debug_Print_Info);    //"MSFont: AllocLoaded TEXT2.AUD\n"
+    Patch_Call(0x005722CF, &Debug_Print_Info);    //"MSFont: AllocLoaded TEXT3.AUD\n"
+    Patch_Call(0x005724E7, &Debug_Print_Error);   //"Denzil!\n"
+    Patch_Call(0x00572EB8, &Debug_Print_Info);    //"MessageListClass::Init(Width: %d)\n"
+    Patch_Call(0x00573F07, &Debug_Print_Info);    //"MessageListClass::Set_Width(%d)\n"
+    Patch_Call(0x00574C58, &Debug_Print_Info);    //"ScoreScreen: Loaded %s\n"
+    Patch_Call(0x0057505A, &Debug_Print_Info);    //"Destroying connection for house %d (%s)\n"
+    Patch_Call(0x00575CB9, &Debug_Print_Info);    //"Game '%s' has timed out\n"
+    Patch_Call(0x00576BC1, &Debug_Print_Info);    //"RulesID = %lX\n"
+    Patch_Call(0x00576BD2, &Debug_Print_Info);    //"ArtID = %lX\n"
+    Patch_Call(0x00576BE3, &Debug_Print_Info);    //"AIID = %lX\n"
+    Patch_Call(0x00576BF6, &Debug_Print_Info);    //"BuildNumber = %ld\n"
+    Patch_Call(0x00576C0F, &Debug_Print_Info);    //"RuleINI ID = %lX\n"
+    Patch_Call(0x00576C27, &Debug_Print_Info);    //"FSRuleINI = %lX\n"
+    Patch_Call(0x00577486, &Debug_Print_Info);    //"About to wait for 'GO' response.\n"
+    Patch_Call(0x00577534, &Debug_Print_Info);    //"Received REQ_SCENARIO packet.\n"
+    Patch_Call(0x00577552, &Debug_Print_Info);    //"Received READY_TO_GO packet.\n"
+    Patch_Call(0x00579FB2, &Debug_Print_Info);    //"New Player"
+    Patch_Call(0x0057AE14, &Debug_Print_Info);    //"RulesID = %lX\n"
+    Patch_Call(0x0057AE24, &Debug_Print_Info);    //"ArtID = %lX\n"
+    Patch_Call(0x0057AE35, &Debug_Print_Info);    //"AIID = %lX\n"
+    Patch_Call(0x0057AE48, &Debug_Print_Info);    //"BuildNumber = %ld\n"
+    Patch_Call(0x0057AE61, &Debug_Print_Info);    //"RuleINI ID = %lX\n"
+    Patch_Call(0x0057AE79, &Debug_Print_Info);    //"FSRuleINI = %lX\n"
+    Patch_Call(0x0057B471, &Debug_Print_Info);    //"Found local scenario, file name is %d\n"
+    Patch_Call(0x0057B51D, &Debug_Print_Info);    //"IPX.Global_Response_Time() == %d. Adjusting to 20\n"
+    Patch_Call(0x0057B56E, &Debug_Print_Error);   //"Failed to find local scenario, file name is %d\n"
+    Patch_Call(0x0057CFF0, &Debug_Print_Info);    //"Sending public game options to %s\n"
+    Patch_Call(0x0057D149, &Debug_Print_Info);    //"Sending private game options to %s\n"
+    Patch_Call(0x0057D235, &Debug_Print_Info);    //"Decoding game options %s\n"
+    Patch_Call(0x0057D78E, &Debug_Print_Warning); //"Not same scenario..."
+    Patch_Call(0x0057E87B, &Debug_Print_Info);    //"Pregame setup for %d players.\n"
+    Patch_Call(0x0057ED11, &Debug_Print_Info);    //"Starting map preview download\n"
+    Patch_Call(0x0057ED39, &Debug_Print_Info);    //"Sending preview mode acks\n"
+    Patch_Call(0x0057ED90, &Debug_Print_Info);    //"Preview mode acks sent\n"
+    Patch_Call(0x0057EDBE, &Debug_Print_Info);    //"Calling Get_File_From_Host to receive the file download\n"
+    Patch_Call(0x0057EDDF, &Debug_Print_Warning); //"got_file is false. Download failed\n"
+    Patch_Call(0x0057EE0B, &Debug_Print_Info);    //"Loading the compressed preview image\n"
+    Patch_Call(0x0057EE49, &Debug_Print_Info);    //"Decompressing the preview image\n"
+    Patch_Call(0x0057EEC3, &Debug_Print_Info);    //"Creating the new preview surface\n"
+    Patch_Call(0x0057EF25, &Debug_Print_Info);    //"Cleaning up the temporary decompression buffers\n"
+    Patch_Call(0x0057F215, &Debug_Print_Info);    //"Starting map preview upload\n"
+    Patch_Call(0x0057F389, &Debug_Print_Info);    //"Waiting for %d players to signal ready to receive\n"
+    Patch_Call(0x0057F479, &Debug_Print_Info);    //"Creating low-res preview image\n"
+    Patch_Call(0x0057F4A3, &Debug_Print_Info);    //"Preview size is %d bytes\n"
+    Patch_Call(0x0057F540, &Debug_Print_Info);    //"Compressed preview image is %d bytes\n"
+    Patch_Call(0x0057F5A7, &Debug_Print_Info);    //"Calling Send_Remote_File to send the preview\n"
+    Patch_Call(0x00581A97, &Debug_Print_Info);    //"Dial Modem\n"
+    Patch_Call(0x00581AC9, &Debug_Print_Info);    //"Get_Modem_Status indicates the following...\n"
+    Patch_Call(0x00581AE6, &Debug_Print_Info);    //"CTS: %s\n"
+    Patch_Call(0x00581B03, &Debug_Print_Info);    //"DSR: %s\n"
+    Patch_Call(0x00581B20, &Debug_Print_Info);    //" RI: %s\n"
+    Patch_Call(0x00581B42, &Debug_Print_Info);    //" CD: %s\n"
+    Patch_Call(0x00581B77, &Debug_Print_Info);    //"Modem already on-line - hanging up\n"
+    Patch_Call(0x00581BBC, &Debug_Print_Error);   //"Detect_Modem failed\n"
+    Patch_Call(0x00581C14, &Debug_Print_Info);    //"Upshifting to 38400\n"
+    Patch_Call(0x00581C8F, &Debug_Print_Error);   //"Detect_Modem failed at 38400\n"
+    Patch_Call(0x00581CD2, &Debug_Print_Info);    //"Upshifting to 19200\n"
+    Patch_Call(0x00581D4D, &Debug_Print_Error);   //"Detect_Modem failed at 19200\n"
+    Patch_Call(0x00581DDE, &Debug_Print_Info);    //"Ready to dial\n"
+    Patch_Call(0x00581E2B, &Debug_Print_Error);   //"Dial_Modem returned 'DIAL_CONNECTED'\n"
+    Patch_Call(0x00581E42, &Debug_Print_Error);   //"Dial_Modem returned 'DIAL_NO_CARRIER'\n"
+    Patch_Call(0x00581E67, &Debug_Print_Error);   //"Dial_Modem returned 'DIAL_BUSY'\n"
+    Patch_Call(0x00581E8C, &Debug_Print_Error);   //"Dial_Modem returned 'DIAL_ERROR'\n"
+    Patch_Call(0x00581EAE, &Debug_Print_Error);   //"Dial_Modem returned 'DIAL_TIMEOUT'\n"
+    Patch_Call(0x00581ED0, &Debug_Print_Error);   //"Dial_Modem returned 'DIAL_NO_DIAL_TONE'\n"
+    Patch_Call(0x00581EF2, &Debug_Print_Error);   //"Dial_Modem returned 'DIAL_CANCELLED'\n"
+    Patch_Call(0x00581F97, &Debug_Print_Info);    //"Answer Modem\n"
+    Patch_Call(0x00581FC9, &Debug_Print_Info);    //"Get_Modem_Status indicates the following...\n"
+    Patch_Call(0x00581FE6, &Debug_Print_Info);    //"CTS: %s\n"
+    Patch_Call(0x00582003, &Debug_Print_Info);    //"DSR: %s\n"
+    Patch_Call(0x00582020, &Debug_Print_Info);    //" RI: %s\n"
+    Patch_Call(0x00582042, &Debug_Print_Info);    //" CD: %s\n"
+    Patch_Call(0x00582077, &Debug_Print_Info);    //"Modem already on-line - hanging up\n"
+    Patch_Call(0x005820BC, &Debug_Print_Error);   //"Detect_Modem failed\n"
+    Patch_Call(0x00582114, &Debug_Print_Info);    //"Upshifting to 38400\n"
+    Patch_Call(0x0058218F, &Debug_Print_Error);   //"Detect_Modem failed at 38400\n"
+    Patch_Call(0x005821D2, &Debug_Print_Info);    //"Upshifting to 19200\n"
+    Patch_Call(0x0058224D, &Debug_Print_Error);   //"Detect_Modem failed at 19200\n"
+    Patch_Call(0x005822DE, &Debug_Print_Info);    //"Ready to answer\n"
+    Patch_Call(0x00582306, &Debug_Print_Warning); //"Answer_Modem returned 'DIAL_CONNECTED'\n"
+    Patch_Call(0x0058231D, &Debug_Print_Warning); //"Answer_Modem returned 'DIAL_NO_CARRIER'\n"
+    Patch_Call(0x0058233F, &Debug_Print_Warning); //"Answer_Modem returned 'DIAL_ERROR'\n"
+    Patch_Call(0x00582361, &Debug_Print_Warning); //"Answer_Modem returned 'DIAL_TIMEOUT'\n"
+    Patch_Call(0x00582383, &Debug_Print_Warning); //"Answer_Modem returned 'DIAL_CANCELLED'\n"
+    Patch_Call(0x005827DB, &Debug_Print_Info);    //"NullModemClass::Init\n"
+    Patch_Call(0x0058280E, &Debug_Print_Info);    //"Creating connection class\n"
+    Patch_Call(0x00582893, &Debug_Print_Warning); //"Connection already exists\n"
+    Patch_Call(0x00582A0E, &Debug_Print_Info);    //"Ready to initialise connection\n"
+    Patch_Call(0x00582E6F, &Debug_Print_Warning); //"Serial packet length too long by %d bytes\n"
+    Patch_Call(0x00582F04, &Debug_Print_Error);   //"Serial packet failed CRC check\n"
+    Patch_Call(0x005830A9, &Debug_Print_Info);    //"Detecting modem\n"
+    Patch_Call(0x005830F3, &Debug_Print_Info);    //"Sending echo on command\n"
+    Patch_Call(0x0058312A, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x00583134, &Debug_Print_Info);    //"Sending result codes on command\n"
+    Patch_Call(0x0058316B, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x00583175, &Debug_Print_Info);    //"Sending verbose result codes command\n"
+    Patch_Call(0x005831AC, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x005831ED, &Debug_Print_Error);   //"Modem failed to respond to 'AT' command\n"
+    Patch_Call(0x00583251, &Debug_Print_Info);    //"Sending init strings\n"
+    Patch_Call(0x005832BF, &Debug_Print_Info);    //"Sending %s\n"
+    Patch_Call(0x005832F5, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x005833C3, &Debug_Print_Info);    //"Sending flow control init\n"
+    Patch_Call(0x0058342A, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x00583489, &Debug_Print_Error);   //"Sending data compression enable init\n"
+    Patch_Call(0x005834EE, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x00583549, &Debug_Print_Error);   //"Sending data compression disable init\n"
+    Patch_Call(0x005835AE, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x0058360D, &Debug_Print_Error);   //"Sending error correction enable init\n"
+    Patch_Call(0x00583672, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x005836BC, &Debug_Print_Error);   //"Sending error correction disable init\n"
+    Patch_Call(0x00583721, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x00583769, &Debug_Print_Info);    //"Sending disable auto-answer\n"
+    Patch_Call(0x005837A2, &Debug_Print_Info);    //"Command response was %s\n"
+    Patch_Call(0x00583813, &Debug_Print_Info);    //"Modem detected OK\n"
+    Patch_Call(0x0058384F, &Debug_Print_Error);   //"Modem failed to respond to 'AT' command\n"
+    Patch_Call(0x00583898, &Debug_Print_Error);   //"Dial_Modem\n"
+    Patch_Call(0x005838F3, &Debug_Print_Info);    //"Setting modem dial type\n"
+    Patch_Call(0x00583913, &Debug_Print_Info);    //"Clearing results buffer\n"
+    Patch_Call(0x00583936, &Debug_Print_Info);    //"Calling dial function\n"
+    Patch_Call(0x00583970, &Debug_Print_Info);    //"Waiting for dial result\n"
+    Patch_Call(0x005839F0, &Debug_Print_Info);    //"From Modem: %s\n"
+    Patch_Call(0x00583A39, &Debug_Print_Info);    //"Dial result is %s\n"
+    Patch_Call(0x00583AD4, &Debug_Print_Info);    //"Dial result is %s\n"
+    Patch_Call(0x00583B24, &Debug_Print_Warning); //"NullModemClass::Dial_Modem has timed out\n"
+    Patch_Call(0x00583B46, &Debug_Print_Info);    //"Dial result is %s\n"
+    Patch_Call(0x00583BAD, &Debug_Print_Info);    //"Dialling cancelled\n"
+    Patch_Call(0x00583C28, &Debug_Print_Info);    //"Waiting for ring\n"
+    Patch_Call(0x00583CD7, &Debug_Print_Info);    //"Get_Modem_Result returned %d\n"
+    Patch_Call(0x00583D12, &Debug_Print_Info);    //"Get_Modem_Result returned string:%s\n"
+    Patch_Call(0x00583D37, &Debug_Print_Info);    //"RING\n"
+    Patch_Call(0x00583D59, &Debug_Print_Info);    //"Answering with ATA\n"
+    Patch_Call(0x00583DD3, &Debug_Print_Info);    //"Result is %s\n"
+    Patch_Call(0x00583E07, &Debug_Print_Info);    //"Result is %s\n"
+    Patch_Call(0x00583E3B, &Debug_Print_Info);    //"Result is %s\n"
+    Patch_Call(0x00583E6C, &Debug_Print_Info);    //"Result is %s\n"
+    Patch_Call(0x00583EDF, &Debug_Print_Info);    //"Connected\n"
+    Patch_Call(0x00583EF1, &Debug_Print_Warning); //"NullModemClass::Answer_Modem has timed out\n"
+    Patch_Call(0x00583F13, &Debug_Print_Info);    //"Answer result is %s\n"
+    Patch_Call(0x00583F40, &Debug_Print_Info);    //"Not connected\n"
+    Patch_Call(0x00583F59, &Debug_Print_Info);    //"Answering cancelled\n"
+    Patch_Call(0x00583F8E, &Debug_Print_Info);    //"Answering cancelled\n"
+    Patch_Call(0x00589A53, &Debug_Print_Info);    //"ScoreShuffle is %s\n"
+    Patch_Call(0x00589A83, &Debug_Print_Info);    //"ScoreRepeat is %s\n"
+    Patch_Call(0x00589B04, &Debug_Print_Info);    //"ScoreVolume = %f\n"
+    Patch_Call(0x00589B60, &Debug_Print_Info);    //"SoundVolume = %f\n"
+    Patch_Call(0x00589BFB, &Debug_Print_Info);    //"VoiceVolume = %f\n"
+    Patch_Call(0x00589C18, &Debug_Print_Info);    //"--------- Loading SUN.INI settings ---------------\n"
+    Patch_Call(0x00589C3F, &Debug_Print_Info);    //"GameSpeed = %d\n"
+    Patch_Call(0x00589C83, &Debug_Print_Info);    //"Difficulty = %d\n"
+    Patch_Call(0x00589CAC, &Debug_Print_Info);    //"ScrollMethod = %d\n"
+    Patch_Call(0x00589CD5, &Debug_Print_Info);    //"ScrollRate = %d\n"
+    Patch_Call(0x00589D11, &Debug_Print_Info);    //"AutoScroll is %s\n"
+    Patch_Call(0x00589D54, &Debug_Print_Info);    //"DetailLevel = %d\n"
+    Patch_Call(0x00589D66, &Debug_Print_Info);    //"RIGHT""SideBar on %s\n"
+    Patch_Call(0x00589D9D, &Debug_Print_Info);    //"Sidebar Text is %s\n"
+    Patch_Call(0x00589DD4, &Debug_Print_Info);    //"ActionLines are %s\n"
+    Patch_Call(0x00589E0B, &Debug_Print_Info);    //"ToolTips are %s\n"
+    Patch_Call(0x00589E53, &Debug_Print_Info);    //"Resolution = %d X %d\n"
+    Patch_Call(0x00589E9F, &Debug_Print_Info);    //"StretchMovies is %s\n"
+    Patch_Call(0x00589ED6, &Debug_Print_Info);    //"AllowHiRes is %s\n"
+    Patch_Call(0x00589F3E, &Debug_Print_Info);    //"SoundVolume = %f\n"
+    Patch_Call(0x00589F98, &Debug_Print_Info);    //"VoiceVolume = %f\n"
+    Patch_Call(0x00589FF6, &Debug_Print_Info);    //"ScoreVolume = %f\n"
+    Patch_Call(0x0058A035, &Debug_Print_Info);    //"ScoreRepeat is %s\n"
+    Patch_Call(0x0058A075, &Debug_Print_Info);    //"ScoreShuffle is %s\n"
+    Patch_Call(0x0058A0A7, &Debug_Print_Info);    //"Emulated sound card latency default = %d\n"
+    Patch_Call(0x0058A10D, &Debug_Print_Info);    //"--------- Complete -------------------------------\n"
+    Patch_Call(0x0058A159, &Debug_Print_Info);    //"Saving game settings\n"
+    Patch_Call(0x0058A509, &Debug_Print_Info);    //"SoundVolume = %f\n"
+    Patch_Call(0x0058A54C, &Debug_Print_Info);    //"VoiceVolume = %f\n"
+    Patch_Call(0x0058A593, &Debug_Print_Info);    //"ScoreVolume = %f\n"
+    Patch_Call(0x0058A5BA, &Debug_Print_Info);    //"ScoreRepeat is %s\n"
+    Patch_Call(0x0058A5E1, &Debug_Print_Info);    //"ScoreShuffle is %s\n"
+    Patch_Call(0x0058AA02, &Debug_Print_Info);    //"Deleting users KEYBOARD.INI\n"
+    Patch_Call(0x0058C949, &Debug_Print_Warning); //"Overlay %s not really tiberium\n"
+    Patch_Call(0x0058DB4B, &Debug_Print_Info);    //"Demand loading image for %s\n"
+    Patch_Call(0x0058F864, &Debug_Print_Info);    //"ComboBox dropdown windata = NULL\n"
+    Patch_Call(0x0059EC35, &Debug_Print_Info);    //"TS: Computing font metrics....\n"
+    Patch_Call(0x005A91E5, &Debug_Print_Info);    //"Name: %s\n"
+    Patch_Call(0x005A921E, &Debug_Print_Info);    //"Number: %s\n"
+    Patch_Call(0x005A92A7, &Debug_Print_Info);    //"Settings: Port %d, Baud %d\n"
+    Patch_Call(0x005AD468, &Debug_Print_Info);    //"Created paletted preview of size %d bytes\n"
+    Patch_Call(0x005B16AE, &Debug_Print_Info);    //"Response time = %d\n"
+    Patch_Call(0x005B1B2C, &Debug_Print_Info);    //"Response time = %d\n"
+    Patch_Call(0x005B1BF6, &Debug_Print_Info);    //"Sending precalculated network timings on frame %d\n"
+    Patch_Call(0x005B1D54, &Debug_Print_Info);    //"Wait_For_Players returned %d\n"
+    Patch_Call(0x005B1E56, &Debug_Print_Error);   //"Failure executing DoList\n"
+    Patch_Call(0x005B1F6C, &Debug_Print_Info);    //"Waiting to exit game\n"
+    Patch_Call(0x005B2014, &Debug_Print_Info);    //"Entering wait loop\n"
+    Patch_Call(0x005B2078, &Debug_Print_Info);    //"Resending framesync\n"
+    Patch_Call(0x005B2256, &Debug_Print_Info);    //"Waiting for player %d on frame %d\n"
+    Patch_Call(0x005B226C, &Debug_Print_Warning); //"Timed out waiting for end game!\n"
+    Patch_Call(0x005B2281, &Debug_Print_Info);    //"Dolist is full!\n"
+    Patch_Call(0x005B2297, &Debug_Print_Info);    //"their_oldest_frame = %d\n"
+    Patch_Call(0x005B22A1, &Debug_Print_Info);    //"All players have finished - ready to proceed to score screen\n"
+    Patch_Call(0x005B29C1, &Debug_Print_Info);    //"Kicking player %s from the game due to %d votes\n"
+    Patch_Call(0x005B304D, &Debug_Print_Info);    //"Outvoted player is me!\n"
+    Patch_Call(0x005B3C42, &Debug_Print_Info);    //"Propose_Kick_Player %d - %s. Local id is %d\n"
+    Patch_Call(0x005B3D3C, &Debug_Print_Info);    //"Sending kick proposal to %s\n"
+    Patch_Call(0x005B3E98, &Debug_Print_Info);    //"Player %s votes to kick player %s from the game\n"
+    Patch_Call(0x005B42EE, &Debug_Print_Info);    //"Kicking player %d from the game - Frame is %d\n"
+    Patch_Call(0x005B4300, &Debug_Print_Error);   //"Kick_Player_Now bailing - bad house ID\n"
+    Patch_Call(0x005B457C, &Debug_Print_Info);    //"\nFrame %d: Building Send Packet\n"
+    Patch_Call(0x005B46C9, &Debug_Print_Info);    //"      adding Whom:%x Mission:%s Target:%x Dest:%x\n"
+    Patch_Call(0x005B46FB, &Debug_Print_Info);    //"  New MEGAMISSION run:\n"
+    Patch_Call(0x005B475E, &Debug_Print_Info);    //"  New MEGAMISSION run:\n"
+    Patch_Call(0x005B4DC8, &Debug_Print_Info);    //"DoList: Moving event from frame %d to frame %d\n"
+    Patch_Call(0x005B4FF9, &Debug_Print_Info);    //"Sending game results because I quit, but didn't see completion"
+    Patch_Call(0x005B505F, &Debug_Print_Info);    //"Exit Event: ID:%d (%s),  Event Frame:%d,  My Frame:%d\n"
+    Patch_Call(0x005B51E2, &Debug_Print_Info);    //"d:\\Projects\\Sun\\CodeFS\\Queue.CPP""Removing a player %s:%d\n"
+    Patch_Call(0x005B5268, &Debug_Print_Info);    //"Packet received too late!\n"
+    Patch_Call(0x005B5272, &Debug_Print_Info);    //"--------- Event data: -------------------\n"
+    Patch_Call(0x005B5288, &Debug_Print_Info);    //"Type:       %s\n"
+    Patch_Call(0x005B5296, &Debug_Print_Info);    //"Frame:      %d\n"
+    Patch_Call(0x005B52A4, &Debug_Print_Info);    //"ID:         %d\n"
+    Patch_Call(0x005B52B4, &Debug_Print_Info);    //"MaxAhead=%d\n"
+    Patch_Call(0x005B52C5, &Debug_Print_Info);    //"Frame=%d\n"
+    Patch_Call(0x005B52D6, &Debug_Print_Info);    //"FrameSendRate=%d\n"
+    Patch_Call(0x005B592C, &Debug_Print_Info);    //"Writing sync data to file %s\n"
+    Patch_Call(0x005B5974, &Debug_Print_Error);   //"Error - failed to open sync file for writing. Error code %d - %s\n"
+    Patch_Call(0x005B8478, &Debug_Print_Warning); //"Packet received too late!\n"
+    Patch_Call(0x005B8482, &Debug_Print_Info);    //"--------- Event data: -------------------\n"
+    Patch_Call(0x005B8498, &Debug_Print_Info);    //"Type:       %s\n"
+    Patch_Call(0x005B84A6, &Debug_Print_Info);    //"Frame:      %d\n"
+    Patch_Call(0x005B84B4, &Debug_Print_Info);    //"ID:         %d\n"
+    Patch_Call(0x005B84C5, &Debug_Print_Info);    //"MaxAhead=%d\n"
+    Patch_Call(0x005B84D6, &Debug_Print_Info);    //"Frame=%d\n"
+    Patch_Call(0x005B84E6, &Debug_Print_Info);    //"FrameSendRate=%d\n"
+    Patch_Call(0x005B8B98, &Debug_Print_Info);    //"RadarClass::One_Time()\n"
+    Patch_Call(0x005B8C5D, &Debug_Print_Info);    //"RadarClass::Init_Clear\n"
+    Patch_Call(0x005B8CA5, &Debug_Print_Info);    //"RadarClass::Init_Clear done\n"
+    Patch_Call(0x005B8CB5, &Debug_Print_Info);    //"RadarClass::Init_For_House()\n"
+    Patch_Call(0x005BBE8C, &Debug_Print_Info);    //"Radar: ACTIVATING\n"
+    Patch_Call(0x005BBEBE, &Debug_Print_Info);    //"Radar: DEACTIVING\n"
+    Patch_Call(0x005BBF60, &Debug_Print_Info);    //"Radar: ACTIVATING\n"
+    Patch_Call(0x005BBFE0, &Debug_Print_Info);    //"Radar: ACTIVATING\n"
+    Patch_Call(0x005BC038, &Debug_Print_Info);    //"Radar: DEACTIVING\n"
+    Patch_Call(0x005BC0AE, &Debug_Print_Info);    //"Radar: TacticalMap availability is %s\n"
+    Patch_Call(0x005BC0FB, &Debug_Print_Info);    //"Radar: ACTIVATING\n"
+    Patch_Call(0x005BC12F, &Debug_Print_Info);    //"Radar: DEACTIVING\n"
+    Patch_Call(0x005BCD0A, &Debug_Print_Info);    //"Radar: Movie full redrawn\n"
+    Patch_Call(0x005BCD81, &Debug_Print_Info);    //"Radar: Movie paused\n"
+    Patch_Call(0x005BCE1B, &Debug_Print_Info);    //"Radar: Movie done.\n"
+    Patch_Call(0x005BCE5D, &Debug_Print_Info);    //"Radar: Next movie.\n"
+    Patch_Call(0x005C099A, &Debug_Print_Info);    //"Restate: Fetching breifing text from Mission.ini\n"
+    Patch_Call(0x005C0A9F, &Debug_Print_Info);    //"Restate: Fetching breifing text from %s\n"
+    Patch_Call(0x005C0B07, &Debug_Print_Error);   //"Restate: Unable to create font!\n"
+    Patch_Call(0x005C0B66, &Debug_Print_Error);   //"Restate: Unable to create animation drawer!\n"
+    Patch_Call(0x005C0C66, &Debug_Print_Error);   //"Restate: Unable to create button!\n"
+    Patch_Call(0x005C65C5, &Debug_Print_Info);    //"Processing LangRule.ini\n"
+    Patch_Call(0x005CC601, &Debug_Print_Info);    //"Processing sides.\n"
+    Patch_Call(0x005CC66D, &Debug_Print_Info);    //"Side %d: %s \n"
+    Patch_Call(0x005CC742, &Debug_Print_Info);    //"  %s\n"
+    Patch_Call(0x005CEE03, &Debug_Print_Info);    //"RulesClass: Oldsize %ld, Newsize %ld\n"
+    Patch_Call(0x005D4FF5, &Debug_Print_Info);    //"\nSAVING GAME [%s - %s]\n"
+    Patch_Call(0x005D501A, &Debug_Print_Info);    //"Creating DocFile\n"
+    Patch_Call(0x005D513C, &Debug_Print_Info);    //"Saving version information\n"
+    Patch_Call(0x005D515E, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D518C, &Debug_Print_Info);    //"Creating content stream\n"
+    Patch_Call(0x005D51CE, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D520A, &Debug_Print_Info);    //"Linking content stream to compressor\n"
+    Patch_Call(0x005D5288, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D52F9, &Debug_Print_Info);    //"Calling Put_All()\n"
+    Patch_Call(0x005D5313, &Debug_Print_Info);    //"Unlinking content stream from compressor\n"
+    Patch_Call(0x005D5341, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D5399, &Debug_Print_Info);    //"Releasing content stream\n"
+    Patch_Call(0x005D53C6, &Debug_Print_Info);    //"Closing DocFile\n"
+    Patch_Call(0x005D53F4, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D544A, &Debug_Print_Info);    //"SAVING GAME [%s] - Complete\n\n"
+    Patch_Call(0x005D54D1, &Debug_Print_Info);    //"Saving AnimTypes\n"
+    Patch_Call(0x005D555D, &Debug_Print_Info);    //"Saving Map\n"
+    Patch_Call(0x005D5575, &Debug_Print_Info);    //"Saving Tunnels\n"
+    Patch_Call(0x005D55FB, &Debug_Print_Info);    //"Saving Misc. Values\n"
+    Patch_Call(0x005D5613, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D562A, &Debug_Print_Info);    //"Saving Logic\n"
+    Patch_Call(0x005D5642, &Debug_Print_Info);    //"Saving TacticalMap\n"
+    Patch_Call(0x005D565D, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D5674, &Debug_Print_Info);    //"Saving HouseTypes\n"
+    Patch_Call(0x005D56F8, &Debug_Print_Info);    //"Saving Houses\n"
+    Patch_Call(0x005D577E, &Debug_Print_Info);    //"Saving Units\n"
+    Patch_Call(0x005D5804, &Debug_Print_Info);    //"Saving UnitTypes\n"
+    Patch_Call(0x005D588A, &Debug_Print_Info);    //"Saving InfantryTypes\n"
+    Patch_Call(0x005D5910, &Debug_Print_Info);    //"Saving Infantry\n"
+    Patch_Call(0x005D5996, &Debug_Print_Info);    //"Saving BuildingTypes\n"
+    Patch_Call(0x005D5A1C, &Debug_Print_Info);    //"Saving Buildings\n"
+    Patch_Call(0x005D5AA2, &Debug_Print_Info);    //"Saving AircraftTypes\n"
+    Patch_Call(0x005D5B28, &Debug_Print_Info);    //"Saving Aircraft\n"
+    Patch_Call(0x005D5BAE, &Debug_Print_Info);    //"Saving Anims\n"
+    Patch_Call(0x005D5C34, &Debug_Print_Info);    //"Saving TaskForces\n"
+    Patch_Call(0x005D5CBA, &Debug_Print_Info);    //"Saving TeamTypes\n"
+    Patch_Call(0x005D5D40, &Debug_Print_Info);    //"Saving Teams\n"
+    Patch_Call(0x005D5DC6, &Debug_Print_Info);    //"Saving ScriptTypes\n"
+    Patch_Call(0x005D5E4C, &Debug_Print_Info);    //"Saving Scripts\n"
+    Patch_Call(0x005D5ED2, &Debug_Print_Info);    //"Saving TagTypes\n"
+    Patch_Call(0x005D5F58, &Debug_Print_Info);    //"Saving Tags\n"
+    Patch_Call(0x005D5FDE, &Debug_Print_Info);    //"Saving TriggerTypes\n"
+    Patch_Call(0x005D6064, &Debug_Print_Info);    //"Saving Triggers\n"
+    Patch_Call(0x005D60EA, &Debug_Print_Info);    //"Saving AITriggerTypes\n"
+    Patch_Call(0x005D6160, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D616A, &Debug_Print_Info);    //"Saving Actions\n"
+    Patch_Call(0x005D61F0, &Debug_Print_Info);    //"Saving Events\n"
+    Patch_Call(0x005D6276, &Debug_Print_Info);    //"Saving Factories\n"
+    Patch_Call(0x005D62FC, &Debug_Print_Info);    //"Saving VoxelAnimTypes\n"
+    Patch_Call(0x005D6382, &Debug_Print_Info);    //"Saving VoxelAnims\n"
+    Patch_Call(0x005D639F, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D63B6, &Debug_Print_Info);    //"Saving Warheads\n"
+    Patch_Call(0x005D63D3, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D63EA, &Debug_Print_Info);    //"Saving Weapons\n"
+    Patch_Call(0x005D6407, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D641E, &Debug_Print_Info);    //"Saving ParticleTypes\n"
+    Patch_Call(0x005D643B, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6452, &Debug_Print_Info);    //"Saving Particles\n"
+    Patch_Call(0x005D646F, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6486, &Debug_Print_Info);    //"Saving ParticleSystemTypes\n"
+    Patch_Call(0x005D64A3, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D64BA, &Debug_Print_Info);    //"Saving ParticleSystems\n"
+    Patch_Call(0x005D64D7, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D64EE, &Debug_Print_Info);    //"Saving BulletTypes\n"
+    Patch_Call(0x005D650B, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6522, &Debug_Print_Info);    //"Saving Bullets\n"
+    Patch_Call(0x005D653F, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6556, &Debug_Print_Info);    //"Saving WaypointPaths\n"
+    Patch_Call(0x005D6573, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D658A, &Debug_Print_Info);    //"Saving SmudgeTypes\n"
+    Patch_Call(0x005D65A7, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D65BE, &Debug_Print_Info);    //"Saving OverlayTypes\n"
+    Patch_Call(0x005D65DB, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D65F2, &Debug_Print_Info);    //"Saving LightSources\n"
+    Patch_Call(0x005D660F, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6626, &Debug_Print_Info);    //"Saving BuildingLights\n"
+    Patch_Call(0x005D6643, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D665A, &Debug_Print_Info);    //"Saving Sides\n"
+    Patch_Call(0x005D6677, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D668E, &Debug_Print_Info);    //"Saving Tiberiums\n"
+    Patch_Call(0x005D66AB, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D66C2, &Debug_Print_Info);    //"Saving Empulses\n"
+    Patch_Call(0x005D66DF, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D66F6, &Debug_Print_Info);    //"Saving SuperWeaponTypes\n"
+    Patch_Call(0x005D6713, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D672A, &Debug_Print_Info);    //"Saving SuperWeapons\n"
+    Patch_Call(0x005D6747, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D675E, &Debug_Print_Info);    //"Saving TerrianTypes\n"
+    Patch_Call(0x005D677B, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6792, &Debug_Print_Info);    //"Saving Terrains\n"
+    Patch_Call(0x005D67AF, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D67C6, &Debug_Print_Info);    //"Saving FoggedObjects\n"
+    Patch_Call(0x005D67E3, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D67FA, &Debug_Print_Info);    //"Saving AlphaShapes\n"
+    Patch_Call(0x005D6817, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D682E, &Debug_Print_Info);    //"Saving Waves\n"
+    Patch_Call(0x005D684B, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6862, &Debug_Print_Info);    //"Saving VeinholeMonster\n"
+    Patch_Call(0x005D687A, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6891, &Debug_Print_Info);    //"Saving RadarEvents\n"
+    Patch_Call(0x005D68A9, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D68C9, &Debug_Print_Info);    //"Writing Skirmish Session.Options\n"
+    Patch_Call(0x005D68E5, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D6922, &Debug_Print_Info);    //"\nLOADING GAME [%s]\n"
+    Patch_Call(0x005D6B92, &Debug_Print_Info);    //"LOADING GAME [%s] - Complete\n\n"
+    Patch_Call(0x005D78BC, &Debug_Print_Info);    //"Reading Skirmish Session.Options\n"
+    Patch_Call(0x005D78D8, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D8ECF, &Debug_Print_Info);    //"Attempting to obtain PropertySetStorage interface\n"
+    Patch_Call(0x005D8EFB, &Debug_Print_Info);    //"Saving version information the NEW way.\n"
+    Patch_Call(0x005D91B2, &Debug_Print_Error);   //"\t***** FAILED!\n"
+    Patch_Call(0x005D91BF, &Debug_Print_Info);    //"Saving version information the old way.\n"
+    Patch_Call(0x005DB1C5, &Debug_Print_Info);    //"\n----- Starting scnenario: %s -----\n"
+    Patch_Call(0x005DB1D6, &Debug_Print_Info);    //"Player Count: %d\n"
+    Patch_Call(0x005DB31F, &Debug_Print_Info);    //"Reading scenario: %s\n"
+    Patch_Call(0x005DB463, &Debug_Print_Info);    //"Toggle display mode to %d X %d\n"
+    Patch_Call(0x005DB4F3, &Debug_Print_Info);    //"Paused ElapsedTimer = %ld\n"
+    Patch_Call(0x005DB5E1, &Debug_Print_Info);    //"Resume ElapsedTimer = %ld\n"
+    Patch_Call(0x005DB6D5, &Debug_Print_Info);    //"Toggle display mode to %d X %d\n"
+    Patch_Call(0x005DB70B, &Debug_Print_Info);    //"Toggling display mode back to 640 X 480 / 400\n"
+    Patch_Call(0x005DB8ED, &Debug_Print_Warning); //"Carrier Detect is false. Aborting load wait\n"
+    Patch_Call(0x005DB934, &Debug_Print_Warning); //"Player %s failed to make it into the game. Dropping %s\n"
+    Patch_Call(0x005DBA76, &Debug_Print_Info);    //"Scen->IsRandom = true\n""Scen->IsRandom = false\n"
+    Patch_Call(0x005DBD74, &Debug_Print_Info);    //"Setting addresses for UDP broadcast\n"
+    Patch_Call(0x005DBE2D, &Debug_Print_Info);    //"Adding broadcast address %s\n"
+    Patch_Call(0x005DBED2, &Debug_Print_Error);   //"Error - Unable to read scenario: %s\n"
+    Patch_Call(0x005DC7DD, &Debug_Print_Info);    //"Map.Init_Clear()\n"
+    Patch_Call(0x005DC7F4, &Debug_Print_Info);    //"Logic.Init()\n"
+    Patch_Call(0x005DC80E, &Debug_Print_Info);    //"CurrentObjects.Clear()\n"
+    Patch_Call(0x005DC84D, &Debug_Print_Info);    //"Scen->Clear_All_Waypoints()\n"
+    Patch_Call(0x005DC877, &Debug_Print_Info);    //"Init_Campaigns()\n"
+    Patch_Call(0x005DC991, &Debug_Print_Info);    //"Toggling display mode back to 640 X 480 / 400\n"
+    Patch_Call(0x005DCCDC, &Debug_Print_Info);    //"Toggling display mode back to 640 X 480 / 400\n"
+    Patch_Call(0x005DD097, &Debug_Print_Info);    //"Toggling display mode back to 640 X 480 / 400\n"
+    Patch_Call(0x005DD19E, &Debug_Print_Info);    //"Read_Scenario_INI - Filename is %s\n"
+    Patch_Call(0x005DD1C0, &Debug_Print_Error);   //"Scenario ini load failed!\n"
+    Patch_Call(0x005DD4E2, &Debug_Print_Info);    //"Clearing old scenario\n"
+    Patch_Call(0x005DD66D, &Debug_Print_Info);    //"Creating new tactical map\n"
+    Patch_Call(0x005DD6B8, &Debug_Print_Info);    //"Initializing Theater\n"
+    Patch_Call(0x005DD789, &Debug_Print_Info);    //"Calling Prep_For_Side()\n"
+    Patch_Call(0x005DD7BB, &Debug_Print_Info);    //"Initializeing Rules\n"
+    Patch_Call(0x005DD81D, &Debug_Print_Info);    //"Calling Prep_Speech_For_Side()\n"
+    Patch_Call(0x005DD84A, &Debug_Print_Info);    //"Calling Scen->Read_Global_INI(*RuleINI);\n"
+    Patch_Call(0x005DD8DF, &Debug_Print_Info);    //"Calling Rule->Addition() with scenario overrides\n"
+    Patch_Call(0x005DD8F8, &Debug_Print_Info);    //"Finished Rule->Addition() with scenario overrides\n"
+    Patch_Call(0x005DD920, &Debug_Print_Info);    //"Reading in scenario house types\n"
+    Patch_Call(0x005DE5EE, &Debug_Print_Info);    //"Creating %d units - Random seed is %08x\n"
+    Patch_Call(0x005DE604, &Debug_Print_Info);    //"UniqueID is %08x\n"
+    Patch_Call(0x005DE78E, &Debug_Print_Info);    //"Multiplayer start waypoint found at cell %d,%d\n"
+    Patch_Call(0x005DE7B0, &Debug_Print_Warning); //"Multiplayer start waypoint deficiency - looking for more start positions\n"
+    Patch_Call(0x005DE893, &Debug_Print_Info);    //"Random multiplayer start waypoint added at cell %d,%d\n"
+    Patch_Call(0x005DE921, &Debug_Print_Info);    //"Generating units for house %d (%s)\n"
+    Patch_Call(0x005DEDB4, &Debug_Print_Info);    //"House %s deployed object %s\n"
+    Patch_Call(0x005DEF4B, &Debug_Print_Info);    //"Finished unit generation. Random number is %d\n"
+    Patch_Call(0x005DF3E8, &Debug_Print_Info);    //"Scenario Save: ElapsedTimer = %ld\n"
+    Patch_Call(0x005DF70A, &Debug_Print_Info);    //"Scenario Load: ElapsedTimer = %ld\n"
+    Patch_Call(0x005E4FF4, &Debug_Print_Info);    //"Remaining: %ld, Total: %ld\n"
+    Patch_Call(0x005E5025, &Debug_Print_Info);    //"BuildEconomy = %f\n"
+    Patch_Call(0x005E504B, &Debug_Print_Info);    //"Money: %ld, Harvested: %ld, Initial: %ld\n"
+    Patch_Call(0x005E5098, &Debug_Print_Info);    //"MoneyEconomy = %f\n"
+    Patch_Call(0x005E50BE, &Debug_Print_Info);    //"Efficiency: %ld\n"
+    Patch_Call(0x005E5131, &Debug_Print_Info);    //"Stats: %s - UnitsLost %ld, BuildingsLost %ld\n"
+    Patch_Call(0x005E519A, &Debug_Print_Info);    //"AllyUnits %ld, AllyBuildings %ld, EnemyUnits %ld, EnemyBldgs %ld\n"
+    Patch_Call(0x005E6949, &Debug_Print_Info);    //"ScoreScreen: Loaded TEXT1.AUD\n"
+    Patch_Call(0x005E69A4, &Debug_Print_Info);    //"ScoreScreen: Loaded TEXT2.AUD\n"
+    Patch_Call(0x005E69FF, &Debug_Print_Info);    //"ScoreScreen: Loaded TEXT3.AUD\n"
+    Patch_Call(0x005E6E43, &Debug_Print_Info);    //"ScoreScreen: Loaded FULLFNT3.SHP\n"
+    Patch_Call(0x005E6F03, &Debug_Print_Info);    //"ScoreScreen: Loaded BIGFONT.SHP\n"
+    Patch_Call(0x005E7368, &Debug_Print_Info);    //"ScoreScreen: Loaded %s\n"
+    Patch_Call(0x005E9A5B, &Debug_Print_Info);    //"Scroll: Abort_Drag_Select()\n"
+    Patch_Call(0x005E9D03, &Debug_Print_Info);    //"Getting file from host\n"
+    Patch_Call(0x005E9D21, &Debug_Print_Info);    //"Requesting file download\n"
+    Patch_Call(0x005E9E81, &Debug_Print_Info);    //"Timeout waiting for REQ_SCENARIO packet send\n"
+    Patch_Call(0x005EA003, &Debug_Print_Info);    //"Host responded with file info\n"
+    Patch_Call(0x005EA012, &Debug_Print_Info);    //"File name is %s\n"
+    Patch_Call(0x005EA043, &Debug_Print_Info);    //"Timeout waiting for host to respond to file info request\n"
+    Patch_Call(0x005EA05E, &Debug_Print_Info);    //"Sending file info received ack\n"
+    Patch_Call(0x005EA1BE, &Debug_Print_Info);    //"Timeout waiting for FILE_INFO_ACK send\n"
+    Patch_Call(0x005EA200, &Debug_Print_Info);    //"Receive_Remote_File returned %s\n"
+    Patch_Call(0x005EA264, &Debug_Print_Info);    //"Receiving download of file %s\n"
+    Patch_Call(0x005EA439, &Debug_Print_Info);    //"Received file chunk %d\n"
+    Patch_Call(0x005EA534, &Debug_Print_Info);    //"Received file chunk %d\n"
+    Patch_Call(0x005EA652, &Debug_Print_Info);    //"File download completed OK\n"
+    Patch_Call(0x005EA668, &Debug_Print_Info);    //"Download file closed\n"
+    Patch_Call(0x005EA6E0, &Debug_Print_Info);    //"Send file %s to clients\n"
+    Patch_Call(0x005EA76D, &Debug_Print_Info);    //"Sending file info to clients\n"
+    Patch_Call(0x005EA868, &Debug_Print_Info);    //"Sending file info packet to player %d\n"
+    Patch_Call(0x005EA9E7, &Debug_Print_Warning); //"File info send timed out\n"
+    Patch_Call(0x005EAB4B, &Debug_Print_Info);    //"Client responded with file info ack\n"
+    Patch_Call(0x005EACD5, &Debug_Print_Info);    //"Sending file chunk %d\n"
+    Patch_Call(0x005EAECD, &Debug_Print_Info);    //"Sending file chunk %d\n"
+    Patch_Call(0x005EAF7D, &Debug_Print_Info);    //"File upload completed\n"
+    Patch_Call(0x005EBA2E, &Debug_Print_Info);    //"Reading serial settings dialog\n"
+    Patch_Call(0x005EBB57, &Debug_Print_Info);    //"Port: %lx\n"
+    Patch_Call(0x005EBB68, &Debug_Print_Info);    //"Modem: %s\n"
+    Patch_Call(0x005EBBC6, &Debug_Print_Info);    //"Baud: %ld\n"
+    Patch_Call(0x005EBCE8, &Debug_Print_Info);    //"DialMethod: %s\n"
+    Patch_Call(0x005ED4E4, &Debug_Print_Info);    //"Session one time init. UniqueID is %08x\n"
+    Patch_Call(0x005ED51D, &Debug_Print_Info);    //"Entering Create_Connections\n"
+    Patch_Call(0x005ED561, &Debug_Print_Info);    //"Player %d, Name: %s, ID %d\n"
+    Patch_Call(0x005ED625, &Debug_Print_Info);    //"House[%d] IP = %X  Clan=%d\n"
+    Patch_Call(0x005ED6A7, &Debug_Print_Info);    //"Leaving Create_Connections\n"
+    Patch_Call(0x005EF1F7, &Debug_Print_Error);   //"Unable to locate scenario %s - No digest info will be loaded\n"
+    Patch_Call(0x005EFC22, &Debug_Print_Info);    //"Squad 1 = %s\n"
+    Patch_Call(0x005EFC31, &Debug_Print_Info);    //"Squad 2 = %s\n"
+    Patch_Call(0x005FC0D3, &Debug_Print_Info);    //"SoundControls: GameSpeed = %d, ScrollRate = %d, Detail = %d\n"
+    Patch_Call(0x005FC167, &Debug_Print_Info);    //"SoundControls: GameSpeed = %d, ScrollRate = %d, Detail = %d\n"
+    Patch_Call(0x005FF82B, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF83C, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF84D, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF861, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF875, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF889, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF8A0, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF8B4, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF8C8, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF8D9, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF8ED, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF901, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF918, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF92C, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF940, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF951, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF965, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF979, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF990, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF9A4, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF9B5, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF9C9, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF9DD, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FF9EE, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA05, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA16, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA2A, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA3E, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA52, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA66, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA7A, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA8E, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFA9F, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFAB0, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFAC1, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFAD2, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFAE9, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFAFD, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB11, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB25, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB36, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB4A, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB61, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB75, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB86, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFB9A, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFBAB, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFBBC, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFBD0, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFBE1, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFBF2, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFC03, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFC14, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFC25, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFC39, &Debug_Print_Info);    //"%d-%d\n"
+    Patch_Call(0x005FFCA8, &Debug_Print_Error);   //"TibSun is already running...Bail!\n"
+    Patch_Call(0x005FFCCA, &Debug_Print_Info);    //"Create AppMutex okay.\n"
+    Patch_Call(0x005FFCF8, &Debug_Print_Error);   //"Waiting for Autoplay to quit!\n"
+    Patch_Call(0x005FFD1C, &Debug_Print_Error);   //"Failed waiting for AutoPlayMutex\n"
+    Patch_Call(0x005FFD7D, &Debug_Print_Info);    //"Create AutoPlayMutex.\n"
+    Patch_Call(0x005FFD97, &Debug_Print_Info);    //"Got AutoPlayMutex okay.\n"
+    Patch_Call(0x006019AA, &Debug_Print_Info);    //"Main_Game\n"
+    Patch_Call(0x006094A1, &Debug_Print_Info);    //"Sending game results.  SawCompletion=%d\n"
+    Patch_Call(0x00627F59, &Debug_Print_Info);    //"Create_One_Of...\n"
+    Patch_Call(0x00627FB4, &Debug_Print_Info);    //"Creating a new team named '%s'.\n"
+    Patch_Call(0x006304C0, &Debug_Print_Info);    //"Limped %s\n"
+    Patch_Call(0x00643E4B, &Debug_Print_Info);    //"Theme::AI(Next song = %d)\n"
+    Patch_Call(0x00643F82, &Debug_Print_Info);    //"Theme::QueueSong(%d)\n"
+    Patch_Call(0x00644033, &Debug_Print_Info);    //"Theme::Stop(%d)\n"
+    Patch_Call(0x006440F8, &Debug_Print_Info);    //"Theme::PlaySong(%d) - %s\n"
+    Patch_Call(0x00644201, &Debug_Print_Info);    //"Theme::Stop(%d) - Fading\n"
+    Patch_Call(0x00644223, &Debug_Print_Info);    //"Theme::Stop(%d)\n"
+    Patch_Call(0x00644285, &Debug_Print_Info);    //"Theme::Suspend(%d)\n"
+    Patch_Call(0x0064737B, &Debug_Print_Info);    //"Tooltips are %s.\n"
+    Patch_Call(0x00647C7D, &Debug_Print_Info);    //"ToolTip: %s\n"
+    Patch_Call(0x00663557, &Debug_Print_Info);    //"Exiting Remove_Matching\n"
+    Patch_Call(0x0066356E, &Debug_Print_Info);    //"Exiting Remove_Matching\n"
+    Patch_Call(0x006655B3, &Debug_Print_Error);   //"GetDiskFreeSpace() failed: %s\n"
+    Patch_Call(0x0066561F, &Debug_Print_Error);   //"GetVolumeInformation() - failed: %s\n"
+    Patch_Call(0x0066BAB5, &Debug_Print_Info);    //"Movie is awake\n"
+    Patch_Call(0x0066BB4F, &Debug_Print_Info);    //"Movie is sleeping\n"
+    Patch_Call(0x0066BCBB, &Debug_Print_Info);    //"VQAClass::Advance_Frame() - Ready\n"
+    Patch_Call(0x0066BCFB, &Debug_Print_Info);    //"VQAClass::Advance_Frame() - Unpause\n"
+    Patch_Call(0x0066BDD7, &Debug_Print_Info);    //"VQAClass::Advance_Frame() - Pause\n"
+    Patch_Call(0x00681A76, &Debug_Print_Info);    //"Closing serial port\n"
+    Patch_Call(0x00681D6A, &Debug_Print_Info);    //"Closing serial port\n"
+    Patch_Call(0x00681D89, &Debug_Print_Info);    //"Opening serial port %s\n"
+    Patch_Call(0x00681DBA, &Debug_Print_Error);   //"Failed to get valid port handle. Error: %s\n"
+    Patch_Call(0x00681DD6, &Debug_Print_Info);    //"Port opened OK\n"
+    Patch_Call(0x00681EB5, &Debug_Print_Error);   //"SetCommState returned error %s.\n""GetCommState returned error code %s.\n"
+    Patch_Call(0x00681EF4, &Debug_Print_Error);   //"SetCommTimeouts returned error code %s.\n"
+    Patch_Call(0x00681F6D, &Debug_Print_Warning); //"WinModemClass - Entering failsafe mode\n"
+    Patch_Call(0x00681FF0, &Debug_Print_Error);   //"SetCommState returned error %s.\n"
+    Patch_Call(0x00682007, &Debug_Print_Error);   //"GetCommState returned error %s.\n"
+    Patch_Call(0x0068204B, &Debug_Print_Error);   //"Enter_Failsafe_Mode - EscapeCommFunction failed to set state of RTS line. Error code %d, %s\n"
+    Patch_Call(0x006820BD, &Debug_Print_Warning); //"WinModemClass - Leaving failsafe mode\n"
+    Patch_Call(0x00682106, &Debug_Print_Error);   //"SetCommState returned error %s.\n"
+    Patch_Call(0x0068212B, &Debug_Print_Error);   //"Leave_Failsafe_Mode - EscapeCommFunction failed to set state of RTS line. Error code %d, %s\n"
+    Patch_Call(0x00682228, &Debug_Print_Error);   //"Set_Serial_DTR - EscapeCommFunction failed with error code %d, %s\n"
+    Patch_Call(0x0068224E, &Debug_Print_Info);    //"Closing serial port\n"
+    Patch_Call(0x006822F9, &Debug_Print_Error);   //"GetOverlappedResult in WinModemClass::Read_Serial_Chars returned error %s\n"
+    Patch_Call(0x00682404, &Debug_Print_Error);   //"Reading from port handle failed with error %s\n"
+    Patch_Call(0x006825A7, &Debug_Print_Error);   //"Writing to port handle failed with error %s\n"
+    Patch_Call(0x0068284E, &Debug_Print_Info);    //"Creating dial string\n"
+    Patch_Call(0x006828B6, &Debug_Print_Info);    //"Dial type is tone\n"
+    Patch_Call(0x006828C5, &Debug_Print_Info);    //"Dial type is pulse\n"
+    Patch_Call(0x00682900, &Debug_Print_Info);    //"Appending dial string\n"
+    Patch_Call(0x00682937, &Debug_Print_Info);    //"Appending carriage return\n"
+    Patch_Call(0x00682974, &Debug_Print_Info);    //"Send to modem: %s\n"
+    Patch_Call(0x006829D9, &Debug_Print_Error);   //"Writing to port handle failed with error %s\n"
+    Patch_Call(0x00682B1D, &Debug_Print_Error);   //"Writing to port handle failed with error %s\n"
+    Patch_Call(0x00682CEC, &Debug_Print_Error);   //"Writing to port handle failed with error %s\n"
+    Patch_Call(0x00682DDA, &Debug_Print_Error);   //"Communications 'Framing' error detected.\n"
+    Patch_Call(0x00682DF3, &Debug_Print_Warning); //"Communications 'Break' detected.\n"
+    Patch_Call(0x00682E05, &Debug_Print_Error);   //"Communications 'IO' error detected.\n"
+    Patch_Call(0x00682E1E, &Debug_Print_Error);   //"Communications 'Receive Overrun' error detected.\n"
+    Patch_Call(0x00682E37, &Debug_Print_Error);   //"Communications 'Receive Queue Overflow' error detected.\n"
+    Patch_Call(0x00682E50, &Debug_Print_Error);   //"Communications 'Parity' error detected.\n"
+    Patch_Call(0x00682E69, &Debug_Print_Error);   //"Communications 'Transmit Queue Full' error detected.\n"
+    Patch_Call(0x00682E86, &Debug_Print_Info);    //"Comm status - Tx waiting for CTS signal\n"
+    Patch_Call(0x00682E98, &Debug_Print_Info);    //"Comm status - Tx waiting for DSR signal\n"
+    Patch_Call(0x00682EAA, &Debug_Print_Info);    //"Comm status - Tx waiting for RLSD signal\n"
+    Patch_Call(0x00682EBC, &Debug_Print_Info);    //"Comm status - Tx waiting, XOFF char received\n"
+    Patch_Call(0x00682ECE, &Debug_Print_Info);    //"Comm status - Tx waiting, XOFF char sent\n"
+    Patch_Call(0x00682EE0, &Debug_Print_Info);    //"Comm status - EOF character sent\n"
+    Patch_Call(0x00682EF4, &Debug_Print_Info);    //"Comm status - Character waiting for Tx\n"
+    Patch_Call(0x00682F16, &Debug_Print_Info);    //"Closing serial port\n"
+    Patch_Call(0x00685985, &Debug_Print_Info);    //"Focus_Loss()\n"
+    Patch_Call(0x006859EC, &Debug_Print_Info);    //"Focus_Loss(): _MouseCaptured = %s\n"
+    Patch_Call(0x00685A05, &Debug_Print_Info);    //"Focus_Restore()\n"
+    Patch_Call(0x00685A44, &Debug_Print_Info);    //"Focus_Restore(): _MouseCaptured = %s\n"
+    Patch_Call(0x00685E96, &Debug_Print_Info);    //"Focus_Loss()\n"
+    Patch_Call(0x00685EFD, &Debug_Print_Info);    //"Focus_Loss(): _MouseCaptured = %s\n"
+    Patch_Call(0x00685F21, &Debug_Print_Info);    //"Focus gained\n"
+    Patch_Call(0x006885CA, &Debug_Print_Error);   //"SetHouseAndColor failed for '%s'!\n"
+    Patch_Call(0x0068BFA3, &Debug_Print_Info);    //"Get_WDT_State_Silent: WDTHost is %s, port is %d\n"
+    Patch_Call(0x0068C1C3, &Debug_Print_Info);    //"Creating login dlg\n"
+    Patch_Call(0x0068C355, &Debug_Print_Info);    //"About to RequestSetLocale - Locale is %d\n"
+    Patch_Call(0x0068CAD6, &Debug_Print_Error);   //"WaitForMultipleObjects() failed in Join_WOL_Lobby"
+    Patch_Call(0x0068D595, &Debug_Print_Info);    //"Newnick update check\n"
+    Patch_Call(0x0068E5A0, &Debug_Print_Info);    //"Adding country: %s\n"
+    Patch_Call(0x0068E653, &Debug_Print_Info);    //"Server found %s\n"
+    Patch_Call(0x00692CF6, &Debug_Print_Error);   //"CB_GETCURSEL(IDC_LADDERTYPE) returned CB_ERR\n"
+    Patch_Call(0x00692EB4, &Debug_Print_Error);   //"CB_GETCURSEL returned CB_ERR\n"
+    Patch_Call(0x006953B0, &Debug_Print_Info);    //"****** Dlg Init *******\n"
+    Patch_Call(0x006965D7, &Debug_Print_Info);    //"About to wait for 'GO' response.\n"
+    Patch_Call(0x00696651, &Debug_Print_Info);    //"Packet is C&C2 packet\n"
+    Patch_Call(0x00696698, &Debug_Print_Info);    //"Packet type is NET_REQ_SCENARIO\n"
+    Patch_Call(0x006966B6, &Debug_Print_Info);    //"Packet type is NET_READY_TO_GO\n"
+    Patch_Call(0x006967DA, &Debug_Print_Info);    //"Sent NET_READY_TO_GO\n"
+    Patch_Call(0x00696A1F, &Debug_Print_Info);    //"Received NET_PREVIEW_MODE packet from host\n"
+    Patch_Call(0x00696B5D, &Debug_Print_Info);    //"Poke_The_Host - Host address is %s\n"
+    Patch_Call(0x00697007, &Debug_Print_Info);    //"Server found %s\n"
+    Patch_Call(0x00697384, &Debug_Print_Info);    //"Adding country: %s\n"
+    Patch_Call(0x00697764, &Debug_Print_Info);    //"WDTHost is %s, port is %d\n"
+    Patch_Call(0x0069776E, &Debug_Print_Info);    //"Requesting current WDT cycle\n"
+    Patch_Call(0x00697826, &Debug_Print_Info);    //"Requesting Previous Cycle\n"
+    Patch_Call(0x00697FCF, &Debug_Print_Warning); //"Play_WDT_Sound: passed empty sound category\n"
+    Patch_Call(0x0069837F, &Debug_Print_Info);    // tmp->connlabel"
+    Patch_Call(0x0069A519, &Debug_Print_Info);    //"OnGameStart\n"
+    Patch_Call(0x0069A550, &Debug_Print_Info);    //"Starting a %d player game.\n"
+    Patch_Call(0x0069A70B, &Debug_Print_Info);    //"Max ping is %d ms\n"
+    Patch_Call(0x0069A832, &Debug_Print_Warning); //"Ping times not available\n"
+    Patch_Call(0x0069A845, &Debug_Print_Info);    //"PrecalcMaxAhead is %d\n"
+    Patch_Call(0x0069A856, &Debug_Print_Info);    //"PrecalcDesiredFrameRate is %d\n"
+    Patch_Call(0x0069A867, &Debug_Print_Info);    //"LatencyFudge is %d\n"
+    Patch_Call(0x0069A877, &Debug_Print_Info);    //"FrameSendRate is %d\n"
+    Patch_Call(0x0069AD02, &Debug_Print_Info);    //"Sent private game option packet requesting a preview download\n"
+    Patch_Call(0x0069AFE1, &Debug_Print_Info);    //"Received private preview request from channel guest\n"
+    Patch_Call(0x0069BED7, &Debug_Print_Error);   //"OnUserLocale callback failed!\n"
+    Patch_Call(0x0069C119, &Debug_Print_Info);    //"OnUserLocale callback - Locale is %d\n"
+    Patch_Call(0x0069C5FC, &Debug_Print_Error);   //"OnUserTeam FAILED!\n"
+    Patch_Call(0x0069C852, &Debug_Print_Error);   //"OnSetTeam FAILED: %d\n"
+    Patch_Call(0x0069D2CE, &Debug_Print_Info);    //"OnWDTState: Previous cycle data received\n"
+    Patch_Call(0x0069D2FB, &Debug_Print_Info);    //"OnWDTState: Current cycle data received\n"
+    Patch_Call(0x0069D824, &Debug_Print_Info);    //"OnWDTState: NACK received from server\n"
+    Patch_Call(0x0069E045, &Debug_Print_Info);    //"OnNewNick\n"
+    Patch_Call(0x0069E0F5, &Debug_Print_Info);    //"OnAgeCheck"
+    Patch_Call(0x006A03FF, &Debug_Print_Error);   //"getsockopt with IPX_MAX_ADAPTER_NUM failed with error code %d\n"
+    Patch_Call(0x006A040E, &Debug_Print_Warning); //"Skipping IPX_MAX_ADAPTER_NUM call due to bug in Win95\n"
+    Patch_Call(0x006A05E1, &Debug_Print_Info);    //"IPX Socket number is %04x\n"
+    Patch_Call(0x006A0614, &Debug_Print_Info);    //"About to create an IPX socket\n"
+    Patch_Call(0x006A0641, &Debug_Print_Error);   //"Failed to create IPX socket - error code %d.\n"
+    Patch_Call(0x006A0663, &Debug_Print_Info);    //"IPX Socket created OK\n"
+    Patch_Call(0x006A0687, &Debug_Print_Error);   //"IPX Error - failed to get the net card address\n"
+    Patch_Call(0x006A0714, &Debug_Print_Info);    //"IPX net card address is %02x %02x %02x %02x : %02x %02x %02x %02x %02x %02x\n"
+    Patch_Call(0x006A0733, &Debug_Print_Info);    //"About to bind IPX Socket\n"
+    Patch_Call(0x006A075E, &Debug_Print_Error);   //"IPX socket bind failed with error code %d.\n"
+    Patch_Call(0x006A0780, &Debug_Print_Info);    //"IPX Socket bound OK\n"
+    Patch_Call(0x006A079A, &Debug_Print_Info);    //"About to set IPX socket option SO_BROADCAST\n"
+    Patch_Call(0x006A07CC, &Debug_Print_Error);   //"Failed to set IPX socket option SO_BROADCAST - error code %d.\n"
+    Patch_Call(0x006A07DB, &Debug_Print_Info);    //"IPX socket option SO_BROADCAST set OK\n"
+    Patch_Call(0x006A07E8, &Debug_Print_Info);    //"About to set IPX socket option IPX_PTYPE\n"
+    Patch_Call(0x006A081D, &Debug_Print_Error);   //"Failed to set IPX protocol option IPX_PTYPE - error code %d.\n"
+    Patch_Call(0x006A082C, &Debug_Print_Info);    //"IPX socket option IPX_PTYPE set OK\n"
+    Patch_Call(0x006A0839, &Debug_Print_Info);    //"About to set IPX socket option IPX_FILTERTYPE\n"
+    Patch_Call(0x006A086E, &Debug_Print_Error);   //"Failed to set IPX protocol option IPX_FILTERTYPE - error code %d.\n"
+    Patch_Call(0x006A087D, &Debug_Print_Info);    //"IPX socket option IPX_FILTERTYPE set OK\n"
+    Patch_Call(0x006A0891, &Debug_Print_Info);    //"IPX Socket init complete\n"
+    Patch_Call(0x006A0B30, &Debug_Print_Warning); //"Throwing away malformed packet\n"
+    Patch_Call(0x006A0F45, &Debug_Print_Info);    //"WinsockInterface constructed\n"
+    Patch_Call(0x006A1058, &Debug_Print_Error);   //"Async select failed.\n"
+    Patch_Call(0x006A1189, &Debug_Print_Info);    //"WinsockInterface init.\n"
+    Patch_Call(0x006A11A0, &Debug_Print_Info);    //"WinsockInterface already initialised\n"
+    Patch_Call(0x006A11DE, &Debug_Print_Info);    //"About to call WSAStartup\n"
+    Patch_Call(0x006A11FB, &Debug_Print_Error);   //"Winsock failed to initialise - error code %d.\n"
+    Patch_Call(0x006A1213, &Debug_Print_Info);    //"Winsock initialised OK\n"
+    Patch_Call(0x006A124B, &Debug_Print_Info);    //"Winsock version is %d.%d\n"
+    Patch_Call(0x006A126A, &Debug_Print_Error);   //"Winsock version is less than 1.1\n"
+    Patch_Call(0x006A1382, &Debug_Print_Error);   //"Error in Winsock packet CRC\n"
+    Patch_Call(0x006A1770, &Debug_Print_Error);   //"Failed to set socket option SO_RCVBUF - error code %d.\n"
+    Patch_Call(0x006A177F, &Debug_Print_Info);    //"Socket option SO_RCVBUF set OK\n"
+    Patch_Call(0x006A17B5, &Debug_Print_Error);   //"Failed to set socket option SO_SNDBUF - error code %d.\n"
+    Patch_Call(0x006A17C5, &Debug_Print_Info);    //"Socket option SO_SNDBUF set OK\n"
+    Patch_Call(0x006A17F0, &Debug_Print_Error);   //"Error - WinsockInterface Unable to get host name. Error code %d\n"
+    Patch_Call(0x006A1804, &Debug_Print_Info);    //"WinsockInterface Host name is %s\n"
+    Patch_Call(0x006A215B, &Debug_Print_Info);    //"About to open a UDP socket\n"
+    Patch_Call(0x006A21AD, &Debug_Print_Info);    //"About to bind the UDP socket\n"
+    Patch_Call(0x006A21E5, &Debug_Print_Info);    //"About to query the host name\n"
+    Patch_Call(0x006A220A, &Debug_Print_Info);    //"Host name is '%s'\n"
+    Patch_Call(0x006A2218, &Debug_Print_Info);    //"About to call gethostbyname\n"
+    Patch_Call(0x006A223B, &Debug_Print_Error);   //"gethostbyname failed! Error code %d\n"
+    Patch_Call(0x006A22E2, &Debug_Print_Info);    //"Found local address: %d.%d.%d.%d\n"
+    Patch_Call(0x006A2374, &Debug_Print_Info);    //"UDP Socket init complete\n"
+    Patch_Call(0x006A2692, &Debug_Print_Warning); //"Throwing away malformed packet\n"
+    Patch_Call(0x006A4E61, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A4F09, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A4F6E, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A525D, &Debug_Print_Info);    //"Calc_Confining_Rect(%d,%d,%d,%d)\n"
+    Patch_Call(0x006A52E9, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5321, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A53EF, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5741, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5839, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5A77, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5C26, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5E0B, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5E64, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A5F5C, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A6025, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A6061, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A6184, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A61BF, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A626D, &Debug_Print_Info);    //"Capture_Mouse()\n"
+    Patch_Call(0x006A629A, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A630D, &Debug_Print_Info);    //"Release_Mouse()\n"
+    Patch_Call(0x006A633A, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A648F, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A6505, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A65DD, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A66FA, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A679F, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A67FF, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A6862, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
+    Patch_Call(0x006A68D5, &Debug_Print_Warning); //"d:\\Projects\\Sun\\CodeFS\\wwmous.cpp""Warning: Probable deadlock occurred on MouseMutex. %s, line %d\n"
 
     /**
      *  Changes the RetryDelta message to be more general.
