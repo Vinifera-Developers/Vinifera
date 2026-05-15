@@ -36,7 +36,9 @@
 #include "tibsun_inline.h"
 #include "voc.h"
 #include "wwkeyboard.h"
-
+#include "debughandler.h"
+#include "mouse.h"
+#include "vinifera_globals.h"
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -685,6 +687,82 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
     R->EBX(action);
 
     return 0x004D731A;
+}
+
+void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_cells)
+{
+    if (visited_cells.Is_Present(current_cell)) return;
+
+    visited_cells.Add(current_cell);
+    DEBUG_INFO("VISITED CELL COUNT: %d\n", visited_cells.Count());
+
+    if (BridgeHealths.contains(current_cell)) {
+        DEBUG_INFO("Cleared bridge strength at position %d, %d\n", current_cell.X, current_cell.Y);
+        BridgeHealths.erase(current_cell);
+    }
+
+    FacingType dirs[4] = {FACING_W, FACING_E, FACING_S, FACING_N};
+    for (FacingType dir : dirs) {
+        Cell adjacent_cell = Adjacent_Cell(current_cell, dir);
+        CellClass* adjacent_cellptr = &Map[adjacent_cell];
+
+        if (adjacent_cellptr->Is_Bridge_Here() || adjacent_cellptr->Is_Overlay_Low_Bridge() || adjacent_cellptr->WasUnderBridge) {
+            Scan_And_Clear_Bridge(adjacent_cell, visited_cells);
+        }
+    }
+}
+
+void Scan_Around_Bridge_Hut_For_Bridge(Cell* bridge_hut_cell)
+{
+    Cell cell = *bridge_hut_cell;
+    DEBUG_INFO("CELL %d, %d\n", cell.X, cell.Y);
+
+    DynamicVectorClass<Cell> visited_cells;
+
+    for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
+
+        for (int depth = 1; depth <= 3; ++depth) {
+
+            Cell target_cell = Get_Nearby_Cell_At_Depth(cell, dir, depth);
+            DEBUG_INFO("Checking cell at cell position: %d, %d at depth: %d\n", target_cell.X, target_cell.Y, depth);
+
+            CellClass* target_cellptr = &Map[target_cell];
+            
+            if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {
+
+                DEBUG_INFO("FOUND BRIDGE AT DEPTH %d IN DIRECTION %d!\n", depth, dir);
+                
+                Scan_And_Clear_Bridge(target_cell, visited_cells);
+
+                DEBUG_INFO("After clearing the bridge completely, there are %d remaining items in bridgehealth\n", BridgeHealths.size());
+                DEBUG_INFO("visited cells: %d\n", visited_cells.Count());
+
+                return;
+            }
+        }
+    }
+
+    return;
+}
+
+DEFINE_HOOK(0x004D356B, _TEST_ME_ENGINEER_HIGH_BRIDGE, 6)
+{
+    DEBUG_INFO("ENGINEER INTO HIGH BRIDGE\n");
+    GET(Cell*, cell_ptr, EAX);
+
+    Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+
+    return 0;
+}
+
+DEFINE_HOOK(0x004D3551, _TEST_ME_ENGINEER_RAIL_BRIDGE, 6)
+{
+    DEBUG_INFO("ENGINEER INTO RAIL BRIDGE\n");
+    GET(Cell*, cell_ptr, EAX);
+
+    Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+
+    return 0;
 }
 
 /**
