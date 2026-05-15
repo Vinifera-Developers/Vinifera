@@ -127,7 +127,16 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                             const AudioGroupType finished_group = handle->Get_Sample_Template().Get_Group();
                             const AudioInstanceHandle finished_id = handle->Get_ID();
 
-                            self->Remove_Active_Handle_NoLock(handle->Get_ID()); // handles deletion and removal from both maps
+                            /**
+                             *  Inlined removal instead of Remove_Active_Handle_NoLock so we
+                             *  can advance the iterator cleanly. A full `it = group_vec.begin()`
+                             *  restart would re-Update every earlier handle in the same tick,
+                             *  and Update is not idempotent (it decrements FadeTime and
+                             *  RemainingLoopRepeats), so fades and finite-loop counts would
+                             *  drift whenever a sound finishes mid-tick.
+                             */
+                            it = group_vec.erase(it);
+                            self->ActiveInstanceMap.erase(finished_id);
                             self->Clear_Request_State(finished_id);
 
                             // Promote the first deferred request for this sample now that a
@@ -155,8 +164,6 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
                                 }
                                 self->DeferredPlayQueue = std::move(still_deferred);
                             }
-
-                            it = group_vec.begin();
                         } else {
                             ++it;
                         }
