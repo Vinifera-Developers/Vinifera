@@ -626,8 +626,8 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
      *  If there is a bridge at this location, then it may be destroyed by the
      *  combat damage.
      */
-    bool ion_cannon_warhead = warhead == Rule->IonCannonWarhead;
     if (Scen->Special.IsDestroyableBridges && warhead->IsWallDestroyer) {
+        bool ion_cannon_warhead = warhead == Rule->IonCannonWarhead;
         const CellClass* bridge_owner_cell = cellptr->Get_Bridge_Owner();
         
         bool is_standard_bridge = (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()) || cellptr->Is_Tile_Bridge_Middle();

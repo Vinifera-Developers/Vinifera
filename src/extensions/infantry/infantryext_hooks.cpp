@@ -24,6 +24,7 @@
 #include "infantrytype.h"
 #include "infantrytypeext.h"
 #include "language.h"
+#include "mouse.h"
 #include "options.h"
 #include "rules.h"
 #include "sideext.h"
@@ -34,11 +35,9 @@
 #include "tiberiumext.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "vinifera_globals.h"
 #include "voc.h"
 #include "wwkeyboard.h"
-#include "debughandler.h"
-#include "mouse.h"
-#include "vinifera_globals.h"
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -689,15 +688,22 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
     return 0x004D731A;
 }
 
+/**
+ *  Clears the current cell from bridge damage trackers, if any.
+ *  Recursively looks around all orthogonal cells in order to find all directly adjacent bridge cells
+ *  That are part from that bridge, which expands until all bridge cells are evaluated.
+ *
+ *  @author: JoyfulShush
+ */
 void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_cells)
 {
-    if (visited_cells.Is_Present(current_cell)) return;
+    if (visited_cells.Is_Present(current_cell)) {
+        return;
+    }
 
     visited_cells.Add(current_cell);
-    DEBUG_INFO("VISITED CELL COUNT: %d\n", visited_cells.Count());
 
-    if (BridgeHealths.contains(current_cell)) {
-        DEBUG_INFO("Cleared bridge strength at position %d, %d\n", current_cell.X, current_cell.Y);
+    if (BridgeHealths.contains(current_cell)) {        
         BridgeHealths.erase(current_cell);
     }
 
@@ -712,31 +718,27 @@ void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_
     }
 }
 
+/**
+ *  Scans for a bridge attached to a bridge hut that was just entered by an Engineer.
+ *  Checks for all types of bridges: Low Bridges (via overlay), High Bridges and High Train Bridges.
+ *  Since in some cases, notably high bridges the overlay is actually far, we need to search around the bridge hut
+ *  Up to 3 cells away from it, as only the bridge's center piece in a bridge tile is actually considered a bridge.
+ *  Once a bridge cell is located, it begins evaluation of the entire bridge and returns afterwards.
+ *
+ *  @author: JoyfulShush
+ */
 void Scan_Around_Bridge_Hut_For_Bridge(Cell* bridge_hut_cell)
 {
     Cell cell = *bridge_hut_cell;
-    DEBUG_INFO("CELL %d, %d\n", cell.X, cell.Y);
 
     DynamicVectorClass<Cell> visited_cells;
 
-    for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
-
-        for (int depth = 1; depth <= 3; ++depth) {
-
+    for (int depth = 1; depth <= 3; ++depth) {        
+        for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
             Cell target_cell = Get_Nearby_Cell_At_Depth(cell, dir, depth);
-            DEBUG_INFO("Checking cell at cell position: %d, %d at depth: %d\n", target_cell.X, target_cell.Y, depth);
-
-            CellClass* target_cellptr = &Map[target_cell];
-            
-            if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {
-
-                DEBUG_INFO("FOUND BRIDGE AT DEPTH %d IN DIRECTION %d!\n", depth, dir);
-                
+            CellClass* target_cellptr = &Map[target_cell];            
+            if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {                
                 Scan_And_Clear_Bridge(target_cell, visited_cells);
-
-                DEBUG_INFO("After clearing the bridge completely, there are %d remaining items in bridgehealth\n", BridgeHealths.size());
-                DEBUG_INFO("visited cells: %d\n", visited_cells.Count());
-
                 return;
             }
         }
@@ -745,9 +747,15 @@ void Scan_Around_Bridge_Hut_For_Bridge(Cell* bridge_hut_cell)
     return;
 }
 
-DEFINE_HOOK(0x004D356B, _TEST_ME_ENGINEER_HIGH_BRIDGE, 6)
-{
-    DEBUG_INFO("ENGINEER INTO HIGH BRIDGE\n");
+/**
+ *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
+ *  that is adjacent to either a Low Bridge or a High (non-train) Bridge.
+ *  Used to find the attached bridge parts and remove all bridge damage registers from it (essentially fully healing all bridge cells)
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D356B, _InfantryClass_Process_Per_Cell_Engineer_Bridge_Patch, 6)
+{    
     GET(Cell*, cell_ptr, EAX);
 
     Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
@@ -755,9 +763,15 @@ DEFINE_HOOK(0x004D356B, _TEST_ME_ENGINEER_HIGH_BRIDGE, 6)
     return 0;
 }
 
-DEFINE_HOOK(0x004D3551, _TEST_ME_ENGINEER_RAIL_BRIDGE, 6)
-{
-    DEBUG_INFO("ENGINEER INTO RAIL BRIDGE\n");
+/**
+ *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
+ *  that is adjacent to a Train High Bridge.
+ *  Used to find the attached bridge parts and remove all bridge damage registers from it (essentially fully healing all bridge cells)
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D3551, _InfantryClass_Process_Per_Cell_Engineer_Train_Bridge_Patch, 6)
+{    
     GET(Cell*, cell_ptr, EAX);
 
     Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
