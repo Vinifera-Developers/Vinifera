@@ -338,30 +338,6 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
     }
 }
 
-// TODO: move these to cell.h
-bool Is_Low_Bridge_SE_NW(CellClass* cellptr) {
-    OverlayType overlay = cellptr->Overlay;
-    if (!cellptr->Is_Overlay_Low_Bridge()) {
-        return false;
-    }
-    
-    if ((overlay >= 74 && overlay <= 82) || (overlay >= 92 && overlay <= 95) || overlay == 100) return true;
-
-    return false;
-}
-
-bool Is_Low_Bridge_SW_NE(CellClass* cellptr)
-{
-    OverlayType overlay = cellptr->Overlay;
-    if (!cellptr->Is_Overlay_Low_Bridge()) {
-        return false;
-    }
-
-    if ((overlay >= 83 && overlay <= 91) || (overlay >= 96 && overlay <= 99) || overlay == 101) return true;
-
-    return false;
-}
-
 /**
  *  Deals damage to a bridge, taking into account the damage dealt and the warhead for calculation purposes.
  *  A bridge will become damaged or destroyed one state when its health reaches 0,
@@ -396,7 +372,7 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
         
     } else if (cellptr->Is_Overlay_Low_Bridge()) { // low bridges
         FacingType dirs[2] = {};
-        if (Is_Low_Bridge_SE_NW(cellptr)) {            
+        if (cellptr->Is_Low_Bridge_SE_NW()) {            
             dirs[0] = FACING_N;
             dirs[1] = FACING_S;
         } else {            
