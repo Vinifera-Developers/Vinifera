@@ -307,6 +307,39 @@ target_compile_options(miniaudio PRIVATE /Gr)
 
 
 ################################################################################
+# Dear ImGui (vendored as a submodule).
+################################################################################
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/imgui)
+add_library(imgui STATIC
+    ${IMGUI_DIR}/imconfig.h
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui.h
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_internal.h
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/imstb_rectpack.h
+    ${IMGUI_DIR}/imstb_textedit.h
+    ${IMGUI_DIR}/imstb_truetype.h
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.h
+    ${IMGUI_DIR}/backends/imgui_impl_win32.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_win32.h
+)
+target_include_directories(imgui PUBLIC
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
+target_link_libraries(imgui PUBLIC SDL3::SDL3)
+# Match Vinifera's default __fastcall calling convention - otherwise the
+# function-name mangling differs and every imgui call comes out as an
+# unresolved external. Same fix as miniaudio above.
+target_compile_options(imgui PRIVATE /Gr)
+# imgui ships with its own pre-existing warnings - keep them out of Vinifera's noise.
+target_compile_options(imgui PRIVATE /W0)
+
+
+################################################################################
 # Embed some git version information in the binary.
 ################################################################################
 message(STATUS "Fetching git repository information.")
@@ -615,6 +648,7 @@ add_dependencies(${PROJECT_NAME} TSpp)
 
 target_link_libraries(${PROJECT_NAME} SDL3::SDL3)
 target_link_libraries(${PROJECT_NAME} miniaudio)
+target_link_libraries(${PROJECT_NAME} imgui)
 
 set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32)
 
