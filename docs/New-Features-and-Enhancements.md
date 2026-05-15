@@ -1662,8 +1662,8 @@ Vinifera changes the mapper-facing sound trigger actions so sounds started at wa
 - `Play Sound At` is vanilla trigger action `99`. It plays the selected `VocType` at the action waypoint.
 - If the waypoint contains a building or terrain object, the sound is attached to that object.
 - If the waypoint is empty, Vinifera tracks the sound at that coordinate so it can be stopped later.
-- `Stop Sounds At` is Vinifera trigger action `137`. It stops sounds started by `Play Sound At` at the same waypoint.
-- `Stop Sounds At` does not stop arbitrary one-shot sounds, music themes, EVA speech, or an object's own ambient loop.
+- `Stop Sounds At` is Vinifera trigger action `137`. It stops sounds previously started by `Play Sound At` at the same waypoint, and detaches any ambient previously attached to a building or terrain there.
+- `Stop Sounds At` does not stop arbitrary one-shot sounds, music themes, EVA speech, or an object's rule-defined ambient loop.
 - `Attach Sound` is Vinifera trigger action `138`. It attaches the selected `VocType` as an ambient loop to every object the trigger is bound to. The sound plays for as long as the attachment lasts and follows each object as it moves.
 - `Detach Sound` is Vinifera trigger action `139`. It removes any previously-attached ambient sound from the trigger's bound objects.
 

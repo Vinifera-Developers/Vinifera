@@ -73,7 +73,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Disable templated text", "Removes the currently active templated text from the screen." },
     { "Adjust House Modifier", "Adjusts a house modifier by given percentage points." },
     { "Apply Iron Curtain", "Applies Iron Curtain to attached objects. Can optionally bypass legality checks." },
-    { "Stop Sounds At", "Stops all sounds at the waypoint that were started using the Play Sound At trigger."},
+    { "Stop Sounds At", "Stops sounds at the waypoint that were started by Play Sound At, and detaches any ambient previously attached to a building or terrain there."},
     { "Attach sound", "Attaches an ambient sound to all objects associated with the trigger." },
     { "Detach sound", "Detaches any ambient sound from all objects associated with the trigger." },
 };
@@ -1751,15 +1751,18 @@ static ObjectClass* Get_Audio_Object(const Coord& coord)
  */
 bool TActionClassExtension::Do_PLAY_SOUND_AT(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
 {
-    Coord coord = Scen->Waypoint_Coord(This()->EffectLocation);
-    ObjectClass* object;
+    VocType sound = This()->Data.Sound;
+    if (sound < VOC_FIRST || sound >= AudioVocs.Count()) {
+        return false;
+    }
 
-    object = Get_Audio_Object(coord);
+    Coord coord = Scen->Waypoint_Coord(This()->EffectLocation);
+    ObjectClass* object = Get_Audio_Object(coord);
 
     if (object) {
-        Extension::Fetch(object)->Attach_Ambient(This()->Data.Sound);
+        Extension::Fetch(object)->Attach_Ambient(sound);
     } else {
-        Play_Tracked_Static_Sound(This()->Data.Sound, coord);
+        Play_Tracked_Static_Sound(sound, coord);
     }
     return true;
 }

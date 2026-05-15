@@ -254,7 +254,7 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 | 138      | Attach Sound             |
 |          | Attaches an ambient sound to all objects associated with the trigger. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 | 139      | Detach Sound             |
-|          | Detaches any ambient sound from all objects associated with the trigger. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
+|          | Detaches any ambient sound from all objects associated with the trigger. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 
 ### [135] Adjust House Modifier — Modifier Types
 
