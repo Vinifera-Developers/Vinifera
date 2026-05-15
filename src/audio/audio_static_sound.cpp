@@ -15,6 +15,7 @@
 #include "audio_event.h"
 #include "audio_voc.h"
 
+#include <objidl.h>
 #include <vector>
 
 
@@ -23,6 +24,7 @@ namespace {
     struct TrackedStaticSound {
         AudioEventHandle Handle;
         Coord Position;
+        VocType Voc;
     };
 
     std::vector<TrackedStaticSound> TrackedSounds;
@@ -45,7 +47,7 @@ bool Play_Tracked_Static_Sound(VocType voc, Coord const& coord)
         return false;
     }
 
-    TrackedSounds.emplace_back(handle, coord);
+    TrackedSounds.emplace_back(handle, coord, voc);
     return true;
 }
 
@@ -102,4 +104,47 @@ void Clear_Tracked_Static_Sounds()
         AudioEventSystem::Stop(entry.Handle, 0.0f);
     }
     TrackedSounds.clear();
+}
+
+
+/**
+ *  Writes the currently-playing tracked static sounds to the save stream so
+ *  they can be replayed on load. Handles are intentionally not persisted -
+ *  miniaudio handle IDs are process-local.
+ *
+ *  @author: ZivDero
+ */
+void Save_Tracked_Static_Sounds(IStream* stm)
+{
+    uint32_t count = static_cast<uint32_t>(TrackedSounds.size());
+    stm->Write(&count, sizeof(count), nullptr);
+
+    for (auto& entry : TrackedSounds) {
+        stm->Write(&entry.Voc, sizeof(entry.Voc), nullptr);
+        stm->Write(&entry.Position, sizeof(entry.Position), nullptr);
+    }
+}
+
+
+/**
+ *  Rebuilds the tracked static sounds list from the save stream by re-issuing
+ *  each saved sound. Entries whose VocType is out of range in the current
+ *  SOUND.INI are silently dropped by Play_Tracked_Static_Sound.
+ *
+ *  @author: ZivDero
+ */
+void Load_Tracked_Static_Sounds(IStream* stm)
+{
+    Clear_Tracked_Static_Sounds();
+
+    uint32_t count = 0;
+    stm->Read(&count, sizeof(count), nullptr);
+
+    for (uint32_t i = 0; i < count; i++) {
+        VocType voc;
+        Coord pos;
+        stm->Read(&voc, sizeof(voc), nullptr);
+        stm->Read(&pos, sizeof(pos), nullptr);
+        Play_Tracked_Static_Sound(voc, pos);
+    }
 }

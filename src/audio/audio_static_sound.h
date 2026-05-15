@@ -13,6 +13,9 @@
 #include "tibsun_defines.h"
 
 
+struct IStream;
+
+
 /**
  *  Plays a sound at a coordinate as a tracked ambient so it can be stopped
  *  later by Stop_Tracked_Static_Sounds_At(coord). Intended ONLY for the
@@ -39,3 +42,17 @@ void Tracked_Static_Sounds_AI();
  *  Stops all entries and clears the list. Called on scenario teardown.
  */
 void Clear_Tracked_Static_Sounds();
+
+/**
+ *  Serializes the currently-playing tracked static sounds to the save stream.
+ *  Only the VocType and coord of each entry are persisted; handles are
+ *  rebuilt on load.
+ */
+void Save_Tracked_Static_Sounds(IStream* stm);
+
+/**
+ *  Rebuilds tracked static sounds from the save stream. Clears any existing
+ *  entries first, then re-issues each saved sound via Play_Tracked_Static_Sound.
+ *  Entries whose VocType is no longer valid are silently dropped.
+ */
+void Load_Tracked_Static_Sounds(IStream* stm);
