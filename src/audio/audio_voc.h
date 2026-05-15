@@ -155,7 +155,7 @@ private:
      *     Volume = 80
      *     VShift = -5, 5     ; vary "Volume" between 75 and 85.
      */
-    Point2D VolumeShift = {AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MIN};
+    Point2D VolumeShift {0, 0};
 
     /**
      *  The FShift attribute alows the playback frequency to be randomly changed
@@ -171,7 +171,7 @@ private:
      *     FShift = 5, 10      ; vary the frequency between 105% and 110% of original
      *     FShift = -50, 0     ; vary the frequency between 50% and 100% of original
      */
-    Point2D FrequencyShift = {AUDIO_VSHIFT_MIN, AUDIO_VSHIFT_MIN};
+    Point2D FrequencyShift {0, 0};
 
     /**
      *  Specifies the audible range of a sound in game cells.

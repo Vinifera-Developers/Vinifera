@@ -123,17 +123,24 @@ const char * AudioThemeClass::Full_Name(ThemeType theme) const
 
 
 /**
+ *  Are scores available for playback?
+ *
+ *  @author: ZivDero
+ */
+bool AudioThemeClass::Scores_Available()
+{
+    return AudioManager.Is_Available() && ScoresPresent && !Debug_Quiet;
+}
+
+
+/**
  *  Process the theme engine and restart songs.
  *
  *  @author: CCHyper, ZivDero
  */
 void AudioThemeClass::AI()
 {
-    /**
-     *  If there is no sound driver, no score file present, or sounds have been
-     *  specifically turned off then abort.
-     */
-    if (!AudioManager.Is_Available() || !ScoresPresent || Debug_Quiet) {
+    if (!Scores_Available()) {
         return;
     }
 
@@ -198,12 +205,11 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
          */
         int tries = 0;
         bool maxed = false;
-        ThemeType newtheme;
         while (tries++ <= 1000) {
-            newtheme = Sim_Random_Pick(THEME_FIRST, (ThemeType)Themes.Count()-1);
+            ThemeType newtheme = Sim_Random_Pick(THEME_FIRST, static_cast<ThemeType>(Themes.Count() - 1));
             theme = newtheme;
             maxed = tries == 1000;
-            if (newtheme != theme || Is_Allowed(newtheme)) {
+            if (newtheme != theme && Is_Allowed(newtheme)) {
                 break;
             }
         }
@@ -216,7 +222,7 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
         /**
          *  Sequential score playing.
          */
-        for (int i = Themes.Count()+1; i > 0; --i) {
+        for (int i = Themes.Count() + 1; i > 0; --i) {
             if (++theme >= Themes.Count()) {
                 theme = THEME_FIRST;
             }
@@ -239,11 +245,7 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
  */
 void AudioThemeClass::Queue_Song(ThemeType theme)
 {
-    /**
-     *  If there is no sound driver, no score file present, or sounds have been
-     *  specifically turned off then abort.
-     */
-    if (!AudioManager.Is_Available() || !ScoresPresent || Debug_Quiet) {
+    if (!Scores_Available()) {
         return;
     }
 
@@ -285,11 +287,7 @@ void AudioThemeClass::Queue_Song(ThemeType theme)
  */
 bool AudioThemeClass::Play_Song(ThemeType theme)
 {
-    /**
-     *  If there is no sound driver, no score file present, or sounds have been
-     *  specifically turned off then abort.
-     */
-    if (!AudioManager.Is_Available() || !ScoresPresent || Debug_Quiet) {
+    if (!Scores_Available()) {
         return false;
     }
 
@@ -335,7 +333,7 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
     /**
      *  Request the audio manager to begin playing the theme.
      */
-    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Play_Song - About to call AudioManager.Play with \"%s\".\n", tctrl->FileName.c_str());
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THEME, "Theme::Play_Song - About to call AudioManager.Request_Play with \"%s\".\n", tctrl->FileName.c_str());
     AudioInstanceHandle handle = AudioManager.Request_Play(tctrl->FileName, AUDIO_GROUP_MUSIC, tctrl->Volume, 1.0f, 0.0f, AUDIO_PRIORITY_HIGH, 1, CrossFade ? CrossFadeSeconds : 0.0f);
 
     if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
@@ -403,11 +401,7 @@ void AudioThemeClass::Fade_Out()
  */
 void AudioThemeClass::Stop(bool fade)
 {
-    /**
-     *  If there is no sound driver, no score file present, or sounds have been
-     *  specifically turned off then abort.
-     */
-    if (!AudioManager.Is_Available() || !ScoresPresent || Debug_Quiet) {
+    if (!Scores_Available()) {
         return;
     }
 
@@ -441,11 +435,7 @@ void AudioThemeClass::Stop(bool fade)
  */
 bool AudioThemeClass::Suspend()
 {
-    /**
-     *  If there is no sound driver, no score file present, or sounds have been
-     *  specifically turned off then abort.
-     */
-    if (!AudioManager.Is_Available() || !ScoresPresent || Debug_Quiet) {
+    if (!Scores_Available()) {
         return false;
     }
 
@@ -466,11 +456,7 @@ bool AudioThemeClass::Suspend()
  */
 bool AudioThemeClass::Resume()
 {
-    /**
-     *  If there is no sound driver, no score file present, or sounds have been
-     *  specifically turned off then abort.
-     */
-    if (!AudioManager.Is_Available() || !ScoresPresent || Debug_Quiet) {
+    if (!Scores_Available()) {
         return false;
     }
 
@@ -821,9 +807,9 @@ bool AudioThemeClass::ThemeControl::Fill_In(CCINIClass const &ini)
     }
 
     Volume = std::clamp<float>(ini.Get_Float(name, "Volume", Volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    Sound = ini.Get_String(name, "Sound", "");
-    Fullname = ini.Get_String(name, "Name", "");
-    Artist = ini.Get_String(name, "Artist", "");
+    Sound = ini.Get_String(name, "Sound", Sound);
+    Fullname = ini.Get_String(name, "Name", Fullname);
+    Artist = ini.Get_String(name, "Artist", Artist);
 
     return true;
 }

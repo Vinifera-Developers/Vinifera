@@ -17,8 +17,20 @@ struct AhandleInitParams;
 class AudioHandleClass
 {
 public:
+    enum class StreamAction : long
+    {
+        Callback = 1,
+        Open     = 2,
+        Close    = 3,
+        Start    = 4,
+        Load     = 5,
+        Pause    = 6,
+        Stop     = 7,
+        Play     = 8,
+    };
+
     static unsigned long __cdecl Timer_Callback_Audio_Handler(VQAHandle* vqa);
-    static long __cdecl Stream_Audio_Handler(VQAHandle* vqa, long action, void* buffer, long nbytes);
+    static long __cdecl Stream_Audio_Handler(VQAHandle* vqa, StreamAction action, void* buffer, long nbytes);
     static unsigned long __cdecl Simple_Timer_Callback_Audio_Handler(VQAHandle* vqa);
     static long __cdecl Lock_Audio_Handler();
     static long __cdecl Unlock_Audio_Handler();

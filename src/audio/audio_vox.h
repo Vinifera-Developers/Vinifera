@@ -105,7 +105,7 @@ private:
     /**
      *  Subtitle category for this speech line. Used by the SubtitleMode
      *  option (sun.ini) to filter which lines actually get displayed.
-     *  Defaults to SYSTEM since the bulk of EVA lines are system alerts.
+     *  Defaults to SCENARIO since the bulk of EVA lines are mission-specific.
      */
     SubtitleCategoryType SubtitleCategory = SUBTITLE_CATEGORY_SCENARIO;
 

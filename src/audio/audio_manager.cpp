@@ -1284,9 +1284,9 @@ bool AudioManagerClass::Has_Been_Submitted(const std::string& filename, AudioGro
             }
         }
         return false;
-    } else {
-        return SamplesMap.contains(key);
     }
+
+    return SamplesMap.contains(key);
 }
 
 
@@ -1550,12 +1550,10 @@ bool AudioManagerClass::Remove_Active_Handle_NoLock(AudioInstanceHandle audio_id
  */
 bool AudioManagerClass::Clear_All_Active_Handles()
 {
-    {
-        std::scoped_lock lock(ThreadMutex);
+    std::scoped_lock lock(ThreadMutex);
 
-        ActiveInstanceMap.clear();
-        GroupedActiveInstanceMap.clear();
-    }
+    ActiveInstanceMap.clear();
+    GroupedActiveInstanceMap.clear();
 
     return true;
 }

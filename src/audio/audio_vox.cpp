@@ -838,7 +838,7 @@ void AudioVoxClass::Stop_Speaking()
 
 
 /**
- *  Checks to see if the eva voice is still playing.
+ *  Checks to see if the EVA voice is still playing.
  *
  *  @author: CCHyper
  */

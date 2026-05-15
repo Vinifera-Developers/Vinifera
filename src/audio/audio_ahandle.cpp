@@ -64,8 +64,7 @@ unsigned __stdcall Audio_Handler_Thread(void * context)
 {
     auto next_tick = std::chrono::steady_clock::now();
 
-    VQAHandle *vqa = (VQAHandle *)context;
-    VQAHandleP *vqap = (VQAHandleP *)context;
+    VQAHandle *vqa = static_cast<VQAHandle*>(context);
 
     while (!AudioHandleThreadExit.load(std::memory_order_relaxed)) {
 
@@ -84,11 +83,11 @@ unsigned __stdcall Audio_Handler_Thread(void * context)
 
             if (needs_data) {
                 if (MoveHMIAudioBlock_Callback) {
-                    MoveHMIAudioBlock_Callback((VQAHandle*)vqa);
+                    MoveHMIAudioBlock_Callback(vqa);
                 }
 
                 if (VQASync_Callback && CallbackBufferPtr) {
-                    VQASync_Callback((VQAHandle*)vqa, (char*)CallbackBufferPtr);
+                    VQASync_Callback(vqa, static_cast<char*>(CallbackBufferPtr));
                 }
             }
         }
@@ -108,7 +107,7 @@ unsigned __stdcall Audio_Handler_Thread(void * context)
  */
 unsigned long __cdecl AudioHandleClass::Timer_Callback_Audio_Handler(VQAHandle *vqa)
 {
-    VQAHandleP* vqap = (VQAHandleP*)vqa;
+    VQAHandleP* vqap = reinterpret_cast<VQAHandleP*>(vqa);
     VQAConfig* config = &vqap->Config;
 
     if (Flags & AHANDLEF_IS_PAUSED) {
@@ -136,7 +135,7 @@ unsigned long __cdecl AudioHandleClass::Timer_Callback_Audio_Handler(VQAHandle *
         }
     }
     
-//    DEBUG_INFO("AudioHandle: Timer_Callback_Audio_Handler -> returning %d\n", PlaybackTime60Hz);
+    //DEBUG_INFO("AudioHandle: Timer_Callback_Audio_Handler -> returning %d\n", PlaybackTime60Hz);
 
     return PlaybackTime60Hz;
 }
@@ -168,37 +167,37 @@ unsigned long AudioHandleClass::Get_Total_Bytes_Played(VQAHandle *vqa, VQAConfig
  *
  *  @author: CCHyper
  */
-long __cdecl AudioHandleClass::Stream_Audio_Handler(VQAHandle *vqa, long action, void *buffer, long nbytes)
+long __cdecl AudioHandleClass::Stream_Audio_Handler(VQAHandle *vqa, StreamAction action, void *buffer, long nbytes)
 {
-    VQAHandleP *vqap = (VQAHandleP *)vqa;
+    VQAHandleP *vqap = reinterpret_cast<VQAHandleP*>(vqa);
     VQAConfig *config = &vqap->Config;
     long error = VQAERR_NONE;
 
-    switch(action) {
-        case 1: // Callback
+    switch (action) {
+        case StreamAction::Callback:
             config->TimerCallback = Simple_Timer_Callback_Audio_Handler;
             config->RefreshRate = 60;
             error = VQAERR_NONE;
             break;
-        case 2: // Open
-            error = Open_Audio_Handler(vqap, (AhandleInitParams *)buffer, nbytes);
+        case StreamAction::Open:
+            error = Open_Audio_Handler(vqap, static_cast<AhandleInitParams*>(buffer), nbytes);
             break;
-        case 3: // Close
+        case StreamAction::Close:
             error = Close_Audio_Handler(vqap);
             break;
-        case 4: // Start
+        case StreamAction::Start:
             error = Start_Audio_Handler(vqap);
             break;
-        case 5: // Load
+        case StreamAction::Load:
             error = Load_Audio_Handler(vqap, buffer, nbytes);
             break;
-        case 6: // Pause
+        case StreamAction::Pause:
             error = Pause_Audio_Handler(vqap);
             break;
-        case 7: // Stop
+        case StreamAction::Stop:
             error = Stop_Audio_Handler(vqap);
             break;
-        case 8: // Play
+        case StreamAction::Play:
             error = Play_Audio_Handler(vqap);
             break;
         default:
@@ -225,14 +224,16 @@ long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitP
     VQAConfig * config = &vqap->Config;
 
     IsHandleOpen = true;
-    // Volume = config->Volume;
 
     std::scoped_lock lock(AudioHandleMutex);
 
-    SampleRate = (config->AudioRate != -1) ? config->AudioRate
-                 : (config->FrameRate != vqap->FrameRate)
-                   ? params->SampleRate * (unsigned)config->FrameRate / vqap->FrameRate
-                   : params->SampleRate;
+    if (config->AudioRate != -1) {
+        SampleRate = config->AudioRate;
+    } else if (config->FrameRate != vqap->FrameRate) {
+        SampleRate = params->SampleRate * static_cast<unsigned>(config->FrameRate) / vqap->FrameRate;
+    } else {
+        SampleRate = params->SampleRate;
+    }
 
     Channels = params->Channels;
     BitsPerSample = params->BitsPerSample;

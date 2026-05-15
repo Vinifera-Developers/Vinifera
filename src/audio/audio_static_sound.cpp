@@ -40,12 +40,7 @@ bool Play_Tracked_Static_Sound(VocType voc, Coord const& coord)
         return false;
     }
 
-    AudioVocClass* voc_def = AudioVocs[voc];
-    if (voc_def == nullptr) {
-        return false;
-    }
-
-    AudioEventHandle handle = AudioEventSystem::Start(*voc_def, coord, -1, 1.0f, 0.0f);
+    AudioEventHandle handle = AudioEventSystem::Start(*AudioVocs[voc], coord, -1, 1.0f, 0.0f);
     if (!handle.Is_Valid()) {
         return false;
     }

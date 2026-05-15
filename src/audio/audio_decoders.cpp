@@ -202,8 +202,8 @@ static ma_result ma_sos_aud_read_pcm_frames(
     ma_uint64* pFramesRead
 )
 {
-    ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)pDataSource;
-    ma_uint8* dst = (ma_uint8*)pFramesOut;
+    ma_sos_aud_decoder* pDecoder = static_cast<ma_sos_aud_decoder*>(pDataSource);
+    ma_uint8* dst = static_cast<ma_uint8*>(pFramesOut);
     ma_uint64 totalFramesRead = 0;
     size_t bytesRequested = frameCount * pDecoder->frameSize;
 
@@ -266,7 +266,7 @@ static ma_result ma_sos_aud_read_pcm_frames(
         pDecoder->compInfo.dwUnCompSize = pChunkHeader->decompSize;
 
         long decodedBytes = sosCODEC2DecompressData(&pDecoder->compInfo, (long)pChunkHeader->decompSize);
-        if (decodedBytes <= 0 || decodedBytes > (long)sizeof(tempBuffer)) {
+        if (decodedBytes <= 0 || decodedBytes > static_cast<long>(sizeof(tempBuffer))) {
             AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_DECODER, "Decompress failed at cursor=%llu\n", pDecoder->compCursor);
             break;
         }
@@ -277,24 +277,23 @@ static ma_result ma_sos_aud_read_pcm_frames(
         ma_int16* samples = (ma_int16*)tempBuffer;
         ma_uint64 sampleCount = decodedBytes / sizeof(ma_int16);
         for (ma_uint64 i = 0; i < sampleCount; ++i) {
-            if (samples[i] > 32767)       samples[i] = 32767;
-            else if (samples[i] < -32768) samples[i] = -32768;
+            if (samples[i] > SHRT_MAX)      samples[i] = SHRT_MAX;
+            else if (samples[i] < SHRT_MIN) samples[i] = SHRT_MIN;
         }
 
         /**
          *  Step 3: Write decoded PCM data into the ring buffer.
          */
         size_t written = 0;
-        while (written < (size_t)decodedBytes)
-        {
+        while (written < static_cast<size_t>(decodedBytes)) {
             size_t writeCap = ma_rb_available_write(&pDecoder->rbDecodedPCM);
-            size_t writeNow = std::min(writeCap, (size_t)decodedBytes - written);
+            size_t writeNow = std::min(writeCap, static_cast<size_t>(decodedBytes) - written);
 
             if (writeNow == 0) break;  // Ring buffer is full; stop writing
 
             void* pWrite;
             ma_rb_acquire_write(&pDecoder->rbDecodedPCM, &writeNow, &pWrite);     // Lock write region
-            memcpy(pWrite, tempBuffer + written, writeNow);                       // Copy decoded data
+            memcpy(pWrite, tempBuffer + written, writeNow);                   // Copy decoded data
             ma_rb_commit_write(&pDecoder->rbDecodedPCM, writeNow);                // Commit write
 
             written += writeNow;
@@ -352,7 +351,7 @@ static ma_result ma_sos_aud_read_pcm_frames(
  */
 static ma_result ma_sos_aud_seek_to_pcm_frame(ma_data_source* pDataSource, ma_uint64 frameIndex)
 {
-    ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)pDataSource;
+    ma_sos_aud_decoder* pDecoder = static_cast<ma_sos_aud_decoder*>(pDataSource);
 
     // Seeking to arbitrary frame positions is not implemented!
     // Only support seeking to the start of the stream for now.
@@ -385,7 +384,7 @@ static ma_result ma_sos_aud_get_data_format(ma_data_source* pDataSource, ma_form
     (void)pChannelMap;
     (void)channelMapCap;
 
-    ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)pDataSource;
+    ma_sos_aud_decoder* pDecoder = static_cast<ma_sos_aud_decoder*>(pDataSource);
 
     if (pFormat) {
         *pFormat = pDecoder->format;
@@ -407,7 +406,7 @@ static ma_result ma_sos_aud_get_data_format(ma_data_source* pDataSource, ma_form
  */
 static ma_result ma_sos_aud_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor)
 {
-    ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)pDataSource;
+    ma_sos_aud_decoder* pDecoder = static_cast<ma_sos_aud_decoder*>(pDataSource);
 
     if (pCursor) {
         *pCursor = pDecoder->pcmCursor;
@@ -423,7 +422,7 @@ static ma_result ma_sos_aud_get_cursor(ma_data_source* pDataSource, ma_uint64* p
  */
 static ma_result ma_sos_aud_get_length(ma_data_source* pDataSource, ma_uint64* pLength)
 {
-    ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)pDataSource;
+    ma_sos_aud_decoder* pDecoder = static_cast<ma_sos_aud_decoder*>(pDataSource);
 
     if (pLength) {
         *pLength = pDecoder->totalFrameCount;  // Precomputed during init from header.uncompsize
@@ -450,8 +449,8 @@ static ma_result ma_sos_aud_init(
     ma_result result;
 
     // Allocate memory for our custom decoder structure.
-    ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)ma_malloc(sizeof(ma_sos_aud_decoder), pAllocationCallbacks);
-    if (pDecoder == NULL) {
+    ma_sos_aud_decoder* pDecoder = static_cast<ma_sos_aud_decoder*>(ma_malloc(sizeof(ma_sos_aud_decoder), pAllocationCallbacks));
+    if (pDecoder == nullptr) {
         return MA_OUT_OF_MEMORY;
     }
 
@@ -476,7 +475,7 @@ static ma_result ma_sos_aud_init(
 
     // Save the compressed size and calculate uncompressed frame info.
     pDecoder->compressedSize = pDecoder->header.compSize;
-    pDecoder->frameSize = pDecoder->channels * ma_get_bytes_per_sample(pDecoder->format);;
+    pDecoder->frameSize = pDecoder->channels * ma_get_bytes_per_sample(pDecoder->format);
     pDecoder->totalFrameCount = pDecoder->header.uncompSize / pDecoder->frameSize;
 
     // Reject large files for safety (arbitrary 64MB limit).
@@ -484,27 +483,27 @@ static ma_result ma_sos_aud_init(
     if (compSize > 64 * 1024 * 1024) return MA_ERROR; // arbitrary 64MB limit
 
     // Allocate memory to hold the full compressed data stream.
-    void* pCompressed = ma_malloc((size_t)compSize, pAllocationCallbacks);
-    if (pCompressed == NULL) {
+    void* pCompressed = ma_malloc(static_cast<size_t>(compSize), pAllocationCallbacks);
+    if (pCompressed == nullptr) {
         ma_free(pDecoder, pAllocationCallbacks);
         return MA_OUT_OF_MEMORY;
     }
 
     // Read the full compressed stream into memory.
     size_t bytesRead = 0;
-    if (onRead(pReadSeekTellUserData, pCompressed, (size_t)compSize, &bytesRead) != MA_SUCCESS || bytesRead != compSize) {
+    if (onRead(pReadSeekTellUserData, pCompressed, static_cast<size_t>(compSize), &bytesRead) != MA_SUCCESS || bytesRead != compSize) {
         ma_free(pCompressed, pAllocationCallbacks);
         ma_free(pDecoder, pAllocationCallbacks);
         return MA_IO_ERROR;
     }
 
     // Save compressed data pointer in decoder.
-    pDecoder->pCompressed = (ma_uint8*)pCompressed;
+    pDecoder->pCompressed = static_cast<ma_uint8*>(pCompressed);
 
     // Setup initial codec decompression info for SOS decoder.
     std::memset(&pDecoder->compInfo, 0, sizeof(pDecoder->compInfo));
-    pDecoder->compInfo.lpSource = (ma_uint8 *)pCompressed;
-    pDecoder->compInfo.lpDest = NULL; // Will be set during decode
+    pDecoder->compInfo.lpSource = static_cast<ma_uint8*>(pCompressed);
+    pDecoder->compInfo.lpDest = nullptr; // Will be set during decode
     pDecoder->compCursor = 0;
     pDecoder->compInfo.dwCompSize = pDecoder->header.compSize;
     pDecoder->compInfo.dwUnCompSize = pDecoder->header.uncompSize;
@@ -530,7 +529,7 @@ static ma_result ma_sos_aud_init(
 
     // Allocate a ring buffer to hold decompressed PCM data.
     pDecoder->rbDecodedPCMData = ma_malloc(AUD_RING_BUFFER_CAPACITY, pAllocationCallbacks);
-    if (pDecoder->rbDecodedPCMData == NULL) {
+    if (pDecoder->rbDecodedPCMData == nullptr) {
         return MA_OUT_OF_MEMORY;
     }
 
@@ -555,8 +554,8 @@ static ma_result ma_sos_aud_init(
 static void ma_sos_aud_uninit(void* pUserData, ma_data_source* pBackend, const ma_allocation_callbacks* pAllocationCallbacks)
 {
     // Cast the backend pointer to our custom decoder type.
-    ma_sos_aud_decoder* pDecoder = (ma_sos_aud_decoder*)pBackend;
-    if (pDecoder == NULL) {
+    ma_sos_aud_decoder* pDecoder = static_cast<ma_sos_aud_decoder*>(pBackend);
+    if (pDecoder == nullptr) {
         return;
     }
 

@@ -69,6 +69,7 @@ public:
 
 private:
     bool Is_Valid_Theme(ThemeType theme) const { return theme >= THEME_FIRST && theme < Themes.Count(); }
+    static bool Scores_Available();
 
     /**
      *  Handle to current score.
@@ -109,12 +110,12 @@ public:
         AudioFileType FileType = AUDIO_TYPE_AUD;
 
         /**
-         *  Full filename of the score.
+         *  Full filename of the score (resolved with the file extension of the found file).
          */
         std::string FileName;
 
         /**
-         *  Filename of the score.
+         *  Filename of the score (without the file extension).
          */
         std::string Name;
 
