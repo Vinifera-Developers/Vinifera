@@ -462,7 +462,7 @@ bool Damage_Bridge(Cell cell, int damage)
  *           02/19/2025 Rampastring : Improved handling of explosion height level.
  *           03/04/2025 ZivDero : Implement CellSpread.
  */
-void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
+void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
     Cell cell;                                 // Cell number under explosion.
     DynamicVectorClass<ObjectClass*> objects;  // Objects to be damaged.
@@ -471,7 +471,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
 
     if (Special.IsInert || !warhead) return;
 
-    if (!damage && !warhead->IsWebby) return;
+    if (!strength && !warhead->IsWebby) return;
 
     const auto warhead_ext = Extension::Fetch(warhead);
 
@@ -560,7 +560,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
                 }
             }
             if (object->Strength > 0 && object->IsDown && !object->IsInLimbo && distance <= range) {
-                int damage = damage;
+                int damage = strength;
                 if (warhead != Rule->IonStormWarhead || !object->Is_Foot() || static_cast<FootClass*>(object)->Team == nullptr || !static_cast<FootClass*>(object)->Team->Class->IsIonImmune) {
                     object->Take_Damage(damage, distance, warhead, source);
                 }
@@ -568,7 +568,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
         }
     }
 
-    const double rocking_force = std::min(damage * 0.01, 4.0);
+    const double rocking_force = std::min(strength * 0.01, 4.0);
     if (warhead->IsRocker && rocking_force > 0.3) {
         for (int x = cell.X - 3; x <= cell.X + 3; x++) {
             for (int y = cell.Y - 3; y <= cell.Y + 3; y++) {
@@ -610,13 +610,13 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
                     if (!Map.In_Radar(newcell)) continue;
                     distance = Distance(newcell.As_Coord(), cell.As_Coord());
                     if (distance <= range) {
-                        Damage_Overlay(newcell, warhead, damage, do_chain_reaction);
+                        Damage_Overlay(newcell, warhead, strength, do_chain_reaction);
                         Spawn_Flames_And_Smudges(newcell, range, distance, warhead);
                     }
                 }
             }
         } else {
-            Damage_Overlay(cell, warhead, damage, do_chain_reaction);
+            Damage_Overlay(cell, warhead, strength, do_chain_reaction);
             Spawn_Flames_And_Smudges(cell, 0, 0, warhead);
         }
     }
@@ -640,7 +640,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
                 if (ion_cannon_warhead) {
                     should_damage_bridge = true;
                 } else {
-                    should_damage_bridge = Damage_Bridge(cell, damage);
+                    should_damage_bridge = Damage_Bridge(cell, strength);
                 }
 
                 if (should_damage_bridge) {                    
@@ -661,7 +661,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
         }
 
         if (cellptr->Is_Overlay_Low_Bridge() && close_to_ground) {
-            if (ion_cannon_warhead || Damage_Bridge(cell, damage)) {
+            if (ion_cannon_warhead || Damage_Bridge(cell, strength)) {
                 const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
                 Map.Destroy_Low_Bridge_At(cell);
                 if (destroyed) {
@@ -703,8 +703,8 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
             }
         }
 
-        if (damage > warhead->DeformThreshhold) {
-            if (Percent_Chance(damage * 0.01 * warhead->Deform * 100.0) && !Is_On_High_Bridge(explosion_coord)) {
+        if (strength > warhead->DeformThreshhold) {
+            if (Percent_Chance(strength * 0.01 * warhead->Deform * 100.0) && !Is_On_High_Bridge(explosion_coord)) {
                 Map.Deform(explosion_coord.As_Cell(), false);
             }
         }
@@ -724,7 +724,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int damage, TechnoClass* sour
          *  @author: Rampastring
          */
         if ((warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(explosion_coord)
-            && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < damage)) {
+            && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)) {
             Map.DirtyIceCells.Clear();
             if (Map.Crack_Ice(*cellptr, nullptr)) {
                 Map.Recalc_Ice();
