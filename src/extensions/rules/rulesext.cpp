@@ -429,7 +429,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     Fixups(ini);
 
     /**
-     *  x
+     *  Read the theme data from the INI.
      */
     AudioTheme.Init_Themes(ini);
 }

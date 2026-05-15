@@ -157,19 +157,19 @@ void ObjectClassExtension::Ambient_AI()
 
     auto classext = Extension::Fetch(classof);
 
-    if (classext->AmbientSound != VOC_NONE && AmbientSound == nullptr) {
-        AmbientSound = new AudioVocHandle(classext->AmbientSound);
-        AmbientSound->Start(This()->PositionCoord);
-    }
-    if (AmbientSound != nullptr) {
+    if (classext->AmbientSound != VOC_NONE) {
+        if (AmbientSound == nullptr) {
+            AmbientSound = new AudioVocHandle(classext->AmbientSound);
+            AmbientSound->Start(This()->PositionCoord);
+        }
         AmbientSound->Update_Position(This()->PositionCoord);
     }
 
-    if (AttachedAmbientSoundType != VOC_NONE && AttachedAmbientSound == nullptr) {
-        AttachedAmbientSound = new AudioVocHandle(AttachedAmbientSoundType);
-        AttachedAmbientSound->Start(This()->PositionCoord);
-    }
-    if (AttachedAmbientSound != nullptr) {
+    if (AttachedAmbientSoundType != VOC_NONE) {
+        if (AttachedAmbientSound == nullptr) {
+            AttachedAmbientSound = new AudioVocHandle(AttachedAmbientSoundType);
+            AttachedAmbientSound->Start(This()->PositionCoord);
+        }
         AttachedAmbientSound->Update_Position(This()->PositionCoord);
     }
 }

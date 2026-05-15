@@ -17,7 +17,6 @@
 #include "crt_hooks.h"
 #include "debug_hooks.h"
 #include "extension_hooks.h"
-#include "audio_hooks.h"
 #include "newswizzle_hooks.h"
 #include "sidebarext_hooks.h"
 #include "vinifera_hooks.h"
