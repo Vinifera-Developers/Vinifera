@@ -1500,9 +1500,11 @@ RequiredAddon=0        ; AddonType, addon required for the theme. 0 = base game,
 
 `EVA.INI` defines the EVA and mission speech database. It is optional: if it is not present, Vinifera uses the built-in speech list. However, if it is provided, no default speeches are added to it.
 
+A ready-to-use [`EVA.INI`](https://github.com/Vinifera-Developers/Vinifera-Files/blob/master/files/EVA.INI) covering the full vanilla and Firestorm speech set, with subtitle transcriptions, is available in the Vinifera-Files repository.
+
 Speech runs through a dedicated scheduler, separate from the sound effect engine. Each entry's `Control=` chooses whether it uses the single standard slot, the normal queue, or the interrupt queue; its `Priority=` determines ordering within queued speech. Within a queue, higher priorities drain first; equal priorities are FIFO. The interrupt queue drains before the normal queue.
 
-If no `EVA.INI` is provided, some built-in speeches also have different appripriate defaults for `Category=`, `Control=`, and `Priority=`.
+If no `EVA.INI` is provided, some built-in speeches also have different appropriate defaults for `Category=`, `Control=`, and `Priority=`.
 
 In `EVA.INI`:
 ```ini
@@ -1574,7 +1576,7 @@ SubtitleMarginBottom=24         ; integer, bottom margin from the tactical view.
 
 ### Hardcoded Speeches
 
-Speeches that are hardcoded to be played by the game are now played by name. If you provide `EVA.INI`, ensure that these speeches are present. Their position in the list is not important.
+Some speeches are played by engine code in response to game events (mission accomplished, low power, unit ready, and so on) rather than by triggers. Vinifera looks these up by INI name, so when you provide a custom `EVA.INI` every name in the table below must exist in it — otherwise the corresponding event will play no speech. The order of the entries is not significant; only the names matter.
 
 - :::{dropdown} List of hardcoded speech names
 
@@ -1624,7 +1626,7 @@ Speeches that are hardcoded to be played by the game are now played by name. If 
     | 61 | 00-I118 | EVA_BridgeRepaired |
     | 63 | 00-I230 | EVA_BuildingOffline |
     | 64 | 00-I232 | EVA_BuildingOnline |
-    | 66 | 00-I268 | EVA_PlayerWasDefeated |
+    | 66 | 00-I268 | EVA_PlayerDefeated |
     | 67 | 00-I284 | EVA_YouAreVictorious |
     | 68 | 00-I286 | EVA_YouHaveLost |
     | 71 | 00-I304 | EVA_AllianceFormed |
@@ -1655,13 +1657,15 @@ Speeches that are hardcoded to be played by the game are now played by name. If 
 
 ### Trigger Audio Actions
 
-Vinifera changes the mapper-facing sound trigger actions so sounds started at waypoints can be stopped reliably.
+Vinifera changes the mapper-facing sound trigger actions so sounds started at waypoints can be stopped reliably, and adds new actions for attaching ambient loops to trigger-bound objects.
 
 - `Play Sound At` is vanilla trigger action `99`. It plays the selected `VocType` at the action waypoint.
 - If the waypoint contains a building or terrain object, the sound is attached to that object.
 - If the waypoint is empty, Vinifera tracks the sound at that coordinate so it can be stopped later.
 - `Stop Sounds At` is Vinifera trigger action `137`. It stops sounds started by `Play Sound At` at the same waypoint.
 - `Stop Sounds At` does not stop arbitrary one-shot sounds, music themes, EVA speech, or an object's own ambient loop.
+- `Attach Sound` is Vinifera trigger action `138`. It attaches the selected `VocType` as an ambient loop to every object the trigger is bound to. The sound plays for as long as the attachment lasts and follows each object as it moves.
+- `Detach Sound` is Vinifera trigger action `139`. It removes any previously-attached ambient sound from the trigger's bound objects.
 
 ## Tiberiums
 

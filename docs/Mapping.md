@@ -117,7 +117,7 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 ```
 
 ```{note}
-Any action that takes a `VocType` (sound), `VoxType` (speech/EVA), or `ThemeType` (music), including vanilla actions, can be used with with need code 0 (`NeedOther`), specifying the ordinal number of the relevant type as `PARAM1`, or with need codes 5, 6, or 7 (`NeedSpeech`, `NeedSound`, `NeedTheme` respectively), specifying the INI name of the type.
+Any action that takes a `VocType` (sound), `VoxType` (speech/EVA), or `ThemeType` (music), including vanilla actions, can be used with need code 0 (`NeedOther`), specifying the ordinal number of the relevant type as `PARAM1`, or with need codes 5, 6, or 7 (`NeedSpeech`, `NeedSound`, `NeedTheme` respectively), specifying the INI name of the type.
 ```
 
 ### Operation Types
@@ -251,9 +251,9 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 |          | Applies Iron Curtain to attached objects. Can optionally bypass legality checks. | Other (0) | Boolean (skip legality check)           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 | 137      | Stop Sounds At             |
 |          | Stops sounds started by Play Sound At at the specified waypoint. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
-| 138      | Attach sound             |
+| 138      | Attach Sound             |
 |          | Attaches an ambient sound to all objects associated with the trigger. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
-| 139      | Detach sound             |
+| 139      | Detach Sound             |
 |          | Detaches any ambient sound from all objects associated with the trigger. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 
 ### [135] Adjust House Modifier — Modifier Types

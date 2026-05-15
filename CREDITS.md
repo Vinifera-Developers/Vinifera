@@ -144,9 +144,18 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
-  - Replace DirectSound with miniaudio, implement customizations for themes, sounds and speeches.
+  - Replace DirectSound with a new audio engine backed by miniaudio.
+  - Reimplement the streaming audio path used by VQA movie playback.
+  - Add support for FLAC, WAV, OGG, and MP3 audio files alongside the original AUD format.
+  - Reimplement the music theme system from `THEME.INI` with per-theme volume, full name, artist, length, side ownership, and required-addon controls.
+  - Reimplement the sound-effect (`VocType`) system from `SOUND.INI` with configurable type, control, priority, limit, range, delay, volume and pitch shift.
+  - Reimplement the EVA/VOX speech system from `EVA.INI` with category, priority, control, and per-side speech file support.
 - **CrimRecya**:
   - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- **Crimsonum**:
+  - Author of the default `EVA.INI` shipped alongside Vinifera.
+- **E1 Elite**:
+  - Transcribed the in-game speeches used for the subtitles in the default `EVA.INI`.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
@@ -369,4 +378,7 @@ This page lists all the individual contributions to the project by their author.
   - Make spawners respect `IonSensitive` on weapons.
   - Fix a bug where the sidebar could only contain up to 75 items on a strip.
   - Extended sidebar customizability.
-  - Replace DirectSound with miniaudio, implement customizations for themes, sounds and speeches.
+  - Improve the audio engine's runtime architecture.
+  - Expand the sound-effect (`VocType`) system with positional behavior flags, looping/rotation/queueing controls, per-sound pitch and volume variance, and per-object ambient attachment that follows objects as they move.
+  - Add subtitle rendering for EVA speeches with customizable styling and a category filter.
+  - Add `Attach Sound`, `Detach Sound`, and `Stop Sounds At` trigger actions for managing ambient sounds from scripts.
