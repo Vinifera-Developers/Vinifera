@@ -100,7 +100,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsAIDetectDisguise(true),
     IsAIOneHarvesterInSingleplayer(true),
     IsPauseRepairs(true),
-    PausedRepairsFrame(6)
+    PausedRepairsFrame(6),
+    BridgeArmor(ARMOR_NULL)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -277,6 +278,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsAIOneHarvesterInSingleplayer);
     crc(IsPauseRepairs);
     crc(PausedRepairsFrame);
+    crc(BridgeArmor);
 }
 
 
@@ -796,6 +798,7 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
     BuildingFlameSpawnBlockFrames = ini.Get_Int(COMBATDAMAGE, "BuildingFlameSpawnBlockFrames", BuildingFlameSpawnBlockFrames);
+    BridgeArmor = ini.Get_ArmorType(COMBATDAMAGE, "BridgeArmor", BridgeArmor);
 
     return true;
 }

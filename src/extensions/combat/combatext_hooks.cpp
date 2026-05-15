@@ -338,6 +338,7 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
     }
 }
 
+// TODO: move these to cell.h
 bool Is_Low_Bridge_SE_NW(CellClass* cellptr) {
     OverlayType overlay = cellptr->Overlay;
     if (!cellptr->Is_Overlay_Low_Bridge()) {
@@ -361,50 +362,44 @@ bool Is_Low_Bridge_SW_NE(CellClass* cellptr)
     return false;
 }
 
-bool Damage_Bridge(Cell cell, int damage)
-{
-    // Identify cell overlay:
-    // If cell is -1, search adjacent cells until you find one that isn't -1
-    // and is either Is_Overlay_Bridge() or Is_Overlay_Rail_Bridge() 
-    // and use that cell for registering damage
-    // If no appropriate cell was found (shouldn't happen, but as a fallback), just use current cell
-    // If cell is NOT -1 and is Is_Overlay_Low_Bridge,
-    // search cells in the direction of the overlay until you can no longer find anymore:
-    // SE to NW: 74 - 82, 92 - 95, 100 -> search on the Y axis
-    // SW to NE: 83 - 91, 96 - 99, 101 -> search on the X axis
-    // for each cell, check if it registered for damage. If yes, stop iterating and use it.
-    // If not, then use current cell.    
-
-    DEBUG_INFO("Triggered damage bridge\n");
+/**
+ *  Deals damage to a bridge, taking into account the damage dealt and the warhead for calculation purposes.
+ *  A bridge will become damaged or destroyed one state when its health reaches 0,
+ *  and its damage tracking will be removed until the next damage instance.
+ * 
+ *  Tracks all bridge types and makes sure damage is dealt in a 3x1 format.
+ *  This is typically achieved by checking if there already is a tracked cell or one that should be used for tracking purposes,
+ *  which is not always the one that the damage was dealt on.
+ * 
+ *  Since Low Bridges and High Bridges behave differently, the tracking logic is separated for each bridge type.
+ *
+ *  @author: JoyfulShush
+ */
+bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
+{    
     CellClass* cellptr = &Map[cell];
     OverlayType overlay = cellptr->Overlay;
     Cell cell_to_use = cell;
 
     if (overlay == -1) { // rail or high bridge
-        // search only orthogonally
-        DEBUG_INFO("OVERLAY -1, searching for nearby bridges\n");
+        // search only orthogonally for high bridge cells that have the overlays
         FacingType dirs[4] = {FACING_N, FACING_E, FACING_S, FACING_W};
 
-        for (FacingType dir : dirs) {
-            DEBUG_INFO("Looking for cell in dir %d\n", dir);
+        for (FacingType dir : dirs) {            
             Cell adjacent_cell = Adjacent_Cell(cell, dir);            
-            CellClass* adjacent_cellptr = &Map[adjacent_cell];
-            DEBUG_INFO("Cell: %d, %d, overlay: %d\n", adjacent_cell.X, adjacent_cell.Y, adjacent_cellptr->Overlay);
-            if (adjacent_cellptr->Is_Overlay_Bridge() || adjacent_cellptr->Is_Overlay_Rail_Bridge()) {
-                DEBUG_INFO("Found high bridge or rail bridge overlay\n", adjacent_cell.X, adjacent_cell.Y);
+            CellClass* adjacent_cellptr = &Map[adjacent_cell];            
+            if (adjacent_cellptr->Is_Overlay_Bridge() || adjacent_cellptr->Is_Overlay_Rail_Bridge()) {                
                 cell_to_use = adjacent_cell;
                 break;
             }
         }
         
-    } else if (cellptr->Is_Overlay_Low_Bridge()) {
+    } else if (cellptr->Is_Overlay_Low_Bridge()) { // low bridges
         FacingType dirs[2] = {};
-        if (Is_Low_Bridge_SE_NW(cellptr)) {
-            DEBUG_INFO("SE <-> NW Low bridge\n");
+        if (Is_Low_Bridge_SE_NW(cellptr)) {            
             dirs[0] = FACING_N;
             dirs[1] = FACING_S;
-        } else {
-            DEBUG_INFO("SW <-> NE Low bridge\n");
+        } else {            
             dirs[0] = FACING_E;
             dirs[1] = FACING_W;
         }
@@ -412,19 +407,16 @@ bool Damage_Bridge(Cell cell, int damage)
         bool cell_found = false;
         for (FacingType dir : dirs) {
             Cell current_cell = cell;
-            CellClass* current_cellptr = &Map[current_cell];
-            DEBUG_INFO("Looking for cell in dir %d\n", dir);
+            CellClass* current_cellptr = &Map[current_cell];            
             while (current_cellptr->Overlay == cellptr->Overlay) {
-                if (BridgeHealths.contains(current_cell)) {
-                    DEBUG_INFO("Found registered cell, setting cell to register and returning\n");
+                if (BridgeHealths.contains(current_cell)) {                    
                     cell_to_use = current_cell;
                     cell_found = true;
                     break;
                 }
 
                 current_cell = Adjacent_Cell(current_cell, dir);
-                current_cellptr = &Map[current_cell];
-                DEBUG_INFO("Cell: %d, %d, overlay: %d\n", current_cell.X, current_cell.Y, current_cellptr->Overlay);
+                current_cellptr = &Map[current_cell];                
             }
 
             if (cell_found) {
@@ -433,24 +425,21 @@ bool Damage_Bridge(Cell cell, int damage)
         }
     }
 
-    DEBUG_INFO("OVERLAY FOR CELL: %d\n", overlay);    
-
     if (!BridgeHealths.contains(cell_to_use)) {
-        BridgeHealths[cell_to_use] = Rule->BridgeStrength;
-        DEBUG_INFO("Created cell health tracker with bridge strength of %d\n", Rule->BridgeStrength);
+        BridgeHealths[cell_to_use] = Rule->BridgeStrength;        
     }
-
-    DEBUG_INFO("Before dealing damage to bridge: %d\n", BridgeHealths[cell_to_use]);
-    BridgeHealths[cell_to_use] -= damage;
-    DEBUG_INFO("After dealing damage to bridge: %d\n", BridgeHealths[cell_to_use]);
+    
+    if (RuleExtension->BridgeArmor != ARMOR_NULL) {
+        damage *= Verses::Get_Modifier(RuleExtension->BridgeArmor, warhead);    
+    }
+    
+    BridgeHealths[cell_to_use] -= damage;    
 
     if (BridgeHealths[cell_to_use] <= 0) {
-        DEBUG_INFO("Bridge destroyed\n");
-        BridgeHealths[cell_to_use] = Rule->BridgeStrength;
+        BridgeHealths.erase(cell_to_use);
         return true;
     }
-
-    DEBUG_INFO("Bridge still standing\n");
+    
     return false;
 }
 
@@ -640,7 +629,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
                 if (ion_cannon_warhead) {
                     should_damage_bridge = true;
                 } else {
-                    should_damage_bridge = Damage_Bridge(cell, strength);
+                    should_damage_bridge = Damage_Bridge(cell, strength, warhead);
                 }
 
                 if (should_damage_bridge) {                    
@@ -661,7 +650,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
         }
 
         if (cellptr->Is_Overlay_Low_Bridge() && close_to_ground) {
-            if (ion_cannon_warhead || Damage_Bridge(cell, strength)) {
+            if (ion_cannon_warhead || Damage_Bridge(cell, strength, warhead)) {
                 const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
                 Map.Destroy_Low_Bridge_At(cell);
                 if (destroyed) {

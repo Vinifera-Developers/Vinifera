@@ -264,4 +264,9 @@ public:
      *  Determines the wrench shape frame that should be used while repairs are paused.
      */
     int PausedRepairsFrame;
+
+    /*
+    * The armor type used by bridges for damage calculation.
+    */
+    ArmorType BridgeArmor;
 };
