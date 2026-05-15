@@ -786,6 +786,26 @@ DEFINE_HOOK(0x004949AF, _EventClass_Execute_IDLE_Prevent_Controlling_Enemy_Units
     return Continue;
 }
 
+/**
+ *  Patches EventClass::Execute to catch instances of Q-Moving aircrafts.
+ *  Unlike ground units, aircraft cannot fire and move at the same time,
+ *  and instead have to apply their appropriate firing logic, which is either bombing or curley shuffling.
+ *  This means that if a Q-Move order is given to an aircraft, it should abandon its target.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004948A5, _EventClass_Execute_QMove_Aircraft_Patch, 6)
+{
+    GET(int, mission, EAX);
+    GET(FootClass*, this_ptr, EDI);
+
+    if (mission == MISSION_QMOVE && this_ptr->Fetch_RTTI() == RTTI_AIRCRAFT) {
+        this_ptr->Assign_Target(nullptr);
+    }
+
+    return 0;
+}
+
 
 /**
  *  Main function for patching the hooks.

@@ -18,6 +18,7 @@
 #include "options.h"
 #include "rawfile.h"
 #include "tibsun_globals.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 
 
@@ -143,6 +144,7 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     SortDefensesAsLast(true),
     FilterBandBoxSelection(true),
+    SidebarViewTypeOverride(SIDEBAR_COUNT),
     KeyChatToAll1(KN_RETURN),
     KeyChatToAll2(KN_F8),
     KeyChatToAllies(KN_BACKSPACE),
@@ -274,6 +276,17 @@ void OptionsClassExtension::Load_Settings()
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
 
+    SidebarViewTypeOverride = SIDEBAR_COUNT;
+
+    std::string sidebar_view = ConfigINI.Get_String("Options", "SidebarViewType", "");
+    if (!sidebar_view.empty()) {
+        SidebarViewTypeOverride = Sidebar_View_From_Name(sidebar_view.c_str(), SIDEBAR_COUNT);
+
+        if (SidebarViewTypeOverride == SIDEBAR_COUNT) {
+            DEBUG_WARNING("Unknown sidebar view type \"%s\", using UI.INI setting.\n", sidebar_view.c_str());
+        }
+    }
+
     char subtitle_mode_buf[32];
     if (ConfigINI.Get_String("Options", "SubtitleMode", "", subtitle_mode_buf, sizeof(subtitle_mode_buf)) > 0) {
         SubtitleMode = Parse_Subtitle_Mode(subtitle_mode_buf);
@@ -397,4 +410,23 @@ void OptionsClassExtension::Set()
     AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, This()->SoundVolume);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, This()->SoundVolume);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_STREAMING, This()->SoundVolume);
+}
+
+
+/**
+ *  Returns the effective sidebar view type, with user options overriding UI.INI.
+ *
+ *  @author: ZivDero
+ */
+SidebarViewType OptionsClassExtension::Get_Sidebar_View_Type() const
+{
+    if (SidebarViewTypeOverride != SIDEBAR_COUNT) {
+        return SidebarViewTypeOverride;
+    }
+
+    if (UIControls != nullptr) {
+        return UIControls->BattleSidebarViewType;
+    }
+
+    return SIDEBAR_CLASSIC;
 }

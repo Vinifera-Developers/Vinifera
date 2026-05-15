@@ -100,7 +100,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainSound(VOC_NONE),
     ComesNearWaypointDistance(CELL_LEPTON_W * 5),
     IsAIDetectDisguise(true),
-    IsAIOneHarvesterInSingleplayer(true)
+    IsAIOneHarvesterInSingleplayer(true),
+    IsPauseRepairs(true),
+    PausedRepairsFrame(6)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -275,6 +277,8 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsAIDetectDisguise);
     crc(AIHarvestersPerRefinery.Count());
     crc(IsAIOneHarvesterInSingleplayer);
+    crc(IsPauseRepairs);
+    crc(PausedRepairsFrame);
 }
 
 
@@ -712,6 +716,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
     SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
     SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
+    IsPauseRepairs = ini.Get_Bool(GENERAL, "PauseRepairs", IsPauseRepairs);
+    PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

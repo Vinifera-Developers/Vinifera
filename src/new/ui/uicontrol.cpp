@@ -22,6 +22,45 @@ UIControlsClass *UIControls = nullptr;
 
 
 /***************************************************************************
+**  Sidebar view type helpers
+***************************************************************************/
+
+
+/**
+ *  Parses the sidebar view type name.
+ *
+ *  @author: ZivDero
+ */
+SidebarViewType Sidebar_View_From_Name(const char* name, SidebarViewType default_type)
+{
+    if (name == nullptr || *name == '\0') {
+        return default_type;
+    }
+
+    if (_stricmp(name, "Tabbed") == 0) {
+        return SIDEBAR_TABBED;
+    }
+
+    if (_stricmp(name, "Classic") == 0) {
+        return SIDEBAR_CLASSIC;
+    }
+
+    return default_type;
+}
+
+
+/**
+ *  Returns the INI-facing name for a sidebar view type.
+ *
+ *  @author: ZivDero
+ */
+const char* Name_From_Sidebar_View_Type(SidebarViewType view_type)
+{
+    return view_type == SIDEBAR_TABBED ? "Tabbed" : "Classic";
+}
+
+
+/***************************************************************************
 **  Battle sidebar layout config
 ***************************************************************************/
 
@@ -253,12 +292,8 @@ bool UIControlsClass::Read_INI(CCINIClass const& ini)
     static char const * const SIDEBAR_CLASSIC_SECTION = "SidebarClassic";
     static char const * const SIDEBAR_TABBED_SECTION = "SidebarTabbed";
 
-    std::string sidebar_view = ini.Get_String(SIDEBAR_SECTION, "ViewType", BattleSidebarViewType == SIDEBAR_TABBED ? "Tabbed" : "Classic");
-    if (_stricmp(sidebar_view.c_str(), "Tabbed") == 0) {
-        BattleSidebarViewType = SIDEBAR_TABBED;
-    } else {
-        BattleSidebarViewType = SIDEBAR_CLASSIC;
-    }
+    std::string sidebar_view = ini.Get_String(SIDEBAR_SECTION, "ViewType", Name_From_Sidebar_View_Type(BattleSidebarViewType));
+    BattleSidebarViewType = Sidebar_View_From_Name(sidebar_view.c_str(), SIDEBAR_CLASSIC);
 
     UnitHealthBarDrawPos = ini.Get_Point(INGAME, "UnitHealthBarPos", UnitHealthBarDrawPos);
     InfantryHealthBarDrawPos = ini.Get_Point(INGAME, "InfantryHealthBarPos", InfantryHealthBarDrawPos);
