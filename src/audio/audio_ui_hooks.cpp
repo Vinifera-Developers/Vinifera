@@ -1,7 +1,9 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Contains the hooks for the extended MS classes.
+ *  @brief  Hooks that route non-gameplay UI audio (MS engine text/font, score
+ *          screen, World Domination Tour, map select) through the new audio
+ *          engine.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -9,7 +11,7 @@
 
 #include "always.h"
 
-#include "msengineext_hooks.h"
+#include "audio_ui_hooks.h"
 
 #include "audio_manager.h"
 #include "audio_util.h"
@@ -561,7 +563,7 @@ DEFINE_HOOK(0x0055441D, _MapSelect_UserInput_DoVoiceover_Patch, 0)
 /**
  *  Main function for patching the hooks.
  */
-void MSEngineExtension_Hooks()
+void Audio_UI_Hooks()
 {
     Patch_Jump(0x005E6770, &ScoreClassExt::DoSound);
     Patch_Jump(0x005E72F0, &ScoreSfxEntryExt::CTOR_Proxy);

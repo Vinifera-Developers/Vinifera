@@ -19,6 +19,7 @@
 #include "animtypeext_hooks.h"
 #include "astarext_hooks.h"
 #include "audio_hooks.h"
+#include "audio_ui_hooks.h"
 #include "beacon_hooks.h"
 #include "buildingext_hooks.h"
 #include "buildingtypeext_hooks.h"
@@ -57,7 +58,6 @@
 #include "mapseedext_hooks.h"
 #include "missionext_hooks.h"
 #include "mouseext_hooks.h"
-#include "msengineext_hooks.h"
 #include "msglistext_hooks.h"
 #include "multimissionext_hooks.h"
 #include "multiscoreext_hooks.h"
@@ -274,7 +274,6 @@ void Extension_Hooks()
     FilePCXExtension_Hooks();
     FetchRes_Hooks();
     XSurfaceExtension_Hooks();
-    MSEngineExtension_Hooks();
 
     /**
      *  New classes and interfaces.
@@ -286,4 +285,5 @@ void Extension_Hooks()
     Beacon_Hooks();
 
     Audio_Hooks();
+    Audio_UI_Hooks();
 }
