@@ -193,7 +193,7 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
     /**
      *  If the current theme is set to repeat, return it again.
      */
-    if (Is_Valid_Theme(theme) && theme > THEME_FIRST && (Themes[theme]->Repeat || IsRepeat)) {
+    if (Is_Valid_Theme(theme) && (Themes[theme]->Repeat || IsRepeat)) {
         return theme;
     }
 
@@ -203,13 +203,14 @@ ThemeType AudioThemeClass::Next_Song(ThemeType theme) const
          *  Shuffle the theme, but never pick the same theme that was just
          *  playing.
          */
+        const ThemeType previous = theme;
         int tries = 0;
         bool maxed = false;
         while (tries++ <= 1000) {
             ThemeType newtheme = Sim_Random_Pick(THEME_FIRST, static_cast<ThemeType>(Themes.Count() - 1));
-            theme = newtheme;
             maxed = tries == 1000;
-            if (newtheme != theme && Is_Allowed(newtheme)) {
+            if (newtheme != previous && Is_Allowed(newtheme)) {
+                theme = newtheme;
                 break;
             }
         }

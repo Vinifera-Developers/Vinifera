@@ -332,7 +332,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
          *  Can this sound only be played if the cell is revealed?
          */
         if ((Type & AUDIO_SOUND_SHROUDED) != 0) {
-            if (Map[cell].IsVisible|| Map[cell].IsFogVisible) {
+            if (Map[cell].IsVisible || Map[cell].IsFogVisible) {
                 return INVALID_AUDIO_INSTANCE_HANDLE;
             }
 

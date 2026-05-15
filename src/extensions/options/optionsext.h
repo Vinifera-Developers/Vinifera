@@ -63,6 +63,11 @@ public:
     void Set();
     SidebarViewType Get_Sidebar_View_Type() const;
 
+private:
+    void Apply_Volumes();
+
+public:
+
     static RendererDriverType Parse_Renderer_Driver(const char* name);
     static const char* Get_Renderer_Driver_Config_Name(RendererDriverType driver);
     static const char* Get_Renderer_Driver_SDL_Name(RendererDriverType driver);
