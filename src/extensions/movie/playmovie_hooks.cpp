@@ -105,8 +105,8 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     /**
      *  Check if the current campaign is an original GDI or NOD campaign.
      */
-    bool is_original_gdi = (cd_num == DISK_GDI && campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && stricmp(campaign->Scenario, "GDI1A.MAP") == 0;
-    bool is_original_nod = (cd_num == DISK_NOD && campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && stricmp(campaign->Scenario, "NOD1A.MAP") == 0;
+    bool is_original_gdi = cd_num == DISK_GDI && (campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && stricmp(campaign->Scenario, "GDI1A.MAP") == 0;
+    bool is_original_nod = cd_num == DISK_NOD && (campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && stricmp(campaign->Scenario, "NOD1A.MAP") == 0;
 
     /**
      *  #issue-762

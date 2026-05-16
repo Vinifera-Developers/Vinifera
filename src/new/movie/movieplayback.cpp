@@ -418,6 +418,8 @@ static void Clear_Movie_Screen()
 /**
  *  Waits for the miniaudio ring buffer to fully drain, keeping playback
  *  state updated. Ensures audio finishes before the screen is cleared.
+ *  Bounded by a 2s deadline so we cannot hang if the audio engine stops
+ *  consuming for any reason.
  */
 bool MoviePlayer::Drain_Audio()
 {
@@ -425,7 +427,14 @@ bool MoviePlayer::Drain_Audio()
         return true;
     }
 
+    const Uint64 deadline_ms = SDL_GetTicks() + 2000;
+
     while (AudioStream->Get_Available_Read_Frames() > 0) {
+        if (SDL_GetTicks() > deadline_ms) {
+            DEBUG_WARNING("Drain_Audio: timeout waiting for audio buffer to drain.\n");
+            break;
+        }
+
         if (!Update_Playback_State()) {
             return false;
         }
@@ -741,9 +750,17 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
         }
 
         if (player.Output.HasAudioChunk) {
-            const ma_uint32 max_frames = player.Output.AudioChunk.SampleRate > 0
+            /**
+             *  Throttle the decode loop when ~0.5 sec of audio is already queued,
+             *  but cap the threshold at 3/4 of the ring buffer so it is actually
+             *  reachable at high sample rates - otherwise Push_Chunk silently
+             *  drops the tail of every chunk once the buffer fills.
+             */
+            const ma_uint32 half_second = player.Output.AudioChunk.SampleRate > 0
                 ? static_cast<ma_uint32>(player.Output.AudioChunk.SampleRate / 2)
                 : 0;
+            const ma_uint32 capacity_cap = AudioStreamingClass::PCM_RING_BUFFER_FRAMES * 3 / 4;
+            const ma_uint32 max_frames = std::min(half_second, capacity_cap);
 
             while (max_frames > 0 && player.Queued_Audio_Frames() > max_frames) {
                 if (!player.Update_Playback_State()) {
@@ -878,8 +895,9 @@ MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, 
 
 
 /**
- *  Stops playback, releases SDL resources and removes the state
- *  associated with handle.
+ *  Stops playback, releases the audio stream via MoviePlayer::Stop, and
+ *  removes the state associated with handle. The fullscreen SDL movie
+ *  texture is owned by MoviePlayback_Play and not touched here.
  */
 bool MoviePlayback_Destroy_Ingame(VQHandle *handle)
 {
@@ -889,7 +907,6 @@ bool MoviePlayback_Destroy_Ingame(VQHandle *handle)
     }
 
     state->Player.Stop();
-    SDL_Movie_Shutdown();
 
     if (CurrentVQ == handle) {
         CurrentVQ = nullptr;
