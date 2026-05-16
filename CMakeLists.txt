@@ -650,7 +650,7 @@ target_link_libraries(${PROJECT_NAME} SDL3::SDL3)
 target_link_libraries(${PROJECT_NAME} miniaudio)
 target_link_libraries(${PROJECT_NAME} imgui)
 
-set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32)
+set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32 ole32 oleaut32 mfplat mfreadwrite mfuuid)
 
 # Link to any required libraries.
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBRARIES})

@@ -27,6 +27,15 @@ public:
     AudioStreamingClass();
     virtual ~AudioStreamingClass();
 
+    /**
+     *  PCM ring buffer capacity, in frames. Sized to hold four typical VQA
+     *  audio chunks so the feeder thread can land a full push without
+     *  dropping while the audio thread catches up. Callers feeding the
+     *  ring buffer (e.g. the movie player) should keep their queued
+     *  thresholds below this so Push_Chunk always has writable headroom.
+     */
+    static constexpr ma_uint32 PCM_RING_BUFFER_FRAMES = 4096 * 4;
+
     bool Open(const std::string& name, int sampleRate, int channels, int bitsPerSample, bool isPCM = true);
     void Close();
 

@@ -117,32 +117,15 @@ static bool CCFile_Validate_Is_Available(const char *filename, int size)
  */
 static bool Vinifera_Play_Startup_Movies()
 {
-    static const int VINIFERA_VQA_SIZE = 704889;
-    static const int MINIAUD_VQA_SIZE = 84135;
-    static const int WWLOGO_VQA_SIZE = 2415362;
-
     if (Special.IsFromInstall) {
         DEBUG_INFO("Playing first time intro sequence.\n");
         Play_Movie("EVA.VQA");
     }
 
     if (!Vinifera_SkipLogoMovies) {
-        DEBUG_INFO("Playing logo movies.\n");
-        if (!CCFile_Validate_Is_Available("VINIFERA.VQA", VINIFERA_VQA_SIZE)) {
-            DEBUG_INFO("Failed to find VINIFERA.VQA!\n");
-        } else {
-            Play_Movie("VINIFERA.VQA");
-        }
-        if (!CCFile_Validate_Is_Available("MINIAUD.VQA", MINIAUD_VQA_SIZE)) {
-            DEBUG_INFO("Failed to find MINIAUD.VQA!\n");
-        } else {
-            Play_Movie("MINIAUD.VQA");
-        }
-        if (!CCFile_Validate_Is_Available("WWLOGO.VQA", WWLOGO_VQA_SIZE)) {
-            DEBUG_INFO("Failed to find WWLOGO.VQA!\n");
-        } else {
-            Play_Movie("WWLOGO.VQA");
-        }
+        DEBUG_INFO("Playing startup movies.\n");
+        Play_Movie("VINIFERA.VQA");
+        Play_Movie("WWLOGO.VQA");
     } else {
         DEBUG_INFO("Skipping logo movies.\n");
     }

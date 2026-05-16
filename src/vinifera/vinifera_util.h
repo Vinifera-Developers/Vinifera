@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "rect.h"
 #include "vector.h"
 #include <algorithm>
 #include <cctype>
@@ -54,6 +55,7 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
 #endif
 
 BSurface *Vinifera_Get_Image_Surface(const char *filename);
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio = false);
 
 // Converts all characters in 'str' to uppercase in-place.
 // Uses unsigned char cast to avoid UB with std::toupper on signed char values.

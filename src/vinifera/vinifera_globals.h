@@ -82,6 +82,7 @@ extern SDL_Renderer* SDLWindowRenderer;
 extern SDL_Texture* SDLWindowTexture;
 extern int SDLWindowWidth;
 extern int SDLWindowHeight;
+extern bool Vinifera_ModernMoviePlaying;
 
 
 /**

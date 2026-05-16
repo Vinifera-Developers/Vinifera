@@ -150,6 +150,7 @@ This page lists all the individual contributions to the project by their author.
   - Reimplement the music theme system from `THEME.INI` with per-theme volume, full name, artist, length, side ownership, and required-addon controls.
   - Reimplement the sound-effect (`VocType`) system from `SOUND.INI` with configurable type, control, priority, limit, range, delay, volume and pitch shift.
   - Reimplement the EVA/VOX speech system from `EVA.INI` with category, priority, control, and per-side speech file support.
+  - Groundwork for implementing modern movie playback.
 - **CrimRecya**:
   - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **Crimsonum**:
@@ -382,3 +383,4 @@ This page lists all the individual contributions to the project by their author.
   - Expand the sound-effect (`VocType`) system with positional behavior flags, looping/rotation/queueing controls, per-sound pitch and volume variance, and per-object ambient attachment that follows objects as they move.
   - Add subtitle rendering for EVA speeches with customizable styling and a category filter.
   - Add `Attach Sound`, `Detach Sound`, and `Stop Sounds At` trigger actions for managing ambient sounds from scripts.
+  - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.

@@ -52,6 +52,7 @@ SDL_Renderer* SDLWindowRenderer = nullptr;
 SDL_Texture* SDLWindowTexture = nullptr;
 int SDLWindowWidth = 0;
 int SDLWindowHeight = 0;
+bool Vinifera_ModernMoviePlaying = false;
 
 bool Vinifera_SkipLogoMovies = false;
 bool Vinifera_SkipStartupMovies = false;

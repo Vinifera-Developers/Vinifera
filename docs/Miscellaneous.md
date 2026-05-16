@@ -19,6 +19,20 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Units and aircraft can now click on a Service Depot even it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
 - Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
 
+## Modern Video Playback
+
+Vinifera adds support for modern video formats as replacements for the original VQA movies. If a file with the same basename as a VQA is found with one of the supported extensions (`.MP4`, `.WMV`, `.MPG`, `.AVI`), it will be used in place of the VQA.
+
+This applies to both fullscreen cutscene movies and in-game movies played in the radar area.
+
+```{note}
+Modern movies respect the `[Video]->StretchMovies` key in `SUN.INI`. If `StretchMovies=no`, movies will be played at 640x400 (preserving the aspect ratio).
+```
+
+```{note}
+While in-game movies are scaled to play at the size of the radar, it is recommended that they be `140x100` in size. Due to technical reasons they have to be processed in software, and excessively large movies may decrease performance at no benefit.
+```
+
 ## INI
 
 ### INI Inclusion and Inheritance
