@@ -23,7 +23,13 @@ class AudioVocClass;
 
 
 /**
- *  Runtime state machine for one active VOC event.
+ *  High-level VOC event - the in-game concept of a sound effect, composed of an
+ *  optional attack sample, a body cycle (Single / Sequential / Random /
+ *  AllSequence), and an optional decay, with optional looping. Drives one
+ *  AudioInstanceClass at a time as it walks the phases, so one event maps to
+ *  many instance plays over its lifetime.
+ *
+ *  External callers should use the AudioEventSystem namespace below.
  */
 class AudioEventClass
 {

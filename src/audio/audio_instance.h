@@ -1,7 +1,7 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  Audio sample instance class.
+ *  @brief  Low-level audio sample instance (one miniaudio sound playthrough).
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -21,7 +21,12 @@ class AudioSampleClass;
 
 
 /**
- *  An active instance of a sample.
+ *  Low-level wrapper around one playing `ma_sound`: a single file decoded from
+ *  start to end, with fade/loop/pause/delay state. The building block, not the
+ *  in-game sound effect - VOC sequencing (attack/body/decay, sample rotation)
+ *  lives in AudioEventClass, which drives one of these at a time. Use
+ *  AudioEventSystem to play a VocType; reach for this directly only for raw
+ *  single-file playback.
  *
  *  THREADING CONTRACT: This class is NOT internally synchronized. All public
  *  methods must be called with AudioManagerClass::ThreadMutex held by the
