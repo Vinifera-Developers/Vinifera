@@ -95,13 +95,20 @@ void Registry<T>::Notify(T* target, bool all)
  *  Entry point called from the engine intercept. Dispatches the given
  *  AbstractClass-derived target to all relevant concrete-type registries
  *  plus the generic Registry<AbstractClass>.
- *
- *  IMPORTANT: When adding a new Listener<T> for an AbstractClass-derived T,
- *  ensure Notify_Abstract dispatches to Registry<T>::Notify from every RTTI
- *  case whose runtime type IS-A T. Failure mode is observable: the listener
- *  compiles and registers but never fires.
  */
 void Notify_Abstract(AbstractClass* target, bool all);
+
+
+/**
+ *  Convenience helper for non-AbstractClass targets. Call this from the
+ *  target type's destructor (or wherever its lifecycle ends) to fire every
+ *  Listener<T> that watches it. T is deduced from the pointer argument.
+ */
+template<typename T>
+inline void Notify(T* target, bool all = true)
+{
+    Registry<T>::Notify(target, all);
+}
 
 
 } // namespace Vinifera::Detach
