@@ -220,11 +220,10 @@ void KamikazeTrackerClass::AI()
 
 
 /**
- *  Removes an aircraft from the tracker.
- *
- *  @author: ZivDero
+ *  Removes an aircraft from the tracker. Invoked via the detach registry
+ *  whenever any AircraftClass is destroyed.
  */
-void KamikazeTrackerClass::Detach(AircraftClass const* aircraft)
+void KamikazeTrackerClass::On_Detach(AircraftClass *aircraft, bool all)
 {
     for (int i = 0; i < Controls.Count(); i++)
     {

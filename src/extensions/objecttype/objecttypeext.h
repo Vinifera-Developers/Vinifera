@@ -27,7 +27,6 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
         ObjectTypeClassExtension(const NoInitClass &noinit);
         virtual ~ObjectTypeClassExtension();
 
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return reinterpret_cast<const ObjectTypeClass *>(This())->Name(); }

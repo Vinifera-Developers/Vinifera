@@ -25,7 +25,6 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         virtual ~SessionClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return "Session"; }

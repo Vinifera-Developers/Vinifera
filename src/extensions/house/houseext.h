@@ -10,12 +10,17 @@
 #pragma once
 
 #include "abstractext.h"
+#include "detach_listener.h"
 #include "house.h"
 #include "housetype.h"
 
 
+class FactoryClass;
+
+
 class DECLSPEC_UUID(UUID_HOUSE_EXTENSION)
-HouseClassExtension final : public AbstractClassExtension
+HouseClassExtension final : public AbstractClassExtension,
+                            public Vinifera::Detach::Listener<FactoryClass>
 {
 public:
     /**
@@ -35,8 +40,9 @@ public:
     virtual ~HouseClassExtension();
 
     virtual int Get_Object_Size() const override;
-    virtual void Detach(AbstractClass * target, bool all = true) override;
     virtual void Object_CRC(CRCEngine &crc) const override;
+
+    void On_Detach(FactoryClass *target, bool all) override;
 
     virtual const char *Name() const override { return reinterpret_cast<const HouseClass *>(This())->Class->Name(); }
     virtual const char *Full_Name() const override { return reinterpret_cast<const HouseClass *>(This())->Class->Full_Name(); }

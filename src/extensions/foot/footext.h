@@ -27,7 +27,6 @@ class FootClassExtension : public TechnoClassExtension
         FootClassExtension(const NoInitClass &noinit);
         virtual ~FootClassExtension();
 
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual FootClass *This() const override { return reinterpret_cast<FootClass *>(TechnoClassExtension::This()); }
