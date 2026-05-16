@@ -1,39 +1,24 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended Tactical class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTICALEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended Tactical class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
 
+#include "audio_vox.h"
 #include "extension.h"
 #include "point.h"
 #include "stimer.h"
+#include "stringid.h"
 #include "tactical.h"
 #include "textprint.h"
 #include "ttimer.h"
+
+#include <string>
 
 
 class HouseClass;
@@ -67,7 +52,7 @@ public:
     virtual const char* Full_Name() const override { return "TacticalMap"; }
 
     void Set_Info_Text(const char* text);
-    void Enable_Templated_Text(int label, ColorSchemeType color);
+    void Enable_Templated_Text(std::string_view label, ColorSchemeType color);
     void Disable_Templated_Text();
     void Clear_Templated_Text_Cache() { IsTemplatedTextCached = false; }
 
@@ -85,6 +70,16 @@ public:
 
     void Beacon_Mode_Control(int control);
     void Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset);
+
+    /**
+     *  VOX subtitle rendering. Set/Clear are called from the audio code when
+     *  a VOX starts/stops; Draw_Subtitle is called from the overlay render hook.
+     */
+    void Set_Subtitle(const char* text, SubtitleCategoryType cat);
+    void Clear_Subtitle();
+    void Draw_Subtitle();
+    bool Should_Show_Subtitle() const;
+    void Invalidate_Subtitle_Font();
 
 #ifndef NDEBUG
     bool Debug_Draw_Facings();
@@ -147,7 +142,7 @@ public:
     /**
      *  Index of the tutorial text to show as the templated text.
      */
-    int TemplatedTextIndex;
+    FixedString<128> TemplatedTextIndex;
 
     /**
      *  Where on the screen shall the templated text be printed?
@@ -183,4 +178,22 @@ public:
      *  Is the player currently editing a beacon's text?
      */
     bool IsEditingBeaconText;
+
+    /**
+     *  Currently displayed VOX subtitle (empty when nothing is playing or
+     *  the playing VOX has no Text=). Per-session UI state, not serialized.
+     */
+    std::string SubtitleText;
+    SubtitleCategoryType SubtitleCategoryCur;
+
+    /**
+     *  Cached Win32 HFONT (type-erased to avoid pulling windows.h into this
+     *  header), built lazily on first draw and rebuilt only when the related
+     *  ui.ini fields change. Owned by the extension; freed in the destructor
+     *  and on Invalidate_Subtitle_Font.
+     */
+    void* SubtitleFont;
+    std::string SubtitleFontCacheName;
+    int SubtitleFontCacheHeight;
+    int SubtitleFontCacheWeight;
 };

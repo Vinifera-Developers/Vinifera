@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended EventClass.
  *
- *  @project       Vinifera
- *
- *  @file          EVENTEXT_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for the extended EventClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -803,6 +784,26 @@ DEFINE_HOOK(0x004949AF, _EventClass_Execute_IDLE_Prevent_Controlling_Enemy_Units
     R->ESI(techno);
     R->EDI(0);
     return Continue;
+}
+
+/**
+ *  Patches EventClass::Execute to catch instances of Q-Moving aircrafts.
+ *  Unlike ground units, aircraft cannot fire and move at the same time,
+ *  and instead have to apply their appropriate firing logic, which is either bombing or curley shuffling.
+ *  This means that if a Q-Move order is given to an aircraft, it should abandon its target.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004948A5, _EventClass_Execute_QMove_Aircraft_Patch, 6)
+{
+    GET(int, mission, EAX);
+    GET(FootClass*, this_ptr, EDI);
+
+    if (mission == MISSION_QMOVE && this_ptr->Fetch_RTTI() == RTTI_AIRCRAFT) {
+        this_ptr->Assign_Target(nullptr);
+    }
+
+    return 0;
 }
 
 

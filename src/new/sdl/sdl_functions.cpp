@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains functions for the SDL system.
  *
- *  @project       Vinifera
- *
- *  @file          SDL_FUNCTIONS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains functions for the SDL system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -50,6 +31,7 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "vinifera_imgui.h"
 #include "vinifera_util.h"
 #include "windialog.h"
 #include "wsproto.h"
@@ -296,6 +278,10 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
     VideoHeight = height;
     VideoBitsPerPixel = bits_per_pixel;
 
+    if (!ViniferaImGui::Initialize(MainWindow, SDLWindowRenderer)) {
+        DEBUG_ERROR("Vinifera ImGui could not be initialized.\n");
+    }
+
     return true;
 }
 
@@ -307,6 +293,8 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
  */
 void SDL_Reset_Video_Mode()
 {
+    ViniferaImGui::Shutdown();
+
     /**
      *  Destroy the renderer.
      */
@@ -340,6 +328,12 @@ static WNDPROC SDL_Proc = nullptr;
  */
 LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    const LPARAM original_lParam = lParam;
+
+    if (ViniferaImGui::Process_Window_Message(hwnd, message, wParam, original_lParam)) {
+        return 0;
+    }
+
     /*
     **  Scale mouse inputs before they are processed by SDL or the game.
     */
@@ -718,6 +712,8 @@ bool SDL_Update_Screen(Surface* surface)
     /**
      *  Present the image to the window.
      */
+    ViniferaImGui::Render();
+
     SDL_RenderPresent(SDLWindowRenderer);
 
     return true;

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended RulesClass class.
  *
- *  @project       Vinifera
- *
- *  @file          RULESEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended RulesClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -34,6 +15,8 @@
 #include "aircrafttypeext.h"
 #include "animtypeext.h"
 #include "armortype.h"
+#include "audio_util.h"
+#include "audio_theme.h"
 #include "asserthandler.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
@@ -117,7 +100,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainSound(VOC_NONE),
     ComesNearWaypointDistance(CELL_LEPTON_W * 5),
     IsAIDetectDisguise(true),
-    IsAIOneHarvesterInSingleplayer(true)
+    IsAIOneHarvesterInSingleplayer(true),
+    IsPauseRepairs(true),
+    PausedRepairsFrame(6)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -292,6 +277,8 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsAIDetectDisguise);
     crc(AIHarvestersPerRefinery.Count());
     crc(IsAIOneHarvesterInSingleplayer);
+    crc(IsPauseRepairs);
+    crc(PausedRepairsFrame);
 }
 
 
@@ -440,6 +427,11 @@ void RulesClassExtension::Process(CCINIClass &ini)
      *  Fixup various inconsistencies in the original INI files.
      */
     Fixups(ini);
+
+    /**
+     *  Read the theme data from the INI.
+     */
+    AudioTheme.Init_Themes(ini);
 }
 
 
@@ -724,6 +716,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
     SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
     SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
+    IsPauseRepairs = ini.Get_Bool(GENERAL, "PauseRepairs", IsPauseRepairs);
+    PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

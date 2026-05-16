@@ -1,36 +1,20 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended ObjectClass class.
  *
- *  @project       Vinifera
- *
- *  @file          OBJECTEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended ObjectClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
 
 #include "objectext.h"
 
+#include "audio_voc_handle.h"
+#include "extension.h"
 #include "objecttype.h"
+#include "objecttypeext.h"
 
 
 /**
@@ -39,7 +23,10 @@
  *  @author: CCHyper
  */
 ObjectClassExtension::ObjectClassExtension(const ObjectClass *this_ptr) :
-    AbstractClassExtension(this_ptr)
+    AbstractClassExtension(this_ptr),
+    AmbientSound(nullptr),
+    AttachedAmbientSoundType(VOC_NONE),
+    AttachedAmbientSound(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectClassExtension::ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -65,6 +52,8 @@ ObjectClassExtension::ObjectClassExtension(const NoInitClass &noinit) :
 ObjectClassExtension::~ObjectClassExtension()
 {
     //EXT_DEBUG_TRACE("ObjectClassExtension::~ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    Stop_Ambient();
 }
 
 
@@ -81,6 +70,9 @@ HRESULT ObjectClassExtension::Load(IStream *pStm)
     if (FAILED(hr)) {
         return E_FAIL;
     }
+
+    AmbientSound = nullptr;
+    AttachedAmbientSound = nullptr;
     
     return hr;
 }
@@ -150,4 +142,60 @@ const char *ObjectClassExtension::Full_Name() const
     //EXT_DEBUG_TRACE("ObjectClassExtension::Full_Name - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return reinterpret_cast<const ObjectClass *>(This())->Class_Of()->Full_Name();
+}
+
+
+void ObjectClassExtension::Ambient_AI()
+{
+    if (This()->IsInLimbo) return;
+
+    // Not all objects have a type class
+    auto classof = This()->Class_Of();
+    if (classof == nullptr) {
+        return;
+    }
+
+    auto classext = Extension::Fetch(classof);
+
+    if (classext->AmbientSound != VOC_NONE) {
+        if (AmbientSound == nullptr) {
+            AmbientSound = new AudioVocHandle(classext->AmbientSound);
+            AmbientSound->Start(This()->PositionCoord);
+        }
+        AmbientSound->Update_Position(This()->PositionCoord);
+    }
+
+    if (AttachedAmbientSoundType != VOC_NONE) {
+        if (AttachedAmbientSound == nullptr) {
+            AttachedAmbientSound = new AudioVocHandle(AttachedAmbientSoundType);
+            AttachedAmbientSound->Start(This()->PositionCoord);
+        }
+        AttachedAmbientSound->Update_Position(This()->PositionCoord);
+    }
+}
+
+
+void ObjectClassExtension::Stop_Ambient()
+{
+    if (AmbientSound) {
+        delete AmbientSound;
+        AmbientSound = nullptr;
+    }
+
+    if (AttachedAmbientSound) {
+        delete AttachedAmbientSound;
+        AttachedAmbientSound = nullptr;
+    }
+}
+
+
+void ObjectClassExtension::Attach_Ambient(VocType voc)
+{
+    VocType old = AttachedAmbientSoundType;
+    AttachedAmbientSoundType = voc;
+
+    if (old != voc && old != VOC_NONE) {
+        delete AttachedAmbientSound;
+        AttachedAmbientSound = nullptr;
+    }
 }

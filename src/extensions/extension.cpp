@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  The file contains the functions required for the extension system.
  *
- *  @project       Vinifera
- *
- *  @file          EXTENSION.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         The file contains the functions required for the extension system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -97,7 +78,6 @@
 #include "session.h"
 #include "sessionext.h"
 #include "side.h"
-#include "sidebarext.h"
 #include "sideext.h"
 #include "smudge.h"
 #include "smudgeext.h"
@@ -125,7 +105,6 @@
 #include "terraintypeext.h"
 #include "tevent.h"
 #include "teventext.h"
-#include "themeext.h"
 #include "tiberium.h"
 #include "tiberiumext.h"
 #include "tibsun_functions.h"
@@ -464,6 +443,82 @@ static void Extension_Detach_This_From_All(DynamicVectorClass<EXT_CLASS *> &list
 
 
 /**
+ *  Internal function that reports if the current abstract object can have an extension.
+ *
+ *  @author: ZivDero
+ */
+bool Extension::Private::Is_Supported(const AbstractClass *abstract)
+{
+    ASSERT(abstract != nullptr);
+
+    switch (const_cast<AbstractClass *>(abstract)->RTTI) {
+        case RTTI_UNIT: { return true; }
+        case RTTI_AIRCRAFT: { return true; }
+        case RTTI_AIRCRAFTTYPE: { return true; }
+        case RTTI_ANIM: { return true; }
+        case RTTI_ANIMTYPE: { return true; }
+        case RTTI_BUILDING: { return true; }
+        case RTTI_BUILDINGTYPE: { return true; }
+        //case RTTI_BULLET: { return true; } // Not yet implemented
+        case RTTI_BULLETTYPE: { return true; }
+        case RTTI_CAMPAIGN: { return true; }
+        //case RTTI_CELL: { return true; } // Not yet implemented
+        case RTTI_FACTORY: { return true; }
+        case RTTI_HOUSE: { return true; }
+        case RTTI_HOUSETYPE: { return true; }
+        case RTTI_INFANTRY: {  return true; }
+        case RTTI_INFANTRYTYPE: {  return true; }
+        //case RTTI_ISOTILE: { return true; } // Not yet implemented
+        case RTTI_ISOTILETYPE: { return true; }
+        //case RTTI_LIGHT: { return true; } // Not yet implemented
+        case RTTI_OVERLAY: { return true; }
+        case RTTI_OVERLAYTYPE: { return true; }
+        //case RTTI_PARTICLE: { return true; } // Not yet implemented
+        case RTTI_PARTICLETYPE: { return true; }
+        //case RTTI_PARTICLESYSTEM: { return true; } // Not yet implemented
+        case RTTI_PARTICLESYSTEMTYPE: { return true; }
+        //case RTTI_SCRIPT: { return true; } // Not yet implemented
+        //case RTTI_SCRIPTTYPE: { return true; } // Not yet implemented
+        case RTTI_SIDE: { return true; }
+        case RTTI_SMUDGE: { return true; }
+        case RTTI_SMUDGETYPE: { return true; }
+        case RTTI_SUPERWEAPONTYPE: { return true; }
+        //case RTTI_TASKFORCE: { return true; } // Not yet implemented
+        case RTTI_TEAM: { return true; }
+        case RTTI_TEAMTYPE: { return true; }
+        case RTTI_TERRAIN: { return true; }
+        case RTTI_TERRAINTYPE: { return true; }
+        //case RTTI_TRIGGER: { return true; } // Not yet implemented
+        //case RTTI_TRIGGERTYPE: { return true; } // Not yet implemented
+        case RTTI_UNITTYPE: { return true; }
+        //case RTTI_VOXELANIM: { return true; } // Not yet implemented
+        case RTTI_VOXELANIMTYPE: { return true; }
+        case RTTI_WAVE: { return true; }
+        //case RTTI_TAG: { return true; } // Not yet implemented
+        //case RTTI_TAGTYPE: { return true; } // Not yet implemented
+        case RTTI_TIBERIUM: { return true; }
+        case RTTI_ACTION: { return true; }
+        case RTTI_EVENT: { return true; }
+        case RTTI_WEAPONTYPE: { return true; }
+        case RTTI_WARHEADTYPE: { return true; }
+        //case RTTI_WAYPOINT: { return true; } // Not yet implemented
+        //case RTTI_TUBE: { return true; } // Not yet implemented
+        //case RTTI_LIGHTSOURCE: { return true; } // Not yet implemented
+        //case RTTI_EMPULSE: { return true; } // Not yet implemented
+        case RTTI_SUPERWEAPON: { return true; }
+        //case RTTI_AITRIGGER: { return true; } // Not yet implemented
+        //case RTTI_AITRIGGERTYPE: { return true; } // Not yet implemented
+        //case RTTI_NEURON: { return true; } // Not yet implemented
+        //case RTTI_FOGGEDOBJECT: { return true; } // Not yet implemented
+        //case RTTI_ALPHASHAPE: { return true; } // Not yet implemented
+        //case RTTI_VEINHOLEMONSTER: { return true; } // Not yet implemented
+    };
+
+    return false;
+}
+
+
+/**
  *  Internal function that performs the creation of the extension object and
  *  associates it with the abstract object.
  * 
@@ -637,7 +692,9 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     AbstractClassExtension *ext_ptr = Extension_Get_Abstract_Pointer(abstract);
 
     if (!ext_ptr) {
-        DEBUG_ERROR("Extension::Fetch: Extension for \"%s\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        if (Is_Supported(abstract)) {
+            DEBUG_ERROR("Extension::Fetch: Extension for \"%s\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        }        
         return nullptr;
     }
 
@@ -743,9 +800,6 @@ bool Extension::Save(IStream *pStm)
     if (FAILED(ScenExtension->Save(pStm, true))) { return false; }
     DEBUG_INFO("Saved \"%s\" extension\n", ScenExtension->Name());
 
-    if (FAILED(SidebarExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", SidebarExtension->Name());
-
     if (FAILED(SessionExtension->Save(pStm, true))) { return false; }
     DEBUG_INFO("Saved \"%s\" extension\n", SessionExtension->Name());
 
@@ -845,10 +899,6 @@ bool Extension::Load(IStream *pStm)
     if (FAILED(ScenExtension->Load(pStm))) { return false; }
     DEBUG_INFO("Loaded \"%s\" extension.\n", ScenExtension->Name());
     ScenExtension->Assign_This(Scen);
-
-    if (FAILED(SidebarExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", SidebarExtension->Name());
-    SidebarExtension->Assign_This(&Map);
 
     if (FAILED(SessionExtension->Load(pStm))) { return false; }
     DEBUG_INFO("Loaded \"%s\" extension.\n", SessionExtension->Name());
@@ -2123,13 +2173,11 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(TacticalExtension);                                       // We ignore the fact that Tactical is an abstract derived class, as we treat the extension as a global.
     version += sizeof(RulesClassExtension);
     version += sizeof(ScenarioClassExtension);
-    version += sizeof(SidebarClassExtension);
     version += sizeof(SessionClassExtension);
 
     /**
      *  All other classes.
      */
-    version += sizeof(ThemeControlExtension);
     version += sizeof(ArmorTypeClass);
     version += sizeof(RocketTypeClass);
     version += sizeof(SpawnManagerClass);

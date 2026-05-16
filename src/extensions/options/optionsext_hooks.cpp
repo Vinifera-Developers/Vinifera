@@ -1,40 +1,22 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended OptionsClass.
  *
- *  @project       Vinifera
- *
- *  @file          OPTIONSEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended OptionsClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
 
 #include "optionsext_hooks.h"
 
+#include "audio_voc.h"
 #include "hooker.h"
+#include "optionsext.h"
 #include "optionsext_init.h"
 #include "rawfile.h"
 #include "syringe.h"
-
 
 /**
  *  Patches Hotkey_Dialog_Proc to use RawFileClass when deleting Keyboard.INI to ensure only
@@ -51,6 +33,19 @@ DEFINE_HOOK(0x0058AA18, _Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch, 0)
 
 
 /**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DEFINE_HOOK(0x00589B68, _OptionsClass_Set_Sound_Volume_Patch, 4)
+{
+    AudioVocClass::Set_Volume(static_cast<int>(Options.SoundVolume * 255));
+
+    return 0;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void OptionsClassExtension_Hooks()
@@ -59,4 +54,5 @@ void OptionsClassExtension_Hooks()
      *  Initialises the extended class.
      */
     OptionsClassExtension_Init();
+
 }

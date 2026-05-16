@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended MouseClass.
  *
- *  @project       Vinifera
- *
- *  @file          MOUSEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended MouseClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -54,14 +35,14 @@
  */
 class MouseClassExt : public MouseClass
 {
-    public:
-        void _AI(KeyNumType &input, Point2D &xy);
-        bool _Override_Mouse_Shape(MouseType mouse, bool wsmall = false);
-        void _Mouse_Small(bool wsmall = true);
-        int _Get_Mouse_Current_Frame(MouseType mouse, bool wsmall = false) const;
-        Point2D _Get_Mouse_Hotspot(MouseType mouse) const;
-        int _Get_Mouse_Start_Frame(MouseType mouse) const;
-        int _Get_Mouse_Frame_Count(MouseType mouse) const;
+public:
+    void _AI(KeyNumType& input, Point2D& xy);
+    bool _Override_Mouse_Shape(MouseType mouse, bool wsmall = false);
+    void _Mouse_Small(bool wsmall = true);
+    int _Get_Mouse_Current_Frame(MouseType mouse, bool wsmall = false) const;
+    Point2D _Get_Mouse_Hotspot(MouseType mouse) const;
+    int _Get_Mouse_Start_Frame(MouseType mouse) const;
+    int _Get_Mouse_Frame_Count(MouseType mouse) const;
 };
 
 
@@ -74,7 +55,6 @@ class MouseClassExt : public MouseClass
  */
 void MouseClassExt::_Mouse_Small(bool wsmall)
 {
-    //MouseStruct const * control = &MouseControl[CurrentMouseShape];
     MouseTypeClass const * control = MouseTypes[CurrentMouseShape];
 
     if (IsSmall == wsmall) {
@@ -101,10 +81,8 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
 {
     ASSERT((unsigned)mouse < MouseTypes.Count());
 
-    //MouseStruct const * control = &MouseControl[mouse];
     MouseTypeClass const * control = MouseTypes[mouse];
     static bool startup = false;
-    int baseshp;
 
     /**
      *  Only certain mouse shapes have a small counterpart. If the requested mouse
@@ -124,12 +102,9 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
         Timer = wsmall ? control->SmallFrameRate : control->FrameRate;
         Frame = 0;
 
-        IsSmall = wsmall;
-
-        baseshp = Get_Mouse_Current_Frame(mouse, wsmall);
-        Point2D hotspot = Get_Mouse_Hotspot(mouse);
-        MouseCursor->Set_Cursor(hotspot, MouseShapes, baseshp);
+        MouseCursor->Set_Cursor(Get_Mouse_Hotspot(mouse), MouseShapes, Get_Mouse_Current_Frame(mouse, wsmall));
         CurrentMouseShape = mouse;
+        IsSmall = wsmall;
         return true;
     }
     return false;
@@ -145,7 +120,6 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
  */
 void MouseClassExt::_AI(KeyNumType &input, Point2D &xy)
 {
-    //MouseStruct const * control = &MouseControl[CurrentMouseShape];
     MouseTypeClass const * control = MouseTypes[CurrentMouseShape];
 
     if (((IsSmall && control->SmallFrameRate) || control->FrameRate) && Timer == 0) {
@@ -153,9 +127,8 @@ void MouseClassExt::_AI(KeyNumType &input, Point2D &xy)
         Frame++;
         Frame %= IsSmall ? control->SmallFrameCount : control->FrameCount;
         Timer = IsSmall ? control->SmallFrameRate : control->FrameRate;
-        int baseframe = Get_Mouse_Current_Frame(CurrentMouseShape, IsSmall);
-        Point2D hotspot = Get_Mouse_Hotspot(CurrentMouseShape);
-        MouseCursor->Set_Cursor(hotspot, MouseShapes, baseframe);
+
+        MouseCursor->Set_Cursor(Get_Mouse_Hotspot(CurrentMouseShape), MouseShapes, Get_Mouse_Current_Frame(CurrentMouseShape, IsSmall));
     }
 
     ScrollClass::AI(input, xy);
@@ -170,7 +143,6 @@ void MouseClassExt::_AI(KeyNumType &input, Point2D &xy)
  */
 int MouseClassExt::_Get_Mouse_Current_Frame(MouseType mouse, bool wsmall) const
 {
-    //MouseStruct const * control = &MouseControl[mouse];
     MouseTypeClass const * control = MouseTypes[mouse];
 
     if (wsmall) {
@@ -195,7 +167,6 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
 
     if (MouseShapes) {
 
-        //MouseStruct const * control = &MouseControl[mouse];
         MouseTypeClass const * control = MouseTypes[mouse];
 
         int hotspot_x = IsSmall ? control->SmallHotspot.X : control->Hotspot.X;
@@ -239,7 +210,6 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
  */
 int MouseClassExt::_Get_Mouse_Start_Frame(MouseType mouse) const
 {
-    //return MouseControl[mouse].StartFrame;
     return MouseTypes[mouse]->StartFrame;
 }
 
@@ -252,7 +222,6 @@ int MouseClassExt::_Get_Mouse_Start_Frame(MouseType mouse) const
  */
 int MouseClassExt::_Get_Mouse_Frame_Count(MouseType mouse) const
 {
-    //return MouseControl[mouse].FrameCount;
     return MouseTypes[mouse]->FrameCount;
 }
 

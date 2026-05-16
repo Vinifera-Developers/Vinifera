@@ -144,14 +144,36 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
+  - Replace DirectSound with a new audio engine backed by miniaudio.
+  - Reimplement the streaming audio path used by VQA movie playback.
+  - Add support for FLAC, WAV, OGG, and MP3 audio files alongside the original AUD format.
+  - Reimplement the music theme system from `THEME.INI` with per-theme volume, full name, artist, length, side ownership, and required-addon controls.
+  - Reimplement the sound-effect (`VocType`) system from `SOUND.INI` with configurable type, control, priority, limit, range, delay, volume and pitch shift.
+  - Reimplement the EVA/VOX speech system from `EVA.INI` with category, priority, control, and per-side speech file support.
   - Groundwork for implementing modern movie playback.
 - **CrimRecya**:
   - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- **Crimsonum**:
+  - Author of the default `EVA.INI` shipped alongside Vinifera.
+- **E1 Elite**:
+  - Transcribed the in-game speeches used for the subtitles in the default `EVA.INI`.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
   - Allow customizing self healing cap and rate game-wide and per-unit.
   - Allow customizing whether AI can repair buildings created as base nodes.
+  - Add the ability to snap the camera to waypoint using the Center Camera at Waypoint trigger action
+  - Allow revealing maps with any radius (previously was clamped to 10)
+  - Remove logic related to incremental radius movement when setting `RevealByHeight=no` which could cause units to not reveal shroud in some cases.
+  - Allow Reveal Around Waypoints trigger actions to set their reveal radius, and whether they take elevation into account per action.
+  - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
+  - Fix a few vanilla bugs where units with death frames (such as Reapers) would count as dead multiple times, and be allowed to be issued move orders by players.
+  - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
+  - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.
+  - Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
+  - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
+  - Allow repairs to be paused instead of stopped when a house has insufficient funds.
+  - Add Q-Move support for aircraft.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -232,6 +254,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
   - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
   - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+  - Vinifera's Developer mode now prints information on executed trigger actions.
+  - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -351,6 +375,12 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued.
   - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
   - Fix game end text being stretched horizontally.
-  - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
   - Fix a bug where upon restoring focus to the window the last theme would play twice.
+  - Make spawners respect `IonSensitive` on weapons.
+  - Fix a bug where the sidebar could only contain up to 75 items on a strip.
+  - Extended sidebar customizability.
+  - Improve the audio engine's runtime architecture.
+  - Expand the sound-effect (`VocType`) system with positional behavior flags, looping/rotation/queueing controls, per-sound pitch and volume variance, and per-object ambient attachment that follows objects as they move.
+  - Add subtitle rendering for EVA speeches with customizable styling and a category filter.
+  - Add `Attach Sound`, `Detach Sound`, and `Stop Sounds At` trigger actions for managing ambient sounds from scripts.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.

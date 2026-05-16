@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended Tactical class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTICALEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended Tactical class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -507,9 +488,9 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
         {
             const BuildingClass* bldg = static_cast<const BuildingClass*>(obj);
             /**
-             *  We draw rally point for factories, as well as repair bays (Rampastring).
+             *  We draw rally point for factories, as well as repair bays (Rampastring) and armories/hospitals (JoyfulShush).
              */
-            if (bldg->Class->ToBuild == RTTI_UNITTYPE || bldg->Class->ToBuild == RTTI_INFANTRYTYPE || bldg->Class->ToBuild == RTTI_AIRCRAFTTYPE || bldg->Class->IsCanUnitRepair)
+            if (bldg->Class->ToBuild == RTTI_UNITTYPE || bldg->Class->ToBuild == RTTI_INFANTRYTYPE || bldg->Class->ToBuild == RTTI_AIRCRAFTTYPE || bldg->Class->IsCanUnitRepair || bldg->Class->IsArmory || bldg->Class->IsHospital)
             {
                 /**
                  *  ArchiveTarget contains the rally point cell, so it needs to be set.
@@ -802,8 +783,15 @@ DEFINE_HOOK(0x00611BCB, _Tactical_Render_Overlay_Patch, 0)
     }
 
     /**
+     *  Draw the VOX subtitle (if any) at the bottom of the tactical view.
+     *  Drawn before the version-number text so the version stays on top in
+     *  the rare case of a long subtitle reaching the corner.
+     */
+    TacticalMapExtension->Draw_Subtitle();
+
+    /**
      *  Draw the version number on screen.
-     * 
+     *
      *  @note: This must be last in the draw order!
      */
     TacticalMapExtension->Draw_Version_Number_Text();
