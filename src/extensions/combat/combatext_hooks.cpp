@@ -43,7 +43,6 @@
 #include "voxelanim.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
-#include "debughandler.h"
 
 #include <algorithm>
 #include <unordered_set>
@@ -340,8 +339,9 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
 
 /**
  *  Deals damage to a bridge, taking into account the damage dealt and the warhead for calculation purposes.
- *  A bridge will become damaged or destroyed one state when its health reaches 0,
- *  and its damage tracking will be removed until the next damage instance.
+ *  A bridge will be destroyed one state when its health reaches 0,
+ *  and its damage tracking will be removed until the next damage instance that will be reset.
+ *  Returns whether the bridge sustained enough damage to be destroyed.
  * 
  *  Tracks all bridge types and makes sure damage is dealt in a 3x1 format.
  *  This is typically achieved by checking if there already is a tracked cell or one that should be used for tracking purposes,
@@ -392,7 +392,7 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
                 }
 
                 current_cell = Adjacent_Cell(current_cell, dir);
-                current_cellptr = &Map[current_cell];                
+                current_cellptr = &Map[current_cell];
             }
 
             if (cell_found) {
@@ -402,14 +402,14 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
     }
 
     if (!BridgeHealths.contains(cell_to_use)) {
-        BridgeHealths[cell_to_use] = Rule->BridgeStrength;        
+        BridgeHealths[cell_to_use] = Rule->BridgeStrength;
     }
     
     if (RuleExtension->BridgeArmor != ARMOR_NULL) {
-        damage *= Verses::Get_Modifier(RuleExtension->BridgeArmor, warhead);    
+        damage *= Verses::Get_Modifier(RuleExtension->BridgeArmor, warhead);
     }
     
-    BridgeHealths[cell_to_use] -= damage;    
+    BridgeHealths[cell_to_use] -= damage;
 
     if (BridgeHealths[cell_to_use] <= 0) {
         BridgeHealths.erase(cell_to_use);
@@ -601,14 +601,14 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
         if (is_standard_bridge || is_rail_bridge) {            
             if (!cellptr->IsUnderBridge || (explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2))) {
                 
-                bool should_damage_bridge = false;
+                bool should_destroy_bridge = false;
                 if (ion_cannon_warhead) {
-                    should_damage_bridge = true;
+                    should_destroy_bridge = true;
                 } else {
-                    should_damage_bridge = Damage_Bridge(cell, strength, warhead);
+                    should_destroy_bridge = Damage_Bridge(cell, strength, warhead);
                 }
 
-                if (should_damage_bridge) {                    
+                if (should_destroy_bridge) {                    
                     for (int i = 0; i < (ion_cannon_warhead ? 4 : 1); i++) {
                         if (Map.Destroy_Bridge_At(cell)) {
                             TechnoClass::Update_Mission_Targets(cellptr);

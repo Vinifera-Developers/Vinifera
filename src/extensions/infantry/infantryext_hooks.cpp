@@ -39,6 +39,7 @@
 #include "voc.h"
 #include "wwkeyboard.h"
 
+
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
@@ -691,7 +692,7 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
 /**
  *  Clears the current cell from bridge damage trackers, if any.
  *  Recursively looks around all orthogonal cells in order to find all directly adjacent bridge cells
- *  That are part from that bridge, which expands until all bridge cells are evaluated.
+ *  That are part of that bridge, which expands until all bridge cells are evaluated.
  *
  *  @author: JoyfulShush
  */
@@ -737,7 +738,7 @@ void Scan_Around_Bridge_Hut_For_Bridge(Cell* bridge_hut_cell)
         for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
             Cell target_cell = Get_Nearby_Cell_At_Depth(cell, dir, depth);
             CellClass* target_cellptr = &Map[target_cell];            
-            if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {                
+            if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {
                 Scan_And_Clear_Bridge(target_cell, visited_cells);
                 return;
             }
