@@ -16,14 +16,17 @@
 #include "debughandler.h"
 #include "ebolt.h"
 #include "extension.h"
+#include "extension_globals.h"
 #include "foot.h"
 #include "house.h"
 #include "housetype.h"
 #include "mouse.h"
+#include "optionsext.h"
 #include "rgb.h"
 #include "rulesext.h"
 #include "scenario.h"
 #include "scenarioext.h"
+#include "sdlsurface.h"
 #include "session.h"
 #include "super.h"
 #include "superext.h"
@@ -39,6 +42,8 @@
 #include "vinifera_util.h"
 #include "wwfont.h"
 #include "wwmouse.h"
+
+#include <windows.h>
 
 
 /**
@@ -64,7 +69,11 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     IsTemplatedTextCached(false),
     TemplatedTextCache {""},
     IsBeaconPlacementMode(false),
-    IsEditingBeaconText(false)
+    IsEditingBeaconText(false),
+    SubtitleCategoryCur(SUBTITLE_CATEGORY_SYSTEM),
+    SubtitleFont(nullptr),
+    SubtitleFontCacheHeight(0),
+    SubtitleFontCacheWeight(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -94,6 +103,8 @@ TacticalExtension::TacticalExtension(const NoInitClass& noinit) :
 TacticalExtension::~TacticalExtension()
 {
     //EXT_DEBUG_TRACE("TacticalExtension::~TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    Invalidate_Subtitle_Font();
 }
 
 
@@ -971,4 +982,173 @@ void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme& s
     CompositeSurface->Draw_Rect(visible_box_rect, fore);
 
     Fancy_Text_Print(text.c_str(), *CompositeSurface, cliprect, text_rect.TopLeft - cliprect.TopLeft, &scheme, COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
+}
+
+
+/**
+ *  Sets the currently displayed VOX subtitle. Pushed by AudioVoxClass::AI when a
+ *  VOX with non-empty Text= begins playing.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Set_Subtitle(const char* text, SubtitleCategoryType cat)
+{
+    if (text == nullptr || *text == '\0') {
+        SubtitleText.clear();
+        return;
+    }
+    SubtitleText = text;
+    SubtitleCategoryCur = cat;
+}
+
+
+/**
+ *  Clears the currently displayed VOX subtitle. Pushed by AudioVoxClass when a
+ *  VOX stops playing or is interrupted.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Clear_Subtitle()
+{
+    SubtitleText.clear();
+}
+
+
+/**
+ *  Frees the cached HFONT used by the subtitle renderer. Safe to call when
+ *  no font has been created yet.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Invalidate_Subtitle_Font()
+{
+    if (SubtitleFont) {
+        DeleteObject(SubtitleFont);
+        SubtitleFont = nullptr;
+    }
+    SubtitleFontCacheName.clear();
+    SubtitleFontCacheHeight = 0;
+    SubtitleFontCacheWeight = 0;
+}
+
+
+/**
+ *  Decides whether the current subtitle should be drawn given the player's
+ *  SubtitleMode preference (sun.ini) and the category of the active VOX.
+ *
+ *  @author: ZivDero
+ */
+bool TacticalExtension::Should_Show_Subtitle() const
+{
+    if (SubtitleText.empty()) return false;
+
+    switch (OptionsExtension->SubtitleMode) {
+    case OptionsClassExtension::SUBTITLE_MODE_NONE:
+        return false;
+    case OptionsClassExtension::SUBTITLE_MODE_ALL:
+        return true;
+    case OptionsClassExtension::SUBTITLE_MODE_SCENARIO:
+        return SubtitleCategoryCur == SUBTITLE_CATEGORY_SCENARIO;
+    case OptionsClassExtension::SUBTITLE_MODE_SYSTEM:
+        return SubtitleCategoryCur == SUBTITLE_CATEGORY_SYSTEM;
+    }
+    return true;
+}
+
+
+/**
+ *  Returns a cached HFONT built from the current ui.ini subtitle font fields.
+ *  Rebuilds lazily if any of those fields have changed since the last call.
+ *
+ *  @author: ZivDero
+ */
+static HFONT Get_Or_Build_Subtitle_Font(TacticalExtension& ext)
+{
+    HFONT existing = static_cast<HFONT>(ext.SubtitleFont);
+    const bool stale = existing == nullptr || ext.SubtitleFontCacheHeight != UIControls->SubtitleFontHeight || ext.SubtitleFontCacheWeight != UIControls->SubtitleFontWeight || ext.SubtitleFontCacheName != UIControls->SubtitleFontName;
+
+    if (stale) {
+        ext.Invalidate_Subtitle_Font();
+        HFONT font = CreateFont(UIControls->SubtitleFontHeight, 0, 0, 0, UIControls->SubtitleFontWeight, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, FF_SWISS | DEFAULT_PITCH, UIControls->SubtitleFontName.c_str());
+        ext.SubtitleFont = font;
+        ext.SubtitleFontCacheName = UIControls->SubtitleFontName;
+        ext.SubtitleFontCacheHeight = UIControls->SubtitleFontHeight;
+        ext.SubtitleFontCacheWeight = UIControls->SubtitleFontWeight;
+        return font;
+    }
+    return existing;
+}
+
+
+/**
+ *  Renders the current VOX subtitle at the bottom of the tactical view using
+ *  Win32 GDI. Word-wraps to the available width inside TacticalRect minus the
+ *  configured horizontal margin, and draws an 8-direction outline around the
+ *  fill so the text stays legible over varied terrain.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Draw_Subtitle()
+{
+    if (!Should_Show_Subtitle()) {
+        return;
+    }
+    if (Debug_Map) {
+        return;
+    }
+    if (!CompositeSurface || !CompositeSurface->Is_Direct_Draw()) {
+        return;
+    }
+
+    HDC hdc = static_cast<SDLSurface*>(CompositeSurface)->GetDC();
+    if (hdc == nullptr) {
+        return;
+    }
+
+    HFONT font = Get_Or_Build_Subtitle_Font(*this);
+    if (font == nullptr) {
+        static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
+        return;
+    }
+
+    HGDIOBJ old_obj = SelectObject(hdc, font);
+    SetBkMode(hdc, TRANSPARENT);
+
+    const int avail_w = TacticalRect.Width - 2 * UIControls->SubtitleMarginX;
+    if (avail_w <= 0) {
+        SelectObject(hdc, old_obj);
+        static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
+        return;
+    }
+
+    RECT calc {0, 0, avail_w, 0};
+    DrawText(hdc, SubtitleText.c_str(), -1, &calc, DT_CALCRECT | DT_WORDBREAK | DT_CENTER | DT_NOPREFIX);
+    const int text_h = calc.bottom - calc.top;
+
+    RECT dst;
+    dst.left = TacticalRect.X + UIControls->SubtitleMarginX;
+    dst.right = TacticalRect.X + TacticalRect.Width - UIControls->SubtitleMarginX;
+    dst.bottom = TacticalRect.Y + TacticalRect.Height - UIControls->SubtitleMarginBottom;
+    dst.top = dst.bottom - text_h;
+
+    const UINT flags = DT_WORDBREAK | DT_CENTER | DT_NOPREFIX;
+
+    const int OW = UIControls->SubtitleOutlineWidth;
+    if (OW > 0) {
+        SetTextColor(hdc, RGB(UIControls->SubtitleOutlineColor.R, UIControls->SubtitleOutlineColor.G, UIControls->SubtitleOutlineColor.B));
+        for (int dy = -OW; dy <= OW; dy += OW) {
+            for (int dx = -OW; dx <= OW; dx += OW) {
+                if (dx == 0 && dy == 0) continue;
+                RECT r = dst;
+                OffsetRect(&r, dx, dy);
+                DrawText(hdc, SubtitleText.c_str(), -1, &r, flags);
+            }
+        }
+    }
+
+    SetTextColor(hdc, RGB(UIControls->SubtitleTextColor.R, UIControls->SubtitleTextColor.G, UIControls->SubtitleTextColor.B));
+    DrawText(hdc, SubtitleText.c_str(), -1, &dst, flags);
+
+    SelectObject(hdc, old_obj);
+    static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
 }

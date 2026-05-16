@@ -11,12 +11,14 @@
 
 #include "actiontype.h"
 #include "armortype.h"
+#include "audio_vox.h"
 #include "ccini.h"
 #include "hooker.h"
 #include "housetype.h"
 #include "theatertype.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "vox.h"
 
 
 /**
@@ -39,6 +41,8 @@ public:
     bool _Put_ArmorType(const char* section, const char* entry, ArmorType value);
 
     ActionType _Get_ActionType(const char* section, const char* entry, const ActionType defvalue);
+
+    VoxType _Get_VoxType(const char* section, const char* entry, const VoxType defvalue);
 };
 
 
@@ -191,6 +195,29 @@ bool CCINIClassExt::_Put_ArmorType(const char *section, const char *entry, Armor
 
 
 /**
+ *  Fetches the EVA speech type from the INI database.
+ *
+ *  @author: ZivDero
+ */
+VoxType CCINIClassExt::_Get_VoxType(const char *section, const char *entry, const VoxType defvalue)
+{
+    char buffer[256];
+    const char *default_name = defvalue != VOX_NONE ? Speech[defvalue] : nullptr;
+
+    if (CCINIClass::Get_String(section, entry, default_name, buffer, sizeof(buffer)) <= 0) {
+        return VOX_NONE;
+    }
+
+    VoxType voice = AudioVoxClass::From_Name(buffer);
+    if (voice != VOX_NONE) {
+        return voice;
+    }
+
+    return AudioVoxClass::From_Sound_Name(buffer);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void CCINIClassExtension_Hooks()
@@ -201,6 +228,7 @@ void CCINIClassExtension_Hooks()
     Patch_Jump(0x0044B360, &CCINIClassExt::_Put_TheaterType);
     Patch_Jump(0x0044AF50, &CCINIClassExt::_Get_ArmorType);
     Patch_Jump(0x0044AFA0, &CCINIClassExt::_Put_ArmorType);
+    Patch_Jump(0x0044ACE0, &CCINIClassExt::_Get_VoxType);
 
     // Put this here as it was only called in INIClass::Get_ArmorType.
     Patch_Jump(0x00681320, &ArmorTypeClass::From_Name);

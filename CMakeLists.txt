@@ -42,7 +42,7 @@ endif()
 SET(CMAKE_CONFIGURATION_TYPES "Debug;RelWithDebInfo" CACHE STRING "Configs" FORCE)
 
 # Declare the project.
-project(Vinifera VERSION 1.00 LANGUAGES CXX)
+project(Vinifera VERSION 1.00 LANGUAGES C CXX)
 
 if(POLICY CMP0074)
     cmake_policy(SET CMP0074 NEW) #policy for <PackageName>_ROOT variables.
@@ -245,14 +245,98 @@ GlobSources(GLOB HOOKER_SOURCES ${HOOKER_INCLUDE_DIR})
 
 
 ################################################################################
-# Include the TS++ and SDL submodules in the solution.
+# Include the TS++ and external dependency submodules in the solution.
 ################################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/TSpp)
 
 set(SDL_STATIC ON)
 set(SDL_SHARED OFF)
 set(SDL_TEST_LIBRARY OFF)
+set(SDL_TESTS OFF)
+set(SDL_EXAMPLES OFF)
+set(SDL_INSTALL OFF)
+set(SDL_INSTALL_TESTS OFF)
+
+set(SDL_AUDIO OFF)
+set(SDL_CAMERA OFF)
+set(SDL_JOYSTICK OFF)
+set(SDL_HAPTIC OFF)
+set(SDL_HIDAPI OFF)
+set(SDL_POWER OFF)
+set(SDL_SENSOR OFF)
+set(SDL_DIALOG OFF)
+set(SDL_TRAY OFF)
+set(SDL_GPU OFF)
+set(SDL_GPU_OPENXR OFF)
+
+set(SDL_DISKAUDIO OFF)
+set(SDL_DUMMYAUDIO OFF)
+set(SDL_WASAPI OFF)
+
+set(SDL_DUMMYVIDEO OFF)
+set(SDL_OFFSCREEN OFF)
+set(SDL_OPENGLES OFF)
+
+set(SDL_RENDER_GPU OFF)
+set(SDL_XINPUT OFF)
+set(SDL_VIRTUAL_JOYSTICK OFF)
+set(SDL_HIDAPI_JOYSTICK OFF)
+
+set(SDL_VIDEO ON)
+set(SDL_RENDER ON)
+set(SDL_DIRECTX ON)
+set(SDL_RENDER_D3D ON)
+set(SDL_RENDER_D3D11 ON)
+set(SDL_RENDER_D3D12 ON)
+set(SDL_OPENGL ON)
+set(SDL_VULKAN ON)
+set(SDL_RENDER_VULKAN ON)
+
+set(SDL_AVX512F OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/SDL)
+
+set(MINIAUDIO_NO_EXTRA_NODES ON)
+set(MINIAUDIO_NO_LIBVORBIS ON)
+set(MINIAUDIO_NO_LIBOPUS ON)
+set(MINIAUDIO_NO_GENERATION ON)
+set(MINIAUDIO_NO_ENCODING ON)
+set(MINIAUDIO_INSTALL OFF)
+set(MINIAUDIO_FORCE_CXX ON)
+add_subdirectory(${CMAKE_SOURCE_DIR}/miniaudio)
+target_compile_options(miniaudio PRIVATE /Gr)
+
+
+################################################################################
+# Dear ImGui (vendored as a submodule).
+################################################################################
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/imgui)
+add_library(imgui STATIC
+    ${IMGUI_DIR}/imconfig.h
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui.h
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_internal.h
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/imstb_rectpack.h
+    ${IMGUI_DIR}/imstb_textedit.h
+    ${IMGUI_DIR}/imstb_truetype.h
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.h
+    ${IMGUI_DIR}/backends/imgui_impl_win32.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_win32.h
+)
+target_include_directories(imgui PUBLIC
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
+target_link_libraries(imgui PUBLIC SDL3::SDL3)
+# Match Vinifera's default __fastcall calling convention - otherwise the
+# function-name mangling differs and every imgui call comes out as an
+# unresolved external. Same fix as miniaudio above.
+target_compile_options(imgui PRIVATE /Gr)
+# imgui ships with its own pre-existing warnings - keep them out of Vinifera's noise.
+target_compile_options(imgui PRIVATE /W0)
 
 
 ################################################################################
@@ -446,6 +530,12 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_PDB="${TARGET_
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_SIZE=${TARGET_SIZE})
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_HASH="${TARGET_HASH}")
 
+# Keep Vinifera's direct miniaudio.h includes in sync with the miniaudio target.
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    MA_NO_GENERATION
+    MA_NO_ENCODING
+)
+
 # Set the build type defines.
 if(OPTION_TS_CLIENT_BUILD)
 target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RelWithDebInfo>:TS_CLIENT>")
@@ -510,8 +600,11 @@ target_compile_options(${PROJECT_NAME} PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:/Zc:threadSafeInit->
 )
 
-# __fastcall as default calling convention
+# __fastcall as default calling convention.
+# Apply this to both C and C++ sources so generators like Ninja don't diverge
+# from Visual Studio on third-party C sources such as miniaudio/stb_vorbis.
 target_compile_options(${PROJECT_NAME} PUBLIC
+    $<$<COMPILE_LANGUAGE:C>:/Gr>
     $<$<COMPILE_LANGUAGE:CXX>:/Gr>
 )
 
@@ -554,6 +647,8 @@ target_link_libraries(${PROJECT_NAME} TSpp)
 add_dependencies(${PROJECT_NAME} TSpp)
 
 target_link_libraries(${PROJECT_NAME} SDL3::SDL3)
+target_link_libraries(${PROJECT_NAME} miniaudio)
+target_link_libraries(${PROJECT_NAME} imgui)
 
 set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32)
 

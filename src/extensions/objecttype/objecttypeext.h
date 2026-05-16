@@ -74,4 +74,9 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
          */
         VoxelObject WaterVoxel;
         VoxelIndexClass WaterVoxelIndex;
+
+        /**
+         *  The ambient sound effect type to play while this object is active.
+         */
+        VocType AmbientSound;
 };

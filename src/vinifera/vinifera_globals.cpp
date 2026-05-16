@@ -17,6 +17,8 @@
 
 bool Vinifera_DeveloperMode = false;
 
+bool Vinifera_AudioDebug = false;
+
 bool Vinifera_PerformingLoad = false;
 
 bool Vinifera_PrintFileErrors = true;
@@ -57,6 +59,7 @@ bool Vinifera_SkipStartupMovies = false;
 bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
+
 
 /**
  *  The total play time from all previous sessions of the current game.

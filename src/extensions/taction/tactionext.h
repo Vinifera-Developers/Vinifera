@@ -66,6 +66,7 @@ private:
     /**
      *  Vanilla TActions that we re-implement.
      */
+    bool Do_PLAY_SPEECH(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell const& cell);
     bool Do_WIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_LOSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_TEXT_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
@@ -75,6 +76,7 @@ private:
     bool Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_REVEAL_SOME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_PLAY_SOUND_AT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
     /**
      *  New TActions.
@@ -110,6 +112,9 @@ private:
     bool Do_DISABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ADJUST_HOUSE_MODIFIER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_STOP_SOUNDS_AT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_ATTACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_DETACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 public:
     /**

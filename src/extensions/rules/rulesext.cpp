@@ -15,6 +15,8 @@
 #include "aircrafttypeext.h"
 #include "animtypeext.h"
 #include "armortype.h"
+#include "audio_util.h"
+#include "audio_theme.h"
 #include "asserthandler.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
@@ -425,6 +427,11 @@ void RulesClassExtension::Process(CCINIClass &ini)
      *  Fixup various inconsistencies in the original INI files.
      */
     Fixups(ini);
+
+    /**
+     *  Read the theme data from the INI.
+     */
+    AudioTheme.Init_Themes(ini);
 }
 
 

@@ -12,6 +12,11 @@
 #include "initext_hooks.h"
 
 #include "addon.h"
+#include "audio_manager.h"
+#include "audio_util.h"
+#include "audio_voc.h"
+#include "audio_vox.h"
+#include "audio_theme.h"
 #include "asserthandler.h"
 #include "ccini.h"
 #include "cd.h"
@@ -113,6 +118,7 @@ static bool CCFile_Validate_Is_Available(const char *filename, int size)
 static bool Vinifera_Play_Startup_Movies()
 {
     static const int VINIFERA_VQA_SIZE = 704889;
+    static const int MINIAUD_VQA_SIZE = 84135;
     static const int WWLOGO_VQA_SIZE = 2415362;
 
     if (Special.IsFromInstall) {
@@ -127,7 +133,11 @@ static bool Vinifera_Play_Startup_Movies()
         } else {
             Play_Movie("VINIFERA.VQA");
         }
-        
+        if (!CCFile_Validate_Is_Available("MINIAUD.VQA", MINIAUD_VQA_SIZE)) {
+            DEBUG_INFO("Failed to find MINIAUD.VQA!\n");
+        } else {
+            Play_Movie("MINIAUD.VQA");
+        }
         if (!CCFile_Validate_Is_Available("WWLOGO.VQA", WWLOGO_VQA_SIZE)) {
             DEBUG_INFO("Failed to find WWLOGO.VQA!\n");
         } else {
@@ -198,6 +208,7 @@ static bool Vinifera_Detect_Addons()
 }
 #endif
 
+extern bool ImGui_Create_Main_Window(HINSTANCE hInstance);
 
 /**
  *  Creates the main window for Tiberian Sun at 480p resolution.
@@ -210,7 +221,6 @@ void Vinifera_Create_Main_Window_480p(HINSTANCE hInstance, int command_show, int
 
     SDL_Create_Main_Window(hInstance, width, height);
     ShowCommand = command_show;
-    Audio.Audio_Focus_Loss_Function = Focus_Loss;
 
     //DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
 }
@@ -235,51 +245,13 @@ void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, i
 
     SDL_Create_Main_Window(hInstance, width, height);
     ShowCommand = command_show;
-    Audio.Audio_Focus_Loss_Function = Focus_Loss;
 
     // DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
 }
 
 
 /**
- *  Reads SOUND.INI and SOUND01.INI if Firestorm is installed.
- *
- *  @author: ZivDero
- */
-static bool Read_Sound_INI()
-{
-    DEBUG_INFO("Reading SOUND.INI\n");
-    CCINIClass vini;
-
-    bool found = false;
-    CCFileClass vfile("SOUND.INI");
-    if (vfile.Is_Available() && vini.Load(vfile, false)) {
-        found = true;
-        DEBUG_INFO("Read SOUND.INI.\n");
-    }
-
-    if (Addon_Installed(ADDON_FIRESTORM)) {
-        vfile.Set_Name("SOUND01.INI");
-        if (vfile.Is_Available() && vini.Load(vfile, false)) {
-            found = true;
-            DEBUG_INFO("Read SOUND01.INI.\n");
-        }
-    }
-
-    if (!found) {
-        DEBUG_FATAL("Failed to load SOUND.INI!\n");
-        return false;
-    }
-
-    VocClass::Clear();
-    VocClass::Process(vini);
-
-    return true;
-}
-
-
-/**
- *  Reimplemention of Prep_For_Side()
+ *  Reimplementation of Prep_For_Side()
  *  
  *  Prepare the mixfiles for the player side.
  * 
@@ -385,10 +357,82 @@ bool Vinifera_Prep_For_Side(SideType side)
 
     Map.Init_For_House();
 
+    return true;
+}
+
+
+/**
+ *  Reimplementation of Prep_Speech_For_Side()
+ *
+ *  Prepare the mixfiles for the player side.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+bool Vinifera_Prep_Speech_For_Side(SideType side)
+{
+    char name[64];
+
+    if (side == SIDE_NONE) {
+        return false;
+    }
+
     /**
-     *  Re-initialize sounds in case the side mixes override them.
+     *  Free previously loaded speech MIXes.
      */
-    Read_Sound_INI();
+    if (SpeechMix != nullptr) {
+        DEBUG_INFO("     Releasing %s\n", SpeechMix->Filename);
+        delete SpeechMix;
+        SpeechMix = nullptr;
+    }
+
+    while (ExpandSpeechMix.Count() > 0) {
+        delete ExpandSpeechMix[0];
+        ExpandSpeechMix.Delete(0);
+    }
+
+    /**
+     *  Load the new generic speech MIX.
+     */
+    DEBUG_INFO("     Initializing SPEECH.MIX\n");
+    if (CCFileClass("SPEECH.MIX").Is_Available()) {
+        MFCD* mix = new MFCD("SPEECH.MIX", &FastKey);
+        if (mix != nullptr) {
+            ExpandSpeechMix.Add(mix);
+            DEBUG_INFO(" SPEECH.MIX");
+        }
+    }
+
+    int id = static_cast<int>(side) + 1;
+
+    /**
+     *  Load the per-side mixes.
+     */
+    for (AddonType addon = ADDON_COUNT; addon > 0; --addon) {
+        if (Addon_Enabled(addon) == true) {
+            std::snprintf(name, std::size(name), "E%02dVOX%02d.MIX", addon, id);
+
+            if (CCFileClass(name).Is_Available()) {
+                MFCD* mix = new MFCD(name, &FastKey);
+                if (mix != nullptr) {
+                    ExpandSpeechMix.Add(mix);
+                    DEBUG_INFO(" %s", name);
+                }
+            }
+        }
+    }
+
+    std::snprintf(name, std::size(name), "SPEECH%02d.MIX", id);
+    DEBUG_INFO("     Initializing %s\n", name);
+    if (CCFileClass(name).Is_Available()) {
+        SpeechMix = new MFCD(name, &FastKey);
+    }
+
+    //if (SpeechMix == nullptr) {
+    //    DEBUG_INFO("     FAILED!\n");
+    //    return false;
+    //}
+
+    AudioVoxClass::ScanAsync();
 
     /**
      *  Reload UI.INI after the side mixes are mounted, then layer any
@@ -398,30 +442,6 @@ bool Vinifera_Prep_For_Side(SideType side)
     UIControls->Read_INI_File("UIOVERRIDES.INI");
 
     return true;
-}
-
-
-/**
- *  Replace the sound reading routine in Init_Game().
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x004E08EE, _Init_Game_Read_SOUND_INI_Patch, 0)
-{
-    REF_STACK(CCFileClass, file, 0x48);
-    REF_STACK(CCINIClass, ini, 0xAC);
-
-    /**
-     *  Construct classes where the game would so that it can destroy them later.
-     */
-    new (&file) CCFileClass("SOUND.INI");
-    new (&ini) CCINIClass();
-
-    if (!Read_Sound_INI()) {
-        R->EAX(-1);
-        return 0x004E0964;
-    } 
-    return 0x004E09C8;
 }
 
 
@@ -593,7 +613,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" SCORES.MIX\n", buffer);
     }
 	ScoresPresent = true;
-	Theme.Scan();
+    AudioTheme.Scan();
 
     /**
      *  #issue-513
@@ -922,6 +942,7 @@ void GameInit_Hooks()
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
     Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
+    Patch_Jump(0x004E8460, &Vinifera_Prep_Speech_For_Side);
     Patch_Call(0x006013AB, &Vinifera_Create_Main_Window_480p);
     Patch_Call(0x00601696, &Vinifera_Create_Main_Window_Custom);
 

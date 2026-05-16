@@ -181,7 +181,8 @@ namespace Extension
 namespace Private
 {
 
-AbstractClassExtension *Make_Internal(const AbstractClass *abstract);
+bool Is_Supported(const AbstractClass* abstract);
+AbstractClassExtension* Make_Internal(const AbstractClass* abstract);
 bool Destroy_Internal(const AbstractClass *abstract);
 AbstractClassExtension *Fetch_Internal(const AbstractClass *abstract);
 

@@ -14,7 +14,6 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Pre-placed units can now have missions in multiplayer.
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
 - Improve alternative factory selection when the primary factory is blocked.
-- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
 - When revealing shroud via a unit, structure, or triggers, TS had a maximum allowed sight radius of 10. This meant units could not have a `Sight=` value above 10, and Reveal Around Waypoint trigger actions could not reveal in radius higher than 10 even if specified in `RevealTriggerRadius`. Vinifera now allows and handles revealing shroud in any desired range, with no limit.
 - Aircraft can now click on Helipad that are occupied or about to be occupied by other aircraft, which reassigns them to a different free Helipad, or near the existing Helipad if no free Helipads exist. 
 - Units and aircraft can now click on a Service Depot even it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
@@ -356,6 +355,8 @@ The argument supports multiple entries separated by the `;` character. Below are
 - You can enable the developer mode by running Vinifera (`LaunchVinifera.exe`) with the command line argument `-DEVELOPER`. You can also explicitly enable the debug console with `-CONSOLE`.
 
 - `-NO_VERSION_STRING` can be used to hide the build version number from the in-game view.
+
+- `-AUDIO_DEBUG` enables extensive logging for the new audio engine. In debug builds, it also opens the audio debug window.
 
 ```{note}
 If you are using Vinifera with the TS Client, you can add these to the `ExtraCommandLineParams=` in `Resources\ClientDefinitions.ini`
