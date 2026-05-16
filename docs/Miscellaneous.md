@@ -153,6 +153,19 @@ PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of 
                       ; NOTE: This option has priority over AutoDeployMCV.
 ```
 
+### Bridge Health
+- Vinifera replaces the random chance to break a bridge with health trackers for all bridge types. Bridges will now sustain damage over time and break when they take sufficient damage.
+- Bridge health is determined via the existing `BridgeStrength=` key.
+- Tracking is done per 3x1 for each bridge tile, which means each tile can sustain a number of attacks before it breaks.
+- Bridges can now have an armor type associated with them in order to apply the appropriate Verses of all warheads to them. If no armor type is assigned to the bridge, then bridges will take 100% of all weapon damage.
+
+in `RULES.INI`:
+```ini
+[CombatDamage]
+BridgeStrength=1500 ; integer, the health each bridge tile can sustain before breaking.
+BridgeArmor=none ; Armor Type, the armor type of associated with the bridge for damage calculations.
+```
+
 ## Prerequisites
 
 ### Multi-MCV

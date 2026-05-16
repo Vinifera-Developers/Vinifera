@@ -163,6 +163,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
   - Add Q-Move support for aircraft.
+  - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:

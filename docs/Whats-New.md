@@ -93,6 +93,7 @@ New:
 - Make spawners respect `IonSensitive` on weapons (by ZivDero)
 - Vinifera's Developer mode now prints information on executed trigger actions (by Rampastring)
 - Extended sidebar customizability (by ZivDero)
+- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
