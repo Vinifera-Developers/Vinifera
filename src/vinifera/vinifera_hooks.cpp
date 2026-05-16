@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains various hooks that do not fit elsewhere.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains various hooks that do not fit elsewhere.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -37,6 +18,7 @@
 #include "blowpipe.h"
 #include "blowstraw.h"
 #include "debughandler.h"
+#include "detach_listener.h"
 #include "dsurface.h"
 #include "ebolt.h"
 #include "extension.h"
@@ -64,18 +46,13 @@
 
 
 /**
- *  This function is for intercepting the calls to Detach_This_From_All to also
- *  process the object through the extension interface.
- * 
- *  @author: CCHyper
+ *  Intercepts calls to the vanilla Detach_This_From_All so we can also notify
+ *  Vinifera's type-indexed detach registry. Only listeners that opted in for
+ *  the target's concrete type (and AbstractClass-wide listeners) are visited.
  */
 static void _Detach_This_From_All_Intercept(AbstractClass * target, bool all)
 {
-    Extension::Detach_This_From_All(target, all);
-
-    if (target->RTTI == RTTI_AIRCRAFT)
-        KamikazeTracker->Detach(reinterpret_cast<AircraftClass const*>(target));
-
+    Vinifera::Detach::Notify_Abstract(target, all);
     Detach_This_From_All(target, all);
 }
 

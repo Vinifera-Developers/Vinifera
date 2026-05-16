@@ -176,6 +176,8 @@ Vinifera makes use of third-party libraries to help implement features. Below is
  - [Image-Resampler](https://github.com/ramenhut/image-resampler)
  - [XZip](https://www.codeproject.com/Articles/4135/XZip-and-XUnzip-Add-zip-and-or-unzip-to-your-app-w?msg=3792406)
  - [SDL](https://github.com/libsdl-org/SDL)
+ - [miniaudio](https://github.com/mackron/miniaudio)
+ - [Dear ImGui](https://github.com/ocornut/imgui)
 
 
 # Anti-virus Warning

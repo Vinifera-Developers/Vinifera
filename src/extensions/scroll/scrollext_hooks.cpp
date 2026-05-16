@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended ScrollClass.
  *
- *  @project       Vinifera (Dawn of the Tiberium Age Build)
- *
- *  @file          SCROLLEXT_HOOKS.CPP
- *
- *  @author        Rampastring
- *
- *  @brief         Contains the hooks for the extended ScrollClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -37,6 +18,7 @@
 #include "techno.h"
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
+#include "windialog.h"
 
 
 bool Passes_Cloak_Check(TechnoClass* techno)
@@ -113,6 +95,20 @@ DEFINE_HOOK(0x006167E3, _Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch
 
     // Target object is cloaked and not visible to us.
     return 0x00616811;
+}
+
+
+/**
+ *  Blocks the map from receiving inputs while any Windows dialogs are open.
+ *
+ *  Author: ZivDero
+ */
+DEFINE_HOOK(0x005E934E, _ScrollClass_Message_Handler_Block_Inputs_In_Dialogs_Patch, 6)
+{
+    if (WSDialogCount != 0) {
+        return 0x005E961E;
+    }
+    return 0;
 }
 
 

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  The file contains the functions required for the extension system.
  *
- *  @project       Vinifera
- *
- *  @file          EXTENSION.H
- *
- *  @author        CCHyper
- *
- *  @brief         The file contains the functions required for the extension system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -200,7 +181,8 @@ namespace Extension
 namespace Private
 {
 
-AbstractClassExtension *Make_Internal(const AbstractClass *abstract);
+bool Is_Supported(const AbstractClass* abstract);
+AbstractClassExtension* Make_Internal(const AbstractClass* abstract);
 bool Destroy_Internal(const AbstractClass *abstract);
 AbstractClassExtension *Fetch_Internal(const AbstractClass *abstract);
 
@@ -515,9 +497,8 @@ bool Request_Pointer_Remap();
 unsigned Get_Save_Version_Number();
 
 /**
- *  Tracking, announcement, and debugging functions.
+ *  Announcement and debugging functions.
  */
-void Detach_This_From_All(AbstractClass * target, bool all = true);
 bool Register_Class_Factories();
 void Free_Heaps();
 void Print_CRCs(EventClass *ev);
@@ -551,15 +532,8 @@ class GlobalExtensionClass
         virtual int Get_Object_Size() const = 0;
 
         /**
-         *  Removes the specified target from any targeting and reference trackers.
-         *  
-         *  @note: This must be overridden by the extended class!
-         */
-        virtual void Detach(AbstractClass * target, bool all = true) = 0;
-
-        /**
          *  Compute a unique crc value for this instance.
-         *  
+         *
          *  @note: This must be overridden by the extended class!
          */
         virtual void Object_CRC(CRCEngine &crc) const = 0;

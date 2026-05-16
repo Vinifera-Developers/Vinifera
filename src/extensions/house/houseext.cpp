@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended HouseClass class.
  *
- *  @project       Vinifera
- *
- *  @file          HOUSEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended HouseClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -44,7 +25,7 @@
 #include "rulesext.h"
 #include "saveload.h"
 #include "session.h"
-#include "sidebarext.h"
+#include "battleui.h"
 #include "storageext.h"
 #include "team.h"
 #include "teamtype.h"
@@ -52,6 +33,7 @@
 #include "unit.h"
 #include "unittypeext.h"
 #include "utracker.h"
+#include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 #include "voc.h"
 #include "vox.h"
@@ -66,6 +48,7 @@
  */
 HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     AbstractClassExtension(this_ptr),
+    Vinifera::Detach::Listener<FactoryClass>(),
     TiberiumStorage(Tiberiums.Count()),
     WeedStorage(Tiberiums.Count()),
     NavalFactories(0),
@@ -111,6 +94,7 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
  */
 HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
     AbstractClassExtension(noinit),
+    Vinifera::Detach::Listener<FactoryClass>(noinit),
     TiberiumStorage(noinit),
     WeedStorage(noinit)
 {
@@ -210,14 +194,10 @@ int HouseClassExtension::Get_Object_Size() const
 
 
 /**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
+ *  Clears NavalFactory if it pointed at the destroyed factory.
  */
-void HouseClassExtension::Detach(AbstractClass * target, bool all)
+void HouseClassExtension::On_Detach(FactoryClass *target, bool all)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
-
     if (NavalFactory == target) {
         NavalFactory = nullptr;
     }
@@ -382,17 +362,6 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     */
     fptr->Suspend();
 
-    /*
-    **  Tell the sidebar that it needs to be redrawn because of this.
-    */
-    if (PlayerPtr == This()) {
-        Map.SidebarClass::IsToRedraw = true;
-        RedrawSidebar = true;
-        Map.Flag_To_Redraw();
-        Map.Column[0].Flag_To_Redraw();
-        Map.Column[1].Flag_To_Redraw();
-    }
-
     return PROD_OK;
 }
 
@@ -516,9 +485,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     }
 
     if (result) {
-        if (fptr->QueuedObjects.Count() && !resume && !skipset) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, flags);
-        } else {
+        if (fptr->QueuedObjects.Count() == 0 || resume || skipset) {
             fptr->Start(onhold);
 
             /*
@@ -576,7 +543,6 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     if (fptr->Queued_Object_Count() > 0 && id >= 0) {
         const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
         if (fptr->Remove_From_Queue(*technotype)) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, flags);
             return PROD_OK;
         }
     }
@@ -589,10 +555,10 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     }
 
     /*
-    **  Tell the sidebar that it needs to be redrawn because of this.
+    **  Drop any active building placement.
     */
     if (PlayerPtr == This()) {
-        SidebarExtension->Abandon_Production(type, fptr, flags);
+        BattleUI.Get_Sidebar().Detach(fptr);
 
         if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
             Map.PendingObjectPtr = nullptr;
@@ -798,13 +764,6 @@ void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
             } else {
                 if (factory->Object->TClass->Who_Can_Build_Me(true, true, true, This()) == nullptr) {
                     factory->Suspend(false);
-                    if (PlayerPtr == This()) {
-                        Map.SidebarClass::IsToRedraw = true;
-                        RedrawSidebar = true;
-                        Map.Flag_To_Redraw();
-                        Map.Column[0].Flag_To_Redraw();
-                        Map.Column[1].Flag_To_Redraw();
-                    }
                 } else {
                     if (factory->IsSuspended && !factory->IsOnHold) {
                         factory->Start(false);

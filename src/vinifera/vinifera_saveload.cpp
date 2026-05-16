@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Utility functions for saving and loading.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_SAVELOAD.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Utility functions for saving and loading.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -33,12 +14,14 @@
 #include "addon.h"
 #include "aircraft.h"
 #include "aircrafttracker.h"
+#include "audio_static_sound.h"
 #include "aircrafttype.h"
 #include "aitrigtype.h"
 #include "alphashape.h"
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
+#include "battleui.h"
 #include "beacon.h"
 #include "building.h"
 #include "buildinglight.h"
@@ -114,7 +97,6 @@
 #include "verses.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_savever.h"
-#include "vinifera_util.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
@@ -375,6 +357,8 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     KamikazeTracker->Save(pStm, false);
     AircraftTracker->Save(pStm);
 
+    Save_Tracked_Static_Sounds(pStm);
+
     /**
      *  Save skirmish values.
      */
@@ -391,6 +375,12 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
         DEBUG_ERROR("\t***** FAILED!\n");
         return false;
     }
+
+    /**
+     *  Save the battle UI state.
+     */
+    DEBUG_INFO("Saving BattleUI...\n");
+    if (FAILED(BattleUI.Save(pStm))) { return false; }
 
     return true;
 }
@@ -606,6 +596,8 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     AircraftTracker->Clear();
     AircraftTracker->Load(pStm);
 
+    Load_Tracked_Static_Sounds(pStm);
+
     /**
      *  Load skirmish values.
      */
@@ -623,6 +615,12 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         return false;
     }
 
+    /**
+     *  Load the battle UI state.
+     */
+    DEBUG_INFO("Loading BattleUI...\n");
+    if (FAILED(BattleUI.Load(pStm))) { return false; }
+    
     /**
      *  #issue-218
      *
@@ -668,7 +666,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         }
     }
 
-    Map.Flag_To_Redraw(2);
+    Map.Flag_To_Redraw(GS_REDRAW_ALL);
 
     //Vinifera_Remap_Extension_Pointers();
 
@@ -963,6 +961,12 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Init_IO();
     Map.Activate(1);
     Map.Shift_Sidebar();
+
+    /**
+     *  Relink factories to the sidebar model items.
+     */
+    BattleUI.Get_Sidebar().Relink_Factories();
+
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();

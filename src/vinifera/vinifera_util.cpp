@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Various utility functions.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_UTIL.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Various utility functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -767,4 +748,59 @@ BSurface *Vinifera_Get_Image_Surface(const char *filename)
     }
 
     return nullptr;
+}
+
+
+/**
+ *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
+ * 
+ *  @author: CCHyper
+ */
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio)
+{
+    if (maintain_ratio) {
+
+        double dSurfaceWidth = area_width;
+        double dSurfaceHeight = area_height;
+        double dSurfaceAspectRatio = dSurfaceWidth / dSurfaceHeight;
+
+        double dVideoWidth = rect.Width;
+        double dVideoHeight = rect.Height;
+        double dVideoAspectRatio = dVideoWidth / dVideoHeight;
+    
+        /**
+         *  If the aspect ratios are the same then the screen rectangle
+         *  will do, otherwise we need to calculate the new rectangle.
+         */
+        if (dVideoAspectRatio > dSurfaceAspectRatio) {
+            int nNewHeight = (int)(area_width/dVideoWidth*dVideoHeight);
+            int nCenteringFactor = (area_height - nNewHeight) / 2;
+            rect.X = 0;
+            rect.Y = nCenteringFactor;
+            rect.Width = area_width;
+            rect.Height = nNewHeight;
+
+        } else if (dVideoAspectRatio < dSurfaceAspectRatio) {
+            int nNewWidth = (int)(area_height/dVideoHeight*dVideoWidth);
+            int nCenteringFactor = (area_width - nNewWidth) / 2;
+            rect.X = nCenteringFactor;
+            rect.Y = 0;
+            rect.Width = nNewWidth;
+            rect.Height = area_height;
+
+        } else {
+            rect.X = 0;
+            rect.Y = 0;
+            rect.Width = area_width;
+            rect.Height = area_height;
+        }
+
+    } else {
+        rect.X = 0;
+        rect.Y = 0;
+        rect.Width = area_width;
+        rect.Height = area_height;
+    }
+
+    return true;
 }

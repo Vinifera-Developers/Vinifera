@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Vinifera defines and constants.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_DEFINES.H
- *
- *  @authors       CCHyper
- *
- *  @brief         Vinifera defines and constants.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -240,6 +221,9 @@ typedef enum ExtTActionType
     EXT_TACTION_DISABLE_TEMPLATED_TEXT,
     EXT_TACTION_ADJUST_HOUSE_MODIFIER,
     EXT_TACTION_APPLY_IRON_CURTAIN,
+    EXT_TACTION_STOP_SOUNDS_AT,
+    EXT_TACTION_ATTACH_SOUND,
+    EXT_TACTION_DETACH_SOUND,
 
     /**
      *  The new total ExtTActionType count.
