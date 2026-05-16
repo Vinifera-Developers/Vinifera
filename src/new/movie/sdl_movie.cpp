@@ -11,8 +11,6 @@
 
 #include "sdl_movie.h"
 
-#include "SDL3/SDL_audio.h"
-#include "SDL3/SDL_init.h"
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
@@ -29,28 +27,6 @@ static int MovieTextureHeight = 0;
 static MovieVideoPixelFormat MovieTextureFormat = MOVIE_VIDEO_INVALID;
 static Rect MovieDestinationRect(0, 0, 0, 0);
 static bool MovieHasFrame = false;
-static SDL_AudioStream *MovieAudioStream = nullptr;
-static int MovieAudioRate = 0;
-static int MovieAudioChannels = 0;
-static MovieSampleFormat MovieAudioFormat = MOVIE_SAMPLE_INVALID;
-
-
-static SDL_AudioFormat Movie_To_SDL_Audio_Format(MovieSampleFormat format)
-{
-    switch (format) {
-        case MOVIE_SAMPLE_U8:
-            return SDL_AUDIO_U8;
-
-        case MOVIE_SAMPLE_S16:
-            return SDL_AUDIO_S16LE;
-
-        case MOVIE_SAMPLE_F32:
-            return SDL_AUDIO_F32LE;
-
-        default:
-            return SDL_AUDIO_UNKNOWN;
-    }
-}
 
 
 static SDL_PixelFormat Movie_To_SDL_Texture_Format(MovieVideoPixelFormat format)
@@ -103,60 +79,6 @@ static bool Ensure_Movie_Texture(int width, int height, MovieVideoPixelFormat fo
     if (OptionsExtension->ScaleMode != SDL_SCALEMODE_INVALID) {
         SDL_SetTextureScaleMode(MovieTexture, OptionsExtension->ScaleMode);
     }
-
-    return true;
-}
-
-
-/**
- *  Opens or reuses the SDL audio device stream. Recreates it when the
- *  sample rate, channel count or format changes.
- */
-static bool Ensure_Movie_Audio_Stream(int sample_rate, int channels, MovieSampleFormat format)
-{
-    if (MovieAudioStream
-     && MovieAudioRate == sample_rate
-     && MovieAudioChannels == channels
-     && MovieAudioFormat == format) {
-        return true;
-    }
-
-    if (!(SDL_WasInit(SDL_INIT_AUDIO) & SDL_INIT_AUDIO) && !SDL_InitSubSystem(SDL_INIT_AUDIO)) {
-        DEBUG_ERROR("Failed to initialize SDL audio for movies! SDL Error: %s\n", SDL_GetError());
-        return false;
-    }
-
-    SDL_DestroyAudioStream(MovieAudioStream);
-    MovieAudioStream = nullptr;
-
-    SDL_AudioSpec spec = {};
-    spec.freq = sample_rate;
-    spec.channels = channels;
-    spec.format = Movie_To_SDL_Audio_Format(format);
-
-    if (spec.format == SDL_AUDIO_UNKNOWN) {
-        DEBUG_ERROR("Unsupported SDL movie audio format.\n");
-        return false;
-    }
-
-    MovieAudioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
-    if (!MovieAudioStream) {
-        DEBUG_ERROR("Failed to create SDL movie audio stream! SDL Error: %s\n", SDL_GetError());
-        return false;
-    }
-
-    if (!SDL_ResumeAudioStreamDevice(MovieAudioStream)) {
-        DEBUG_ERROR("Failed to resume SDL movie audio stream! SDL Error: %s\n", SDL_GetError());
-        SDL_DestroyAudioStream(MovieAudioStream);
-        MovieAudioStream = nullptr;
-        return false;
-    }
-
-    SDL_SetAudioStreamGain(MovieAudioStream, Options.SoundVolume);
-
-    MovieAudioRate = sample_rate;
-    MovieAudioChannels = channels;
-    MovieAudioFormat = format;
 
     return true;
 }
@@ -239,69 +161,6 @@ bool SDL_Movie_Repaint()
 }
 
 
-bool SDL_Movie_Queue_Audio(const void *data, int data_length, int sample_rate, int channels, MovieSampleFormat format)
-{
-    if (!data || data_length <= 0) {
-        return true;
-    }
-
-    if (!Ensure_Movie_Audio_Stream(sample_rate, channels, format)) {
-        return false;
-    }
-
-    if (!SDL_PutAudioStreamData(MovieAudioStream, data, data_length)) {
-        DEBUG_ERROR("Failed to queue SDL movie audio! SDL Error: %s\n", SDL_GetError());
-        return false;
-    }
-
-    return true;
-}
-
-
-bool SDL_Movie_Pause_Audio()
-{
-    if (!MovieAudioStream) {
-        return true;
-    }
-
-    return SDL_PauseAudioStreamDevice(MovieAudioStream);
-}
-
-
-bool SDL_Movie_Resume_Audio()
-{
-    if (!MovieAudioStream) {
-        return true;
-    }
-
-    return SDL_ResumeAudioStreamDevice(MovieAudioStream);
-}
-
-
-void SDL_Movie_Flush_Audio()
-{
-    if (MovieAudioStream) {
-        SDL_FlushAudioStream(MovieAudioStream);
-    }
-}
-
-
-int SDL_Movie_Get_Queued_Audio_Size()
-{
-    if (!MovieAudioStream) {
-        return 0;
-    }
-
-    return SDL_GetAudioStreamQueued(MovieAudioStream);
-}
-
-
-bool SDL_Movie_Has_Audio()
-{
-    return MovieAudioStream != nullptr;
-}
-
-
 void SDL_Movie_Shutdown()
 {
     SDL_DestroyTexture(MovieTexture);
@@ -311,10 +170,4 @@ void SDL_Movie_Shutdown()
     MovieTextureFormat = MOVIE_VIDEO_INVALID;
     MovieDestinationRect = Rect(0, 0, 0, 0);
     MovieHasFrame = false;
-
-    SDL_DestroyAudioStream(MovieAudioStream);
-    MovieAudioStream = nullptr;
-    MovieAudioRate = 0;
-    MovieAudioChannels = 0;
-    MovieAudioFormat = MOVIE_SAMPLE_INVALID;
 }

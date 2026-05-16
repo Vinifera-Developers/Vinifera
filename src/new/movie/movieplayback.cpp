@@ -13,6 +13,7 @@
 
 #include "SDL3/SDL_timer.h"
 #include "SDL3/SDL_video.h"
+#include "audio_streaming.h"
 #include "ccfile.h"
 #include "debughandler.h"
 #include "iomap.h"
@@ -135,6 +136,21 @@ struct MoviePlaybackClock
 
 
 /**
+ *  Maps a decoded sample format to its bits-per-sample width, for the
+ *  miniaudio streaming format mapping in AudioStreamingClass::Open.
+ */
+static int Movie_Sample_Bits_Per_Sample(MovieSampleFormat format)
+{
+    switch (format) {
+        case MOVIE_SAMPLE_U8:  return 8;
+        case MOVIE_SAMPLE_S16: return 16;
+        case MOVIE_SAMPLE_F32: return 32;
+        default:               return 0;
+    }
+}
+
+
+/**
  *  Drives a single decode session: owns the backend, presentation clock
  *  and latest decode output. Propagates pause/resume to all subsystems
  *  and handles the ESC breakout from Update_Playback_State.
@@ -142,9 +158,11 @@ struct MoviePlaybackClock
 struct MoviePlayer
 {
     std::unique_ptr<IMovieDecoderBackend> Backend;
+    std::unique_ptr<AudioStreamingClass> AudioStream;
     MoviePlaybackClock Clock;
     MovieDecodeOutput Output;
     bool EndOfStream = false;
+    bool AudioOpenAttempted = false;
 
     bool Open(const char *filename)
     {
@@ -155,6 +173,40 @@ struct MoviePlayer
 
         Backend.reset();
         return false;
+    }
+
+    ma_uint32 Queued_Audio_Frames() const
+    {
+        return AudioStream ? AudioStream->Get_Available_Read_Frames() : 0;
+    }
+
+    /**
+     *  Lazily opens the miniaudio streaming sink on the first audio chunk
+     *  using the chunk's negotiated format. The streaming class routes to
+     *  AUDIO_GROUP_STREAMING, so the sound-volume option applies automatically.
+     */
+    bool Ensure_Audio_Stream(const MovieAudioChunk &chunk)
+    {
+        if (AudioStream || AudioOpenAttempted) {
+            return AudioStream != nullptr;
+        }
+
+        AudioOpenAttempted = true;
+
+        const int bps = Movie_Sample_Bits_Per_Sample(chunk.Format);
+        if (bps <= 0 || chunk.SampleRate <= 0 || chunk.Channels <= 0) {
+            return false;
+        }
+
+        auto stream = std::make_unique<AudioStreamingClass>();
+        if (!stream->Open("MOVIE_AUDIO_STREAM", chunk.SampleRate, chunk.Channels, bps, true)) {
+            DEBUG_ERROR("Failed to open movie audio stream.\n");
+            return false;
+        }
+
+        stream->Play();
+        AudioStream = std::move(stream);
+        return true;
     }
 
     bool Pump_Once()
@@ -178,13 +230,8 @@ struct MoviePlayer
         if (Output.HasAudioChunk) {
             Clock.Start_If_Needed(Output.AudioChunk.TimestampMs);
 
-            if (!SDL_Movie_Queue_Audio(
-                    Output.AudioChunk.Samples.data(),
-                    static_cast<int>(Output.AudioChunk.Samples.size()),
-                    Output.AudioChunk.SampleRate,
-                    Output.AudioChunk.Channels,
-                    Output.AudioChunk.Format)) {
-                return false;
+            if (Ensure_Audio_Stream(Output.AudioChunk)) {
+                AudioStream->Push_Chunk(Output.AudioChunk.Samples.data(), Output.AudioChunk.Samples.size());
             }
         }
 
@@ -201,7 +248,9 @@ struct MoviePlayer
         if (Backend) {
             Backend->Pause();
         }
-        SDL_Movie_Pause_Audio();
+        if (AudioStream) {
+            AudioStream->Pause();
+        }
     }
 
     void Resume()
@@ -210,7 +259,9 @@ struct MoviePlayer
         if (Backend) {
             Backend->Resume();
         }
-        SDL_Movie_Resume_Audio();
+        if (AudioStream) {
+            AudioStream->Play();
+        }
     }
 
     void Stop()
@@ -218,6 +269,7 @@ struct MoviePlayer
         if (Backend) {
             Backend->Stop();
         }
+        AudioStream.reset();
     }
 
     bool Is_Finished() const
@@ -363,45 +415,17 @@ static void Clear_Movie_Screen()
 }
 
 
-static int Audio_Bytes_Per_Second(const MovieAudioChunk &chunk)
-{
-    int bytes_per_sample = 0;
-
-    switch (chunk.Format) {
-        case MOVIE_SAMPLE_U8:
-            bytes_per_sample = 1;
-            break;
-
-        case MOVIE_SAMPLE_S16:
-            bytes_per_sample = 2;
-            break;
-
-        case MOVIE_SAMPLE_F32:
-            bytes_per_sample = 4;
-            break;
-
-        default:
-            break;
-    }
-
-    return chunk.SampleRate * chunk.Channels * bytes_per_sample;
-}
-
-
 /**
- *  Waits for the SDL audio device to finish draining all queued samples,
- *  keeping the playback state updated. Ensures audio finishes before the
- *  screen is cleared.
+ *  Waits for the miniaudio ring buffer to fully drain, keeping playback
+ *  state updated. Ensures audio finishes before the screen is cleared.
  */
 bool MoviePlayer::Drain_Audio()
 {
-    if (!SDL_Movie_Has_Audio()) {
+    if (!AudioStream) {
         return true;
     }
 
-    SDL_Movie_Flush_Audio();
-
-    while (SDL_Movie_Get_Queued_Audio_Size() > 0) {
+    while (AudioStream->Get_Available_Read_Frames() > 0) {
         if (!Update_Playback_State()) {
             return false;
         }
@@ -589,7 +613,7 @@ bool IngameMoviePlayback::Advance(bool &done)
 
         HasPendingVideoFrame = false;
 
-        if (Player.EndOfStream && SDL_Movie_Get_Queued_Audio_Size() <= 0) {
+        if (Player.EndOfStream && Player.Queued_Audio_Frames() == 0) {
             done = true;
         }
 
@@ -635,7 +659,7 @@ bool IngameMoviePlayback::Advance(bool &done)
         }
     }
 
-    if (Player.EndOfStream && SDL_Movie_Get_Queued_Audio_Size() <= 0) {
+    if (Player.EndOfStream && Player.Queued_Audio_Frames() == 0) {
         done = true;
     }
 
@@ -717,10 +741,11 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
         }
 
         if (player.Output.HasAudioChunk) {
-            const int bytes_per_second = Audio_Bytes_Per_Second(player.Output.AudioChunk);
-            const int max_buffer = bytes_per_second > 0 ? bytes_per_second / 2 : 0;
+            const ma_uint32 max_frames = player.Output.AudioChunk.SampleRate > 0
+                ? static_cast<ma_uint32>(player.Output.AudioChunk.SampleRate / 2)
+                : 0;
 
-            while (max_buffer > 0 && SDL_Movie_Get_Queued_Audio_Size() > max_buffer) {
+            while (max_frames > 0 && player.Queued_Audio_Frames() > max_frames) {
                 if (!player.Update_Playback_State()) {
                     aborted = true;
                     break;
