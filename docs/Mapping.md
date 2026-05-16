@@ -252,7 +252,7 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 | 137      | Stop Sounds At             |
 |          | Stops sounds started by Play Sound At at the specified waypoint. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 | 138      | Attach Sound             |
-|          | Attaches an ambient sound to all objects associated with the trigger. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
+|          | Attaches an ambient sound to all objects associated with the trigger. The VocType should have `Control=LOOP` for a continuous attachment; non-looping vocs play once and then go silent. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 | 139      | Detach Sound             |
 |          | Detaches any ambient sound from all objects associated with the trigger. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 

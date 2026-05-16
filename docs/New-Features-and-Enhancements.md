@@ -1667,6 +1667,10 @@ Vinifera changes the mapper-facing sound trigger actions so sounds started at wa
 - `Attach Sound` is Vinifera trigger action `138`. It attaches the selected `VocType` as an ambient loop to every object the trigger is bound to. The sound plays for as long as the attachment lasts and follows each object as it moves.
 - `Detach Sound` is Vinifera trigger action `139`. It removes any previously-attached ambient sound from the trigger's bound objects.
 
+```{note}
+The `VocType` passed to `Attach Sound` should have `Control=LOOP`. Non-looping vocs play through once and then go silent for the rest of the attachment — they are not automatically restarted. This matches the rules-defined `AmbientSound=` field on ObjectTypes.
+```
+
 ## Tiberiums
 
 ### New Tiberiums
