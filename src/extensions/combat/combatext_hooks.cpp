@@ -47,6 +47,7 @@
 #include <algorithm>
 #include <unordered_set>
 
+
 template <typename T>
 static T Percent_At_Max(T value, int range, int distance, float percent_at_max)
 {
