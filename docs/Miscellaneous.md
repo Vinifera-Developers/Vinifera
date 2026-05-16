@@ -164,7 +164,7 @@ in `RULES.INI`:
 ```ini
 [CombatDamage]
 BridgeStrength=1500 ; integer, the health each bridge tile can sustain before breaking.
-BridgeArmor=none ; Armor Type, the armor type of associated with the bridge for damage calculations.
+BridgeArmor= ; Armor Type, the armor type of associated with the bridge for damage calculations.
 ```
 
 ## Prerequisites
