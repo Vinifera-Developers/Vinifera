@@ -284,6 +284,7 @@ void Init_Vinifera_Commands()
         Commands.Add(new MeteorShowerCommandClass);
         Commands.Add(new MeteorImpactCommandClass);
         Commands.Add(new VeterancyPromoteCommandClass);
+        Commands.Add(new ToggleScenarioOverlayCommandClass);
     }
 
     /**

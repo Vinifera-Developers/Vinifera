@@ -11,8 +11,6 @@
 
 #include "commandext.h"
 
-#include "debug_overlay.h"
-
 #include "aircraft.h"
 #include "aircrafttype.h"
 #include "anim.h"
@@ -27,6 +25,7 @@
 #include "buildingtype.h"
 #include "bullettype.h"
 #include "combat.h"
+#include "debug_overlay.h"
 #include "debughandler.h"
 #include "dsurface.h"
 #include "event.h"
@@ -53,6 +52,7 @@
 #include "rockettype.h"
 #include "rules.h"
 #include "scenario.h"
+#include "scenario_overlay.h"
 #include "scenarioext.h"
 #include "session.h"
 #include "sidebar_tabbed_view.h"
@@ -4818,5 +4818,37 @@ const char *ToggleDebugOverlayCommandClass::Get_Description() const
 bool ToggleDebugOverlayCommandClass::Process()
 {
     DebugOverlay::IsVisible = !DebugOverlay::IsVisible;
+    return true;
+}
+
+
+/**
+ *  Toggle the developer-mode scenario debug window.
+ *
+ *  @author: ZivDero
+ */
+const char *ToggleScenarioOverlayCommandClass::Get_Name() const
+{
+    return "ToggleScenarioOverlay";
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_UI_Name() const
+{
+    return "Toggle Scenario Overlay";
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_Description() const
+{
+    return "Shows or hides the Vinifera scenario debug window (types, instances, variables, waypoints, AI nodes).";
+}
+
+bool ToggleScenarioOverlayCommandClass::Process()
+{
+    ScenarioOverlay::IsVisible = !ScenarioOverlay::IsVisible;
     return true;
 }

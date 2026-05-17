@@ -13,6 +13,7 @@
 
 #include "audio_manager.h"
 #include "debug_overlay.h"
+#include "scenario_overlay.h"
 #include "debughandler.h"
 #include "vinifera_globals.h"
 
@@ -224,6 +225,7 @@ void ViniferaImGui::Render()
 #endif
 
     DebugOverlay::Draw();
+    ScenarioOverlay::Draw();
 
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), SDLWindowRenderer);

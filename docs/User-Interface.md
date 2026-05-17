@@ -258,6 +258,10 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 - Toggles the visibility of Super Weapon timers.
 
+### `[ ]` Toggle Scenario Overlay
+
+- Opens/closes the in-game scenario debug window (developer mode only). Browses loaded type heaps (TriggerTypes, TagTypes, TeamTypes, TaskForces, ScriptTypes, AITriggerTypes, HouseTypes), live scenario instances (Triggers, Tags, Teams, Scripts, Houses), named global/local variables, the waypoint table, and per-house AI base nodes.
+
 ### `[ ]` Toggle Debug Overlay
 
 - Opens/closes the in-game debug overlay window. The window has four tabs:

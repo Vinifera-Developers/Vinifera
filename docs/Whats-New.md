@@ -96,6 +96,7 @@ New:
 - Add new customizations options for themes, sounds and speeches (by CCHyper/tomsons26, ZivDero)
 - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies (by ZivDero, CCHyper)
 - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
+- Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
