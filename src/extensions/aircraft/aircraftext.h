@@ -38,7 +38,6 @@ AircraftClassExtension final : public FootClassExtension
         virtual ~AircraftClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual AircraftClass *This() const override { return reinterpret_cast<AircraftClass *>(FootClassExtension::This()); }

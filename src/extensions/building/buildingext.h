@@ -40,7 +40,6 @@ BuildingClassExtension final : public TechnoClassExtension
         virtual ~BuildingClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual BuildingClass *This() const override { return reinterpret_cast<BuildingClass *>(TechnoClassExtension::This()); }

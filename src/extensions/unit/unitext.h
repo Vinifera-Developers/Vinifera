@@ -10,12 +10,14 @@
 #pragma once
 
 #include "building.h"
+#include "detach_listener.h"
 #include "footext.h"
 #include "unit.h"
 
 
 class DECLSPEC_UUID(UUID_UNIT_EXTENSION)
-UnitClassExtension final : public FootClassExtension
+UnitClassExtension final : public FootClassExtension,
+                           public Vinifera::Detach::Listener<BuildingClass>
 {
     public:
         /**
@@ -35,8 +37,9 @@ UnitClassExtension final : public FootClassExtension
         virtual ~UnitClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
+
+        void On_Detach(BuildingClass *target, bool all) override;
 
         virtual UnitClass *This() const override { return reinterpret_cast<UnitClass *>(FootClassExtension::This()); }
         virtual const UnitClass *This_Const() const override { return reinterpret_cast<const UnitClass *>(FootClassExtension::This_Const()); }

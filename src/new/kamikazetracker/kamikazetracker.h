@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "detach_listener.h"
 #include "ftimer.h"
 #include "ttimer.h"
 #include "vector.h"
@@ -20,15 +21,16 @@ class KamikazeTrackerClass;
 struct IStream;
 
 
-class KamikazeTrackerClass {
+class KamikazeTrackerClass : public Vinifera::Detach::Listener<AircraftClass>
+{
 public:
     struct KamikazeControl {
         AircraftClass* Aircraft;
         CellClass* Cell;
     };
 
-    KamikazeTrackerClass() : UpdateTimer(100), Controls() { }
-    KamikazeTrackerClass(const NoInitClass& noinit) : UpdateTimer(noinit), Controls(noinit) { }
+    KamikazeTrackerClass() : Vinifera::Detach::Listener<AircraftClass>(), UpdateTimer(100), Controls() { }
+    KamikazeTrackerClass(const NoInitClass& noinit) : Vinifera::Detach::Listener<AircraftClass>(noinit), UpdateTimer(noinit), Controls(noinit) { }
     ~KamikazeTrackerClass();
 
     HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
@@ -36,7 +38,7 @@ public:
 
     void Add(AircraftClass* aircraft, AbstractClass * target);
     void AI();
-    void Detach(AircraftClass const* aircraft);
+    void On_Detach(AircraftClass *aircraft, bool all) override;
     void Clear();
 
     KamikazeTrackerClass(const KamikazeTrackerClass&) = delete;

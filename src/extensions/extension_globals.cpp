@@ -55,5 +55,3 @@ RulesClassExtension *RuleExtension = nullptr;
 ScenarioClassExtension *ScenExtension = nullptr;
 SessionClassExtension *SessionExtension = nullptr;
 OptionsClassExtension *OptionsExtension = nullptr;
-
-DynamicVectorClass<ThemeControlExtension *> ThemeControlExtensions;

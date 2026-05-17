@@ -24,8 +24,12 @@
 
 const char *Get_Module_File_Name()
 {
-    static char outbuff[PATH_MAX] = "";
+    static char outbuff[PATH_MAX] = { '\0' };
     char buffer[PATH_MAX];
+
+    if (outbuff[0] != '\0') {
+        return outbuff;
+    }
 
     /**
      *  Get the fully-qualified path of the executable.

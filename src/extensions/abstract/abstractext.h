@@ -61,13 +61,6 @@ class AbstractClassExtension : public IPersistStream
         virtual int Get_Object_Size() const = 0;
 
         /**
-         *  Removes the specified target from any targeting and reference trackers.
-         *  
-         *  @note: This must be overridden by the extended class!
-         */
-        virtual void Detach(AbstractClass * target, bool all = true) = 0;
-
-        /**
          *  Compute a unique crc value for this instance.
          *  
          *  @note: This must be overridden by the extended class!

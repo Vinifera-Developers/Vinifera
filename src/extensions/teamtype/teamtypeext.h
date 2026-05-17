@@ -34,7 +34,6 @@ TeamTypeClassExtension final : public AbstractTypeClassExtension
         virtual ~TeamTypeClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual TeamTypeClass *This() const override { return reinterpret_cast<TeamTypeClass *>(AbstractTypeClassExtension::This()); }
