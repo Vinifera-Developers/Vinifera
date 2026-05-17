@@ -307,28 +307,28 @@ namespace
             return;
         }
 
-        ImGui::Text("Unit  : %s", type->Name());
-        ImGui::Text("Owner : %s%s",
+        ImGui::Text("Unit    : %s", type->Name());
+        ImGui::Text("Owner   : %s%s",
             owner ? owner->IniName.c_str() : "(none)",
             is_enemy ? "  [enemy]" : "");
 
-        ImGui::Text("HP    : %d / %d", obj->Strength, type->MaxStrength);
+        ImGui::Text("HP      : %d / %d", obj->Strength, type->MaxStrength);
 
         const Cell c = obj->Get_Cell();
-        ImGui::Text("Cell  : %d, %d", c.X, c.Y);
+        ImGui::Text("Cell    : %d, %d", c.X, c.Y);
 
         const ArmorType armor = type->Armor;
         const char* armor_name = (armor >= ARMOR_FIRST && armor < ArmorTypes.Count())
             ? ArmorTypes[armor]->Name() : "?";
-        ImGui::Text("Armor : %s", armor_name);
+        ImGui::Text("Armor   : %s", armor_name);
 
         if (!obj->Is_Techno()) {
             return;
         }
 
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
-        ImGui::Text("Mission: %s", MissionClass::Mission_Name(techno->Get_Mission()));
-        ImGui::Text("Rank  : %s (xp=%.2f)", Rank_To_String(techno->Crew.Get_Rank()), techno->Crew.Get_Experience());
+        ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
+        ImGui::Text("Rank    : %s (xp=%.2f)", Rank_To_String(techno->Crew.Get_Rank()), techno->Crew.Get_Experience());
 
         /**
          *  Foot units carry their own speed bias on top of the house ground
@@ -337,7 +337,7 @@ namespace
         const bool is_foot = obj->RTTI == RTTI_UNIT || obj->RTTI == RTTI_INFANTRY || obj->RTTI == RTTI_AIRCRAFT;
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
-            ImGui::Text("Speed : %.2f (bias x%.2f)", foot->Speed, foot->SpeedBias);
+            ImGui::Text("Speed   : %.2f (bias x%.2f)", foot->Speed, foot->SpeedBias);
         }
 
         ImGui::SeparatorText("Weapons");
