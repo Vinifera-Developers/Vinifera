@@ -1263,6 +1263,14 @@ DEFINE_HOOK(0x004C0F87, _HouseClass_AI_Raise_Money_Fix_Memory_Corruption, 0)
     return 0x004C0F9F;
 }
 
+DEFINE_HOOK(0x004C958D, _TEST_ME, 6)
+{
+    if (Scen->IsFreeRadar) {
+        return 0x004C966A;
+    }
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.
