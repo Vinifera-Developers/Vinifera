@@ -26,6 +26,7 @@
 #include "tactical.h"
 #include "tag.h"
 #include "tagtype.h"
+#include "theatertype.h"
 #include "taskforce.h"
 #include "team.h"
 #include "teamtype.h"
@@ -39,6 +40,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 
 bool ScenarioOverlay::IsVisible = false;
@@ -50,7 +52,7 @@ namespace
     ** ---------------- cross-reference navigation ----------------
     **
     ** Detail panes show many references (a TeamType's Script, a Tag's
-    ** Trigger, etc.). Clicking the "› <name>" button next to such a
+    ** Trigger, etc.). Clicking the "> <name>" button next to such a
     ** reference posts a nav request; on the next frame, the matching
     ** outer-tab + inner-tab + pane select the requested entry.
     */
@@ -67,6 +69,59 @@ namespace
         int index = -1;
     };
     static NavRequest g_nav;
+
+    /*
+    ** ---------------- back/forward history ----------------
+    **
+    ** Browser-style stacks of visited (pane, selected-index) pairs.
+    ** g_current tracks the pane currently being viewed (each pane writes to
+    ** it on draw). Clicking a Goto_Row button pushes g_current onto g_back
+    ** and clears g_forward; the Back button pushes onto g_forward and pops
+    ** g_back; Forward is the mirror.
+    */
+    struct NavLocation {
+        NavTarget target = NavTarget::None;
+        int index = -1;
+    };
+    static NavLocation g_current;
+    static std::vector<NavLocation> g_back;
+    static std::vector<NavLocation> g_forward;
+
+    static void Record_Current(NavTarget target, int selected)
+    {
+        g_current.target = target;
+        g_current.index  = selected;
+    }
+
+    static void Push_Goto(NavTarget target, int index)
+    {
+        if (g_current.target != NavTarget::None) {
+            g_back.push_back(g_current);
+        }
+        g_forward.clear();
+        g_nav.target = target;
+        g_nav.index  = index;
+    }
+
+    static void Go_Back()
+    {
+        if (g_back.empty()) return;
+        g_forward.push_back(g_current);
+        const NavLocation prev = g_back.back();
+        g_back.pop_back();
+        g_nav.target = prev.target;
+        g_nav.index  = prev.index;
+    }
+
+    static void Go_Forward()
+    {
+        if (g_forward.empty()) return;
+        g_back.push_back(g_current);
+        const NavLocation next = g_forward.back();
+        g_forward.pop_back();
+        g_nav.target = next.target;
+        g_nav.index  = next.index;
+    }
 
     static bool Is_Type_Target(NavTarget t)
     {
@@ -93,7 +148,11 @@ namespace
     }
 
     /**
-     *  Each pane calls this at the top to consume a matching nav request.
+     *  Each pane calls this at the top of its draw. It (a) consumes a
+     *  matching nav request if one is pending, and (b) records this pane's
+     *  (target, selected) as the *current* location for back/forward history.
+     *  Only the active tab item calls into its pane each frame, so this
+     *  correctly tracks the visible pane.
      */
     static void Consume_Nav(NavTarget want, int& selected)
     {
@@ -101,15 +160,17 @@ namespace
             selected = g_nav.index;
             g_nav.target = NavTarget::None;
         }
+        Record_Current(want, selected);
     }
 
     /**
-     *  Renders one row of a detail panel showing "Slot: › <name>" with a
+     *  Renders one row of a detail panel showing "Slot : > <name>" with a
      *  navigation button. If `index < 0` (the referenced entry doesn't
-     *  exist), shows "<none>" instead.
+     *  exist), shows "<none>" instead. Pass `width > 0` to left-pad the
+     *  label so the colon column lines up with other rows in the block.
      */
     static void Goto_Row(const char* slot, const char* visible_name,
-                         NavTarget target, int index)
+                         NavTarget target, int index, int width = 0)
     {
         /*
         ** Honor the ImGui "display##id" split: everything before "##" is the
@@ -127,7 +188,11 @@ namespace
             std::snprintf(display, sizeof(display), "%s", slot);
         }
 
-        ImGui::Text("%s:", display);
+        if (width > 0) {
+            ImGui::Text("%-*s :", width, display);
+        } else {
+            ImGui::Text("%s :", display);
+        }
         ImGui::SameLine();
         if (index < 0 || visible_name == nullptr) {
             ImGui::TextDisabled("<none>");
@@ -135,10 +200,9 @@ namespace
         }
         ImGui::PushID(slot);
         char buf[160];
-        std::snprintf(buf, sizeof(buf), "› %s", visible_name);
+        std::snprintf(buf, sizeof(buf), "> %s", visible_name);
         if (ImGui::SmallButton(buf)) {
-            g_nav.target = target;
-            g_nav.index = index;
+            Push_Goto(target, index);
         }
         ImGui::PopID();
     }
@@ -156,32 +220,8 @@ namespace
 
 
     /*
-    ** ---------------- vector lookup helpers ----------------
-    */
-    template <typename V, typename T>
-    static int Find_Index(const V& vec, const T* needle)
-    {
-        if (needle == nullptr) return -1;
-        for (int i = 0; i < vec.Count(); ++i) {
-            if (vec[i] == needle) return i;
-        }
-        return -1;
-    }
-
-
-    /*
     ** ---------------- shared formatting helpers ----------------
     */
-
-    static const char* Theater_To_String(TheaterType t)
-    {
-        switch (t) {
-        case THEATER_NONE:      return "None";
-        case THEATER_TEMPERATE: return "Temperate";
-        case THEATER_SNOW:      return "Snow";
-        default:                return "?";
-        }
-    }
 
     static const char* Diff_To_String(DiffType d)
     {
@@ -217,6 +257,70 @@ namespace
             return "<none>";
         }
         return BuildingTypes[s]->Name();
+    }
+
+    /**
+     *  SmallButton labelled "> (X, Y)" that, when clicked, scrolls the
+     *  tactical view to that cell. Falls back to plain text if there's no
+     *  active tactical map (e.g. in a menu). Caller is responsible for
+     *  pushing a unique ImGui ID if multiple cell buttons may share the
+     *  same coordinates within the same scope.
+     */
+    static void Cell_Goto_Button(Cell cell)
+    {
+        if (TacticalMap == nullptr) {
+            ImGui::Text("(%d, %d)", cell.X, cell.Y);
+            return;
+        }
+        char buf[64];
+        std::snprintf(buf, sizeof(buf), "> (%d, %d)", cell.X, cell.Y);
+        if (ImGui::SmallButton(buf)) {
+            TacticalMap->Set_Tactical_Position(cell.As_Coord());
+        }
+    }
+
+    /**
+     *  Formats a live house as "IniName (HouseType)", e.g. "Multi1 (GDI)".
+     *  Caller provides the buffer because multiple house names may need to
+     *  appear in the same line.
+     */
+    static const char* House_Display_Name(const HouseClass* h, char* buf, size_t n)
+    {
+        if (h == nullptr) {
+            std::snprintf(buf, n, "?");
+        } else if (h->Class != nullptr) {
+            std::snprintf(buf, n, "%s (%s)", h->IniName.c_str(), h->Class->Name());
+        } else {
+            std::snprintf(buf, n, "%s", h->IniName.c_str());
+        }
+        return buf;
+    }
+
+    /**
+     *  Every AbstractTypeClass carries two names: an INI ID (e.g.
+     *  "00000001" for triggers, "TeamType123" for teams) and a user-facing
+     *  GivenName / Full_Name set by the mapper. When space is limited
+     *  (listbox rows, goto buttons) prefer the GivenName, falling back to
+     *  the INI Name if empty. Detail panes show both side by side.
+     */
+    static const char* Display_Name(const AbstractTypeClass* t)
+    {
+        if (t == nullptr) return "?";
+        const char* full = t->Full_Name();
+        return (full != nullptr && full[0] != '\0') ? full : t->Name();
+    }
+
+    /**
+     *  Renders the two-line "INI Name / Name" header used at the top of
+     *  every type detail pane. `width` lets the caller widen the labels to
+     *  match a sibling row (e.g. a "TriggerType" goto, 11 chars) in the
+     *  same block. Default 8 = max("INI Name", "Name", "HeapID").
+     */
+    static void Draw_Type_Names(const AbstractTypeClass* t, int width = 8)
+    {
+        ImGui::Text("%-*s : %s", width, "INI Name", t->Name());
+        ImGui::Text("%-*s : %s", width, "Name",
+            (t->Full_Name() && t->Full_Name()[0]) ? t->Full_Name() : "<unset>");
     }
 
 
@@ -275,27 +379,29 @@ namespace
             return;
         }
 
-        ImGui::Text("Name        : %s", Scen->ScenarioName);
-        ImGui::Text("Description : %s", Scen->Description);
-        ImGui::Text("Theater     : %s", Theater_To_String(Scen->Theater));
-        ImGui::Text("Difficulty  : %s (computer: %s)",
+        /* Block 1: header. Longest label = "Mission timer" (13). */
+        ImGui::Text("%-13s : %s", "Name",          Scen->ScenarioName);
+        ImGui::Text("%-13s : %s", "Description",   Scen->Description);
+        ImGui::Text("%-13s : %s", "Theater",       TheaterTypeClass::Name_From(Scen->Theater));
+        ImGui::Text("%-13s : %s (computer: %s)", "Difficulty",
             Diff_To_String(Scen->Difficulty), Diff_To_String(Scen->CDifficulty));
-        ImGui::Text("Player house: %s", HouseType_Name(Scen->PlayerHouse));
-        ImGui::Text("Mission timer: %ld frames", static_cast<long>(Scen->MissionTimer));
+        ImGui::Text("%-13s : %s", "Player house",  HouseType_Name(Scen->PlayerHouse));
+        ImGui::Text("%-13s : %ld frames", "Mission timer", static_cast<long>(Scen->MissionTimer));
 
+        /* Block 2: flags. Longest label = "IsMultiplayerOnly" (17). */
         ImGui::SeparatorText("Flags");
-        ImGui::Text("IsTrainCrate     : %s", Scen->IsTrainCrate ? "yes" : "no");
-        ImGui::Text("IsTibGrowth      : %s", Scen->IsTibGrowth ? "yes" : "no");
-        ImGui::Text("IsVeinGrowth     : %s", Scen->IsVeinGrowth ? "yes" : "no");
-        ImGui::Text("IsIceGrowth      : %s", Scen->IsIceGrowth ? "yes" : "no");
-        ImGui::Text("IsGlobalChanged  : %s", Scen->IsGlobalChanged ? "yes" : "no");
-        ImGui::Text("IsAmbientChanged : %s", Scen->IsAmbientChanged ? "yes" : "no");
-        ImGui::Text("IsEndOfGame      : %s", Scen->IsEndOfGame ? "yes" : "no");
-        ImGui::Text("IsMultiplayerOnly: %s", Scen->IsMultiplayerOnly ? "yes" : "no");
-        ImGui::Text("IsCratePickup    : %s", Scen->IsCratePickup ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsTrainCrate",      Scen->IsTrainCrate      ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsTibGrowth",       Scen->IsTibGrowth       ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsVeinGrowth",      Scen->IsVeinGrowth      ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsIceGrowth",       Scen->IsIceGrowth       ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsGlobalChanged",   Scen->IsGlobalChanged   ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsAmbientChanged",  Scen->IsAmbientChanged  ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsEndOfGame",       Scen->IsEndOfGame       ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsMultiplayerOnly", Scen->IsMultiplayerOnly ? "yes" : "no");
+        ImGui::Text("%-17s : %s", "IsCratePickup",     Scen->IsCratePickup     ? "yes" : "no");
 
         if (ScenExtension != nullptr) {
-            ImGui::Text("IsIceDestruction : %s", ScenExtension->IsIceDestruction ? "yes" : "no");
+            ImGui::Text("%-17s : %s", "IsIceDestruction", ScenExtension->IsIceDestruction ? "yes" : "no");
         }
     }
 
@@ -334,16 +440,16 @@ namespace
                 TActionClass::Action_Name(a->Action), a->Data.Value);
             ImGui::Indent();
             if (a->Tag != nullptr) {
-                Goto_Row("Tag", a->Tag->Name(), NavTarget::TagType,
-                    Find_Index(TagTypes, a->Tag));
+                Goto_Row("Tag", Display_Name(a->Tag), NavTarget::TagType,
+                    TagTypes.ID(a->Tag));
             }
             if (a->Trigger != nullptr) {
-                Goto_Row("Trigger", a->Trigger->Name(), NavTarget::TriggerType,
-                    Find_Index(TriggerTypes, a->Trigger));
+                Goto_Row("Trigger", Display_Name(a->Trigger), NavTarget::TriggerType,
+                    TriggerTypes.ID(a->Trigger));
             }
             if (a->Team != nullptr) {
-                Goto_Row("Team", a->Team->Name(), NavTarget::TeamType,
-                    Find_Index(TeamTypes, a->Team));
+                Goto_Row("Team", Display_Name(a->Team), NavTarget::TeamType,
+                    TeamTypes.ID(a->Team));
             }
             ImGui::Unindent();
             ImGui::PopID();
@@ -360,28 +466,29 @@ namespace
         Draw_List_Detail("##trigtypes", TriggerTypes.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const TriggerTypeClass* t = TriggerTypes[i];
-                std::snprintf(buf, n, "[%d] %s", i, t ? t->Name() : "<null>");
+                std::snprintf(buf, n, "[%d] %s", i, Display_Name(t));
             },
             [](int i) {
                 const TriggerTypeClass* t = TriggerTypes[i];
                 if (!t) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("Name   : %s", t->Name());
-                ImGui::Text("HeapID : %d", static_cast<int>(t->HeapID));
+                Draw_Type_Names(t);
+                ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
                 ImGui::Separator();
 
-                ImGui::Text("Enabled:");
+                /* Block 2: width 7 = max("Enabled", "House", "Next"). */
+                ImGui::Text("%-7s :", "Enabled");
                 ImGui::SameLine(); RO_Checkbox("Base##e", t->Enabled);
                 ImGui::SameLine(); RO_Checkbox("Easy##e", t->IsEnabledEasy);
                 ImGui::SameLine(); RO_Checkbox("Med##e",  t->IsEnabledMedium);
                 ImGui::SameLine(); RO_Checkbox("Hard##e", t->IsEnabledHard);
 
                 Goto_Row("House", t->House ? t->House->Name() : nullptr,
-                    NavTarget::HouseType, t->House ? Find_Index(HouseTypes, t->House) : -1);
+                    NavTarget::HouseType, t->House ? HouseTypes.ID(t->House) : -1, 7);
 
                 if (t->Next != nullptr) {
-                    Goto_Row("Next", t->Next->Name(),
-                        NavTarget::TriggerType, Find_Index(TriggerTypes, t->Next));
+                    Goto_Row("Next", Display_Name(t->Next),
+                        NavTarget::TriggerType, TriggerTypes.ID(t->Next), 7);
                 }
 
                 ImGui::SeparatorText("Events");
@@ -399,21 +506,24 @@ namespace
         Draw_List_Detail("##tagtypes", TagTypes.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const TagTypeClass* t = TagTypes[i];
-                std::snprintf(buf, n, "[%d] %s", i, t ? t->Name() : "<null>");
+                std::snprintf(buf, n, "[%d] %s", i, Display_Name(t));
             },
             [](int i) {
                 const TagTypeClass* t = TagTypes[i];
                 if (!t) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("Name        : %s", t->Name());
-                ImGui::Text("HeapID      : %d", static_cast<int>(t->HeapID));
+                Draw_Type_Names(t);
+                ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
                 ImGui::Separator();
-                ImGui::Text("Persistence : %s (%d)",
+
+                /* Block 2: width 11 = max("Persistence", "TriggerType"). */
+                ImGui::Text("%-11s : %s (%d)", "Persistence",
                     Persistence_To_String(t->Persistence),
                     static_cast<int>(t->Persistence));
-                Goto_Row("TriggerType", t->TriggerType ? t->TriggerType->Name() : nullptr,
+                Goto_Row("TriggerType",
+                    t->TriggerType ? Display_Name(t->TriggerType) : nullptr,
                     NavTarget::TriggerType,
-                    t->TriggerType ? Find_Index(TriggerTypes, t->TriggerType) : -1);
+                    t->TriggerType ? TriggerTypes.ID(t->TriggerType) : -1, 11);
             });
     }
 
@@ -424,40 +534,45 @@ namespace
         Draw_List_Detail("##teamtypes", TeamTypes.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const TeamTypeClass* t = TeamTypes[i];
-                std::snprintf(buf, n, "[%d] %s", i, t ? t->Name() : "<null>");
+                std::snprintf(buf, n, "[%d] %s", i, Display_Name(t));
             },
             [](int i) {
                 const TeamTypeClass* t = TeamTypes[i];
                 if (!t) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("Name         : %s", t->Name());
-                ImGui::Text("HeapID       : %d", static_cast<int>(t->HeapID));
+                Draw_Type_Names(t);
+                ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
                 ImGui::Separator();
 
                 /*
+                ** Block 2: width 12 = max("House", "Script", "TaskForce",
+                ** "Tag", "VeteranLevel", "Group", "MaxAllowed").
+                **
                 ** HouseClass references on TeamTypeClass point at the *live*
                 ** house instance, not the HouseTypeClass -- use the
                 ** instance-side nav target.
                 */
                 if (t->House != nullptr) {
-                    Goto_Row("House",     t->House->IniName.c_str(),
-                        NavTarget::HouseInst, Find_Index(Houses, t->House));
+                    char hbuf[64];
+                    House_Display_Name(t->House, hbuf, sizeof(hbuf));
+                    Goto_Row("House", hbuf,
+                        NavTarget::HouseInst, Houses.ID(t->House), 12);
                 } else {
-                    ImGui::TextDisabled("House: <none>");
+                    ImGui::Text("%-12s : <none>", "House");
                 }
-                Goto_Row("Script",    t->Script    ? t->Script->Name()    : nullptr,
+                Goto_Row("Script",    t->Script    ? Display_Name(t->Script)    : nullptr,
                     NavTarget::ScriptType,
-                    t->Script ? Find_Index(ScriptTypes, t->Script) : -1);
-                Goto_Row("TaskForce", t->TaskForce ? t->TaskForce->Name() : nullptr,
+                    t->Script ? ScriptTypes.ID(t->Script) : -1, 12);
+                Goto_Row("TaskForce", t->TaskForce ? Display_Name(t->TaskForce) : nullptr,
                     NavTarget::TaskForce,
-                    t->TaskForce ? Find_Index(TaskForces, t->TaskForce) : -1);
-                Goto_Row("Tag",       t->Tag       ? t->Tag->Name()       : nullptr,
+                    t->TaskForce ? TaskForces.ID(t->TaskForce) : -1, 12);
+                Goto_Row("Tag",       t->Tag       ? Display_Name(t->Tag)       : nullptr,
                     NavTarget::TagType,
-                    t->Tag ? Find_Index(TagTypes, t->Tag) : -1);
+                    t->Tag ? TagTypes.ID(t->Tag) : -1, 12);
 
-                ImGui::Text("VeteranLevel : %d", t->VeteranLevel);
-                ImGui::Text("Group        : %d", t->Group);
-                ImGui::Text("MaxAllowed   : %d", t->MaxAllowed);
+                ImGui::Text("%-12s : %d", "VeteranLevel", t->VeteranLevel);
+                ImGui::Text("%-12s : %d", "Group",        t->Group);
+                ImGui::Text("%-12s : %d", "MaxAllowed",   t->MaxAllowed);
 
                 ImGui::SeparatorText("Flags");
                 RO_Checkbox("Autocreate##tt",    t->IsAutocreate);   ImGui::SameLine();
@@ -479,15 +594,18 @@ namespace
         Draw_List_Detail("##taskforces", TaskForces.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const TaskForceClass* t = TaskForces[i];
-                std::snprintf(buf, n, "[%d] %s", i, t ? t->Name() : "<null>");
+                std::snprintf(buf, n, "[%d] %s", i, Display_Name(t));
             },
             [](int i) {
                 const TaskForceClass* t = TaskForces[i];
                 if (!t) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("Name       : %s", t->Name());
-                ImGui::Text("Group      : %d", t->Group);
-                ImGui::Text("ClassCount : %d", t->ClassCount);
+                Draw_Type_Names(t);
+                ImGui::Separator();
+
+                /* Width 10 = max("Group", "ClassCount"). */
+                ImGui::Text("%-10s : %d", "Group",      t->Group);
+                ImGui::Text("%-10s : %d", "ClassCount", t->ClassCount);
                 ImGui::Separator();
                 for (int m = 0; m < t->ClassCount && m < TaskForceClass::MAX_TEAM_CLASSCOUNT; ++m) {
                     const TaskForceMemberClass& mem = t->Members[m];
@@ -504,15 +622,18 @@ namespace
         Draw_List_Detail("##scripttypes", ScriptTypes.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const ScriptTypeClass* s = ScriptTypes[i];
-                std::snprintf(buf, n, "[%d] %s", i, s ? s->Name() : "<null>");
+                std::snprintf(buf, n, "[%d] %s", i, Display_Name(s));
             },
             [](int i) {
                 const ScriptTypeClass* s = ScriptTypes[i];
                 if (!s) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("Name         : %s", s->Name());
-                ImGui::Text("HeapID       : %d", static_cast<int>(s->HeapID));
-                ImGui::Text("MissionCount : %d", s->MissionCount);
+                Draw_Type_Names(s);
+                ImGui::Separator();
+
+                /* Width 12 = max("HeapID", "MissionCount"). */
+                ImGui::Text("%-12s : %d", "HeapID",       static_cast<int>(s->HeapID));
+                ImGui::Text("%-12s : %d", "MissionCount", s->MissionCount);
                 ImGui::Separator();
                 const int show = s->MissionCount < ScriptTypeClass::MAX_SCRIPT_MISSIONS
                     ? s->MissionCount : ScriptTypeClass::MAX_SCRIPT_MISSIONS;
@@ -533,16 +654,21 @@ namespace
         Draw_List_Detail("##aitrigtypes", AITriggerTypes.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const AITriggerTypeClass* a = AITriggerTypes[i];
-                std::snprintf(buf, n, "[%d] %s", i, a ? a->Name() : "<null>");
+                std::snprintf(buf, n, "[%d] %s", i, Display_Name(a));
             },
             [](int i) {
                 const AITriggerTypeClass* a = AITriggerTypes[i];
                 if (!a) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("Name           : %s", a->Name());
+                Draw_Type_Names(a);
                 ImGui::Separator();
 
-                ImGui::Text("Enabled:");
+                /*
+                ** Block 2: width 13 = max("Enabled", "Owner house",
+                ** "TechLevel", "Weight", "Condition obj", "Team one",
+                ** "Team two", "Roles", "Success/exec").
+                */
+                ImGui::Text("%-13s :", "Enabled");
                 ImGui::SameLine(); RO_Checkbox("Base##ai",  a->IsEnabled);
                 ImGui::SameLine(); RO_Checkbox("Easy##ai",  a->EnabledInEasy);
                 ImGui::SameLine(); RO_Checkbox("Med##ai",   a->EnabledInMedium);
@@ -555,29 +681,29 @@ namespace
                 if (a->House >= 0 && a->House < HouseTypes.Count()) {
                     Goto_Row("Owner house",
                         HouseTypes[a->House]->Name(),
-                        NavTarget::HouseType, a->House);
+                        NavTarget::HouseType, a->House, 13);
                 } else {
-                    ImGui::TextDisabled("Owner house: <any>");
+                    ImGui::Text("%-13s : <any>", "Owner house");
                 }
 
-                ImGui::Text("TechLevel      : %d", a->TechLevel);
-                ImGui::Text("Weight         : %.2f (min %.2f, max %.2f)",
+                ImGui::Text("%-13s : %d", "TechLevel", a->TechLevel);
+                ImGui::Text("%-13s : %.2f (min %.2f, max %.2f)", "Weight",
                     a->Weight, a->MinWeight, a->MaxWeight);
-                ImGui::Text("Condition obj  : %s",
+                ImGui::Text("%-13s : %s", "Condition obj",
                     a->ConditionObject ? a->ConditionObject->Name() : "<none>");
 
-                Goto_Row("Team one", a->TeamOne ? a->TeamOne->Name() : nullptr,
+                Goto_Row("Team one", a->TeamOne ? Display_Name(a->TeamOne) : nullptr,
                     NavTarget::TeamType,
-                    a->TeamOne ? Find_Index(TeamTypes, a->TeamOne) : -1);
-                Goto_Row("Team two", a->TeamTwo ? a->TeamTwo->Name() : nullptr,
+                    a->TeamOne ? TeamTypes.ID(a->TeamOne) : -1, 13);
+                Goto_Row("Team two", a->TeamTwo ? Display_Name(a->TeamTwo) : nullptr,
                     NavTarget::TeamType,
-                    a->TeamTwo ? Find_Index(TeamTypes, a->TeamTwo) : -1);
+                    a->TeamTwo ? TeamTypes.ID(a->TeamTwo) : -1, 13);
 
-                ImGui::Text("Roles:");
+                ImGui::Text("%-13s :", "Roles");
                 ImGui::SameLine(); RO_Checkbox("Skirmish##ai",    a->IsForSkirmish);
                 ImGui::SameLine(); RO_Checkbox("BaseDefense##ai", a->IsForBaseDefense);
 
-                ImGui::Text("Success/exec   : %d / %d", a->SuccessCount, a->ExecutionCount);
+                ImGui::Text("%-13s : %d / %d", "Success/exec", a->SuccessCount, a->ExecutionCount);
             });
     }
 
@@ -594,20 +720,24 @@ namespace
                 const HouseTypeClass* h = HouseTypes[i];
                 if (!h) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("Name          : %s", h->Name());
-                ImGui::Text("HeapID        : %d", static_cast<int>(h->HeapID));
+                /* Block 1: width 6 = max("Name", "HeapID"). */
+                ImGui::Text("%-6s : %s", "Name",   h->Name());
+                ImGui::Text("%-6s : %d", "HeapID", static_cast<int>(h->HeapID));
                 ImGui::Separator();
-                ImGui::Text("Side          : %d", h->Side);
-                ImGui::Text("Prefix        : '%c'  Suffix: '%s'", h->Prefix, h->Suffix);
+
+                /* Block 2: width 13 = max("Side", "Prefix", "FirepowerBias",
+                ** "ArmorBias", "CostBias"). */
+                ImGui::Text("%-13s : %d", "Side",   h->Side);
+                ImGui::Text("%-13s : '%c'  Suffix: '%s'", "Prefix", h->Prefix, h->Suffix);
 
                 RO_Checkbox("IsMultiplay##ht",        h->IsMultiplay);
                 RO_Checkbox("IsMultiplayPassive##ht", h->IsMultiplayPassive);
                 RO_Checkbox("IsWallOwner##ht",        h->IsWallOwner);
                 RO_Checkbox("IsSmartAI##ht",          h->IsSmartAI);
 
-                ImGui::Text("FirepowerBias : x%.2f", h->FirepowerBias);
-                ImGui::Text("ArmorBias     : x%.2f", h->ArmorBias);
-                ImGui::Text("CostBias      : x%.2f", h->CostBias);
+                ImGui::Text("%-13s : x%.2f", "FirepowerBias", h->FirepowerBias);
+                ImGui::Text("%-13s : x%.2f", "ArmorBias",     h->ArmorBias);
+                ImGui::Text("%-13s : x%.2f", "CostBias",      h->CostBias);
             });
     }
 
@@ -637,27 +767,32 @@ namespace
         Draw_List_Detail("##triggers", Triggers.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const TriggerClass* t = Triggers[i];
-                const char* nm = (t && t->Class) ? t->Class->Name() : "?";
+                const char* nm = (t && t->Class) ? Display_Name(t->Class) : "?";
                 std::snprintf(buf, n, "[%d] %s", i, nm);
             },
             [](int i) {
                 const TriggerClass* t = Triggers[i];
                 if (!t) { ImGui::TextDisabled("<null>"); return; }
 
-                Goto_Row("Class", t->Class ? t->Class->Name() : nullptr,
+                /* Block 1: width 11 = max("INI Name", "Name", "TriggerType"). */
+                if (t->Class != nullptr) {
+                    Draw_Type_Names(t->Class, 11);
+                }
+                Goto_Row("TriggerType", t->Class ? Display_Name(t->Class) : nullptr,
                     NavTarget::TriggerType,
-                    t->Class ? Find_Index(TriggerTypes, t->Class) : -1);
+                    t->Class ? TriggerTypes.ID(t->Class) : -1, 11);
 
                 ImGui::Separator();
 
+                /* Block 2: width 18 = max("LinkedTo (trigger)", "Timer"). */
                 RO_Checkbox("IsActive##trig", t->IsActive); ImGui::SameLine();
                 RO_Checkbox("IsToDie##trig",  t->IsToDie);
 
-                ImGui::Text("Timer        : %ld frames", static_cast<long>(t->Timer));
+                ImGui::Text("%-18s : %ld frames", "Timer", static_cast<long>(t->Timer));
 
                 if (t->LinkedTo != nullptr && t->LinkedTo->Class != nullptr) {
-                    Goto_Row("LinkedTo (trigger)", t->LinkedTo->Class->Name(),
-                        NavTarget::TriggerInst, Find_Index(Triggers, t->LinkedTo));
+                    Goto_Row("LinkedTo (trigger)", Display_Name(t->LinkedTo->Class),
+                        NavTarget::TriggerInst, Triggers.ID(t->LinkedTo), 18);
                 }
 
                 /*
@@ -689,35 +824,44 @@ namespace
         Draw_List_Detail("##tags", Tags.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const TagClass* t = Tags[i];
-                const char* nm = (t && t->Class) ? t->Class->Name() : "?";
-                std::snprintf(buf, n, "[%d] %s", i, nm);
+                std::snprintf(buf, n, "[%d] %s", i,
+                    (t && t->Class) ? Display_Name(t->Class) : "?");
             },
             [](int i) {
                 const TagClass* t = Tags[i];
                 if (!t) { ImGui::TextDisabled("<null>"); return; }
 
-                Goto_Row("Class (TagType)",
-                    t->Class ? t->Class->Name() : nullptr,
+                /* Block 1: width 8 = max("INI Name", "Name", "TagType"). */
+                if (t->Class != nullptr) {
+                    Draw_Type_Names(t->Class);
+                }
+                Goto_Row("TagType",
+                    t->Class ? Display_Name(t->Class) : nullptr,
                     NavTarget::TagType,
-                    t->Class ? Find_Index(TagTypes, t->Class) : -1);
+                    t->Class ? TagTypes.ID(t->Class) : -1, 8);
 
                 ImGui::Separator();
 
                 /*
+                ** Block 2: width 11 = max("Attached to", "AttachCount",
+                ** "Persistence").
+                **
                 ** Attached-to: vanilla supports attachment to cell, building
                 ** or houses. Get_Position() returns the cell when attached to
                 ** terrain/cell; CELL_NONE (-1,-1) when attached elsewhere.
                 */
                 const Cell pos = t->Get_Position();
                 if (pos.X >= 0 && pos.Y >= 0) {
-                    ImGui::Text("Attached to  : cell %d, %d", pos.X, pos.Y);
+                    ImGui::Text("%-11s : cell", "Attached to");
+                    ImGui::SameLine();
+                    Cell_Goto_Button(pos);
                 } else {
-                    ImGui::Text("Attached to  : object(s) (no cell)");
+                    ImGui::Text("%-11s : object(s) (no cell)", "Attached to");
                 }
-                ImGui::Text("AttachCount  : %d", t->AttachCount);
+                ImGui::Text("%-11s : %d", "AttachCount", t->AttachCount);
 
                 if (t->Class != nullptr) {
-                    ImGui::Text("Persistence  : %s (%d)",
+                    ImGui::Text("%-11s : %s (%d)", "Persistence",
                         Persistence_To_String(t->Class->Persistence),
                         static_cast<int>(t->Class->Persistence));
                 }
@@ -725,22 +869,24 @@ namespace
                 RO_Checkbox("IsToDie##tag",  t->IsToDie);  ImGui::SameLine();
                 RO_Checkbox("IsSprung##tag", t->IsSprung);
 
+                /* Block 3: width 25 = max("Trigger", "TriggerType",
+                ** "TriggerType (from class)"). */
                 ImGui::SeparatorText("Linked trigger");
                 if (t->Trigger != nullptr) {
                     Goto_Row("Trigger",
-                        t->Trigger->Class ? t->Trigger->Class->Name() : "?",
-                        NavTarget::TriggerInst, Find_Index(Triggers, t->Trigger));
+                        t->Trigger->Class ? Display_Name(t->Trigger->Class) : "?",
+                        NavTarget::TriggerInst, Triggers.ID(t->Trigger), 25);
 
                     if (t->Trigger->Class != nullptr) {
-                        Goto_Row("TriggerType", t->Trigger->Class->Name(),
+                        Goto_Row("TriggerType", Display_Name(t->Trigger->Class),
                             NavTarget::TriggerType,
-                            Find_Index(TriggerTypes, t->Trigger->Class));
+                            TriggerTypes.ID(t->Trigger->Class), 25);
                     }
                 } else if (t->Class != nullptr && t->Class->TriggerType != nullptr) {
                     Goto_Row("TriggerType (from class)",
-                        t->Class->TriggerType->Name(),
+                        Display_Name(t->Class->TriggerType),
                         NavTarget::TriggerType,
-                        Find_Index(TriggerTypes, t->Class->TriggerType));
+                        TriggerTypes.ID(t->Class->TriggerType), 25);
                 } else {
                     ImGui::TextDisabled("(no trigger linked)");
                 }
@@ -754,29 +900,39 @@ namespace
         Draw_List_Detail("##teams", Teams.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const TeamClass* t = Teams[i];
-                const char* nm = t ? t->Name() : "?";
-                std::snprintf(buf, n, "[%d] %s", i, nm ? nm : "?");
+                std::snprintf(buf, n, "[%d] %s", i,
+                    (t && t->Class) ? Display_Name(t->Class) : "?");
             },
             [](int i) {
                 const TeamClass* t = Teams[i];
                 if (!t) { ImGui::TextDisabled("<null>"); return; }
 
-                Goto_Row("Class (TeamType)",
-                    t->Class ? t->Class->Name() : nullptr,
+                /* Block 1: width 8 = max("INI Name", "Name", "TeamType"). */
+                if (t->Class != nullptr) {
+                    Draw_Type_Names(t->Class);
+                }
+                Goto_Row("TeamType",
+                    t->Class ? Display_Name(t->Class) : nullptr,
                     NavTarget::TeamType,
-                    t->Class ? Find_Index(TeamTypes, t->Class) : -1);
+                    t->Class ? TeamTypes.ID(t->Class) : -1, 8);
 
                 ImGui::Separator();
 
+                /* Block 2: width 8 = max("House", "Members", "Risk",
+                ** "Flags", "Live tag", "Zone"). */
+                char hbuf[64];
+                if (t->House != nullptr) {
+                    House_Display_Name(t->House, hbuf, sizeof(hbuf));
+                }
                 Goto_Row("House",
-                    t->House ? t->House->IniName.c_str() : nullptr,
+                    t->House ? hbuf : nullptr,
                     NavTarget::HouseInst,
-                    t->House ? Find_Index(Houses, t->House) : -1);
+                    t->House ? Houses.ID(t->House) : -1, 8);
 
-                ImGui::Text("Members      : %d", t->Total);
-                ImGui::Text("Risk         : %d", t->Risk);
+                ImGui::Text("%-8s : %d", "Members", t->Total);
+                ImGui::Text("%-8s : %d", "Risk",    t->Risk);
 
-                ImGui::Text("Flags:");
+                ImGui::Text("%-8s :", "Flags");
                 RO_Checkbox("ForcedActive##team",  t->IsForcedActive);  ImGui::SameLine();
                 RO_Checkbox("FullStrength##team",  t->IsFullStrength);
                 RO_Checkbox("UnderStrength##team", t->IsUnderStrength); ImGui::SameLine();
@@ -784,8 +940,8 @@ namespace
 
                 if (t->Tag != nullptr) {
                     Goto_Row("Live tag",
-                        t->Tag->Class ? t->Tag->Class->Name() : "?",
-                        NavTarget::TagInst, Find_Index(Tags, t->Tag));
+                        t->Tag->Class ? Display_Name(t->Tag->Class) : "?",
+                        NavTarget::TagInst, Tags.ID(t->Tag), 8);
                 }
 
                 /*
@@ -794,15 +950,9 @@ namespace
                 ** button.
                 */
                 if (t->Zone != nullptr && TacticalMap != nullptr) {
-                    const Coord c = t->Zone->Center_Coord();
-                    const Cell cell = c.As_Cell();
-                    ImGui::Text("Zone        :");
+                    ImGui::Text("%-8s :", "Zone");
                     ImGui::SameLine();
-                    char buf[64];
-                    std::snprintf(buf, sizeof(buf), "› Center (%d, %d)##zone", cell.X, cell.Y);
-                    if (ImGui::SmallButton(buf)) {
-                        TacticalMap->Set_Tactical_Position(c);
-                    }
+                    Cell_Goto_Button(t->Zone->Center_Coord().As_Cell());
                 }
 
                 /*
@@ -812,11 +962,12 @@ namespace
                 */
                 if (t->Script != nullptr) {
                     ImGui::SeparatorText("Script progression");
+                    /* Width 14 = max("Script type", "CurrentMission"). */
                     Goto_Row("Script type",
-                        t->Script->Class ? t->Script->Class->Name() : nullptr,
+                        t->Script->Class ? Display_Name(t->Script->Class) : nullptr,
                         NavTarget::ScriptType,
-                        t->Script->Class ? Find_Index(ScriptTypes, t->Script->Class) : -1);
-                    ImGui::Text("CurrentMission : %d", t->Script->CurrentMission);
+                        t->Script->Class ? ScriptTypes.ID(t->Script->Class) : -1, 14);
+                    ImGui::Text("%-14s : %d", "CurrentMission", t->Script->CurrentMission);
 
                     if (t->Script->Class != nullptr) {
                         const ScriptTypeClass* sc = t->Script->Class;
@@ -828,7 +979,7 @@ namespace
                             if (current) {
                                 /* Highlight the currently-executing line. */
                                 ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.3f, 1.0f),
-                                    "▶ [%d] %s  (data=%d)", m,
+                                    "> [%d] %s  (data=%d)", m,
                                     ScriptMissionClass::Mission_Name(mc.Mission),
                                     mc.Data.Value);
                             } else {
@@ -849,27 +1000,35 @@ namespace
         Draw_List_Detail("##houses", Houses.Count(), selected,
             [](int i, char* buf, size_t n) {
                 const HouseClass* h = Houses[i];
-                std::snprintf(buf, n, "[%d] %s", i, h ? h->IniName.c_str() : "<null>");
+                if (h == nullptr) {
+                    std::snprintf(buf, n, "[%d] <null>", i);
+                } else {
+                    char nm[64];
+                    House_Display_Name(h, nm, sizeof(nm));
+                    std::snprintf(buf, n, "[%d] %s", i, nm);
+                }
             },
             [](int i) {
                 const HouseClass* h = Houses[i];
                 if (!h) { ImGui::TextDisabled("<null>"); return; }
 
-                ImGui::Text("IniName         : %s", h->IniName.c_str());
-                Goto_Row("Class (HouseType)",
+                /* Block 1: width 9 = max("IniName", "HouseType"). */
+                ImGui::Text("%-9s : %s", "IniName", h->IniName.c_str());
+                Goto_Row("HouseType",
                     h->Class ? h->Class->Name() : nullptr,
                     NavTarget::HouseType,
-                    h->Class ? Find_Index(HouseTypes, h->Class) : -1);
+                    h->Class ? HouseTypes.ID(h->Class) : -1, 9);
 
                 ImGui::Separator();
 
+                /* Block 2: width 10 = max("Credits", "Base nodes", "Allies"). */
                 RO_Checkbox("IsHuman##h",         h->IsHuman);         ImGui::SameLine();
                 RO_Checkbox("IsPlayerControl##h", h->IsPlayerControl);
                 RO_Checkbox("IsDefeated##h",      h->IsDefeated);      ImGui::SameLine();
                 RO_Checkbox("IsAlerted##h",       h->IsAlerted);
 
-                ImGui::Text("Credits         : %ld", h->Credits);
-                ImGui::Text("Base nodes      : %d", h->Base.Nodes.Count());
+                ImGui::Text("%-10s : %ld", "Credits",    h->Credits);
+                ImGui::Text("%-10s : %d",  "Base nodes", h->Base.Nodes.Count());
 
                 /*
                 ** Allies is a bitmask of HousesType: bit (1 << other->HeapID)
@@ -877,7 +1036,7 @@ namespace
                 ** actual house list with goto buttons; the raw mask stays
                 ** alongside for sanity.
                 */
-                ImGui::Text("Allies          : 0x%X", h->Control.Allies);
+                ImGui::Text("%-10s : 0x%X", "Allies", h->Control.Allies);
                 ImGui::Indent();
                 int ally_count = 0;
                 for (int oi = 0; oi < Houses.Count(); ++oi) {
@@ -888,8 +1047,9 @@ namespace
                     char slot[32];
                     std::snprintf(slot, sizeof(slot), "%s##ally_%d",
                         self ? "(self)" : "ally", oi);
-                    Goto_Row(slot, other->IniName.c_str(),
-                        NavTarget::HouseInst, oi);
+                    char vis[64];
+                    House_Display_Name(other, vis, sizeof(vis));
+                    Goto_Row(slot, vis, NavTarget::HouseInst, oi);
                     ++ally_count;
                 }
                 if (ally_count == 0) {
@@ -964,13 +1124,18 @@ namespace
             }
 
             ImGui::PushID(hi);
+            char hbuf[64];
+            House_Display_Name(h, hbuf, sizeof(hbuf));
             if (ImGui::TreeNode("##house", "%s (%d nodes)",
-                h->IniName.c_str(), h->Base.Nodes.Count()))
+                hbuf, h->Base.Nodes.Count()))
             {
                 for (int ni = 0; ni < h->Base.Nodes.Count(); ++ni) {
                     const BaseNodeClass& n = h->Base.Nodes[ni];
-                    ImGui::Text("[%d] %s @ (%d, %d)", ni,
-                        StructType_Name(n.Type), n.CellID.X, n.CellID.Y);
+                    ImGui::PushID(ni);
+                    ImGui::Text("[%d] %s @", ni, StructType_Name(n.Type));
+                    ImGui::SameLine();
+                    Cell_Goto_Button(n.CellID);
+                    ImGui::PopID();
                 }
                 ImGui::TreePop();
             }
@@ -1003,6 +1168,24 @@ void ScenarioOverlay::Draw()
         ImGui::End();
         return;
     }
+
+    /*
+    ** Browser-style back/forward across visited type/instance entries.
+    */
+    ImGui::BeginDisabled(g_back.empty());
+    if (ImGui::Button("<- Back")) {
+        Go_Back();
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(g_forward.empty());
+    if (ImGui::Button("Forward ->")) {
+        Go_Forward();
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::TextDisabled("(%d back / %d fwd)",
+        static_cast<int>(g_back.size()), static_cast<int>(g_forward.size()));
 
     if (ImGui::BeginTabBar("##vinifera_scenario_tabs")) {
 
