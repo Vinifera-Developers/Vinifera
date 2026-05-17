@@ -12,6 +12,7 @@
 #include "vinifera_imgui.h"
 
 #include "audio_manager.h"
+#include "debug_overlay.h"
 #include "debughandler.h"
 #include "vinifera_globals.h"
 
@@ -221,6 +222,8 @@ void ViniferaImGui::Render()
         AudioManager.Draw_Debug_UI();
     }
 #endif
+
+    DebugOverlay::Draw();
 
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), SDLWindowRenderer);

@@ -11,6 +11,8 @@
 
 #include "commandext.h"
 
+#include "debug_overlay.h"
+
 #include "aircraft.h"
 #include "aircrafttype.h"
 #include "anim.h"
@@ -4784,5 +4786,37 @@ bool MeteorImpactCommandClass::Process()
 
     new VoxelAnimClass(voxelanimtypeptr, mouse_coord);
 
+    return true;
+}
+
+
+/**
+ *  Toggle the in-game ImGui debug overlay window.
+ *
+ *  @author: ZivDero
+ */
+const char *ToggleDebugOverlayCommandClass::Get_Name() const
+{
+    return "ToggleDebugOverlay";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_UI_Name() const
+{
+    return "Toggle Debug Overlay";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_Description() const
+{
+    return "Shows or hides the Vinifera debug overlay window.";
+}
+
+bool ToggleDebugOverlayCommandClass::Process()
+{
+    DebugOverlay::IsVisible = !DebugOverlay::IsVisible;
     return true;
 }

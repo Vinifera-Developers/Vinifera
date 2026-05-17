@@ -384,3 +384,4 @@ This page lists all the individual contributions to the project by their author.
   - Add subtitle rendering for EVA speeches with customizable styling and a category filter.
   - Add `Attach Sound`, `Detach Sound`, and `Stop Sounds At` trigger actions for managing ambient sounds from scripts.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
+  - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.

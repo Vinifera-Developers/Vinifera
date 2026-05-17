@@ -1425,3 +1425,20 @@ public:
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
 };
+
+
+/**
+ *  Toggle the in-game ImGui debug overlay window.
+ */
+class ToggleDebugOverlayCommandClass : public ViniferaCommandClass
+{
+public:
+    ToggleDebugOverlayCommandClass() : ViniferaCommandClass() {}
+    virtual ~ToggleDebugOverlayCommandClass() {}
+
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
+};

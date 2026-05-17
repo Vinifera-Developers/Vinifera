@@ -95,6 +95,7 @@ New:
 - Replace the vanilla audio engine with a miniaudio-backed system for sound effects, music, EVA speech, subtitles, and VQA movie audio (by CCHyper/tomsons26, ZivDero)
 - Add new customizations options for themes, sounds and speeches (by CCHyper/tomsons26, ZivDero)
 - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies (by ZivDero, CCHyper)
+- Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
