@@ -22,6 +22,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "infantry.h"
+#include "mission.h"
 #include "net/combuf.h"
 #include "net/ipxconn.h"
 #include "net/ipxmgr.h"
@@ -38,9 +39,10 @@
 #include "tibsun_globals.h"
 #include "trigger.h"
 #include "unit.h"
-#include "voxelanim.h"
 #include "verses.h"
 #include "veterancy.h"
+#include "vinifera_globals.h"
+#include "voxelanim.h"
 #include "weapontype.h"
 
 #include <imgui.h>
@@ -91,7 +93,10 @@ namespace
         ImGui::Text("Time : %s", timebuf);
         ImGui::Text("FPS  : %u", FramesPerSecond);
 
-#ifndef NDEBUG
+        if (!Vinifera_DeveloperMode) {
+            return;
+        }
+
         ImGui::Text("Frame      : %ld", Frame);
 
         /**
@@ -128,10 +133,8 @@ namespace
         ImGui::SeparatorText("Queues");
         ImGui::Text("OutList    : %d", OutList.Count);
         ImGui::Text("DoList     : %d", DoList.Count);
-#endif
     }
 
-#ifndef NDEBUG
     static const char* Diff_To_String(DiffType d)
     {
         switch (d) {
@@ -214,7 +217,6 @@ namespace
             ImGui::Text("IsToLose        : %s", h->IsToLose ? "yes" : "no");
         }
     }
-#endif // NDEBUG
 
     static const char* Rank_To_String(VeterancyRankType r)
     {
@@ -296,6 +298,15 @@ namespace
         HouseClass* owner = obj->Owner_HouseClass();
         const bool is_enemy = PlayerPtr != nullptr && owner != nullptr && !PlayerPtr->Is_Ally(owner);
 
+        /**
+         *  Outside of developer mode, refuse to leak details about enemy
+         *  units -- mirrors the "Nothing Selected" placeholder.
+         */
+        if (is_enemy && !Vinifera_DeveloperMode) {
+            ImGui::TextDisabled("Enemy Unit Selected");
+            return;
+        }
+
         ImGui::Text("Unit  : %s", type->Name());
         ImGui::Text("Owner : %s%s",
             owner ? owner->IniName.c_str() : "(none)",
@@ -316,6 +327,7 @@ namespace
         }
 
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
+        ImGui::Text("Mission: %s", MissionClass::Mission_Name(techno->Get_Mission()));
         ImGui::Text("Rank  : %s (xp=%.2f)", Rank_To_String(techno->Crew.Get_Rank()), techno->Crew.Get_Experience());
 
         /**
@@ -484,12 +496,12 @@ void DebugOverlay::Draw()
             ImGui::EndTabItem();
         }
 
-#ifndef NDEBUG
-        if (ImGui::BeginTabItem("House")) {
-            Draw_House_Tab();
-            ImGui::EndTabItem();
+        if (Vinifera_DeveloperMode) {
+            if (ImGui::BeginTabItem("House")) {
+                Draw_House_Tab();
+                ImGui::EndTabItem();
+            }
         }
-#endif
 
         if (ImGui::BeginTabItem("Unit")) {
             Draw_Unit_Tab();
