@@ -23,6 +23,11 @@
 #include "housetype.h"
 #include "infantry.h"
 #include "mission.h"
+#include "tag.h"
+#include "tagtype.h"
+#include "team.h"
+#include "teamtype.h"
+#include "triggertype.h"
 #include "net/combuf.h"
 #include "net/ipxconn.h"
 #include "net/ipxmgr.h"
@@ -228,6 +233,16 @@ namespace
         }
     }
 
+    static const char* Persistence_To_String(PersistantType p)
+    {
+        switch (p) {
+        case VOLATILE:       return "Volatile";
+        case SEMIPERSISTANT: return "Semi-persistent";
+        case PERSISTANT:     return "Persistent";
+        default:             return "?";
+        }
+    }
+
     /**
      *  Draws one weapon slot's stats. ROF in TS is ticks between shots, and
      *  there are 15 logic ticks/sec, so raw shots-per-second = 15/ROF and
@@ -328,6 +343,18 @@ namespace
 
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
         ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
+
+        /**
+         *  Control-group: 0-9 if the unit is part of a Ctrl+# group,
+         *  otherwise -1 (0xFFFFFFFF when reinterpreted unsigned).
+         */
+        const int group = static_cast<int>(techno->Group);
+        if (group >= 0 && group <= 9) {
+            ImGui::Text("Group   : %d", group);
+        } else {
+            ImGui::Text("Group   : (none)");
+        }
+
         ImGui::Text("Rank    : %s (xp=%.2f)", Rank_To_String(techno->Crew.Get_Rank()), techno->Crew.Get_Experience());
 
         /**
@@ -338,6 +365,47 @@ namespace
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
             ImGui::Text("Speed   : %.2f (bias x%.2f)", foot->Speed, foot->SpeedBias);
+        }
+
+        /**
+         *  Scenario-script bindings: Team (foot units only) and Tag (any
+         *  object). Only shown when something is actually attached so the
+         *  panel stays uncluttered for plain units.
+         */
+        TeamClass* team = is_foot ? static_cast<FootClass*>(obj)->Team : nullptr;
+        TagClass* tag = obj->Tag;
+        if (team != nullptr || tag != nullptr) {
+            ImGui::SeparatorText("Scenario");
+
+            if (team != nullptr) {
+                ImGui::Text("Team    : %s", team->Name());
+                if (ImGui::TreeNode("Team details")) {
+                    ImGui::Text("Members       : %d", team->Total);
+                    ImGui::Text("Risk          : %d", team->Risk);
+                    ImGui::Text("Forced active : %s", team->IsForcedActive ? "yes" : "no");
+                    ImGui::Text("Full strength : %s", team->IsFullStrength ? "yes" : "no");
+                    ImGui::Text("Under strength: %s", team->IsUnderStrength ? "yes" : "no");
+                    ImGui::Text("Has been      : %s", team->IsHasBeen ? "yes" : "no");
+                    ImGui::TreePop();
+                }
+            }
+
+            if (tag != nullptr) {
+                const TagTypeClass* tagtype = tag->Class;
+                ImGui::Text("Tag     : %s", tagtype ? tagtype->Name() : "?");
+                if (ImGui::TreeNode("Tag details")) {
+                    if (tagtype != nullptr && tagtype->TriggerType != nullptr) {
+                        ImGui::Text("Trigger     : %s", tagtype->TriggerType->Name());
+                    }
+                    if (tagtype != nullptr) {
+                        ImGui::Text("Persistence : %s", Persistence_To_String(tagtype->Persistence));
+                    }
+                    ImGui::Text("AttachCount : %d", tag->AttachCount);
+                    ImGui::Text("IsSprung    : %s", tag->IsSprung ? "yes" : "no");
+                    ImGui::Text("IsToDie     : %s", tag->IsToDie ? "yes" : "no");
+                    ImGui::TreePop();
+                }
+            }
         }
 
         ImGui::SeparatorText("Weapons");
