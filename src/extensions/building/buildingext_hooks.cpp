@@ -17,6 +17,7 @@
 #include "anim.h"
 #include "animext.h"
 #include "asserthandler.h"
+#include "audio_vox.h"
 #include "bsurface.h"
 #include "building.h"
 #include "buildingext.h"
@@ -1811,7 +1812,7 @@ DEFINE_HOOK(0x00432937, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch, 
 
     SuperWeaponTypeClassExtension* super_ext = Extension::Fetch(SuperWeaponTypes[this_ptr->field_298]);
     if (super_ext->VoxMissileLaunched != VOX_NONE) {
-        Speak(super_ext->VoxMissileLaunched);
+        AudioVoxClass::Speak(super_ext->VoxMissileLaunched);
     }
 
     return 0x00432943;
