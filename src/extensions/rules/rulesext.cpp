@@ -102,7 +102,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsAIDetectDisguise(true),
     IsAIOneHarvesterInSingleplayer(true),
     IsPauseRepairs(true),
-    PausedRepairsFrame(6)
+    PausedRepairsFrame(6),
+    IsFreeRadarOnLowPower(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -270,6 +271,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsAIOneHarvesterInSingleplayer);
     crc(IsPauseRepairs);
     crc(PausedRepairsFrame);
+    crc(IsFreeRadarOnLowPower);
 }
 
 
@@ -709,6 +711,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
     IsPauseRepairs = ini.Get_Bool(GENERAL, "PauseRepairs", IsPauseRepairs);
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
+    IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

@@ -263,4 +263,9 @@ public:
      *  Determines the wrench shape frame that should be used while repairs are paused.
      */
     int PausedRepairsFrame;
+
+    /**
+     *  Determines whether Free Radar would still apply even during Low Power
+     */
+    int IsFreeRadarOnLowPower;
 };
