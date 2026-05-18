@@ -88,7 +88,6 @@ In `RULES.INI` or a scenario file:
 FreeRadarOnLowPower=no ; boolean, can free radar stay active when player is in low power?
 ```
 
-
 ## Pre-placed units
 
 - Pre-placed units could not have missions in multiplayer maps, regardless of who they belonged to. Vinifera lifts this limitation.
