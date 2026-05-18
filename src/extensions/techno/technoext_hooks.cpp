@@ -3387,13 +3387,13 @@ int TechnoClassExt::_Anti_Air(void) const
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x00637F0B, TechnoClass_Find_Docking_Bay_Unoccupied_Aircraft_Patch, 6)
+DEFINE_HOOK(0x00637F0B, _TechnoClass_Find_Docking_Bay_Unoccupied_Aircraft_Patch, 6)
 {
     GET(TechnoClass*, this_ptr, ESI);
-    byte* onlyUnoccupiedPtr = reinterpret_cast<byte*>(R->ESP() + 0x48);
+    REF_STACK(bool, only_unoccupied_ptr, 0x48);
 
     if (this_ptr->Fetch_RTTI() == RTTI_AIRCRAFT) {
-        *onlyUnoccupiedPtr = 1;
+        only_unoccupied_ptr = true;
     }
 
     return 0;
