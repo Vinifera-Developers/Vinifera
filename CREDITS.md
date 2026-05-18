@@ -173,7 +173,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
   - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
-  - Add Q-Move support for aircraft.
+  - Add Q-Move support for aircraft.  
+  - Fix a bug where aircraft would not dock properly on available Helipads after attacking.
   - Allow Free Radar to remain active when players are in low power.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
