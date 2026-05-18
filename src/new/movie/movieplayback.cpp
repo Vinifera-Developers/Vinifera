@@ -35,6 +35,7 @@
 #include <array>
 #include <cctype>
 #include <cstddef>
+#include <deque>
 #include <memory>
 #include <string>
 #include <vector>
@@ -468,8 +469,7 @@ struct IngameMoviePlayback
     MoviePlayer Player;
     std::unique_ptr<ModernIngameDummyVQA> DummyVQA;
     Rect DestinationRect = Rect(0, 0, 0, 0);
-    bool HasPendingVideoFrame = false;
-    MovieVideoFrame PendingVideoFrame;
+    std::deque<MovieVideoFrame> PendingVideoFrames;
     SDL_Surface *CachedNV12Surface = nullptr;
     SDL_Surface *CachedRGB565Surface = nullptr;
     int CachedFrameWidth = 0;
@@ -597,9 +597,12 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
 
 
 /**
- *  Pumps the decoder and presents the next due video frame. Sets done
- *  when the stream ends and all queued audio has drained. Returns true
- *  if a frame was presented this tick.
+ *  Pumps the decoder and presents every video frame that is now due. Keeps
+ *  pumping past not-yet-due video frames (queuing them) so audio chunks
+ *  interleaved later in the source reader still reach the streaming sink
+ *  this tick — preventing audio underruns when Advance is called at a low
+ *  rate (e.g. at slow game speeds). Sets done when the stream ends and all
+ *  queued audio has drained. Returns true if any frame was presented.
  */
 bool IngameMoviePlayback::Advance(bool &done)
 {
@@ -610,30 +613,35 @@ bool IngameMoviePlayback::Advance(bool &done)
         return false;
     }
 
-    if (HasPendingVideoFrame) {
-        if (!Player.Clock.Is_Frame_Due(PendingVideoFrame.TimestampMs)) {
-            return false;
-        }
+    bool frame_presented = false;
 
-        if (!Present_Frame(PendingVideoFrame)) {
+    /**
+     *  Drain any previously-queued frames that are now due. Multiple frames
+     *  may be presented in a single call when catching up from a stall.
+     */
+    while (!PendingVideoFrames.empty() && Player.Clock.Is_Frame_Due(PendingVideoFrames.front().TimestampMs)) {
+        if (!Present_Frame(PendingVideoFrames.front())) {
             done = true;
-            return false;
+            return frame_presented;
         }
-
-        HasPendingVideoFrame = false;
-
-        if (Player.EndOfStream && Player.Queued_Audio_Frames() == 0) {
-            done = true;
-        }
-
-        return true;
+        PendingVideoFrames.pop_front();
+        frame_presented = true;
     }
 
     static constexpr int MaxPumpsPerTick = 8;
+    static constexpr std::size_t MaxPendingVideoFrames = 3;
     int pump_count = 0;
-    bool frame_presented = false;
 
     while (!Player.EndOfStream && pump_count < MaxPumpsPerTick) {
+        /**
+         *  If we are already comfortably ahead on video, stop pumping for
+         *  this tick — the audio ring buffer will be well-fed and we avoid
+         *  unbounded queue growth if Advance is called rarely.
+         */
+        if (PendingVideoFrames.size() >= MaxPendingVideoFrames) {
+            break;
+        }
+
         ++pump_count;
 
         if (!Player.Pump_Once()) {
@@ -646,20 +654,16 @@ bool IngameMoviePlayback::Advance(bool &done)
         }
 
         if (Player.Output.HasVideoFrame) {
-            std::swap(PendingVideoFrame, Player.Output.VideoFrame);
-            HasPendingVideoFrame = true;
-
-            if (!Player.Clock.Is_Frame_Due(PendingVideoFrame.TimestampMs)) {
-                return frame_presented;
+            if (Player.Clock.Is_Frame_Due(Player.Output.VideoFrame.TimestampMs)) {
+                if (!Present_Frame(Player.Output.VideoFrame)) {
+                    done = true;
+                    return frame_presented;
+                }
+                frame_presented = true;
+            } else {
+                PendingVideoFrames.emplace_back();
+                std::swap(PendingVideoFrames.back(), Player.Output.VideoFrame);
             }
-
-            if (!Present_Frame(PendingVideoFrame)) {
-                done = true;
-                return false;
-            }
-
-            HasPendingVideoFrame = false;
-            frame_presented = true;
             continue;
         }
 
@@ -668,7 +672,7 @@ bool IngameMoviePlayback::Advance(bool &done)
         }
     }
 
-    if (Player.EndOfStream && Player.Queued_Audio_Frames() == 0) {
+    if (Player.EndOfStream && PendingVideoFrames.empty() && Player.Queued_Audio_Frames() == 0) {
         done = true;
     }
 
