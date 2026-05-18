@@ -17,6 +17,7 @@
 #include "animtype.h"
 #include "armortype.h"
 #include "asserthandler.h"
+#include "audio_theme.h"
 #include "base.h"
 #include "battleui.h"
 #include "beacon.h"
@@ -121,7 +122,7 @@ static bool Prev_Theme_Command()
      *  Queue the track for playback. We need to stop the track first
      *  otherwise Queue_Song() will fade the track out.
      */
-    Theme.Stop();
+    Theme.Stop(false);
     Theme.Queue_Song(theme);
 
     /**
@@ -130,7 +131,7 @@ static bool Prev_Theme_Command()
     TacticalMapExtension->InfoTextTimer.Stop();
 
     char buffer[256];
-    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.Full_Name(theme));
 
     TacticalMapExtension->Set_Info_Text(buffer);
     TacticalMapExtension->IsInfoTextSet = true;
@@ -187,7 +188,7 @@ static bool Next_Theme_Command()
     TacticalMapExtension->InfoTextTimer.Stop();
 
     char buffer[256];
-    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.Full_Name(theme));
 
     TacticalMapExtension->Set_Info_Text(buffer);
     TacticalMapExtension->IsInfoTextSet = true;

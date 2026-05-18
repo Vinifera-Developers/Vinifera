@@ -105,7 +105,6 @@
 #include "terraintypeext.h"
 #include "tevent.h"
 #include "teventext.h"
-#include "themeext.h"
 #include "tiberium.h"
 #include "tiberiumext.h"
 #include "tibsun_functions.h"
@@ -430,16 +429,78 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
 
 
 /**
- *  Detaches the object from the list of active object.
- * 
- *  @author: CCHyper
+ *  Internal function that reports if the current abstract object can have an extension.
+ *
+ *  @author: ZivDero
  */
-template<class EXT_CLASS>
-static void Extension_Detach_This_From_All(DynamicVectorClass<EXT_CLASS *> &list, AbstractClass * target, bool all)
+bool Extension::Private::Is_Supported(const AbstractClass *abstract)
 {
-    for (int index = 0; index < list.Count(); ++index) {
-        list[index]->Detach(target, all);
-    }
+    ASSERT(abstract != nullptr);
+
+    switch (const_cast<AbstractClass *>(abstract)->RTTI) {
+        case RTTI_UNIT: { return true; }
+        case RTTI_AIRCRAFT: { return true; }
+        case RTTI_AIRCRAFTTYPE: { return true; }
+        case RTTI_ANIM: { return true; }
+        case RTTI_ANIMTYPE: { return true; }
+        case RTTI_BUILDING: { return true; }
+        case RTTI_BUILDINGTYPE: { return true; }
+        //case RTTI_BULLET: { return true; } // Not yet implemented
+        case RTTI_BULLETTYPE: { return true; }
+        case RTTI_CAMPAIGN: { return true; }
+        //case RTTI_CELL: { return true; } // Not yet implemented
+        case RTTI_FACTORY: { return true; }
+        case RTTI_HOUSE: { return true; }
+        case RTTI_HOUSETYPE: { return true; }
+        case RTTI_INFANTRY: {  return true; }
+        case RTTI_INFANTRYTYPE: {  return true; }
+        //case RTTI_ISOTILE: { return true; } // Not yet implemented
+        case RTTI_ISOTILETYPE: { return true; }
+        //case RTTI_LIGHT: { return true; } // Not yet implemented
+        case RTTI_OVERLAY: { return true; }
+        case RTTI_OVERLAYTYPE: { return true; }
+        //case RTTI_PARTICLE: { return true; } // Not yet implemented
+        case RTTI_PARTICLETYPE: { return true; }
+        //case RTTI_PARTICLESYSTEM: { return true; } // Not yet implemented
+        case RTTI_PARTICLESYSTEMTYPE: { return true; }
+        //case RTTI_SCRIPT: { return true; } // Not yet implemented
+        //case RTTI_SCRIPTTYPE: { return true; } // Not yet implemented
+        case RTTI_SIDE: { return true; }
+        case RTTI_SMUDGE: { return true; }
+        case RTTI_SMUDGETYPE: { return true; }
+        case RTTI_SUPERWEAPONTYPE: { return true; }
+        //case RTTI_TASKFORCE: { return true; } // Not yet implemented
+        case RTTI_TEAM: { return true; }
+        case RTTI_TEAMTYPE: { return true; }
+        case RTTI_TERRAIN: { return true; }
+        case RTTI_TERRAINTYPE: { return true; }
+        //case RTTI_TRIGGER: { return true; } // Not yet implemented
+        //case RTTI_TRIGGERTYPE: { return true; } // Not yet implemented
+        case RTTI_UNITTYPE: { return true; }
+        //case RTTI_VOXELANIM: { return true; } // Not yet implemented
+        case RTTI_VOXELANIMTYPE: { return true; }
+        case RTTI_WAVE: { return true; }
+        //case RTTI_TAG: { return true; } // Not yet implemented
+        //case RTTI_TAGTYPE: { return true; } // Not yet implemented
+        case RTTI_TIBERIUM: { return true; }
+        case RTTI_ACTION: { return true; }
+        case RTTI_EVENT: { return true; }
+        case RTTI_WEAPONTYPE: { return true; }
+        case RTTI_WARHEADTYPE: { return true; }
+        //case RTTI_WAYPOINT: { return true; } // Not yet implemented
+        //case RTTI_TUBE: { return true; } // Not yet implemented
+        //case RTTI_LIGHTSOURCE: { return true; } // Not yet implemented
+        //case RTTI_EMPULSE: { return true; } // Not yet implemented
+        case RTTI_SUPERWEAPON: { return true; }
+        //case RTTI_AITRIGGER: { return true; } // Not yet implemented
+        //case RTTI_AITRIGGERTYPE: { return true; } // Not yet implemented
+        //case RTTI_NEURON: { return true; } // Not yet implemented
+        //case RTTI_FOGGEDOBJECT: { return true; } // Not yet implemented
+        //case RTTI_ALPHASHAPE: { return true; } // Not yet implemented
+        //case RTTI_VEINHOLEMONSTER: { return true; } // Not yet implemented
+    };
+
+    return false;
 }
 
 
@@ -617,7 +678,9 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     AbstractClassExtension *ext_ptr = Extension_Get_Abstract_Pointer(abstract);
 
     if (!ext_ptr) {
-        DEBUG_ERROR("Extension::Fetch: Extension for \"%s\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        if (Is_Supported(abstract)) {
+            DEBUG_ERROR("Extension::Fetch: Extension for \"%s\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        }        
         return nullptr;
     }
 
@@ -1924,90 +1987,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 }
 
 
-/**
- *  Detaches this object from all active extension classes.
- * 
- *  @author: CCHyper
- */
-void Extension::Detach_This_From_All(AbstractClass * target, bool all)
-{
-    //DEV_DEBUG_INFO("Extension::Detach_This_From_All(enter)\n");
-
-    /**
-     *  #NOTE: AnimClass and IsoTileTypeClass detach calls are disabled because they currently do nothing but take up a lot of performance.
-     */
-
-    /**
-     *  #NOTE: The order of these calls must match the relevant RTTIType order!
-     */
-    Extension_Detach_This_From_All(UnitExtensions, target, all);
-    Extension_Detach_This_From_All(AircraftExtensions, target, all);
-    Extension_Detach_This_From_All(AircraftTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(AnimExtensions, target, all);
-    Extension_Detach_This_From_All(AnimTypeExtensions, target, all);
-    Extension_Detach_This_From_All(BuildingExtensions, target, all);
-    Extension_Detach_This_From_All(BuildingTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(BulletExtensions, target, all);            // Not yet implemented
-    Extension_Detach_This_From_All(BulletTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(CampaignExtensions, target, all);          // Does not need to be processed.
-    //Extension_Detach_This_From_All(CellExtensions, target, all);              // Not yet implemented
-    Extension_Detach_This_From_All(FactoryExtensions, target, all);
-    Extension_Detach_This_From_All(HouseExtensions, target, all);
-    Extension_Detach_This_From_All(HouseTypeExtensions, target, all);
-    Extension_Detach_This_From_All(InfantryExtensions, target, all);
-    Extension_Detach_This_From_All(InfantryTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(IsometricTileExtensions, target, all);     // Not yet implemented
-    //Extension_Detach_This_From_All(IsometricTileTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(BuildingLightExtensions, target, all);     // Not yet implemented
-    Extension_Detach_This_From_All(OverlayExtensions, target, all);
-    Extension_Detach_This_From_All(OverlayTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(ParticleExtensions, target, all);          // Not yet implemented
-    Extension_Detach_This_From_All(ParticleTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(ParticleSystemExtensions, target, all);    // Not yet implemented
-    Extension_Detach_This_From_All(ParticleSystemTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(ScriptExtensions, target, all);            // Not yet implemented
-    //Extension_Detach_This_From_All(ScriptTypeExtensions, target, all);        // Not yet implemented
-    Extension_Detach_This_From_All(SideExtensions, target, all);
-    Extension_Detach_This_From_All(SmudgeExtensions, target, all);
-    Extension_Detach_This_From_All(SmudgeTypeExtensions, target, all);
-    Extension_Detach_This_From_All(SuperWeaponTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(TaskForceExtensions, target, all);         // Not yet implemented
-    //Extension_Detach_This_From_All(TeamExtensions, target, all);              // Not yet implemented
-    //Extension_Detach_This_From_All(TeamTypeExtensions, target, all);          // Not yet implemented
-    Extension_Detach_This_From_All(TerrainExtensions, target, all);
-    Extension_Detach_This_From_All(TerrainTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(TriggerExtensions, target, all);           // Not yet implemented
-    //Extension_Detach_This_From_All(TriggerTypeExtensions, target, all);       // Not yet implemented
-    Extension_Detach_This_From_All(UnitTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(VoxelAnimExtensions, target, all);         // Not yet implemented
-    Extension_Detach_This_From_All(VoxelAnimTypeExtensions, target, all);
-    Extension_Detach_This_From_All(WaveExtensions, target, all);
-    //Extension_Detach_This_From_All(TagExtensions, target, all);               // Not yet implemented
-    //Extension_Detach_This_From_All(TagTypeExtensions, target, all);           // Not yet implemented
-    Extension_Detach_This_From_All(TiberiumExtensions, target, all);
-    Extension_Detach_This_From_All(TActionExtensions, target, all);
-    Extension_Detach_This_From_All(TEventExtensions, target, all);
-    Extension_Detach_This_From_All(WeaponTypeExtensions, target, all);
-    Extension_Detach_This_From_All(WarheadTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(WaypointExtensions, target, all);          // Not yet implemented
-    //Extension_Detach_This_From_All(TubeExtensions, target, all);              // Not yet implemented
-    //Extension_Detach_This_From_All(LightSourceExtensions, target, all);       // Not yet implemented
-    //Extension_Detach_This_From_All(EMPulseExtensions, target, all);           // Not yet implemented
-    Extension_Detach_This_From_All(SuperExtensions, target, all);
-    //Extension_Detach_This_From_All(AITriggerExtensions, target, all);         // Not yet implemented
-    //Extension_Detach_This_From_All(AITriggerTypeExtensions, target, all);     // Not yet implemented
-    //Extension_Detach_This_From_All(NeuronExtensions, target, all);            // Not yet implemented
-    //Extension_Detach_This_From_All(FoggedObjectExtensions, target, all);      // Not yet implemented
-    //Extension_Detach_This_From_All(AlphaShapeExtensions, target, all);        // Not yet implemented
-    //Extension_Detach_This_From_All(VeinholeMonsterExtensions, target, all);   // Not yet implemented
-
-    TacticalMapExtension->Detach(target, all);
-    RuleExtension->Detach(target, all);
-    ScenExtension->Detach(target, all);
-    SessionExtension->Detach(target, all);
-
-    //DEV_DEBUG_INFO("Extension::Detach_This_From_All(exit)\n");
-}
 
 
 /**
@@ -2101,7 +2080,6 @@ unsigned Extension::Get_Save_Version_Number()
     /**
      *  All other classes.
      */
-    version += sizeof(ThemeControlExtension);
     version += sizeof(ArmorTypeClass);
     version += sizeof(RocketTypeClass);
     version += sizeof(SpawnManagerClass);

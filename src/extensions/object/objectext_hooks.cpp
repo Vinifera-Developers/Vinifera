@@ -14,6 +14,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "asserthandler.h"
+#include "audio_voc_handle.h"
 #include "cell.h"
 #include "colorscheme.h"
 #include "extension.h"
@@ -22,7 +23,10 @@
 #include "mouse.h"
 #include "object.h"
 #include "objectext.h"
+#include "objecttype.h"
+#include "objecttypeext.h"
 #include "rules.h"
+#include "syringe.h"
 #include "techno.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
@@ -124,6 +128,32 @@ bool ObjectClassExt::_Paradrop(Coord const& coord)
 
 
     return false;
+}
+
+
+DEFINE_HOOK(0x00584C18, _ObjectClass_AI_AmbientSound_Patch, 5)
+{
+    GET(ObjectClass*, this_ptr, ESI);
+
+    auto ext = Extension::Fetch(this_ptr);
+    if (ext != nullptr) {
+        Extension::Fetch(this_ptr)->Ambient_AI();
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00585AAD, _ObjectClass_Limbo_AmbientSound_Patch, 5)
+{
+    GET(ObjectClass*, this_ptr, ESI);
+
+    auto ext = Extension::Fetch(this_ptr);
+    if (ext != nullptr) {
+        Extension::Fetch(this_ptr)->Stop_Ambient();
+    }
+
+    return 0;
 }
 
 

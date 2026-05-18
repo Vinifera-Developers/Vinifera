@@ -125,7 +125,7 @@ int HouseClassExt::_AI_Building()
      *  Build some walls.
      */
     if (node->Type == BASE_WALL) {
-        Base.Nodes.Delete(Base.Nodes.ID(node));
+        Base.Nodes.Delete(*node);
         AI_Build_Wall();
         return 1;
     }

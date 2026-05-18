@@ -81,7 +81,6 @@ New:
 - Add "Only Harvesters" quarry (by Rampastring)
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
 - Implement INI inheritance/includes (by ZivDero)
-- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
 - Add "Building Does Not Exist" trigger event (by Rampastring)
 - Add "Create Building At" trigger action (by Rampastring)
 - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI (by Rampastring)
@@ -93,6 +92,9 @@ New:
 - Make spawners respect `IonSensitive` on weapons (by ZivDero)
 - Vinifera's Developer mode now prints information on executed trigger actions (by Rampastring)
 - Extended sidebar customizability (by ZivDero)
+- Replace the vanilla audio engine with a miniaudio-backed system for sound effects, music, EVA speech, subtitles, and VQA movie audio (by CCHyper/tomsons26, ZivDero)
+- Add new customizations options for themes, sounds and speeches (by CCHyper/tomsons26, ZivDero)
+- Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies (by ZivDero, CCHyper)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

@@ -33,6 +33,8 @@ struct SDL_Texture;
 
 extern bool Vinifera_DeveloperMode;
 
+extern bool Vinifera_AudioDebug;
+
 extern bool Vinifera_PerformingLoad;
 
 extern bool Vinifera_PrintFileErrors;
@@ -80,6 +82,7 @@ extern SDL_Renderer* SDLWindowRenderer;
 extern SDL_Texture* SDLWindowTexture;
 extern int SDLWindowWidth;
 extern int SDLWindowHeight;
+extern bool Vinifera_ModernMoviePlaying;
 
 
 /**

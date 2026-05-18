@@ -34,7 +34,6 @@ CampaignClassExtension final : public AbstractTypeClassExtension
         virtual ~CampaignClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual CampaignClass *This() const override { return reinterpret_cast<CampaignClass *>(AbstractTypeClassExtension::This()); }

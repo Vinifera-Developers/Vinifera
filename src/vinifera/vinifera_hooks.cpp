@@ -18,6 +18,7 @@
 #include "blowpipe.h"
 #include "blowstraw.h"
 #include "debughandler.h"
+#include "detach_listener.h"
 #include "dsurface.h"
 #include "ebolt.h"
 #include "extension.h"
@@ -42,18 +43,13 @@
 
 
 /**
- *  This function is for intercepting the calls to Detach_This_From_All to also
- *  process the object through the extension interface.
- * 
- *  @author: CCHyper
+ *  Intercepts calls to the vanilla Detach_This_From_All so we can also notify
+ *  Vinifera's type-indexed detach registry. Only listeners that opted in for
+ *  the target's concrete type (and AbstractClass-wide listeners) are visited.
  */
 static void _Detach_This_From_All_Intercept(AbstractClass * target, bool all)
 {
-    Extension::Detach_This_From_All(target, all);
-
-    if (target->RTTI == RTTI_AIRCRAFT)
-        KamikazeTracker->Detach(reinterpret_cast<AircraftClass const*>(target));
-
+    Vinifera::Detach::Notify_Abstract(target, all);
     Detach_This_From_All(target, all);
 }
 

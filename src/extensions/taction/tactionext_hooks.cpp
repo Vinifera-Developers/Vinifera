@@ -12,6 +12,10 @@
 #include "tactionext_hooks.h"
 
 #include "asserthandler.h"
+#include "audio_theme.h"
+#include "audio_util.h"
+#include "audio_voc.h"
+#include "audio_vox.h"
 #include "debughandler.h"
 #include "hooker.h"
 #include "house.h"
@@ -80,7 +84,10 @@ enum NeedCode {
     NeedTeam = 1,
     NeedTrigger = 2,
     NeedTag = 3,
-    NeedTeamAndTime = 4
+    NeedTeamAndTime = 4,
+    NeedSpeech = 5,
+    NeedSound = 6,
+    NeedTheme = 7
 };
 
 
@@ -137,6 +144,7 @@ void TActionClassExt::_Read_INI()
             }
         }
         break;
+
     case NeedTag:
         if (val == -1) {
             Tag = nullptr;
@@ -147,6 +155,18 @@ void TActionClassExt::_Read_INI()
                 Tag = TagTypeClass::Find_Or_Make(text);
             }
         }
+        break;
+
+    case NeedSpeech:
+        Data.Speech = AudioVoxClass::From_Name(text);
+        break;
+
+    case NeedSound:
+        Data.Sound = AudioVocClass::From_Name(text);
+        break;
+
+    case NeedTheme:
+        Data.Theme = AudioTheme.From_Name(text);
         break;
     }
 
@@ -182,6 +202,8 @@ AttachType _Attaches_To(TActionType event)
     case TACTION_CHANGE_HOUSE:
     case TACTION_GO_BERZERK:
     case TACTION_SET_GROUP_ID:
+    case EXT_TACTION_ATTACH_SOUND:
+    case EXT_TACTION_DETACH_SOUND:
         attach |= ATTACH_OBJECT;
         break;
 

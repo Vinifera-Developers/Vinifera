@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "detach_listener.h"
 #include "radioext.h"
 #include "techno.h"
 
@@ -20,7 +21,9 @@ class TechnoTypeClassExtension;
 class AnimClass;
 
 
-class TechnoClassExtension : public RadioClassExtension
+class TechnoClassExtension : public RadioClassExtension,
+                             public Vinifera::Detach::Listener<TechnoClass>,
+                             public Vinifera::Detach::Listener<AnimClass>
 {
     public:
         /**
@@ -34,8 +37,10 @@ class TechnoClassExtension : public RadioClassExtension
         TechnoClassExtension(const NoInitClass &noinit);
         virtual ~TechnoClassExtension();
 
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
+
+        void On_Detach(TechnoClass *target, bool all) override;
+        void On_Detach(AnimClass *target, bool all) override;
 
         virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(RadioClassExtension::This()); }
         virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(RadioClassExtension::This_Const()); }

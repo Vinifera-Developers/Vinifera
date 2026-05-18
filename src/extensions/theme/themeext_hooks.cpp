@@ -11,17 +11,10 @@
 
 #include "themeext_hooks.h"
 
-#include "addon.h"
-#include "extension.h"
+#include "audio_theme.h"
+#include "audio_util.h"
 #include "hooker.h"
-#include "house.h"
-#include "housetype.h"
-#include "scenario.h"
-#include "session.h"
 #include "theme.h"
-#include "themeext.h"
-#include "themeext_init.h"
-#include "tibsun_globals.h"
 
 
 /**
@@ -31,80 +24,29 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class ThemeClassExt : public ThemeClass
+class ThemeClassExt : public ThemeClass
 {
-    public:
-        bool _Is_Allowed(ThemeType index) const;
+public:
+    ThemeType _From_Name(char const* name) const { return AudioTheme.From_Name(name); }
+    ThemeType _Next_Song(ThemeType index) const { return AudioTheme.Next_Song(index); }
+    bool _Is_Allowed(ThemeType index) const { return AudioTheme.Is_Allowed(index); }
+    char const* _Base_Name(ThemeType index) const { return AudioTheme.Base_Name(index); }
+    char const* _Full_Name(ThemeType index) const { return AudioTheme.Full_Name(index); }
+    int _Play_Song(ThemeType index) { return AudioTheme.Play_Song(index); }
+    bool _Still_Playing() const { return AudioTheme.Still_Playing(); }
+    int _Track_Length(ThemeType index) const { return AudioTheme.Track_Length(index); }
+    void _Scan() { AudioTheme.Scan(); }
+    void _AI() { AudioTheme.AI(); }
+    void _Queue_Song(ThemeType index) { AudioTheme.Queue_Song(index); }
+    void _Set_Theme_Data(ThemeType theme, int scenario, int owners) { AudioTheme.Set_Theme_Data(theme, scenario, (SideType)owners); }
+    void _Stop(bool fade = false) { AudioTheme.Stop(fade); }
+    void _Suspend() { AudioTheme.Suspend(); }
+
+    void _Set_Volume(int volume) { AudioTheme.Set_Volume(volume); }
+
+    void _Init_Themes(CCINIClass& ini) { AudioTheme.Init_Themes(ini); }
+    void _Free_Themes() { AudioTheme.Free_Themes(); }
 };
-
-
-/**
- *  Checks to see if the specified theme is legal.
- * 
- *  @author: 07/04/1996 JLB - Red Alert source code.
- *           CCHyper - Adjustments for Tiberian Sun.
- */
-bool ThemeClassExt::_Is_Allowed(ThemeType index) const
-{
-    if (index == THEME_QUIET || index == THEME_PICK_ANOTHER) {
-        return true;
-    }
-    
-    if (index >= Themes.Count()) {
-        return true;
-    }
-
-    /**
-     *  If the theme is not present, then it certainly isn't allowed.
-     */
-    if (!Themes[index]->Available) {
-        return false;
-    }
-
-    /**
-     *  Only normal themes (playable during battle) are considered allowed.
-     */
-    if (!Themes[index]->Normal) {
-        return false;
-    }
-
-    /**
-     *  #issue-764
-     * 
-     *  If this theme requires an addon, make sure that addon is active.
-     * 
-     *  @author: CCHyper
-     */
-    ThemeControlExtension *themectrlext = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(Themes[index], ThemeControlExtensions);
-    if (themectrlext->RequiredAddon != ADDON_BASE_GAME) {
-        if (!Addon_Enabled(themectrlext->RequiredAddon)) {
-            return false;
-        }
-    }
-
-    /**
-     *  If the theme is not allowed to be played by the player's house, then don't allow
-     *  it. If the player's house hasn't yet been determined, then presume this test
-     *  passes.
-     */
-    SideType owner = Themes[index]->Owner;
-    if (PlayerPtr != nullptr && owner != SIDE_NONE && PlayerPtr->Class->Side != owner) {
-        return false;
-    }
-
-    /**
-     *  If the scenario doesn't allow this theme yet, then return the failure flag. The
-     *  scenario check only makes sense for solo play.
-     */
-    if (Session.Type == GAME_NORMAL && Scen->Scenario < Themes[index]->Scenario) {
-        return false;
-    }
-
-    /**
-     *  Since all tests passed, return with the "is allowed" flag.
-     */
-    return true;
-}
 
 
 /**
@@ -112,16 +54,20 @@ bool ThemeClassExt::_Is_Allowed(ThemeType index) const
  */
 void ThemeClassExtension_Hooks()
 {
-    /**
-     *  Initialises the extended class.
-     */
-    ThemeClassExtension_Init();
-
+    Patch_Jump(0x00644390, &ThemeClassExt::_From_Name);
+    Patch_Jump(0x00643E80, &ThemeClassExt::_Next_Song);
     Patch_Jump(0x00644300, &ThemeClassExt::_Is_Allowed);
-
-    /**
-     *  Skip calling Theme.Play_Song(OldTheme) in Focus_Restore.
-     *  ThemeClass::AI() will resume playing by itself.
-     */
-    Patch_Jump(0x00685B84, 0x00685B95);
+    Patch_Jump(0x00643D40, &ThemeClassExt::_Base_Name);
+    Patch_Jump(0x00643DA0, &ThemeClassExt::_Full_Name);
+    Patch_Jump(0x00643FE0, &ThemeClassExt::_Play_Song);
+    Patch_Jump(0x006442B0, &ThemeClassExt::_Still_Playing);
+    Patch_Jump(0x00644160, &ThemeClassExt::_Track_Length);
+    Patch_Jump(0x00643C70, &ThemeClassExt::_Scan);
+    Patch_Jump(0x00643DC0, &ThemeClassExt::_AI);
+    Patch_Jump(0x00643F20, &ThemeClassExt::_Queue_Song);
+    Patch_Jump(0x00644190, &ThemeClassExt::_Stop);
+    Patch_Jump(0x00644250, &ThemeClassExt::_Suspend);
+    Patch_Jump(0x00644410, &ThemeClassExt::_Set_Volume);
+    Patch_Jump(0x00643AC0, &ThemeClassExt::_Init_Themes);
+    Patch_Jump(0x00643C20, &ThemeClassExt::_Free_Themes);
 }

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "detach_listener.h"
 #include "foot.h"
 #include "ttimer.h"
 #include "vinifera_defines.h"
@@ -38,7 +39,9 @@ enum class SpawnControlStatus {
 
 
 class DECLSPEC_UUID(UUID_SPAWN_MANAGER)
-    SpawnManagerClass : public AbstractClass
+    SpawnManagerClass : public AbstractClass,
+                        public Vinifera::Detach::Listener<TechnoClass>,
+                        public Vinifera::Detach::Listener<AbstractClass>
 {
 public:
     struct SpawnControl
@@ -63,7 +66,12 @@ public:
 public:
     SpawnManagerClass();
     SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate, int spawn_rate, int logic_rate);
-    SpawnManagerClass(const NoInitClass& noinit) : SpawnControls(noinit), LogicTimer(noinit), SpawnTimer(noinit) {}
+    SpawnManagerClass(const NoInitClass& noinit) :
+        Vinifera::Detach::Listener<TechnoClass>(noinit),
+        Vinifera::Detach::Listener<AbstractClass>(noinit),
+        SpawnControls(noinit),
+        LogicTimer(noinit),
+        SpawnTimer(noinit) {}
     virtual ~SpawnManagerClass() override;
 
     /**
@@ -78,10 +86,22 @@ public:
     void Queue_Target(AbstractClass * target);
     void Abandon_Target();
     bool Next_Target();
-    void Detach(AbstractClass * target);
+
+    /**
+     *  Detach listener callbacks. On_Detach(TechnoClass*) covers Owner and
+     *  Spawnee references; On_Detach(AbstractClass*) covers Target/QueuedTarget.
+     */
+    void On_Detach(TechnoClass *target, bool all) override;
+    void On_Detach(AbstractClass *target, bool all) override;
+
     int Active_Count();
     int Docked_Count();
     int Preparing_Count();
+
+private:
+    void Detach_Spawnee(AircraftClass *spawnee);
+
+public:
 
     SpawnManagerClass(const SpawnManagerClass&) = delete;
     SpawnManagerClass& operator= (const SpawnManagerClass&) = delete;
