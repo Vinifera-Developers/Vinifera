@@ -78,6 +78,17 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 
 ![Score screen colors in DTA:CR](https://github.com/user-attachments/assets/bc901430-abfc-4b8e-9648-107d07b7eafe)
 
+### Free Radar
+- Free Radar can now be made to work even while the player is in low power. The scenario must enable Free Radar (`FreeRadar=yes`) for this feature to be considered.
+- Note that Ion Storms will still cause radars to be turned off for their duration.
+
+In `RULES.INI` or a scenario file:
+```ini
+[General]
+FreeRadarOnLowPower=no ; boolean, can free radar stay active when player is in low power?
+```
+
+
 ## Pre-placed units
 
 - Pre-placed units could not have missions in multiplayer maps, regardless of who they belonged to. Vinifera lifts this limitation.
