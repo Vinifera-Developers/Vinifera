@@ -399,12 +399,15 @@ DEFINE_HOOK(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0)
 
 
 /**
- *  Replace a loop resetting all globals in Clear_Scenario.
+ *  Intercepts Clear_Scenario.
+ *  Replaces a loop resetting all globals and performs other maintenance.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Clear_Globals_Patch, 0)
+DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Patch, 0)
 {
+    Vinifera_PlayerOptionsSent = false;
+
     for (int i = 0; i < std::size(ScenExtension->GlobalFlags); i++) {
         ScenExtension->Set_Global_To(i, 0);
     }

@@ -57,6 +57,7 @@ unsigned char EventClassExt::EventLength[EXT_EVENT_COUNT] = {
     0,                                          // PAGEUSER
     sizeof(EventClass::Data.General),           // REMOVEPLAYER
     sizeof(EventClass::Data.General),           // LATENCYFUDGE
+    sizeof(EventClassExt::Data.PlayerOptions)   // PLAYER_OPTIONS
 };
 
 
@@ -97,7 +98,7 @@ char const* EventClassExt::EventNames[EXT_EVENT_COUNT] = {
     "PAGEUSER",
     "REMOVEPLAYER",
     "LATENCYFUDGE",
-};
+    "PLAYER_OPTIONS"};
 
 
 /**
@@ -151,6 +152,28 @@ EventClassExt::EventClassExt(int index, EventType type, RTTIType object, Cell co
 
 
 /**
+ *  EventClassExt constructor for the PLAYER_OPTIONS event.
+ *
+ *  @author: Rampastring
+ */
+EventClassExt::EventClassExt(int index, EventType type, bool pausedrepairs)
+{
+    DEBUG_INFO("Adding event %s\n", EventNames[type]);
+
+    if (index >= 0) {
+        ID = index;
+        Type = type;
+        Data.PlayerOptions.IsPauseRepairs = pausedrepairs;
+        Frame = ::Frame;
+    } else {
+        ID = -1;
+        Type = EVENT_EMPTY;
+        Frame = ::Frame;
+    }
+}
+
+
+/**
  *  Should this event be handled by our event handler?
  *
  *  @author: ZivDero
@@ -167,6 +190,10 @@ bool EventClassExt::Is_Vinifera_Event(EventType type)
     }
 
     // add a check for new events here later
+    switch (type) {
+    case EXT_EVENT_PLAYER_OPTIONS:
+        return true;
+    }
 
     return false;
 }
@@ -228,6 +255,12 @@ void EventClassExt::Execute()
         */
     case EVENT_ABANDON:
         house_ext->Abandon_Production(Data.Production.Type, Data.Production.ID, Data.Production.Flags);
+        break;
+        /*
+        **  This event is generated when the player broadcasts their preferred player options.
+        */
+    case EXT_EVENT_PLAYER_OPTIONS:
+        house_ext->IsPauseRepairs = Data.PlayerOptions.IsPauseRepairs;
         break;
     }
 }

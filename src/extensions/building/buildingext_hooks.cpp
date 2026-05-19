@@ -2508,14 +2508,19 @@ DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
  *  Patches the part of BuildingClass::Repair_AI where a building can no longer be repaired due to a house having insufficient funds.
  *  Typically, it would stop repairs altoghether. However, if the rule for pausing repairs is enabled, then it skips that.
  *
- *  @author: JoyfulShush
+ *  @author: JoyfulShush, Rampastring
  */
 DEFINE_HOOK(0x00435A38, _BuildingClass_Repair_AI_Pause_Repairs_Patch, 7)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
-    if (RuleExtension->IsPauseRepairs) {        
-        return 0x00435A3F;
+    if (this_ptr->House->Is_Human_Player())
+    {
+        HouseClassExtension* houseext = Extension::Fetch(this_ptr->House);
+
+        if (houseext->IsPauseRepairs) {
+            return 0x00435A3F;
+        }
     }
 
     return 0;
@@ -2534,8 +2539,10 @@ DEFINE_HOOK(0x004288E1, _BuildingClass_Draw_Overlays_Wrench_Shape_Patch, 0)
     GET(Point2D*, point, EDI);
     GET(Rect*, rect, EBP);
 
-    int draw_frame; 
-    if (RuleExtension->IsPauseRepairs && this_ptr->House->Available_Money() < this_ptr->Class->Repair_Step()) {
+    HouseClassExtension* houseext = Extension::Fetch(this_ptr->House);
+
+    int draw_frame;
+    if (this_ptr->House->Is_Human_Player() && houseext->IsPauseRepairs && this_ptr->House->Available_Money() < this_ptr->Class->Repair_Step()) {
         draw_frame = RuleExtension->PausedRepairsFrame;
     } else {
         draw_frame = 6 * (Frame % frame) / (frame - 1);
