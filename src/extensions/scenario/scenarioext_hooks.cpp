@@ -139,6 +139,8 @@ DEFINE_HOOK(0x005DC85A, _Clear_Scenario_Patch, 0)
     Clear_Tracked_Static_Sounds();
     IonAmbient::Stop();
 
+    Vinifera_PlayerOptionsSent = false;
+
     return 0x005DC872;
 }
 
@@ -399,15 +401,12 @@ DEFINE_HOOK(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0)
 
 
 /**
- *  Intercepts Clear_Scenario.
- *  Replaces a loop resetting all globals and performs other maintenance.
+ *  Replace a loop resetting all globals in Clear_Scenario.
  *
- *  @author: ZivDero, Rampastring
+ *  @author: ZivDero
  */
-DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Patch, 0)
+DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Clear_Globals_Patch, 0)
 {
-    Vinifera_PlayerOptionsSent = false;
-
     for (int i = 0; i < std::size(ScenExtension->GlobalFlags); i++) {
         ScenExtension->Set_Global_To(i, 0);
     }
