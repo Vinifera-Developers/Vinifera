@@ -991,7 +991,7 @@ DEFINE_HOOK(0x0043266C, _BuildingClass_Mission_Repair_ReloadRate_Patch, 0)
 
     AircraftClass* radio = reinterpret_cast<AircraftClass*>(this_ptr->Contact_With_Whom());
     AircraftTypeClassExtension* radio_class_ext = Extension::Fetch(radio->Class);
-    int time = radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
+    int time = radio_class_ext->Get_ReloadRate() * TICKS_PER_MINUTE;
     R->EAX(time);
 
     return 0x0043260F;
