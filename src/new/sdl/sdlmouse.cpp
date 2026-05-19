@@ -19,6 +19,8 @@
 #include "sdlsurface.h"
 #include "shapeset.h"
 
+#include <algorithm>
+
 /**
  *  Persistent mouse object pointer that is used to facilitate access to the mouse
  *  handler object outside the context of a member function. This will be set to the
