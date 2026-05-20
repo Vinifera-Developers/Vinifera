@@ -100,8 +100,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainSound(VOC_NONE),
     ComesNearWaypointDistance(CELL_LEPTON_W * 5),
     IsAIDetectDisguise(true),
-    IsAIOneHarvesterInSingleplayer(true),
-    IsPauseRepairs(true),
+    IsAIOneHarvesterInSingleplayer(true),    
     PausedRepairsFrame(6),
     BridgeArmor(ARMOR_NULL)
 {

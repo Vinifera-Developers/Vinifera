@@ -362,10 +362,10 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
         // search only orthogonally for high bridge cells that have the overlays
         FacingType dirs[4] = {FACING_N, FACING_E, FACING_S, FACING_W};
 
-        for (FacingType dir : dirs) {            
-            Cell adjacent_cell = Adjacent_Cell(cell, dir);            
-            CellClass* adjacent_cellptr = &Map[adjacent_cell];            
-            if (adjacent_cellptr->Is_Overlay_Bridge() || adjacent_cellptr->Is_Overlay_Rail_Bridge()) {                
+        for (FacingType dir : dirs) {
+            Cell adjacent_cell = Adjacent_Cell(cell, dir);
+            CellClass* adjacent_cellptr = &Map[adjacent_cell];
+            if (adjacent_cellptr->Is_Overlay_Bridge() || adjacent_cellptr->Is_Overlay_Rail_Bridge()) {
                 cell_to_use = adjacent_cell;
                 break;
             }
@@ -373,10 +373,10 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
         
     } else if (cellptr->Is_Overlay_Low_Bridge()) { // low bridges
         FacingType dirs[2] = {};
-        if (cellptr->Is_Low_Bridge_SE_NW()) {            
+        if (cellptr->Is_Low_Bridge_SE_NW()) {
             dirs[0] = FACING_N;
             dirs[1] = FACING_S;
-        } else {            
+        } else {
             dirs[0] = FACING_E;
             dirs[1] = FACING_W;
         }
@@ -384,9 +384,22 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
         bool cell_found = false;
         for (FacingType dir : dirs) {
             Cell current_cell = cell;
-            CellClass* current_cellptr = &Map[current_cell];            
+            CellClass* current_cellptr = &Map[current_cell];
+            
+            /*
+            * Handle two low overlay bridges that are very close to each other.
+            * We skip one side checking another side that should never be part of the same low bridge.
+            */
+            if (current_cellptr->OverlayData == 0 && (dir == FACING_N || dir == FACING_W)) {
+                continue;
+            }
+
+            if (current_cellptr->OverlayData == 2 && (dir == FACING_S || dir == FACING_E)) {
+                continue;
+            }
+
             while (current_cellptr->Overlay == cellptr->Overlay) {
-                if (BridgeHealths.contains(current_cell)) {                    
+                if (BridgeHealths.contains(current_cell)) {
                     cell_to_use = current_cell;
                     cell_found = true;
                     break;

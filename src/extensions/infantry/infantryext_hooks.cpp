@@ -708,8 +708,36 @@ void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_
         BridgeHealths.erase(current_cell);
     }
 
+    CellClass* current_cellptr = &Map[current_cell];
+
     FacingType dirs[4] = {FACING_W, FACING_E, FACING_S, FACING_N};
     for (FacingType dir : dirs) {
+        if (current_cellptr->Is_Overlay_Low_Bridge()) {
+            /*
+             * Handle two low overlay bridges that are very close to each other.
+             * We skip one side checking another side that should never be part of the same low bridge.
+             */
+            if (current_cellptr->OverlayData == 0) {
+                if (current_cellptr->Is_Low_Bridge_SE_NW() && dir == FACING_N) {
+                    continue;
+                }
+
+                if (current_cellptr->Is_Low_Bridge_SW_NE() && dir == FACING_E) {
+                    continue;
+                }                    
+            }
+
+            if (current_cellptr->OverlayData == 2) {
+                if (current_cellptr->Is_Low_Bridge_SE_NW() && dir == FACING_S) {
+                    continue;
+                }
+
+                if (current_cellptr->Is_Low_Bridge_SW_NE() && dir == FACING_W) {
+                    continue;
+                }
+            }
+        }
+
         Cell adjacent_cell = Adjacent_Cell(current_cell, dir);
         CellClass* adjacent_cellptr = &Map[adjacent_cell];
 
@@ -747,7 +775,6 @@ void Scan_Around_Bridge_Hut_For_Bridge(Cell* bridge_hut_cell)
 
     return;
 }
-
 /**
  *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
  *  that is adjacent to either a Low Bridge or a High (non-train) Bridge.
