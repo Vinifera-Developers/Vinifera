@@ -47,6 +47,8 @@
  */
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     RadioClassExtension(this_ptr),
+    Vinifera::Detach::Listener<TechnoClass>(),
+    Vinifera::Detach::Listener<AnimClass>(),
     ElectricBolt(nullptr),
     Storage(Tiberiums.Count()),
     SpawnManager(nullptr),
@@ -84,6 +86,8 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
  */
 TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
     RadioClassExtension(noinit),
+    Vinifera::Detach::Listener<TechnoClass>(noinit),
+    Vinifera::Detach::Listener<AnimClass>(noinit),
     Storage(noinit),
     BurstResetTimer(noinit)
 {
@@ -165,24 +169,23 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 
 
 /**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
+ *  Clears SpawnOwner if it pointed at the destroyed techno.
+ *  SpawnManager (when present) is itself an Abstract listener and handles
+ *  its own pointer cleanup via the registry.
  */
-void TechnoClassExtension::Detach(AbstractClass * target, bool all)
+void TechnoClassExtension::On_Detach(TechnoClass *target, bool all)
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    RadioClassExtension::Detach(target, all);
-
-    if (SpawnManager) {
-        SpawnManager->Detach(target);
-    }
-
     if (target == SpawnOwner) {
         SpawnOwner = nullptr;
     }
+}
 
+
+/**
+ *  Clears IdleWakeAnim if it pointed at the destroyed anim.
+ */
+void TechnoClassExtension::On_Detach(AnimClass *target, bool all)
+{
     if (target == IdleWakeAnim) {
         IdleWakeAnim = nullptr;
     }

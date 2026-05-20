@@ -59,8 +59,6 @@ class ScenarioClassExtension;
 class SessionClassExtension;
 class OptionsClassExtension;
 
-class ThemeControlExtension;
-
 
 /**
  *  For printing out extension debug info.
@@ -134,8 +132,3 @@ extern RulesClassExtension *RuleExtension;
 extern ScenarioClassExtension *ScenExtension;
 extern SessionClassExtension *SessionExtension;
 extern OptionsClassExtension *OptionsExtension;
-
-/**
- *  Classes that require a list, but are not abstract derived.
- */
-extern DynamicVectorClass<ThemeControlExtension *> ThemeControlExtensions;

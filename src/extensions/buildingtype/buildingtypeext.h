@@ -34,7 +34,6 @@ public:
     virtual ~BuildingTypeClassExtension();
 
     virtual int Get_Object_Size() const override;
-    virtual void Detach(AbstractClass * target, bool all = true) override;
     virtual void Object_CRC(CRCEngine &crc) const override;
 
     virtual BuildingTypeClass *This() const override { return reinterpret_cast<BuildingTypeClass *>(TechnoTypeClassExtension::This()); }

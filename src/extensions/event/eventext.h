@@ -26,6 +26,7 @@ public:
     EventClassExt() { Type = EVENT_EMPTY; }
     EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags);
     EventClassExt(int index, EventType type, RTTIType object, Cell const& cell, ProductionFlags flags);
+    EventClassExt(int index, EventType type, bool pausedRepairs);
 
     int operator==(const EventClassExt& q) const { return std::memcmp(this, &q, sizeof(q)) == 0; }
     int operator!=(const EventClassExt& q) const { return std::memcmp(this, &q, sizeof(q)) != 0; }
@@ -60,6 +61,10 @@ public:
             xCell           Where;
             ProductionFlags Flags;
         } NewPlace;
+
+        struct {
+            bool            IsPauseRepairs;
+        } PlayerOptions;
 
         char Padding[sizeof(EventClass::Data)];
     } Data;

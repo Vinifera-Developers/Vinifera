@@ -43,6 +43,7 @@
 
 #include <string>
 
+#include "audio_util.h"
 
 static DynamicVectorClass<std::string> ViniferaSearchPaths;
 
@@ -434,6 +435,15 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
         }
 #endif
 
+        /**
+         *  Enable audio debug output?
+         */
+        if (stricmp(string, "-AUDIO_DEBUG") == 0) {
+            DEBUG_INFO("  - Extensive audio engine debugging.\n");
+            Vinifera_AudioDebug = true;
+            continue;
+        }
+
     }
 
     if (argc > 1) {
@@ -488,37 +498,11 @@ bool Vinifera_Startup()
 #endif
 
     /**
-     *  #issue-514:
-     * 
-     *  Adds various search paths for loading files locally for the TS-Client builds only.
-     * 
-     *  #NOTE: REMOVED: Additional paths must now be set via SearchPaths in VINIFERA.INI!
-     * 
-     *  @author: CCHyper
+     *  Search paths for use with the new audio engine.
      */
-#if 0 // #if defined(TS_CLIENT)
-
-    // Only required for the TS Client builds as most projects will
-    // put VINIFERA.INI in this directory.
-    ViniferaSearchPaths.Add("INI");
-
-    // Required for startup mix files to be found.
-    ViniferaSearchPaths.Add("MIX");
-#endif
-
-#if !defined(TS_CLIENT)
-    // Required for startup movies to be found.
-    ViniferaSearchPaths.Add("MOVIES");
-#endif
-
-    // REMOVED: Paths are now set via SearchPaths in VINIFERA.INI
-//#if defined(TS_CLIENT)
-//    ViniferaSearchPaths.Add("MUSIC");
-//    ViniferaSearchPaths.Add("SOUNDS");
-//    ViniferaSearchPaths.Add("MAPS");
-//    ViniferaSearchPaths.Add("MAPS\\MULTIPLAYER");
-//    ViniferaSearchPaths.Add("MAPS\\MISSION");
-//#endif
+    ViniferaSearchPaths.Add("SOUNDS");
+    ViniferaSearchPaths.Add("SPEECH");
+    ViniferaSearchPaths.Add("MUSIC");
 
     /**
      *  Load Vinifera settings and overrides.
@@ -661,11 +645,6 @@ bool Vinifera_Shutdown()
 
     delete UIControls;
     UIControls = nullptr;
-
-    /**
-     *  Cleanup additional extension instances.
-     */
-    ThemeControlExtensions.Clear();
 
     delete KamikazeTracker;
     KamikazeTracker = nullptr;

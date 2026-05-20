@@ -11,7 +11,7 @@
 
 #include "objecttypeext.h"
 
-#include "asserthandler.h"
+#include "audio_sample.h"
 #include "building.h"
 #include "buildingtypeext.h"
 #include "ccini.h"
@@ -24,8 +24,9 @@
 #include "rulesext.h"
 #include "technotypeext.h"
 #include "unittypeext.h"
+#include "vinifera_globals.h"
+#include "voc.h"
 #include "voxellib.h"
-
 
 /**
  *  Class constructor.
@@ -41,8 +42,8 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
     NoSpawnVoxelIndex(),
     WaterAlt(false),
     WaterVoxel(),
-    WaterVoxelIndex()
-
+    WaterVoxelIndex(),
+    AmbientSound(VOC_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -134,15 +135,6 @@ HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void ObjectTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -182,11 +174,12 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
     NoSpawnAlt = ini.Get_Bool(ini_name, "NoSpawnAlt", NoSpawnAlt);
     WaterAlt = ini.Get_Bool(ini_name, "WaterAlt", WaterAlt);
 
-    if (This()->IsVoxel)
-    {
+    if (This()->IsVoxel) {
         Fetch_Voxel_Image(Graphic_Name());
     }
     
+    AmbientSound = ini.Get_VocType(ini_name, "AmbientSound", AmbientSound);
+
     return true;
 }
 
@@ -200,14 +193,12 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
 {
     char buffer[260];
 
-    if (NoSpawnAlt)
-    {
+    if (NoSpawnAlt) {
         std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
         NoSpawnVoxel.Load(NoSpawnVoxelIndex, buffer);
     }
 
-    if (WaterAlt)
-    {
+    if (WaterAlt) {
         std::snprintf(buffer, sizeof(buffer), "%sW", graphic_name);
         WaterVoxel.Load(WaterVoxelIndex, buffer);
     }

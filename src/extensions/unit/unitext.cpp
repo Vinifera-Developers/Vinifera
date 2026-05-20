@@ -26,6 +26,7 @@
  */
 UnitClassExtension::UnitClassExtension(const UnitClass *this_ptr) :
     FootClassExtension(this_ptr),
+    Vinifera::Detach::Listener<BuildingClass>(),
     LastDockedBuilding(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -40,7 +41,8 @@ UnitClassExtension::UnitClassExtension(const UnitClass *this_ptr) :
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(const NoInitClass &noinit) :
-    FootClassExtension(noinit)
+    FootClassExtension(noinit),
+    Vinifera::Detach::Listener<BuildingClass>(noinit)
 {
     //EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -132,16 +134,10 @@ int UnitClassExtension::Get_Object_Size() const
 
 
 /**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
+ *  Removes the specified building from any targeting and reference trackers.
  */
-void UnitClassExtension::Detach(AbstractClass * target, bool all)
+void UnitClassExtension::On_Detach(BuildingClass *target, bool all)
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    FootClassExtension::Detach(target, all);
-
     if (LastDockedBuilding == target) {
         LastDockedBuilding = nullptr;
     }

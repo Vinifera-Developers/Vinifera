@@ -16,6 +16,7 @@
 #include "extension.h"
 #include "rules.h"
 #include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -25,8 +26,8 @@
  */
 AircraftTypeClassExtension::AircraftTypeClassExtension(const AircraftTypeClass *this_ptr) :
     TechnoTypeClassExtension(this_ptr),
-    IsCurleyShuffle(false), // Same as the RulesClass default.
-    ReloadRate(0.05f) // Same as the RulesClass default.
+    IsCurleyShuffle(std::nullopt),
+    ReloadRate(std::nullopt)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AircraftTypeClassExtension::AircraftTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -40,7 +41,9 @@ AircraftTypeClassExtension::AircraftTypeClassExtension(const AircraftTypeClass *
  *  @author: CCHyper
  */
 AircraftTypeClassExtension::AircraftTypeClassExtension(const NoInitClass &noinit) :
-    TechnoTypeClassExtension(noinit)
+    TechnoTypeClassExtension(noinit),
+    IsCurleyShuffle(std::nullopt),
+    ReloadRate(std::nullopt)
 {
     //EXT_DEBUG_TRACE("AircraftTypeClassExtension::AircraftTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -93,7 +96,10 @@ HRESULT AircraftTypeClassExtension::Load(IStream *pStm)
     }
 
     new (this) AircraftTypeClassExtension(NoInitClass());
-    
+
+    if (FAILED(hr = Read_Optional(pStm, IsCurleyShuffle))) return hr;
+    if (FAILED(hr = Read_Optional(pStm, ReloadRate))) return hr;
+
     return hr;
 }
 
@@ -112,6 +118,9 @@ HRESULT AircraftTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    if (FAILED(hr = Put_Optional(pStm, IsCurleyShuffle))) return hr;
+    if (FAILED(hr = Put_Optional(pStm, ReloadRate))) return hr;
+
     return hr;
 }
 
@@ -129,17 +138,6 @@ int AircraftTypeClassExtension::Get_Object_Size() const
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void AircraftTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    TechnoTypeClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -154,8 +152,8 @@ void AircraftTypeClassExtension::Object_CRC(CRCEngine &crc) const
 
 
 /**
- *  Fetches the extension data from the INI database.  
- *  
+ *  Fetches the extension data from the INI database.
+ *
  *  @author: CCHyper
  */
 bool AircraftTypeClassExtension::Read_INI(CCINIClass &ini)
@@ -172,8 +170,12 @@ bool AircraftTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
-    IsCurleyShuffle = ini.Get_Bool(ini_name, "CurleyShuffle", Rule->IsCurleyShuffle);
-    ReloadRate = ini.Get_Float(ini_name, "ReloadRate", Rule->ReloadRate);
+    if (ini.Is_Present(ini_name, "CurleyShuffle")) {
+        IsCurleyShuffle = ini.Get_Bool(ini_name, "CurleyShuffle", Get_IsCurleyShuffle());
+    }
+    if (ini.Is_Present(ini_name, "ReloadRate")) {
+        ReloadRate = ini.Get_Float(ini_name, "ReloadRate", Get_ReloadRate());
+    }
 
     IsInitialized = true;
 

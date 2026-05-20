@@ -783,8 +783,15 @@ DEFINE_HOOK(0x00611BCB, _Tactical_Render_Overlay_Patch, 0)
     }
 
     /**
+     *  Draw the VOX subtitle (if any) at the bottom of the tactical view.
+     *  Drawn before the version-number text so the version stays on top in
+     *  the rare case of a long subtitle reaching the corner.
+     */
+    TacticalMapExtension->Draw_Subtitle();
+
+    /**
      *  Draw the version number on screen.
-     * 
+     *
      *  @note: This must be last in the draw order!
      */
     TacticalMapExtension->Draw_Version_Number_Text();

@@ -15,6 +15,8 @@
 #include "aircrafttypeext.h"
 #include "animtypeext.h"
 #include "armortype.h"
+#include "audio_util.h"
+#include "audio_theme.h"
 #include "asserthandler.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
@@ -238,15 +240,6 @@ int RulesClassExtension::Get_Object_Size() const
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void RulesClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("RulesClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
-}
 
 
 /**
@@ -276,7 +269,6 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsAIDetectDisguise);
     crc(AIHarvestersPerRefinery.Count());
     crc(IsAIOneHarvesterInSingleplayer);
-    crc(IsPauseRepairs);
     crc(PausedRepairsFrame);
     crc(BridgeArmor);
 }
@@ -427,6 +419,11 @@ void RulesClassExtension::Process(CCINIClass &ini)
      *  Fixup various inconsistencies in the original INI files.
      */
     Fixups(ini);
+
+    /**
+     *  Read the theme data from the INI.
+     */
+    AudioTheme.Init_Themes(ini);
 }
 
 
@@ -711,7 +708,6 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
     SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
     SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
-    IsPauseRepairs = ini.Get_Bool(GENERAL, "PauseRepairs", IsPauseRepairs);
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
 
     /**

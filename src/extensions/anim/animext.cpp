@@ -169,17 +169,6 @@ int AnimClassExtension::Get_Object_Size() const
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void AnimClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("AnimClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    ObjectClassExtension::Detach(target, all);
-}
 
 
 /**

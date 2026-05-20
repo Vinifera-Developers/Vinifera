@@ -25,6 +25,7 @@
 #include "object.h"
 #include "rules.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
 #include "team.h"
 #include "technotype.h"
 #include "technotypeext.h"
@@ -52,7 +53,7 @@ public:
     LONG STDMETHODCALLTYPE _Landing_Altitude();
     LONG STDMETHODCALLTYPE _Landing_Altitude_Thunk();
     RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);    
-    bool Do_MISSION_MOVE_Apply_QMove();
+    bool _Do_MISSION_MOVE_Apply_QMove();
 };
 
 
@@ -474,7 +475,7 @@ DEFINE_HOOK(0x0040BDCF, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TA
     GET(AircraftClass *, this_ptr, ESI);
 
     AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
-    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    bool is_curley_shuffle = class_ext->Get_IsCurleyShuffle();
     R->AL(is_curley_shuffle);
 
     return 0x0040BDDB;
@@ -486,7 +487,7 @@ DEFINE_HOOK(0x0040C054, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TA
     GET(AircraftClass *, this_ptr, ESI);
 
     AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
-    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    bool is_curley_shuffle = class_ext->Get_IsCurleyShuffle();
     R->CL(is_curley_shuffle);
 
     return 0x0040BFA8;
@@ -497,7 +498,7 @@ DEFINE_HOOK(0x0040BF9D, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TA
     GET(AircraftClass *, this_ptr, ESI);
 
     AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
-    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    bool is_curley_shuffle = class_ext->Get_IsCurleyShuffle();
     R->DL(is_curley_shuffle);
 
     return 0x0040C060;
@@ -508,7 +509,7 @@ DEFINE_HOOK(0x0040C0AC, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TA
     GET(AircraftClass *, this_ptr, ESI);
 
     AircraftTypeClassExtension* class_ext = Extension::Fetch(this_ptr->Class);
-    bool is_curley_shuffle = class_ext->IsCurleyShuffle;
+    bool is_curley_shuffle = class_ext->Get_IsCurleyShuffle();
     R->AL(is_curley_shuffle);
 
     return 0x0040C0B8;
@@ -843,7 +844,7 @@ DEFINE_HOOK(0x0040B35A, _AircraftClass_Enter_Idle_Mode_QMove_Patch, 6)
  *
  *  @author: JoyfulShush
  */
-bool AircraftClassExt::Do_MISSION_MOVE_Apply_QMove()
+bool AircraftClassExt::_Do_MISSION_MOVE_Apply_QMove()
 {
     if (NavQueue.Count() <= 0) {
         return false;
@@ -892,7 +893,7 @@ DEFINE_HOOK(0x0040A655, _AircraftClass_Do_MISSION_MOVE__QMove_Patch, 6)
 {    
     GET(AircraftClassExt*, this_ptr, ESI);
 
-    bool qmove_applied = this_ptr->Do_MISSION_MOVE_Apply_QMove();
+    bool qmove_applied = this_ptr->_Do_MISSION_MOVE_Apply_QMove();
 
     if (qmove_applied) {
         return 0x0040A711; // jump to statement resetting status to 0 and returning 1
@@ -912,7 +913,7 @@ DEFINE_HOOK(0x0040AD38, _AircraftClass_Do_MISSION_MOVE_Carryall_QMove_Patch, 6)
 {
     GET(AircraftClassExt*, this_ptr, ESI);
 
-    bool qmove_applied = this_ptr->Do_MISSION_MOVE_Apply_QMove();
+    bool qmove_applied = this_ptr->_Do_MISSION_MOVE_Apply_QMove();
 
     if (qmove_applied) {
         return 0x0040ACFC; // jump to statement resetting status to 0 and returning 1

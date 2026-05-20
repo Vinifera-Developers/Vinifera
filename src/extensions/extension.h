@@ -181,7 +181,8 @@ namespace Extension
 namespace Private
 {
 
-AbstractClassExtension *Make_Internal(const AbstractClass *abstract);
+bool Is_Supported(const AbstractClass* abstract);
+AbstractClassExtension* Make_Internal(const AbstractClass* abstract);
 bool Destroy_Internal(const AbstractClass *abstract);
 AbstractClassExtension *Fetch_Internal(const AbstractClass *abstract);
 
@@ -496,9 +497,8 @@ bool Request_Pointer_Remap();
 unsigned Get_Save_Version_Number();
 
 /**
- *  Tracking, announcement, and debugging functions.
+ *  Announcement and debugging functions.
  */
-void Detach_This_From_All(AbstractClass * target, bool all = true);
 bool Register_Class_Factories();
 void Free_Heaps();
 void Print_CRCs(EventClass *ev);
@@ -532,15 +532,8 @@ class GlobalExtensionClass
         virtual int Get_Object_Size() const = 0;
 
         /**
-         *  Removes the specified target from any targeting and reference trackers.
-         *  
-         *  @note: This must be overridden by the extended class!
-         */
-        virtual void Detach(AbstractClass * target, bool all = true) = 0;
-
-        /**
          *  Compute a unique crc value for this instance.
-         *  
+         *
          *  @note: This must be overridden by the extended class!
          */
         virtual void Object_CRC(CRCEngine &crc) const = 0;

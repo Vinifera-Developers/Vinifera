@@ -221,6 +221,9 @@ typedef enum ExtTActionType
     EXT_TACTION_DISABLE_TEMPLATED_TEXT,
     EXT_TACTION_ADJUST_HOUSE_MODIFIER,
     EXT_TACTION_APPLY_IRON_CURTAIN,
+    EXT_TACTION_STOP_SOUNDS_AT,
+    EXT_TACTION_ATTACH_SOUND,
+    EXT_TACTION_DETACH_SOUND,
 
     /**
      *  The new total ExtTActionType count.
@@ -291,7 +294,7 @@ enum ExtEventType {
     /**
      *  Add new ExtEventTypes from here.
      */
-    
+    EXT_EVENT_PLAYER_OPTIONS,
 
     /**
      *  The new total ExtEventTypes count.

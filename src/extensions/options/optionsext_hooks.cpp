@@ -11,11 +11,12 @@
 
 #include "optionsext_hooks.h"
 
+#include "audio_voc.h"
 #include "hooker.h"
+#include "optionsext.h"
 #include "optionsext_init.h"
 #include "rawfile.h"
 #include "syringe.h"
-
 
 /**
  *  Patches Hotkey_Dialog_Proc to use RawFileClass when deleting Keyboard.INI to ensure only
@@ -32,6 +33,19 @@ DEFINE_HOOK(0x0058AA18, _Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch, 0)
 
 
 /**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DEFINE_HOOK(0x00589B68, _OptionsClass_Set_Sound_Volume_Patch, 4)
+{
+    AudioVocClass::Set_Volume(static_cast<int>(Options.SoundVolume * 255));
+
+    return 0;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void OptionsClassExtension_Hooks()
@@ -40,4 +54,5 @@ void OptionsClassExtension_Hooks()
      *  Initialises the extended class.
      */
     OptionsClassExtension_Init();
+
 }

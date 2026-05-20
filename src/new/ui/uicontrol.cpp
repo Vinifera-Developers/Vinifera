@@ -71,6 +71,7 @@ const char* Name_From_Sidebar_View_Type(SidebarViewType view_type)
  *  @author: CCHyper
  */
 void BattleSidebarLayoutBase::Read_INI(CCINIClass const& ini, const char* section)
+
 {
     RepairButton.Position = ini.Get_Point(section, "RepairButtonPos", RepairButton.Position);
     RepairButton.IsVisible = ini.Get_Bool(section, "RepairButtonVisible", RepairButton.IsVisible);
@@ -374,6 +375,15 @@ bool UIControlsClass::Read_INI(CCINIClass const& ini)
             BeaconPreviewText[i] = buffer;
         }
     }
+
+    SubtitleFontName = ini.Get_String(INGAME, "SubtitleFontName", SubtitleFontName);
+    SubtitleFontHeight = ini.Get_Int(INGAME, "SubtitleFontHeight", SubtitleFontHeight);
+    SubtitleFontWeight = ini.Get_Int(INGAME, "SubtitleFontWeight", SubtitleFontWeight);
+    SubtitleTextColor = ini.Get_RGBColor(INGAME, "SubtitleTextColor", SubtitleTextColor);
+    SubtitleOutlineColor = ini.Get_RGBColor(INGAME, "SubtitleOutlineColor", SubtitleOutlineColor);
+    SubtitleOutlineWidth = ini.Get_Int(INGAME, "SubtitleOutlineWidth", SubtitleOutlineWidth);
+    SubtitleMarginX = ini.Get_Int(INGAME, "SubtitleMarginX", SubtitleMarginX);
+    SubtitleMarginBottom = ini.Get_Int(INGAME, "SubtitleMarginBottom", SubtitleMarginBottom);
 
     return true;
 }

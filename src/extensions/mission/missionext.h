@@ -27,7 +27,6 @@ class MissionClassExtension : public ObjectClassExtension
         MissionClassExtension(const NoInitClass &noinit);
         virtual ~MissionClassExtension();
 
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual MissionClass *This() const override { return reinterpret_cast<MissionClass *>(ObjectClassExtension::This()); }
