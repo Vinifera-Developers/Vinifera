@@ -149,6 +149,8 @@ DEFINE_HOOK(0x005DC85A, _Clear_Scenario_Patch, 0)
     Clear_Tracked_Static_Sounds();
     IonAmbient::Stop();
 
+    Vinifera_PlayerOptionsSent = false;
+
     return 0x005DC872;
 }
 

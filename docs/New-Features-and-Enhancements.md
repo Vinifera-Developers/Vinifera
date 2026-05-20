@@ -1681,6 +1681,20 @@ Some speeches are played by engine code in response to game events (mission acco
     | 312 | 00-I020 | EVA_IncomingTransmission |
 :::
 
+### Object Ambient Sounds
+
+- Any object can be given a looping ambient sound that starts when the object enters the world and follows it as it moves.
+
+In `RULES.INI`:
+```ini
+[SOMEOBJECT]    ; ObjectType
+AmbientSound=   ; VocType, the ambient sound that plays on this object while it is active. Defaults to none.
+```
+
+```{note}
+The `VocType` should have `Control=LOOP` in `SOUND.INI`. Non-looping sounds play through once and then go silent — they are not automatically restarted.
+```
+
 ### Trigger Audio Actions
 
 Vinifera changes the mapper-facing sound trigger actions so sounds started at waypoints can be stopped reliably, and adds new actions for attaching ambient loops to trigger-bound objects.
@@ -1694,7 +1708,7 @@ Vinifera changes the mapper-facing sound trigger actions so sounds started at wa
 - `Detach Sound` is Vinifera trigger action `139`. It removes any previously-attached ambient sound from the trigger's bound objects.
 
 ```{note}
-The `VocType` passed to `Attach Sound` should have `Control=LOOP`. Non-looping vocs play through once and then go silent for the rest of the attachment — they are not automatically restarted. This matches the rules-defined `AmbientSound=` field on ObjectTypes.
+The `VocType` passed to `Attach Sound` should have `Control=LOOP`. Non-looping vocs play through once and then go silent for the rest of the attachment — they are not automatically restarted.
 ```
 
 ## Tiberiums

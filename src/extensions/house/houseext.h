@@ -122,6 +122,11 @@ public:
     CDTimerClass<FrameTimerClass> IronCurtainAvailabilityTimer;
 
     /**
+     *  Determines whether repairs are paused instead of stopped when this house has insufficient funds.
+     */
+    bool IsPauseRepairs;
+
+    /**
      *  Is this house an observer?
      */
     bool IsObserver;

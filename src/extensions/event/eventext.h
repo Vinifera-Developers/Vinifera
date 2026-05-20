@@ -28,6 +28,7 @@ public:
     EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags);
     EventClassExt(int index, EventType type, RTTIType object, Cell const& cell, ProductionFlags flags);
     EventClassExt(int id, unsigned char max_ahead, LatencyLevelEnum latency_level);
+    EventClassExt(int index, EventType type, bool pausedRepairs);
 
     int operator==(const EventClassExt& q) const { return std::memcmp(this, &q, sizeof(q)) == 0; }
     int operator!=(const EventClassExt& q) const { return std::memcmp(this, &q, sizeof(q)) != 0; }
@@ -86,7 +87,11 @@ public:
             ProductionFlags Flags;
         } NewPlace;
 
-		struct ResponseTime2 {
+        struct {
+            bool            IsPauseRepairs;
+        } PlayerOptions;
+
+        struct ResponseTime2 {
             unsigned char MaxAhead;
             LatencyLevelEnum LatencyLevel;
         } ResponseTime2;

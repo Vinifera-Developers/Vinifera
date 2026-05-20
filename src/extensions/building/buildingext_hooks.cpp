@@ -17,6 +17,7 @@
 #include "anim.h"
 #include "animext.h"
 #include "asserthandler.h"
+#include "audio_vox.h"
 #include "bsurface.h"
 #include "building.h"
 #include "buildingext.h"
@@ -1088,7 +1089,7 @@ DEFINE_HOOK(0x0043266C, _BuildingClass_Mission_Repair_ReloadRate_Patch, 0)
 
     AircraftClass* radio = reinterpret_cast<AircraftClass*>(this_ptr->Contact_With_Whom());
     AircraftTypeClassExtension* radio_class_ext = Extension::Fetch(radio->Class);
-    int time = radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
+    int time = radio_class_ext->Get_ReloadRate() * TICKS_PER_MINUTE;
     R->EAX(time);
 
     return 0x0043260F;
@@ -1854,7 +1855,7 @@ DEFINE_HOOK(0x00432937, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch, 
 
     SuperWeaponTypeClassExtension* super_ext = Extension::Fetch(SuperWeaponTypes[this_ptr->field_298]);
     if (super_ext->VoxMissileLaunched != VOX_NONE) {
-        Speak(super_ext->VoxMissileLaunched);
+        AudioVoxClass::Speak(super_ext->VoxMissileLaunched);
     }
 
     return 0x00432943;
@@ -2550,14 +2551,19 @@ DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
  *  Patches the part of BuildingClass::Repair_AI where a building can no longer be repaired due to a house having insufficient funds.
  *  Typically, it would stop repairs altoghether. However, if the rule for pausing repairs is enabled, then it skips that.
  *
- *  @author: JoyfulShush
+ *  @author: JoyfulShush, Rampastring
  */
 DEFINE_HOOK(0x00435A38, _BuildingClass_Repair_AI_Pause_Repairs_Patch, 7)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
-    if (RuleExtension->IsPauseRepairs) {        
-        return 0x00435A3F;
+    if (this_ptr->House->Is_Human_Player())
+    {
+        HouseClassExtension* houseext = Extension::Fetch(this_ptr->House);
+
+        if (houseext->IsPauseRepairs) {
+            return 0x00435A3F;
+        }
     }
 
     return 0;
@@ -2576,8 +2582,10 @@ DEFINE_HOOK(0x004288E1, _BuildingClass_Draw_Overlays_Wrench_Shape_Patch, 0)
     GET(Point2D*, point, EDI);
     GET(Rect*, rect, EBP);
 
-    int draw_frame; 
-    if (RuleExtension->IsPauseRepairs && this_ptr->House->Available_Money() < this_ptr->Class->Repair_Step()) {
+    HouseClassExtension* houseext = Extension::Fetch(this_ptr->House);
+
+    int draw_frame;
+    if (this_ptr->House->Is_Human_Player() && houseext->IsPauseRepairs && this_ptr->House->Available_Money() < this_ptr->Class->Repair_Step()) {
         draw_frame = RuleExtension->PausedRepairsFrame;
     } else {
         draw_frame = 6 * (Frame % frame) / (frame - 1);

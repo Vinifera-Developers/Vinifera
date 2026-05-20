@@ -155,6 +155,7 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     IsVSync(false),
     RendererDriver(RENDERER_DRIVER_AUTO),
     SubtitleMode(SUBTITLE_MODE_NONE),
+    IsPauseRepairs(true),
     AutoSaveCount(5),
     AutoSaveInterval(7200)
 {
@@ -262,6 +263,7 @@ void OptionsClassExtension::Load_Settings()
 
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
+    IsPauseRepairs = ConfigINI.Get_Bool("Options", "PauseRepairs", IsPauseRepairs);
 
     SidebarViewTypeOverride = SIDEBAR_COUNT;
 

@@ -26,6 +26,7 @@
 #include "technotypeext.h"
 #include "tibsun_globals.h"
 #include "vinifera_defines.h"
+#include "vox.h"
 
 #include <algorithm>
 
@@ -128,6 +129,10 @@ bool BuildCategory::Add(RTTIType type, int id)
 {
     if (Is_On_Sidebar(type, id)) {
         return false;
+    }
+
+    if (!ScenarioInit && type != RTTI_SPECIAL) {
+        Speak(VOX_NEW_CONSTRUCT);
     }
 
     BuildItem item;

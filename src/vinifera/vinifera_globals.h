@@ -97,6 +97,8 @@ extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
 
+extern unsigned Vinifera_TotalPlayTime;
+
 extern DynamicVectorClass<MFCD *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
@@ -110,9 +112,9 @@ extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
-extern unsigned Vinifera_TotalPlayTime;
-extern unsigned Vinifera_PlaythroughID;
+extern bool Vinifera_PlayerOptionsSent;
 
+extern unsigned Vinifera_PlaythroughID;
 
 /**
  *  Global vectors and heaps.
@@ -137,7 +139,6 @@ extern bool Vinifera_SkipToSkirmish;
 extern bool Vinifera_SkipToCampaign;
 extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
-
 
 /**
  *  Definition for the exception database struct. If you update this

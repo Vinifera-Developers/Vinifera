@@ -23,6 +23,8 @@
 #include "tibsun_globals.h"
 #include "vector.h"
 
+#include <algorithm>
+
 
 class ScoreSfxEntryExt;
 struct ScoreClassExt;
