@@ -1236,16 +1236,19 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         Change_Video_Mode(Options.ScreenWidth, Options.ScreenHeight);
     }
 
-    /**
-     *  Print a message stating the current difficulty level.
-     */
-    static const char* difficulty_names[] = {
-        "Difficulty: Hard",
-        "Difficulty: Medium",
-        "Difficulty: Easy",
-    };
+    if (Session.Type == GAME_NORMAL) {
 
-    Session.Messages.Add_Message(nullptr, 0, difficulty_names[Scen->CDifficulty], Fetch_Scheme_Index_By_Name("DarkGold"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+        /**
+         *  Print a message stating the current difficulty level.
+         */
+        static const char* difficulty_names[] = {
+            "Difficulty: Hard",
+            "Difficulty: Medium",
+            "Difficulty: Easy",
+        };
+
+        Session.Messages.Add_Message(nullptr, 0, difficulty_names[Scen->CDifficulty], Fetch_Scheme_Index_By_Name("DarkGold"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+    }
 
     /**
      *  Mark the game as having started.
