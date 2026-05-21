@@ -189,6 +189,7 @@ void Spawner::Init_Session(char* scenario_name)
     ScenExtension->SkipScoreScreenOverride = Config->SkipScoreScreen;
     std::snprintf(ScenExtension->StatsMapName, sizeof(ScenExtension->StatsMapName), "%s", Config->MapName.c_str());
     std::snprintf(ScenExtension->StatsMapHash, sizeof(ScenExtension->StatsMapHash), "%s", Config->MapHash.c_str());
+    std::snprintf(ScenExtension->DifficultyName, sizeof(ScenExtension->DifficultyName), "%s", Config->DifficultyName.c_str());
 
     if (!Config->CustomLoadScreen.empty()) {
         ScenExtension->HasCustomLoadScreen = true;

@@ -1247,7 +1247,9 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
             "Difficulty: Easy",
         };
 
-        Session.Messages.Add_Message(nullptr, 0, difficulty_names[Scen->CDifficulty], Fetch_Scheme_Index_By_Name("DarkGold"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+        const char* diff_name = ScenExtension->DifficultyName[0] == '\0' ? difficulty_names[Scen->CDifficulty] : ScenExtension->DifficultyName;
+
+        Session.Messages.Add_Message(nullptr, 0, diff_name, Fetch_Scheme_Index_By_Name("DarkGold"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
     }
 
     /**

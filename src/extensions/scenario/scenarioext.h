@@ -139,6 +139,7 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         Point2D CustomLoadScreenPos;
         bool HasCustomLoadScreen;
         bool HasCustomLoadScreenPos;
+        char DifficultyName[64];
 
         /**
          *  Convenient property to access IsGDI as a HousesType.

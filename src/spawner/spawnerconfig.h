@@ -146,6 +146,7 @@ public:
     FixedString<PATH_MAX> CustomLoadScreen {""};
     TPoint2D<int> CustomLoadScreenPos {};
     bool ContinueWithoutHumans = false;
+    FixedString<64> DifficultyName {""};
 
     void Read_INI(CCINIClass& spawn_ini);
 };
