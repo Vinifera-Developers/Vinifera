@@ -687,13 +687,13 @@ void HouseClassExt::_MPlayer_Defeated()
             /**
              *  Pop up a message showing that I was defeated
              */
-            std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName);
+            std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName.c_str());
             Session.Messages.Add_Message(nullptr, 0, txt, static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
             Speak(VOX_YOU_HAVE_LOST);
         }
 
         Map.Flag_To_Redraw();
-        DEBUG_INFO("MPlayer_Defeated() - Player %s has been defeated\n", IniName);
+        DEBUG_INFO("MPlayer_Defeated() - Player %s has been defeated\n", IniName.c_str());
 
     } else {
 
@@ -702,13 +702,13 @@ void HouseClassExt::_MPlayer_Defeated()
          */
         if (!Class->IsMultiplayPassive) {
             if (!Extension::Fetch(PlayerPtr)->IsObserver) {
-                std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName);
+                std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName.c_str());
                 Session.Messages.Add_Message(nullptr, 0, txt, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
                 Speak(VOX_PLAYER_DEFEATED);
             }
 
             Map.Flag_To_Redraw();
-            DEBUG_INFO("MPlayer_Defeated() - Opponent %s has been defeated\n", IniName);
+            DEBUG_INFO("MPlayer_Defeated() - Opponent %s has been defeated\n", IniName.c_str());
         }
     }
 
@@ -749,7 +749,7 @@ void HouseClassExt::_MPlayer_Defeated()
             PlayerPtr->RecalcRadar = true;
             HiddenSurface->Fill(0);
             Map.Flag_To_Redraw();
-            DEBUG_INFO("MPlayer_Defeated() - Player %s has no allies left (OBIWAN MODE)\n", IniName);
+            DEBUG_INFO("MPlayer_Defeated() - Player %s has no allies left (OBIWAN MODE)\n", IniName.c_str());
         }
 
     }
