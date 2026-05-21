@@ -150,7 +150,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     QuickMatch = spawn_ini.Get_Bool(SETTINGS, "QuickMatch", QuickMatch);
     SkipScoreScreen = spawn_ini.Get_Bool(SETTINGS, "SkipScoreScreen", SkipScoreScreen);
     WriteStatistics = spawn_ini.Get_Bool(SETTINGS, "WriteStatistics", WriteStatistics);
-    AINamesByDifficulty = spawn_ini.Get_Bool(SETTINGS, "AINamesByDifficulty", AINamesByDifficulty);
+    AINamesByDifficulty = spawn_ini.Get_Bool(SETTINGS, "DifficultyBasedAINames", AINamesByDifficulty);
     CoachMode = spawn_ini.Get_Bool(SETTINGS, "CoachMode", CoachMode);
     AutoSurrender = spawn_ini.Get_Bool(SETTINGS, "AutoSurrender", AutoSurrender);
     AttackNeutralUnits = spawn_ini.Get_Bool(SETTINGS, "AttackNeutralUnits", AttackNeutralUnits);
