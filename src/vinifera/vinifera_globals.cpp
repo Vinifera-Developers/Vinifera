@@ -84,6 +84,8 @@ AircraftTrackerClass* AircraftTracker = nullptr;
 
 int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
+bool Vinifera_PlayerOptionsSent = false;
+
 std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
 MFCD *GenericMix = nullptr;

@@ -13,6 +13,7 @@
 
 #include "aircraft.h"
 #include "asserthandler.h"
+#include "audio_vox.h"
 #include "buildingext.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
@@ -666,7 +667,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeEliteSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
 
                 /**
@@ -680,7 +681,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeVeteranSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
             }
 

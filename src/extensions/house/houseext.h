@@ -118,4 +118,9 @@ public:
      *  Used until we have a proper superweapon based Iron Curtain implementation.
      */
     CDTimerClass<FrameTimerClass> IronCurtainAvailabilityTimer;
+
+    /**
+     *  Determines whether repairs are paused instead of stopped when this house has insufficient funds.
+     */
+    bool IsPauseRepairs;
 };

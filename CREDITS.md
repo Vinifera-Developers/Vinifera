@@ -174,7 +174,6 @@ This page lists all the individual contributions to the project by their author.
   - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
   - Add Q-Move support for aircraft.
-  - Fix a bug where aircraft would not dock properly on available Helipads after attacking.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -257,6 +256,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
   - Vinifera's Developer mode now prints information on executed trigger actions.
   - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
+  - Allow repairs to be paused instead of stopped when a house has insufficient funds.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

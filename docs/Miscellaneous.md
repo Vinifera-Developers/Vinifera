@@ -337,12 +337,12 @@ BuildingFlameSpawnBlockFrames=  ; integer, for how many frames buildings do not 
 ```
 
 ## Pause Building Repairs
-- Vinifera allows modders to make building repairs pause rather than outright stopping when the house doesn't have enough funds to finish repairs. 
+- Vinifera changes building repairs to pause rather than outright stop when the player doesn't have enough funds to continue repairs. This behaviour can optionally be reverted to the vanilla stopping behaviour by each player depending on their preferences.
 
-In `RULES.INI`:
+In `SUN.INI`:
 ```ini
-[General]
-PauseRepairs=yes  ; boolean, whether buildings pause repairs when a house doesn't have enough funds to complete the repairs.
+[Options]
+PauseRepairs=yes  ; boolean, whether buildings pause repairs when the player doesn't have enough funds to complete the repairs.
 ```
 
 - While repairs are paused, the game draws a specific frame of the wrench shape (`WRENCH.SHP`) on the building. This can be customized in order to draw a different frame.

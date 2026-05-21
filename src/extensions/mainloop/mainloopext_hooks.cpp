@@ -20,6 +20,7 @@
 #include "command.h"
 #include "debughandler.h"
 #include "event.h"
+#include "eventext.h"
 #include "fatal.h"
 #include "hooker.h"
 #include "house.h"
@@ -74,6 +75,14 @@ static void Before_Main_Loop()
 
 static void After_Main_Loop()
 {
+    /**
+     *  Have we not yet sent our options? If not, do so now.
+     */
+    if (!Vinifera_PlayerOptionsSent) {
+        OutList.Add(EventClassExt(PlayerPtr->HeapID, (EventType)EXT_EVENT_PLAYER_OPTIONS, OptionsExtension->IsPauseRepairs).As_Event());
+        Vinifera_PlayerOptionsSent = true;
+    }
+
     /**
      *  Has we been flagged to reload the rules data?
      */

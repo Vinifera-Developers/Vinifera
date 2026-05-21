@@ -154,7 +154,8 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     CursorScale(0),
     IsVSync(false),
     RendererDriver(RENDERER_DRIVER_AUTO),
-    SubtitleMode(SUBTITLE_MODE_NONE)
+    SubtitleMode(SUBTITLE_MODE_NONE),
+    IsPauseRepairs(true)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -260,6 +261,7 @@ void OptionsClassExtension::Load_Settings()
 
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
+    IsPauseRepairs = ConfigINI.Get_Bool("Options", "PauseRepairs", IsPauseRepairs);
 
     SidebarViewTypeOverride = SIDEBAR_COUNT;
 
