@@ -1278,6 +1278,27 @@ DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hij
     return 0x0065602B;
 }
 
+/**
+ *  Patches UnitClass::Take_Damage right before iterating on the cargo.
+ *  Fixes an issue where moving units that have cargo (such as APCs) will not spawn their cargo
+ *  and they will instead die if the unit is transitioning from one cell to another
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0064FDB4, _Unit_Class_Take_Damage_Cargo_Hold_Patch, 6)
+{
+    GET(UnitClass*, this_ptr, ESI);
+
+    if (this_ptr->Cargo.Is_Something_Attached()) {
+        this_ptr->Stop_Driver();
+        if (this_ptr->Locomotion) {
+            this_ptr->Locomotion->Mark_All_Occupation_Bits(MARK_UP);
+        }
+    }
+    
+    return 0;
+}
+
 
 /**
  *  Main function for patching the hooks.
