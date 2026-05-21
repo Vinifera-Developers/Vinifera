@@ -37,6 +37,7 @@
 #include "noinit.h"
 #include "optionsext.h"
 #include "overlay.h"
+#include "ownrdraw.h"
 #include "playmovie.h"
 #include "radarevent.h"
 #include "restate.h"
@@ -1161,6 +1162,8 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
          */
         MouseCursor->Release_Mouse();
         MouseCursor->Show_Mouse();
+
+        OwnerDraw::Cache_Images();
 
         Restate_Mission(Scen);
 
