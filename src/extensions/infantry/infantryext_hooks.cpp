@@ -733,6 +733,7 @@ DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
  *  @author: JoyfulShush
  */
 DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9)
+{
     GET(ActionType, action, EBX);
 
     if (action == ACTION_TOGGLE_SELECT) {
