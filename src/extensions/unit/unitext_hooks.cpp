@@ -1299,7 +1299,6 @@ DEFINE_HOOK(0x0064FDB4, _Unit_Class_Take_Damage_Cargo_Hold_Patch, 6)
     return 0;
 }
 
-
 /**
  *  Patches UnitClass::What_Action at the part where MRVs (AKA units with negative combat damage)
  *  are evaluated whether they should commit to their action or switch to ACTION_SELECT.

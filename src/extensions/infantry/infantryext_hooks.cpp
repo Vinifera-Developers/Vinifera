@@ -743,7 +743,6 @@ DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9
     return 0;
 }
 
-
 /**
  *  Main function for patching the hooks.
  */
