@@ -13,8 +13,8 @@
 
 #include "audio_manager.h"
 #include "debug_overlay.h"
-#include "scenario_overlay.h"
 #include "debughandler.h"
+#include "scenario_overlay.h"
 #include "vinifera_globals.h"
 
 #include <imgui.h>

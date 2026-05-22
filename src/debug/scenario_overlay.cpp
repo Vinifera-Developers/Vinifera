@@ -11,6 +11,7 @@
 
 #include "scenario_overlay.h"
 
+#include "abstract.h"
 #include "aitrigtype.h"
 #include "base.h"
 #include "buildingtype.h"
@@ -21,17 +22,16 @@
 #include "scenarioext.h"
 #include "script.h"
 #include "scripttype.h"
-#include "abstract.h"
 #include "taction.h"
 #include "tactical.h"
 #include "tag.h"
 #include "tagtype.h"
-#include "theatertype.h"
 #include "taskforce.h"
 #include "team.h"
 #include "teamtype.h"
 #include "technotype.h"
 #include "tevent.h"
+#include "theatertype.h"
 #include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -48,19 +48,28 @@ bool ScenarioOverlay::IsVisible = false;
 
 namespace
 {
-    /*
-    ** ---------------- cross-reference navigation ----------------
-    **
-    ** Detail panes show many references (a TeamType's Script, a Tag's
-    ** Trigger, etc.). Clicking the "> <name>" button next to such a
-    ** reference posts a nav request; on the next frame, the matching
-    ** outer-tab + inner-tab + pane select the requested entry.
-    */
+    /***************************************************************************
+    **  Cross-reference navigation
+    ***************************************************************************/
+
+
+    /**
+     *  Detail panes show many references (a TeamType's Script, a Tag's
+     *  Trigger, etc.). Clicking the "> <name>" button next to such a
+     *  reference posts a nav request; on the next frame, the matching
+     *  outer-tab + inner-tab + pane select the requested entry.
+     */
     enum class NavTarget {
         None,
-        // Types
+
+        /**
+         *  Types.
+         */
         TriggerType, TagType, TeamType, TaskForce, ScriptType, AITriggerType, HouseType,
-        // Instances (no ScriptInst -- script progression lives on TeamInst)
+
+        /**
+         *  Instances (no ScriptInst -- script progression lives on TeamInst).
+         */
         TriggerInst, TagInst, TeamInst, HouseInst,
     };
 
@@ -68,59 +77,67 @@ namespace
         NavTarget target = NavTarget::None;
         int index = -1;
     };
-    static NavRequest g_nav;
+    static NavRequest PendingNavRequest;
 
-    /*
-    ** ---------------- back/forward history ----------------
-    **
-    ** Browser-style stacks of visited (pane, selected-index) pairs.
-    ** g_current tracks the pane currently being viewed (each pane writes to
-    ** it on draw). Clicking a Goto_Row button pushes g_current onto g_back
-    ** and clears g_forward; the Back button pushes onto g_forward and pops
-    ** g_back; Forward is the mirror.
-    */
+    /***************************************************************************
+    **  Back/forward history
+    ***************************************************************************/
+
+
+    /**
+     *  Browser-style stacks of visited (pane, selected-index) pairs.
+     *  CurrentNavLocation tracks the pane currently being viewed (each pane
+     *  writes to it on draw). Clicking a Goto_Row button pushes
+     *  CurrentNavLocation onto NavBackStack and clears NavForwardStack; the
+     *  Back button pushes onto NavForwardStack and pops NavBackStack;
+     *  Forward is the mirror.
+     */
     struct NavLocation {
         NavTarget target = NavTarget::None;
         int index = -1;
     };
-    static NavLocation g_current;
-    static std::vector<NavLocation> g_back;
-    static std::vector<NavLocation> g_forward;
+    static NavLocation CurrentNavLocation;
+    static std::vector<NavLocation> NavBackStack;
+    static std::vector<NavLocation> NavForwardStack;
 
     static void Record_Current(NavTarget target, int selected)
     {
-        g_current.target = target;
-        g_current.index  = selected;
+        CurrentNavLocation.target = target;
+        CurrentNavLocation.index  = selected;
     }
 
     static void Push_Goto(NavTarget target, int index)
     {
-        if (g_current.target != NavTarget::None) {
-            g_back.push_back(g_current);
+        if (CurrentNavLocation.target != NavTarget::None) {
+            NavBackStack.push_back(CurrentNavLocation);
         }
-        g_forward.clear();
-        g_nav.target = target;
-        g_nav.index  = index;
+        NavForwardStack.clear();
+        PendingNavRequest.target = target;
+        PendingNavRequest.index  = index;
     }
 
     static void Go_Back()
     {
-        if (g_back.empty()) return;
-        g_forward.push_back(g_current);
-        const NavLocation prev = g_back.back();
-        g_back.pop_back();
-        g_nav.target = prev.target;
-        g_nav.index  = prev.index;
+        if (NavBackStack.empty()) {
+            return;
+        }
+        NavForwardStack.push_back(CurrentNavLocation);
+        const NavLocation prev = NavBackStack.back();
+        NavBackStack.pop_back();
+        PendingNavRequest.target = prev.target;
+        PendingNavRequest.index  = prev.index;
     }
 
     static void Go_Forward()
     {
-        if (g_forward.empty()) return;
-        g_back.push_back(g_current);
-        const NavLocation next = g_forward.back();
-        g_forward.pop_back();
-        g_nav.target = next.target;
-        g_nav.index  = next.index;
+        if (NavForwardStack.empty()) {
+            return;
+        }
+        NavBackStack.push_back(CurrentNavLocation);
+        const NavLocation next = NavForwardStack.back();
+        NavForwardStack.pop_back();
+        PendingNavRequest.target = next.target;
+        PendingNavRequest.index  = next.index;
     }
 
     static bool Is_Type_Target(NavTarget t)
@@ -134,16 +151,16 @@ namespace
 
     static ImGuiTabItemFlags Tab_Flag(NavTarget want)
     {
-        return g_nav.target == want ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+        return PendingNavRequest.target == want ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
     }
     static ImGuiTabItemFlags Outer_Types_Flag()
     {
-        return Is_Type_Target(g_nav.target)
+        return Is_Type_Target(PendingNavRequest.target)
             ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
     }
     static ImGuiTabItemFlags Outer_Instances_Flag()
     {
-        return Is_Instance_Target(g_nav.target)
+        return Is_Instance_Target(PendingNavRequest.target)
             ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
     }
 
@@ -156,9 +173,9 @@ namespace
      */
     static void Consume_Nav(NavTarget want, int& selected)
     {
-        if (g_nav.target == want) {
-            selected = g_nav.index;
-            g_nav.target = NavTarget::None;
+        if (PendingNavRequest.target == want) {
+            selected = PendingNavRequest.index;
+            PendingNavRequest.target = NavTarget::None;
         }
         Record_Current(want, selected);
     }
@@ -172,11 +189,11 @@ namespace
     static void Goto_Row(const char* slot, const char* visible_name,
                          NavTarget target, int index, int width = 0)
     {
-        /*
-        ** Honor the ImGui "display##id" split: everything before "##" is the
-        ** visible label, the rest is just an ID disambiguator. The full slot
-        ** string is fed to PushID so identical visible labels stay unique.
-        */
+        /**
+         *  Honor the ImGui "display##id" split: everything before "##" is the
+         *  visible label, the rest is just an ID disambiguator. The full slot
+         *  string is fed to PushID so identical visible labels stay unique.
+         */
         char display[64];
         const char* sep = std::strstr(slot, "##");
         if (sep != nullptr) {
@@ -219,9 +236,10 @@ namespace
     }
 
 
-    /*
-    ** ---------------- shared formatting helpers ----------------
-    */
+    /***************************************************************************
+    **  Shared formatting helpers
+    ***************************************************************************/
+
 
     static const char* Diff_To_String(DiffType d)
     {
@@ -305,7 +323,9 @@ namespace
      */
     static const char* Display_Name(const AbstractTypeClass* t)
     {
-        if (t == nullptr) return "?";
+        if (t == nullptr) {
+            return "?";
+        }
         const char* full = t->Full_Name();
         return (full != nullptr && full[0] != '\0') ? full : t->Name();
     }
@@ -324,14 +344,17 @@ namespace
     }
 
 
-    /*
-    ** ---------------- master/detail helper ----------------
-    **
-    ** Renders a two-column layout: a scrolling list of entries on the left,
-    ** and the detail block for the selected entry on the right. The owner
-    ** keeps a `selected` index in a static so the selection persists between
-    ** frames.
-    */
+    /***************************************************************************
+    **  Master/detail helper
+    ***************************************************************************/
+
+
+    /**
+     *  Renders a two-column layout: a scrolling list of entries on the left,
+     *  and the detail block for the selected entry on the right. The owner
+     *  keeps a `selected` index in a static so the selection persists between
+     *  frames.
+     */
     template <typename LabelFn, typename DetailFn>
     static void Draw_List_Detail(const char* id, int count, int& selected,
                                  LabelFn label_fn, DetailFn detail_fn)
@@ -369,9 +392,11 @@ namespace
     }
 
 
-    /*
-    ** ---------------- Tab "Scenario" ----------------
-    */
+    /***************************************************************************
+    **  Tab "Scenario"
+    ***************************************************************************/
+
+
     static void Draw_Scenario_Tab()
     {
         if (Scen == nullptr) {
@@ -406,9 +431,11 @@ namespace
     }
 
 
-    /*
-    ** ---------------- Tab "Types" panes ----------------
-    */
+    /***************************************************************************
+    **  Tab "Types" panes
+    ***************************************************************************/
+
+
     /**
      *  Walks the linked-list of events on a TriggerTypeClass and prints each.
      *  Returns the number of events listed (caller uses this to decode the
@@ -470,7 +497,10 @@ namespace
             },
             [](int i) {
                 const TriggerTypeClass* t = TriggerTypes[i];
-                if (!t) { ImGui::TextDisabled("<null>"); return; }
+                if (!t) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 Draw_Type_Names(t);
                 ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
@@ -510,7 +540,10 @@ namespace
             },
             [](int i) {
                 const TagTypeClass* t = TagTypes[i];
-                if (!t) { ImGui::TextDisabled("<null>"); return; }
+                if (!t) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 Draw_Type_Names(t);
                 ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
@@ -538,20 +571,23 @@ namespace
             },
             [](int i) {
                 const TeamTypeClass* t = TeamTypes[i];
-                if (!t) { ImGui::TextDisabled("<null>"); return; }
+                if (!t) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 Draw_Type_Names(t);
                 ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
                 ImGui::Separator();
 
-                /*
-                ** Block 2: width 12 = max("House", "Script", "TaskForce",
-                ** "Tag", "VeteranLevel", "Group", "MaxAllowed").
-                **
-                ** HouseClass references on TeamTypeClass point at the *live*
-                ** house instance, not the HouseTypeClass -- use the
-                ** instance-side nav target.
-                */
+                /**
+                 *  Block 2: width 12 = max("House", "Script", "TaskForce",
+                 *  "Tag", "VeteranLevel", "Group", "MaxAllowed").
+                 *
+                 *  HouseClass references on TeamTypeClass point at the *live*
+                 *  house instance, not the HouseTypeClass -- use the
+                 *  instance-side nav target.
+                 */
                 if (t->House != nullptr) {
                     char hbuf[64];
                     House_Display_Name(t->House, hbuf, sizeof(hbuf));
@@ -598,7 +634,10 @@ namespace
             },
             [](int i) {
                 const TaskForceClass* t = TaskForces[i];
-                if (!t) { ImGui::TextDisabled("<null>"); return; }
+                if (!t) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 Draw_Type_Names(t);
                 ImGui::Separator();
@@ -626,7 +665,10 @@ namespace
             },
             [](int i) {
                 const ScriptTypeClass* s = ScriptTypes[i];
-                if (!s) { ImGui::TextDisabled("<null>"); return; }
+                if (!s) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 Draw_Type_Names(s);
                 ImGui::Separator();
@@ -658,26 +700,29 @@ namespace
             },
             [](int i) {
                 const AITriggerTypeClass* a = AITriggerTypes[i];
-                if (!a) { ImGui::TextDisabled("<null>"); return; }
+                if (!a) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 Draw_Type_Names(a);
                 ImGui::Separator();
 
-                /*
-                ** Block 2: width 13 = max("Enabled", "Owner house",
-                ** "TechLevel", "Weight", "Condition obj", "Team one",
-                ** "Team two", "Roles", "Success/exec").
-                */
+                /**
+                 *  Block 2: width 13 = max("Enabled", "Owner house",
+                 *  "TechLevel", "Weight", "Condition obj", "Team one",
+                 *  "Team two", "Roles", "Success/exec").
+                 */
                 ImGui::Text("%-13s :", "Enabled");
                 ImGui::SameLine(); RO_Checkbox("Base##ai",  a->IsEnabled);
                 ImGui::SameLine(); RO_Checkbox("Easy##ai",  a->EnabledInEasy);
                 ImGui::SameLine(); RO_Checkbox("Med##ai",   a->EnabledInMedium);
                 ImGui::SameLine(); RO_Checkbox("Hard##ai",  a->EnabledInHard);
 
-                /*
-                ** AITriggerTypeClass.House is the HousesType enum (which is
-                ** also the HouseTypes heap index).
-                */
+                /**
+                 *  AITriggerTypeClass.House is the HousesType enum (which is
+                 *  also the HouseTypes heap index).
+                 */
                 if (a->House >= 0 && a->House < HouseTypes.Count()) {
                     Goto_Row("Owner house",
                         HouseTypes[a->House]->Name(),
@@ -718,15 +763,20 @@ namespace
             },
             [](int i) {
                 const HouseTypeClass* h = HouseTypes[i];
-                if (!h) { ImGui::TextDisabled("<null>"); return; }
+                if (!h) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 /* Block 1: width 6 = max("Name", "HeapID"). */
                 ImGui::Text("%-6s : %s", "Name",   h->Name());
                 ImGui::Text("%-6s : %d", "HeapID", static_cast<int>(h->HeapID));
                 ImGui::Separator();
 
-                /* Block 2: width 13 = max("Side", "Prefix", "FirepowerBias",
-                ** "ArmorBias", "CostBias"). */
+                /**
+                 *  Block 2: width 13 = max("Side", "Prefix", "FirepowerBias",
+                 *  "ArmorBias", "CostBias").
+                 */
                 ImGui::Text("%-13s : %d", "Side",   h->Side);
                 ImGui::Text("%-13s : '%c'  Suffix: '%s'", "Prefix", h->Prefix, h->Suffix);
 
@@ -746,20 +796,45 @@ namespace
         if (!ImGui::BeginTabBar("##type_cats")) {
             return;
         }
-        if (ImGui::BeginTabItem("Triggers", nullptr, Tab_Flag(NavTarget::TriggerType)))   { Draw_TriggerTypes_Pane();   ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Tags",     nullptr, Tab_Flag(NavTarget::TagType)))       { Draw_TagTypes_Pane();       ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Teams",    nullptr, Tab_Flag(NavTarget::TeamType)))      { Draw_TeamTypes_Pane();      ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("TaskForces", nullptr, Tab_Flag(NavTarget::TaskForce)))   { Draw_TaskForces_Pane();     ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Scripts",  nullptr, Tab_Flag(NavTarget::ScriptType)))    { Draw_ScriptTypes_Pane();    ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("AITriggers", nullptr, Tab_Flag(NavTarget::AITriggerType))) { Draw_AITriggerTypes_Pane(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Houses",   nullptr, Tab_Flag(NavTarget::HouseType)))     { Draw_HouseTypes_Pane();     ImGui::EndTabItem(); }
+
+        if (ImGui::BeginTabItem("Triggers", nullptr, Tab_Flag(NavTarget::TriggerType))) {
+            Draw_TriggerTypes_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Tags", nullptr, Tab_Flag(NavTarget::TagType))) {
+            Draw_TagTypes_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Teams", nullptr, Tab_Flag(NavTarget::TeamType))) {
+            Draw_TeamTypes_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("TaskForces", nullptr, Tab_Flag(NavTarget::TaskForce))) {
+            Draw_TaskForces_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Scripts", nullptr, Tab_Flag(NavTarget::ScriptType))) {
+            Draw_ScriptTypes_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("AITriggers", nullptr, Tab_Flag(NavTarget::AITriggerType))) {
+            Draw_AITriggerTypes_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Houses", nullptr, Tab_Flag(NavTarget::HouseType))) {
+            Draw_HouseTypes_Pane();
+            ImGui::EndTabItem();
+        }
+
         ImGui::EndTabBar();
     }
 
 
-    /*
-    ** ---------------- Tab "Instances" panes ----------------
-    */
+    /***************************************************************************
+    **  Tab "Instances" panes
+    ***************************************************************************/
+
+
     static void Draw_Triggers_Pane()
     {
         static int selected = -1;
@@ -772,7 +847,10 @@ namespace
             },
             [](int i) {
                 const TriggerClass* t = Triggers[i];
-                if (!t) { ImGui::TextDisabled("<null>"); return; }
+                if (!t) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 /* Block 1: width 11 = max("INI Name", "Name", "TriggerType"). */
                 if (t->Class != nullptr) {
@@ -795,10 +873,10 @@ namespace
                         NavTarget::TriggerInst, Triggers.ID(t->LinkedTo), 18);
                 }
 
-                /*
-                ** TrippedFlags is a bitmask, bit `n` set => the n-th event
-                ** in the trigger type's event list has been tripped.
-                */
+                /**
+                 *  TrippedFlags is a bitmask, bit `n` set => the n-th event
+                 *  in the trigger type's event list has been tripped.
+                 */
                 ImGui::SeparatorText("TrippedFlags");
                 ImGui::Text("Raw : 0x%X", t->TrippedFlags);
                 if (t->Class != nullptr) {
@@ -829,7 +907,10 @@ namespace
             },
             [](int i) {
                 const TagClass* t = Tags[i];
-                if (!t) { ImGui::TextDisabled("<null>"); return; }
+                if (!t) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 /* Block 1: width 8 = max("INI Name", "Name", "TagType"). */
                 if (t->Class != nullptr) {
@@ -842,14 +923,14 @@ namespace
 
                 ImGui::Separator();
 
-                /*
-                ** Block 2: width 11 = max("Attached to", "AttachCount",
-                ** "Persistence").
-                **
-                ** Attached-to: vanilla supports attachment to cell, building
-                ** or houses. Get_Position() returns the cell when attached to
-                ** terrain/cell; CELL_NONE (-1,-1) when attached elsewhere.
-                */
+                /**
+                 *  Block 2: width 11 = max("Attached to", "AttachCount",
+                 *  "Persistence").
+                 *
+                 *  Attached-to: vanilla supports attachment to cell, building
+                 *  or houses. Get_Position() returns the cell when attached to
+                 *  terrain/cell; CELL_NONE (-1,-1) when attached elsewhere.
+                 */
                 const Cell pos = t->Get_Position();
                 if (pos.X >= 0 && pos.Y >= 0) {
                     ImGui::Text("%-11s : cell", "Attached to");
@@ -869,8 +950,10 @@ namespace
                 RO_Checkbox("IsToDie##tag",  t->IsToDie);  ImGui::SameLine();
                 RO_Checkbox("IsSprung##tag", t->IsSprung);
 
-                /* Block 3: width 25 = max("Trigger", "TriggerType",
-                ** "TriggerType (from class)"). */
+                /**
+                 *  Block 3: width 25 = max("Trigger", "TriggerType",
+                 *  "TriggerType (from class)").
+                 */
                 ImGui::SeparatorText("Linked trigger");
                 if (t->Trigger != nullptr) {
                     Goto_Row("Trigger",
@@ -905,7 +988,10 @@ namespace
             },
             [](int i) {
                 const TeamClass* t = Teams[i];
-                if (!t) { ImGui::TextDisabled("<null>"); return; }
+                if (!t) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 /* Block 1: width 8 = max("INI Name", "Name", "TeamType"). */
                 if (t->Class != nullptr) {
@@ -918,8 +1004,10 @@ namespace
 
                 ImGui::Separator();
 
-                /* Block 2: width 8 = max("House", "Members", "Risk",
-                ** "Flags", "Live tag", "Zone"). */
+                /**
+                 *  Block 2: width 8 = max("House", "Members", "Risk",
+                 *  "Flags", "Live tag", "Zone").
+                 */
                 char hbuf[64];
                 if (t->House != nullptr) {
                     House_Display_Name(t->House, hbuf, sizeof(hbuf));
@@ -944,22 +1032,22 @@ namespace
                         NavTarget::TagInst, Tags.ID(t->Tag), 8);
                 }
 
-                /*
-                ** Zone is the AbstractClass the team is centered around (a
-                ** cell, building, etc). Offer a one-shot "jump camera there"
-                ** button.
-                */
+                /**
+                 *  Zone is the AbstractClass the team is centered around (a
+                 *  cell, building, etc). Offer a one-shot "jump camera there"
+                 *  button.
+                 */
                 if (t->Zone != nullptr && TacticalMap != nullptr) {
                     ImGui::Text("%-8s :", "Zone");
                     ImGui::SameLine();
                     Cell_Goto_Button(t->Zone->Center_Coord().As_Cell());
                 }
 
-                /*
-                ** Script progression: ScriptClass is owned by the team and
-                ** has no meaningful life outside of it, so its progression
-                ** lives here rather than in a separate Scripts tab.
-                */
+                /**
+                 *  Script progression: ScriptClass is owned by the team and
+                 *  has no meaningful life outside of it, so its progression
+                 *  lives here rather than in a separate Scripts tab.
+                 */
                 if (t->Script != nullptr) {
                     ImGui::SeparatorText("Script progression");
                     /* Width 14 = max("Script type", "CurrentMission"). */
@@ -1010,7 +1098,10 @@ namespace
             },
             [](int i) {
                 const HouseClass* h = Houses[i];
-                if (!h) { ImGui::TextDisabled("<null>"); return; }
+                if (!h) {
+                    ImGui::TextDisabled("<null>");
+                    return;
+                }
 
                 /* Block 1: width 9 = max("IniName", "HouseType"). */
                 ImGui::Text("%-9s : %s", "IniName", h->IniName.c_str());
@@ -1030,12 +1121,12 @@ namespace
                 ImGui::Text("%-10s : %ld", "Credits",    h->Credits);
                 ImGui::Text("%-10s : %d",  "Base nodes", h->Base.Nodes.Count());
 
-                /*
-                ** Allies is a bitmask of HousesType: bit (1 << other->HeapID)
-                ** is set if `h` considers `other` an ally. Decode it into the
-                ** actual house list with goto buttons; the raw mask stays
-                ** alongside for sanity.
-                */
+                /**
+                 *  Allies is a bitmask of HousesType: bit (1 << other->HeapID)
+                 *  is set if `h` considers `other` an ally. Decode it into the
+                 *  actual house list with goto buttons; the raw mask stays
+                 *  alongside for sanity.
+                 */
                 ImGui::Text("%-10s : 0x%X", "Allies", h->Control.Allies);
                 ImGui::Indent();
                 int ally_count = 0;
@@ -1064,17 +1155,33 @@ namespace
         if (!ImGui::BeginTabBar("##inst_cats")) {
             return;
         }
-        if (ImGui::BeginTabItem("Triggers", nullptr, Tab_Flag(NavTarget::TriggerInst))) { Draw_Triggers_Pane(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Tags",     nullptr, Tab_Flag(NavTarget::TagInst)))     { Draw_Tags_Pane();     ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Teams",    nullptr, Tab_Flag(NavTarget::TeamInst)))    { Draw_Teams_Pane();    ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Houses",   nullptr, Tab_Flag(NavTarget::HouseInst)))   { Draw_Houses_Pane();   ImGui::EndTabItem(); }
+
+        if (ImGui::BeginTabItem("Triggers", nullptr, Tab_Flag(NavTarget::TriggerInst))) {
+            Draw_Triggers_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Tags", nullptr, Tab_Flag(NavTarget::TagInst))) {
+            Draw_Tags_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Teams", nullptr, Tab_Flag(NavTarget::TeamInst))) {
+            Draw_Teams_Pane();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Houses", nullptr, Tab_Flag(NavTarget::HouseInst))) {
+            Draw_Houses_Pane();
+            ImGui::EndTabItem();
+        }
+
         ImGui::EndTabBar();
     }
 
 
-    /*
-    ** ---------------- Tab "State" ----------------
-    */
+    /***************************************************************************
+    **  Tab "State"
+    ***************************************************************************/
+
+
     static void Draw_Variables_Section()
     {
         ImGui::SeparatorText("Variables");
@@ -1169,23 +1276,23 @@ void ScenarioOverlay::Draw()
         return;
     }
 
-    /*
-    ** Browser-style back/forward across visited type/instance entries.
-    */
-    ImGui::BeginDisabled(g_back.empty());
+    /**
+     *  Browser-style back/forward across visited type/instance entries.
+     */
+    ImGui::BeginDisabled(NavBackStack.empty());
     if (ImGui::Button("<- Back")) {
         Go_Back();
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::BeginDisabled(g_forward.empty());
+    ImGui::BeginDisabled(NavForwardStack.empty());
     if (ImGui::Button("Forward ->")) {
         Go_Forward();
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
     ImGui::TextDisabled("(%d back / %d fwd)",
-        static_cast<int>(g_back.size()), static_cast<int>(g_forward.size()));
+        static_cast<int>(NavBackStack.size()), static_cast<int>(NavForwardStack.size()));
 
     if (ImGui::BeginTabBar("##vinifera_scenario_tabs")) {
 
