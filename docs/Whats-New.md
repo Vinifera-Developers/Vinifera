@@ -412,5 +412,7 @@ Vanilla fixes:
 - Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
 - Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
 - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use (by JoyfulShush)
+- Fix a bug that would make healing units unselect themselves when adding other units to current selection (by JoyfulShush)
+- Fix a bug that would make infantry healing units flash and go into Area Guard mode when they were added to current selection (by JoyfulShush)
 
 :::
