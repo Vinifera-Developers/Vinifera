@@ -721,6 +721,27 @@ DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
     return 0x004D425A;
 }
 
+/**
+ *  Patches InfantryClass::What_Action at the part where medics/mechanics (AKA infantry with negative combat damage)
+ *  are evaluated whether they should commit to their action or switch to ACTION_SELECT.
+ *  
+ *  Fixes an issue where ACTION_TOGGLE_SELECT (selecting units while shift is held) was converted into ACTION_SELECT,
+ *  causing the game to instead unselect the currently selected units if the medic was the "best object" in the current selection.
+ * 
+ *  Causes What_Action to return with the ACTION_TOGGLE_SELECT action if this is the current mission.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9)
+    GET(ActionType, action, EBX);
+
+    if (action == ACTION_TOGGLE_SELECT) {
+        return 0x004D76F9;
+    }
+
+    return 0;
+}
+
 
 /**
  *  Main function for patching the hooks.
