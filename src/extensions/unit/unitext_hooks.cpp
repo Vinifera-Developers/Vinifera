@@ -1280,8 +1280,8 @@ DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hij
 
 /**
  *  Patches UnitClass::Take_Damage right before iterating on the cargo.
- *  Fixes an issue where moving units that have cargo (such as APCs) will not spawn their cargo
- *  and they will instead die if the unit is transitioning from one cell to another
+ *  Fixes an issue where units that have cargo (such as APCs) do not spawn their cargo if they are destroyed
+ *  while moving from one cell to another, resulting in the cargo getting erased instead.
  * 
  *  @author: JoyfulShush
  */
