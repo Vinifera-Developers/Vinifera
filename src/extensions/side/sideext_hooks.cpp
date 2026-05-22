@@ -11,7 +11,34 @@
 
 #include "sideext_hooks.h"
 
+#include "sideext.h"
 #include "sideext_init.h"
+
+#include "extension.h"
+#include "ownrdraw.h"
+#include "rgb.h"
+#include "syringe.h"
+
+
+/**
+ *  Patches OwnerDraw initialization to set menu color based on the player's side.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x00591367, _OwnerDraw_Set_Colors_Text_Color_Patch, 0)
+{
+    RGBClass rgb;
+
+    if (PlayerPtr == nullptr) {
+        rgb = OPTIONS_MENU_TEXT_DEFAULT_COLOR;
+    } else {
+        rgb = Extension::Fetch(Sides[PlayerPtr->Class->Side])->OptionsMenuTextColor;
+    }
+
+    OwnerDraw::TextColor1 = RGB(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
+
+    return 0x00591371;
+}
 
 
 /**

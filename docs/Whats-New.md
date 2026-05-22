@@ -104,11 +104,12 @@ New:
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 - Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
 - Allows aircraft to use Q-Move (by JoyfulShush)
-- Implemented the multiplayer spawner (by ZivDero)
+- Implemented the multiplayer spawner (by ZivDero, Rampastring)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
 - Add support for more than 2 sides' loading screens, sidebars and speeches (by CCHyper/tomsons26, ZivDero)
 - Disallow loading campaign saves from other playthoughs, as well as from skirmish (by ZivDero)
+- Allow defining Options menu text colors per side (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

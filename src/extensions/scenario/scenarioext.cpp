@@ -46,6 +46,7 @@
 #include "scripttype.h"
 #include "session.h"
 #include "sessionext.h"
+#include "sideext.h"
 #include "smudge.h"
 #include "swizzle.h"
 #include "tactical.h"
@@ -1165,12 +1166,21 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         MouseCursor->Release_Mouse();
         MouseCursor->Show_Mouse();
 
+        /**
+         *  Load images for OwnerDraw graphics or the game will crash trying to present them.
+         */
         OwnerDraw::Cache_Images();
 
         if (Scen->TransitTheme != THEME_NONE) {
             transit_theme_played = true;
             Theme.Play_Song(Scen->TransitTheme);
         }
+
+        /**
+         *  Set color for the text of the Resume Mission button.
+         */
+        RGBClass* textcolor = &Extension::Fetch(Sides[PlayerPtr->Class->Side])->OptionsMenuTextColor;
+        OwnerDraw::TextColor1 = RGB(textcolor->Get_Red(), textcolor->Get_Green(), textcolor->Get_Blue());
 
         Restate_Mission(Scen);
 

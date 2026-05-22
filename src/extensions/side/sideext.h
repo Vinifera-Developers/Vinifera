@@ -15,6 +15,7 @@
 #include "side.h"
 #include "tibsun_globals.h"
 
+#define OPTIONS_MENU_TEXT_DEFAULT_COLOR RGBClass(112, 255, 0)
 
 class InfantryTypeClass;
 
@@ -115,4 +116,9 @@ SideClassExtension final : public AbstractTypeClassExtension
          *  UnitType used as this Side's Hunter-Seeker.
          */
         const UnitTypeClass* HunterSeeker;
+
+        /**
+         *  Color to be used for options menu text for this side.
+         */
+        RGBClass OptionsMenuTextColor;
 };

@@ -39,7 +39,8 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     RegularPowerPlant(nullptr),
     AdvancedPowerPlant(nullptr),
     PowerTurbine(nullptr),
-    HunterSeeker(nullptr)
+    HunterSeeker(nullptr),
+    OptionsMenuTextColor(OPTIONS_MENU_TEXT_DEFAULT_COLOR)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -223,6 +224,8 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     PowerTurbine = TGet_Class(ini, ini_name, "PowerTurbine", PowerTurbine);
 
     HunterSeeker = TGet_Class(ini, ini_name, "HunterSeeker", HunterSeeker);
+
+    OptionsMenuTextColor = ini.Get_RGBColor(ini_name, "OptionsMenuTextColor", OptionsMenuTextColor);
 
     IsInitialized = true;
 

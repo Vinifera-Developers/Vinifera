@@ -262,6 +262,8 @@ This page lists all the individual contributions to the project by their author.
   - Vinifera's Developer mode now prints information on executed trigger actions.
   - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
+  - Implement the multiplayer spawner.
+  - Allow defining Options menu text colors per side.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
