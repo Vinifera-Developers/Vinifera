@@ -19,6 +19,8 @@
 #include "sdlsurface.h"
 #include "shapeset.h"
 
+#include <algorithm>
+
 /**
  *  Persistent mouse object pointer that is used to facilitate access to the mouse
  *  handler object outside the context of a member function. This will be set to the
@@ -52,6 +54,7 @@ SDLMouseClass::SDLMouseClass() :
     ShapeNumber(0),
     Hotspot(0, 0),
     Cursor(nullptr),
+    CursorOwned(false),
     IsCaptured(false),
     MouseX(0),
     MouseY(0),
@@ -77,10 +80,11 @@ SDLMouseClass::~SDLMouseClass()
         TimerHandle = NULL;
     }
     Delete_Cursor_Image();
-    if (Cursor) {
+    if (Cursor && CursorOwned) {
         SDL_DestroyCursor(Cursor);
-        Cursor = nullptr;
     }
+    Cursor = nullptr;
+    CursorOwned = false;
     if (_MousePtr == this) {
         _MousePtr = nullptr;
     }
@@ -120,6 +124,7 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
     if (cursor != MouseShape) {
         Delete_Cursor_Image();
         Convert_Cursor_Image(cursor);
+        CursorCache.assign(CursorSurfaces.size(), CachedCursor{});
     }
 
     MouseShape = cursor;
@@ -132,7 +137,27 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
     Hotspot.X = std::clamp(Hotspot.X * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->w - 1);
     Hotspot.Y = std::clamp(Hotspot.Y * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->h - 1);
 
-    Replace_Cursor(SDL_CreateColorCursor(CursorSurfaces[shape], Hotspot.X, Hotspot.Y));
+    /**
+     *  Cache hit: the SDL_Cursor for this (frame, hotspot) already exists.
+     *  Just hand it to SDL without allocating a new Win32 HCURSOR.
+     */
+    CachedCursor& entry = CursorCache[shape];
+    if (entry.cursor != nullptr && entry.hotspot_x == Hotspot.X && entry.hotspot_y == Hotspot.Y) {
+        Replace_Cursor(entry.cursor, false);
+        return;
+    }
+
+    /**
+     *  Cache miss: drop any stale entry for this frame (e.g. hotspot changed),
+     *  create a new SDL_Cursor, and store it for reuse.
+     */
+    if (entry.cursor != nullptr) {
+        SDL_DestroyCursor(entry.cursor);
+    }
+    entry.cursor = SDL_CreateColorCursor(CursorSurfaces[shape], Hotspot.X, Hotspot.Y);
+    entry.hotspot_x = Hotspot.X;
+    entry.hotspot_y = Hotspot.Y;
+    Replace_Cursor(entry.cursor, false);
 }
 
 
@@ -271,6 +296,23 @@ void SDLMouseClass::Update_Mouse_Position(int x, int y)
  */
 void SDLMouseClass::Delete_Cursor_Image()
 {
+    /**
+     *  Destroy every cached cursor before the surfaces they were built from go away.
+     *  If the currently-active Cursor pointer is borrowed from the cache, clear it
+     *  too so we don't leave it dangling.
+     */
+    for (CachedCursor& entry : CursorCache) {
+        if (entry.cursor != nullptr) {
+            if (Cursor == entry.cursor) {
+                Cursor = nullptr;
+                CursorOwned = false;
+            }
+            SDL_DestroyCursor(entry.cursor);
+            entry.cursor = nullptr;
+        }
+    }
+    CursorCache.clear();
+
     while (!CursorSurfaces.empty()) {
         SDL_DestroySurface(*CursorSurfaces.begin());
         CursorSurfaces.erase(CursorSurfaces.begin());
@@ -363,17 +405,21 @@ void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
 
 /**
  *  Replaces the current cursor with the given one.
+ *  `owned` indicates whether this class is responsible for destroying `cursor`
+ *  when it is replaced. Cursors that come from the cache are not owned here.
  *
  *  @author: ZivDero
  */
-void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor)
+void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor, bool owned)
 {
     SDL_Cursor* old_cursor = Cursor;
+    bool old_owned = CursorOwned;
 
     Cursor = cursor;
+    CursorOwned = owned;
     SDL_SetCursor(Cursor);
 
-    if (old_cursor != nullptr) {
+    if (old_cursor != nullptr && old_owned) {
         SDL_DestroyCursor(old_cursor);
     }
 }
@@ -386,7 +432,7 @@ void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor)
  */
 void SDLMouseClass::Set_System_Cursor()
 {
-    Replace_Cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT));
+    Replace_Cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT), true);
 }
 
 

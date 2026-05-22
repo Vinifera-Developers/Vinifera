@@ -464,7 +464,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
     beacon->Set(coord, house);
 
     if (beacon->House == PlayerPtr->HeapID) {
-        Speak(RuleExtension->PlaceBeaconVoice);
+        AudioVoxClass::Speak(RuleExtension->PlaceBeaconVoice);
         Sound_Effect(RuleExtension->PlaceBeaconSound);
     }
 
@@ -482,7 +482,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
          */
         else if (beacon->Is_Visible_To_Player()) {
             if (Submit_Radar_Event(RADAREVENT_DROPZONE, coord.As_Cell())) {
-                Speak(RuleExtension->DetectBeaconVoice);
+                AudioVoxClass::Speak(RuleExtension->DetectBeaconVoice);
             }
         }
     }

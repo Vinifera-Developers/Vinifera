@@ -127,4 +127,9 @@ public:
      *  Which VOX subtitles should be displayed.
      */
     SubtitleModeType SubtitleMode;
+
+    /**
+     *  Should building repairs be paused instead of stopped when the player has insufficient funds?
+     */
+    bool IsPauseRepairs;
 };
