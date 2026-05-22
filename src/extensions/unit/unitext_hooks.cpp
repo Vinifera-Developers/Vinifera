@@ -1278,7 +1278,6 @@ DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hij
     return 0x0065602B;
 }
 
-
 /**
  *  Patches UnitClass::Take_Damage right before iterating on the cargo.
  *  Fixes an issue where units that have cargo (such as APCs) do not spawn their cargo if they are destroyed
