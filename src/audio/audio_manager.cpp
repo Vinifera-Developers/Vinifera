@@ -27,6 +27,7 @@
 #include "vinifera_globals.h"
 
 #include <algorithm>
+#include <cmath>
 
 
 /**
@@ -1686,17 +1687,26 @@ AudioPriorityType AudioManagerClass::Priority_To_AudioPriority(int priority)
 /**
  *  Utility functions for converting integer audio volume (original DSAudio values) to and from float (miniaudio).
  *
+ *  The vanilla DirectSound engine used a logarithmic curve (Convert_HMI_To_Direct_Sound_Volume):
+ *    ds_vol = log10(vol/255) * 3333.3  [hundredths of dB]
+ *    amplitude = 10^(ds_vol/2000) = (vol/255)^(5/3)
+ *  These functions replicate that curve so volume behaviour matches the original engine.
+ *
  *  @author: CCHyper
  */
 unsigned int AudioManagerClass::fVolume_To_iVolume(float vol)
 {
     vol = std::clamp(vol, 0.0f, 1.0f);
-    return (vol * 255);
+    if (vol == 0.0f) return 0;
+    if (vol >= 1.0f) return 255;
+    return static_cast<unsigned int>(std::pow(vol, 3.0f / 5.0f) * 255.0f);
 }
 
 float AudioManagerClass::iVolume_To_fVolume(unsigned int vol)
 {
-    return float(vol) / 255.0f;
+    if (vol == 0) return 0.0f;
+    if (vol >= 255) return 1.0f;
+    return std::pow(static_cast<float>(vol) / 255.0f, 5.0f / 3.0f);
 }
 
 
