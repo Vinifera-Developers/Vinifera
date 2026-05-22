@@ -178,6 +178,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
   - Add Q-Move support for aircraft.
+  - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving. 
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:

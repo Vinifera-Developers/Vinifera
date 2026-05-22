@@ -170,7 +170,7 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
         MouseTypeClass const * control = MouseTypes[mouse];
 
         int hotspot_x = IsSmall ? control->SmallHotspot.X : control->Hotspot.X;
-        int hotspot_y = IsSmall ? control->SmallHotspot.X : control->Hotspot.X;
+        int hotspot_y = IsSmall ? control->SmallHotspot.Y : control->Hotspot.Y;
 
         switch (hotspot_x) {
             case MOUSE_HOTSPOT_CENTER:
