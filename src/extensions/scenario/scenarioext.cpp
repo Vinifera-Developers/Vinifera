@@ -1155,6 +1155,8 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         std::snprintf(buffer, std::size(buffer), "%s.VQA", Movies[Scen->BriefMovie]);
     }
 
+    bool transit_theme_played = false;
+
     if (Session.Type == GAME_NORMAL && (Scen->BriefMovie == VQ_NONE || !CCFileClass(buffer).Is_Available())) {
 
         /**
@@ -1165,7 +1167,16 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
 
         OwnerDraw::Cache_Images();
 
+        if (Scen->TransitTheme != THEME_NONE) {
+            transit_theme_played = true;
+            Theme.Play_Song(Scen->TransitTheme);
+        }
+
         Restate_Mission(Scen);
+
+        if (Theme.Still_Playing()) {
+            Theme.Stop(true); // Smoothly fade out the track.
+        }
 
         MouseCursor->Hide_Mouse();
         MouseCursor->Capture_Mouse();
@@ -1214,7 +1225,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         Play_Movie(Scen->ActionMovie, Scen->TransitTheme);
     }
 
-    if (Scen->ActionMovie != VQ_NONE || Scen->TransitTheme == THEME_NONE) {
+    if (transit_theme_played || (Scen->ActionMovie != VQ_NONE || Scen->TransitTheme == THEME_NONE)) {
         Theme.Queue_Song(THEME_PICK_ANOTHER);
     } else {
         Theme.Queue_Song(Scen->TransitTheme);
