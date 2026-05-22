@@ -202,7 +202,7 @@ bool CCINIClassExt::_Put_ArmorType(const char *section, const char *entry, Armor
 VoxType CCINIClassExt::_Get_VoxType(const char *section, const char *entry, const VoxType defvalue)
 {
     char buffer[256];
-    const char *default_name = defvalue != VOX_NONE ? Speech[defvalue] : nullptr;
+    const char *default_name = defvalue != VOX_NONE ? AudioVoxClass::Name_From(defvalue) : nullptr;
 
     if (CCINIClass::Get_String(section, entry, default_name, buffer, sizeof(buffer)) <= 0) {
         return VOX_NONE;
