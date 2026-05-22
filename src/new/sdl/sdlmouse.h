@@ -103,14 +103,29 @@ private:
     std::vector<SDL_Surface*> CursorSurfaces;
 
     /*
+    **  Cached SDL_Cursor objects, one per frame, lazily created on first use.
+    **  Avoids per-frame SDL_CreateColorCursor / SDL_DestroyCursor churn on
+    **  animated cursors and rapid hover changes.
+    */
+    struct CachedCursor
+    {
+        SDL_Cursor* cursor = nullptr;
+        int hotspot_x = 0;
+        int hotspot_y = 0;
+    };
+    std::vector<CachedCursor> CursorCache;
+
+    /*
     **  The hotspot for the currently used cursor image.
     */
     Point2D Hotspot;
 
     /*
-    **  The currently used cursor.
+    **  The currently used cursor. Non-owning when sourced from CursorCache;
+    **  owning when set to a one-off cursor (e.g. the system default).
     */
     SDL_Cursor* Cursor;
+    bool CursorOwned;
 
     /*
     **  If the mouse is being managed by this class (for the game), then this flag
@@ -137,7 +152,7 @@ private:
     void Update_Mouse_Position(int x, int y);
     void Delete_Cursor_Image();
     void Convert_Cursor_Image(ShapeSet const* shapes);
-    void Replace_Cursor(SDL_Cursor* cursor);
+    void Replace_Cursor(SDL_Cursor* cursor, bool owned);
     void Set_System_Cursor();
 
     static int Get_Cursor_Scale();
