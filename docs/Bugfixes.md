@@ -121,6 +121,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
 - Fix a bug where the map would accept input while the user was in a dialog window.
 - Fix a bug where the sidebar could only contain up to 75 items on a strip.
-- Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
+- Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
+- Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
 - Fix a bug that would make healing units unselect themselves when adding other units to current selection.
 - Fix a bug that would make infantry healing units flash and go into Area Guard mode when they were added to current selection.

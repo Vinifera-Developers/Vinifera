@@ -176,6 +176,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug that would make healing units unselect themselves when adding other units to current selection.
   - Fix a bug that would make infantry healing units flash and go into Area Guard mode when they were added to current selection.
   - Add Q-Move support for aircraft.
+  - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving. 
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
