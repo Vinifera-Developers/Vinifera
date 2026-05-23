@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <eh.h>
+#include <mutex>
 #include <windows.h>
 
 
@@ -27,7 +28,7 @@
  *  Options for the stack walker.
  */
 #define STACK_SYMNAME_MAX 512
-#define STACK_DEPTH_MAX   30
+#define STACK_DEPTH_MAX   128
 
 
 /**
@@ -38,6 +39,8 @@ static bool StripFilenamePaths = true;
 
 void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigned *linenumber, uintptr_t *address)
 {
+    std::scoped_lock dbghelp_lock(DbgHelpMutex);
+
     char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64) + STACK_SYMNAME_MAX];
     IMAGEHLP_SYMBOL64 *const symbol_bufferp = reinterpret_cast<IMAGEHLP_SYMBOL64 *>(symbol_buffer);
     //IMAGEHLP_SYMBOL64 symbol_buffer;
@@ -171,6 +174,14 @@ static void Write_Stack_Line(void *address, stackcallback_ptr_t callback)
 
 void Make_Stack_Trace(register_t instructionptr, register_t stackptr, register_t frameptr, int skip_frames, stackcallback_ptr_t callback)
 {
+    /**
+     *  Lock once around the whole walk so StackWalk64 keeps its internal
+     *  cursor coherent. The per-frame callback re-enters via
+     *  Get_Function_Details which acquires DbgHelpMutex again - that's safe
+     *  because it's a recursive_mutex.
+     */
+    std::scoped_lock dbghelp_lock(DbgHelpMutex);
+
     BOOL carry_on = true;
     //DWORD error = 0;
 
@@ -277,15 +288,14 @@ void Make_Stack_Trace(register_t instructionptr, register_t stackptr, register_t
                     nullptr);
 
                 /**
-                 *  Basic sanity check to make sure the frame is OK. Bail if not.
+                 *  End of stack: StackWalk64 returned false or AddrFrame
+                 *  hit zero. Either way the walk is done.
                  */
-                if (stack_frame.AddrFrame.Offset == 0) {
-				    continue; //break;
+                if (!carry_on || stack_frame.AddrFrame.Offset == 0) {
+                    break;
                 }
 
-                if (carry_on) {
-                    Write_Stack_Line((void *)stack_frame.AddrPC.Offset, callback);
-                }
+                Write_Stack_Line((void *)stack_frame.AddrPC.Offset, callback);
             }
         }
     //}

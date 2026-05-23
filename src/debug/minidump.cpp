@@ -18,6 +18,7 @@
 #include "vinifera_globals.h"
 
 #include <dbghelp.h>
+#include <mutex>
 #include <windows.h>
 #include <tlhelp32.h> // Must be after windows.h!
 
@@ -108,13 +109,16 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
 
     //DEBUG_WARNING("Create_Mini_Dump() - About to call MiniDumpWriteDump.\n");
 
-    MiniDumpWriteDump(GetCurrentProcess(),
-        GetCurrentProcessId(),
-        dump_file,
-        flags,
-        &md_e_info,
-        nullptr,
-        nullptr);
+    {
+        std::scoped_lock dbghelp_lock(DbgHelpMutex);
+        MiniDumpWriteDump(GetCurrentProcess(),
+            GetCurrentProcessId(),
+            dump_file,
+            flags,
+            e_info != nullptr ? &md_e_info : nullptr,
+            nullptr,
+            nullptr);
+    }
 
     CloseHandle(dump_file);
 

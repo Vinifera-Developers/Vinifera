@@ -23,6 +23,7 @@
 #include "tactical.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "vinifera_thread.h"
 #include "vinifera_util.h"
 
 #include <algorithm>
@@ -667,8 +668,10 @@ void AudioVocClass::ScanAsync()
     IsVocScanComplete.store(false);
 
     VocScanThread = std::thread([] {
-        Scan();
-        IsVocScanComplete.store(true);
+        Vinifera_Run_Thread([] {
+            Scan();
+            IsVocScanComplete.store(true);
+        });
     });
 }
 
