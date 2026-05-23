@@ -104,6 +104,8 @@ New:
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 - Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
 - Allows aircraft to use Q-Move (by JoyfulShush)
+- Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
+- Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -177,6 +179,7 @@ Vanilla fixes:
 - Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree) (by JoyfulShush)
 - Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
+- Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 
 :::
 
