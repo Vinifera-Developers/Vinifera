@@ -110,6 +110,8 @@ New:
 - Add support for more than 2 sides' loading screens, sidebars and speeches (by CCHyper/tomsons26, ZivDero)
 - Disallow loading campaign saves from other playthoughs, as well as from skirmish (by ZivDero)
 - Allow defining Options menu text colors per side (by Rampastring)
+- Add support for additional multiplayer difficulty levels (by Rampastring)
+- Allow separating human players' and AI players' normal-difficulty settings (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

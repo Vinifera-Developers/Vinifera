@@ -81,7 +81,7 @@ std::unique_ptr<SpawnerConfig> Spawner::Config;
  *
  *  @author: ZivDero
  */
-void Spawner::Init()
+bool Spawner::Init()
 {
     Config = std::make_unique<SpawnerConfig>();
 
@@ -91,10 +91,11 @@ void Spawner::Init()
     if (spawn_file.Is_Available()) {
         spawn_ini.Load(spawn_file, false);
         Config->Read_INI(spawn_ini);
-
-    } else {
-        DEBUG_FATAL("SPAWN.INI not found!\n");
+        return true;
     }
+
+    DEBUG_FATAL("SPAWN.INI not found!\n");
+    return false;
 }
 
 
@@ -119,13 +120,55 @@ bool Spawner::Start_Game()
     return result;
 }
 
+int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
+{
+    // Temporarily uses DTA's original setup for now to avoid client changes as we figure out what to do
+
+    switch (difficulty) {
+    case 0:
+        return DIFF_HARD;
+    case 1:
+        return DIFF_NORMAL;
+    case 2:
+        return DIFF_EASY;
+    case 3:
+        return EXT_DIFF_VERY_HARD;
+    case 4:
+        return EXT_DIFF_BRUTAL;
+    case 5:
+        return EXT_DIFF_EXTREME;
+    case 6:
+        return EXT_DIFF_ULTIMATE;
+    }
+
+    // switch (difficulty)
+    // {
+    // case 0:
+    //     return EXT_DIFF_ULTIMATE;
+    // case 1:
+    //     return EXT_DIFF_EXTREME;
+    // case 2:
+    //     return EXT_DIFF_BRUTAL;
+    // case 3:
+    //     return EXT_DIFF_VERY_HARD;
+    // case 4:
+    //     return DIFF_HARD;
+    // case 5:
+    //     return DIFF_NORMAL;
+    // case 6:
+    //     return DIFF_EASY;
+    // }
+    
+    DEBUG_FATAL("Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty: Unknown difficulty level %d", difficulty);
+    return -1;
+}
 
 /**
  *  Configures session and extension state from the current spawn Config->
  *
  *  @author: ZivDero
  */
-void Spawner::Init_Session(char* scenario_name)
+bool Spawner::Init_Session(char* scenario_name)
 {
     const auto& local_player = Config->Players[Config->LocalPlayerIndex];
 
@@ -211,7 +254,12 @@ void Spawner::Init_Session(char* scenario_name)
         slot_info.IsHuman = player_config.IsHuman;
         slot_info.Color = player_config.Color;
         slot_info.House = player_config.House;
-        slot_info.Difficulty = player_config.Difficulty;
+        slot_info.Difficulty = Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(player_config.Difficulty);
+
+        if (slot_info.Difficulty < 0) {
+            return false;
+        }
+
         slot_info.IsObserver = player_config.IsObserver;
         slot_info.SpawnLocation = player_config.SpawnLocation;
 
@@ -249,7 +297,9 @@ bool Spawner::Start_Scenario(char* scenario_name)
         Set_Required_Addon(ADDON_FIRESTORM);
     }
 
-    Init_Session(scenario_name);
+    if (!Init_Session(scenario_name)) {
+        return false;
+    }
 
     const bool load_save_game = Config->LoadSaveGame;
     const CampaignType campaign_id = Config->CampaignID;

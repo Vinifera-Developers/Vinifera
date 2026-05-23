@@ -265,6 +265,8 @@ This page lists all the individual contributions to the project by their author.
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
   - Implement the multiplayer spawner.
   - Allow defining Options menu text colors per side.
+  - Add support for additional multiplayer difficulty levels.
+  - Allow separating human players' and AI players' normal-difficulty settings.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

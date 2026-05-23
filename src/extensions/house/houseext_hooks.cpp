@@ -88,6 +88,7 @@ public:
     bool _Place_Object(RTTIType type, Cell const& cell);
     void _Update_Factories(RTTIType rtti);
     TechnoTypeClass const* _Suggest_New_Object(RTTIType objecttype, bool kennel) const;
+    ExtDiffType _Assign_Handicap(ExtDiffType handicap);
 };
 
 
@@ -2016,6 +2017,62 @@ DEFINE_HOOK(0x004CB9CD, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 0)
 
 
 /**
+ *  Replacement to Assign_Handicap to read from our new difficulty settings.
+ *
+ *  @author: Rampastring
+ */
+ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
+{
+    ExtDiffType old = (ExtDiffType)Difficulty;
+
+    /**
+     *  We have not fully replaced the original difficulty logic yet, so
+     *  we'll have to limit the "actual house difficulty" to vanilla
+     *  levels or it'll read out of bounds.
+     */
+    Difficulty = (DiffType)(handicap >= DIFF_COUNT ? (DIFF_COUNT - 1) : handicap);
+
+    if (handicap >= EXT_DIFF_COUNT) {
+        DEBUG_ERROR("Invalid value supplied to HouseClassExt::_Assign_Handicap! %d", handicap);
+        Emergency_Exit(0);
+        return old;
+    }
+
+    DifficultyClass& diff = RuleExtension->Diff[handicap];
+    if (handicap == DIFF_NORMAL && Is_Human_Player() && RuleExtension->IsHasPlayerNormal) {
+        diff = RuleExtension->PlayerNormal;
+    }
+
+    if (Session.Type != GAME_NORMAL) {
+        HouseTypeClass const* hptr = Class;
+        FirepowerBias = hptr->FirepowerBias * diff.FirepowerBias;
+        GroundspeedBias = hptr->GroundspeedBias * diff.GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = hptr->AirspeedBias * diff.AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = hptr->ArmorBias * diff.ArmorBias;
+        ROFBias = hptr->ROFBias * diff.ROFBias;
+        CostBias = hptr->CostBias * diff.CostBias;
+        RepairDelay = diff.RepairDelay;
+        BuildDelay = diff.BuildDelay;
+        BuildSpeedBias = hptr->BuildSpeedBias * diff.BuildSpeedBias * Rule->GameSpeedBias;
+    } else {
+        FirepowerBias = diff.FirepowerBias;
+        GroundspeedBias = diff.GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = diff.AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = diff.ArmorBias;
+        ROFBias = diff.ROFBias;
+        CostBias = diff.CostBias;
+        RepairDelay = diff.RepairDelay;
+        BuildDelay = diff.BuildDelay;
+        BuildSpeedBias = diff.BuildSpeedBias * Rule->GameSpeedBias;
+    }
+
+    TeamTime = 30 * HeapID + Rule->TeamDelays[Difficulty];
+
+    return old;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -2068,4 +2125,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C2255, 0x004C2262); // HouseClass::Add_Tracking
     Patch_Jump(0x004C229F, 0x004C22A8); // HouseClass::Add_Tracking
     Patch_Jump(0x004C22E5, 0x004C22EE); // HouseClass::Add_Tracking
+
+    Patch_Jump(0x004BB460, &HouseClassExt::_Assign_Handicap);
 }

@@ -2079,3 +2079,29 @@ In `RULES.INI`:
 HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the AI builds per refinery by difficulty level, from hardest to easiest
 AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
 ```
+
+## Difficulty
+
+- Vinifera adds more multiplayer difficulty options available to CnCNet clients calling the spawner. These are parsed from `RULES.INI` sections `[VeryEasy]`, `[BrutallyEasy]`, `[ExtremelyEasy]` and `[UltimatelyEasy]`, and have the same keys as the original game's difficulty sections (`[Easy]`, `[Normal]`, `[Difficult]`).
+
+- In the original game, human players and AI players playing on Normal/Medium difficulty share their difficulty settings through the `[Normal]` section. Vinifera allows splitting these settings by introducing a new difficulty section for Normal-difficulty human players.
+
+In `RULES.INI`:
+```ini
+[General]
+HasPlayerNormal=no    ; boolean, whether PlayerNormal difficulty level is to be used for human players on Normal difficulty
+
+[PlayerNormal]
+Groundspeed=1.0
+Airspeed=1.0
+BuildTime=1.0
+Armor=1.0
+ROF=1.0
+Cost=1.0
+RepairDelay=.02
+BuildDelay=.03
+BuildSlowdown=yes
+DestroyWalls=yes
+ContentScan=yes
+```
+

@@ -288,7 +288,10 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
          */
         if (stricmp(string, "-SPAWN") == 0) {
             DEBUG_INFO("  - Spawner enabled.\n");
-            Spawner::Init();
+            if (!Spawner::Init()) {
+                return false;
+            }
+
             Spawner_Hooks();
             continue;
         }

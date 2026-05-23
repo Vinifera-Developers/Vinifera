@@ -414,3 +414,28 @@ enum ExtQuarryType {
     EXT_QUARRY_FIRST = 0
 };
 DEFINE_ENUMERATION_OPERATORS(ExtQuarryType);
+
+/**
+ *  Extension of the Difficulty enum.
+ */
+enum ExtDiffType {
+    EXT_DIFF_PAD = DIFF_HARD, // The last DiffType
+
+    /**
+     *  Add new ExtDiffTypes from here.
+     */
+    EXT_DIFF_VERY_HARD,
+    EXT_DIFF_BRUTAL,
+    EXT_DIFF_EXTREME,
+    EXT_DIFF_ULTIMATE,
+
+    /**
+     *  The new total ExtDiffType count.
+     */
+    EXT_DIFF_COUNT,
+
+    /**
+     *  The first ExtDiffType.
+     */
+    EXT_DIFF_FIRST = EXT_DIFF_PAD + 1
+};
