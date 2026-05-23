@@ -367,6 +367,8 @@ EscortRange=-1  ; integer, the range in cells that an area guarding unit assigne
 AbandonTargetEscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will keep engaging targets before abandoning the targets and go back to their assigned unit.
 ```
 
+To achieve good results with `AbandonTargetEscortRange`, it is recommended to set a value that is higher than 2x its `GuardRange`. Otherwise, the unit will keep re-acquiring and abdndoning it repeatedly as long as it is in range.
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.
