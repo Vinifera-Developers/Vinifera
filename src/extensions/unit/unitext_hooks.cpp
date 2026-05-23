@@ -1574,6 +1574,7 @@ void UnitClassExt::_Read_INI(CCINIClass& ini)
                 **	If the unit could not be unlimboed, then this is a catastrophic error
                 **	condition. Delete the unit.
                 */
+                Vinifera_Log_And_Show_WWMessageBox("Failed to unlimbo unit %s at %d,%d while reading units!", unit->Class->IniName.c_str(), cell.X, cell.Y);
                 delete unit;
             }
         }
