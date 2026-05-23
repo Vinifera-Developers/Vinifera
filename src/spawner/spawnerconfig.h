@@ -86,7 +86,8 @@ public:
     bool LoadSaveGame = false;
     FixedString<60> SaveGameName {""};
     int AutoSaveInterval = 1;
-    int NextAutoSaveNumber = 0;
+    int NextCampaignAutoSaveNumber = 0;
+    int NextSkirmishAutoSaveNumber = 0;
 
     /**
      *  Scenario Options

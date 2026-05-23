@@ -144,7 +144,6 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
     crc(ExtOptions.IsAINamesByDifficulty);
     crc(AutoSave.IsToSave);
     crc(AutoSave.NextAutoSaveFrame);
-    crc(AutoSave.NextSPAutoSaveSlot);
     crc(AutoSave.IsMultiplayerAutoSaveSuppressed);
 }
 
@@ -180,7 +179,9 @@ void SessionClassExtension::Init_Clear()
 int SessionClassExtension::Get_Autosave_Interval() const
 {
     if (Session.Singleplayer_Game() && OptionsExtension->AutoSaveCount > 0 && OptionsExtension->AutoSaveInterval > 0) {
-        return OptionsExtension->AutoSaveInterval;
+        if (Session.Type == GAME_NORMAL || OptionsExtension->IsAutoSaveInSkirmish) {
+            return OptionsExtension->AutoSaveInterval;
+        }
     }
 
     if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerAutoSaveSuppressed && ExtOptions.MultiplayerAutoSaveInterval > 0) {
@@ -233,7 +234,18 @@ void SessionClassExtension::Disable_Multiplayer_Autosaves()
  */
 void SessionClassExtension::Set_Next_Campaign_Autosave_Slot(int slot)
 {
-    AutoSave.NextSPAutoSaveSlot = slot >= 0 ? slot : 0;
+    AutoSave.NextCampaignAutoSaveSlot = slot >= 0 ? slot : 0;
+}
+
+
+/**
+ *  Sets the next skirmish autosave slot using the internal 0-based slot numbering.
+ *
+ *  @author: Rampastring
+ */
+void SessionClassExtension::Set_Next_Skirmish_Autosave_Slot(int slot)
+{
+    AutoSave.NextSkirmishAutoSaveSlot = slot >= 0 ? slot : 0;
 }
 
 
@@ -251,9 +263,7 @@ void SessionClassExtension::Restore_Autosave_After_Load()
         return;
     }
 
-    if (AutoSave.NextAutoSaveFrame <= Frame) {
-        Schedule_Next_Autosave();
-    }
+    Schedule_Next_Autosave();
 }
 
 
@@ -274,7 +284,7 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
 
     Print_Saving_Game_Message();
 
-    if (Session.Singleplayer_Game()) {
+    if (Session.Singleplayer_Game() && OptionsExtension->AutoSaveCount > 0) {
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
 
@@ -283,14 +293,16 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
         Resume_Scenario();
 
-        if (OptionsExtension->AutoSaveCount > 0) {
-            AutoSave.NextSPAutoSaveSlot = (AutoSave.NextSPAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
+        if (Session.Type == GAME_NORMAL) {
+            AutoSave.NextCampaignAutoSaveSlot = (AutoSave.NextCampaignAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
+        } else {
+            AutoSave.NextSkirmishAutoSaveSlot = (AutoSave.NextSkirmishAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
         }
 
         return;
     }
     
-    if (Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) {
+    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerAutoSaveSuppressed) {
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
 
@@ -310,8 +322,9 @@ std::string SessionClassExtension::Autosave_File_Name() const
     case GAME_INTERNET:
         return NET_SAVE_FILE_NAME;
     case GAME_NORMAL:
+        return std::format("AUTOSAVE{}.SAV", AutoSave.NextCampaignAutoSaveSlot + 1);
     case GAME_SKIRMISH:
-        return std::format("AUTOSAVE{}.SAV", AutoSave.NextSPAutoSaveSlot + 1);
+        return std::format("SKIRMISH_AUTOSAVE{}.SAV", AutoSave.NextSkirmishAutoSaveSlot + 1);
     default:
         return "";
     }
@@ -325,9 +338,9 @@ std::string SessionClassExtension::Autosave_Description() const
     case GAME_INTERNET:
         return "Multiplayer Game";
     case GAME_NORMAL:
-        return std::format("Mission Auto-Save (Slot {})", AutoSave.NextSPAutoSaveSlot + 1);
+        return std::format("Mission Auto-Save (Slot {})", AutoSave.NextCampaignAutoSaveSlot + 1);
     case GAME_SKIRMISH:
-        return std::format("Skirmish Auto-Save (Slot {})", AutoSave.NextSPAutoSaveSlot + 1);
+        return std::format("Skirmish Auto-Save (Slot {})", AutoSave.NextSkirmishAutoSaveSlot + 1);
     default:
         return "";
     }

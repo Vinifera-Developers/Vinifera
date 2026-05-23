@@ -34,6 +34,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         void Flag_To_Save();
         void Disable_Multiplayer_Autosaves();
         void Set_Next_Campaign_Autosave_Slot(int slot);
+        void Set_Next_Skirmish_Autosave_Slot(int slot);
         void Restore_Autosave_After_Load();
         void Service_Autosave_After_Main_Loop();
 
@@ -128,7 +129,12 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
             /**
              *  Next rotating campaign autosave slot, stored as a 0-based index.
              */
-            int NextSPAutoSaveSlot = 0;
+            int NextCampaignAutoSaveSlot = 0;
+
+            /**
+             *  Next rotating skirmish autosave slot, stored as a 0-based index.
+             */
+            int NextSkirmishAutoSaveSlot = 0;
 
             /**
              *  Have multiplayer autosaves been suppressed for the current session?

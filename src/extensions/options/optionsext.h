@@ -134,12 +134,17 @@ public:
     bool IsPauseRepairs;
 
     /**
-     *  Number of autosaves to make in skirmish.
+     *  Number of autosaves to make in singleplayer.
      */
     int AutoSaveCount;
 
     /**
-     *  The delay between autosaves in skirmish in frames.
+     *  The delay between autosaves in singleplayer in frames.
      */
     int AutoSaveInterval;
+
+    /**
+     *  Should skirmish games be auto-saved?
+     */
+    bool IsAutoSaveInSkirmish;
 };

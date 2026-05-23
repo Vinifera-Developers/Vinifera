@@ -157,7 +157,8 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     SubtitleMode(SUBTITLE_MODE_NONE),
     IsPauseRepairs(true),
     AutoSaveCount(5),
-    AutoSaveInterval(7200)
+    AutoSaveInterval(7200),
+    IsAutoSaveInSkirmish(false)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -283,6 +284,7 @@ void OptionsClassExtension::Load_Settings()
 
     AutoSaveCount = ConfigINI.Get_Int("Options", "AutoSaveCount", AutoSaveCount);
     AutoSaveInterval = ConfigINI.Get_Int("Options", "AutoSaveInterval", AutoSaveInterval);
+    IsAutoSaveInSkirmish = ConfigINI.Get_Bool("Options", "AutoSaveInSkirmish", IsAutoSaveInSkirmish);
     
     /**
      *  Read keys from Keyboard.ini.

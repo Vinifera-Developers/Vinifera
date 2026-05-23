@@ -65,7 +65,8 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     LoadSaveGame = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
     SaveGameName = spawn_ini.Get_String(SETTINGS, "SaveGameName", std::string(SaveGameName));
     AutoSaveInterval = spawn_ini.Get_Int(SETTINGS, "AutoSaveGame", AutoSaveInterval);
-    NextAutoSaveNumber = spawn_ini.Get_Int(SETTINGS, "NextSPAutoSaveId", NextAutoSaveNumber + 1) - 1; // Subtract 1 since our autosaves are 0-based internally
+    NextCampaignAutoSaveNumber = spawn_ini.Get_Int(SETTINGS, "NextSPAutoSaveId", NextCampaignAutoSaveNumber + 1) - 1; // Subtract 1 since our autosaves are 0-based internally
+    NextSkirmishAutoSaveNumber = spawn_ini.Get_Int(SETTINGS, "NextSkirmishAutoSaveId", NextSkirmishAutoSaveNumber + 1) - 1; // Subtract 1 since our autosaves are 0-based internally
 
     /**
      *  Scenario Options

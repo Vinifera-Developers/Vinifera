@@ -197,7 +197,8 @@ bool Spawner::Init_Session(char* scenario_name)
     BuildLevel = Config->TechLevel;
     Options.GameSpeed = Config->GameSpeed;
 
-    SessionExtension->Set_Next_Campaign_Autosave_Slot(Config->NextAutoSaveNumber);
+    SessionExtension->Set_Next_Campaign_Autosave_Slot(Config->NextCampaignAutoSaveNumber);
+    SessionExtension->Set_Next_Skirmish_Autosave_Slot(Config->NextSkirmishAutoSaveNumber);
 
     const auto nodename = new NodeNameType;
     Session.Players.Add(nodename);
