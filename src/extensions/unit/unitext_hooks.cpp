@@ -12,9 +12,13 @@
 #include "unitext_hooks.h"
 
 #include "asserthandler.h"
+#include "ccini.h"
+#include "debughandler.h"
 #include "extension.h"
+#include "findmake.h"
 #include "hooker.h"
 #include "house.h"
+#include "housetype.h"
 #include "infantry.h"
 #include "iomap.h"
 #include "rules.h"
@@ -29,6 +33,8 @@
 #include "warheadtype.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
+#include "tag.h"
+#include "tagtype.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
@@ -39,6 +45,7 @@
 #include "unittypeext.h"
 #include "verses.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "voc.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
@@ -65,6 +72,7 @@ public:
     int _Do_MISSION_HUNT();
     void _Rotation_AI();
     void _Approach_Target();
+    static void _Read_INI(CCINIClass & ini);
 };
 
 
@@ -1407,6 +1415,183 @@ DEFINE_HOOK(0x0064FDB4, _Unit_Class_Take_Damage_Cargo_Hold_Patch, 6)
     return 0;
 }
 
+TagClass* Find_Or_Make_Tag(TagTypeClass* type)
+{
+    for (int index = 0; index < Tags.Count(); index++) {
+        TagClass* tag = Tags[index];
+        if (tag->Class == type) {
+            return (tag);
+        }
+    }
+
+    return (new TagClass(type));
+}
+
+void Decrement_Followers(DynamicVectorClass<int> &followers, int index)
+{
+    for (int fid = 0; fid < followers.Count(); fid++) {
+        if (followers[fid] >= index) {
+            followers[fid] = followers[fid] - 1;
+        }
+    }
+}
+
+/**
+ *  Replacement for UnitClass::Read_INI for the multiplayer spawner.
+ *
+ *  @author: Rampastring
+ */
+void UnitClassExt::_Read_INI(CCINIClass& ini)
+{
+    UnitClass* unit;    // Working unit pointer.
+    HousesType inhouse; // Unit house.
+    UnitType classid;   // Unit class.
+    char buf[128];
+    DynamicVectorClass<int> followers;
+
+    char const* const INI_NAME = "Units";
+
+    int len = ini.Entry_Count(INI_NAME);
+
+    for (int index = 0; index < len; index++) {
+        char const* entry = ini.Get_Entry(INI_NAME, index);
+
+        ini.Get_String(INI_NAME, entry, nullptr, buf, sizeof(buf));
+
+        char* housename = strtok(buf, ",");
+        inhouse = HouseTypeClass::From_Name(housename);
+        HouseClass* inhousep = House_From_HousesType(inhouse);
+
+        if (inhouse == HOUSE_NONE) {
+            if (Session.Type == GAME_NORMAL) {
+                Vinifera_Log_And_Show_WWMessageBox("Unable to find house %s while reading units!", housename);
+                Decrement_Followers(followers, index);
+                continue;
+            } else {
+
+                DEBUG_INFO("Ignoring unit placed for %s because the house is not present\n", housename);
+
+                // This unit's owner is likely a Spawn house that is not present.
+                // Go through the followers and for each one with ID above the current unit ID, decrement it by one.
+                Decrement_Followers(followers, index);
+                continue;
+            }
+        }
+
+        char* unittypename = strtok(nullptr, ",");
+        classid = UnitTypeClass::From_Name(unittypename);
+
+        if (classid == UNIT_NONE) {
+            Vinifera_Log_And_Show_WWMessageBox("Unable to find UnitType %s while reading units!", unittypename);
+            Decrement_Followers(followers, index);
+            continue;
+        }
+
+        unit = new UnitClass(UnitTypes[classid], inhousep);
+        if (unit != nullptr) {
+
+            /*
+            **	Read the raw data.
+            */
+            int strength = atoi(strtok(nullptr, ","));
+
+            Cell cell;
+            Coord coord;
+            if (NewINIFormat >= 4) {
+                unsigned short x = atoi(strtok(nullptr, ","));
+                unsigned short y = atoi(strtok(nullptr, ","));
+                cell = Cell(x, y);
+            } else {
+                int c = atoi(strtok(nullptr, ","));
+                cell = Cell(c % 128, c / 128);
+            }
+
+            coord = cell.As_Coord();
+
+            Dir256 dir = (Dir256)atoi(strtok(nullptr, ","));
+            MissionType mission = MissionClass::Mission_From_Name(strtok(nullptr, ","));
+
+            TagType tagtype = TagTypeClass::From_Name(strtok(nullptr, ","));
+            if (tagtype != TAG_NONE) {
+                TagTypeClass* tp = TagTypes[tagtype];
+                if (tp != nullptr) {
+                    TagClass* tt = Find_Or_Make_Tag(tp);
+                    if (tt != nullptr) {
+                        unit->Attach_Tag(tt);
+                    }
+                }
+            }
+
+            char* token = strtok(nullptr, ",");
+            if (token != nullptr) {
+                unit->Crew.From_Integer(atoi(token));
+            }
+
+            token = strtok(nullptr, ",");
+            if (token != nullptr) {
+                unit->Group = atoi(token);
+            }
+
+            token = strtok(nullptr, ",");
+            if (token != nullptr) {
+                unit->IsOnBridge = atoi(token) != 0;
+                if (unit->IsOnBridge) {
+                    coord.Z = Map.Get_Height_GL(coord) + BRIDGE_LEPTON_HEIGHT;
+                }
+            }
+
+            token = strtok(nullptr, ",");
+            if (token != nullptr) {
+                followers.Add(atoi(token));
+            }
+
+            token = strtok(nullptr, ",");
+            if (token != nullptr) {
+                unit->field_205 = atoi(token) != 0;
+            }
+
+            token = strtok(nullptr, ",");
+            if (token != nullptr) {
+                unit->field_206 = atoi(token) != 0;
+            }
+
+            if (unit->Unlimbo(coord, dir)) {
+                unit->Strength = unit->Class->MaxStrength * (double)strength / 256.0;
+                if (unit->Strength > unit->Class->MaxStrength - 3) unit->Strength = unit->Class->MaxStrength;
+                if (unit->Strength == 0) unit->Strength = 1;
+                if (Session.Type == GAME_NORMAL || unit->House->Is_Human_Player()) {
+                    unit->Assign_Mission(mission);
+                    if (unit->Ready_To_Commence()) {
+                        unit->Commence();
+                    }
+                } else {
+                    unit->Enter_Idle_Mode();
+                }
+
+            } else {
+
+                /*
+                **	If the unit could not be unlimboed, then this is a catastrophic error
+                **	condition. Delete the unit.
+                */
+                delete unit;
+            }
+        }
+    }
+
+    for (int i = 0; i < Units.Count(); i++) {
+        unsigned followerid = followers[i];
+        UnitClass* unit = Units[i];
+        if ((UnitType)followerid != UNIT_NONE && followerid < Units.Count()) {
+            UnitClass* follower = Units[followerid];
+            unit->FollowingMe = follower;
+            follower->IsFollowing = true;
+        } else {
+            unit->FollowingMe = nullptr;
+        }
+    }
+}
+
 
 /**
  *  Main function for patching the hooks.
@@ -1422,6 +1607,7 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00655270, &UnitClassExt::_Do_MISSION_HUNT);
     Patch_Jump(0x0064E560, &UnitClassExt::_Rotation_AI);
     Patch_Jump(0x006571E0, &UnitClassExt::_Approach_Target);
+    Patch_Jump(0x006585C0, &UnitClassExt::_Read_INI);
 
     Patch_Byte(0x00658961, 0xEB); // Allow pre-placed units to have missions in multiplayer, change JZ to JMP
     /*
