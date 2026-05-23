@@ -836,6 +836,5 @@ void AudioVocClass::Set_Volume(int volume)
     float volf = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_SFX, volf);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, volf);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, volf);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_STREAMING, volf);
 }
