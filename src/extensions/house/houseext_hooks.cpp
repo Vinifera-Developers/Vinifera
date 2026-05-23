@@ -2032,6 +2032,8 @@ ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
      */
     Difficulty = (DiffType)(handicap >= DIFF_COUNT ? (DIFF_COUNT - 1) : handicap);
 
+    DEBUG_INFO("Assigning handicap %d to house %d\n", handicap, HeapID);
+
     if (handicap >= EXT_DIFF_COUNT) {
         DEBUG_ERROR("Invalid value supplied to HouseClassExt::_Assign_Handicap! %d", handicap);
         Emergency_Exit(0);

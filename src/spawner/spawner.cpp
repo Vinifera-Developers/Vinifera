@@ -254,10 +254,13 @@ bool Spawner::Init_Session(char* scenario_name)
         slot_info.IsHuman = player_config.IsHuman;
         slot_info.Color = player_config.Color;
         slot_info.House = player_config.House;
-        slot_info.Difficulty = Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(player_config.Difficulty);
 
-        if (slot_info.Difficulty < 0) {
-            return false;
+        if (!slot_info.IsHuman) {
+            slot_info.Difficulty = Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(player_config.Difficulty);
+
+            if (slot_info.Difficulty < 0) {
+                return false;
+            }
         }
 
         slot_info.IsObserver = player_config.IsObserver;
