@@ -65,7 +65,7 @@ void SaveGame_Hooks();
 template<class T>
 HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    // DEBUG_INFO("Saving %s...\n", heap_name);
 
     int count = list.Length();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
