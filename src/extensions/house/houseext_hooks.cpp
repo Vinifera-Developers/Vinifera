@@ -2030,32 +2030,32 @@ ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
         return old;
     }
 
-    DifficultyClass& diff = RuleExtension->Diff[handicap];
+    DifficultyClass* diff = &RuleExtension->Diff[handicap];
     if (handicap == DIFF_NORMAL && Is_Human_Player() && RuleExtension->IsHasPlayerNormal) {
-        diff = RuleExtension->PlayerNormal;
+        diff = &RuleExtension->PlayerNormal;
     }
 
     if (Session.Type != GAME_NORMAL) {
         HouseTypeClass const* hptr = Class;
-        FirepowerBias = hptr->FirepowerBias * diff.FirepowerBias;
-        GroundspeedBias = hptr->GroundspeedBias * diff.GroundspeedBias * Rule->GameSpeedBias;
-        AirspeedBias = hptr->AirspeedBias * diff.AirspeedBias * Rule->GameSpeedBias;
-        ArmorBias = hptr->ArmorBias * diff.ArmorBias;
-        ROFBias = hptr->ROFBias * diff.ROFBias;
-        CostBias = hptr->CostBias * diff.CostBias;
-        RepairDelay = diff.RepairDelay;
-        BuildDelay = diff.BuildDelay;
-        BuildSpeedBias = hptr->BuildSpeedBias * diff.BuildSpeedBias * Rule->GameSpeedBias;
+        FirepowerBias = hptr->FirepowerBias * diff->FirepowerBias;
+        GroundspeedBias = hptr->GroundspeedBias * diff->GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = hptr->AirspeedBias * diff->AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = hptr->ArmorBias * diff->ArmorBias;
+        ROFBias = hptr->ROFBias * diff->ROFBias;
+        CostBias = hptr->CostBias * diff->CostBias;
+        RepairDelay = diff->RepairDelay;
+        BuildDelay = diff->BuildDelay;
+        BuildSpeedBias = hptr->BuildSpeedBias * diff->BuildSpeedBias * Rule->GameSpeedBias;
     } else {
-        FirepowerBias = diff.FirepowerBias;
-        GroundspeedBias = diff.GroundspeedBias * Rule->GameSpeedBias;
-        AirspeedBias = diff.AirspeedBias * Rule->GameSpeedBias;
-        ArmorBias = diff.ArmorBias;
-        ROFBias = diff.ROFBias;
-        CostBias = diff.CostBias;
-        RepairDelay = diff.RepairDelay;
-        BuildDelay = diff.BuildDelay;
-        BuildSpeedBias = diff.BuildSpeedBias * Rule->GameSpeedBias;
+        FirepowerBias = diff->FirepowerBias;
+        GroundspeedBias = diff->GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = diff->AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = diff->ArmorBias;
+        ROFBias = diff->ROFBias;
+        CostBias = diff->CostBias;
+        RepairDelay = diff->RepairDelay;
+        BuildDelay = diff->BuildDelay;
+        BuildSpeedBias = diff->BuildSpeedBias * Rule->GameSpeedBias;
     }
 
     TeamTime = 30 * HeapID + Rule->TeamDelays[Difficulty];
