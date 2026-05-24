@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 
+#include "debughandler.h"
 #include "spawnerconfig.h"
 #include "ccini.h"
 
@@ -165,9 +166,12 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
      *  Environment Globals
      */
     char buffer[20];
-    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
+    for (int i = 0; i < std::size(GlobalFlags); i++) {
         sprintf(buffer, "GlobalFlag%d", i);
-        EnvironmentGlobals[i] = spawn_ini.Get_Int("GlobalFlags", buffer, 0);
+        GlobalFlags[i] = spawn_ini.Get_Int("GlobalFlags", buffer, 0);
+        if (GlobalFlags[i] > 0) {
+            DEBUG_INFO("[Spawner] Read global %d as %d from %s\n", i, GlobalFlags[i], buffer);
+        }
     }
 }
 

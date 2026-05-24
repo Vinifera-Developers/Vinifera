@@ -42,6 +42,7 @@ public:
 
     static bool Init();
     static bool Start_Game();
+    static void Apply_Scenario_Values();
 
 private:
     static bool Start_Scenario(char* scenario_name);

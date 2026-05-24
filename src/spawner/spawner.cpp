@@ -234,23 +234,12 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->ExtOptions.IsScrapMetal = Config->ScrapMetal;
     SessionExtension->ExtOptions.IsAINamesByDifficulty = Config->AINamesByDifficulty;
 
-    ScenExtension->HasSpawnerScenarioOverrides = true;
-    Scen->Difficulty = Config->CampaignDifficulty;
-    Scen->CDifficulty = Config->CampaignCDifficulty;
-    ScenExtension->SkipScoreScreenOverride = Config->SkipScoreScreen;
-    std::snprintf(ScenExtension->StatsMapName, sizeof(ScenExtension->StatsMapName), "%s", Config->MapName.c_str());
-    std::snprintf(ScenExtension->StatsMapHash, sizeof(ScenExtension->StatsMapHash), "%s", Config->MapHash.c_str());
-    std::snprintf(ScenExtension->DifficultyName, sizeof(ScenExtension->DifficultyName), "%s", Config->DifficultyName.c_str());
-
-    if (!Config->CustomLoadScreen.empty()) {
-        ScenExtension->HasCustomLoadScreen = true;
-        std::snprintf(ScenExtension->CustomLoadScreen, sizeof(ScenExtension->CustomLoadScreen), "%s", Config->CustomLoadScreen.c_str());
-    }
-
-    if (Config->CustomLoadScreenPos != Point2D(0, 0)) {
-        ScenExtension->HasCustomLoadScreenPos = true;
-        ScenExtension->CustomLoadScreenPos = Config->CustomLoadScreenPos;
-    }
+    /**
+     *  NOTE: Scenario data gets cleared between this point and the scenario start, because the first step
+     *  in reading a scenario is calling Clear_Scenario. Assume any scenario variables set here to get cleared.
+     *  Only set up some fields that we need for initialization (like difficulty, which is read by the environment).
+     */
+    Apply_Scenario_Values();
 
     const int total_slots = std::min(Config->HumanPlayers + Config->AIPlayers, MAX_PLAYERS);
 
@@ -279,16 +268,48 @@ bool Spawner::Init_Session(char* scenario_name)
         }
     }
 
-    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
-        EnvironmentGlobals[i] = Config->GlobalFlags[i];
-    }
-
     /**
      *  (Re)initialize the environment so it can read our scenario difficulty options.
      */
     new (reinterpret_cast<ExtEnvironmentClass*>(&Environment)) ExtEnvironmentClass;
 
+    /**
+     *  Set the spawner's environment flags.
+     */
+    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
+        EnvironmentGlobals[i] = Config->GlobalFlags[i];
+        if (Config->GlobalFlags[i] > 0) {
+            DEBUG_INFO("[Spawner] Init_Session: Applied GlobalFlag %d as %d\n", i, EnvironmentGlobals[i]);
+        }
+    }
+
     return true;
+}
+
+
+/**
+ *  Writes spawner-related values to the scenario.
+ *
+ *  @author: Rampastring
+ */
+void Spawner::Apply_Scenario_Values()
+{
+    // TODO maybe the stats, difficulty name, etc. should belong to SessionExtension instead?
+    Scen->Difficulty = Config->CampaignDifficulty;
+    Scen->CDifficulty = Config->CampaignCDifficulty;
+    std::snprintf(ScenExtension->StatsMapName, sizeof(ScenExtension->StatsMapName), "%s", Config->MapName.c_str());
+    std::snprintf(ScenExtension->StatsMapHash, sizeof(ScenExtension->StatsMapHash), "%s", Config->MapHash.c_str());
+    std::snprintf(ScenExtension->DifficultyName, sizeof(ScenExtension->DifficultyName), "%s", Config->DifficultyName.c_str());
+
+    if (!Config->CustomLoadScreen.empty()) {
+        ScenExtension->HasCustomLoadScreen = true;
+        std::snprintf(ScenExtension->CustomLoadScreen, sizeof(ScenExtension->CustomLoadScreen), "%s", Config->CustomLoadScreen.c_str());
+    }
+
+    if (Config->CustomLoadScreenPos != Point2D(0, 0)) {
+        ScenExtension->HasCustomLoadScreenPos = true;
+        ScenExtension->CustomLoadScreenPos = Config->CustomLoadScreenPos;
+    }
 }
 
 

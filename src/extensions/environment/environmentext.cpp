@@ -141,6 +141,7 @@ void ExtEnvironmentClass::Apply_Difficulty()
  */
 void ExtEnvironmentClass::Apply_Globals()
 {
+    DEBUG_INFO("Applying environment global flag information...\n");
     for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
         ScenExtension->Set_Global_To(i, EnvironmentGlobals[i]);
     }
