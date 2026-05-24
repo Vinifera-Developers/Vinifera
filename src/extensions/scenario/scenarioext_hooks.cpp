@@ -41,6 +41,7 @@
 #include "spawnerconfig.h"
 #include "syringe.h"
 #include "teamtype.h"
+#include "theme.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "unit.h"
@@ -440,11 +441,16 @@ DEFINE_HOOK(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0)
  *
  *  @author: Rampastring
  */
-DEFINE_HOOK(0x005DC964, _ScenarioClass_Do_Win_Dump_Globals_Patch, 7)
+DEFINE_HOOK(0x005DC964, _ScenarioClass_Do_Win_Dump_Globals_Patch, 0)
 {
+    /**
+     *  Stolen bytes / code.
+     */
+    Theme.Queue_Song(THEME_QUIET);
+
     ScenExtension->Dump_Globals();
 
-    return 0;
+    return 0x005DC96B;
 }
 
 
