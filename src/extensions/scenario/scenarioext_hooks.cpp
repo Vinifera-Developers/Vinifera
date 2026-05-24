@@ -20,6 +20,8 @@
 #include "ccfile.h"
 #include "ccini.h"
 #include "debughandler.h"
+#include "environment.h"
+#include "environmentext.h"
 #include "fatal.h"
 #include "hooker.h"
 #include "houseext.h"

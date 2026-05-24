@@ -14,7 +14,6 @@
 #include "aircrafttracker.h"
 #include "prerequisitegroup.h"
 
-
 bool Vinifera_DeveloperMode = false;
 
 bool Vinifera_AudioDebug = false;
@@ -79,7 +78,7 @@ DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;
 
-int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
+int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/MAX_ENVIRONMENT_GLOBALS];
 
 bool Vinifera_PlayerOptionsSent = false;
 

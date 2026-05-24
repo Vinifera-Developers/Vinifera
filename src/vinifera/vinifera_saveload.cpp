@@ -798,7 +798,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
     versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
     versioninfo.Set_Playthrough_ID(Vinifera_PlaythroughID);
-    versioninfo.Set_Difficulty(Scen->Difficulty);
+    versioninfo.Set_Difficulty(Scen->CDifficulty);
     versioninfo.Set_Total_Play_Time(Vinifera_TotalPlayTime + Scen->ElapsedTimer.Value());
 
     DEBUG_INFO("Saving version information\n");

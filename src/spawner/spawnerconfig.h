@@ -31,6 +31,7 @@
 #include "stringid.h"
 #include "tibsun_defines.h"
 #include "latencylevel.h"
+#include "vinifera_globals.h"
 
 class CCINIClass;
 
@@ -148,6 +149,8 @@ public:
     TPoint2D<int> CustomLoadScreenPos {};
     bool ContinueWithoutHumans = false;
     FixedString<64> DifficultyName {""};
+
+    int GlobalFlags[MAX_ENVIRONMENT_GLOBALS];
 
     void Read_INI(CCINIClass& spawn_ini);
 };

@@ -130,8 +130,6 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         bool IsUseMPAIBaseNodes;
 
         bool HasSpawnerScenarioOverrides;
-        DiffType CampaignDifficultyOverride;
-        DiffType CampaignCDifficultyOverride;
         bool SkipScoreScreenOverride;
         char StatsMapName[44];
         char StatsMapHash[0xff];

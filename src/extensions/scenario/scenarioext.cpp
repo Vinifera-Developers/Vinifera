@@ -25,6 +25,7 @@
 #include "cd.h"
 #include "commandext.h"
 #include "debughandler.h"
+#include "environmentext.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
@@ -88,8 +89,6 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     SidebarSide(SIDE_NONE),
     IsUseMPAIBaseNodes(false),
     HasSpawnerScenarioOverrides(false),
-    CampaignDifficultyOverride(DIFF_NORMAL),
-    CampaignCDifficultyOverride(DIFF_NORMAL),
     SkipScoreScreenOverride(false),
     CustomLoadScreenPos(0, 0),
     HasCustomLoadScreen(false),
@@ -193,8 +192,6 @@ void ScenarioClassExtension::Object_CRC(CRCEngine &crc) const
 
     crc(IsIceDestruction);
     crc(HasSpawnerScenarioOverrides);
-    crc(static_cast<int>(CampaignDifficultyOverride));
-    crc(static_cast<int>(CampaignCDifficultyOverride));
     crc(SkipScoreScreenOverride);
     crc(StatsMapName);
     crc(StatsMapHash);
@@ -217,8 +214,6 @@ void ScenarioClassExtension::Init_Clear()
     ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
     ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
     HasSpawnerScenarioOverrides = false;
-    CampaignDifficultyOverride = DIFF_NORMAL;
-    CampaignCDifficultyOverride = DIFF_NORMAL;
     SkipScoreScreenOverride = false;
     StatsMapName[0] = '\0';
     StatsMapHash[0] = '\0';
@@ -1339,13 +1334,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
      *  Set up difficulty and fog of war settings.
      */
     if (Session.Type == GAME_NORMAL) {
-        if (ScenExtension->HasSpawnerScenarioOverrides) {
-            Scen->Difficulty = ScenExtension->CampaignDifficultyOverride;
-            Scen->CDifficulty = ScenExtension->CampaignCDifficultyOverride;
-        } else {
-            Scen->Difficulty = static_cast<DiffType>(Options.Difficulty);
-            Scen->CDifficulty = static_cast<DiffType>(2 - Options.Difficulty);
-        }
+        reinterpret_cast<ExtEnvironmentClass&>(Environment).Apply_Difficulty();
         Scen->Special.IsFogOfWar = false;
         Special.IsFogOfWar = false;
     } else {

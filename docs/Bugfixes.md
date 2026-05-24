@@ -126,3 +126,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the sidebar could only contain up to 75 items on a strip.
 - Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
+- Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with (by Rampastring)

@@ -15,6 +15,7 @@
 
 #include <unordered_map>
 
+#define MAX_ENVIRONMENT_GLOBALS 500
 
 class PrerequisiteGroupClass;
 class HouseClass;

@@ -160,6 +160,15 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     CustomLoadScreenPos = spawn_ini.Get_Point(SETTINGS, "CustomLoadScreenPos", CustomLoadScreenPos);
     ContinueWithoutHumans = spawn_ini.Get_Bool(SETTINGS, "ContinueWithoutHumans", ContinueWithoutHumans);
     DifficultyName = spawn_ini.Get_String(SETTINGS, "DifficultyName", std::string(DifficultyName));
+
+    /**
+     *  Environment Globals
+     */
+    char buffer[20];
+    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
+        sprintf(buffer, "GlobalFlag%d", i);
+        EnvironmentGlobals[i] = spawn_ini.Get_Int("GlobalFlags", buffer, 0);
+    }
 }
 
 

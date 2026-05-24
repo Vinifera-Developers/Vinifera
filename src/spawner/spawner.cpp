@@ -33,6 +33,7 @@
 #include "ccini.h"
 #include "cncnet5_wspudp.h"
 #include "debughandler.h"
+#include "environmentext.h"
 #include "extension_globals.h"
 #include "gscreen.h"
 #include "house.h"
@@ -115,8 +116,14 @@ bool Spawner::Start_Game()
     Init_UI();
     Prepare_Screen();
 
+    DEBUG_INFO("[Spawner] Start_Game: Starting scenario %s\n", Config->ScenarioName.c_str());
     const bool result = Start_Scenario(Config->ScenarioName.data());
     HasSpawned = true;
+
+    if (!result) {
+        DEBUG_ERROR("[Spawner] Start_Game: Start_Scenario returned false!\n");
+    }
+
     return result;
 }
 
@@ -228,8 +235,8 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->ExtOptions.IsAINamesByDifficulty = Config->AINamesByDifficulty;
 
     ScenExtension->HasSpawnerScenarioOverrides = true;
-    ScenExtension->CampaignDifficultyOverride = Config->CampaignDifficulty;
-    ScenExtension->CampaignCDifficultyOverride = Config->CampaignCDifficulty;
+    Scen->Difficulty = Config->CampaignDifficulty;
+    Scen->CDifficulty = Config->CampaignCDifficulty;
     ScenExtension->SkipScoreScreenOverride = Config->SkipScoreScreen;
     std::snprintf(ScenExtension->StatsMapName, sizeof(ScenExtension->StatsMapName), "%s", Config->MapName.c_str());
     std::snprintf(ScenExtension->StatsMapHash, sizeof(ScenExtension->StatsMapHash), "%s", Config->MapHash.c_str());
@@ -272,6 +279,16 @@ bool Spawner::Init_Session(char* scenario_name)
         }
     }
 
+    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
+        EnvironmentGlobals[i] = Config->GlobalFlags[i];
+    }
+
+    /**
+     *  (Re)initialize the environment so it can read our scenario difficulty options.
+     */
+    new (reinterpret_cast<ExtEnvironmentClass*>(&Environment)) ExtEnvironmentClass;
+
+    return true;
 }
 
 
@@ -302,6 +319,7 @@ bool Spawner::Start_Scenario(char* scenario_name)
     }
 
     if (!Init_Session(scenario_name)) {
+        DEBUG_ERROR("[Spawner] Init_Session returned false!\n");
         return false;
     }
 
