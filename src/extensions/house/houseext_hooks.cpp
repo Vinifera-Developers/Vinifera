@@ -1988,20 +1988,10 @@ DEFINE_HOOK(0x004D7284, _InfantryClass_What_Action_Harvester_Thief, 0)
 /**
  *  Patch to enable base nodes for the AI when UseMPAIBaseNodes=yes is set in the scenario.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-DEFINE_HOOK(0x004CB9CD, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 0)
+DEFINE_HOOK(0x004CB9DE, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 5)
 {
-    R->Push(R->EDI());
-    R->EDI(R->ECX());
-
-    /**
-     *  Ignore AIBaseSpacing in Campaign.
-     */
-    if (Session.Type == GAME_NORMAL) {
-        return 0x004CB9D2;
-    }
-
     /**
      *  Also ignore AIBaseSpacing if it was requested by the client.
      */
@@ -2012,7 +2002,7 @@ DEFINE_HOOK(0x004CB9CD, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 0)
     /**
      *  Continue with AIBaseSpacing.
      */
-    return 0x004CB9DE;
+    return 0;
 }
 
 
