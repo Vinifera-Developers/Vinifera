@@ -33,12 +33,17 @@
 #include "windialog.h"
 #include "winutil.h"
 
+#include <atomic>
 #include <dbghelp.h>
 #include <eh.h>
+#include <exception>
+#include <mutex>
+#include <tlhelp32.h>
 #include <windows.h>
 
 
 extern HMODULE DLLInstance;
+extern DWORD Vinifera_MainThreadId;
 
 extern int Execute_Day;
 extern int Execute_Month;
@@ -56,27 +61,36 @@ _EXCEPTION_POINTERS *ExceptionInfo = nullptr;
 
 exceptioncallback_ptr_t ExceptionHandlerPtr = nullptr;
 
-bool AlreadyExiting = false;
-bool ExitAfterException = false;
-bool ReturnedAfterException = false;
-bool ShowExceptionWindow = true;
-bool ExceptionDumpFinished = false;
+std::atomic<bool> AlreadyExiting{false};
+std::atomic<bool> ExitAfterException{false};
+std::atomic<bool> ShowExceptionWindow{true};
+std::atomic<bool> ExceptionDumpFinished{false};
 
-int RecursionCount = -1;
+std::atomic<int> RecursionCount{-1};
 
 FixedString<65536> ExceptionBuffer;
 
 static TextFileClass ExceptionFile;
 
 static FixedString<1024> ExceptionInfoDescription;
-static bool ExceptionInfoCanContinue = false;
-static bool ExceptionInfoIgnore = false;
 
 
 /**
- *  The installable exception intercept function pointer.
+ *  Thread synchronization for the exception handler.
+ *
+ *  Lock ordering (acquire top→bottom; never reverse):
+ *    1. ExceptionCriticalSection (entry gate, recursive)
+ *    2. MiniDumpCriticalSection  (inside Create_Mini_Dump)
+ *    3. DbgHelp mutex            (inside Sym*, StackWalk64, MiniDumpWriteDump)
+ *
+ *  The exception path MUST NEVER acquire a game-subsystem lock (audio
+ *  manager mutexes, scan-thread mutexes, WinDialog internals, etc.) because
+ *  sibling threads are SUSPENDED holding them. Touching one of those locks
+ *  deadlocks the dumper.
  */
-LONG (* __stdcall Exception_Intercept_Func_Ptr)(unsigned int code, EXCEPTION_POINTERS *e_info);
+static CRITICAL_SECTION ExceptionCriticalSection;
+static bool ExceptionCriticalSectionReady = false;
+static std::atomic<DWORD> FirstCrashThreadId{0};
 
 
 bool Any_Surface_Locked()
@@ -102,58 +116,109 @@ void Clear_All_Surfaces()
 
 
 /**
- *  Finds the first instance of the address in the loaded database and extracts its info.
+ *  Suspend every other thread in this process. Used at the start of the
+ *  handler so the dump and minidump observe a frozen address space. The
+ *  threads are not resumed — we always ExitProcess afterwards.
  */
-static bool Exception_Find_Datbase_Entry(uintptr_t address, bool &can_continue, bool &ignore, FixedString<1024> &desc)
+static void Suspend_Other_Threads()
 {
-    for (int i = 0; i < ExceptionInfoDatabase.Count(); ++i) {
-        if (ExceptionInfoDatabase[i].Address == address) {
-            can_continue = ExceptionInfoDatabase[i].CanContinue;
-            ignore = ExceptionInfoDatabase[i].Ignore;
-            desc = ExceptionInfoDatabase[i].Description;
-            return true;
-        }
+    const DWORD self_tid = GetCurrentThreadId();
+    const DWORD self_pid = GetCurrentProcessId();
+
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (snap == INVALID_HANDLE_VALUE) {
+        return;
     }
-    return false;
+
+    THREADENTRY32 te{};
+    te.dwSize = sizeof(te);
+
+    if (Thread32First(snap, &te)) {
+        do {
+            if (te.dwSize < FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) {
+                continue;
+            }
+            if (te.th32OwnerProcessID != self_pid || te.th32ThreadID == self_tid) {
+                continue;
+            }
+            HANDLE th = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+            if (th != nullptr) {
+                SuspendThread(th);
+                // Intentionally leak the handle - process is about to exit.
+            }
+        } while (Thread32Next(snap, &te));
+    }
+
+    CloseHandle(snap);
 }
 
 
 /**
- *  Write a mini dump file for analysis.
+ *  Top-level SEH filter. Process-wide and per-thread entry points both
+ *  forward here.
  */
-static bool Exception_Generate_Mini_Dump()
+LONG __stdcall _Top_Level_Exception_Filter(EXCEPTION_POINTERS *e_info)
 {
-#if 0
-    int retval = MessageBox(MainWindow,
-        "Would you like to generate a crash dump that can be sent to the\n"
-        "developers for further analysis?\n\n"
-        "Please note: This may take some time depending on the options\n"
-        "set by the crash dump generator, please be patient and allow\n"
-        "this process to finish. You will be notified when it is complete.\n\n",
-        "Generate Crash dump?", 
-        MB_YESNO|MB_ICONQUESTION);
+    return Vinifera_Exception_Handler(e_info->ExceptionRecord->ExceptionCode, e_info);
+}
 
-    if (retval == IDYES) {
 
-        GenerateFullCrashDump = false; // We don't need a full memory dump.
-        bool res = Create_Mini_Dump(ExceptionInfo, Get_Module_File_Name());
+/**
+ *  C++ -> SEH translator installed by _set_se_translator. Per-thread; see
+ *  vinifera_thread.h for worker installation.
+ */
+void __cdecl _Structured_Exception_Translator(unsigned int code, EXCEPTION_POINTERS *e_info)
+{
+    Vinifera_Exception_Handler(code, e_info);
+}
 
-        if (res) {
-            char buffer[512];
-            std::snprintf(buffer, sizeof(buffer),
-                "Crash dump file generated successfully.\n\n"
-                "Please make sure you package EXCEPT_<date-time>.TXT\n"
-                "and DEBUG_<date-time>.LOG along with this crash dump file!\n\n"
-                "Filename:\n\"%s\" \n", MinidumpFilename);
-            MessageBox(MainWindow, buffer, "Crash dump", MB_OK);
-        } else {
-            MessageBox(MainWindow, "Failed to create crash dump!\n\n", "Crash dump", MB_OK|MB_ICONASTERISK);
-        }
 
-        return true;
+/**
+ *  Terminate handler for escaped C++ exceptions. Re-raises as a structured
+ *  exception so the SEH machinery delivers proper EXCEPTION_POINTERS to
+ *  _Top_Level_Exception_Filter via SetUnhandledExceptionFilter.
+ */
+[[noreturn]] void __cdecl Vinifera_Terminate_Handler()
+{
+    RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, nullptr);
+    ExitProcess(EXIT_FAILURE);
+}
+
+
+/**
+ *  Initialize and tear down the entry-gate critical section. Called from
+ *  DllMain before any hook can fire / after all hooks are removed.
+ */
+void Init_Exception_Handler()
+{
+    if (!ExceptionCriticalSectionReady) {
+        InitializeCriticalSection(&ExceptionCriticalSection);
+        ExceptionCriticalSectionReady = true;
     }
-#endif
+}
 
+
+void Shutdown_Exception_Handler()
+{
+    if (ExceptionCriticalSectionReady) {
+        DeleteCriticalSection(&ExceptionCriticalSection);
+        ExceptionCriticalSectionReady = false;
+    }
+}
+
+
+/**
+ *  Finds the first instance of the address in the loaded database and extracts its description.
+ *  CanContinue and Ignore on the struct are part of the EDB binary format and are not consulted.
+ */
+static bool Exception_Find_Datbase_Entry(uintptr_t address, FixedString<1024> &desc)
+{
+    for (int i = 0; i < ExceptionInfoDatabase.Count(); ++i) {
+        if (ExceptionInfoDatabase[i].Address == address) {
+            desc = ExceptionInfoDatabase[i].Description;
+            return true;
+        }
+    }
     return false;
 }
 
@@ -406,9 +471,12 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     DEBUG_WARNING("Call dump...\n");
     //Exception_Printf("Call stack:\r\n");
 
-    int stack_skip_frames = 1; // #TODO: This needs checking. Value of 1 skips the EIP address, which seems ideal.
-
-    Stack_Dump_From_Context(context->Eip, context->Esp, context->Ebp, Exception_Stack_Dump_Handler, stack_skip_frames);
+    /**
+     *  The EIP/ESP/EBP from EXCEPTION_POINTERS point at the crashing
+     *  instruction itself - the first reported frame should be that
+     *  instruction, so no frames are skipped.
+     */
+    Stack_Dump_From_Context(context->Eip, context->Esp, context->Ebp, Exception_Stack_Dump_Handler, 0);
 
     Exception_Printf("\r\n");
 
@@ -576,6 +644,12 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     IMAGEHLP_SYMBOL64 *const symbol_bufferp = reinterpret_cast<IMAGEHLP_SYMBOL64 *>(symbol_buffer);
 
     /**
+     *  Hold the dbghelp lock for the duration of this loop instead of
+     *  taking and releasing it 1024 times.
+     */
+    std::scoped_lock dbghelp_lock(DbgHelpMutex);
+
+    /**
      *  Dump the contents of the stack as defined by the maximum depth.
      */
     for (int frame = 0; frame < EXCEPTION_STACK_DEPTH_MAX; ++frame) {
@@ -685,22 +759,17 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 }
 
 
-static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) 
+static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     // FALSE == We are not interested in the message. Let dialog manager do any default processing.
     INT_PTR result = FALSE;
 
-#if defined(TS_CLIENT)
     /**
-     *  Disable the Main Menu button.
+     *  Emergency Save needs the map editor's state, which only exists on
+     *  the main thread.
      */
-    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_MAINMENU), FALSE); // Main Menu button
-#endif
-
-    /**
-     *  Disable/Enable the Continue button.
-     */
-    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_CONTINUE), ExceptionInfoCanContinue ? TRUE : FALSE); // Continue button
+    const bool on_main_thread = (GetCurrentThreadId() == Vinifera_MainThreadId);
+    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_SAVE), on_main_thread ? TRUE : FALSE);
 
     switch (uMsg) {
         case WM_MOVING:
@@ -731,16 +800,6 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
                     result = TRUE;
                     break;
 
-                case IDC_EXCEPTION_MAINMENU: // Main menu button
-                    EndDialog(hDlg, IDC_EXCEPTION_MAINMENU);
-                    result = TRUE;
-                    break;
-
-                case IDC_EXCEPTION_CONTINUE: // Continue button
-                    EndDialog(hDlg, IDC_EXCEPTION_CONTINUE);
-                    result = TRUE;
-                    break;
-
                 default:
                     result = FALSE;
                     break;
@@ -753,6 +812,14 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
             break;
 
         case WM_INITDIALOG:
+            /**
+             *  IDC_EXCEPTION_MAINMENU and IDC_EXCEPTION_CONTINUE are present
+             *  in the dialog resource but have no command handler; hide them
+             *  so they're not visible.
+             */
+            ShowWindow(GetDlgItem(hDlg, IDC_EXCEPTION_MAINMENU), SW_HIDE);
+            ShowWindow(GetDlgItem(hDlg, IDC_EXCEPTION_CONTINUE), SW_HIDE);
+
             /**
              *  Send the exception buffer to the dialog.
              */
@@ -779,9 +846,9 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
 }
 
 
-static INT_PTR Exception_Dialog()
+static INT_PTR Exception_Dialog(HWND parent)
 {
-    switch (RecursionCount) {
+    switch (RecursionCount.load()) {
         case 1:
             CDControl.Unlock_All_CD_Trays();
             DEBUG_ERROR("Recursive exception detected!\n");
@@ -819,11 +886,11 @@ static INT_PTR Exception_Dialog()
     //HGLOBAL hGlobalDlg = Fetch_Resource(MAKEINTRESOURCE(IDD_EXCEPTION), RT_DIALOG);
     HGLOBAL hGlobalDlg = FETCH_RESOURCE(hResHandle, resId, RT_DIALOG);
     if (hGlobalDlg != nullptr) {
-        retval = DialogBoxIndirectParam(ProgramInstance, (LPDLGTEMPLATE)hGlobalDlg, MainWindow, (DLGPROC)Exception_Dialog_Proc, (LPARAM)0);
+        retval = DialogBoxIndirectParam(ProgramInstance, (LPDLGTEMPLATE)hGlobalDlg, parent, (DLGPROC)Exception_Dialog_Proc, (LPARAM)0);
     } else {
         DEBUG_ERROR("Unable to find the exception dialog resource!\n");
     }
-    
+
     CDControl.Unlock_All_CD_Trays();
 
     return retval;
@@ -832,35 +899,34 @@ static INT_PTR Exception_Dialog()
 
 LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS *e_info)
 {
+    /**
+     *  First-thread-wins entry gate. A second thread that crashes while the
+     *  winner is dumping cannot be allowed to touch the global crash state:
+     *  it parks forever and the winner ExitProcess'es when the dump is done.
+     *  Re-entry from the same thread (e.g. crash inside Dump_Exception_Info)
+     *  falls through and is bounded by the recursion counter below.
+     */
+    const DWORD self_tid = GetCurrentThreadId();
+    DWORD expected = 0;
+    if (!FirstCrashThreadId.compare_exchange_strong(expected, self_tid)
+        && expected != self_tid) {
+        // Lost the race - park this thread forever; winner owns the exit.
+        SuspendThread(GetCurrentThread());
+        ExitProcess(EXIT_FAILURE);
+    }
+
+    if (ExceptionCriticalSectionReady) {
+        EnterCriticalSection(&ExceptionCriticalSection); // recursive on Windows
+    }
+
+    const bool on_main_thread = (self_tid == Vinifera_MainThreadId);
+
     DEBUG_WARNING("Exception!\n");
 
     /**
      *  Clear previous exception info.
      */
-    ExceptionInfoCanContinue = false;
-    ExceptionInfoIgnore = false;
     ExceptionInfoDescription.clear();
-
-    /**
-     *  
-     */
-    if (Exception_Intercept_Func_Ptr) {
-        LONG code = Exception_Intercept_Func_Ptr(e_code, e_info);
-        if (code == EXCEPTION_CONTINUE_EXECUTION) {
-
-            /**
-             *  Flag that we returned to the application after an exception occurred.
-             */
-            ReturnedAfterException = true;
-
-            /**
-             *  Clear the recursion flag.
-             */
-            RecursionCount = -1;
-
-            return EXCEPTION_CONTINUE_EXECUTION;
-        }
-    }
 
     /**
      *  Store this exceptions info for use in other functions that
@@ -874,51 +940,75 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     bool DisableExceptions = CatchExceptions;
     if (DisableExceptions /*|| IsDebuggerPresent()*/) {
+        if (ExceptionCriticalSectionReady) {
+            LeaveCriticalSection(&ExceptionCriticalSection);
+        }
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
     /**
      *  Are we already trying to exit from an existing exception?
      */
-    if (AlreadyExiting || RecursionCount == 3) {
+    if (AlreadyExiting.load() || RecursionCount.load() == 3) {
         ExitProcess(ERROR_SUCCESS);
     }
 
-    if (++RecursionCount > 2) {
+    if (RecursionCount.fetch_add(1) + 1 > 2) {
+        if (ExceptionCriticalSectionReady) {
+            LeaveCriticalSection(&ExceptionCriticalSection);
+        }
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
     if (e_code == EXCEPTION_BREAKPOINT) {
-        --RecursionCount;
+        RecursionCount.fetch_sub(1);
+        if (ExceptionCriticalSectionReady) {
+            LeaveCriticalSection(&ExceptionCriticalSection);
+        }
         return EXCEPTION_CONTINUE_SEARCH; // The system continues to search for a handler.
     }
 
     if (e_code == MS_VC_EXCEPTION || e_code == MS_UNHANDLED_CPP_EXCEPTION) { // Exception thrown and not caught.
-        --RecursionCount;
+        RecursionCount.fetch_sub(1);
+        if (ExceptionCriticalSectionReady) {
+            LeaveCriticalSection(&ExceptionCriticalSection);
+        }
         return EXCEPTION_CONTINUE_SEARCH; // The system continues to search for a handler.
     }
 
     /**
-     *  Search for additional info for this EIP in the exception database.
+     *  Look up an informational description for this EIP in the exception database.
      */
-    Exception_Find_Datbase_Entry(e_info->ContextRecord->Eip, ExceptionInfoCanContinue, ExceptionInfoIgnore, ExceptionInfoDescription);
+    if (e_info != nullptr) {
+        Exception_Find_Datbase_Entry(e_info->ContextRecord->Eip, ExceptionInfoDescription);
+    }
 
     /**
-     *  Should we ignore this exception?
+     *  Freeze every other thread before we touch the dump path. This must
+     *  happen AFTER the entry gate (so we won the race). dbghelp.dll must
+     *  already be initialized at this point (Debug_Hooks eagerly calls
+     *  Init_Symbol_Info), or we risk suspending a thread that holds the
+     *  loader lock and deadlocking SymInitialize.
      */
-    if (ExceptionInfoIgnore) {
-        return EXCEPTION_CONTINUE_EXECUTION;
-    }
+    Suspend_Other_Threads();
 
     /**
      *  It most cases, this is our first attempt at an exception crash dump.
      */
-    if (RecursionCount < 2) {
+    if (RecursionCount.load() < 2) {
 
         ExceptionBuffer.clear();
 
         DEBUG_WARNING("About to call Dump_Exception_Info()\n");
         Dump_Exception_Info(e_code, e_info);
+
+        /**
+         *  Always generate the minidump up-front, before any dialog. Anything
+         *  that runs after this (dialog, debug-file zip) can crash or be
+         *  closed by the user, but the dump is already on disk.
+         */
+        GenerateFullCrashDump = false;
+        Create_Mini_Dump(ExceptionInfo, Get_Module_File_Name());
 
         /**
          *  Create a unique filename for the crash dump based on the time of execution.
@@ -927,7 +1017,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
             Vinifera_DebugDirectory,
             Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
-        
+
         ExceptionFile.Set_Name(filename_buffer);
 
         /**
@@ -942,9 +1032,11 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         LastExceptionCRC = CurrentExceptionCRC;
 
         /**
-         *  If OS is Windows 9x only.
+         *  If OS is Windows 9x only. Surfaces are owned by the main thread,
+         *  so don't query their lock state from a worker (and Win9x is no
+         *  longer a supported runtime anyway).
          */
-        if (ShowExceptionWindow && Any_Surface_Locked() && CPUDetectClass::Get_OS_Version_Platform_Id() == 1) {
+        if (on_main_thread && ShowExceptionWindow.load() && Any_Surface_Locked() && CPUDetectClass::Get_OS_Version_Platform_Id() == 1) {
             DEBUG_WARNING("Can't bring up exception dialog due to Win16 mutex issues!\n");
             return EXCEPTION_CONTINUE_SEARCH;
         }
@@ -953,13 +1045,17 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         ShowCursor(TRUE);
 
         /**
-         *  Show the exception error message to the user?
+         *  Show the exception error message to the user. Worker-thread
+         *  crashes parent the dialog to nullptr instead of MainWindow: the
+         *  main thread is suspended and cannot process messages for a
+         *  window it owns. With no parent the modal pump runs on the
+         *  worker thread itself.
          */
-        if (ShowExceptionWindow) {
+        if (ShowExceptionWindow.load()) {
 
             // https://docs.microsoft.com/en-us/windows/win32/debug/exception-handler-syntax
             DEBUG_WARNING("About to call Exception_Dialog()\n");
-            DWORD retval = Exception_Dialog();
+            DWORD retval = Exception_Dialog(on_main_thread ? MainWindow : nullptr);
             switch (retval) {
 
                 /**
@@ -968,13 +1064,9 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                 case IDC_EXCEPTION_SAVE: // Emergency save button
                     DEBUG_WARNING("Emergency save button pressed!\n");
 
-                    /**
-                     *  Ask the user if the wish to produce a minidump.
-                     */
-                    Exception_Generate_Mini_Dump();
                     Vinifera_Collect_Debug_Files();
 
-                    ExitAfterException = true; // #TEMP!
+                    ExitAfterException.store(true); // #TEMP!
                     break;
 
                 /**
@@ -983,119 +1075,19 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                 case IDC_EXCEPTION_DEBUG: // Debug button
                     DEBUG_WARNING("Break debugger button pressed!\n");
 
-                    if (!IsDebuggerPresent()) {
-                        /**
-                         *  Ask the user if the wish to produce a minidump.
-                         */
-                        Exception_Generate_Mini_Dump();
-                    }
-
                     Vinifera_Collect_Debug_Files();
 
                     __debugbreak();
 
                     return EXCEPTION_EXECUTE_HANDLER;
 
-                /**
-                 *  This is a real hack case for continuing the game after an exception has
-                 *  occurred. We force the EIP to that of "Select_Game" and return "CONTINUE_EXECUTION"
-                 *  which will tell the handler to continue execution from this address.
-                 */
-                case IDC_EXCEPTION_MAINMENU: // Main menu button
-                {
-                    DEBUG_WARNING("Main menu button pressed!\n");
-
-                    /**
-                     *  Ask the user if the wish to produce a minidump.
-                     */
-                    Exception_Generate_Mini_Dump();
-
-                    if (!ExceptionReturnAddress) {
-                        /**
-                         *  EIP was invalid, just trigger the handler.
-                         */
-                        return EXCEPTION_EXECUTE_HANDLER;
-                    }
-                    
-                    Vinifera_Collect_Debug_Files();
-
-                    /**
-                     *  #BUGFIX:
-                     *  Clear all surfaces to remove any blitting artifacts.
-                     */
-                    Clear_All_Surfaces();
-
-                    //WWMouseClass::System_Hide_Mouse();
-                    ShowCursor(FALSE);
-
-                    /**
-                     *  Flag that we returned to the application after an exception occurred.
-                     */
-                    ReturnedAfterException = true;
-                    
-                    /**
-                     *  Clear the recursion flag.
-                     */
-                    RecursionCount = -1;
-
-                    /**
-                     *  Now we pray...
-                     */
-                    DWORD *ebp = &(e_info->ContextRecord->Ebp);
-                    DWORD *esp = &(e_info->ContextRecord->Esp);
-                    DWORD *eip = &(e_info->ContextRecord->Eip);
-                    *ebp = ExceptionReturnBase;
-                    *esp = ExceptionReturnStack;
-                    *eip = ExceptionReturnAddress;
-
-                    return EXCEPTION_CONTINUE_EXECUTION;
-                }
-
-                /**
-                 *  Similar to the "return to the main menu" button hack above, this
-                 *  will tell the process to continue after the exception. We do
-                 *  this by returning "CONTINUE_EXECUTION" which will tell the
-                 *  handler to continue execution from this address.
-                 */
-                case IDC_EXCEPTION_CONTINUE: // Continue button
-                    DEBUG_WARNING("Continue button pressed!\n");
-
-                    /**
-                     *  Ask the user if the wish to produce a minidump.
-                     */
-                    Exception_Generate_Mini_Dump();
-
-                    Vinifera_Collect_Debug_Files();
-                    
-                    //WWMouseClass::System_Hide_Mouse();
-                    ShowCursor(FALSE);
-
-                    /**
-                     *  Flag that we returned to the application after an exception occurred.
-                     */
-                    ReturnedAfterException = true;
-                    
-                    /**
-                     *  Clear the recursion flag.
-                     */
-                    RecursionCount = -1;
-
-                    ExitAfterException = false;
-
-                    return EXCEPTION_CONTINUE_EXECUTION;
-
                 default:
                 case IDC_EXCEPTION_QUIT: // Quit button
                     DEBUG_WARNING("Quit button pressed!\n");
-                    
-                    /**
-                     *  Ask the user if the wish to produce a minidump.
-                     */
-                    Exception_Generate_Mini_Dump();
 
                     Vinifera_Collect_Debug_Files();
 
-                    ExitAfterException = true;
+                    ExitAfterException.store(true);
                     break;
             }
         }
@@ -1104,7 +1096,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         ShowCursor(FALSE);
     }
 
-    if (RecursionCount == 2) {
+    if (RecursionCount.load() == 2) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
@@ -1118,8 +1110,8 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         ExceptionHandlerPtr = nullptr; // Reset the pointer after use, so it can be defined again per exception.
     }
 
-    if (ExitAfterException) {
-        AlreadyExiting = true;
+    if (ExitAfterException.load()) {
+        AlreadyExiting.store(true);
         return EXCEPTION_EXECUTE_HANDLER;
     }
 
@@ -1138,10 +1130,4 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      *  in the stack frame in which the handler is found.
      */
     return EXCEPTION_EXECUTE_HANDLER;
-}
-
-
-void Vinifera_Install_Exception_Handler_Intercept(LONG (* __stdcall func_ptr)(unsigned int, EXCEPTION_POINTERS *))
-{
-    Exception_Intercept_Func_Ptr = func_ptr;
 }

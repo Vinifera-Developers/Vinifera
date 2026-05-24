@@ -11,7 +11,6 @@
 
 #include "optionsext.h"
 
-#include "audio_manager.h"
 #include "ccini.h"
 #include "debughandler.h"
 #include "noinit.h"
@@ -260,8 +259,6 @@ void OptionsClassExtension::Load_Settings()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
 
-    Apply_Volumes();
-
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
     IsPauseRepairs = ConfigINI.Get_Bool("Options", "PauseRepairs", IsPauseRepairs);
@@ -390,32 +387,12 @@ void OptionsClassExtension::Save_Settings()
 
 /**
  *  Sets any options based on current settings.
- *  
+ *
  *  @author: CCHyper
  */
 void OptionsClassExtension::Set()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Set - 0x%08X\n", (uintptr_t)(This()));
-
-    Apply_Volumes();
-}
-
-
-/**
- *  Pushes the current ScoreVolume/VoiceVolume/SoundVolume settings to the
- *  corresponding AudioManager groups.
- *
- *  @author: ZivDero
- */
-void OptionsClassExtension::Apply_Volumes()
-{
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, This()->ScoreVolume);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_AMBIENT, This()->ScoreVolume);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_SPEECH, This()->VoiceVolume);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_SFX, This()->SoundVolume);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, This()->SoundVolume);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, This()->SoundVolume);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_STREAMING, This()->SoundVolume);
 }
 
 

@@ -208,10 +208,10 @@ void AudioManagerClass::Draw_Debug_UI()
             ImGui::BeginChild("Trackers", ImVec2(300, 200), true);
 
             ImGui::Text("Music.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_MUSIC].size());
-            ImGui::Text("MusicAmbient.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_AMBIENT].size());
             ImGui::Text("Speech.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SPEECH].size());
             ImGui::Text("SoundEffect.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX].size());
-            ImGui::Text("Event.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_EVENT].size());
+            ImGui::Text("UI.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_UI].size());
+            ImGui::Text("Streaming.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_STREAMING].size());
 
             ImGui::Separator();
 
@@ -236,10 +236,10 @@ void AudioManagerClass::Draw_Debug_UI()
             };
 
             DisplayGroupList("Music", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_MUSIC]);
-            DisplayGroupList("Music Ambient", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_AMBIENT]);
             DisplayGroupList("Speech", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SPEECH]);
             DisplayGroupList("Sound Effects", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX]);
-            DisplayGroupList("Events", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_EVENT]);
+            DisplayGroupList("UI", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_UI]);
+            DisplayGroupList("Streaming", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_STREAMING]);
 
             ImGui::EndChild();
 

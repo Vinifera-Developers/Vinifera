@@ -14,6 +14,7 @@
 #include "vector.h"
 
 #include <unordered_map>
+#include <windows.h>
 
 #define MAX_ENVIRONMENT_GLOBALS 500
 
@@ -53,6 +54,12 @@ extern char Vinifera_ProjectName[64];
 extern char Vinifera_ProjectVersion[64];
 extern char Vinifera_IconName[64];
 extern char Vinifera_CursorName[64];
+
+/**
+ *  Captured in DllMain DLL_PROCESS_ATTACH. Used by the exception handler to
+ *  decide whether it can safely show a modal dialog or touch UI/DirectDraw state.
+ */
+extern DWORD Vinifera_MainThreadId;
 
 
 /**

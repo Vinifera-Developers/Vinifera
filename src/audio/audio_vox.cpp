@@ -23,6 +23,7 @@
 #include "side.h"
 #include "tacticalext.h"
 #include "tibsun_globals.h"
+#include "vinifera_thread.h"
 #include "vinifera_util.h"
 #include "vox.h"
 
@@ -567,8 +568,10 @@ void AudioVoxClass::ScanAsync()
     IsVoxScanComplete.store(false);
 
     VoxScanThread = std::thread([] {
-        Scan();
-        IsVoxScanComplete.store(true);
+        Vinifera_Run_Thread([] {
+            Scan();
+            IsVoxScanComplete.store(true);
+        });
     });
 }
 
