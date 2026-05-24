@@ -87,9 +87,7 @@ void ExtEnvironmentClass::Snapshot_Game_State()
  */
 void ExtEnvironmentClass::Apply_To_Game_State()
 {
-    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
-        ScenExtension->Set_Global_To(i, EnvironmentGlobals[i]);
-    }
+    Apply_Globals();
 
     int cap = Scen->CarryOverCap;
     double money = CarryOverMoney * Scen->CarryOverPercent;
@@ -133,6 +131,19 @@ void ExtEnvironmentClass::Apply_Difficulty()
     DEBUG_INFO("Applying environment difficulty information...\n");
     DEBUG_INFO("  Difficulty: %d\n", Difficulty);
     DEBUG_INFO("  CDifficulty: %d\n", CDifficulty);
+}
+
+
+/**
+ *  Applies saved global variable settings to the scenario.
+ *
+ *  @author: Rampastring
+ */
+void ExtEnvironmentClass::Apply_Globals()
+{
+    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
+        ScenExtension->Set_Global_To(i, EnvironmentGlobals[i]);
+    }
 }
 
 

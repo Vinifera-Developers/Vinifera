@@ -436,6 +436,19 @@ DEFINE_HOOK(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0)
 
 
 /**
+ *  Patch to dump global state to game logfile after a mission has been completed.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x005DC964, _ScenarioClass_Do_Win_Dump_Globals_Patch, 7)
+{
+    ScenExtension->Dump_Globals();
+
+    return 0;
+}
+
+
+/**
  *  Replace a loop resetting all globals in Clear_Scenario.
  *
  *  @author: ZivDero

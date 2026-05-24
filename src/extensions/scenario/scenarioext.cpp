@@ -920,6 +920,36 @@ int ScenarioClassExtension::Num_Locals() const
 
 
 /**
+ *  Dumps global variables to the game log file.
+ *
+ *  @author: Rampastring
+ */
+void ScenarioClassExtension::Dump_Globals() const
+{
+    char buffer[4096];
+    int bufferindex = 0;
+
+    for (int i = 0; i < std::size(GlobalFlags); i++)
+    {
+        char* ptr = &buffer[bufferindex];
+        int numchars = sprintf_s(ptr, std::size(buffer) - bufferindex, "%d,", GlobalFlags[i]);
+
+        if (numchars < 1) {
+            DEBUG_ERROR("Dump_Globals: Failed to print globals! (sprintf returned -1)");
+            return;
+        }
+
+        bufferindex += numchars;
+    }
+
+    // Erase last comma for cleanness
+    buffer[bufferindex] = '\0';
+
+    DEBUG_INFO("Global variables: %s\n", buffer);
+}
+
+
+/**
  *  Gets the value of a global as a string.
  *
  *  @author: ZivDero
@@ -1318,6 +1348,7 @@ static bool Rule_Addition(const char* fname, bool with_digest = false)
  *
  *  @author: 10/07/1992 JLB - Red Alert source code.
  *           ZivDero - Adjustments for Tiberian Sun.
+ *           Rampastring - Adjustments for spawner logic.
  */
 bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
 {
@@ -1342,6 +1373,16 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
         Scen->CDifficulty = static_cast<DiffType>(2 - Scen->Difficulty);
         Scen->Special.IsFogOfWar = Session.Options.FogOfWar;
         Special.IsFogOfWar = Session.Options.FogOfWar;
+    }
+
+    /**
+     *  If using the spawner, set up global variables provided by the client.
+     *  This is only necessary in the first scenario, because for the rest,
+     *  when using the original game's mission progression logic, 
+     *  the environment is already applied by Do_Win.
+     */
+    if (ScenExtension->HasSpawnerScenarioOverrides && Scen->Scenario == 1) {
+        reinterpret_cast<ExtEnvironmentClass&>(Environment).Apply_Globals();
     }
 
     Scen->InitTime = ini.Get_Int(BASIC, "InitTime", 10000);

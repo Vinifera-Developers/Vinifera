@@ -74,6 +74,8 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         int Find_Free_Local() const;
         int Num_Locals() const;
 
+        void Dump_Globals() const;
+
         static std::string Substitute_Variable_Placeholders(std::string input);
 
         static bool Start_Scenario(char* name, bool briefing, CampaignType campaignid);
