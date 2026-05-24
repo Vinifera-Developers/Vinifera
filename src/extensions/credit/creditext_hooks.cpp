@@ -41,7 +41,7 @@ DEFINE_HOOK(0x0060E5AE, _TabClass_Draw_It_Faction_Specific_Options_Button_Color_
  *
  *  @author: Rampastring, ZivDero
  */
-DEFINE_HOOK(0x004714E6, _CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch, 8)
+DEFINE_HOOK(0x004714E8, _CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch, 8)
 {
     ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
     ColorScheme* colorscheme = ColorSchemes[colorschemetype];
