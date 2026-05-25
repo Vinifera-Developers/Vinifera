@@ -679,7 +679,7 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
  */
 HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
 {
-    char buffer[256];
+    char buffer[512];
 
     if (storage == nullptr) {
         return E_POINTER;
@@ -1032,6 +1032,70 @@ HRESULT ViniferaSaveVersionInfo::Load_Int_Set(IPropertySetStorage *storageset, i
 
 
 /**
+ *  Loads an integer from the storage.
+ *
+ *  @author: Rampastring
+ */
+HRESULT ViniferaSaveVersionInfo::Load_Bool(IStorage* storage, int id, bool* boolean)
+{
+    HRESULT res;
+    IStreamPtr stm;
+
+    *boolean = false;
+
+    res = storage->OpenStream(Vinifera_Stream_Name_From_ID(id), nullptr, STGM_SHARE_EXCLUSIVE, 0, &stm);
+
+    if (FAILED(res)) {
+        return res;
+    }
+
+    res = stm->Read(boolean, sizeof(*boolean), nullptr);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    return res;
+}
+
+
+/**
+ *  Loads a boolean from the storage set.
+ *
+ *  @author: Rampastring
+ */
+HRESULT ViniferaSaveVersionInfo::Load_Bool_Set(IPropertySetStorage* storageset, int id, bool* boolean)
+{
+    HRESULT res;
+    IPropertyStoragePtr storage;
+
+    *boolean = false;
+
+    res = storageset->Open(FMTID_SummaryInformation, STGM_SHARE_EXCLUSIVE | STGM_READWRITE, &storage);
+
+    if (FAILED(res)) {
+        return res;
+    }
+
+    PROPSPEC propsec;
+    propsec.ulKind = PRSPEC_PROPID;
+    propsec.propid = id;
+
+    PROPVARIANT propvar;
+
+    res = storage->ReadMultiple(1, &propsec, &propvar);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    if (propvar.vt == VT_BOOL) {
+        *boolean = (propvar.boolVal == VARIANT_TRUE);
+    }
+
+    return res;
+}
+
+
+/**
  *  Saves a string to the storage.
  *
  *  @author: tomsons26
@@ -1087,6 +1151,7 @@ HRESULT ViniferaSaveVersionInfo::Save_String_Set(IPropertySetStorage *storageset
     PROPSPEC propsec;
     propsec.ulKind = PRSPEC_PROPID;
     propsec.propid = id;
+
     PROPVARIANT propvar;
 
     propvar.vt = VT_LPWSTR;
@@ -1149,10 +1214,78 @@ HRESULT ViniferaSaveVersionInfo::Save_Int_Set(IPropertySetStorage *storageset, i
     PROPSPEC propsec;
     propsec.ulKind = PRSPEC_PROPID;
     propsec.propid = id;
+
     PROPVARIANT propvar;
 
     propvar.vt = VT_I4;
     propvar.lVal = integer;
+
+    res = storage->WriteMultiple(1, &propsec, &propvar, 2);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    return res;
+}
+
+
+/**
+ *  Saves a boolean to the storage.
+ *
+ *  @author: Rampastring
+ */
+HRESULT ViniferaSaveVersionInfo::Save_Bool(IStorage* storage, int id, bool boolean)
+{
+    IStreamPtr stm(nullptr);
+
+    HRESULT res = storage->CreateStream(Vinifera_Stream_Name_From_ID(id), STGM_SHARE_EXCLUSIVE | STGM_READWRITE, 0, 0, &stm);
+
+    if (FAILED(res)) {
+        return res;
+    }
+
+    res = stm->Write(&boolean, sizeof(boolean), nullptr);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    res = stm->Commit(STGC_DEFAULT);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    return res;
+}
+
+
+/**
+ *  Saves a boolean to the storage set.
+ *
+ *  @author: Rampastring
+ */
+HRESULT ViniferaSaveVersionInfo::Save_Bool_Set(IPropertySetStorage* storageset, int id, bool boolean)
+{
+    HRESULT res;
+    IPropertyStoragePtr storage;
+
+    res = storageset->Open(FMTID_SummaryInformation, STGM_SHARE_EXCLUSIVE | STGM_READWRITE, &storage);
+
+    if (FAILED(res)) {
+        res = storageset->Create(FMTID_SummaryInformation, nullptr, PROPSETFLAG_DEFAULT, STGM_SHARE_EXCLUSIVE | STGM_READWRITE | STGM_CREATE, &storage);
+
+        if (FAILED(res)) {
+            return res;
+        }
+    }
+
+    PROPSPEC propsec;
+    propsec.ulKind = PRSPEC_PROPID;
+    propsec.propid = id;
+
+    PROPVARIANT propvar;
+
+    propvar.vt = VT_BOOL;
+    propvar.boolVal = boolean ? VARIANT_TRUE : VARIANT_FALSE;
 
     res = storage->WriteMultiple(1, &propsec, &propvar, 2);
     if (FAILED(res)) {

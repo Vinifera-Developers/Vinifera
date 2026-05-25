@@ -105,11 +105,17 @@ private:
     HRESULT Load_Int(IStorage *storage, int id, int *integer);
     HRESULT Load_Int_Set(IPropertySetStorage *storageset, int id, int *integer);
 
+    HRESULT Load_Bool(IStorage* storage, int id, bool* boolean);
+    HRESULT Load_Bool_Set(IPropertySetStorage* storageset, int id, bool* boolean);
+
     HRESULT Save_String(IStorage *storage, int id, char *string);
     HRESULT Save_String_Set(IPropertySetStorage *storageset, int id, const char *string);
 
     HRESULT Save_Int(IStorage *storage, int id, int integer);
     HRESULT Save_Int_Set(IPropertySetStorage *storageset, int id, int integer);
+
+    HRESULT Save_Bool(IStorage* storage, int id, bool boolean);
+    HRESULT Save_Bool_Set(IPropertySetStorage* storageset, int id, bool boolean);
 
     HRESULT Load_Time(IStorage *storage, int id, FILETIME *time);
     HRESULT Load_Time_Set(IPropertySetStorage *storageset, int id, FILETIME *time);
