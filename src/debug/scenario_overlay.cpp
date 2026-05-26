@@ -54,22 +54,16 @@ namespace
 
 
     /**
-     *  Detail panes show many references (a TeamType's Script, a Tag's
-     *  Trigger, etc.). Clicking the "> <name>" button next to such a
-     *  reference posts a nav request; on the next frame, the matching
-     *  outer-tab + inner-tab + pane select the requested entry.
+     *  Cross-reference target. Clicking "> <name>" posts a nav request;
+     *  on the next frame the matching outer + inner tabs select it.
      */
     enum class NavTarget {
         None,
 
-        /**
-         *  Types.
-         */
+        // Types.
         TriggerType, TagType, TeamType, TaskForce, ScriptType, AITriggerType, HouseType,
 
-        /**
-         *  Instances (no ScriptInst -- script progression lives on TeamInst).
-         */
+        // Instances (no ScriptInst -- script progression lives on TeamInst).
         TriggerInst, TagInst, TeamInst, HouseInst,
     };
 
@@ -85,12 +79,9 @@ namespace
 
 
     /**
-     *  Browser-style stacks of visited (pane, selected-index) pairs.
-     *  CurrentNavLocation tracks the pane currently being viewed (each pane
-     *  writes to it on draw). Clicking a Goto_Row button pushes
-     *  CurrentNavLocation onto NavBackStack and clears NavForwardStack; the
-     *  Back button pushes onto NavForwardStack and pops NavBackStack;
-     *  Forward is the mirror.
+     *  Browser-style back/forward stacks of visited (pane, index) pairs.
+     *  Each pane writes to CurrentNavLocation on draw; Goto/Back/Forward
+     *  shuffle entries between it and the two stacks.
      */
     struct NavLocation {
         NavTarget target = NavTarget::None;
@@ -165,11 +156,8 @@ namespace
     }
 
     /**
-     *  Each pane calls this at the top of its draw. It (a) consumes a
-     *  matching nav request if one is pending, and (b) records this pane's
-     *  (target, selected) as the *current* location for back/forward history.
-     *  Only the active tab item calls into its pane each frame, so this
-     *  correctly tracks the visible pane.
+     *  Called at the top of each pane's draw: consumes a matching nav
+     *  request and records this pane as the current location.
      */
     static void Consume_Nav(NavTarget want, int& selected)
     {
@@ -181,18 +169,15 @@ namespace
     }
 
     /**
-     *  Renders one row of a detail panel showing "Slot : > <name>" with a
-     *  navigation button. If `index < 0` (the referenced entry doesn't
-     *  exist), shows "<none>" instead. Pass `width > 0` to left-pad the
-     *  label so the colon column lines up with other rows in the block.
+     *  Detail row "Slot : > <name>" with a nav button, or "<none>"
+     *  if `index < 0`. `width > 0` left-pads the label.
      */
     static void Goto_Row(const char* slot, const char* visible_name,
                          NavTarget target, int index, int width = 0)
     {
         /**
-         *  Honor the ImGui "display##id" split: everything before "##" is the
-         *  visible label, the rest is just an ID disambiguator. The full slot
-         *  string is fed to PushID so identical visible labels stay unique.
+         *  Honor ImGui's "display##id" split: text before "##" is shown,
+         *  the rest is only an ID. Full slot string goes to PushID.
          */
         char display[64];
         const char* sep = std::strstr(slot, "##");
@@ -225,7 +210,7 @@ namespace
     }
 
     /**
-     *  Read-only checkbox: shows the bool state but can't be toggled.
+     *  Read-only checkbox.
      */
     static void RO_Checkbox(const char* label, bool value)
     {
@@ -278,11 +263,9 @@ namespace
     }
 
     /**
-     *  SmallButton labelled "> (X, Y)" that, when clicked, scrolls the
-     *  tactical view to that cell. Falls back to plain text if there's no
-     *  active tactical map (e.g. in a menu). Caller is responsible for
-     *  pushing a unique ImGui ID if multiple cell buttons may share the
-     *  same coordinates within the same scope.
+     *  "> (X, Y)" button that scrolls the tactical view to `cell`.
+     *  Falls back to plain text outside a tactical map. Caller must
+     *  push a unique ID if multiple buttons share coordinates in scope.
      */
     static void Cell_Goto_Button(Cell cell)
     {
@@ -299,8 +282,6 @@ namespace
 
     /**
      *  Formats a live house as "IniName (HouseType)", e.g. "Multi1 (GDI)".
-     *  Caller provides the buffer because multiple house names may need to
-     *  appear in the same line.
      */
     static const char* House_Display_Name(const HouseClass* h, char* buf, size_t n)
     {
@@ -315,11 +296,8 @@ namespace
     }
 
     /**
-     *  Every AbstractTypeClass carries two names: an INI ID (e.g.
-     *  "00000001" for triggers, "TeamType123" for teams) and a user-facing
-     *  GivenName / Full_Name set by the mapper. When space is limited
-     *  (listbox rows, goto buttons) prefer the GivenName, falling back to
-     *  the INI Name if empty. Detail panes show both side by side.
+     *  Prefers the mapper-set Full_Name; falls back to the INI Name.
+     *  Used where space is tight (listbox rows, goto buttons).
      */
     static const char* Display_Name(const AbstractTypeClass* t)
     {
@@ -331,10 +309,9 @@ namespace
     }
 
     /**
-     *  Renders the two-line "INI Name / Name" header used at the top of
-     *  every type detail pane. `width` lets the caller widen the labels to
-     *  match a sibling row (e.g. a "TriggerType" goto, 11 chars) in the
-     *  same block. Default 8 = max("INI Name", "Name", "HeapID").
+     *  Two-line "INI Name / Name" header for type detail panes.
+     *  `width` widens the labels to match sibling rows.
+     *  Default 8 = max("INI Name", "Name", "HeapID").
      */
     static void Draw_Type_Names(const AbstractTypeClass* t, int width = 8)
     {
@@ -350,10 +327,8 @@ namespace
 
 
     /**
-     *  Renders a two-column layout: a scrolling list of entries on the left,
-     *  and the detail block for the selected entry on the right. The owner
-     *  keeps a `selected` index in a static so the selection persists between
-     *  frames.
+     *  Two-column master/detail: scrolling listbox on the left,
+     *  detail block for `selected` on the right.
      */
     template <typename LabelFn, typename DetailFn>
     static void Draw_List_Detail(const char* id, int count, int& selected,
@@ -404,7 +379,7 @@ namespace
             return;
         }
 
-        /* Block 1: header. Longest label = "Mission timer" (13). */
+        /* Width 13 = "Mission timer". */
         ImGui::Text("%-13s : %s", "Name",          Scen->ScenarioName);
         ImGui::Text("%-13s : %s", "Description",   Scen->Description);
         ImGui::Text("%-13s : %s", "Theater",       TheaterTypeClass::Name_From(Scen->Theater));
@@ -413,7 +388,7 @@ namespace
         ImGui::Text("%-13s : %s", "Player house",  HouseType_Name(Scen->PlayerHouse));
         ImGui::Text("%-13s : %ld frames", "Mission timer", static_cast<long>(Scen->MissionTimer));
 
-        /* Block 2: flags. Longest label = "IsMultiplayerOnly" (17). */
+        /* Width 17 = "IsMultiplayerOnly". */
         ImGui::SeparatorText("Flags");
         ImGui::Text("%-17s : %s", "IsTrainCrate",      Scen->IsTrainCrate      ? "yes" : "no");
         ImGui::Text("%-17s : %s", "IsTibGrowth",       Scen->IsTibGrowth       ? "yes" : "no");
@@ -437,11 +412,9 @@ namespace
 
 
     /**
-     *  Walks the linked-list of events on a TriggerTypeClass and prints each.
-     *  Returns the number of events listed (caller uses this to decode the
-     *  TrippedFlags bitmask on TriggerClass instances).
+     *  Prints each event on a TriggerTypeClass.
      */
-    static int Draw_TriggerType_Events(const TriggerTypeClass* t)
+    static void Draw_TriggerType_Events(const TriggerTypeClass* t)
     {
         int n = 0;
         for (const TEventClass* e = t->Event; e != nullptr; e = e->Next, ++n) {
@@ -451,12 +424,10 @@ namespace
         if (n == 0) {
             ImGui::TextDisabled("(no events)");
         }
-        return n;
     }
 
     /**
-     *  Walks the linked-list of actions and prints each, including any
-     *  cross-references (Tag, Trigger, Team) as goto buttons.
+     *  Prints each action with its cross-references (Tag/Trigger/Team) as goto buttons.
      */
     static void Draw_TriggerType_Actions(const TriggerTypeClass* t)
     {
@@ -506,7 +477,7 @@ namespace
                 ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
                 ImGui::Separator();
 
-                /* Block 2: width 7 = max("Enabled", "House", "Next"). */
+                /* Width 7 = max("Enabled", "House", "Next"). */
                 ImGui::Text("%-7s :", "Enabled");
                 ImGui::SameLine(); RO_Checkbox("Base##e", t->Enabled);
                 ImGui::SameLine(); RO_Checkbox("Easy##e", t->IsEnabledEasy);
@@ -549,7 +520,7 @@ namespace
                 ImGui::Text("%-8s : %d", "HeapID", static_cast<int>(t->HeapID));
                 ImGui::Separator();
 
-                /* Block 2: width 11 = max("Persistence", "TriggerType"). */
+                /* Width 11 = max("Persistence", "TriggerType"). */
                 ImGui::Text("%-11s : %s (%d)", "Persistence",
                     Persistence_To_String(t->Persistence),
                     static_cast<int>(t->Persistence));
@@ -581,12 +552,10 @@ namespace
                 ImGui::Separator();
 
                 /**
-                 *  Block 2: width 12 = max("House", "Script", "TaskForce",
-                 *  "Tag", "VeteranLevel", "Group", "MaxAllowed").
+                 *  Width 12 = max("House", "Script", "TaskForce", "Tag",
+                 *  "VeteranLevel", "Group", "MaxAllowed").
                  *
-                 *  HouseClass references on TeamTypeClass point at the *live*
-                 *  house instance, not the HouseTypeClass -- use the
-                 *  instance-side nav target.
+                 *  TeamTypeClass.House is a *live* HouseClass, not HouseTypeClass.
                  */
                 if (t->House != nullptr) {
                     char hbuf[64];
@@ -709,19 +678,18 @@ namespace
                 ImGui::Separator();
 
                 /**
-                 *  Block 2: width 13 = max("Enabled", "Owner house",
-                 *  "TechLevel", "Weight", "Condition obj", "Team one",
-                 *  "Team two", "Roles", "Success/exec").
+                 *  Width 13 = max("Enabled", "Owner house", "TechLevel",
+                 *  "Weight", "Condition obj", "Team one", "Team two",
+                 *  "Roles", "Success/exec").
                  */
                 ImGui::Text("%-13s :", "Enabled");
                 ImGui::SameLine(); RO_Checkbox("Base##ai",  a->IsEnabled);
-                ImGui::SameLine(); RO_Checkbox("Easy##ai",  a->EnabledInEasy);
-                ImGui::SameLine(); RO_Checkbox("Med##ai",   a->EnabledInMedium);
-                ImGui::SameLine(); RO_Checkbox("Hard##ai",  a->EnabledInHard);
+                ImGui::SameLine(); RO_Checkbox("Easy##ai",  a->IsEnabledInEasy);
+                ImGui::SameLine(); RO_Checkbox("Med##ai",   a->IsEnabledInMedium);
+                ImGui::SameLine(); RO_Checkbox("Hard##ai",  a->IsEnabledInHard);
 
                 /**
-                 *  AITriggerTypeClass.House is the HousesType enum (which is
-                 *  also the HouseTypes heap index).
+                 *  AITriggerTypeClass.House is HousesType (== HouseTypes heap index).
                  */
                 if (a->House >= 0 && a->House < HouseTypes.Count()) {
                     Goto_Row("Owner house",
@@ -737,15 +705,15 @@ namespace
                 ImGui::Text("%-13s : %s", "Condition obj",
                     a->ConditionObject ? a->ConditionObject->Name() : "<none>");
 
-                Goto_Row("Team one", a->TeamOne ? Display_Name(a->TeamOne) : nullptr,
+                Goto_Row("Team one", a->TeamTypeOne ? Display_Name(a->TeamTypeOne) : nullptr,
                     NavTarget::TeamType,
-                    a->TeamOne ? TeamTypes.ID(a->TeamOne) : -1, 13);
-                Goto_Row("Team two", a->TeamTwo ? Display_Name(a->TeamTwo) : nullptr,
+                    a->TeamTypeOne ? TeamTypes.ID(a->TeamTypeOne) : -1, 13);
+                Goto_Row("Team two", a->TeamTypeTwo ? Display_Name(a->TeamTypeTwo) : nullptr,
                     NavTarget::TeamType,
-                    a->TeamTwo ? TeamTypes.ID(a->TeamTwo) : -1, 13);
+                    a->TeamTypeTwo ? TeamTypes.ID(a->TeamTypeTwo) : -1, 13);
 
                 ImGui::Text("%-13s :", "Roles");
-                ImGui::SameLine(); RO_Checkbox("Skirmish##ai",    a->IsForSkirmish);
+                ImGui::SameLine(); RO_Checkbox("Skirmish##ai",    a->IsAvailableInSkirmish);
                 ImGui::SameLine(); RO_Checkbox("BaseDefense##ai", a->IsForBaseDefense);
 
                 ImGui::Text("%-13s : %d / %d", "Success/exec", a->SuccessCount, a->ExecutionCount);
@@ -768,15 +736,12 @@ namespace
                     return;
                 }
 
-                /* Block 1: width 6 = max("Name", "HeapID"). */
+                /* Width 6 = max("Name", "HeapID"). */
                 ImGui::Text("%-6s : %s", "Name",   h->Name());
                 ImGui::Text("%-6s : %d", "HeapID", static_cast<int>(h->HeapID));
                 ImGui::Separator();
 
-                /**
-                 *  Block 2: width 13 = max("Side", "Prefix", "FirepowerBias",
-                 *  "ArmorBias", "CostBias").
-                 */
+                /* Width 13 = max("Side", "Prefix", "FirepowerBias", "ArmorBias", "CostBias"). */
                 ImGui::Text("%-13s : %d", "Side",   h->Side);
                 ImGui::Text("%-13s : '%c'  Suffix: '%s'", "Prefix", h->Prefix, h->Suffix);
 
@@ -852,7 +817,7 @@ namespace
                     return;
                 }
 
-                /* Block 1: width 11 = max("INI Name", "Name", "TriggerType"). */
+                /* Width 11 = max("INI Name", "Name", "TriggerType"). */
                 if (t->Class != nullptr) {
                     Draw_Type_Names(t->Class, 11);
                 }
@@ -862,7 +827,7 @@ namespace
 
                 ImGui::Separator();
 
-                /* Block 2: width 18 = max("LinkedTo (trigger)", "Timer"). */
+                /* Width 18 = max("LinkedTo (trigger)", "Timer"). */
                 RO_Checkbox("IsActive##trig", t->IsActive); ImGui::SameLine();
                 RO_Checkbox("IsToDie##trig",  t->IsToDie);
 
@@ -874,8 +839,7 @@ namespace
                 }
 
                 /**
-                 *  TrippedFlags is a bitmask, bit `n` set => the n-th event
-                 *  in the trigger type's event list has been tripped.
+                 *  TrippedFlags is a bitmask; bit `n` = n-th event tripped.
                  */
                 ImGui::SeparatorText("TrippedFlags");
                 ImGui::Text("Raw : 0x%X", t->TrippedFlags);
@@ -912,7 +876,7 @@ namespace
                     return;
                 }
 
-                /* Block 1: width 8 = max("INI Name", "Name", "TagType"). */
+                /* Width 8 = max("INI Name", "Name", "TagType"). */
                 if (t->Class != nullptr) {
                     Draw_Type_Names(t->Class);
                 }
@@ -924,12 +888,10 @@ namespace
                 ImGui::Separator();
 
                 /**
-                 *  Block 2: width 11 = max("Attached to", "AttachCount",
-                 *  "Persistence").
+                 *  Width 11 = max("Attached to", "AttachCount", "Persistence").
                  *
-                 *  Attached-to: vanilla supports attachment to cell, building
-                 *  or houses. Get_Position() returns the cell when attached to
-                 *  terrain/cell; CELL_NONE (-1,-1) when attached elsewhere.
+                 *  Get_Position() returns the cell when attached to terrain;
+                 *  CELL_NONE (-1,-1) for non-cell attachments.
                  */
                 const Cell pos = t->Get_Position();
                 if (pos.X >= 0 && pos.Y >= 0) {
@@ -950,10 +912,7 @@ namespace
                 RO_Checkbox("IsToDie##tag",  t->IsToDie);  ImGui::SameLine();
                 RO_Checkbox("IsSprung##tag", t->IsSprung);
 
-                /**
-                 *  Block 3: width 25 = max("Trigger", "TriggerType",
-                 *  "TriggerType (from class)").
-                 */
+                /* Width 25 = max("Trigger", "TriggerType", "TriggerType (from class)"). */
                 ImGui::SeparatorText("Linked trigger");
                 if (t->Trigger != nullptr) {
                     Goto_Row("Trigger",
@@ -993,7 +952,7 @@ namespace
                     return;
                 }
 
-                /* Block 1: width 8 = max("INI Name", "Name", "TeamType"). */
+                /* Width 8 = max("INI Name", "Name", "TeamType"). */
                 if (t->Class != nullptr) {
                     Draw_Type_Names(t->Class);
                 }
@@ -1004,10 +963,7 @@ namespace
 
                 ImGui::Separator();
 
-                /**
-                 *  Block 2: width 8 = max("House", "Members", "Risk",
-                 *  "Flags", "Live tag", "Zone").
-                 */
+                /* Width 8 = max("House", "Members", "Risk", "Flags", "Live tag", "Zone"). */
                 char hbuf[64];
                 if (t->House != nullptr) {
                     House_Display_Name(t->House, hbuf, sizeof(hbuf));
@@ -1033,9 +989,7 @@ namespace
                 }
 
                 /**
-                 *  Zone is the AbstractClass the team is centered around (a
-                 *  cell, building, etc). Offer a one-shot "jump camera there"
-                 *  button.
+                 *  Zone is the AbstractClass the team centers on. Offer a jump-camera button.
                  */
                 if (t->Zone != nullptr && TacticalMap != nullptr) {
                     ImGui::Text("%-8s :", "Zone");
@@ -1044,8 +998,7 @@ namespace
                 }
 
                 /**
-                 *  Script progression: ScriptClass is owned by the team and
-                 *  has no meaningful life outside of it, so its progression
+                 *  ScriptClass is owned by the team, so its progression
                  *  lives here rather than in a separate Scripts tab.
                  */
                 if (t->Script != nullptr) {
@@ -1065,7 +1018,6 @@ namespace
                             const ScriptMissionClass& mc = sc->MissionList[m];
                             const bool current = (m == t->Script->CurrentMission);
                             if (current) {
-                                /* Highlight the currently-executing line. */
                                 ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.3f, 1.0f),
                                     "> [%d] %s  (data=%d)", m,
                                     ScriptMissionClass::Mission_Name(mc.Mission),
@@ -1103,8 +1055,10 @@ namespace
                     return;
                 }
 
-                /* Block 1: width 9 = max("IniName", "HouseType"). */
-                ImGui::Text("%-9s : %s", "IniName", h->IniName.c_str());
+                /* Width 9 = max("IniName", "HouseType"). */
+                char name_buf[64];
+                House_Display_Name(h, name_buf, sizeof(name_buf));
+                ImGui::Text("%-9s : %s", "IniName", name_buf);
                 Goto_Row("HouseType",
                     h->Class ? h->Class->Name() : nullptr,
                     NavTarget::HouseType,
@@ -1112,7 +1066,7 @@ namespace
 
                 ImGui::Separator();
 
-                /* Block 2: width 10 = max("Credits", "Base nodes", "Allies"). */
+                /* Width 10 = max("Credits", "Base nodes", "Allies"). */
                 RO_Checkbox("IsHuman##h",         h->IsHuman);         ImGui::SameLine();
                 RO_Checkbox("IsPlayerControl##h", h->IsPlayerControl);
                 RO_Checkbox("IsDefeated##h",      h->IsDefeated);      ImGui::SameLine();
@@ -1122,10 +1076,8 @@ namespace
                 ImGui::Text("%-10s : %d",  "Base nodes", h->Base.Nodes.Count());
 
                 /**
-                 *  Allies is a bitmask of HousesType: bit (1 << other->HeapID)
-                 *  is set if `h` considers `other` an ally. Decode it into the
-                 *  actual house list with goto buttons; the raw mask stays
-                 *  alongside for sanity.
+                 *  Allies bitmask: bit (1 << other->HeapID) set if `other` is an ally.
+                 *  Decode to goto buttons; the raw mask stays above.
                  */
                 ImGui::Text("%-10s : 0x%X", "Allies", h->Control.Allies);
                 ImGui::Indent();
@@ -1276,9 +1228,6 @@ void ScenarioOverlay::Draw()
         return;
     }
 
-    /**
-     *  Browser-style back/forward across visited type/instance entries.
-     */
     ImGui::BeginDisabled(NavBackStack.empty());
     if (ImGui::Button("<- Back")) {
         Go_Back();

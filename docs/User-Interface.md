@@ -260,13 +260,13 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 ### `[ ]` Toggle Scenario Overlay
 
-- Opens/closes the in-game scenario debug window (developer mode only). Browses loaded type heaps (TriggerTypes, TagTypes, TeamTypes, TaskForces, ScriptTypes, AITriggerTypes, HouseTypes), live scenario instances (Triggers, Tags, Teams, Scripts, Houses), named global/local variables, the waypoint table, and per-house AI base nodes.
+- Opens/closes the in-game scenario debug window (developer mode only). Browses loaded type heaps (TriggerTypes, TagTypes, TeamTypes, TaskForces, ScriptTypes, AITriggerTypes, HouseTypes), live scenario instances (Triggers, Tags, Teams, Scripts, Houses), named global/local variables, and per-house AI base nodes.
 
 ### `[ ]` Toggle Debug Overlay
 
 - Opens/closes the in-game debug overlay window. The window has four tabs:
-  - **Stats** — mission time, FPS, and (debug builds only) live heap counts and the multiplayer event queue depths (`OutList` / `DoList`).
-  - **House** *(debug builds only)* — credits, power, current production, biases, losses and state flags of the owner of the currently selected object (or the local player when nothing is selected).
+  - **Stats** — mission time, FPS, and (developer mode only) live heap counts and the multiplayer event queue depths (`OutList` / `DoList`).
+  - **House** *(developer mode only)* — credits, power, current production, biases, losses and state flags of the owner of the currently selected object (or the local player when nothing is selected).
   - **Unit** — identity, HP, armor type, rank/experience, speed, and per-weapon stats (Attack/Burst/ROF, DPS raw and with house firepower bias, warhead, and a collapsible verses-vs-armor table) of the selected unit.
   - **Network** — sync block (Frame, FPS, MaxAhead, Resp Time, Lat Fudge, Retry delta/timeout, local process time) and a per-peer table with name, avg/max rtt, resends, lost packets, percent loss, missed packets, queue depth and process time.
 

@@ -61,8 +61,7 @@ bool DebugOverlay::IsVisible = false;
 namespace
 {
     /**
-     *  Picks the house to display on the House tab: the owner of the first
-     *  currently-selected object, falling back to the local player.
+     *  Owner of the first selected object, or the local player.
      */
     static HouseClass* Get_Display_House()
     {
@@ -77,7 +76,7 @@ namespace
 
     static void Format_Mission_Time(char* out, size_t out_size)
     {
-        const int total_seconds = Frame / 15; // logic ticks: ~15 ticks/sec
+        const int total_seconds = Frame / 15; // 15 logic ticks/sec
         const int hours = total_seconds / 3600;
         const int minutes = (total_seconds / 60) % 60;
         const int seconds = total_seconds % 60;
@@ -85,8 +84,7 @@ namespace
     }
 
     /**
-     *  Draws the always-on ts-patches INFO_PERFORMANCE block plus, in debug
-     *  builds, the vanilla DMONO_STRESS-style heap / queue dump.
+     *  Performance block; in dev mode adds heap / queue counts.
      *
      *  @author: ZivDero
      */
@@ -105,9 +103,7 @@ namespace
         ImGui::Text("Frame      : %ld", Frame);
 
         /**
-         *  Live instance heaps -- counts here change every frame and matter
-         *  for runtime debug. Static rules-definition heaps (TeamTypes,
-         *  TriggerTypes, etc) are intentionally omitted.
+         *  Live instance heaps; static type heaps (TeamTypes etc.) are omitted.
          */
         ImGui::SeparatorText("Heaps (combatants)");
         ImGui::Text("Units      : %d", Units.Count());
@@ -131,9 +127,8 @@ namespace
         ImGui::Text("Triggers   : %d", Triggers.Count());
 
         /**
-         *  Real queues -- the multiplayer event lists used for sync.
-         *  OutList = events leaving this client; DoList = events to apply
-         *  this frame.
+         *  Multiplayer sync queues. OutList = outbound events,
+         *  DoList = events to apply this frame.
          */
         ImGui::SeparatorText("Queues");
         ImGui::Text("OutList    : %d", OutList.Count);
@@ -162,8 +157,7 @@ namespace
     }
 
     /**
-     *  Vanilla DMONO_HOUSE-style player-state dump, retargeted to the owner
-     *  of the currently-selected object (falls back to PlayerPtr).
+     *  State dump for the owner of the selected object (falls back to PlayerPtr).
      */
     static void Draw_House_Tab()
     {
@@ -244,9 +238,8 @@ namespace
     }
 
     /**
-     *  Draws one weapon slot's stats. ROF in TS is ticks between shots, and
-     *  there are 15 logic ticks/sec, so raw shots-per-second = 15/ROF and
-     *  DPS = Attack * Burst * 15 / ROF.
+     *  Per-weapon stats. ROF is ticks between shots at 15 ticks/sec,
+     *  so DPS = Attack * Burst * 15 / ROF.
      */
     static void Draw_Weapon_Block(const char* label, const WeaponTypeClass* w, double firepower_bias)
     {
@@ -256,9 +249,7 @@ namespace
         }
 
         /**
-         *  Scope ImGui IDs so the two weapon blocks on the same tab don't
-         *  collide on identically-labelled children (e.g. the Verses
-         *  TreeNode).
+         *  Scope IDs so Primary and Secondary blocks don't collide on shared child labels.
          */
         ImGui::PushID(label);
 
@@ -292,9 +283,7 @@ namespace
     }
 
     /**
-     *  ts-patches INFO_UNIT-style selected-unit panel: identity, HP, armor,
-     *  veterancy, speed (for FootClass), house biases, and per-weapon stats
-     *  including DPS and the verses table for the weapon's warhead.
+     *  Stats panel for the selected unit.
      */
     static void Draw_Unit_Tab()
     {
@@ -314,8 +303,7 @@ namespace
         const bool is_enemy = PlayerPtr != nullptr && owner != nullptr && !PlayerPtr->Is_Ally(owner);
 
         /**
-         *  Outside of developer mode, refuse to leak details about enemy
-         *  units -- mirrors the "Nothing Selected" placeholder.
+         *  Redact enemy unit details outside dev mode.
          */
         if (is_enemy && !Vinifera_DeveloperMode) {
             ImGui::TextDisabled("Enemy Unit Selected");
@@ -323,9 +311,17 @@ namespace
         }
 
         ImGui::Text("Unit    : %s", type->Name());
-        ImGui::Text("Owner   : %s%s",
-            owner ? owner->IniName.c_str() : "(none)",
-            is_enemy ? "  [enemy]" : "");
+
+        char owner_buf[64];
+        if (owner == nullptr) {
+            std::snprintf(owner_buf, sizeof(owner_buf), "(none)");
+        } else if (owner->Class != nullptr) {
+            std::snprintf(owner_buf, sizeof(owner_buf), "%s (%s)",
+                owner->IniName.c_str(), owner->Class->Name());
+        } else {
+            std::snprintf(owner_buf, sizeof(owner_buf), "%s", owner->IniName.c_str());
+        }
+        ImGui::Text("Owner   : %s%s", owner_buf, is_enemy ? "  [enemy]" : "");
 
         ImGui::Text("HP      : %d / %d", obj->Strength, type->MaxStrength);
 
@@ -345,8 +341,7 @@ namespace
         ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
 
         /**
-         *  Control-group: 0-9 if the unit is part of a Ctrl+# group,
-         *  otherwise -1 (0xFFFFFFFF when reinterpreted unsigned).
+         *  Group is 0-9 for Ctrl+# groups, otherwise -1 (0xFF as unsigned).
          */
         const int group = static_cast<int>(techno->Group);
         if (group >= 0 && group <= 9) {
@@ -358,8 +353,7 @@ namespace
         ImGui::Text("Rank    : %s (xp=%.2f)", Rank_To_String(techno->Crew.Get_Rank()), techno->Crew.Get_Experience());
 
         /**
-         *  Foot units carry their own speed bias on top of the house ground
-         *  speed bias (Veterancy promotions, terrain, etc).
+         *  FootClass speed bias stacks on top of the house ground bias.
          */
         const bool is_foot = obj->RTTI == RTTI_UNIT || obj->RTTI == RTTI_INFANTRY || obj->RTTI == RTTI_AIRCRAFT;
         if (is_foot) {
@@ -368,9 +362,8 @@ namespace
         }
 
         /**
-         *  Scenario-script bindings: Team (foot units only) and Tag (any
-         *  object). Only shown when something is actually attached so the
-         *  panel stays uncluttered for plain units.
+         *  Scenario bindings, shown only when attached.
+         *  Team is foot-only; Tag is on any object.
          */
         TeamClass* team = is_foot ? static_cast<FootClass*>(obj)->Team : nullptr;
         TagClass* tag = obj->Tag;
@@ -417,9 +410,7 @@ namespace
     }
 
     /**
-     *  TS encodes most network timings in 1/60-second units; vanilla's
-     *  Multiplayer_Debug_Print divides by 60 and multiplies by 1000 to get
-     *  milliseconds.
+     *  TS network timings are 1/60-second ticks.
      */
     static unsigned long Ticks_To_Ms(unsigned long ticks)
     {
@@ -427,8 +418,7 @@ namespace
     }
 
     /**
-     *  Looks up a peer's ProcessTime from Session.Players by matching the
-     *  player ID (which doubles as a house ID).
+     *  Looks up a peer's ProcessTime by player ID (== HousesType).
      */
     static int Find_Peer_Process_Time(HousesType player_id)
     {
@@ -442,9 +432,7 @@ namespace
     }
 
     /**
-     *  ts-patches INFO_NETWORK panel plus the contents of vanilla's
-     *  Multiplayer_Debug_Print (mainloop.cpp + IPXManagerClass) -- the global
-     *  sync/latency block on top, per-peer rtt/process below.
+     *  Sync/latency on top, per-peer rtt/process below.
      */
     static void Draw_Network_Tab()
     {
@@ -459,7 +447,7 @@ namespace
         ImGui::Text("Rtr timeout : %lu ms", Ticks_To_Ms(Ipx.Timeout));
 
         /**
-         *  Local player ProcessTime (Session.Players[0] in vanilla).
+         *  Local player ProcessTime; Session.Players[0] in vanilla.
          */
         if (Session.Players.Count() > 0 && Session.Players[0] != nullptr) {
             ImGui::Text("Process     : %d", Session.Players[0]->Player.ProcessTime);
@@ -498,9 +486,7 @@ namespace
                 ImGui::Text("%lu ms", Ticks_To_Ms(Ipx.Avg_Response_Time(i)));
 
                 /**
-                 *  The remaining columns come from the per-connection
-                 *  ConnectionClass / CommBufferClass. Skip the row's tail if
-                 *  the connection slot is null.
+                 *  Remaining columns need a connection slot; skip them if null.
                  */
                 if (conn != nullptr) {
                     ImGui::TableSetColumnIndex(2);
