@@ -104,12 +104,10 @@ constexpr int AUDIO_MAX_CONCURRENT_LIMIT = 32;
 typedef enum AudioGroupType
 {
     AUDIO_GROUP_MUSIC,            // Background music.
-    AUDIO_GROUP_AMBIENT,          // Ambient music/sound (ie, Ion storm).
     AUDIO_GROUP_SPEECH,           // EVA speech and map selection voiceover.
-    AUDIO_GROUP_SFX,              // In-game sound effects.
+    AUDIO_GROUP_SFX,              // In-game sound effects (including ambient sounds like ion storm).
     AUDIO_GROUP_UI,               // UI and menu sounds.
-    AUDIO_GROUP_EVENT,            // Audio events and ambient sounds.
-    AUDIO_GROUP_STREAMING,        // Streaming audio (for VQ audio streams etc)
+    AUDIO_GROUP_STREAMING,        // Streaming audio (VQA movie audio).
 
     AUDIO_GROUP_COUNT,
     AUDIO_GROUP_NONE = -1

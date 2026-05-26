@@ -23,6 +23,7 @@
 #include "tactical.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "vinifera_thread.h"
 #include "vinifera_util.h"
 
 #include <algorithm>
@@ -667,8 +668,10 @@ void AudioVocClass::ScanAsync()
     IsVocScanComplete.store(false);
 
     VocScanThread = std::thread([] {
-        Scan();
-        IsVocScanComplete.store(true);
+        Vinifera_Run_Thread([] {
+            Scan();
+            IsVocScanComplete.store(true);
+        });
     });
 }
 
@@ -833,6 +836,5 @@ void AudioVocClass::Set_Volume(int volume)
     float volf = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_SFX, volf);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_UI, volf);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_EVENT, volf);
     AudioManager.Set_Group_Volume(AUDIO_GROUP_STREAMING, volf);
 }

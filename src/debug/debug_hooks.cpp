@@ -11,6 +11,7 @@
 
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "debughlp.h"
 #include "exceptionhandler.h"
 #include "hooker.h"
 #include "purecallhandler.h"
@@ -18,6 +19,7 @@
 #include "vinifera_globals.h"
 #include "winutil.h"
 
+#include <exception>
 #include <stdarg.h>
 #include <string>
 
@@ -559,22 +561,6 @@ static void Assert_Handler_Hooks()
 }
 
 
-/**
- *  Exception handlers to all out implementation.
- * 
- *  @author: CCHyper
- */
-static LONG __stdcall _Top_Level_Exception_Filter(EXCEPTION_POINTERS *e_info)
-{
-    return Vinifera_Exception_Handler(e_info->ExceptionRecord->ExceptionCode, e_info);
-}
-
-static void __cdecl _Structured_Exception_Translator(unsigned int code, EXCEPTION_POINTERS *e_info)
-{
-    Vinifera_Exception_Handler(code, e_info);
-}
-
-
 void Debug_Hooks()
 {
     Debug_Handler_Hooks();
@@ -587,13 +573,24 @@ void Debug_Hooks()
     Hook_Function(0x006B51E5, &Vinifera_PureCall_Handler);
 
     /**
-     *  Hook in the Exception handler.
+     *  Hook in the Exception handler. _Top_Level_Exception_Filter and
+     *  _Structured_Exception_Translator live in exceptionhandler.cpp so
+     *  per-thread guards in vinifera_thread.h can install the translator
+     *  on worker threads.
      */
     SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)&_Top_Level_Exception_Filter);
     _set_se_translator((_se_translator_function)&_Structured_Exception_Translator);
+    std::set_terminate(&Vinifera_Terminate_Handler);
     Hook_Function(0x005FF7D0, &_Top_Level_Exception_Filter);
     Hook_Function(0x00496350, &Vinifera_Exception_Handler);
     //ASM_Hook_Function(0x00495610, Dump_Exception_Info);
+
+    /**
+     *  Eagerly load dbghelp.dll and call SymInitialize so the exception
+     *  handler can later suspend sibling threads without risking the loader
+     *  lock being held by a sibling mid-LoadLibrary.
+     */
+    Init_Symbol_Info();
 
     /**
      *  Change the exception dialog to use the developer dialog.
