@@ -101,7 +101,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     ComesNearWaypointDistance(CELL_LEPTON_W * 5),
     IsAIDetectDisguise(true),
     IsAIOneHarvesterInSingleplayer(true),
-    PausedRepairsFrame(6)
+    PausedRepairsFrame(6),
+    EscortRange(-1),
+    AbandonTargetEscortRange(-1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -268,6 +270,8 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(AIHarvestersPerRefinery.Count());
     crc(IsAIOneHarvesterInSingleplayer);
     crc(PausedRepairsFrame);
+    crc(EscortRange);
+    crc(AbandonTargetEscortRange);
 }
 
 
@@ -706,6 +710,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
     SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
+    EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
+    AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

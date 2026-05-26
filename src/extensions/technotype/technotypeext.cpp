@@ -94,7 +94,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     SelfHealingCap(-1),
     SelfHealingRate(-1),
     IsDetectDisguise(false),
-    IronCurtainPriorityTarget(false)
+    IronCurtainPriorityTarget(false),
+    EscortRange(-1),
+    AbandonTargetEscortRange(-1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -281,6 +283,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(SelfHealingRate);
     crc(IsDetectDisguise);
     crc(IronCurtainPriorityTarget);
+    crc(EscortRange);
+    crc(AbandonTargetEscortRange);
 }
 
 
@@ -431,6 +435,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsDetectDisguise = ini.Get_Bool(ini_name, "DetectDisguise", IsDetectDisguise);
 
     IronCurtainPriorityTarget = ini.Get_Bool(ini_name, "IronCurtainPriorityTarget", IronCurtainPriorityTarget);
+
+    EscortRange = ini.Get_Lepton(ini_name, "EscortRange", EscortRange);
+    AbandonTargetEscortRange = ini.Get_Lepton(ini_name, "AbandonTargetEscortRange", AbandonTargetEscortRange);
 
     return true;
 }
