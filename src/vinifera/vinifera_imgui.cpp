@@ -116,6 +116,12 @@ bool ViniferaImGui::Initialize(HWND hwnd, SDL_Renderer* renderer)
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    /**
+     *  SDLMouseClass drives the cursor via SDL_SetCursor / SDL_HideCursor.
+     *  Stop the Win32 backend from calling SetCursor() each NewFrame, which
+     *  races SDL's WM_SETCURSOR handler and produces a flicker on mouse motion.
+     */
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     io.IniFilename = nullptr;
 
     ImGui::StyleColorsDark();
