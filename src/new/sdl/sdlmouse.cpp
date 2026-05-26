@@ -21,28 +21,6 @@
 
 #include <algorithm>
 
-/**
- *  Persistent mouse object pointer that is used to facilitate access to the mouse
- *  handler object outside the context of a member function. This will be set to the
- *  mouse object most recently created.
- */
-static SDLMouseClass* _MousePtr = nullptr;
-
-
-/**
- *  Mouse O/S callback function.
- *  This routine is called periodically by the operating system. It handles updating the
- *  mouse cursor position to match the mouse movement.
- *
- *  @author: JLB
- */
-void CALLBACK SDL_Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
-{
-    if (_MousePtr != nullptr) {
-        _MousePtr->Process_Mouse();
-    }
-}
-
 
 /**
  *  Constructor for mouse handler object.
@@ -52,17 +30,13 @@ void CALLBACK SDL_Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
 SDLMouseClass::SDLMouseClass() :
     MouseShape(nullptr),
     ShapeNumber(0),
+    OriginalHotspot(0, 0),
     Hotspot(0, 0),
     Cursor(nullptr),
     CursorOwned(false),
-    IsCaptured(false),
-    MouseX(0),
-    MouseY(0),
-    TimerHandle(0)
+    SystemCursor(nullptr),
+    IsCaptured(false)
 {
-    _MousePtr = this;
-    TimerHandle = timeSetEvent(1000 / 60, 1, SDL_Callback_Process_Mouse, 0, TIME_PERIODIC);
-
     // Ensure the mouse image won't get scaled by SDL
     SDL_SetHint(SDL_HINT_MOUSE_DPI_SCALE_CURSORS, "0");
 }
@@ -75,32 +49,16 @@ SDLMouseClass::SDLMouseClass() :
  */
 SDLMouseClass::~SDLMouseClass()
 {
-    if (TimerHandle != NULL) {
-        timeKillEvent(TimerHandle);
-        TimerHandle = NULL;
-    }
     Delete_Cursor_Image();
     if (Cursor && CursorOwned) {
         SDL_DestroyCursor(Cursor);
     }
     Cursor = nullptr;
     CursorOwned = false;
-    if (_MousePtr == this) {
-        _MousePtr = nullptr;
+    if (SystemCursor != nullptr) {
+        SDL_DestroyCursor(SystemCursor);
+        SystemCursor = nullptr;
     }
-}
-
-
-/**
- *  Mouse processing callback routine.
- *
- *  @author: ZivDero, tomsons26
- */
-void SDLMouseClass::Process_Mouse()
-{
-    float x, y;
-    SDL_GetMouseState(&x, &y);
-    Update_Mouse_Position(x, y);
 }
 
 
@@ -131,11 +89,17 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
     ShapeNumber = shape;
 
     /**
+     *  Stash the unscaled hotspot so Recalc_Cursor_Image() can re-apply the
+     *  current scale without compounding from a previously-scaled value.
+     */
+    OriginalHotspot = hotspot;
+
+    /**
      *  Scale the hotspot. The max value is surface dimension - 1 as required by SDL.
      */
-    Hotspot = hotspot;
-    Hotspot.X = std::clamp(Hotspot.X * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->w - 1);
-    Hotspot.Y = std::clamp(Hotspot.Y * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->h - 1);
+    const int scale = Get_Cursor_Scale();
+    Hotspot.X = std::clamp(OriginalHotspot.X * scale, 0, CursorSurfaces[shape]->w - 1);
+    Hotspot.Y = std::clamp(OriginalHotspot.Y * scale, 0, CursorSurfaces[shape]->h - 1);
 
     /**
      *  Cache hit: the SDL_Cursor for this (frame, hotspot) already exists.
@@ -272,20 +236,41 @@ int SDLMouseClass::Get_Mouse_State() const
 
 
 /**
- *  Updates the mouse position to match that specified.
+ *  Returns the current mouse cursor X position in window coordinates.
  *
- *  @author: ZivDero, tomsons26
+ *  @author: ZivDero
  */
-void SDLMouseClass::Update_Mouse_Position(int x, int y)
+int SDLMouseClass::Get_Mouse_X() const
 {
-    /**
-     *  If the desired position is not the same as the current
-     *  position, then reposition it.
-     */
-    if (x != MouseX || y != MouseY) {
-        MouseX = x;
-        MouseY = y;
-    }
+    float x, y;
+    SDL_GetMouseState(&x, &y);
+    return static_cast<int>(x);
+}
+
+
+/**
+ *  Returns the current mouse cursor Y position in window coordinates.
+ *
+ *  @author: ZivDero
+ */
+int SDLMouseClass::Get_Mouse_Y() const
+{
+    float x, y;
+    SDL_GetMouseState(&x, &y);
+    return static_cast<int>(y);
+}
+
+
+/**
+ *  Returns the current mouse cursor position in window coordinates.
+ *
+ *  @author: ZivDero
+ */
+Point2D SDLMouseClass::Get_Mouse_Point() const
+{
+    float x, y;
+    SDL_GetMouseState(&x, &y);
+    return Point2D(static_cast<int>(x), static_cast<int>(y));
 }
 
 
@@ -426,13 +411,18 @@ void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor, bool owned)
 
 
 /**
- *  Resets the cursor to the system default.
+ *  Resets the cursor to the system default. The HCURSOR is allocated lazily
+ *  on first use and kept alive for the lifetime of this class, so repeated
+ *  calls don't churn Win32 cursor handles.
  *
  *  @author: ZivDero
  */
 void SDLMouseClass::Set_System_Cursor()
 {
-    Replace_Cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT), true);
+    if (SystemCursor == nullptr) {
+        SystemCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+    }
+    Replace_Cursor(SystemCursor, false);
 }
 
 
@@ -443,11 +433,16 @@ void SDLMouseClass::Set_System_Cursor()
  */
 void SDLMouseClass::Recalc_Cursor_Image()
 {
+    if (MouseShape == nullptr) {
+        return;
+    }
+
     ShapeSet const* shape = MouseShape;
     int shape_number = ShapeNumber;
+    Point2D unscaled_hotspot = OriginalHotspot;
 
     Delete_Cursor_Image();
-    Set_Cursor(Hotspot, shape, shape_number);
+    Set_Cursor(unscaled_hotspot, shape, shape_number);
 }
 
 
