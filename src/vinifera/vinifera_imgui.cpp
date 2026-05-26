@@ -12,7 +12,9 @@
 #include "vinifera_imgui.h"
 
 #include "audio_manager.h"
+#include "debug_overlay.h"
 #include "debughandler.h"
+#include "scenario_overlay.h"
 #include "vinifera_globals.h"
 #include "zbuffer_window.h"
 
@@ -231,6 +233,9 @@ void ViniferaImGui::Render()
     }
     //ZBufferDebugWindow::Draw();
 #endif
+
+    DebugOverlay::Draw();
+    ScenarioOverlay::Draw();
 
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), SDLWindowRenderer);
