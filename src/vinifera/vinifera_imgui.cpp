@@ -14,6 +14,7 @@
 #include "audio_manager.h"
 #include "debughandler.h"
 #include "vinifera_globals.h"
+#include "zbuffer_window.h"
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer3.h>
@@ -146,6 +147,8 @@ void ViniferaImGui::Shutdown()
         return;
     }
 
+    ZBufferDebugWindow::Shutdown();
+
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
@@ -220,6 +223,7 @@ void ViniferaImGui::Render()
     if (Vinifera_AudioDebug) {
         AudioManager.Draw_Debug_UI();
     }
+    //ZBufferDebugWindow::Draw();
 #endif
 
     ImGui::Render();

@@ -30,7 +30,7 @@ typedef uint32_t register_t;
  */
 #define GET_EIP_ESP_EBP_REGISTERS(the_eip, the_esp, the_ebp) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
 _label: /* Label to fetch EIP address. */\
@@ -43,7 +43,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_EIP_ESP_EBP_REGISTERS_LABEL(the_eip, the_esp, the_ebp, __label) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     __asm __volatile { \
@@ -55,7 +55,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_EAX_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Eax; \
@@ -63,7 +63,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_ECX_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Ecx; \
@@ -71,7 +71,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_EBX_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Ebx; \
@@ -79,7 +79,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_ESP_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Esp; \

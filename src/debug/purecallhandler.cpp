@@ -75,11 +75,12 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
 {
     /**
      *  First things we should do is dump the stack and memory.
-     *  
-     *  The default stack walker skip frames is 2, but we need to include
-     *  the call to us also here, so make that 3.
+     *
+     *  Skip 3 frames: Stack_Dump, Vinifera_PureCall_Handler, and the CRT
+     *  _purecall stub. The first reported frame is then the pure-virtual
+     *  call site.
      */
-    Stack_Dump(Vinifera_PureCall_StackCallback, 1);
+    Stack_Dump(Vinifera_PureCall_StackCallback, 3);
 
     /**
      *  Create a unique filename for the stack dump based on the time of execution.

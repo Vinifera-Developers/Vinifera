@@ -12,8 +12,12 @@
 #include "getreg.h"
 
 /**
- *  Default stack walk depth.
- *  Value of 2 skips Do_Stack_Dump and Make_Stack_Trace int the call stack.
+ *  Default frames to skip in Stack_Dump/Stack_Dump_From_Context.
+ *  PC is captured inside Stack_Dump, so the topmost frame is Stack_Dump
+ *  itself; subsequent frames are its callers up the chain.
+ *    0 - report from the captured PC outward
+ *    1 - skip the helper that called Stack_Dump
+ *    2 - skip an additional layer (the default; suits one-level-deep helpers)
  */
 #define STACK_WALK_SKIP 2
 
