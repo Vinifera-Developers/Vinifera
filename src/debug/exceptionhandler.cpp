@@ -39,7 +39,24 @@
 #include <exception>
 #include <mutex>
 #include <tlhelp32.h>
+#include <vector>
 #include <windows.h>
+
+
+/**
+ *  Declare a side-by-side dependency on Common Controls v6 so the exception
+ *  dialog can be rendered with modern visual styles. The linker aggregates
+ *  this into the auto-generated manifest (resource ID 2). The dialog binds
+ *  against comctl32 v6 via CreateActCtx/ActivateActCtx around the modal
+ *  call in Exception_Dialog.
+ */
+#pragma comment(linker, \
+    "\"/manifestdependency:type='win32' " \
+    "name='Microsoft.Windows.Common-Controls' " \
+    "version='6.0.0.0' " \
+    "processorArchitecture='*' " \
+    "publicKeyToken='6595b64144ccf1df' " \
+    "language='*'\"")
 
 
 extern HMODULE DLLInstance;
@@ -62,7 +79,6 @@ _EXCEPTION_POINTERS *ExceptionInfo = nullptr;
 exceptioncallback_ptr_t ExceptionHandlerPtr = nullptr;
 
 std::atomic<bool> AlreadyExiting{false};
-std::atomic<bool> ExitAfterException{false};
 std::atomic<bool> ShowExceptionWindow{true};
 std::atomic<bool> ExceptionDumpFinished{false};
 
@@ -116,11 +132,18 @@ void Clear_All_Surfaces()
 
 
 /**
- *  Suspend every other thread in this process. Used at the start of the
- *  handler so the dump and minidump observe a frozen address space. The
- *  threads are not resumed — we always ExitProcess afterwards.
+ *  Suspend every other thread in this process and record their TIDs so a
+ *  later Resume_Other_Threads can wake them. Used to capture a frozen
+ *  address space for the dump + minidump only; workers are resumed before
+ *  the exception dialog runs (otherwise the dialog deadlocks on OS locks
+ *  the workers may have been holding).
+ *
+ *  Issues a GetThreadContext after each SuspendThread as a kernel barrier:
+ *  on x86 SuspendThread returns before the target is fully out of user
+ *  mode, but GetThreadContext only returns once the thread is parked, so
+ *  the dump observes the thread's true register state.
  */
-static void Suspend_Other_Threads()
+static void Suspend_Other_Threads(std::vector<DWORD>& out_suspended_tids)
 {
     const DWORD self_tid = GetCurrentThreadId();
     const DWORD self_pid = GetCurrentProcessId();
@@ -141,15 +164,54 @@ static void Suspend_Other_Threads()
             if (te.th32OwnerProcessID != self_pid || te.th32ThreadID == self_tid) {
                 continue;
             }
-            HANDLE th = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
-            if (th != nullptr) {
-                SuspendThread(th);
-                // Intentionally leak the handle - process is about to exit.
+            HANDLE th = OpenThread(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT, FALSE, te.th32ThreadID);
+            if (th == nullptr) {
+                continue;
             }
+            if (SuspendThread(th) == DWORD(-1)) {
+                CloseHandle(th);
+                continue;
+            }
+            CONTEXT ctx{};
+            ctx.ContextFlags = CONTEXT_CONTROL;
+            GetThreadContext(th, &ctx);
+            out_suspended_tids.push_back(te.th32ThreadID);
+            CloseHandle(th);
         } while (Thread32Next(snap, &te));
     }
 
     CloseHandle(snap);
+}
+
+
+/**
+ *  Resume every thread we suspended in Suspend_Other_Threads. Tolerates
+ *  TIDs that no longer exist (a worker may have re-crashed during the
+ *  dialog and parked itself in the FirstCrashThreadId gate).
+ */
+static void Resume_Other_Threads(const std::vector<DWORD>& suspended_tids)
+{
+    for (DWORD tid : suspended_tids) {
+        HANDLE th = OpenThread(THREAD_SUSPEND_RESUME, FALSE, tid);
+        if (th == nullptr) {
+            continue;
+        }
+        ResumeThread(th);
+        CloseHandle(th);
+    }
+}
+
+
+/**
+ *  Single centralized process-kill primitive used by every dialog exit
+ *  path. TerminateProcess bypasses DLL_DETACH and per-thread cleanup,
+ *  neither of which can run safely after a crash with the game in an
+ *  inconsistent state.
+ */
+[[noreturn]] static void Terminate_Now()
+{
+    TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
+    __assume(0);
 }
 
 
@@ -764,32 +826,13 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
     // FALSE == We are not interested in the message. Let dialog manager do any default processing.
     INT_PTR result = FALSE;
 
-    /**
-     *  Emergency Save needs the map editor's state, which only exists on
-     *  the main thread.
-     */
-    const bool on_main_thread = (GetCurrentThreadId() == Vinifera_MainThreadId);
-    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_SAVE), on_main_thread ? TRUE : FALSE);
-
     switch (uMsg) {
         case WM_MOVING:
             result = On_WM_MOVING(hDlg, wParam, lParam);
             break;
 
         case WM_COMMAND:
-            switch (wParam) {
-                case IDC_EXCEPTION_SAVE: // Emergency save button
-                    if (Debug_Map) {
-                        EndDialog(hDlg, IDC_EXCEPTION_SAVE);
-                        result = TRUE;
-                    } else {
-                        MessageBox(hDlg,
-                            "Sorry, you can only attempt an emergency save if you were in the map editor when the exception occurred.",
-                            "Bummer",  MB_OK|MB_ICONEXCLAMATION);
-                        result = FALSE;
-                    }
-                    break;
-
+            switch (LOWORD(wParam)) {
                 case IDC_EXCEPTION_QUIT: // Quit button
                     EndDialog(hDlg, IDC_EXCEPTION_QUIT);
                     result = TRUE;
@@ -808,17 +851,31 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
 
         case WM_CLOSE:
             EndDialog(hDlg, IDC_EXCEPTION_QUIT);
-            result = FALSE;
+            result = TRUE;
             break;
 
-        case WM_INITDIALOG:
+        case WM_INITDIALOG: {
+
             /**
-             *  IDC_EXCEPTION_MAINMENU and IDC_EXCEPTION_CONTINUE are present
-             *  in the dialog resource but have no command handler; hide them
-             *  so they're not visible.
+             *  Render the log edit box in a monospaced font so stack
+             *  addresses and register columns line up. Font handle is
+             *  intentionally leaked — the process terminates right after
+             *  this dialog so cleanup is unnecessary.
              */
-            ShowWindow(GetDlgItem(hDlg, IDC_EXCEPTION_MAINMENU), SW_HIDE);
-            ShowWindow(GetDlgItem(hDlg, IDC_EXCEPTION_CONTINUE), SW_HIDE);
+            HDC hdc = GetDC(hDlg);
+            const int log_font_height = -MulDiv(9, GetDeviceCaps(hdc, LOGPIXELSY), 72);
+            ReleaseDC(hDlg, hdc);
+            HFONT log_font = CreateFontA(
+                log_font_height, 0, 0, 0,
+                FW_NORMAL, FALSE, FALSE, FALSE,
+                DEFAULT_CHARSET,
+                OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                CLEARTYPE_QUALITY,
+                FIXED_PITCH | FF_MODERN,
+                "Consolas");
+            if (log_font != nullptr) {
+                SendDlgItemMessageA(hDlg, IDC_EXCEPTION_LOG, WM_SETFONT, (WPARAM)log_font, MAKELPARAM(FALSE, 0));
+            }
 
             /**
              *  Send the exception buffer to the dialog.
@@ -827,15 +884,20 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
                 SetDlgItemTextA(hDlg, IDC_EXCEPTION_LOG, ExceptionBuffer.c_str()); // Debug edit box.
             }
 
-            SetFocus(hDlg);
-
             if (MainWindow != nullptr) {
                 WinDialogClass::Center_Window_Within(hDlg, MainWindow);
             }
 
             ShowWindow(hDlg, SW_SHOWNORMAL);
+
+            /**
+             *  Focus the Quit button so Enter takes the safe action and we
+             *  tell the dialog manager we set focus ourselves (return FALSE).
+             */
+            SetFocus(GetDlgItem(hDlg, IDC_EXCEPTION_QUIT));
             result = FALSE;
             break;
+        }
 
         default:
             result = FALSE;
@@ -886,7 +948,38 @@ static INT_PTR Exception_Dialog(HWND parent)
     //HGLOBAL hGlobalDlg = Fetch_Resource(MAKEINTRESOURCE(IDD_EXCEPTION), RT_DIALOG);
     HGLOBAL hGlobalDlg = FETCH_RESOURCE(hResHandle, resId, RT_DIALOG);
     if (hGlobalDlg != nullptr) {
+
+        /**
+         *  Activate the side-by-side manifest embedded in our DLL (resource
+         *  ID 2 / RT_MANIFEST) so the dialog binds against comctl32 v6 and
+         *  draws with modern visual styles. GAME.EXE has no manifest of its
+         *  own, so without this activation the dialog would use classic
+         *  Win9x-style chrome.
+         */
+        char module_path[MAX_PATH] = {};
+        GetModuleFileNameA(DLLInstance, module_path, MAX_PATH);
+
+        ACTCTXA actctx{};
+        actctx.cbSize = sizeof(actctx);
+        actctx.dwFlags = ACTCTX_FLAG_RESOURCE_NAME_VALID;
+        actctx.lpSource = module_path;
+        actctx.lpResourceName = MAKEINTRESOURCEA(2); // ISOLATIONAWARE_MANIFEST_RESOURCE_ID
+
+        HANDLE hctx = CreateActCtxA(&actctx);
+        ULONG_PTR cookie = 0;
+        bool activated = false;
+        if (hctx != INVALID_HANDLE_VALUE) {
+            activated = ActivateActCtx(hctx, &cookie) != FALSE;
+        }
+
         retval = DialogBoxIndirectParam(ProgramInstance, (LPDLGTEMPLATE)hGlobalDlg, parent, (DLGPROC)Exception_Dialog_Proc, (LPARAM)0);
+
+        if (activated) {
+            DeactivateActCtx(0, cookie);
+        }
+        if (hctx != INVALID_HANDLE_VALUE) {
+            ReleaseActCtx(hctx);
+        }
     } else {
         DEBUG_ERROR("Unable to find the exception dialog resource!\n");
     }
@@ -984,17 +1077,21 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
     }
 
     /**
-     *  Freeze every other thread before we touch the dump path. This must
-     *  happen AFTER the entry gate (so we won the race). dbghelp.dll must
-     *  already be initialized at this point (Debug_Hooks eagerly calls
-     *  Init_Symbol_Info), or we risk suspending a thread that holds the
-     *  loader lock and deadlocking SymInitialize.
+     *  Phase A — Snapshot. Suspend every other thread so the dump and
+     *  minidump observe a frozen address space, then resume them before
+     *  the dialog runs in Phase B. Suspending workers across the dialog
+     *  causes the dialog to deadlock on OS locks (heap CS, USER32) held
+     *  by a worker at its arbitrary suspended instruction.
+     *
+     *  Must happen AFTER the entry gate (so we won the race). dbghelp.dll
+     *  must already be initialized at this point (Debug_Hooks eagerly
+     *  calls Init_Symbol_Info), or we risk suspending a thread that holds
+     *  the loader lock and deadlocking SymInitialize.
      */
-    Suspend_Other_Threads();
+    std::vector<DWORD> suspended_tids;
+    suspended_tids.reserve(32);
+    Suspend_Other_Threads(suspended_tids);
 
-    /**
-     *  It most cases, this is our first attempt at an exception crash dump.
-     */
     if (RecursionCount.load() < 2) {
 
         ExceptionBuffer.clear();
@@ -1030,6 +1127,17 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         }
 
         LastExceptionCRC = CurrentExceptionCRC;
+    }
+
+    /**
+     *  End of Phase A — resume workers before any UI runs. A worker that
+     *  re-crashes after this lands in the FirstCrashThreadId gate and is
+     *  parked harmlessly; the dump is already on disk.
+     */
+    Resume_Other_Threads(suspended_tids);
+    suspended_tids.clear();
+
+    if (RecursionCount.load() < 2) {
 
         /**
          *  If OS is Windows 9x only. Surfaces are owned by the main thread,
@@ -1045,55 +1153,37 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         ShowCursor(TRUE);
 
         /**
-         *  Show the exception error message to the user. Worker-thread
-         *  crashes parent the dialog to nullptr instead of MainWindow: the
-         *  main thread is suspended and cannot process messages for a
-         *  window it owns. With no parent the modal pump runs on the
-         *  worker thread itself.
+         *  Phase B — UI. Workers are running again so the dialog's allocations
+         *  and cross-thread message sends don't deadlock. Worker-thread crashes
+         *  parent the dialog to nullptr; main-thread crashes parent to
+         *  MainWindow.
          */
         if (ShowExceptionWindow.load()) {
 
             // https://docs.microsoft.com/en-us/windows/win32/debug/exception-handler-syntax
             DEBUG_WARNING("About to call Exception_Dialog()\n");
             DWORD retval = Exception_Dialog(on_main_thread ? MainWindow : nullptr);
+
+            /**
+             *  Phase C — Terminate. Every dialog exit path goes through
+             *  Terminate_Now (TerminateProcess). Don't return through the
+             *  vanilla game's __try/__except chain or the OS unhandled
+             *  filter default — both can stall while running cleanup that
+             *  depends on subsystems whose state is now suspect.
+             */
             switch (retval) {
 
-                /**
-                 *  Emergency save (scenario editor only).
-                 */
-                case IDC_EXCEPTION_SAVE: // Emergency save button
-                    DEBUG_WARNING("Emergency save button pressed!\n");
-
-                    Vinifera_Collect_Debug_Files();
-
-                    ExitAfterException.store(true); // #TEMP!
-                    break;
-
-                /**
-                 *  Trigger the debugger to break at the exception address.
-                 */
                 case IDC_EXCEPTION_DEBUG: // Debug button
                     DEBUG_WARNING("Break debugger button pressed!\n");
-
-                    Vinifera_Collect_Debug_Files();
-
                     __debugbreak();
-
-                    return EXCEPTION_EXECUTE_HANDLER;
+                    Terminate_Now();
 
                 default:
                 case IDC_EXCEPTION_QUIT: // Quit button
                     DEBUG_WARNING("Quit button pressed!\n");
-
-                    Vinifera_Collect_Debug_Files();
-
-                    ExitAfterException.store(true);
-                    break;
+                    Terminate_Now();
             }
         }
-
-        //WWMouseClass::System_Hide_Mouse();
-        ShowCursor(FALSE);
     }
 
     if (RecursionCount.load() == 2) {
@@ -1110,24 +1200,13 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         ExceptionHandlerPtr = nullptr; // Reset the pointer after use, so it can be defined again per exception.
     }
 
-    if (ExitAfterException.load()) {
-        AlreadyExiting.store(true);
-        return EXCEPTION_EXECUTE_HANDLER;
-    }
-
-    //--RecursionCount;
-
-    if (WinDialogClass::CurrentWindowHandle) {
-        WinDialogClass::End_Dialog(WinDialogClass::CurrentWindowHandle);
-    }
-    
     CDControl.Unlock_All_CD_Trays();
 
-    Vinifera_Collect_Debug_Files();
-
     /**
-     *  The system transfers control to the exception handler, and execution continues
-     *  in the stack frame in which the handler is found.
+     *  Silent-mode fallthrough (ShowExceptionWindow == false). The dialog
+     *  branches above all call Terminate_Now, so this only fires when
+     *  testing without UI — still terminate deterministically rather than
+     *  returning to the broken caller.
      */
-    return EXCEPTION_EXECUTE_HANDLER;
+    Terminate_Now();
 }
