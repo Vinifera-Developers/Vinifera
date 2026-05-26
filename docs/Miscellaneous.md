@@ -363,11 +363,11 @@ PausedRepairsFrame=6  ; integer, the frame index on the wrench shape to show whi
 in `RULES.INI`:
 ```ini
 [General]
-EscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
+EscortRange=-1  			 ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
 AbandonTargetEscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will keep engaging targets before abandoning the targets and go back to their assigned unit.
 
 [SOMETECHNO]
-EscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
+EscortRange=-1  			 ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
 AbandonTargetEscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will keep engaging targets before abandoning the targets and go back to their assigned unit.
 ```
 
