@@ -19,6 +19,7 @@
 #include "hooker.h"
 #include "house.h"
 #include "housetype.h"
+#include "housetypeext.h"
 #include "infantry.h"
 #include "iomap.h"
 #include "rules.h"
@@ -1459,11 +1460,11 @@ void UnitClassExt::_Read_INI(CCINIClass& ini)
         ini.Get_String(INI_NAME, entry, nullptr, buf, sizeof(buf));
 
         char* housename = strtok(buf, ",");
-        inhouse = HouseTypeClass::From_Name(housename);
+        inhouse = HouseTypeClassExtension::House_From_Name(housename);
         HouseClass* inhousep = House_From_HousesType(inhouse);
 
-        if (inhouse == HOUSE_NONE) {
-            if (Session.Type == GAME_NORMAL) {
+        if (inhousep == nullptr) {
+            if (Session.Type == GAME_NORMAL || inhouse < EXT_HOUSE_SPAWN1) {
                 Vinifera_Log_And_Show_WWMessageBox("Unable to find house %s while reading units!", housename);
                 Decrement_Followers(followers, index);
                 continue;

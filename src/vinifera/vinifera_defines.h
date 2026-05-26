@@ -439,3 +439,19 @@ enum ExtDiffType {
      */
     EXT_DIFF_FIRST = EXT_DIFF_PAD + 1
 };
+DEFINE_ENUMERATION_OPERATORS(ExtDiffType);
+
+/**
+ *  Extension of the HousesType enum.
+ */
+enum ExtHousesType {
+    EXT_HOUSE_SPAWN1 = 50,
+    EXT_HOUSE_SPAWN2,
+    EXT_HOUSE_SPAWN3,
+    EXT_HOUSE_SPAWN4,
+    EXT_HOUSE_SPAWN5,
+    EXT_HOUSE_SPAWN6,
+    EXT_HOUSE_SPAWN7,
+    EXT_HOUSE_SPAWN8
+};
+DEFINE_ENUMERATION_OPERATORS(ExtHousesType);
