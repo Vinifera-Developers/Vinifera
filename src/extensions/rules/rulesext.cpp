@@ -1041,10 +1041,10 @@ bool RulesClassExtension::Difficulty(CCINIClass& ini)
     Difficulty_Get(ini, Diff[DIFF_NORMAL], "Normal");
     Difficulty_Get(ini, PlayerNormal, "PlayerNormal");
     Difficulty_Get(ini, Diff[DIFF_HARD], "Difficult");
-    Difficulty_Get(ini, Diff[EXT_DIFF_VERY_HARD], "VeryEasy");
-    Difficulty_Get(ini, Diff[EXT_DIFF_BRUTAL], "BrutallyEasy");
-    Difficulty_Get(ini, Diff[EXT_DIFF_EXTREME], "ExtremelyEasy");
-    Difficulty_Get(ini, Diff[EXT_DIFF_ULTIMATE], "UltimatelyEasy");
+    Difficulty_Get(ini, Diff[EXT_DIFF_VERY_EASY], "VeryEasy");
+    Difficulty_Get(ini, Diff[EXT_DIFF_BRUTALLY_EASY], "BrutallyEasy");
+    Difficulty_Get(ini, Diff[EXT_DIFF_EXTREMELY_EASY], "ExtremelyEasy");
+    Difficulty_Get(ini, Diff[EXT_DIFF_ULTIMATELY_EASY], "UltimatelyEasy");
 
     return true;
 }

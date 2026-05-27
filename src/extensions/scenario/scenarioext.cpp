@@ -1238,17 +1238,10 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         /**
          *  Print a message stating the current difficulty level.
          */
-
         char diff_message[50];
 
-        static const char* difficulty_names[] = {
-            "Hard",
-            "Medium",
-            "Easy",
-        };
-
         const char* diff_name = SessionExtension->SpawnerInfo.DifficultyName.empty()
-            ? difficulty_names[Scen->CDifficulty]
+            ? CDifficulty_Name(Scen->CDifficulty)
             : SessionExtension->SpawnerInfo.DifficultyName.c_str();
 
         sprintf_s(diff_message, std::size(diff_message), "Difficulty: %s", diff_name);
@@ -2376,26 +2369,15 @@ void ScenarioClassExtension::Assign_Houses()
          *  Process spawner overrides.
          */
         if (SessionExtension->IsSpawnerSession) {
-            static char const* AINamesByDifficultyArray[] =
-            {
-                "Hard AI",
-                "Medium AI",
-                "Easy AI",
-                "Very Hard AI",
-                "Brutal AI",
-                "Extreme AI",
-                "Ultimate AI"
-            };
-
             const auto& slot_info = SessionExtension->SlotInfo[i];
 
             /**
              *  Set the difficulty and name for the AI (for AIs, player index == house index)
              */
-            if (slot_info.Difficulty >= 0 && slot_info.Difficulty < std::size(AINamesByDifficultyArray)) {
+            if (slot_info.Difficulty >= DIFF_FIRST && slot_info.Difficulty < EXT_DIFF_COUNT) {
                 housep->Assign_Handicap(static_cast<DiffType>(slot_info.Difficulty));
                 if (SessionExtension->ExtOptions.IsAINamesByDifficulty && !housep->IsHuman) {
-                    housep->IniName = AINamesByDifficultyArray[slot_info.Difficulty];
+                    housep->IniName = CDifficulty_Name(static_cast<DiffType>(slot_info.Difficulty));
                 }
             }
 

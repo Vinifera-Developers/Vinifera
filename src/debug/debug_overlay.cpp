@@ -46,6 +46,7 @@
 #include "unit.h"
 #include "verses.h"
 #include "veterancy.h"
+#include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "voxelanim.h"
 #include "weapontype.h"
@@ -135,16 +136,6 @@ namespace
         ImGui::Text("DoList     : %d", DoList.Count);
     }
 
-    static const char* Diff_To_String(DiffType d)
-    {
-        switch (d) {
-        case DIFF_EASY:   return "Easy";
-        case DIFF_NORMAL: return "Normal";
-        case DIFF_HARD:   return "Hard";
-        default:          return "?";
-        }
-    }
-
     static void Draw_Factory_Line(const char* label, FactoryClass* factory)
     {
         if (factory == nullptr) {
@@ -191,7 +182,7 @@ namespace
         ImGui::SeparatorText("Profile");
         ImGui::Text("TechLevel  : %d", h->Control.TechLevel);
         ImGui::Text("IQ         : %d", h->IQ);
-        ImGui::Text("Difficulty : %s", Diff_To_String(h->Difficulty));
+        ImGui::Text("Difficulty : %s", Difficulty_Name(h->Difficulty));
 
         ImGui::SeparatorText("Biases");
         ImGui::Text("Firepower : x%.2f", h->FirepowerBias);

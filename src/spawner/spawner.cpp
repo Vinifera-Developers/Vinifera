@@ -139,32 +139,19 @@ int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
     case 2:
         return DIFF_EASY;
     case 3:
-        return EXT_DIFF_VERY_HARD;
+        return EXT_DIFF_VERY_EASY;
     case 4:
-        return EXT_DIFF_BRUTAL;
+        return EXT_DIFF_BRUTALLY_EASY;
     case 5:
-        return EXT_DIFF_EXTREME;
+        return EXT_DIFF_EXTREMELY_EASY;
     case 6:
-        return EXT_DIFF_ULTIMATE;
+        return EXT_DIFF_ULTIMATELY_EASY;
     }
 
-    // switch (difficulty)
-    // {
-    // case 0:
-    //     return EXT_DIFF_ULTIMATE;
-    // case 1:
-    //     return EXT_DIFF_EXTREME;
-    // case 2:
-    //     return EXT_DIFF_BRUTAL;
-    // case 3:
-    //     return EXT_DIFF_VERY_HARD;
-    // case 4:
-    //     return DIFF_HARD;
-    // case 5:
-    //     return DIFF_NORMAL;
-    // case 6:
-    //     return DIFF_EASY;
-    // }
+    // assumes the client goes "easy, normal, hard, very easy, brutally easy, extremely easy, ultimately easy" in that order
+    // and then loops back to the start if more than 7 difficulties are selected.
+    // This is a bit janky but it allows for a simple relationship between the client and game difficulties.
+    //return (difficulty + DIFF_COUNT) % EXT_DIFF_COUNT;
     
     DEBUG_FATAL("Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty: Unknown difficulty level {}", difficulty);
     return -1;

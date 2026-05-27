@@ -414,10 +414,10 @@ enum ExtDiffType {
     /**
      *  Add new ExtDiffTypes from here.
      */
-    EXT_DIFF_VERY_HARD,
-    EXT_DIFF_BRUTAL,
-    EXT_DIFF_EXTREME,
-    EXT_DIFF_ULTIMATE,
+    EXT_DIFF_VERY_EASY,
+    EXT_DIFF_BRUTALLY_EASY,
+    EXT_DIFF_EXTREMELY_EASY,
+    EXT_DIFF_ULTIMATELY_EASY,
 
     /**
      *  The new total ExtDiffType count.
@@ -430,6 +430,44 @@ enum ExtDiffType {
     EXT_DIFF_FIRST = EXT_DIFF_PAD + 1
 };
 DEFINE_ENUMERATION_OPERATORS(ExtDiffType);
+
+/**
+ *  Returns the name for a DiffType value. Reflects how the bonuses affect *this* house.
+ *  For viewing CDifficulty or showing how "tough" an AI is, use CDifficulty_Name instead.
+ */
+inline const char *Difficulty_Name(DiffType d)
+{
+    switch (static_cast<int>(d)) {
+    case DIFF_EASY:                 return "Easy";
+    case DIFF_NORMAL:               return "Normal";
+    case DIFF_HARD:                 return "Hard";
+    case EXT_DIFF_VERY_EASY:        return "Very Easy";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutally Easy";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extremely Easy";
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimately Easy";
+    default:                        return "?";
+    }
+}
+
+/**
+ *  Returns a short "AI Difficulty" name for a DiffType value.
+ *  Reflects how "tough" an AI is, so the bonuses are reversed compared to Difficulty_Name.
+ */
+inline const char *CDifficulty_Name(DiffType d)
+{
+    switch (static_cast<int>(d)) {
+    case DIFF_EASY:                 return "Hard";
+    case DIFF_NORMAL:               return "Normal";
+    case DIFF_HARD:                 return "Easy";
+    case EXT_DIFF_VERY_EASY:        return "Very Hard";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutal";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extreme";
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimate";
+    default:                        return "?";
+    }
+}
+
+
 
 /**
  *  Extension of the HousesType enum.
