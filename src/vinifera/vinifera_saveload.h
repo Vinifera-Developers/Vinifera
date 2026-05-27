@@ -30,24 +30,24 @@ struct IStream;
 
 #define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(pointer, variable) \
     { \
-        ViniferaSwizzleManager.Swizzle_Dbg((void**)&pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
+        ViniferaSwizzleManager.Swizzle_Dbg((void**)&pointer, __FILE__, __LINE__, __FUNCTION__ "()", variable); \
     }
 
 #define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable) \
     { \
         for (int __i = 0; __i < vector.Count(); ++__i) { \
-            ViniferaSwizzleManager.Swizzle_Dbg((void**)&vector[__i], __FILE__, __LINE__, __FUNCTION__##"()", variable); \
+            ViniferaSwizzleManager.Swizzle_Dbg((void**)&vector[__i], __FILE__, __LINE__, __FUNCTION__ "()", variable); \
         } \
     }
 
 #define VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(pointer, id, variable) \
     { \
-        ViniferaSwizzleManager.Fetch_Swizzle_ID_Dbg((void*)pointer, (LONG*)&id, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
+        ViniferaSwizzleManager.Fetch_Swizzle_ID_Dbg((void*)pointer, (LONG*)&id, __FILE__, __LINE__, __FUNCTION__ "()", variable); \
     }
 
 #define VINIFERA_SWIZZLE_REGISTER_POINTER(id, pointer, variable) \
     { \
-        ViniferaSwizzleManager.Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
+        ViniferaSwizzleManager.Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, __FUNCTION__ "()", variable); \
     }
 
 
