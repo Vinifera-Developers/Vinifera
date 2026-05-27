@@ -267,6 +267,17 @@ public:
      */
     bool IsDecloakToFire;
 
+    /**
+     *  Determines how far away, in leptons, an Area Guarding unit wait to its guard target before moving towards it again.
+     */
+    int EscortRange;
+
+    /**
+     *  Determines how far away, in leptons, an Area Guarding unit will keep engaging its target unit before abandoning it
+     *  and going back to escort its guard target.
+     */
+    int AbandonTargetEscortRange;
+
 private:
 
     /**

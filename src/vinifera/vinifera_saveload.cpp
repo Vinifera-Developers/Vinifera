@@ -14,13 +14,13 @@
 #include "addon.h"
 #include "aircraft.h"
 #include "aircrafttracker.h"
-#include "audio_static_sound.h"
 #include "aircrafttype.h"
 #include "aitrigtype.h"
 #include "alphashape.h"
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
+#include "audio_static_sound.h"
 #include "battleui.h"
 #include "beacon.h"
 #include "building.h"
@@ -97,6 +97,7 @@
 #include "verses.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_savever.h"
+#include "vox.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
@@ -619,7 +620,10 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  Load the battle UI state.
      */
     DEBUG_INFO("Loading BattleUI...\n");
+    SpeechEnabled = false;
     if (FAILED(BattleUI.Load(pStm))) { return false; }
+    SpeechEnabled = true;
+
     
     /**
      *  #issue-218

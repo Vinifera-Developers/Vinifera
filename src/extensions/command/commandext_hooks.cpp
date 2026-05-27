@@ -293,6 +293,7 @@ void Init_Vinifera_Commands()
     Commands.Add(new HealthFilterCommandClass);
     Commands.Add(new HealthFilterAddNextCommandClass);
     Commands.Add(new BeaconPlacementCommandClass);
+    Commands.Add(new ToggleDebugOverlayCommandClass);
 
     /**
      *  Initialize hotkeys for sidebar tabs.
@@ -364,6 +365,7 @@ void Init_Vinifera_Commands()
         Commands.Add(new MeteorShowerCommandClass);
         Commands.Add(new MeteorImpactCommandClass);
         Commands.Add(new VeterancyPromoteCommandClass);
+        Commands.Add(new ToggleScenarioOverlayCommandClass);
     }
 
     /**

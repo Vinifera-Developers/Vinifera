@@ -18,8 +18,9 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Aircraft can now click on Helipad that are occupied or about to be occupied by other aircraft, which reassigns them to a different free Helipad, or near the existing Helipad if no free Helipads exist. 
 - Players can now click on a Service Depot with units and aircraft even if it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
 - Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
+- Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
 - Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
-- Allow pre-placed units to have missions in multiplayer (by Rampastring)
+- Allow pre-placed units to have missions in multiplayer.
 - `BaseUnit` now accepts a list of units. Players will be granted the first unit in the list that has their house listed under `Owners=`.
 - The AI now correctly considers all entries of `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit`.
 
@@ -484,6 +485,27 @@ In `RULES.INI`:
 ```ini
 [General]
 PausedRepairsFrame=6  ; integer, the frame index on the wrench shape to show while building repairs are paused.
+```
+
+## Area Guard Escort Logic Improvements
+- Vinifera allows modders to specify the range in which an area-guarding unit that is assigned to guard another unit will follow it, as well as the range where it will abandon targets it is currently attacking (or healing) and go back to their assigned unit.
+- This only applies on Area Guards on a unit; Area Guards on a cell does not count.
+- Can be specified globally or for each unit individually. When both are applied, unit-specific values are used over the global values. 
+- When those values are not stated or are non-positive, Vinifera falls back to the original behavior, which causes area-guarding units to follow their assigned unit once it leaves 2x the area-guarding unit's Guard Range (up to a maximum of 12 cells).
+
+in `RULES.INI`:
+```ini
+[General]
+EscortRange=-1  			 ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
+AbandonTargetEscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will keep engaging targets before abandoning the targets and go back to their assigned unit.
+
+[SOMETECHNO]
+EscortRange=-1  			 ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
+AbandonTargetEscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will keep engaging targets before abandoning the targets and go back to their assigned unit.
+```
+
+```{note}
+To achieve good results with `AbandonTargetEscortRange`, it is recommended to set a value that is higher than 2x its `GuardRange`. Otherwise, the unit will keep re-acquiring and abdndoning it repeatedly as long as it is in range.
 ```
 
 ## File System
