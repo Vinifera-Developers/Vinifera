@@ -233,7 +233,7 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->ExtOptions.IsContinueWithoutHumans = Config->ContinueWithoutHumans;
     SessionExtension->ExtOptions.IsScrapMetal = Config->ScrapMetal;
     SessionExtension->ExtOptions.IsAINamesByDifficulty = Config->AINamesByDifficulty;
-    SessionExtension->ClearMultiplayerSavesOnSave = !Config->LoadSaveGame;
+    SessionExtension->MultiplayerSavesInitializedForThisSession = Config->LoadSaveGame;
 
     /**
      *  NOTE: Scenario data gets cleared between this point and the scenario start, because the first step

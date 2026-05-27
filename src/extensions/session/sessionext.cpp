@@ -11,6 +11,7 @@
 
 #include "sessionext.h"
 
+#include "debughandler.h"
 #include "mouse.h"
 #include "optionsext.h"
 #include "rules.h"
@@ -307,7 +308,7 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
     if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerSaveSuppressed) {
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
-        Clear_Multiplayer_Saves();
+        Init_Multiplayer_Saves_For_Session();
         Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
         return;
     }
@@ -323,30 +324,44 @@ std::string SessionClassExtension::Multiplayer_Save_File_Name_From_Index(int ind
 }
 
 
-void SessionClassExtension::Clear_Multiplayer_Saves()
+void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
 {
-    if (!ClearMultiplayerSavesOnSave) {
+    if (MultiplayerSavesInitializedForThisSession) {
         return;
     }
 
+    // Delete any potential saves from previous multiplayer sessions.
     namespace fs = std::filesystem;
 
     fs::path saved_games_directory(Vinifera_SavedGamesDirectory);
 
-    for (int i = 0; i < 1000; ++i) {
+    try {
+        for (int i = 0; i < 1000; ++i) {
 
-        std::string filename = Multiplayer_Save_File_Name_From_Index(i);
+            std::string filename = Multiplayer_Save_File_Name_From_Index(i);
 
-        fs::path fullpath = saved_games_directory / filename;
+            fs::path fullpath = saved_games_directory / filename;
 
-        std::error_code ec;
-        fs::remove(fullpath, ec);
+            std::error_code ec;
+            fs::remove(fullpath, ec);
 
-        // Optional:
-        // log ec if desired
+            // Optional:
+            // log ec if desired
+        }
+
+        // Copy spawn.ini from main game directory and place it as spawnSG.ini to the saved games subdirectory.
+        // It is read by the CnCNet Client when loading saved multiplayer games.
+        fs::path spawn_ini = "spawn.ini";
+
+        if (fs::exists(spawn_ini)) {
+            fs::path spawn_sg_ini = saved_games_directory / fs::path("spawnSG.ini");
+            fs::copy_file(spawn_ini, spawn_sg_ini, fs::copy_options::overwrite_existing);
+        }
+    } catch (const std::exception& e) {
+        DEBUG_ERROR("Failed to copy spawn.ini and clear previous multiplayer saves! Reason: %s\n", e.what());
     }
 
-    ClearMultiplayerSavesOnSave = false;
+    MultiplayerSavesInitializedForThisSession = true;
 }
 
 

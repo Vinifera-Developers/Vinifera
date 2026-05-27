@@ -40,7 +40,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 
     private:
         static std::string Multiplayer_Save_File_Name_From_Index(int index);
-        void Clear_Multiplayer_Saves();
+        void Init_Multiplayer_Saves_For_Session();
         std::string Multiplayer_Save_File_Name() const;
         std::string Autosave_File_Name() const;
         std::string Autosave_Description() const;
@@ -148,7 +148,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 
         AutoSaveStateType AutoSave;
         bool IsSpawnerSession = false;
-        bool ClearMultiplayerSavesOnSave = false;
+        bool MultiplayerSavesInitializedForThisSession = false;
 
         struct SpawnerSlotInfoType {
             bool IsConfigured = false;
