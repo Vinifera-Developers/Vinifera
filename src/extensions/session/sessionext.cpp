@@ -52,17 +52,6 @@ SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
 
 
 /**
- *  Class no-init constructor.
- *
- *  @author: CCHyper
- */
-SessionClassExtension::SessionClassExtension(const NoInitClass &noinit) :
-    GlobalExtensionClass(noinit)
-{
-}
-
-
-/**
  *  Class destructor.
  *  
  *  @author: CCHyper
