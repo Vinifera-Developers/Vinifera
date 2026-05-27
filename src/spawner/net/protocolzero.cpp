@@ -83,7 +83,7 @@ void ProtocolZero::Send_Response_Time()
      */
     if (OutList.Add(event.As_Event())) {
         NextSendFrame = Frame + SendResponseTimeInterval;
-        DEBUG_INFO("[Spawner] Player %d sending response time of %u, LatencyMode = %d, Frame = %d\n", event.ID, event.Data.ResponseTime2.MaxAhead, event.Data.ResponseTime2.LatencyLevel, Frame);
+        DEBUG_INFO("[Spawner] Player {} sending response time of {}, LatencyMode = {}, Frame = {}\n", event.ID, event.Data.ResponseTime2.MaxAhead, (int)event.Data.ResponseTime2.LatencyLevel, Frame);
     } else {
         NextSendFrame++;
     }

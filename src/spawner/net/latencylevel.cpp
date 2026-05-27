@@ -55,7 +55,7 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
 
     if (new_latency_level <= CurentLatencyLevel) return;
 
-    DEBUG_INFO("[Spawner] Player %ls, LatencyMode (%d, %d) Frame = %d\n", PlayerPtr->IniName, new_latency_level, CurentLatencyLevel, Frame);
+    DEBUG_INFO("[Spawner] Player {}, LatencyMode ({}, {}) Frame = {}\n", PlayerPtr->IniName, (int)new_latency_level, (int)CurentLatencyLevel, Frame);
 
     CurentLatencyLevel = new_latency_level;
     NewFrameSendRate = static_cast<unsigned char>(new_latency_level);

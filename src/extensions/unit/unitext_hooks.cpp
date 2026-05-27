@@ -1470,7 +1470,7 @@ void UnitClassExt::_Read_INI(CCINIClass& ini)
                 continue;
             } else {
 
-                DEBUG_INFO("Ignoring unit placed for %s because the house is not present\n", housename);
+                DEBUG_INFO("Ignoring unit placed for {} because the house is not present\n", housename);
 
                 // This unit's owner is likely a Spawn house that is not present.
                 // Go through the followers and for each one with ID above the current unit ID, decrement it by one.

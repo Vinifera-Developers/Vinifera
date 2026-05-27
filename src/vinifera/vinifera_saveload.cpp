@@ -643,7 +643,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     DEBUG_INFO("About to call Prep_For_Side()...\n");
     if (!Prep_For_Side(ScenExtension->SidebarSide)) {
-        DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
+        DEBUG_WARNING("Prep_For_Side({}) failed! Trying with side 0...\n", (int)housetype->Side);
 
         /**
          *  Try once again but with the Side 0 (GDI) assets.
@@ -659,7 +659,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
     if (!Prep_Speech_For_Side(housetype->Side)) {
-        DEBUG_WARNING("Prep_Speech_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
+        DEBUG_WARNING("Prep_Speech_For_Side({}) failed! Trying with side 0...\n", (int)housetype->Side);
 
         /**
          *  Try once again but with the Side 0 (GDI) assets.
@@ -1114,12 +1114,12 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             if (GameActive) {
 
                 if (Session.Type == GAME_NORMAL && saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
-                    DEBUG_INFO("Save file \"%s\" belongs to a different playthough, skipping.\n", formatted_file_name);
+                    DEBUG_INFO("Save file \"{}\" belongs to a different playthough, skipping.\n", formatted_file_name);
                     return false;
                 }
 
                 if (Session.Type != GAME_NORMAL && saveversion.Get_Game_Type() == GAME_NORMAL) {
-                    DEBUG_INFO("Save file \"%s\" is a campaign save and the player is currently not in campaign, skipping.\n", formatted_file_name);
+                    DEBUG_INFO("Save file \"{}\" is a campaign save and the player is currently not in campaign, skipping.\n", formatted_file_name);
                     return false;
                 }
             }

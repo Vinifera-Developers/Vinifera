@@ -63,7 +63,7 @@ long RawFileClassExt::_Read(void *buffer, int length)
         opened = true;
     }
 
-    //DEV_DEBUG_INFO("File - Reading \"%s\".\n", Filename);
+    //DEV_DEBUG_INFO("File - Reading \"{}\".\n", Filename);
 
     /**
      *  A biased file has the requested read length limited to the bias length of

@@ -444,7 +444,7 @@ void EventClassExt::Do_TIMING()
  */
 void EventClassExt::Do_REMOVEPLAYER()
 {
-    DEBUG_INFO("Executing REMOVEPLAYER event. Frame is %d\n", Frame);
+    DEBUG_INFO("Executing REMOVEPLAYER event. Frame is {}\n", Frame);
     HouseClass* house = Houses[Data.General.Value];
 
     /**

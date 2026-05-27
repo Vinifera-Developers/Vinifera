@@ -89,7 +89,7 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
         addr_len = sizeof(addr);
         rc = Receive_From(Socket, reinterpret_cast<char*>(ReceiveBuffer), sizeof(ReceiveBuffer), 0, &addr, &addr_len);
         if (rc == SOCKET_ERROR) {
-            DEBUG_WARNING("CnCNet5: Receive_From returned %d!\n", WSAGetLastError());
+            DEBUG_WARNING("CnCNet5: Receive_From returned {}!\n", WSAGetLastError());
             Clear_Socket_Error(Socket);
             return 0;
         }
@@ -240,10 +240,6 @@ int CnCNet5UDPInterfaceClass::Send_To(SOCKET s, const char* buf, int len, int fl
         return sendto(s, buf, len, flags, (const sockaddr*)dest_addr, addrlen);
     }
 
-#ifndef NDEBUG
-    // DEV_DEBUG_INFO("CnCNet5: sendto(s=%d, buf=%p, len=%d, flags=%08X, to=%p, addrlen=%d)\n", s, buf, len, flags, dest_addr, addrlen);
-#endif
-
     /**
      *  Copy packet to our buffer.
      */
@@ -280,10 +276,6 @@ int CnCNet5UDPInterfaceClass::Receive_From(SOCKET s, char* buf, int len, int fla
         DEBUG_WARNING("CnCNet5: TunnelPort is invalid in Recieve_From!\n");
         return recvfrom(s, buf, len, flags, reinterpret_cast<sockaddr*>(src_addr), addrlen);
     }
-
-#ifndef NDEBUG
-    // DEV_DEBUG_INFO("CnCNet5: recvfrom(s=%d, buf=%p, len=%d, flags=%08X, from=%p, addrlen=%p (%d))\n", s, buf, len, flags, src_addr, addrlen, *addrlen);
-#endif
 
     /**
      *  Call recvfrom first to get the packet.

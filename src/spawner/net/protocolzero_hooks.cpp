@@ -67,14 +67,14 @@ public:
 void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long maxretries, unsigned long timeout, bool global)
 {
     if (SessionExtension->ProtocolZeroEnabled) {
-        DEBUG_INFO("[Spawner] NewRetryDelta = %d, NewRetryTimeout = %d, FrameSendRate = %d, CurentLatencyLevel = %d\n", retrydelta, maxretries, Session.FrameSendRate, LatencyLevel::CurentLatencyLevel);
+        DEBUG_INFO("[Spawner] NewRetryDelta = {}, NewRetryTimeout = {}, FrameSendRate = {}, CurentLatencyLevel = {}\n", retrydelta, maxretries, Session.FrameSendRate, (int)LatencyLevel::CurentLatencyLevel);
     }
 
     /**
      *  Vanilla function.
      */
-    DEBUG_INFO("RetryDelta = %d\n", retrydelta);
-    DEBUG_INFO("MaxAhead is %d\n", Session.MaxAhead);
+    DEBUG_INFO("RetryDelta = {}\n", retrydelta);
+    DEBUG_INFO("MaxAhead is {}\n", Session.MaxAhead);
 
     RetryDelta = retrydelta;
     MaxRetries = maxretries;
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x005B1A2D, _ProtocolZero_Queue_AI_Multiplayer_1, 0)
  */
 DEFINE_HOOK(0x005B1BF1, _ProtocolZero_Queue_AI_Multiplayer_2, 0)
 {
-    DEBUG_INFO("[Spawner] Sending precalculated network timings on frame %d\n", Frame);
+    DEBUG_INFO("[Spawner] Sending precalculated network timings on frame {}\n", Frame);
 
     EventClass ev;
     ev.Type = EVENT_TIMING;

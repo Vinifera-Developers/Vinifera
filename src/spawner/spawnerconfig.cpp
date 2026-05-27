@@ -170,7 +170,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
         sprintf(buffer, "GlobalFlag%d", i);
         GlobalFlags[i] = spawn_ini.Get_Int("GlobalFlags", buffer, 0);
         if (GlobalFlags[i] > 0) {
-            DEBUG_INFO("[Spawner] Read global %d as %d from %s\n", i, GlobalFlags[i], buffer);
+            DEBUG_INFO("[Spawner] Read global {} as {} from {}\n", i, GlobalFlags[i], buffer);
         }
     }
 }

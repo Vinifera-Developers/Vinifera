@@ -694,7 +694,7 @@ void HouseClassExt::_MPlayer_Defeated()
         }
 
         Map.Flag_To_Redraw();
-        DEBUG_INFO("MPlayer_Defeated() - Player %s has been defeated\n", IniName.c_str());
+        DEBUG_INFO("MPlayer_Defeated() - Player {} has been defeated\n", IniName);
 
     } else {
 
@@ -709,7 +709,7 @@ void HouseClassExt::_MPlayer_Defeated()
             }
 
             Map.Flag_To_Redraw();
-            DEBUG_INFO("MPlayer_Defeated() - Opponent %s has been defeated\n", IniName.c_str());
+            DEBUG_INFO("MPlayer_Defeated() - Opponent {} has been defeated\n", IniName);
         }
     }
 
@@ -750,7 +750,7 @@ void HouseClassExt::_MPlayer_Defeated()
             PlayerPtr->RecalcRadar = true;
             HiddenSurface->Fill(0);
             Map.Flag_To_Redraw();
-            DEBUG_INFO("MPlayer_Defeated() - Player %s has no allies left (OBIWAN MODE)\n", IniName.c_str());
+            DEBUG_INFO("MPlayer_Defeated() - Player {} has no allies left (OBIWAN MODE)\n", IniName);
         }
 
     }
@@ -769,7 +769,7 @@ void HouseClassExt::_MPlayer_Defeated()
             num_alive++;
         }
     }
-    DEBUG_INFO("MPlayer_Defeated() - Alive = %d, Humans = %d\n", num_alive, num_humans);
+    DEBUG_INFO("MPlayer_Defeated() - Alive = {}, Humans = {}\n", num_alive, num_humans);
 
     /**
      *  If all the houses left alive are allied with each other, then in reality
@@ -2022,10 +2022,10 @@ ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
      */
     Difficulty = (DiffType)(handicap >= DIFF_COUNT ? (DIFF_COUNT - 1) : handicap);
 
-    DEBUG_INFO("Assigning handicap %d to house %d\n", handicap, HeapID);
+    DEBUG_INFO("Assigning handicap {} to house {}\n", (int)handicap, (int)HeapID);
 
     if (handicap >= EXT_DIFF_COUNT) {
-        DEBUG_ERROR("Invalid value supplied to HouseClassExt::_Assign_Handicap! %d", handicap);
+        DEBUG_ERROR("Invalid value supplied to HouseClassExt::_Assign_Handicap! {}", (int)handicap);
         Emergency_Exit(0);
         return old;
     }

@@ -116,7 +116,7 @@ bool Spawner::Start_Game()
     Init_UI();
     Prepare_Screen();
 
-    DEBUG_INFO("[Spawner] Start_Game: Starting scenario %s\n", Config->ScenarioName.c_str());
+    DEBUG_INFO("[Spawner] Start_Game: Starting scenario {}\n", Config->ScenarioName);
     const bool result = Start_Scenario(Config->ScenarioName.data());
     HasSpawned = true;
 
@@ -166,7 +166,7 @@ int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
     //     return DIFF_EASY;
     // }
     
-    DEBUG_FATAL("Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty: Unknown difficulty level %d", difficulty);
+    DEBUG_FATAL("Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty: Unknown difficulty level {}", difficulty);
     return -1;
 }
 
@@ -291,7 +291,7 @@ bool Spawner::Init_Session(char* scenario_name)
     for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
         EnvironmentGlobals[i] = Config->GlobalFlags[i];
         if (Config->GlobalFlags[i] > 0) {
-            DEBUG_INFO("[Spawner] Init_Session: Applied GlobalFlag %d as %d\n", i, EnvironmentGlobals[i]);
+            DEBUG_INFO("[Spawner] Init_Session: Applied GlobalFlag {} as {}\n", i, EnvironmentGlobals[i]);
         }
     }
 
@@ -310,7 +310,7 @@ bool Spawner::Start_Scenario(char* scenario_name)
      *  Can't read an unnamed file, bail.
      */
     if (scenario_name[0] == 0 && !Config->LoadSaveGame) {
-        DEBUG_INFO("[Spawner] Failed to read scenario [%s]\n", scenario_name);
+        DEBUG_INFO("[Spawner] Failed to read scenario [{}]\n", scenario_name);
         MessageBox(MainWindow, Text_String(TXT_UNABLE_READ_SCENARIO), "Vinifera", MB_OK);
 
         return false;
@@ -386,7 +386,7 @@ bool Spawner::Load_Game(const char* file_name)
 {
 //    if (strlen(file_name) == 0 || !::Load_Game(file_name)) {
     if (strlen(file_name) == 0 || !LoadOptionsClass().Load_File(file_name)) { // using LoadOptionsClass().Load_File here gives us a "Mission is loading. Please wait..." box.
-        DEBUG_INFO("[Spawner] Failed to load savegame [%s]\n", file_name);
+        DEBUG_INFO("[Spawner] Failed to load savegame [{}]\n", file_name);
         MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
 
         return false;

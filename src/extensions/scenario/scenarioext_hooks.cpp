@@ -323,7 +323,7 @@ static void Init_Loading_Screen(const char* filename)
     bar_pos.X += (VisibleRect.Width - loading_screen.Size.Size.X) / 2;
     bar_pos.Y += (VisibleRect.Height - loading_screen.Size.Size.Y) / 2;
 
-    DEV_DEBUG_INFO("Loading Screen: \"%s\"\n", loadfilename);
+    DEV_DEBUG_INFO("Loading Screen: \"{}\"\n", loadfilename);
 
     /**
      *  If this is a tournament game, format the game id.

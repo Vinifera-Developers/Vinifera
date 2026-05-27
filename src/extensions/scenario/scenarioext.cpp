@@ -262,8 +262,6 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
  */
 bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_Loading_Screen_INI - 0x%08X\n", (uintptr_t)(This()));
-
     static const char * const BASIC = "Basic";
 
     CCFileClass file(filename);
@@ -891,7 +889,7 @@ void ScenarioClassExtension::Dump_Globals() const
     // Erase last comma for cleanness
     buffer[bufferindex] = '\0';
 
-    DEBUG_INFO("Global variables: %s\n", buffer);
+    DEBUG_INFO("Global variables: {}\n", buffer);
 }
 
 
@@ -996,8 +994,8 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
      */
     Scen->Campaign = campaignid;
 
-    DEBUG_INFO("\n----- Starting scnenario: %s -----\n", name);
-    DEBUG_INFO("Player Count: %d\n", Session.Players.Count());
+    DEBUG_INFO("\n----- Starting scnenario: {} -----\n", name);
+    DEBUG_INFO("Player Count: {}\n", Session.Players.Count());
 
     /**
      *  Set the scenario name.
@@ -1066,7 +1064,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         CampaignClassExtension* campaignext = Extension::Fetch(campaign);
         if (campaignext->IntroMovie[0] != '\0') {
             std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
-            DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+            DEBUG_INFO("About to play \"{}\".\n", movie_filename);
             Play_Movie(movie_filename);
         }
         /**
@@ -1090,7 +1088,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
              *  Now play the movie if it is found, falling back to original behavior otherwise.
              */
             if (CCFileClass(movie_filename).Is_Available()) {
-                DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+                DEBUG_INFO("About to play \"{}\".\n", movie_filename);
                 Play_Movie(movie_filename);
 
             } else if (CCFileClass("INTRO.VQA").Is_Available()) {
@@ -1106,7 +1104,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         }
     }
 
-    DEBUG_INFO("Reading scenario: %s\n", name);
+    DEBUG_INFO("Reading scenario: {}\n", name);
 
     if (!Read_Scenario(name)) {
         return false;
@@ -1231,7 +1229,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
      *  Toggle the display mode if mode toggling is allowed.
      */
     if (Debug_AllowModeToggle && (VisibleRect.Width != Options.ScreenWidth || VisibleRect.Height != Options.ScreenHeight)) {
-        DEBUG_INFO("Toggle display mode to %d X %d\n", Options.ScreenWidth, Options.ScreenHeight);
+        DEBUG_INFO("Toggle display mode to {} X {}\n", Options.ScreenWidth, Options.ScreenHeight);
         Change_Video_Mode(Options.ScreenWidth, Options.ScreenHeight);
     }
 
@@ -1287,7 +1285,7 @@ static bool Rule_Addition(const char* fname, bool with_digest = false)
         return false;
     }
 
-    DEBUG_INFO("Calling Rule->Addition() with \"%s\" overrides.\n", fname);
+    DEBUG_INFO("Calling Rule->Addition() with \"{}\" overrides.\n", fname);
 
     Rule->Addition(ini);
 
@@ -1344,7 +1342,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
      *  Set the unique playthrough ID.
      */
     Vinifera_PlaythroughID = std::time(nullptr);
-    DEBUG_INFO("[Vinifera] Starting new scenario. Playthrough ID: %u.\n", Vinifera_PlaythroughID);
+    DEBUG_INFO("[Vinifera] Starting new scenario. Playthrough ID: {}.\n", Vinifera_PlaythroughID);
 
     /**
      *  Make sure we have, and then enable the required addon.
@@ -1931,7 +1929,7 @@ static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
     for (int waycount = 0; waycount < look_for; ++waycount) {
         if (Scen->Is_Waypoint_Valid(waycount)) {
             list.Add(Scen->Waypoint_Cell(waycount));
-            DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", Scen->Waypoint_Cell(waycount).X, Scen->Waypoint_Cell(waycount).Y);
+            DEBUG_INFO("Multiplayer start waypoint found at cell {},{}.\n", Scen->Waypoint_Cell(waycount).X, Scen->Waypoint_Cell(waycount).Y);
         }
     }
 
@@ -1948,7 +1946,7 @@ static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
             trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
             if (trycell != CELL_NONE) {
                 list.Add(trycell);
-                DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
+                DEBUG_INFO("Random multiplayer start waypoint added at cell {},{}.\n", trycell.X, trycell.Y);
             }
         }
     }
@@ -2184,7 +2182,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
-        DEBUG_INFO("  House %d (%s) starting at waypoint %d (%d,%d)\n", house, hptr->IniName.c_str(), houseext->SpawnWaypoint, centroid.X, centroid.Y);
+        DEBUG_INFO("  House {} ({}) starting at waypoint {} ({},{})\n", (int)house, hptr->IniName, houseext->SpawnWaypoint, centroid.X, centroid.Y);
     }
 }
 
@@ -2850,7 +2848,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 
         HouseClassExtension* houseext = Extension::Fetch(hptr);
         if (houseext->IsObserver) {
-            DEV_DEBUG_INFO("House %d is an Observer, skipping.\n", house);
+            DEV_DEBUG_INFO("House {} is an Observer, skipping.\n", (int)house);
             continue;
         }
 

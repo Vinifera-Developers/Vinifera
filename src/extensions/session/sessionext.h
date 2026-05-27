@@ -25,6 +25,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 
     public:
         SessionClassExtension(const SessionClass *this_ptr);
+        SessionClassExtension(const NoInitClass &noinit);
         ~SessionClassExtension() override;
 
         virtual int Get_Object_Size() const override;
