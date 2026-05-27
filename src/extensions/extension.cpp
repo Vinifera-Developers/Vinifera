@@ -211,11 +211,8 @@ static EXT_CLASS * Extension_Make(const BASE_CLASS *abstract_ptr)
     ext_ptr = new EXT_CLASS(reinterpret_cast<const BASE_CLASS *>(abs_ptr));
     ASSERT(ext_ptr != nullptr);
     if (!ext_ptr) {
-
         char buffer[256];
         std::snprintf(buffer, sizeof(buffer), "Extension_Make: Failed to make \"%s\" extension!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
-
-        EXT_DEBUG_WARNING(buffer);
 
         ShowCursor(TRUE);
         MessageBoxA(MainWindow, buffer, "Vinifera", MB_OK|MB_ICONEXCLAMATION);
@@ -225,8 +222,6 @@ static EXT_CLASS * Extension_Make(const BASE_CLASS *abstract_ptr)
 
         return nullptr;
     }
-
-    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 
     /**
      *  Assign the extension class instance to the abstract class.
@@ -250,7 +245,6 @@ static bool Extension_Destroy(const BASE_CLASS *abstract_ptr)
      */
     EXT_CLASS *ext_ptr = reinterpret_cast<EXT_CLASS *>(Extension_Get_Abstract_Pointer(abstract_ptr));
     if (!ext_ptr) {
-        EXT_DEBUG_WARNING("Extension_Destroy: \"%s\" extension pointer is null!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
         return false;
     }
     
@@ -258,8 +252,6 @@ static bool Extension_Destroy(const BASE_CLASS *abstract_ptr)
      *  Destroy the attached extension class instance.
      */
     delete ext_ptr;
-
-    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 
     /**
      *  Clear the extension pointer for the abstract class.
@@ -288,11 +280,11 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
     }
 
     if (list.Count() <= 0) {
-        DEBUG_INFO("List for \"%s\" has a count of zero, skipping save.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+        DEBUG_INFO("List for \"{}\" has a count of zero, skipping save.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
         return true;
     }
 
-    DEBUG_INFO("Saving \"%s\" extensions (Count: %d)\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), list.Count());
+    DEBUG_INFO("Saving \"{}\" extensions (Count: {})\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), list.Count());
 
     /**
      *  Save each instance of this class.
@@ -307,7 +299,7 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
         IPersistStream *lpPS = nullptr;
         hr = ptr->QueryInterface(__uuidof(IPersistStream), (LPVOID *)&lpPS);
         if (FAILED(hr)) {
-            DEBUG_ERROR("Extension \"%s\" does not support IPersistStream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+            DEBUG_ERROR("Extension \"{}\" does not support IPersistStream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
             return false;
         }
 
@@ -316,7 +308,7 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
          */
         hr = OleSaveToStream(lpPS, pStm);
         if (FAILED(hr)) {
-            DEBUG_ERROR("OleSaveToStream failed for extension \"%s\" (Index: %d)!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str(), index);
+            DEBUG_ERROR("OleSaveToStream failed for extension \"{}\" (Index: {})!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>(), index);
             return false;
         }
 
@@ -325,14 +317,13 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
          */
         hr = lpPS->Release();
         if (FAILED(hr)) {
-            DEBUG_ERROR("Failed to release extension \"%s\" stream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+            DEBUG_ERROR("Failed to release extension \"{}\" stream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
             return false;
         }
 
         EXT_CLASS * ext_ptr = reinterpret_cast<EXT_CLASS *>(lpPS);
 
         if (ext_ptr->Fetch_RTTI() != RTTI_WAVE || ext_ptr->Fetch_RTTI() != RTTI_LIGHT) {
-            EXT_DEBUG_INFO("  -> %s\n", ext_ptr->Name());
         }
     }
 
@@ -358,11 +349,11 @@ static bool Extension_Load(IStream *pStm, DynamicVectorClass<EXT_CLASS *> &list)
     }
 
     if (count <= 0) {
-        DEBUG_INFO("List for \"%s\" has a count of zero, skipping load.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+        DEBUG_INFO("List for \"{}\" has a count of zero, skipping load.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
         return true;
     }
 
-    DEBUG_INFO("Loading \"%s\" extensions (Count: %d)\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), count);
+    DEBUG_INFO("Loading \"{}\" extensions (Count: {})\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), count);
     
     /**
      *  Read each class instance.
@@ -375,7 +366,7 @@ static bool Extension_Load(IStream *pStm, DynamicVectorClass<EXT_CLASS *> &list)
         IUnknown *spUnk = nullptr;
         hr = OleLoadFromStream(pStm, __uuidof(IUnknown), (LPVOID *)&spUnk);
         if (FAILED(hr)) {
-            DEBUG_ERROR("OleLoadFromStream failed for extension \"%s\" (Index: %d)!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str(), index);
+            DEBUG_ERROR("OleLoadFromStream failed for extension \"{}\" (Index: {})!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>(), index);
             return false;
         }
 
@@ -394,11 +385,11 @@ template<class BASE_CLASS, class EXT_CLASS>
 static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS *> &list)
 {
     if (!list.Count()) {
-        DEBUG_INFO("Requested remap of \"%s\" extension pointers, but the list is empty!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+        DEBUG_INFO("Requested remap of \"{}\" extension pointers, but the list is empty!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>());
         return true;
     }
 
-    DEBUG_INFO("Requesting remap of \"%s\" extension pointers (Count %d)...\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), list.Count());
+    DEBUG_INFO("Requesting remap of \"{}\" extension pointers (Count {})...\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), list.Count());
 
     for (int index = 0; index < list.Count(); ++index) {
 
@@ -406,7 +397,7 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
         if (object) {
 
             if (!Extension_Get_Abstract_Pointer(object)) {
-                DEV_DEBUG_ERROR("Extension_Request_Pointer_Remap: \"%s\" extension pointer (index %d) for is null!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), index);
+                DEV_DEBUG_ERROR("Extension_Request_Pointer_Remap: \"{}\" extension pointer (index {}) for is null!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), index);
                 continue; //return false;
             }
 
@@ -420,7 +411,6 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
             uintptr_t **ext_ptr_addr = ABSTRACT_EXTENSION_POINTER_REMAP_MACRO(object);
             VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(*ext_ptr_addr, extptr_name.c_str());
 
-            EXT_DEBUG_INFO("  Requested remap of index %d extension pointer complete.\n", index);
         }
     }
 
@@ -577,7 +567,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_FOGGEDOBJECT: { extptr = Extension_Make<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { extptr = Extension_Make<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { extptr = Extension_Make<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
+        default: { DEBUG_ERROR("Extension::Make: No extension support for \"{}\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     return extptr;
@@ -657,7 +647,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_FOGGEDOBJECT: { removed = Extension_Destroy<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { removed = Extension_Destroy<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { removed = Extension_Destroy<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
+        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"{}\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     ASSERT(removed);
@@ -679,7 +669,7 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
 
     if (!ext_ptr) {
         if (Is_Supported(abstract)) {
-            DEBUG_ERROR("Extension::Fetch: Extension for \"%s\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+            DEBUG_ERROR("Extension::Fetch: Extension for \"{}\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract));
         }        
         return nullptr;
     }
@@ -688,11 +678,9 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
      *  Its possible the pointer could be invalid, so perform a check.
      */
     if (ext_ptr->Fetch_RTTI() <= RTTI_NONE || ext_ptr->Fetch_RTTI() >= RTTI_COUNT) {
-        DEBUG_ERROR("Extension::Fetch: Invalid extension RTTI type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        DEBUG_ERROR("Extension::Fetch: Invalid extension RTTI type for \"{}\"!\n", Extension::Utility::Get_TypeID_Name(abstract));
         return nullptr;
     }
-
-    //EXT_DEBUG_INFO("Extension::Fetch: Abstract \"%s\", got extension \"%s\".\n", Extension::Utility::Get_TypeID_Name(abstract).c_str(), ext_ptr->Name());
 
     return ext_ptr;
 }
@@ -778,16 +766,16 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<VeinholeMonsterClass, VeinholeMonsterClassExtension>(pStm, VeinholeMonsterExtensions)) { return false; } // Not yet implemented
 
     if (FAILED(TacticalMapExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension.\n", TacticalMapExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension.\n", TacticalMapExtension->Name());
 
     if (FAILED(RuleExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", RuleExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension\n", RuleExtension->Name());
 
     if (FAILED(ScenExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", ScenExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension\n", ScenExtension->Name());
 
     if (FAILED(SessionExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", SessionExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension\n", SessionExtension->Name());
 
     DEV_DEBUG_INFO("Extension::Save(exit)\n");
 
@@ -875,19 +863,19 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<VeinholeMonsterClass, VeinholeMonsterClassExtension>(pStm, VeinholeMonsterExtensions)) { return false; } // Not yet implemented
 
     if (FAILED(TacticalMapExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", TacticalMapExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", TacticalMapExtension->Name());
     TacticalMapExtension->Assign_This(TacticalMap);
 
     if (FAILED(RuleExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", RuleExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", RuleExtension->Name());
     RuleExtension->Assign_This(Rule);
 
     if (FAILED(ScenExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", ScenExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", ScenExtension->Name());
     ScenExtension->Assign_This(Scen);
 
     if (FAILED(SessionExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", SessionExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", SessionExtension->Name());
     SessionExtension->Assign_This(&Session);
 
     /**
@@ -1189,7 +1177,6 @@ static void Print_Heap_CRC_Lists(FILE *fp, DynamicVectorClass<T *> &list)
         T *ptr = list[index];
         ptr->Object_CRC(*crc);
         std::fprintf(fp, "%05d    %08x\n", index, crc->CRC_Value());
-        EXT_DEBUG_INFO("%05d %08x\n", index, crc->CRC_Value());
     }
 
     delete crc;
@@ -1222,7 +1209,7 @@ void Extension::Print_CRCs(EventClass *ev)
         return;
     }
 
-    DEBUG_INFO("Writing sync log to file %s.\n", filename_buffer);
+    DEBUG_INFO("Writing sync log to file {}.\n", filename_buffer);
 
     Extension::Print_CRCs(fp, ev);
 
@@ -1490,7 +1477,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                 housep->Class->Name(),
                 housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>");
             Add_CRC(&GameCRC, (int)housep->Credits + (int)housep->Power + (int)housep->Drain);
-            EXT_DEBUG_INFO("House %s:%x\n", housep->Class->Name(), GameCRC);
         }
     }
     std::fprintf(fp, "\n");
@@ -1536,7 +1522,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Print_Path(fp, ptr);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<InfantryClassExtension>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1581,7 +1566,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Print_Path(fp, ptr);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<UnitClass>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1614,7 +1598,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1658,7 +1641,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Print_Path(fp, ptr);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1770,7 +1752,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         std::fprintf(fp, "\n");
     }
     std::fprintf(fp, "\n");
-    EXT_DEBUG_INFO("Map Layers: %x\n", GameCRC);
 
     /**
      *  Logic Layers
@@ -1821,16 +1802,13 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         }
     }
     std::fprintf(fp, "\n");
-    EXT_DEBUG_INFO("Logic: %x\n", GameCRC);
 
     /**
      *  Random # generator, frame #.
      */
     std::fprintf(fp, "\nRandom Number:%x\n", Scen->RandomNumber());
-    EXT_DEBUG_INFO("Random Number: %x\n", Scen->RandomNumber());
 
     std::fprintf(fp, "My Frame:%d\n", Frame);
-    EXT_DEBUG_INFO("My Frame: %d\n", Frame);
 
     if (ev) {
         std::fprintf(fp, "\n");

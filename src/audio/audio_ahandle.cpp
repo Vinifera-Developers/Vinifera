@@ -140,7 +140,7 @@ unsigned long __cdecl AudioHandleClass::Timer_Callback_Audio_Handler(VQAHandle *
         }
     }
     
-    //DEBUG_INFO("AudioHandle: Timer_Callback_Audio_Handler -> returning %d\n", PlaybackTime60Hz);
+    //DEBUG_INFO("AudioHandle: Timer_Callback_Audio_Handler -> returning {}\n", PlaybackTime60Hz);
 
     return PlaybackTime60Hz;
 }
@@ -257,7 +257,7 @@ long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitP
     CallbackBufferPtr = nullptr;
     CurrentBufferIndex = 0;
 
-    DEBUG_INFO("AudioHandle: Open_Audio_Handler -> %d %d %d\n", SampleRate, Channels, BitsPerSample);
+    DEBUG_INFO("AudioHandle: Open_Audio_Handler -> {} {} {}\n", SampleRate, Channels, BitsPerSample);
 
     if (StreamInstance) {
         delete StreamInstance;
@@ -380,8 +380,8 @@ long __cdecl AudioHandleClass::Load_Audio_Handler(VQAHandleP *vqap, void *buffer
     // Rotate index for next load
     CurrentBufferIndex = (CurrentBufferIndex + 1) % 2;
 
-//    DEBUG_INFO("AudioHandle: Rotated buffer -> idx = %d ptr = %p\n", CurrentBufferIndex, CallbackBufferPtr);
-//    DEBUG_INFO("AudioHandle: Pushed bytes %d to stream handler\n", nbytes);
+//    DEBUG_INFO("AudioHandle: Rotated buffer -> idx = {} ptr = {}\n", CurrentBufferIndex, CallbackBufferPtr);
+//    DEBUG_INFO("AudioHandle: Pushed bytes {} to stream handler\n", nbytes);
 
     return VQAERR_NONE;
 }

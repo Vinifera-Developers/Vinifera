@@ -40,7 +40,7 @@ DEFINE_HOOK(0x0054E7DE, _MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_
      *  Make sure the house exists before placing the bridge repair hut.
      */
     if (!hptr) {
-        DEBUG_WARNING("Unable to find house \"%s\"!\n", "Neutral");
+        DEBUG_WARNING("Unable to find house \"{}\"!\n", "Neutral");
         goto function_return;
     }
 
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x0054E498, _MapSeedClass_Generate_Place_Town_Buildings_Neutral_Hous
      *  Make sure the house exists before placing the bridge repair hut.
      */
     if (!hptr) {
-        DEBUG_WARNING("Unable to find house \"%s\"!\n", "Neutral");
+        DEBUG_WARNING("Unable to find house \"{}\"!\n", "Neutral");
         goto function_return;
     }
 
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x0054C701, _MapSeedClass_Generate_Place_Town_Infantry_Neutral_House
      *  Make sure the house exists before placing the bridge repair hut.
      */
     if (!hptr) {
-        DEBUG_WARNING("Unable to find house \"%s\"!\n", "Neutral");
+        DEBUG_WARNING("Unable to find house \"{}\"!\n", "Neutral");
         goto function_return;
     }
 
@@ -108,7 +108,7 @@ DEFINE_HOOK(0x0054C31C, _MapSeedClass_Generate_Place_City_Buildings_Neutral_Hous
      *  Make sure the house exists before placing the bridge repair hut.
      */
     if (!hptr) {
-        DEBUG_WARNING("Unable to find house \"%s\"!\n", "Neutral");
+        DEBUG_WARNING("Unable to find house \"{}\"!\n", "Neutral");
         goto function_return;
     }
 
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x00546A4B, _MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_H
      *  Make sure the house exists before placing the bridge repair hut.
      */
     if (!hptr) {
-        DEBUG_WARNING("Unable to find house \"%s\"!\n", "Neutral");
+        DEBUG_WARNING("Unable to find house \"{}\"!\n", "Neutral");
         goto return_false;
     }
 
@@ -155,7 +155,7 @@ DEFINE_HOOK(0x00535434, _MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fi
      *  Make sure the house exists before placing the bridge repair hut.
      */
     if (!hptr) {
-        DEBUG_WARNING("Unable to find house \"%s\"!\n", "Neutral");
+        DEBUG_WARNING("Unable to find house \"{}\"!\n", "Neutral");
         goto return_false;
     }
 
@@ -184,7 +184,7 @@ DEFINE_HOOK(0x0054F41D, _MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fi
      *  Make sure the house exists before placing the bridge repair hut.
      */
     if (!hptr) {
-        DEBUG_WARNING("Unable to find house \"%s\"!\n", "Special");
+        DEBUG_WARNING("Unable to find house \"{}\"!\n", "Special");
         //goto return_false;
     }
 
@@ -208,7 +208,7 @@ static void MapSeedClass_Init_Houses(CCINIClass &ini)
         if (housetype) {
             HouseClass* house = new HouseClass(housetype);
             if (house) {
-                DEBUG_INFO("  Created house \"%s\".\n", housetype->Name());
+                DEBUG_INFO("  Created house \"{}\".\n", housetype->Name());
                 house->Read_INI(ini);
             }
         }

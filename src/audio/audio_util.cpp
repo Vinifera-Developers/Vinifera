@@ -127,14 +127,14 @@ AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, 
     AudioFileType type = AUDIO_TYPE_NONE;
     std::string filename;
     if (!AudioManager.Get_File_Info(lookup_name, type, filename)) {
-        DEBUG_WARNING("Audio_Play_UI_Sample - Failed to resolve \"%s\".\n", name.c_str());
+        DEBUG_WARNING("Audio_Play_UI_Sample - Failed to resolve \"{}\".\n", name);
         return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
     if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
         if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
-            DEBUG_WARNING("Audio_Play_UI_Sample - Failed to submit \"%s\".\n", filename.c_str());
+            DEBUG_WARNING("Audio_Play_UI_Sample - Failed to submit \"{}\".\n", filename);
             return INVALID_AUDIO_INSTANCE_HANDLE;
         }
     }
@@ -158,7 +158,7 @@ AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileTyp
     AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
     if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
         if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
-            DEBUG_WARNING("Audio_Play_UI_File - Failed to submit \"%s\".\n", filename.c_str());
+            DEBUG_WARNING("Audio_Play_UI_File - Failed to submit \"{}\".\n", filename);
             return INVALID_AUDIO_INSTANCE_HANDLE;
         }
     }

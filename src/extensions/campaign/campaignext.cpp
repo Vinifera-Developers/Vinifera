@@ -27,8 +27,6 @@ CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :
     IntroMovie(),
     _House(HOUSE_NONE)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("CampaignClassExtension::CampaignClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     CampaignExtensions.Add(this);
 }
 
@@ -41,7 +39,6 @@ CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :
 CampaignClassExtension::CampaignClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::CampaignClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -52,8 +49,6 @@ CampaignClassExtension::CampaignClassExtension(const NoInitClass &noinit) :
  */
 CampaignClassExtension::~CampaignClassExtension()
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::~CampaignClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     CampaignExtensions.Delete(this);
 }
 
@@ -65,8 +60,6 @@ CampaignClassExtension::~CampaignClassExtension()
  */
 HRESULT CampaignClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -84,8 +77,6 @@ HRESULT CampaignClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT CampaignClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -104,8 +95,6 @@ HRESULT CampaignClassExtension::Load(IStream *pStm)
  */
 HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -122,8 +111,6 @@ HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int CampaignClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -137,7 +124,6 @@ int CampaignClassExtension::Get_Object_Size() const
  */
 void CampaignClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -148,13 +134,11 @@ void CampaignClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool CampaignClassExtension::Read_INI(CCINIClass &ini)
 {
-    const char* ini_name = Name();
-
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    const char *ini_name = Name();
 
     IsDebugOnly = ini.Get_Bool(ini_name, "DebugOnly", IsDebugOnly);
 

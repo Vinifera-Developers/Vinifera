@@ -110,7 +110,6 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     AbandonTargetEscortRange(-1),
     ScrapExplosion()
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -128,7 +127,6 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
     BuiltAt(noinit),
     ScrapExplosion(noinit)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -139,8 +137,6 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
  */
 TechnoTypeClassExtension::~TechnoTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::~TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     delete CameoImageSurface;
     CameoImageSurface = nullptr;
 }
@@ -153,8 +149,6 @@ TechnoTypeClassExtension::~TechnoTypeClassExtension()
  */
 HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     VoiceCapture.Clear();
     VoiceEnter.Clear();
     VoiceDeploy.Clear();
@@ -193,7 +187,6 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     
     ArtINI.Get_String(ini_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
     if (std::string_view(cameo_buffer) != "XXICON") {
-
         ArtINI.Get_String(graphic_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
 
         /**
@@ -217,8 +210,6 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -242,8 +233,6 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::GetSizeMax - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!pcbSize) {
         return E_POINTER;
     }
@@ -266,8 +255,6 @@ LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
  */
 void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsShakeScreen);
     crc(IsImmuneToEMP);
     crc(ShakePixelYHi);
@@ -341,8 +328,6 @@ TargetZoneScanType _Get_TargetZoneScanType(CCINIClass& ini, const char* section,
  */
 bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }

@@ -26,8 +26,6 @@ SuperClassExtension::SuperClassExtension(const SuperClass *this_ptr) :
     FlashTimeEnd(0),
     TimerFlashState(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SuperClassExtension::SuperClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SuperExtensions.Add(this);
 }
 
@@ -40,7 +38,6 @@ SuperClassExtension::SuperClassExtension(const SuperClass *this_ptr) :
 SuperClassExtension::SuperClassExtension(const NoInitClass &noinit) :
     AbstractClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::SuperClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -51,8 +48,6 @@ SuperClassExtension::SuperClassExtension(const NoInitClass &noinit) :
  */
 SuperClassExtension::~SuperClassExtension()
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::~SuperClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SuperExtensions.Delete(this);
 }
 
@@ -64,8 +59,6 @@ SuperClassExtension::~SuperClassExtension()
  */
 HRESULT SuperClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -83,8 +76,6 @@ HRESULT SuperClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SuperClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -103,8 +94,6 @@ HRESULT SuperClassExtension::Load(IStream *pStm)
  */
 HRESULT SuperClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -121,8 +110,6 @@ HRESULT SuperClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SuperClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -136,5 +123,4 @@ int SuperClassExtension::Get_Object_Size() const
  */
 void SuperClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

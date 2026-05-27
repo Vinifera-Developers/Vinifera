@@ -63,9 +63,9 @@ void SaveGame_Hooks();
 
 
 template<class T>
-HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
 {
-    // DEBUG_INFO("Saving %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Save_Primitive_Vector requires T to be trivially copyable.");
 
     int count = list.Length();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -91,9 +91,9 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* 
 
 
 template<class T>
-HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
 {
-    // DEBUG_INFO("Loading %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Load_Primitive_Vector requires T to be trivially copyable.");
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -123,9 +123,9 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* 
 
 
 template<class T>
-HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Save_Primitive_Vector requires T to be trivially copyable.");
 
     int count = list.Count();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -151,9 +151,9 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 
 
 template<class T>
-HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
 {
-    // DEBUG_INFO("Loading %s...\n", heap_name); disabled due to excessive logging
+    static_assert(std::is_trivially_copyable_v<T>, "Load_Primitive_Vector requires T to be trivially copyable.");
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -183,9 +183,9 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 
 
 template<class T>
-HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* heap_name)
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Save_Primitive_Vector requires T to be trivially copyable.");
 
     int count = list.size();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -211,9 +211,9 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* 
 
 
 template<class T>
-HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* heap_name)
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Load_Primitive_Vector requires T to be trivially copyable.");
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);

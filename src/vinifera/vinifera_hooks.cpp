@@ -599,7 +599,7 @@ void Vinifera_Hooks()
      *  Set the save game version.
      */
     ViniferaGameVersion = Extension::Get_Save_Version_Number();
-    DEBUG_INFO("Save game version number: 0x%X\n", ViniferaGameVersion);
+    DEBUG_INFO("Save game version number: 0x{:X}\n", ViniferaGameVersion);
 
     /**
      *  This patch randomises the serial number for this client.

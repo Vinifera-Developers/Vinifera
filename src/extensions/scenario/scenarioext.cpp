@@ -91,8 +91,6 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     IsUseMPAIBaseNodes(false),
     LoadingScreens()
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     /**
      *  This copies the behavior of the games ScenarioClass.
      */
@@ -108,7 +106,6 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
 ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -119,8 +116,6 @@ ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
  */
 ScenarioClassExtension::~ScenarioClassExtension()
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::~ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
 }
 
 
@@ -131,15 +126,13 @@ ScenarioClassExtension::~ScenarioClassExtension()
  */
 HRESULT ScenarioClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
     new (this) ScenarioClassExtension(NoInitClass());
-    
+
     return hr;
 }
 
@@ -151,8 +144,6 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
  */
 HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -169,8 +160,6 @@ HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int ScenarioClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -184,8 +173,6 @@ int ScenarioClassExtension::Get_Object_Size() const
  */
 void ScenarioClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
-
     crc(IsIceDestruction);
 }
 
@@ -200,8 +187,6 @@ void ScenarioClassExtension::Init_Clear()
     IsIceDestruction = true;
     ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
     ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
-
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
     LoadingScreens.clear();
 
@@ -250,8 +235,6 @@ void ScenarioClassExtension::Init_Clear()
  */
 bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_INI - 0x%08X\n", (uintptr_t)(This()));
-
     static const char * const BASIC = "Basic";
 
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
@@ -324,7 +307,7 @@ UIControlsClass::LoadingScreen const* ScenarioClassExtension::Pick_Loading_Scree
     }
 
     if (!screens.empty()) {
-        return screens[Sim_Random_Pick(0u, screens.size() - 1)];
+        return screens[Sim_Random_Pick(0u, static_cast<unsigned int>(screens.size() - 1))];
     }
 
     return nullptr;
@@ -370,7 +353,6 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass const& ini)
  */
 Cell ScenarioClassExtension::Waypoint_Cell(WAYPOINT wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < std::size(Waypoint));
 
     return Waypoint[wp];
@@ -384,7 +366,6 @@ Cell ScenarioClassExtension::Waypoint_Cell(WAYPOINT wp) const
  */
 CellClass *ScenarioClassExtension::Waypoint_CellClass(WAYPOINT wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClassPtr - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < std::size(Waypoint));
 
     return &Map[Waypoint[wp]];
@@ -400,7 +381,6 @@ CellClass *ScenarioClassExtension::Waypoint_CellClass(WAYPOINT wp) const
  */
 Coord ScenarioClassExtension::Waypoint_Coord(WAYPOINT wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < std::size(Waypoint));
 
     CellClass *cell = &Map[Waypoint[wp]];
@@ -419,7 +399,6 @@ Coord ScenarioClassExtension::Waypoint_Coord(WAYPOINT wp) const
  */
 void ScenarioClassExtension::Set_Waypoint_Cell(WAYPOINT wp, Cell &cell)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < std::size(Waypoint));
 
     Waypoint[wp] = cell;
@@ -433,8 +412,6 @@ void ScenarioClassExtension::Set_Waypoint_Cell(WAYPOINT wp, Cell &cell)
  */
 void ScenarioClassExtension::Set_Waypoint_Coord(WAYPOINT wp, Coord &coord)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Set_Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
-
     Waypoint[wp] = coord.As_Cell();
 }
 
@@ -446,7 +423,6 @@ void ScenarioClassExtension::Set_Waypoint_Coord(WAYPOINT wp, Coord &coord)
  */
 bool ScenarioClassExtension::Is_Waypoint_Valid(WAYPOINT wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Waypoint_Valid - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < std::size(Waypoint));
 
     return (wp >= WAYPOINT_FIRST && wp < std::size(Waypoint)) ? (Waypoint[wp] != CELL_NONE) : false;
@@ -460,7 +436,6 @@ bool ScenarioClassExtension::Is_Waypoint_Valid(WAYPOINT wp) const
  */
 void ScenarioClassExtension::Clear_Waypoint(WAYPOINT wp)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_Waypoint - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < std::size(Waypoint));
 
     Waypoint[wp] = Cell(0, 0);
@@ -474,8 +449,6 @@ void ScenarioClassExtension::Clear_Waypoint(WAYPOINT wp)
  */
 void ScenarioClassExtension::Clear_All_Waypoints()
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_All_Waypoints - 0x%08X\n", (uintptr_t)(This()));
-
     for (auto& waypoint : Waypoint) {
         waypoint = CELL_NONE;
     }
@@ -489,8 +462,6 @@ void ScenarioClassExtension::Clear_All_Waypoints()
  */
 void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_Waypoint_INI - 0x%08X\n", (uintptr_t)(This()));
-
     static const char * const WAYNAME = "Waypoints";
 
     char entry[32];
@@ -527,16 +498,16 @@ void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
 
         switch (wp_num) {
             case WAYPOINT_HOME:
-                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (HOME) (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                DEV_DEBUG_INFO("Scenario: Read waypoint '{}' (HOME) ({},{}).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
                 break;
             case WAYPOINT_REINF:
-                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (REINF) (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                DEV_DEBUG_INFO("Scenario: Read waypoint '{}' (REINF) ({},{}).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
                 break;
             case WAYPOINT_SPECIAL:
-                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (SPECIAL) (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                DEV_DEBUG_INFO("Scenario: Read waypoint '{}' (SPECIAL) ({},{}).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
                 break;
             default:
-                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                DEV_DEBUG_INFO("Scenario: Read waypoint '{}' ({},{}).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
                 break;
         };
 
@@ -550,14 +521,14 @@ void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
          */
         if (wp_num >= 0 && cell != CELL_NONE) {
 #ifndef NDEBUG
-            //DEV_DEBUG_INFO("Scenario: Waypoint '%s', location '%d,%d' -> IsWaypoint = true.\n", ::Waypoint_As_String(cell), cell.X, cell.Y);
+            //DEV_DEBUG_INFO("Scenario: Waypoint '{}', location '{},{}' -> IsWaypoint = true.\n", ::Waypoint_As_String(cell), cell.X, cell.Y);
 #endif
             Map[cell].IsWaypoint = true;
         }
 
     }
 
-    if (valid_count > 0) DEV_DEBUG_INFO("Scenario: Read a total of '%d' waypoints.\n", valid_count);
+    if (valid_count > 0) DEV_DEBUG_INFO("Scenario: Read a total of '{}' waypoints.\n", valid_count);
 }
 
 
@@ -568,8 +539,6 @@ void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
  */
 void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Write_Waypoint_INI - 0x%08X\n", (uintptr_t)(This()));
-
     static char const * const WAYNAME = "Waypoints";
 
     char entry[32];
@@ -592,7 +561,7 @@ void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
         }
     }
 
-    if (valid_count > 0) DEV_DEBUG_INFO("Scenario: Wrote a total of '%d' waypoints.\n", valid_count);
+    if (valid_count > 0) DEV_DEBUG_INFO("Scenario: Wrote a total of '{}' waypoints.\n", valid_count);
 }
 
 
@@ -603,8 +572,6 @@ void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
  */
 const char * ScenarioClassExtension::Waypoint_As_String(WAYPOINT wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_As_String - 0x%08X\n", (uintptr_t)(This()));
-
     if (Is_Waypoint_Valid(wp)) {
         return ::Waypoint_As_String(wp);
     }
@@ -2236,7 +2203,7 @@ void ScenarioClassExtension::Assign_Houses()
     DEBUG_INFO("Assign_Houses(enter)\n");
 
     if (Session.Players.Count() > 0) {
-        DEBUG_INFO("  Assigning players (%d)...\n", Session.Players.Count());
+        DEBUG_INFO("  Assigning players ({})...\n", Session.Players.Count());
     }
 
     /**
@@ -2334,11 +2301,12 @@ void ScenarioClassExtension::Assign_Houses()
          */
         node.Player.ID = housep->HeapID;
 
-        DEBUG_INFO("    Assigned player \"%s\" (House: \"%s\", ID: %d, Color: \"%s\") to slot %d.\n", node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->Scheme]->Name, i);
+        DEBUG_INFO("    Assigned player \"{}\" (House: \"{}\", ID: {}, Color: \"{}\") to slot {}.\n",
+            node.Name, housep->Class->Name(), (int)node.Player.ID, ColorSchemes[housep->Scheme]->Name, i);
     }
 
     if (Session.Options.AIPlayers > 0) {
-        DEBUG_INFO("  Assigning computer players (%d)...\n", Session.Options.AIPlayers);
+        DEBUG_INFO("  Assigning computer players ({})...\n", Session.Options.AIPlayers);
     }
 
     /**
@@ -2410,7 +2378,7 @@ void ScenarioClassExtension::Assign_Houses()
          *  Process spawner overrides.
          */
         if (SessionExtension->IsSpawnerSession) {
-            static char const* AINamesByDifficultyArray[] = 
+            static char const* AINamesByDifficultyArray[] =
             {
                 "Hard AI",
                 "Medium AI",
@@ -2438,7 +2406,8 @@ void ScenarioClassExtension::Assign_Houses()
             }
         }
 
-        DEBUG_INFO("    Assigned computer house \"%s\" (ID: %d, Color: \"%s\") to slot %d.\n", housep->Class->Name(), housep->HeapID, ColorSchemes[housep->Scheme]->Name, i);
+        DEBUG_INFO("    Assigned computer house \"{}\" (ID: {}, Color: \"{}\") to slot {}.\n",
+            housep->Class->Name(), (int)housep->HeapID, ColorSchemes[housep->Scheme]->Name, i);
     }
 
     /**
@@ -2828,10 +2797,10 @@ void ScenarioClassExtension::Create_Units(bool official)
         unit_count--;
     }
 
-    DEBUG_INFO("NumPlayers = %d\n", Session.NumPlayers);
-    DEBUG_INFO("AIPlayers = %d\n", Session.Options.AIPlayers);
-    DEBUG_INFO("Creating %d starting units per house - Random seed is %08x\n", unit_count, static_cast<int>(Scen->RandomNumber));
-    DEBUG_INFO("UniqueID is %08x\n", Scen->UniqueID);
+    DEBUG_INFO("NumPlayers = {}\n", Session.NumPlayers);
+    DEBUG_INFO("AIPlayers = {}\n", Session.Options.AIPlayers);
+    DEBUG_INFO("Creating {} starting units per house - Random seed is {:08x}\n", unit_count, *reinterpret_cast<const unsigned int *>(&Scen->RandomNumber));
+    DEBUG_INFO("UniqueID is {:08x}\n", Scen->UniqueID);
 
     /**
      *  Generate lists of all the available starting units (regardless of owner).
@@ -2875,7 +2844,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          */
         HouseClass* hptr = Houses[house];
         if (hptr == nullptr) {
-            DEV_DEBUG_INFO("Invalid house %d!\n", house);
+            DEV_DEBUG_INFO("Invalid house {}!\n", (int)house);
             continue;
         }
 
@@ -2889,7 +2858,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Skip passive houses.
          */
         if (hptr->Class->IsMultiplayPassive) {
-            DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName.c_str());
+            DEV_DEBUG_INFO("House {} ({} - \"{}\") is passive, skipping.\n", (int)house, hptr->Class->Name(), hptr->IniName);
             continue;
         }
 
@@ -2898,7 +2867,8 @@ void ScenarioClassExtension::Create_Units(bool official)
          */
         centroid = Scen->Waypoint_Cell(houseext->SpawnWaypoint);
 
-        DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n", house, hptr->Class->Name(), hptr->IniName.c_str(), ColorSchemes[hptr->Scheme]->Name);
+        DEBUG_INFO("Generating units for house {} (Name: {} - \"{}\", Color: {})...\n",
+            (int)house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->Scheme]->Name);
 
         DynamicVectorClass<InfantryTypeClass*> infantry;
         DynamicVectorClass<UnitTypeClass*> units;
@@ -2923,7 +2893,7 @@ void ScenarioClassExtension::Create_Units(bool official)
              */
             if (unittype->Level <= hptr->Control.TechLevel && (unittype->Ownable & mask) != 0 && Extension::Fetch(hptr)->Required_Forbidden_Houses_Check(unittype)) {
                 if (!RuleExtension->BaseUnit.Is_Present(unittype)) {
-                    DEBUG_INFO("    Added %s\n", unittype->Name());
+                    DEBUG_INFO("    Added {}\n", unittype->Name());
                     units.Add(unittype);
                 }
             }
@@ -2948,7 +2918,7 @@ void ScenarioClassExtension::Create_Units(bool official)
              */
             if (infantrytype->Level <= hptr->Control.TechLevel && (infantrytype->Ownable & mask) != 0 && Extension::Fetch(hptr)->Required_Forbidden_Houses_Check(infantrytype)) {
                 infantry.Add(infantrytype);
-                DEBUG_INFO("    Added %s\n", infantrytype->Name());
+                DEBUG_INFO("    Added {}\n", infantrytype->Name());
             }
         }
 
@@ -2956,7 +2926,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
-        DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
+        DEBUG_INFO("  Setting house center to {},{}\n", centroid.X, centroid.Y);
 
         /**
          *  If Bases are ON, place a base unit (MCV).
@@ -2979,7 +2949,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 BuildingClass* building = new BuildingClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit)->DeploysInto, hptr);
                 if (building->Unlimbo(centroid.As_Coord(), DIR_N) || _Scan_Place_Object(building, centroid)) {
                     if (building != nullptr) {
-                        DEBUG_INFO("  Construction yard %s placed at %d,%d.\n", building->Class_Of()->Name(), building->Get_Cell().X, building->Get_Cell().Y);
+                        DEBUG_INFO("  Construction yard {} placed at {},{}.\n", building->Class_Of()->Name(), building->Get_Cell().X, building->Get_Cell().Y);
 
                         /**
                          *  Always reveal the construction yard to the player
@@ -3031,7 +3001,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 UnitClass* unit = new UnitClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit), hptr);
                 if (unit->Unlimbo(centroid.As_Coord(), DIR_N) || _Scan_Place_Object(unit, centroid)) {
                     if (unit != nullptr) {
-                        DEBUG_INFO("  Base unit %s placed at %d,%d.\n", unit->Class_Of()->Name(), unit->Get_Cell().X, unit->Get_Cell().Y);
+                        DEBUG_INFO("  Base unit {} placed at {},{}.\n", unit->Class_Of()->Name(), unit->Get_Cell().X, unit->Get_Cell().Y);
                         hptr->FlagHome = Cell(0, 0);
                         hptr->FlagLocation = nullptr;
                         if (Special.IsCaptureTheFlag) {
@@ -3093,7 +3063,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 if (!_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE)) {
                     delete obj;
                 } else {
-                    DEBUG_INFO("House %s deployed object %s\n", hptr->Class->IniName.c_str(), technotype->IniName.c_str());
+                    DEBUG_INFO("House {} deployed object {}\n", hptr->Class->IniName, technotype->IniName);
 
                     deployed_so_far += technotype->Raw_Cost();
                     just_deployed.Add(tobj);
@@ -3121,5 +3091,5 @@ void ScenarioClassExtension::Create_Units(bool official)
         }
     }
 
-    DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber());
+    DEBUG_INFO("Finished unit generation. Random number is {}\n", Scen->RandomNumber());
 }

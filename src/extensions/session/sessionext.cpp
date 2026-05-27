@@ -47,8 +47,18 @@ namespace
 SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
     GlobalExtensionClass(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
     Init_Clear();
+}
+
+
+/**
+ *  Class no-init constructor.
+ *
+ *  @author: CCHyper
+ */
+SessionClassExtension::SessionClassExtension(const NoInitClass &noinit) :
+    GlobalExtensionClass(noinit)
+{
 }
 
 
@@ -59,7 +69,6 @@ SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
  */
 SessionClassExtension::~SessionClassExtension()
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::~SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -70,8 +79,6 @@ SessionClassExtension::~SessionClassExtension()
  */
 HRESULT SessionClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -93,8 +100,6 @@ HRESULT SessionClassExtension::Load(IStream *pStm)
  */
 HRESULT SessionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     static_cast<void>(fClearDirty);
 
     if (!pStm) {
@@ -118,8 +123,6 @@ HRESULT SessionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SessionClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -131,8 +134,6 @@ int SessionClassExtension::Get_Object_Size() const
  */
 void SessionClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
-
     crc(ExtOptions.IsAutoDeployMCV);
     crc(ExtOptions.IsPrePlacedConYards);
     crc(ExtOptions.IsBuildOffAlly);
@@ -359,7 +360,7 @@ void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
             fs::copy_file(spawn_ini, spawn_sg_ini, fs::copy_options::overwrite_existing);
         }
     } catch (const std::exception& e) {
-        DEBUG_ERROR("Failed to copy spawn.ini and clear previous multiplayer saves! Reason: %s\n", e.what());
+        DEBUG_ERROR("Failed to copy spawn.ini and clear previous multiplayer saves! Reason: {}\n", e.what());
     }
 
     MultiplayerSavesInitializedForThisSession = true;

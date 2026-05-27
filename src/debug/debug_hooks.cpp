@@ -25,106 +25,60 @@
 
 
 /**
- *  Prints an string to the debug handler.
+ *  Vanilla logger intercepts. The four wrappers below are installed via
+ *  Hook_Function / Patch_Call at fixed addresses in the original game binary.
+ *  The vanilla binary calls them with printf-style format strings stored at
+ *  those fixed addresses, so the wrappers must keep printf semantics. They
+ *  format once locally with vsnprintf, then hand the finished message to
+ *  Vinifera_Log_Raw - no second format pass, no '%'-escape dance.
  *
  *  @author: CCHyper
  */
 static void __cdecl Debug_Print(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    std::string tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_GAME(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_GAME, nullptr, nullptr, -1, buffer);
 }
 
 
-/**
- *  Prints an string without a carriage return to the debug handler.
- * 
- *  @author: CCHyper
- */
 static void __cdecl Debug_Print_Line(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    std::string tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_GAME_LINE(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_GAME_LINE, nullptr, nullptr, -1, buffer);
 }
 
 
-/**
- *  Prints an warning string to the debug handler.
- * 
- *  @author: CCHyper
- */
 static void __cdecl Debug_Print_Warning(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    std::string tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_WARNING(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_WARNING, nullptr, nullptr, -1, buffer);
 }
 
 
-/**
- *  Prints an error string to the debug handler.
- * 
- *  @author: CCHyper
- */
 static void __cdecl Debug_Print_Error(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    std::string tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_ERROR(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_ERROR, nullptr, nullptr, -1, buffer);
 }
 
 
@@ -532,17 +486,18 @@ static void Debug_Handler_Hooks()
  */
 static void Vinifera_Assert_Handler(TSPPAssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...)
 {
-    static char buf[4096];
-
-    if (msg) {
-        va_list args;
-        va_start(args, msg);
-        vsnprintf(buf, sizeof(buf), msg, args);
-        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, args);
-        va_end(args);
-    } else {
-        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, nullptr);
+    if (msg == nullptr) {
+        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, std::string_view{});
+        return;
     }
+
+    char buf[4096];
+    va_list args;
+    va_start(args, msg);
+    std::vsnprintf(buf, sizeof(buf), msg, args);
+    va_end(args);
+
+    Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, std::string_view{buf});
 }
 
 

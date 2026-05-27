@@ -59,8 +59,6 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     IsVolumetric(false),
     IsSnapToCellCenter(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WarheadTypeExtensions.Add(this);
 }
 
@@ -74,7 +72,6 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) 
     AbstractTypeClassExtension(noinit),
     CellAnim(noinit)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -85,8 +82,6 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) 
  */
 WarheadTypeClassExtension::~WarheadTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::~WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WarheadTypeExtensions.Delete(this);
 }
 
@@ -98,8 +93,6 @@ WarheadTypeClassExtension::~WarheadTypeClassExtension()
  */
 HRESULT WarheadTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -117,8 +110,6 @@ HRESULT WarheadTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     CellAnim.Clear();
 
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
@@ -143,8 +134,6 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -163,8 +152,6 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WarheadTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -178,8 +165,6 @@ int WarheadTypeClassExtension::Get_Object_Size() const
  */
 void WarheadTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsWallAbsoluteDestroyer);
     crc(IsAffectsAllies);
     crc(CombatLightSize);
@@ -213,8 +198,6 @@ void WarheadTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }

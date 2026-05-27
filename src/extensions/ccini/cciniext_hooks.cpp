@@ -65,7 +65,7 @@ long CCINIClassExt::_Get_Owners(const char *section, const char *entry, const lo
 
     if (CCINIClass::Get_String(section, entry, "", buffer, sizeof(buffer)) > 0) {
 
-        //DEV_DEBUG_INFO("Get_Owners(\"%s\",\"%s\") - \"%s\"\n", section, entry, buffer);
+        //DEV_DEBUG_INFO("Get_Owners(\"{}\",\"{}\") - \"{}\"\n", section, entry, buffer);
 
         ownable = 0;
         char *name = std::strtok(buffer, ",");
@@ -112,7 +112,7 @@ bool CCINIClassExt::_Put_Owners(const char *section, const char *entry, long val
 
     if (buffer[0] != '\0') {
 
-        //DEV_DEBUG_INFO("Put_Owners(\"%s\",\"%s\") - \"%s\"\n", section, entry, buffer);
+        //DEV_DEBUG_INFO("Put_Owners(\"{}\",\"{}\") - \"{}\"\n", section, entry, buffer);
 
         return CCINIClass::Put_String(section, entry, buffer);
     }

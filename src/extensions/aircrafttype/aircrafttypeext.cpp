@@ -29,8 +29,6 @@ AircraftTypeClassExtension::AircraftTypeClassExtension(const AircraftTypeClass *
     IsCurleyShuffle(std::nullopt),
     ReloadRate(std::nullopt)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AircraftTypeClassExtension::AircraftTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AircraftTypeExtensions.Add(this);
 }
 
@@ -45,7 +43,6 @@ AircraftTypeClassExtension::AircraftTypeClassExtension(const NoInitClass &noinit
     IsCurleyShuffle(std::nullopt),
     ReloadRate(std::nullopt)
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::AircraftTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -56,8 +53,6 @@ AircraftTypeClassExtension::AircraftTypeClassExtension(const NoInitClass &noinit
  */
 AircraftTypeClassExtension::~AircraftTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::~AircraftTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AircraftTypeExtensions.Delete(this);
 }
 
@@ -69,8 +64,6 @@ AircraftTypeClassExtension::~AircraftTypeClassExtension()
  */
 HRESULT AircraftTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -88,8 +81,6 @@ HRESULT AircraftTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT AircraftTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -111,8 +102,6 @@ HRESULT AircraftTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT AircraftTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -132,8 +121,6 @@ HRESULT AircraftTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int AircraftTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -147,7 +134,6 @@ int AircraftTypeClassExtension::Get_Object_Size() const
  */
 void AircraftTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -158,8 +144,6 @@ void AircraftTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool AircraftTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("AircraftTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
     }

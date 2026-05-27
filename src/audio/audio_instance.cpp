@@ -707,7 +707,7 @@ bool AudioInstanceClass::Seek(float time)
  */
 bool AudioInstanceClass::Update(float deltaTime)
 {
-    ASSERT_FATAL(Sound != nullptr, "Sound object should not be NULL here!");
+    ASSERT_FATAL_PRINT(Sound != nullptr, "Sound object should not be NULL here!");
 
     switch (CurrentState)
     {

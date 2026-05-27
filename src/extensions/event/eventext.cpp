@@ -118,7 +118,7 @@ char const* EventClassExt::EventNames[EXT_EVENT_COUNT] = {
  */
 EventClassExt::EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags)
 {
-    DEBUG_INFO("Adding event %s\n", EventNames[type]);
+    DEBUG_INFO("Adding event {}\n", EventNames[type]);
 
     if (index >= 0) {
         ID = index;
@@ -143,7 +143,7 @@ EventClassExt::EventClassExt(int index, EventType type, RTTIType object, int id,
  */
 EventClassExt::EventClassExt(int index, EventType type, RTTIType object, Cell const& cell, ProductionFlags flags)
 {
-    DEBUG_INFO("Adding event %s\n", EventNames[type]);
+    DEBUG_INFO("Adding event {}\n", EventNames[type]);
 
     if (index >= 0) {
         ID = index;
@@ -168,7 +168,7 @@ EventClassExt::EventClassExt(int index, EventType type, RTTIType object, Cell co
  */
 EventClassExt::EventClassExt(int index, EventType type, bool pausedrepairs)
 {
-    DEBUG_INFO("Adding event %s\n", EventNames[type]);
+    DEBUG_INFO("Adding event {}\n", EventNames[type]);
 
     if (index >= 0) {
         ID = index;

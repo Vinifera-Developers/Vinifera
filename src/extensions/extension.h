@@ -257,8 +257,6 @@ EXT_CLASS *Make(const BASE_CLASS *base)
     EXT_CLASS *ext_ptr = new EXT_CLASS(base);
     ASSERT(ext_ptr != nullptr);
 
-    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
-
     return ext_ptr;
 }
 
@@ -274,14 +272,12 @@ void Destroy(const EXT_CLASS *ext)
 
     delete ext;
 
-    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 }
 
 }; // namespace "Extension::Singleton".
 
 namespace List
 {
-
 /**
  *  Fetch an extension instance from a list whose extension pointer points to the base class.
  * 
@@ -295,7 +291,6 @@ EXT_CLASS *Fetch(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
     for (int index = 0; index < list.Count(); ++index) {
         EXT_CLASS * ext = list[index];
         if (list[index]->This() == base) {
-            EXT_DEBUG_INFO("Found \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
             return ext;
         }
     }
@@ -316,8 +311,6 @@ EXT_CLASS *Make(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
     EXT_CLASS *ext_ptr = new EXT_CLASS(base);
     ASSERT(ext_ptr != nullptr);
 
-    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
-
     list.Add(ext_ptr);
 
     return ext_ptr;
@@ -336,13 +329,11 @@ void Destroy(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
     for (int index = 0; index < list.Count(); ++index) {
         EXT_CLASS * ext = list[index].This();
         if (ext->This() == base) {
-            EXT_DEBUG_INFO("Found \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
             delete ext;
             return;
         }
     }
 
-    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 }
 
 }; // namespace "Extension::List".
@@ -587,7 +578,6 @@ template<class T>
 GlobalExtensionClass<T>::GlobalExtensionClass(const T *this_ptr) :
     ThisPtr(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::GlobalExtensionClass - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
     //ASSERT(ThisPtr != nullptr);      // NULL ThisPtr is valid when performing a Load state operation.
 }
 
@@ -600,7 +590,6 @@ GlobalExtensionClass<T>::GlobalExtensionClass(const T *this_ptr) :
 template<class T>
 GlobalExtensionClass<T>::GlobalExtensionClass(const NoInitClass &noinit)
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::GlobalExtensionClass(NoInitClass) - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -612,8 +601,6 @@ GlobalExtensionClass<T>::GlobalExtensionClass(const NoInitClass &noinit)
 template<class T>
 GlobalExtensionClass<T>::~GlobalExtensionClass()
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::~GlobalExtensionClass - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
-
     ThisPtr = nullptr;
 }
 
@@ -630,8 +617,6 @@ GlobalExtensionClass<T>::~GlobalExtensionClass()
 template<class T>
 HRESULT GlobalExtensionClass<T>::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::Load - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -658,8 +643,6 @@ HRESULT GlobalExtensionClass<T>::Load(IStream *pStm)
 template<class T>
 HRESULT GlobalExtensionClass<T>::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::Save - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }

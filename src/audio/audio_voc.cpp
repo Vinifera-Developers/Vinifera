@@ -401,7 +401,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
 
         handle = AudioManager.Request_Play(filename, AUDIO_GROUP_SFX, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit, Control);
         if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
-            DEBUG_ERROR("Voc::Play - Failed to play \"%s\"!\n", Name.c_str());
+            DEBUG_ERROR("Voc::Play - Failed to play \"{}\"!\n", Name);
             return handle;
         }
     }

@@ -460,7 +460,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
         beacon->ID = Frame;
     }
 
-    DEBUG_INFO("Placing beacon: (%d, %d, %d)\n", coord.X, coord.Y, coord.Z);
+    DEBUG_INFO("Placing beacon: ({}, {}, {})\n", coord.X, coord.Y, coord.Z);
     beacon->Set(coord, house);
 
     if (beacon->House == PlayerPtr->HeapID) {
@@ -766,7 +766,7 @@ void BeaconManagerClass::Send_Beacon_Place(Coord const& coord, HousesType house,
     packet.PlaceBeacon.Position = coord;
     packet.PlaceBeacon.House = house;
     for (int i = 1; i < Session.Players.Count(); i++) {
-        DEBUG_INFO("Sending beacon placement to %s\n", static_cast<const char*>(Session.Players[i]->Name));
+        DEBUG_INFO("Sending beacon placement to {}\n", static_cast<const char*>(Session.Players[i]->Name));
         Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
     }
 }
@@ -785,7 +785,7 @@ void BeaconManagerClass::Send_Beacon_Delete(HousesType house, int beacon_id)
     packet.DeleteBeacon.House = house;
     packet.DeleteBeacon.Number = beacon_id;
     for (int i = 1; i < Session.Players.Count(); i++) {
-        DEBUG_INFO("Sending beacon delete to %s\n", static_cast<const char*>(Session.Players[i]->Name));
+        DEBUG_INFO("Sending beacon delete to {}\n", static_cast<const char*>(Session.Players[i]->Name));
         Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
     }
 }
@@ -812,7 +812,7 @@ void BeaconManagerClass::Send_Set_Beacon_Text(char const * text, HousesType hous
 
     if (beacon_id != -1) {
         for (int i = 1; i < Session.Players.Count(); i++) {
-            DEBUG_INFO("Sending beacon text to %s\n", static_cast<const char*>(Session.Players[i]->Name));
+            DEBUG_INFO("Sending beacon text to {}\n", static_cast<const char*>(Session.Players[i]->Name));
             Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
         }
     }
