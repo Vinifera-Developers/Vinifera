@@ -82,6 +82,14 @@ public:
     */
     void Recalc_Cursor_Image();
 
+    /*
+    **  Override the game cursor with a system cursor. Safe to call every tick;
+    **  Clear_Cursor_Override restores the prior game cursor.
+    */
+    void Set_Override_System_Cursor(SDL_SystemCursor id);
+    void Hide_Override_Cursor();
+    void Clear_Cursor_Override();
+
 private:
     /*
     **  This specifies the mouse shape data. It records the shape set
@@ -127,10 +135,18 @@ private:
     bool CursorOwned;
 
     /*
-    **  Lazily-created system default cursor, reused across Set_System_Cursor
-    **  calls so we don't allocate / destroy a Win32 HCURSOR on every fallback.
+    **  Lazily-created system cursors, one slot per SDL_SystemCursor id.
+    **  Reused so we don't churn Win32 HCURSORs on hover changes.
     */
-    SDL_Cursor* SystemCursor;
+    SDL_Cursor* SystemCursorCache[SDL_SYSTEM_CURSOR_COUNT];
+
+    /*
+    **  Cursor override state. While set, MouseShape / ShapeNumber /
+    **  OriginalHotspot keep describing the game cursor for restoration.
+    */
+    bool IsOverriding;
+    bool IsOverrideHidden;
+    SDL_SystemCursor CurrentOverrideId;
 
     /*
     **  If the mouse is being managed by this class (for the game), then this flag
@@ -147,6 +163,7 @@ private:
     void Convert_Cursor_Image(ShapeSet const* shapes);
     void Replace_Cursor(SDL_Cursor* cursor, bool owned);
     void Set_System_Cursor();
+    SDL_Cursor* Get_System_Cursor(SDL_SystemCursor id);
 
     static int Get_Cursor_Scale();
 };

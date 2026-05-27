@@ -34,7 +34,10 @@ SDLMouseClass::SDLMouseClass() :
     Hotspot(0, 0),
     Cursor(nullptr),
     CursorOwned(false),
-    SystemCursor(nullptr),
+    SystemCursorCache{},
+    IsOverriding(false),
+    IsOverrideHidden(false),
+    CurrentOverrideId(SDL_SYSTEM_CURSOR_DEFAULT),
     IsCaptured(false)
 {
     // Ensure the mouse image won't get scaled by SDL
@@ -55,9 +58,11 @@ SDLMouseClass::~SDLMouseClass()
     }
     Cursor = nullptr;
     CursorOwned = false;
-    if (SystemCursor != nullptr) {
-        SDL_DestroyCursor(SystemCursor);
-        SystemCursor = nullptr;
+    for (int i = 0; i < SDL_SYSTEM_CURSOR_COUNT; ++i) {
+        if (SystemCursorCache[i] != nullptr) {
+            SDL_DestroyCursor(SystemCursorCache[i]);
+            SystemCursorCache[i] = nullptr;
+        }
     }
 }
 
@@ -419,10 +424,93 @@ void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor, bool owned)
  */
 void SDLMouseClass::Set_System_Cursor()
 {
-    if (SystemCursor == nullptr) {
-        SystemCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+    Replace_Cursor(Get_System_Cursor(SDL_SYSTEM_CURSOR_DEFAULT), false);
+}
+
+
+/**
+ *  Lazily allocates and returns a cached SDL_Cursor for the given system id.
+ *  Cached for the lifetime of the class; freed in the destructor.
+ *
+ *  @author: ZivDero
+ */
+SDL_Cursor* SDLMouseClass::Get_System_Cursor(SDL_SystemCursor id)
+{
+    if (SystemCursorCache[id] == nullptr) {
+        SystemCursorCache[id] = SDL_CreateSystemCursor(id);
     }
-    Replace_Cursor(SystemCursor, false);
+    return SystemCursorCache[id];
+}
+
+
+/**
+ *  Overrides the cursor with a system cursor. Always re-applies SDL_cursor
+ *  since game code may have changed it between our last call and this one.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Set_Override_System_Cursor(SDL_SystemCursor id)
+{
+    if (IsOverrideHidden) {
+        SDL_ShowCursor();
+        IsOverrideHidden = false;
+    }
+
+    Replace_Cursor(Get_System_Cursor(id), false);
+    IsOverriding = true;
+    CurrentOverrideId = id;
+}
+
+
+/**
+ *  Hides the OS cursor as part of an override.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Hide_Override_Cursor()
+{
+    if (IsOverrideHidden) {
+        return;
+    }
+    SDL_HideCursor();
+    IsOverrideHidden = true;
+    IsOverriding = true;
+}
+
+
+/**
+ *  Ends a cursor override and restores the prior game cursor.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Clear_Cursor_Override()
+{
+    if (!IsOverriding && !IsOverrideHidden) {
+        return;
+    }
+
+    if (IsOverrideHidden) {
+        SDL_ShowCursor();
+        IsOverrideHidden = false;
+    }
+
+    IsOverriding = false;
+
+    if (MouseShape == nullptr) {
+        Set_System_Cursor();
+        return;
+    }
+
+    /**
+     *  Null MouseShape so Set_Cursor's early-return can't fire, then re-apply
+     *  via the CursorCache path (no surface / HCURSOR reallocation).
+     */
+    ShapeSet const* shape = MouseShape;
+    int shape_number = ShapeNumber;
+    Point2D unscaled_hotspot = OriginalHotspot;
+
+    MouseShape = nullptr;
+    Set_Cursor(unscaled_hotspot, shape, shape_number);
 }
 
 
@@ -433,6 +521,13 @@ void SDLMouseClass::Set_System_Cursor()
  */
 void SDLMouseClass::Recalc_Cursor_Image()
 {
+    /**
+     *  Skip while overriding; the next Clear_Cursor_Override rebuilds the cache.
+     */
+    if (IsOverriding || IsOverrideHidden) {
+        return;
+    }
+
     if (MouseShape == nullptr) {
         return;
     }
