@@ -38,7 +38,7 @@ public:
     /*
     **  Controls visibility of the game-drawn mouse.
     */
-    bool Is_Hidden() const override { return Get_Mouse_State() < 0; }
+    bool Is_Hidden() const override { return HideCount > 0; }
     void Hide_Mouse() override;
     void Show_Mouse() override;
 
@@ -157,6 +157,12 @@ private:
     bool IsCaptured;
 
     /*
+    **  Depth of nested Hide_Mouse calls not yet matched by Show_Mouse
+    **  (>= 0; positive means hidden). Mirrors vanilla MouseState semantics.
+    */
+    int HideCount;
+
+    /*
     **  Various private utility routines.
     */
     void Delete_Cursor_Image();
@@ -164,6 +170,7 @@ private:
     void Replace_Cursor(SDL_Cursor* cursor, bool owned);
     void Set_System_Cursor();
     SDL_Cursor* Get_System_Cursor(SDL_SystemCursor id);
+    void Apply_Cursor_Visibility();
 
     static int Get_Cursor_Scale();
 };
