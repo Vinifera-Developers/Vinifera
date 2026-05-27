@@ -615,15 +615,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         DEBUG_ERROR("\t***** FAILED!\n");
         return false;
     }
-
-    /**
-     *  Load the battle UI state.
-     */
-    DEBUG_INFO("Loading BattleUI...\n");
-    SpeechEnabled = false;
-    if (FAILED(BattleUI.Load(pStm))) { return false; }
-    SpeechEnabled = true;
-
     
     /**
      *  #issue-218
@@ -669,6 +660,16 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
             return false;
         }
     }
+
+    /**
+     *  Load the battle UI state.
+     */
+    DEBUG_INFO("Loading BattleUI...\n");
+    SpeechEnabled = false;
+    if (FAILED(BattleUI.Load(pStm))) {
+        return false;
+    }
+    SpeechEnabled = true;
 
     Map.Flag_To_Redraw(GS_REDRAW_ALL);
 
