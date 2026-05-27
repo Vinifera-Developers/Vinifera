@@ -38,7 +38,8 @@ SDLMouseClass::SDLMouseClass() :
     IsOverriding(false),
     IsOverrideHidden(false),
     CurrentOverrideId(SDL_SYSTEM_CURSOR_DEFAULT),
-    IsCaptured(false)
+    IsCaptured(false),
+    HideCount(0)
 {
     // Ensure the mouse image won't get scaled by SDL
     SDL_SetHint(SDL_HINT_MOUSE_DPI_SCALE_CURSORS, "0");
@@ -137,7 +138,8 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
  */
 void SDLMouseClass::Hide_Mouse()
 {
-    SDL_HideCursor();
+    ++HideCount;
+    Apply_Cursor_Visibility();
 }
 
 
@@ -148,7 +150,10 @@ void SDLMouseClass::Hide_Mouse()
  */
 void SDLMouseClass::Show_Mouse()
 {
-    SDL_ShowCursor();
+    if (HideCount > 0) {
+        --HideCount;
+    }
+    Apply_Cursor_Visibility();
 }
 
 
@@ -159,16 +164,16 @@ void SDLMouseClass::Show_Mouse()
  */
 void SDLMouseClass::Release_Mouse()
 {
-    if (WindowedMode || !IsCaptured) {
+    if (!IsCaptured) {
         return;
     }
 
-    /**
-     *  Release system capture and unlock cursor.
-     */
-    ClipCursor(nullptr);
+    if (!WindowedMode) {
+        ClipCursor(nullptr);
+    }
 
     IsCaptured = false;
+    Apply_Cursor_Visibility();
 }
 
 
@@ -179,27 +184,26 @@ void SDLMouseClass::Release_Mouse()
  */
 void SDLMouseClass::Capture_Mouse()
 {
-    if (WindowedMode || IsCaptured) {
+    if (IsCaptured) {
         return;
     }
 
-    /**
-     *  Compute the client area in screen coordinates.
-     */
-    RECT client_rect;
-    GetClientRect(MainWindow, &client_rect);
-    POINT ul = {client_rect.left, client_rect.top};
-    POINT lr = {client_rect.right, client_rect.bottom};
-    MapWindowPoints(MainWindow, nullptr, &ul, 1);
-    MapWindowPoints(MainWindow, nullptr, &lr, 1);
-    RECT clip_rect = {ul.x, ul.y, lr.x, lr.y};
-
-    /**
-     *  Lock cursor inside window.
-     */
-    ClipCursor(&clip_rect);
+    if (!WindowedMode) {
+        /**
+         *  Compute the client area in screen coordinates and lock cursor inside window.
+         */
+        RECT client_rect;
+        GetClientRect(MainWindow, &client_rect);
+        POINT ul = {client_rect.left, client_rect.top};
+        POINT lr = {client_rect.right, client_rect.bottom};
+        MapWindowPoints(MainWindow, nullptr, &ul, 1);
+        MapWindowPoints(MainWindow, nullptr, &lr, 1);
+        RECT clip_rect = {ul.x, ul.y, lr.x, lr.y};
+        ClipCursor(&clip_rect);
+    }
 
     IsCaptured = true;
+    Apply_Cursor_Visibility();
 }
 
 
@@ -228,15 +232,14 @@ void SDLMouseClass::Conditional_Show_Mouse()
 
 
 /**
- *  Fetch the current mouse visibility state.
- *  Returns with the current mouse visibility state. If the return value is less than
- *  0 (i.e., negative), then the mouse is hidden.
+ *  Fetch the current mouse visibility state. Zero when visible, negative when
+ *  hidden (mirrors vanilla WWMouseClass::MouseState).
  *
  *  @author: ZivDero
  */
 int SDLMouseClass::Get_Mouse_State() const
 {
-    return SDL_CursorVisible() ? 1 : -1;
+    return -HideCount;
 }
 
 
@@ -444,21 +447,18 @@ SDL_Cursor* SDLMouseClass::Get_System_Cursor(SDL_SystemCursor id)
 
 
 /**
- *  Overrides the cursor with a system cursor. Always re-applies SDL_cursor
- *  since game code may have changed it between our last call and this one.
+ *  Overrides the cursor with a system cursor.
  *
  *  @author: ZivDero
  */
 void SDLMouseClass::Set_Override_System_Cursor(SDL_SystemCursor id)
 {
-    if (IsOverrideHidden) {
-        SDL_ShowCursor();
-        IsOverrideHidden = false;
-    }
-
-    Replace_Cursor(Get_System_Cursor(id), false);
+    IsOverrideHidden = false;
     IsOverriding = true;
     CurrentOverrideId = id;
+
+    Apply_Cursor_Visibility();
+    Replace_Cursor(Get_System_Cursor(id), false);
 }
 
 
@@ -472,9 +472,9 @@ void SDLMouseClass::Hide_Override_Cursor()
     if (IsOverrideHidden) {
         return;
     }
-    SDL_HideCursor();
     IsOverrideHidden = true;
     IsOverriding = true;
+    Apply_Cursor_Visibility();
 }
 
 
@@ -489,12 +489,9 @@ void SDLMouseClass::Clear_Cursor_Override()
         return;
     }
 
-    if (IsOverrideHidden) {
-        SDL_ShowCursor();
-        IsOverrideHidden = false;
-    }
-
     IsOverriding = false;
+    IsOverrideHidden = false;
+    Apply_Cursor_Visibility();
 
     if (MouseShape == nullptr) {
         Set_System_Cursor();
@@ -538,6 +535,26 @@ void SDLMouseClass::Recalc_Cursor_Image()
 
     Delete_Cursor_Image();
     Set_Cursor(unscaled_hotspot, shape, shape_number);
+}
+
+
+/**
+ *  Reconciles the SDL cursor visibility with HideCount, the cursor override,
+ *  and the release state.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Apply_Cursor_Visibility()
+{
+    const bool should_be_visible = (HideCount == 0 || IsOverriding || !IsCaptured) && !IsOverrideHidden;
+    if (should_be_visible == SDL_CursorVisible()) {
+        return;
+    }
+    if (should_be_visible) {
+        SDL_ShowCursor();
+    } else {
+        SDL_HideCursor();
+    }
 }
 
 
