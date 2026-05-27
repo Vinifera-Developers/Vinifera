@@ -70,6 +70,7 @@ private:
     bool Do_LOSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_BEGIN_PRODUCTION(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ALL_HUNT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_REINFORCEMENTS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_FIRE_SALE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_TEXT_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DESTROY_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
@@ -86,6 +87,7 @@ private:
     bool Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_REVEAL_SOME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_PLAY_SOUND_AT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_REINFORCEMENTS_SPECIAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
     /**
      *  New TActions.
