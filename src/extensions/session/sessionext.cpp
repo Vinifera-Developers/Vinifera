@@ -19,7 +19,9 @@
 #include "textprint.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "vinifera_globals.h"
 
+#include <filesystem>
 #include <format>
 
 
@@ -144,7 +146,7 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
     crc(ExtOptions.IsAINamesByDifficulty);
     crc(AutoSave.IsToSave);
     crc(AutoSave.NextAutoSaveFrame);
-    crc(AutoSave.IsMultiplayerAutoSaveSuppressed);
+    crc(AutoSave.IsMultiplayerSaveSuppressed);
 }
 
 
@@ -184,7 +186,7 @@ int SessionClassExtension::Get_Autosave_Interval() const
         }
     }
 
-    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerAutoSaveSuppressed && ExtOptions.MultiplayerAutoSaveInterval > 0) {
+    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerSaveSuppressed && ExtOptions.MultiplayerAutoSaveInterval > 0) {
         return ExtOptions.MultiplayerAutoSaveInterval;
     }
 
@@ -222,7 +224,7 @@ void SessionClassExtension::Flag_To_Save()
  */
 void SessionClassExtension::Disable_Multiplayer_Autosaves()
 {
-    AutoSave.IsMultiplayerAutoSaveSuppressed = true;
+    AutoSave.IsMultiplayerSaveSuppressed = true;
     Schedule_Next_Autosave();
 }
 
@@ -302,10 +304,10 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         return;
     }
     
-    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerAutoSaveSuppressed) {
+    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerSaveSuppressed) {
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
-
+        Clear_Multiplayer_Saves();
         Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
         return;
     }
@@ -315,12 +317,67 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
 }
 
 
+std::string SessionClassExtension::Multiplayer_Save_File_Name_From_Index(int index)
+{
+    return std::format("SAVEGAME_{:03}.NET", index);
+}
+
+
+void SessionClassExtension::Clear_Multiplayer_Saves()
+{
+    if (!ClearMultiplayerSavesOnSave) {
+        return;
+    }
+
+    namespace fs = std::filesystem;
+
+    fs::path saved_games_directory(Vinifera_SavedGamesDirectory);
+
+    for (int i = 0; i < 1000; ++i) {
+
+        std::string filename = Multiplayer_Save_File_Name_From_Index(i);
+
+        fs::path fullpath = saved_games_directory / filename;
+
+        std::error_code ec;
+        fs::remove(fullpath, ec);
+
+        // Optional:
+        // log ec if desired
+    }
+
+    ClearMultiplayerSavesOnSave = false;
+}
+
+
+std::string SessionClassExtension::Multiplayer_Save_File_Name() const
+{
+    namespace fs = std::filesystem;
+
+    fs::path saved_games_directory(Vinifera_SavedGamesDirectory);
+
+    for (int i = 0; i < 1000; ++i) {
+
+        // SAVEGAME_000.NET
+        std::string filename = Multiplayer_Save_File_Name_From_Index(i);
+
+        fs::path fullpath = saved_games_directory / filename;
+
+        if (!fs::exists(fullpath)) {
+            return filename;
+        }
+    }
+
+    return Multiplayer_Save_File_Name_From_Index(999);
+}
+
+
 std::string SessionClassExtension::Autosave_File_Name() const
 {
     switch (Session.Type) {
     case GAME_IPX:
     case GAME_INTERNET:
-        return NET_SAVE_FILE_NAME;
+        return Multiplayer_Save_File_Name();
     case GAME_NORMAL:
         return std::format("AUTOSAVE{}.SAV", AutoSave.NextCampaignAutoSaveSlot + 1);
     case GAME_SKIRMISH:

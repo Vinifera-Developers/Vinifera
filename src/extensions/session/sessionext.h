@@ -39,6 +39,9 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         void Service_Autosave_After_Main_Loop();
 
     private:
+        static std::string Multiplayer_Save_File_Name_From_Index(int index);
+        void Clear_Multiplayer_Saves();
+        std::string Multiplayer_Save_File_Name() const;
         std::string Autosave_File_Name() const;
         std::string Autosave_Description() const;
 
@@ -137,13 +140,15 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
             int NextSkirmishAutoSaveSlot = 0;
 
             /**
-             *  Have multiplayer autosaves been suppressed for the current session?
+             *  Have multiplayer saves been suppressed for the current session
+             *  (usually due to desync or player disconnnection)?
              */
-            bool IsMultiplayerAutoSaveSuppressed = false;
+            bool IsMultiplayerSaveSuppressed = false;
         };
 
         AutoSaveStateType AutoSave;
         bool IsSpawnerSession = false;
+        bool ClearMultiplayerSavesOnSave = false;
 
         struct SpawnerSlotInfoType {
             bool IsConfigured = false;
