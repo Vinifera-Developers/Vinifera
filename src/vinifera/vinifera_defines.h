@@ -443,7 +443,7 @@ inline const char *Difficulty_Name(DiffType d)
     case EXT_DIFF_BRUTALLY_EASY:    return "Brutally Easy";
     case EXT_DIFF_VERY_EASY:        return "Very Easy";
     case DIFF_EASY:                 return "Easy";
-    case DIFF_NORMAL:               return "Normal";
+    case DIFF_NORMAL:               return "Medium";
     case DIFF_HARD:                 return "Hard";
     default:                        return "?";
     }
@@ -461,7 +461,7 @@ inline const char *CDifficulty_Name(DiffType d)
     case EXT_DIFF_BRUTALLY_EASY:    return "Brutal";
     case EXT_DIFF_VERY_EASY:        return "Very Hard";
     case DIFF_EASY:                 return "Hard";
-    case DIFF_NORMAL:               return "Normal";
+    case DIFF_NORMAL:               return "Medium";
     case DIFF_HARD:                 return "Easy";
     default:                        return "?";
     }
