@@ -161,6 +161,7 @@ void SessionClassExtension::Init_Clear()
     ExtOptions = ExtGameOptionsType();
     AutoSave = AutoSaveStateType();
     IsSpawnerSession = false;
+    SpawnerInfo = SpawnerSessionInfoType();
     ProtocolZeroEnabled = false;
     ProtocolZeroMaxLatencyLevel = 0xFF;
     ConnTimeout = 0;

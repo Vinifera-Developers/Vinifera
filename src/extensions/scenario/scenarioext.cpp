@@ -89,9 +89,6 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     IsIceDestruction(true),
     SidebarSide(SIDE_NONE),
     IsUseMPAIBaseNodes(false),
-    CustomLoadScreenPos(0, 0),
-    HasCustomLoadScreen(false),
-    HasCustomLoadScreenPos(false),
     LoadingScreens()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -190,13 +187,6 @@ void ScenarioClassExtension::Object_CRC(CRCEngine &crc) const
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 
     crc(IsIceDestruction);
-    crc(StatsMapName);
-    crc(StatsMapHash);
-    crc(CustomLoadScreen);
-    crc(CustomLoadScreenPos.X);
-    crc(CustomLoadScreenPos.Y);
-    crc(HasCustomLoadScreen);
-    crc(HasCustomLoadScreenPos);
 }
 
 
@@ -210,16 +200,6 @@ void ScenarioClassExtension::Init_Clear()
     IsIceDestruction = true;
     ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
     ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
-
-    // Do not clear spawner data. Maybe these should be moved to SessionExtension instead, since by definition,
-    // in the spawner's context these are session rather than scenario based?
-    StatsMapName[0] = '\0';
-    StatsMapHash[0] = '\0';
-    DifficultyName[0] = '\0';
-    CustomLoadScreen[0] = '\0';
-    CustomLoadScreenPos = Point2D(0, 0);
-    HasCustomLoadScreen = false;
-    HasCustomLoadScreenPos = false;
 
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
@@ -1302,7 +1282,9 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
             "Easy",
         };
 
-        const char* diff_name = ScenExtension->DifficultyName[0] == '\0' ? difficulty_names[Scen->CDifficulty] : ScenExtension->DifficultyName;
+        const char* diff_name = SessionExtension->SpawnerInfo.DifficultyName.empty()
+            ? difficulty_names[Scen->CDifficulty]
+            : SessionExtension->SpawnerInfo.DifficultyName.c_str();
 
         sprintf_s(diff_message, std::size(diff_message), "Difficulty: %s", diff_name);
 
@@ -1363,14 +1345,6 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
 
     DEBUG_INFO("Clearing old scenario\n");
     Clear_Scenario();
-
-    /**
-     *  If using the spawner, its scenario data has been cleared by Clear_Scenario.
-     *  Re-apply it here.
-     */
-    if (SessionExtension->IsSpawnerSession) {
-        Spawner::Apply_Scenario_Values();
-    }
 
     /**
      *  Set up difficulty and fog of war settings.

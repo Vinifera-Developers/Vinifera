@@ -13,6 +13,9 @@
 #include "session.h"
 #include "wolapi.h"
 
+#include <optional>
+#include <string>
+
 
 class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 {
@@ -149,6 +152,43 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         AutoSaveStateType AutoSave;
         bool IsSpawnerSession = false;
         bool MultiplayerSavesInitializedForThisSession = false;
+
+        /**
+         *  Spawner-supplied metadata for the current session. Populated only when
+         *  running under the spawner; consumed by the loading-screen override,
+         *  the statistics packet, and the in-game difficulty banner.
+         */
+        struct SpawnerSessionInfoType {
+
+            /**
+             *  Map identifier reported in the statistics packet "SCEN" field.
+             */
+            std::string StatsMapName;
+
+            /**
+             *  Map hash reported in the statistics packet "HASH" field.
+             */
+            std::string StatsMapHash;
+
+            /**
+             *  Custom difficulty name shown in the in-game difficulty banner;
+             *  empty means fall back to the stock difficulty name.
+             */
+            std::string DifficultyName;
+
+            /**
+             *  Loading-screen filename (including extension) that overrides the
+             *  scenario/UIControls pick; empty means no override.
+             */
+            std::string CustomLoadScreen;
+
+            /**
+             *  Optional override for the loading-screen progress-bar position.
+             */
+            std::optional<Point2D> CustomLoadScreenPos;
+        };
+
+        SpawnerSessionInfoType SpawnerInfo;
 
         struct SpawnerSlotInfoType {
             bool IsConfigured = false;

@@ -309,11 +309,11 @@ static void Init_Loading_Screen(const char* filename)
     /**
      *  The spawner can forcibly override the loading screen, and it already includes .PCX.
      */
-    if (ScenExtension->HasCustomLoadScreen) {
-        std::snprintf(loadfilename, sizeof(loadfilename), "%s", ScenExtension->CustomLoadScreen);
+    if (!SessionExtension->SpawnerInfo.CustomLoadScreen.empty()) {
+        std::snprintf(loadfilename, sizeof(loadfilename), "%s", SessionExtension->SpawnerInfo.CustomLoadScreen.c_str());
 
-        if (ScenExtension->HasCustomLoadScreenPos) {
-            bar_pos = ScenExtension->CustomLoadScreenPos;
+        if (SessionExtension->SpawnerInfo.CustomLoadScreenPos.has_value()) {
+            bar_pos = *SessionExtension->SpawnerInfo.CustomLoadScreenPos;
         }
     }
 

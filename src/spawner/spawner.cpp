@@ -235,12 +235,23 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->ExtOptions.IsAINamesByDifficulty = Config->AINamesByDifficulty;
     SessionExtension->MultiplayerSavesInitializedForThisSession = Config->LoadSaveGame;
 
+    SessionExtension->SpawnerInfo.StatsMapName = Config->MapName.c_str();
+    SessionExtension->SpawnerInfo.StatsMapHash = Config->MapHash.c_str();
+    SessionExtension->SpawnerInfo.DifficultyName = Config->DifficultyName.c_str();
+    if (!Config->CustomLoadScreen.empty()) {
+        SessionExtension->SpawnerInfo.CustomLoadScreen = Config->CustomLoadScreen.c_str();
+    }
+    if (Config->CustomLoadScreenPos != Point2D(0, 0)) {
+        SessionExtension->SpawnerInfo.CustomLoadScreenPos = Config->CustomLoadScreenPos;
+    }
+
     /**
      *  NOTE: Scenario data gets cleared between this point and the scenario start, because the first step
      *  in reading a scenario is calling Clear_Scenario. Assume any scenario variables set here to get cleared.
      *  Only set up some fields that we need for initialization (like difficulty, which is read by the environment).
      */
-    Apply_Scenario_Values();
+    Scen->Difficulty = Config->CampaignDifficulty;
+    Scen->CDifficulty = Config->CampaignCDifficulty;
 
     const int total_slots = std::min(Config->HumanPlayers + Config->AIPlayers, MAX_PLAYERS);
 
@@ -285,32 +296,6 @@ bool Spawner::Init_Session(char* scenario_name)
     }
 
     return true;
-}
-
-
-/**
- *  Writes spawner-related values to the scenario.
- *
- *  @author: Rampastring
- */
-void Spawner::Apply_Scenario_Values()
-{
-    // TODO maybe the stats, difficulty name, etc. should belong to SessionExtension instead?
-    Scen->Difficulty = Config->CampaignDifficulty;
-    Scen->CDifficulty = Config->CampaignCDifficulty;
-    std::snprintf(ScenExtension->StatsMapName, sizeof(ScenExtension->StatsMapName), "%s", Config->MapName.c_str());
-    std::snprintf(ScenExtension->StatsMapHash, sizeof(ScenExtension->StatsMapHash), "%s", Config->MapHash.c_str());
-    std::snprintf(ScenExtension->DifficultyName, sizeof(ScenExtension->DifficultyName), "%s", Config->DifficultyName.c_str());
-
-    if (!Config->CustomLoadScreen.empty()) {
-        ScenExtension->HasCustomLoadScreen = true;
-        std::snprintf(ScenExtension->CustomLoadScreen, sizeof(ScenExtension->CustomLoadScreen), "%s", Config->CustomLoadScreen.c_str());
-    }
-
-    if (Config->CustomLoadScreenPos != Point2D(0, 0)) {
-        ScenExtension->HasCustomLoadScreenPos = true;
-        ScenExtension->CustomLoadScreenPos = Config->CustomLoadScreenPos;
-    }
 }
 
 

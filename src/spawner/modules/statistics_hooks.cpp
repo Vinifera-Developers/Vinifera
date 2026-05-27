@@ -107,9 +107,9 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
 void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
     if (Is_Spawner_Write_Statistics()) {
-        PacketClass::Add_Field(new FieldClass("SCEN", ScenExtension->StatsMapName));
+        PacketClass::Add_Field(new FieldClass("SCEN", const_cast<char*>(SessionExtension->SpawnerInfo.StatsMapName.c_str())));
         PacketClass::Add_Field(new FieldClass("ACCN", const_cast<char*>(PlayerPtr->IniName.c_str())));
-        PacketClass::Add_Field(new FieldClass("HASH", ScenExtension->StatsMapHash));
+        PacketClass::Add_Field(new FieldClass("HASH", const_cast<char*>(SessionExtension->SpawnerInfo.StatsMapHash.c_str())));
         return;
     }
 

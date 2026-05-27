@@ -131,14 +131,6 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
          */
         bool IsUseMPAIBaseNodes;
 
-        char StatsMapName[44];
-        char StatsMapHash[0xff];
-        char CustomLoadScreen[PATH_MAX];
-        Point2D CustomLoadScreenPos;
-        bool HasCustomLoadScreen;
-        bool HasCustomLoadScreenPos;
-        char DifficultyName[64];
-
         /**
          *  Convenient property to access IsGDI as a HousesType.
          */
