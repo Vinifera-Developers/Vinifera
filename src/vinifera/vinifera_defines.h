@@ -414,10 +414,10 @@ enum ExtDiffType {
     /**
      *  Add new ExtDiffTypes from here.
      */
-    EXT_DIFF_VERY_EASY,
-    EXT_DIFF_BRUTALLY_EASY,
-    EXT_DIFF_EXTREMELY_EASY,
     EXT_DIFF_ULTIMATELY_EASY,
+    EXT_DIFF_EXTREMELY_EASY,
+    EXT_DIFF_BRUTALLY_EASY,
+    EXT_DIFF_VERY_EASY,
 
     /**
      *  The new total ExtDiffType count.
@@ -438,13 +438,13 @@ DEFINE_ENUMERATION_OPERATORS(ExtDiffType);
 inline const char *Difficulty_Name(DiffType d)
 {
     switch (static_cast<int>(d)) {
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimately Easy";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extremely Easy";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutally Easy";
+    case EXT_DIFF_VERY_EASY:        return "Very Easy";
     case DIFF_EASY:                 return "Easy";
     case DIFF_NORMAL:               return "Normal";
     case DIFF_HARD:                 return "Hard";
-    case EXT_DIFF_VERY_EASY:        return "Very Easy";
-    case EXT_DIFF_BRUTALLY_EASY:    return "Brutally Easy";
-    case EXT_DIFF_EXTREMELY_EASY:   return "Extremely Easy";
-    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimately Easy";
     default:                        return "?";
     }
 }
@@ -456,13 +456,13 @@ inline const char *Difficulty_Name(DiffType d)
 inline const char *CDifficulty_Name(DiffType d)
 {
     switch (static_cast<int>(d)) {
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimate";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extreme";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutal";
+    case EXT_DIFF_VERY_EASY:        return "Very Hard";
     case DIFF_EASY:                 return "Hard";
     case DIFF_NORMAL:               return "Normal";
     case DIFF_HARD:                 return "Easy";
-    case EXT_DIFF_VERY_EASY:        return "Very Hard";
-    case EXT_DIFF_BRUTALLY_EASY:    return "Brutal";
-    case EXT_DIFF_EXTREMELY_EASY:   return "Extreme";
-    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimate";
     default:                        return "?";
     }
 }
