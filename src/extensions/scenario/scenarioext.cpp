@@ -2377,7 +2377,7 @@ void ScenarioClassExtension::Assign_Houses()
             if (slot_info.Difficulty >= DIFF_FIRST && slot_info.Difficulty < EXT_DIFF_COUNT) {
                 housep->Assign_Handicap(static_cast<DiffType>(slot_info.Difficulty));
                 if (SessionExtension->ExtOptions.IsAINamesByDifficulty && !housep->IsHuman) {
-                    housep->IniName = CDifficulty_Name(static_cast<DiffType>(slot_info.Difficulty));
+                    housep->IniName = std::string(CDifficulty_Name(static_cast<DiffType>(slot_info.Difficulty))) + " AI";
                 }
             }
 
