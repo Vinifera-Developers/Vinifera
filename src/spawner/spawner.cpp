@@ -129,8 +129,6 @@ bool Spawner::Start_Game()
 
 int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
 {
-    // Temporarily uses DTA's original setup for now to avoid client changes as we figure out what to do
-
     switch (difficulty) {
     case 0:
         return DIFF_HARD;
@@ -148,11 +146,9 @@ int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
         return EXT_DIFF_ULTIMATELY_EASY;
     }
 
-    // assumes the client goes "easy, normal, hard, very easy, brutally easy, extremely easy, ultimately easy" in that order
-    // and then loops back to the start if more than 7 difficulties are selected.
-    // This is a bit janky but it allows for a simple relationship between the client and game difficulties.
-    //return (difficulty + DIFF_COUNT) % EXT_DIFF_COUNT;
-    
+    // Could also be described with this formula, given the difficulty setup.
+    // return (DIFF_HARD + EXT_DIFF_COUNT - difficulty) % EXT_DIFF_COUNT;
+
     DEBUG_FATAL("Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty: Unknown difficulty level {}", difficulty);
     return -1;
 }
