@@ -61,26 +61,6 @@ class OptionsClassExtension;
 
 
 /**
- *  For printing out extension debug info.
- */
-#ifdef VINIFERA_ENABLE_EXTENSION_DEBUG_PRINTING
-#define EXT_DEBUG_SAY(x, ...) DEV_DEBUG_SAY(x, ##__VA_ARGS__)
-#define EXT_DEBUG_INFO(x, ...) DEV_DEBUG_INFO(x, ##__VA_ARGS__)
-#define EXT_DEBUG_WARNING(x, ...) DEV_DEBUG_WARNING(x, ##__VA_ARGS__)
-#define EXT_DEBUG_ERROR(x, ...) DEV_DEBUG_ERROR(x, ##__VA_ARGS__)
-#define EXT_DEBUG_FATAL(x, ...) DEV_DEBUG_FATAL(x, ##__VA_ARGS__)
-#define EXT_DEBUG_TRACE(x, ...) DEV_DEBUG_TRACE(x, ##__VA_ARGS__)
-#else
-#define EXT_DEBUG_SAY(x, ...) ((void)0)
-#define EXT_DEBUG_INFO(x, ...) ((void)0)
-#define EXT_DEBUG_WARNING(x, ...) ((void)0)
-#define EXT_DEBUG_ERROR(x, ...) ((void)0)
-#define EXT_DEBUG_FATAL(x, ...) ((void)0)
-#define EXT_DEBUG_TRACE(x, ...) ((void)0)
-#endif
-
-
-/**
  *  Abstract derived classes.
  */
 extern DynamicVectorClass<UnitClassExtension *> UnitExtensions;

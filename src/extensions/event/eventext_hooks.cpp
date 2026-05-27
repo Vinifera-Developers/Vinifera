@@ -278,7 +278,7 @@ static int _Add_Compressed_Events(void* buf, int bufsize, int frame_delay, int s
     memset(&prevevent, 0, sizeof(EventClass));
 
     if (Debug_Print_Events) {
-        DEBUG_INFO("\nFrame %d: Building Send Packet\n", Frame);
+        DEBUG_INFO("\nFrame {}: Building Send Packet\n", Frame);
     }
 
     /**
@@ -332,7 +332,7 @@ static int _Add_Compressed_Events(void* buf, int bufsize, int frame_delay, int s
                     OutList.First().Data.MegaMission.Destination == prevevent.Data.MegaMission.Destination) {
 
                     if (Debug_Print_Events) {
-                        DEBUG_INFO("      adding Whom:%x Mission:%s Target:%x Dest:%x\n", OutList.First().Data.MegaMission.Whom.Encode(), MissionClass::Mission_Name(OutList.First().Data.MegaMission.Mission), OutList.First().Data.MegaMission.Target.Encode(), OutList.First().Data.MegaMission.Destination.Encode());
+                        DEBUG_INFO("      adding Whom:{:x} Mission:{} Target:{:x} Dest:{:x}\n", OutList.First().Data.MegaMission.Whom.Encode(), MissionClass::Mission_Name(OutList.First().Data.MegaMission.Mission), OutList.First().Data.MegaMission.Target.Encode(), OutList.First().Data.MegaMission.Destination.Encode());
                     }
 
                     datasize = sizeof(prevevent.Data.MegaMission.Whom);
@@ -567,7 +567,7 @@ static int _Extract_Compressed_Events(void* buf, int bufsize)
              *  this is a forged packet. No need to continue - just bail.
              */
             if (eventdata.ID != CurrentPacketPlayerId) {
-                DEBUG_ERROR("Extract_Compressed_Events: Forged house ID detected. Expected: %d, actual: %d\n", CurrentPacketPlayerId, event->ID);
+                DEBUG_ERROR("Extract_Compressed_Events: Forged house ID detected. Expected: {}, actual: {}\n", CurrentPacketPlayerId, event->ID);
                 return count;
             }
 

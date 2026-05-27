@@ -84,7 +84,7 @@ SDLSurface::SDLSurface(int width, int height) :
      */
     GDIBitmap = CreateDIBSection(GDIDC, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, &GDIBuffer, nullptr, 0);
     if (!GDIBitmap || !GDIBuffer) {
-        DEBUG_ERROR("CreateDIBSection failed! Error = %lu\n", GetLastError());
+        DEBUG_ERROR("CreateDIBSection failed! Error = {}\n", GetLastError());
         DeleteDC(GDIDC);
         GDIDC = nullptr;
         return;
@@ -101,7 +101,7 @@ SDLSurface::SDLSurface(int width, int height) :
      */
     SDLSurfacePtr = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_RGB565, GDIBuffer, Pitch);
     if (SDLSurfacePtr == nullptr) {
-        DEBUG_ERROR("SurfacePtr could not be created! SDL Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SurfacePtr could not be created! SDL Error: {}\n", SDL_GetError());
         return;
     }
 

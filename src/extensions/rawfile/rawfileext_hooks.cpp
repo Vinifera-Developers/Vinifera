@@ -42,8 +42,8 @@ class RawFileClassExt : public RawFileClass
  */
 long RawFileClassExt::_Read(void *buffer, int length)
 {
-    ASSERT_PRINT(buffer != nullptr, "Filename -> %s", Get_Safe_File_Name());
-    ASSERT_PRINT(length > 0, "Filename -> %s", Get_Safe_File_Name());
+    ASSERT_PRINT(buffer != nullptr, "Filename -> {}", Get_Safe_File_Name());
+    ASSERT_PRINT(length > 0, "Filename -> {}", Get_Safe_File_Name());
 
     long bytesread = 0; // Running count of the number of bytes read into the buffer.
     int	opened = false; // Was the file opened by this routine?
@@ -132,7 +132,7 @@ void RawFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fi
      *  Output error to the debug system.
      */
     if (Vinifera_PrintFileErrors) {
-        DEV_DEBUG_ERROR(buffer);
+        DEV_DEBUG_ERROR("{}", buffer);
     }
 
     /**
@@ -146,7 +146,7 @@ void RawFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fi
      *  If flagged, trigger a fatal assert to the user.
      */
     if (Vinifera_AssertFileErrors) {
-        ASSERT_FATAL_PRINT(can_retry, buffer);
+        ASSERT_FATAL_PRINT(can_retry, "{}", buffer);
     }
 }
 

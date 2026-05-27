@@ -32,8 +32,6 @@ TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
     MinSpreadStage(0),
     SpreadSpawnStage(5)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (this_ptr)
     {
         /**
@@ -64,7 +62,6 @@ TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
 TiberiumClassExtension::TiberiumClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -75,8 +72,6 @@ TiberiumClassExtension::TiberiumClassExtension(const NoInitClass &noinit) :
  */
 TiberiumClassExtension::~TiberiumClassExtension()
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::~TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TiberiumExtensions.Delete(this);
 }
 
@@ -88,8 +83,6 @@ TiberiumClassExtension::~TiberiumClassExtension()
  */
 HRESULT TiberiumClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -107,8 +100,6 @@ HRESULT TiberiumClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT TiberiumClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -127,8 +118,6 @@ HRESULT TiberiumClassExtension::Load(IStream *pStm)
  */
 HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -145,8 +134,6 @@ HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TiberiumClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -160,7 +147,6 @@ int TiberiumClassExtension::Get_Object_Size() const
  */
 void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -171,8 +157,6 @@ void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char* ini_name = Name();
 
     if (!IsInitialized) {
@@ -380,7 +364,6 @@ void TiberiumClassExtension::Growth_AI()
 
             Cell cell = node.second;
             CellClass& cellptr = Map[cell];
-
 
             /**
              *  If we can't grow, skip without increasing the counter. This fixes a bug in vanilla

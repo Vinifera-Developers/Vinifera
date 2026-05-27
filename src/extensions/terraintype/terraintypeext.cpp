@@ -36,8 +36,6 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* thi
     TiberiumSpawnStageFalloff(0),
     IsTiberiumScatterSpawn(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TerrainTypeExtensions.Add(this);
 }
 
@@ -50,7 +48,6 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* thi
 TerrainTypeClassExtension::TerrainTypeClassExtension(const NoInitClass &noinit) :
     ObjectTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -61,8 +58,6 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const NoInitClass &noinit) 
  */
 TerrainTypeClassExtension::~TerrainTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::~TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TerrainTypeExtensions.Delete(this);
 }
 
@@ -74,8 +69,6 @@ TerrainTypeClassExtension::~TerrainTypeClassExtension()
  */
 HRESULT TerrainTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -93,8 +86,6 @@ HRESULT TerrainTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT TerrainTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -113,8 +104,6 @@ HRESULT TerrainTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT TerrainTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -131,8 +120,6 @@ HRESULT TerrainTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TerrainTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -146,8 +133,6 @@ int TerrainTypeClassExtension::Get_Object_Size() const
  */
 void TerrainTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsLightEnabled);
 }
 
@@ -159,8 +144,6 @@ void TerrainTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }

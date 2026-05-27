@@ -40,7 +40,7 @@ DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)
      *  first before allowing it to continue availability checks.
      */
     if (campaignext->IsDebugOnly && !Vinifera_DeveloperMode) {
-        DEBUG_INFO("  Skipping Debug-Only Campaign [%d] - %s\n", index, campaign->Description);
+        DEBUG_INFO("  Skipping Debug-Only Campaign [{}] - {}\n", index, campaign->Description);
         goto skip_no_print;
     }
     
@@ -67,7 +67,7 @@ DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)
      *  Add the campaign to the dialog list.
      */
 add_campaign:
-    DEBUG_INFO("  Adding Campaign [%d] - %s\n", index, campaign->Description);
+    DEBUG_INFO("  Adding Campaign [{}] - {}\n", index, campaign->Description);
 add_no_print:
     R->ESI(&campaign->Description);
     R->EDI(index);
@@ -77,7 +77,7 @@ add_no_print:
      *  Skip this campaign.
      */
 skip_campaign:
-    DEBUG_GAME("  Skipping Campaign [%d] - %s\n", index, campaign->Description);
+    DEBUG_INFO("  Skipping Campaign [{}] - {}\n", index, campaign->Description);
 skip_no_print:
     return 0x004E33E6;
 }

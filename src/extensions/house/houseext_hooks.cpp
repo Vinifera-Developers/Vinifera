@@ -558,7 +558,7 @@ DEFINE_HOOK(0x004BBD26, _HouseClass_Can_Build_BuildCheat_Patch, 8)
              *  if true, force this 
              */
             if ((1 << this_ptr->Class->HeapID & objecttype->Get_Ownable()) != 0) {
-                //DEBUG_INFO("Forcing \"%s\" available.\n", objecttype->IniName.c_str());
+                //DEBUG_INFO("Forcing \"{}\" available.\n", objecttype->IniName);
                 return 0x004BBD17;
             }
         }
@@ -808,7 +808,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
     BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(btype);
     if (buildingtypeext && buildingtypeext->IsNaval) {
 
-        DEV_DEBUG_INFO("Find_Build_Location(%s): Searching for Naval Yard \"%s\" build location...\n", Name(), btype->Name());
+        DEV_DEBUG_INFO("Find_Build_Location({}): Searching for Naval Yard \"{}\" build location...\n", IniName, btype->Name());
 
         Cell cell(0, 0);
 
@@ -824,7 +824,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
         Cell found_cell = Map.Nearby_Location(Center.As_Cell(), SPEED_FLOAT, -1, MZONE_NORMAL, false, Point2D(area_w, area_h));
         if (found_cell != CELL_NONE) {
 
-            DEV_DEBUG_INFO("Find_Build_Location(%s): Found possible Naval Yard location at %d,%d...\n", Name(), found_cell.X, found_cell.Y);
+            DEV_DEBUG_INFO("Find_Build_Location({}): Found possible Naval Yard location at {},{}...\n", IniName, found_cell.X, found_cell.Y);
 
             /**
              *  Iterate over all owned construction yards and find the first that is closest to our cell.
@@ -840,7 +840,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
                      *  Is this location close enough to the construction yard for us to use?
                      */
                     if (Distance(conyard_coord, found_coord) <= Cell_To_Lepton(RuleExtension->AINavalYardAdjacency)) {
-                        DEV_DEBUG_INFO("Find_Build_Location(%s): Using location %d,%d for Naval Yard.\n", Name(), found_cell.X, found_cell.Y);
+                        DEV_DEBUG_INFO("Find_Build_Location({}): Using location {},{} for Naval Yard.\n", IniName, found_cell.X, found_cell.Y);
                         cell = found_cell;
                         break;
                     }
@@ -849,7 +849,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
         }
 
         if (cell == CELL_NONE) {
-            DEV_DEBUG_WARNING("Find_Build_Location(%s): Failed to find suitable location for \"%s\"!\n", Name(), btype->Name());
+            DEV_DEBUG_WARNING("Find_Build_Location({}): Failed to find suitable location for \"{}\"!\n", IniName, btype->Name());
         }
 
         return cell;
@@ -904,7 +904,7 @@ DEFINE_HOOK(0x004BC0B7, _HouseClass_Can_Build_Multi_MCV_Patch, 6)
  */
 #define WARN_AND_EXIT(funcname) { \
     DEBUG_FATAL("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.\n"); \
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress()); \
+    DEBUG_FATAL("Return address: {}\n", _ReturnAddress()); \
     WWMessageBox().Process("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK); \
     Emergency_Exit(0); } \
 

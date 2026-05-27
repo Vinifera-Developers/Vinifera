@@ -41,8 +41,6 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     CursorAttack(ACTION_ATTACK),
     CursorStayAttack(ACTION_ATTACK)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WeaponTypeExtensions.Add(this);
 }
 
@@ -55,7 +53,6 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
 WeaponTypeClassExtension::WeaponTypeClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -66,8 +63,6 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const NoInitClass &noinit) :
  */
 WeaponTypeClassExtension::~WeaponTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::~WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WeaponTypeExtensions.Delete(this);
 }
 
@@ -78,8 +73,6 @@ WeaponTypeClassExtension::~WeaponTypeClassExtension()
  */
 HRESULT WeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -97,8 +90,6 @@ HRESULT WeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT WeaponTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -117,8 +108,6 @@ HRESULT WeaponTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -135,8 +124,6 @@ HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WeaponTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -150,8 +137,6 @@ int WeaponTypeClassExtension::Get_Object_Size() const
  */
 void WeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsOmniFire);
     crc(IsElectricBolt);
     crc(IsSpawner);
@@ -166,8 +151,6 @@ void WeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
