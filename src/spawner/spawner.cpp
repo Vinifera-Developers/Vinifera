@@ -340,6 +340,11 @@ bool Spawner::Start_Scenario(char* scenario_name)
     Init_Random();
 
     /**
+     *  Hide the mouse so that it doesn't appear on the loading screen.
+     */
+    Hide_Mouse();
+
+    /**
      *  Start the scenario.
      */
     if (Session.Type == GAME_NORMAL) {
