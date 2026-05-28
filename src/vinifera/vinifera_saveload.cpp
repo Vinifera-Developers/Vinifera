@@ -787,18 +787,10 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     ViniferaSaveVersionInfo versioninfo;
     versioninfo.Set_Internal_Version(GameVersion);
     versioninfo.Set_Scenario_Description(descr);
-    versioninfo.Set_Version(1);
     versioninfo.Set_Player_House(PlayerPtr->Class->Full_Name());
     versioninfo.Set_Campaign_Number(Scen->Campaign);
     versioninfo.Set_Scenario_Number(Scen->Scenario);
-    versioninfo.Set_Executable_Name(VINIFERA_DLL);
     versioninfo.Set_Game_Type(Session.Type);
-
-    FILETIME filetime;
-    CoFileTimeNow(&filetime);
-    versioninfo.Set_Last_Time(filetime);
-    versioninfo.Set_Start_Time(filetime);
-    versioninfo.Set_Play_Time(filetime);
 
     versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
     versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
@@ -1106,14 +1098,14 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
                 }
             }
 
-            wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description());
+            wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description().c_str());
             file->Old = false;
             file->Valid = true;
             file->Scenario = saveversion.Get_Scenario_Number();
             file->Campaign = saveversion.Get_Campaign_Number();
             file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
             std::strncpy(file->Filename, formatted_file_name, std::size(file->Filename));
-            std::strncpy(file->Handle, saveversion.Get_Player_House(), std::size(file->Handle));
+            std::strncpy(file->Handle, saveversion.Get_Player_House().c_str(), std::size(file->Handle));
             if (std::strlen(file->Filename) == 0) {
                 std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
             }
