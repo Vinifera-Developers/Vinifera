@@ -29,8 +29,6 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
     ObjectClassExtension(this_ptr),
     DamageStage()
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimExtensions.Add(this);
 
     if (this_ptr) {
@@ -82,7 +80,6 @@ AnimClassExtension::AnimClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit),
     DamageStage(noinit)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -93,8 +90,6 @@ AnimClassExtension::AnimClassExtension(const NoInitClass &noinit) :
  */
 AnimClassExtension::~AnimClassExtension()
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::~AnimClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimExtensions.Delete(this);
 }
 
@@ -106,8 +101,6 @@ AnimClassExtension::~AnimClassExtension()
  */
 HRESULT AnimClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -125,8 +118,6 @@ HRESULT AnimClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT AnimClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -145,8 +136,6 @@ HRESULT AnimClassExtension::Load(IStream *pStm)
  */
 HRESULT AnimClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -163,8 +152,6 @@ HRESULT AnimClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int AnimClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -178,7 +165,6 @@ int AnimClassExtension::Get_Object_Size() const
  */
 void AnimClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

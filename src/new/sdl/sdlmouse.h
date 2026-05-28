@@ -38,7 +38,7 @@ public:
     /*
     **  Controls visibility of the game-drawn mouse.
     */
-    bool Is_Hidden() const override { return Get_Mouse_State() < 0; }
+    bool Is_Hidden() const override { return HideCount > 0; }
     void Hide_Mouse() override;
     void Show_Mouse() override;
 
@@ -81,6 +81,14 @@ public:
     **  Recalculates the cursor's image using the same shape.
     */
     void Recalc_Cursor_Image();
+
+    /*
+    **  Override the game cursor with a system cursor. Safe to call every tick;
+    **  Clear_Cursor_Override restores the prior game cursor.
+    */
+    void Set_Override_System_Cursor(SDL_SystemCursor id);
+    void Hide_Override_Cursor();
+    void Clear_Cursor_Override();
 
 private:
     /*
@@ -127,10 +135,18 @@ private:
     bool CursorOwned;
 
     /*
-    **  Lazily-created system default cursor, reused across Set_System_Cursor
-    **  calls so we don't allocate / destroy a Win32 HCURSOR on every fallback.
+    **  Lazily-created system cursors, one slot per SDL_SystemCursor id.
+    **  Reused so we don't churn Win32 HCURSORs on hover changes.
     */
-    SDL_Cursor* SystemCursor;
+    SDL_Cursor* SystemCursorCache[SDL_SYSTEM_CURSOR_COUNT];
+
+    /*
+    **  Cursor override state. While set, MouseShape / ShapeNumber /
+    **  OriginalHotspot keep describing the game cursor for restoration.
+    */
+    bool IsOverriding;
+    bool IsOverrideHidden;
+    SDL_SystemCursor CurrentOverrideId;
 
     /*
     **  If the mouse is being managed by this class (for the game), then this flag
@@ -141,12 +157,20 @@ private:
     bool IsCaptured;
 
     /*
+    **  Depth of nested Hide_Mouse calls not yet matched by Show_Mouse
+    **  (>= 0; positive means hidden). Mirrors vanilla MouseState semantics.
+    */
+    int HideCount;
+
+    /*
     **  Various private utility routines.
     */
     void Delete_Cursor_Image();
     void Convert_Cursor_Image(ShapeSet const* shapes);
     void Replace_Cursor(SDL_Cursor* cursor, bool owned);
     void Set_System_Cursor();
+    SDL_Cursor* Get_System_Cursor(SDL_SystemCursor id);
+    void Apply_Cursor_Visibility();
 
     static int Get_Cursor_Scale();
 };

@@ -26,8 +26,6 @@
 OverlayClassExtension::OverlayClassExtension(const OverlayClass *this_ptr) :
     ObjectClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("OverlayClassExtension::OverlayClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     OverlayExtensions.Add(this);
 }
 
@@ -40,7 +38,6 @@ OverlayClassExtension::OverlayClassExtension(const OverlayClass *this_ptr) :
 OverlayClassExtension::OverlayClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::OverlayClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -51,8 +48,6 @@ OverlayClassExtension::OverlayClassExtension(const NoInitClass &noinit) :
  */
 OverlayClassExtension::~OverlayClassExtension()
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::~OverlayClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     OverlayExtensions.Delete(this);
 }
 
@@ -64,8 +59,6 @@ OverlayClassExtension::~OverlayClassExtension()
  */
 HRESULT OverlayClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -83,8 +76,6 @@ HRESULT OverlayClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT OverlayClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -103,8 +94,6 @@ HRESULT OverlayClassExtension::Load(IStream *pStm)
  */
 HRESULT OverlayClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -121,8 +110,6 @@ HRESULT OverlayClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int OverlayClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -136,5 +123,4 @@ int OverlayClassExtension::Get_Object_Size() const
  */
 void OverlayClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

@@ -106,7 +106,7 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
     DEBUG_ERROR("See call stack in debugger for more information.\n");
     DEBUG_ERROR("\n");
     if (!StackBuffer.empty()) {
-        DEBUG_ERROR(StackBuffer.c_str());
+        DEBUG_ERROR("{}", StackBuffer);
         DEBUG_ERROR("\n");
     }
 

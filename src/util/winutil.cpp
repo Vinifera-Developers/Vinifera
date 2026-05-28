@@ -199,7 +199,7 @@ int Load_String_Ex(HINSTANCE hInstance, UINT uID, LPCSTR lpBuffer, INT nBufferMa
 {
     wchar_t pwBuffer[2048];
     if (!Load_String_Ex(hInstance, uID, pwBuffer, sizeof(pwBuffer), wLanguage)) {
-        DEBUG_INFO("Load_String_Ex() - Load_String_Ex(wide) failed. Error! %s\n", Last_System_Error_As_String());
+        DEBUG_INFO("Load_String_Ex() - Load_String_Ex(wide) failed. Error! {}\n", Last_System_Error_As_String());
         return 0;
     }
 
@@ -257,7 +257,7 @@ HANDLE Get_Process_by_Id(DWORD pId)
     }
 
     while (Process32Next(processesSnapshot, &processInfo)) {
-        //DEBUG_INFO("Checking process %s %d...\n", processInfo.szExeFile, processInfo.th32ProcessID);
+        //DEBUG_INFO("Checking process {} {}...\n", processInfo.szExeFile, processInfo.th32ProcessID);
         if (processInfo.th32ProcessID == pId) {
             CloseHandle(processesSnapshot);
             return OpenProcess(PROCESS_ALL_ACCESS, FALSE, processInfo.th32ProcessID);
@@ -424,7 +424,7 @@ bool DeleteFilesOlderThan(unsigned days, const char *in, const char *filename)
              *  Process only files...
              */
             if ((info.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)) {
-                DEBUG_INFO("%s is dir\n", composite_filename.c_str());
+                DEBUG_INFO("{} is dir\n", composite_filename);
                 continue;
             }
 
@@ -440,7 +440,7 @@ bool DeleteFilesOlderThan(unsigned days, const char *in, const char *filename)
              */
             if (CompareFileTime(&(info.ftLastWriteTime), &ftDaysAgo) < 0) {
 
-                DEBUG_INFO("  Deleting \"%s\".\n", composite_filename.c_str());
+                DEBUG_INFO("  Deleting \"{}\".\n", composite_filename);
 
                 /**
                  *  And delete!

@@ -468,7 +468,7 @@ void AudioManagerClass::Process_Play_Request(AudioRequest req)
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Creating instance of \"%s\".\n", req.Filename.c_str());
 
     auto instance = std::make_unique<AudioInstanceClass>(sample, req.HandleID);
-    ASSERT_FATAL(instance != nullptr, "Failed to create instance of sample \"%s\"!", sample->Get_FileName().c_str());
+    ASSERT_FATAL_PRINT(instance != nullptr, "Failed to create instance of sample \"{}\"!", sample->Get_FileName());
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: About to load sample for \"%s\".\n", req.Filename.c_str());
 

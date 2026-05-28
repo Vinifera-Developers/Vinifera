@@ -32,8 +32,6 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTy
     VoxMissileLaunched(VOX_MISSILE_LAUNCHED),
     Description("")
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SuperWeaponTypeExtensions.Add(this);
 }
 
@@ -47,7 +45,6 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const NoInitClass &
     AbstractTypeClassExtension(noinit),
     SidebarImage(noinit)
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -58,8 +55,6 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const NoInitClass &
  */
 SuperWeaponTypeClassExtension::~SuperWeaponTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::~SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     delete CameoImageSurface;
     CameoImageSurface = nullptr;
 
@@ -74,8 +69,6 @@ SuperWeaponTypeClassExtension::~SuperWeaponTypeClassExtension()
  */
 HRESULT SuperWeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -93,8 +86,6 @@ HRESULT SuperWeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -121,8 +112,6 @@ HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     /**
      *  Store the graphic name strings as raw data, these are used by the load operation.
      */
@@ -144,8 +133,6 @@ HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SuperWeaponTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -159,7 +146,6 @@ int SuperWeaponTypeClassExtension::Get_Object_Size() const
  */
 void SuperWeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -170,8 +156,6 @@ void SuperWeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }

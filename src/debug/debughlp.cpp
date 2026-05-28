@@ -93,7 +93,7 @@ static void Init_DbgHelp()
             *_sym_pointers[i] = GetProcAddress(dll_handle, _sym_functions[i]);
 
             if (*_sym_pointers[i] == nullptr) {
-                DEBUG_WARNING("Init_DbgHelp: Unable to load %s from dbghelp.dll.", _sym_functions[i]);
+                DEBUG_WARNING("Init_DbgHelp: Unable to load {} from dbghelp.dll.", _sym_functions[i]);
             }
         }
     } else {

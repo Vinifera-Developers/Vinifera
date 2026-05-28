@@ -314,30 +314,30 @@ bool MouseTypeClass::Read_INI(CCINIClass &ini)
 
         tok = std::strtok(buffer, ",");
         mousectrl->StartFrame = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse StartFrame for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse StartFrame for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
         mousectrl->FrameCount = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameCount for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameCount for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
         mousectrl->FrameRate = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameRate for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameRate for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
         mousectrl->SmallFrame = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrame for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrame for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameCount for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameCount for {}!", mousectrl->Name);
         mousectrl->SmallFrameCount = std::strtol(tok, nullptr, 10);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameRate for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameRate for {}!", mousectrl->Name);
         mousectrl->SmallFrameRate = std::strtol(tok, nullptr, 10);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotX for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotX for {}!", mousectrl->Name);
         if (!strcmpi(tok, "left")) {
             value = MOUSE_HOTSPOT_MIN;
         } else if (!strcmpi(tok, "center")) {
@@ -350,7 +350,7 @@ bool MouseTypeClass::Read_INI(CCINIClass &ini)
         mousectrl->Hotspot.X = value;
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotY for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotY for {}!", mousectrl->Name);
         if (!strcmpi(tok, "top")) {
             value = MOUSE_HOTSPOT_MIN;
         } else if (!strcmpi(tok, "middle")) {
@@ -402,7 +402,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot X for {}!\n", control.Name);
                 return false;
         }
 
@@ -417,7 +417,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for {}!\n", control.Name);
                 return false;
         }
 
@@ -432,7 +432,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot X for {}!\n", control.Name);
                 return false;
         }
 
@@ -447,7 +447,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for {}!\n", control.Name);
                 return false;
         }
 

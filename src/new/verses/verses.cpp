@@ -28,19 +28,19 @@ std::vector<std::vector<Verses::VersesData<bool>>> Verses::Retaliate;
  */
 HRESULT Verses::Save(IStream* pStm)
 {
-    HRESULT hr = Save_2D_Vector(pStm, Modifier, "Verses::Modifier");
+    HRESULT hr = Save_2D_Vector(pStm, Modifier);
     if (FAILED(hr))
         return hr;
 
-    hr = Save_2D_Vector(pStm, ForceFire, "Verses::ForceFire");
+    hr = Save_2D_Vector(pStm, ForceFire);
     if (FAILED(hr))
         return hr;
 
-    hr = Save_2D_Vector(pStm, PassiveAcquire, "Verses::PassiveAcquire");
+    hr = Save_2D_Vector(pStm, PassiveAcquire);
     if (FAILED(hr))
         return hr;
 
-    hr = Save_2D_Vector(pStm, Retaliate, "Verses::Retaliate");
+    hr = Save_2D_Vector(pStm, Retaliate);
     return hr;
 }
 
@@ -52,19 +52,19 @@ HRESULT Verses::Save(IStream* pStm)
  */
 HRESULT Verses::Load(IStream* pStm)
 {
-    HRESULT hr = Load_2D_Vector(pStm, Modifier, "Verses::Modifier");
+    HRESULT hr = Load_2D_Vector(pStm, Modifier);
     if (FAILED(hr))
         return hr;
 
-    hr = Load_2D_Vector(pStm, ForceFire, "Verses::ForceFire");
+    hr = Load_2D_Vector(pStm, ForceFire);
     if (FAILED(hr))
         return hr;
 
-    hr = Load_2D_Vector(pStm, PassiveAcquire, "Verses::PassiveAcquire");
+    hr = Load_2D_Vector(pStm, PassiveAcquire);
     if (FAILED(hr))
         return hr;
 
-    hr = Load_2D_Vector(pStm, Retaliate, "Verses::Retaliate");
+    hr = Load_2D_Vector(pStm, Retaliate);
     return hr;
 }
 
@@ -124,7 +124,7 @@ void Verses::Clear()
  *  @author: ZivDero
  */
 template <typename T>
-HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name)
+HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector)
 {
     int count = vector.size();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -133,10 +133,7 @@ HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
 
     for (int i = 0; i < count; i++)
     {
-        static char buffer[64];
-        std::snprintf(buffer, sizeof(buffer), "%s[%d]", heap_name, i);
-
-        hr = Save_Primitive_Vector(pStm, vector[i], buffer);
+        hr = Save_Primitive_Vector(pStm, vector[i]);
         if (FAILED(hr))
             return hr;
     }
@@ -151,7 +148,7 @@ HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
  *  @author: ZivDero
  */
 template <typename T>
-HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name)
+HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector)
 {
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -162,10 +159,7 @@ HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
 
     for (int i = 0; i < count; i++)
     {
-        static char buffer[64];
-        std::snprintf(buffer, sizeof(buffer), "%s[%d]", heap_name, i);
-
-        hr = Load_Primitive_Vector(pStm, vector[i], buffer);
+        hr = Load_Primitive_Vector(pStm, vector[i]);
         if (FAILED(hr))
             return hr;
     }

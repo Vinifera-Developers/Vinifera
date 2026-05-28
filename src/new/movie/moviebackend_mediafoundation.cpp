@@ -362,13 +362,13 @@ bool MediaFoundationMovieBackend::Open(const char *filename)
     if (SUCCEEDED(hr) || hr == S_FALSE) {
         ComInitialized = true;
     } else if (hr != RPC_E_CHANGED_MODE) {
-        DEBUG_ERROR("Media Foundation backend failed to initialize COM! Error code: 0x%08x.\n", hr);
+        DEBUG_ERROR("Media Foundation backend failed to initialize COM! Error code: 0x{:08x}.\n", hr);
         return false;
     }
 
     hr = MFStartup(MF_VERSION, MFSTARTUP_FULL);
     if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed to initialize Media Foundation! Error code: 0x%08x.\n", hr);
+        DEBUG_ERROR("Media Foundation backend failed to initialize Media Foundation! Error code: 0x{:08x}.\n", hr);
         return false;
     }
 
@@ -388,7 +388,7 @@ bool MediaFoundationMovieBackend::Open(const char *filename)
     ComPtr<IMFAttributes> attributes;
     hr = MFCreateAttributes(&attributes, 1);
     if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed to create source reader attributes! Error code: 0x%08x.\n", hr);
+        DEBUG_ERROR("Media Foundation backend failed to create source reader attributes! Error code: 0x{:08x}.\n", hr);
         return false;
     }
 
@@ -396,7 +396,7 @@ bool MediaFoundationMovieBackend::Open(const char *filename)
 
     hr = MFCreateSourceReaderFromByteStream(ByteStream.Get(), attributes.Get(), &Reader);
     if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed to create source reader for \"%s\"! Error code: 0x%08x.\n", filename, hr);
+        DEBUG_ERROR("Media Foundation backend failed to create source reader for \"{}\"! Error code: 0x{:08x}.\n", filename, hr);
         return false;
     }
 
@@ -404,7 +404,7 @@ bool MediaFoundationMovieBackend::Open(const char *filename)
 
     HasVideoStream = Configure_Video_Stream();
     if (!HasVideoStream) {
-        DEBUG_WARNING("Media Foundation backend could not configure a video stream for \"%s\".\n", filename);
+        DEBUG_WARNING("Media Foundation backend could not configure a video stream for \"{}\".\n", filename);
         return false;
     }
 
@@ -499,7 +499,7 @@ bool MediaFoundationMovieBackend::Configure_Video_Stream()
         }
     }
 
-    DEBUG_INFO("Media Foundation backend video output: NV12 %ux%u stride=%ld\n",
+    DEBUG_INFO("Media Foundation backend video output: NV12 {}x{} stride={}\n",
         VideoWidth,
         VideoHeight,
         VideoStride);
@@ -528,7 +528,7 @@ bool MediaFoundationMovieBackend::Configure_Audio_Stream()
     ComPtr<IMFMediaType> native_type;
     hr = Reader->GetNativeMediaType(AudioStreamIndex, 0, &native_type);
     if (FAILED(hr)) {
-        DEBUG_INFO("Media Foundation backend could not read the native audio type. Error code: 0x%08x.\n", hr);
+        DEBUG_INFO("Media Foundation backend could not read the native audio type. Error code: 0x{:08x}.\n", hr);
         Reader->SetStreamSelection(AudioStreamIndex, FALSE);
         return false;
     }
@@ -562,7 +562,7 @@ bool MediaFoundationMovieBackend::Configure_Audio_Stream()
 
     hr = Reader->SetCurrentMediaType(AudioStreamIndex, nullptr, output_type.Get());
     if (FAILED(hr)) {
-        DEBUG_INFO("Media Foundation backend could not negotiate 16-bit PCM audio. Error code: 0x%08x.\n", hr);
+        DEBUG_INFO("Media Foundation backend could not negotiate 16-bit PCM audio. Error code: 0x{:08x}.\n", hr);
         Reader->SetStreamSelection(AudioStreamIndex, FALSE);
         return false;
     }
@@ -589,12 +589,12 @@ bool MediaFoundationMovieBackend::Configure_Audio_Stream()
     } else if (AudioBits == 8) {
         AudioFormat = MOVIE_SAMPLE_U8;
     } else {
-        DEBUG_INFO("Media Foundation backend negotiated unsupported audio bit depth: %u.\n", AudioBits);
+        DEBUG_INFO("Media Foundation backend negotiated unsupported audio bit depth: {}.\n", AudioBits);
         Reader->SetStreamSelection(AudioStreamIndex, FALSE);
         return false;
     }
 
-    DEBUG_INFO("Media Foundation backend audio output: %u Hz, %u channels, %u bits.\n", AudioRate, AudioChannels, AudioBits);
+    DEBUG_INFO("Media Foundation backend audio output: {} Hz, {} channels, {} bits.\n", AudioRate, AudioChannels, AudioBits);
 
     return true;
 }
@@ -617,7 +617,7 @@ bool MediaFoundationMovieBackend::Decode_Video_Sample(IMFSample *sample, LONGLON
     ComPtr<IMFMediaBuffer> media_buffer;
     HRESULT hr = sample->ConvertToContiguousBuffer(&media_buffer);
     if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed to flatten a video sample! Error code: 0x%08x.\n", hr);
+        DEBUG_ERROR("Media Foundation backend failed to flatten a video sample! Error code: 0x{:08x}.\n", hr);
         return false;
     }
 
@@ -645,7 +645,7 @@ bool MediaFoundationMovieBackend::Decode_Video_Sample(IMFSample *sample, LONGLON
         DWORD max_length = 0;
         hr = media_buffer->Lock(&source, &max_length, &current_length);
         if (FAILED(hr)) {
-            DEBUG_ERROR("Media Foundation backend failed to lock a video sample! Error code: 0x%08x.\n", hr);
+            DEBUG_ERROR("Media Foundation backend failed to lock a video sample! Error code: 0x{:08x}.\n", hr);
             return false;
         }
         source_stride = std::abs(VideoStride) > 0 ? std::abs(VideoStride) : static_cast<int>(VideoWidth);
@@ -719,7 +719,7 @@ bool MediaFoundationMovieBackend::Decode_Audio_Sample(IMFSample *sample, LONGLON
     ComPtr<IMFMediaBuffer> buffer;
     HRESULT hr = sample->ConvertToContiguousBuffer(&buffer);
     if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed to flatten an audio sample! Error code: 0x%08x.\n", hr);
+        DEBUG_ERROR("Media Foundation backend failed to flatten an audio sample! Error code: 0x{:08x}.\n", hr);
         return false;
     }
 
@@ -729,7 +729,7 @@ bool MediaFoundationMovieBackend::Decode_Audio_Sample(IMFSample *sample, LONGLON
 
     hr = buffer->Lock(&source, &max_length, &current_length);
     if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed to lock an audio sample! Error code: 0x%08x.\n", hr);
+        DEBUG_ERROR("Media Foundation backend failed to lock an audio sample! Error code: 0x{:08x}.\n", hr);
         return false;
     }
 
@@ -770,7 +770,7 @@ bool MediaFoundationMovieBackend::Pump(MovieDecodeOutput &output)
 
     HRESULT hr = Reader->ReadSample(MF_SOURCE_READER_ANY_STREAM, 0, &stream_index, &flags, &timestamp, &sample);
     if (FAILED(hr)) {
-        DEBUG_ERROR("Media Foundation backend failed while reading a movie sample! Error code: 0x%08x.\n", hr);
+        DEBUG_ERROR("Media Foundation backend failed while reading a movie sample! Error code: 0x{:08x}.\n", hr);
         return false;
     }
 

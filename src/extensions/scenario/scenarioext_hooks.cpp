@@ -250,7 +250,7 @@ static bool Rule_Addition(const char *fname, bool with_digest = false)
         return false;
     }
 
-    DEBUG_INFO("Calling Rule->Addition() with \"%s\" overrides.\n", fname);
+    DEBUG_INFO("Calling Rule->Addition() with \"{}\" overrides.\n", fname);
 
     Rule->Addition(ini);
 

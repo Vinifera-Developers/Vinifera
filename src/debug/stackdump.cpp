@@ -134,7 +134,7 @@ void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigne
                 }
             //}
         } else {
-            //DEBUG_INFO("Get_Function_Details() - SymFromAddr failed: %d\n", GetLastError());
+            //DEBUG_INFO("Get_Function_Details() - SymFromAddr failed: {}\n", GetLastError());
         }
     //}
 }
