@@ -821,17 +821,8 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     }
 
     DEBUG_INFO("Linking content stream to compressor.\n");
-    IUnknown* pUnknown = nullptr;
     CComPtr<ILinkStream> linkstream;
-    hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-    if (SUCCEEDED(hr)) {
-        hr = OleRun(pUnknown);
-        if (SUCCEEDED(hr)) {
-            pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-        }
-        pUnknown->Release();
-    }
-
+    linkstream.CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC | CLSCTX_LOCAL_SERVER);
     hr = linkstream->Link_Stream(docfile);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to link stream to compressor.\n");
@@ -930,17 +921,8 @@ bool Vinifera_Load_Game(const char* file_name)
     }
 
     DEBUG_INFO("Linking content stream to decompressor.\n");
-    IUnknown* pUnknown = nullptr;
     CComPtr<ILinkStream> linkstream;
-    hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-    if (SUCCEEDED(hr)) {
-        hr = OleRun(pUnknown);
-        if (SUCCEEDED(hr)) {
-            pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-        }
-        pUnknown->Release();
-    }
-
+    linkstream.CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC | CLSCTX_LOCAL_SERVER);
     hr = linkstream->Link_Stream(docfile);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to link stream to decompressor.\n");
