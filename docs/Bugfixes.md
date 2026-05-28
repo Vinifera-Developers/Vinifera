@@ -124,4 +124,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
 - Fix a bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
-- Fix a vanilla bug where AI medics would fail to heal their allies.
+- Fix a bug where AI medics would fail to heal their allies.
