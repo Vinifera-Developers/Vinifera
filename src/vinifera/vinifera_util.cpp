@@ -53,15 +53,9 @@ const char *Vinifera_Name_String()
 
         if (!dev_mode) {
             std::snprintf(_buffer, sizeof(_buffer), "Vinifera");
-
         } else {
             std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s", dev_mode != nullptr ? dev_mode : "");
         }
-
-#if defined(TS_CLIENT)
-        std::strcat(_buffer, " (TS-Client)");
-#endif
-        
     }
 
     return _buffer;
@@ -90,10 +84,6 @@ const char * Vinifera_Build_Type_String()
         const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
     #endif
     #endif
-    #if defined(TS_CLIENT)
-        std::snprintf(_buffer, sizeof(_buffer), "%s [TS-Client]", build_type);
-    #endif
-
     }
 
     return _buffer;
@@ -452,11 +442,6 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
     if (Vinifera_DeveloperMode) {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s (PID:%d) (Developer Mode)", title_buff, dwPid);
-
-#if defined(TS_CLIENT)
-        std::strcat(_window_name, " (TS-Client)");
-#endif
-
     } else {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s", title_buff);

@@ -158,7 +158,7 @@ static void Populate_Command_Categories(HWND hWnd, const char *category)
  *  This can not be in client compatible builds currently as the additional
  *  commands added do not have runtime type information.
  */
-#if !defined(TS_CLIENT)
+#if false
 
 /**
  *  Patch to intercept the populating of the keyboard command list box.

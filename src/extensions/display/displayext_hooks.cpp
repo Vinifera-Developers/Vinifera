@@ -227,10 +227,6 @@ DEFINE_HOOK(0x004782CF, _DisplayClass_Mouse_Left_Up_Set_Mouse, 0)
     return 0x004786C5;
 }
 
-/**
- *  The ts-patches spawner has its own Build off Ally implementation.
- */
-#ifndef TS_CLIENT
 
 /**
  *  #issue-171
@@ -279,8 +275,6 @@ DEFINE_HOOK(0x004762E4, _DisplayClass_Passes_Proximity_Passes_Check_Patch, 0)
 continue_scan:
     return 0x00476308;
 }
-
-#endif
 
 
 /**

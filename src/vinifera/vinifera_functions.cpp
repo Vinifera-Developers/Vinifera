@@ -74,7 +74,6 @@ bool Vinifera_Load_INI()
     ini.Get_String("General", "IconFile", "", Vinifera_IconName, sizeof(Vinifera_IconName));
     ini.Get_String("General", "CursorFile", "", Vinifera_CursorName, sizeof(Vinifera_CursorName));
 
-#if defined(TS_CLIENT)
     /**
      *  TS Client uses a seperate "version" file, so its best we fetch the current
      *  version from there rather than have the user update the INI file each time
@@ -88,9 +87,6 @@ bool Vinifera_Load_INI()
     } else {
         ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     }
-#else
-    ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
-#endif
 
     Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
     Vinifera_ProjectVersion[sizeof(Vinifera_ProjectVersion)-1] = '\0';
@@ -106,12 +102,6 @@ bool Vinifera_Load_INI()
             }
             path = std::strtok(nullptr, ",");
         }
-#if defined(TS_CLIENT)
-    } else {
-        DEBUG_ERROR("Failed to find SearchPaths in VINIFERA.INI!\n");
-        MessageBox(MainWindow, "Failed to find SearchPaths in VINIFERA.INI, please reinstall Vinifera.", "Vinifera", MB_ICONEXCLAMATION|MB_OK);
-        return false;
-#endif
     }
 
     Vinifera_NoTacticalVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoTacticalVersionString);
@@ -527,10 +517,6 @@ bool Vinifera_Startup()
         DEBUG_INFO("\n");
     } else {
         DEBUG_WARNING("Failed to load VINIFERA.INI!\n");
-#if defined(TS_CLIENT)
-        MessageBoxA(nullptr, "Failed to load VINIFERA.INI!", "Vinifera", MB_ICONERROR|MB_OK);
-        return false;
-#endif
     }
 
     /**

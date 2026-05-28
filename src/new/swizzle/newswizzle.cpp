@@ -280,12 +280,7 @@ void ViniferaSwizzleManagerClass::Process_Tables()
                                   "  Line: %d\n"
                                   "  Function: %s\n"
                                   "  Variable: %s\n"
-
-#if defined(TS_CLIENT)
                                   "\nThe game will now exit.\n"
-#else
-                                  "\nThe game will now return to the main menu.\n"
-#endif
                                   
                                 , !request.File.empty() ? request.File.c_str() : "<no-filename-info>"
                                 , request.Line
@@ -293,50 +288,13 @@ void ViniferaSwizzleManagerClass::Process_Tables()
                                 , !request.Variable.empty() ? request.Variable.c_str() : "<no-variable-info>");
 
                     MessageBox(MainWindow, buffer, "Vinifera", MB_OK | MB_ICONEXCLAMATION);
-
                 } else {
-
-#if defined(TS_CLIENT)
                     MessageBox(MainWindow, "SwizzleManager failed to remap a pointer from the save file!\n\nThe game will now exit.", "Vinifera", MB_OK | MB_ICONEXCLAMATION);
-#else
-                    MessageBox(MainWindow, "SwizzleManager failed to remap a pointer from the save file!\n\nThe game will now return to the main menu.", "Vinifera", MB_OK | MB_ICONEXCLAMATION);
-#endif
                 }
 
-#if defined(TS_CLIENT)
                 // Fatal("SwizzleManager failed to remap a pointer from the save file!\n");
                 Emergency_Exit(EXIT_FAILURE);
                 exit(EXIT_FAILURE);
-#else
-
-                /**
-                 *  #BUGFIX:
-                 *  Clear all surfaces to remove any blitting artifacts.
-                 */
-                Clear_All_Surfaces();
-
-                // WWMouseClass::System_Hide_Mouse();
-                ShowCursor(FALSE);
-
-                /**
-                 *  Return to the main menu. This is abusing the exception return
-                 *  address information, which points back to the Select_Game
-                 *  call in Main_Game.
-                 */
-                {
-                    static CONTEXT _ctx;
-                    ZeroMemory(&_ctx, sizeof(_ctx));
-
-                    RtlCaptureContext(&_ctx);
-
-                    DWORD* ebp = &(_ctx.Ebp);
-                    DWORD* esp = &(_ctx.Esp);
-                    DWORD* eip = &(_ctx.Eip);
-                    *ebp = ExceptionReturnBase;
-                    *esp = ExceptionReturnStack;
-                    *eip = ExceptionReturnAddress;
-                }
-#endif
 
                 return; // For clean binary analysis.
             }

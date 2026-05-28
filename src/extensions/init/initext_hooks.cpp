@@ -192,7 +192,6 @@ failed:
 }
 
 
-#if defined(TS_CLIENT)
 /**
  *  Forces Firestorm addon as Present (installed).
  * 
@@ -215,7 +214,6 @@ static bool Vinifera_Detect_Addons()
 
     return true;
 }
-#endif
 
 extern bool ImGui_Create_Main_Window(HINSTANCE hInstance);
 
@@ -899,15 +897,12 @@ DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
 
     if (Detach_Debugger()) {
         if (!IsDebuggerPresent()) {
-#if !defined(NDEBUG) && defined(TS_CLIENT)
+#ifndef NDEBUG
             bool wait_for_debugger = true;
-#elif defined(TS_CLIENT)
+#else
             const char* cmdline = GetCommandLineA();
             bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
-#else
-            bool wait_for_debugger = false;
 #endif
-
             if (wait_for_debugger) {
                 MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
             }
@@ -991,11 +986,8 @@ void GameInit_Hooks()
      */
     Patch_Dword(0x004E743D+1, (uint32_t)0x0074C5DC);
 
-#if defined(TS_CLIENT)
     /**
      *  TS Client file structure assumes Firestorm is always installed and enabled.
      */
     Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
-#endif
-
 }
