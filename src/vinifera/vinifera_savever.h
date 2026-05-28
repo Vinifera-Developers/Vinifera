@@ -35,7 +35,7 @@ public:
         ID_VINIFERA_COMMIT_HASH = 106,
         ID_PLAYTHROUGH_ID = 107,
         ID_DIFFICULTY = 108,
-        ID_TOTAL_PLAY_TIME = 109,
+        ID_ELAPSED_TIME = 109,
     };
 
 public:
@@ -92,8 +92,8 @@ public:
     void Set_Difficulty(int num);
     int Get_Difficulty() const;
 
-    void Set_Total_Play_Time(int num);
-    int Get_Total_Play_Time() const;
+    void Set_Elapsed_Time(int time);
+    int Get_Elapsed_Time() const;
 
     HRESULT Save(IStorage *storage);
     HRESULT Load(IStorage *storage);
@@ -145,7 +145,7 @@ private:
     char ViniferaCommitHash[40];
     int PlaythroughID;
     int Difficulty;
-    int TotalPlayTime;
+    int ElapsedTime;
 };
 
 const WCHAR* Vinifera_Stream_Name_From_ID(int id);

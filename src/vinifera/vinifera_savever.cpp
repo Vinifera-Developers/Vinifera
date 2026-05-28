@@ -39,7 +39,7 @@ ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     PlaythroughID(0),
     ViniferaCommitHash {""},
     Difficulty(DIFF_NORMAL),
-    TotalPlayTime(0)
+    ElapsedTime(0)
 {
     StartTime.dwLowDateTime = 0;
     StartTime.dwHighDateTime = 0;
@@ -433,24 +433,24 @@ int ViniferaSaveVersionInfo::Get_Difficulty() const
 
 
 /**
- *  Sets the total play time field.
+ *  Sets the elapsed time field.
  *
  *  @author: ZivDero
  */
-void ViniferaSaveVersionInfo::Set_Total_Play_Time(int num)
+void ViniferaSaveVersionInfo::Set_Elapsed_Time(int time)
 {
-    TotalPlayTime = num;
+    ElapsedTime = time;
 }
 
 
 /**
- *  Gets the total play time field.
+ *  Gets the elapsed time field.
  *
  *  @author: ZivDero
  */
-int ViniferaSaveVersionInfo::Get_Total_Play_Time() const
+int ViniferaSaveVersionInfo::Get_Elapsed_Time() const
 {
-    return TotalPlayTime;
+    return ElapsedTime;
 }
 
 
@@ -562,7 +562,7 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
             return res;
         }
 
-        res = Save_Int_Set(storageset, ID_TOTAL_PLAY_TIME, TotalPlayTime);
+        res = Save_Int_Set(storageset, ID_ELAPSED_TIME, ElapsedTime);
         if (FAILED(res)) {
             return res;
         }
@@ -663,7 +663,7 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
         return res;
     }
 
-    res = Save_Int(storage, ID_TOTAL_PLAY_TIME, TotalPlayTime);
+    res = Save_Int(storage, ID_ELAPSED_TIME, ElapsedTime);
     if (FAILED(res)) {
         return res;
     }
@@ -787,7 +787,7 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
             return res;
         }
 
-        res = Load_Int_Set(storageset, ID_TOTAL_PLAY_TIME, &TotalPlayTime);
+        res = Load_Int_Set(storageset, ID_ELAPSED_TIME, &ElapsedTime);
         if (FAILED(res)) {
             return res;
         }
@@ -893,7 +893,7 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
         return res;
     }
 
-    res = Load_Int(storage, ID_TOTAL_PLAY_TIME, &TotalPlayTime);
+    res = Load_Int(storage, ID_ELAPSED_TIME, &ElapsedTime);
     if (FAILED(res)) {
         return res;
     }
@@ -1453,7 +1453,7 @@ const WCHAR *Vinifera_Stream_Name_From_ID(int id)
         { ViniferaSaveVersionInfo::ID_VINIFERA_COMMIT_HASH,  L"Vinifera Commit Hash" },
         { ViniferaSaveVersionInfo::ID_PLAYTHROUGH_ID,        L"Playthrough ID" },
         { ViniferaSaveVersionInfo::ID_DIFFICULTY,            L"Difficulty" },
-        { ViniferaSaveVersionInfo::ID_TOTAL_PLAY_TIME,       L"Total Play Time" },
+        { ViniferaSaveVersionInfo::ID_ELAPSED_TIME,          L"Elapsed Time" },
     };
 
     for (int i = 0; i < std::size(_ids); i++) {

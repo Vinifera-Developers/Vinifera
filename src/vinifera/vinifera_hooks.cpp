@@ -393,7 +393,6 @@ DEFINE_HOOK(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0)
      *  Reset any globals.
      */
     Vinifera_ShowSuperWeaponTimers = true;
-    Vinifera_TotalPlayTime = 0;
     if (SessionExtension) {
         SessionExtension->Init_Clear();
     }

@@ -225,20 +225,6 @@ void MultiScoreExt::_Tally_Score()
 
 
 /**
- *  Patches the score screen to show the total time since the scenario was started,
- *  not since the last time the game was loaded.
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x00568D10, _MultiScore_568BE0_ElapsedTime_Patch, 0)
-{
-    unsigned elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
-    R->EBX(elapsed_time);
-    return 0x00568D38;
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void MultiScoreExtension_Hooks()

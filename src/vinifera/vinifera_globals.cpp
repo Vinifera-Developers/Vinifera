@@ -65,7 +65,6 @@ bool Vinifera_ShowSuperWeaponTimers = true;
 DynamicVectorClass<MFCD *> ViniferaMapsMixes;
 DynamicVectorClass<MFCD*> ViniferaMoviesMixes;
 
-unsigned Vinifera_TotalPlayTime = 0;
 unsigned Vinifera_PlaythroughID = 0;
 
 DynamicVectorClass<EBoltClass *> EBolts;

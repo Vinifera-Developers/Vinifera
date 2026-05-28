@@ -804,7 +804,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
     versioninfo.Set_Playthrough_ID(Vinifera_PlaythroughID);
     versioninfo.Set_Difficulty(Scen->CDifficulty);
-    versioninfo.Set_Total_Play_Time(Vinifera_TotalPlayTime + Scen->ElapsedTimer.Value());
+    versioninfo.Set_Elapsed_Time(Scen->ElapsedTimer.Value());
 
     DEBUG_INFO("Saving version information\n");
     if (FAILED(versioninfo.Save(storage))) {
@@ -911,7 +911,6 @@ bool Vinifera_Load_Game(const char* file_name)
 
     storage.Release();
     Session.Type = static_cast<GameEnum>(saveversion.Get_Game_Type());
-    Vinifera_TotalPlayTime = saveversion.Get_Total_Play_Time();
     Vinifera_PlaythroughID = saveversion.Get_Playthrough_ID();
     SwizzleManager.Reset();
 

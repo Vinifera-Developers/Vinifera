@@ -188,6 +188,22 @@ DEFINE_HOOK(0x005DC0A0, _Fill_In_Data_Home_Cell_Patch, 0)
 
 
 /**
+ *  Replace the ElapsedTimer constructor call in ScenarioClass's NoInit constructor
+ *  with a NoInit constructor to preserve the timer's saved value.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x005DAE13, _ScenarioClass_NoInit_CTOR_ElapsedTimer_Patch, 0)
+{
+    GET(ScenarioClass*, this_ptr, ESI);
+
+    new (&this_ptr->ElapsedTimer) TTimerClass<SystemTimerClass>(NoInitClass());
+
+    return 0x005DAE1E;
+}
+
+
+/**
  *  #issue-71
  *
  *  Replace waypoint number to string conversion.
@@ -571,6 +587,8 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DD4C0, &ScenarioClassExtension::Read_Scenario_INI);
     Patch_Jump(0x005DE210, &ScenarioClassExtension::Assign_Houses);
     Patch_Jump(0x005DE580, &ScenarioClassExtension::Create_Units);
+
+    Patch_Jump(0x005DAE28, 0x005DAE34); // Skip ElapsedTimer ctor
 
     /**
      *  #issue-71
