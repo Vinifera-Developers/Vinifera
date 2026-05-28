@@ -113,8 +113,19 @@ bool Spawner::Start_Game()
 
     GameActive = true;
 
-    Init_UI();
-    Prepare_Screen();
+    /**
+     *  Initialize some OD global state so that dialogs work correctly.
+     */
+    OwnerDraw::Initialize();
+    OwnerDraw::Init_Masks();
+    OwnerDraw::Cache_Images();
+
+    /**
+     *  Clear the screen before Start_Scenario just in case so that it has
+     *  a clean slate to work with.
+     */
+    HiddenSurface->Fill(TBLACK);
+    Update_Visible_Surface();
 
     DEBUG_INFO("[Spawner] Start_Game: Starting scenario {}\n", Config->ScenarioName);
     const bool result = Start_Scenario(Config->ScenarioName.data());
@@ -122,7 +133,27 @@ bool Spawner::Start_Game()
 
     if (!result) {
         DEBUG_ERROR("[Spawner] Start_Game: Start_Scenario returned false!\n");
+        return result;
     }
+
+    /**
+     *  Tail of Select_Game: set up the game screen and
+     *  render one frame for the caller to fade in. The unmatched final Hide
+     *  returns the mouse hidden-by-one, which the caller (Main_Game) shows.
+     */
+    HiddenSurface->Fill(TBLACK);
+    Update_Visible_Surface();
+    LogicalSurface = HiddenSurface;
+
+    Show_Mouse();
+
+    Map.Override_Mouse_Shape(MOUSE_NO_MOVE);
+    Map.Revert_Mouse_Shape();
+
+    Map.Activate(1);
+    Map.Flag_To_Redraw();
+
+    Hide_Mouse();
 
     return result;
 }
@@ -321,11 +352,6 @@ bool Spawner::Start_Scenario(char* scenario_name)
     std::snprintf(save_game_name, sizeof(save_game_name), "%s", Config->SaveGameName.c_str());
 
     Init_Random();
-
-    /**
-     *  Hide the mouse so that it doesn't appear on the loading screen.
-     */
-    Hide_Mouse();
 
     /**
      *  Start the scenario.
@@ -588,40 +614,4 @@ bool Spawner::Reconcile_Players()
     } else {
         return false;
     }
-}
-
-
-/**
- *  Initializes some things for OwnerDraw UI.
- *
- *  @author: ZivDero
- */
-void Spawner::Init_UI()
-{
-    OwnerDraw::Initialize();
-    OwnerDraw::Init_Masks();
-    OwnerDraw::Cache_Images();
-}
-
-
-/**
- *  Prepares the screen.
- *
- *  @author: ZivDero
- */
-void Spawner::Prepare_Screen()
-{
-    MouseCursor->Hide_Mouse();
-
-    HiddenSurface->Fill(TBLACK);
-    Update_Visible_Surface();
-    LogicalSurface = HiddenSurface;
-
-    MouseCursor->Show_Mouse();
-
-    Map.MouseClass::Set_Default_Mouse(MOUSE_NO_MOVE, false);
-    Map.MouseClass::Revert_Mouse_Shape();
-
-    Map.TabClass::Activate(1);
-    Map.SidebarClass::Flag_To_Redraw();
 }

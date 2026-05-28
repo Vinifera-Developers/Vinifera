@@ -42,7 +42,6 @@ public:
 
     static bool Init();
     static bool Start_Game();
-    static void Apply_Scenario_Values();
 
 private:
     static bool Start_Scenario(char* scenario_name);
@@ -53,9 +52,6 @@ private:
     static bool Init_Session(char* scenario_name);
     static void Init_Network();
     static bool Reconcile_Players();
-
-    static void Init_UI();
-    static void Prepare_Screen();
 
 private:
     static bool HasSpawned;
