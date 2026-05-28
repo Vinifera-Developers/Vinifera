@@ -12,7 +12,9 @@
 #include "vinifera_imgui.h"
 
 #include "audio_manager.h"
+#include "debug_overlay.h"
 #include "debughandler.h"
+#include "scenario_overlay.h"
 #include "vinifera_globals.h"
 #include "zbuffer_window.h"
 
@@ -116,6 +118,12 @@ bool ViniferaImGui::Initialize(HWND hwnd, SDL_Renderer* renderer)
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    /**
+     *  SDLMouseClass drives the cursor via SDL_SetCursor / SDL_HideCursor.
+     *  Stop the Win32 backend from calling SetCursor() each NewFrame, which
+     *  races SDL's WM_SETCURSOR handler and produces a flicker on mouse motion.
+     */
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     io.IniFilename = nullptr;
 
     ImGui::StyleColorsDark();
@@ -225,6 +233,9 @@ void ViniferaImGui::Render()
     }
     //ZBufferDebugWindow::Draw();
 #endif
+
+    DebugOverlay::Draw();
+    ScenarioOverlay::Draw();
 
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), SDLWindowRenderer);

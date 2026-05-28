@@ -51,7 +51,7 @@ public:
 void BuildingTypeClassExt::_Free_Buildup_Image()
 {
     if (IsFreeBuildup && BuildupData) {
-        DEV_DEBUG_WARNING("Freeing loaded buildup image for %s\n", Name());
+        DEV_DEBUG_WARNING("Freeing loaded buildup image for {}\n", Name());
 
         /**
          *  The original function would incorrectly try to free memory

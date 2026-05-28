@@ -50,7 +50,7 @@ const ShapeSet * IsometricTileTypeClassExt::_Get_Image_Data()
     }
     
     if (Image == nullptr) {
-        DEBUG_WARNING("IsoTile %s has NULL image data!\n", Name());
+        DEBUG_WARNING("IsoTile {} has NULL image data!\n", Name());
     }
 
     return Image;

@@ -113,7 +113,7 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     }
 
 #ifndef NDEBUG
-    //DEV_DEBUG_INFO("Label: '%s'\n", Text);
+    //DEV_DEBUG_INFO("Label: '{}'\n", Text);
 #endif
 
     return true;

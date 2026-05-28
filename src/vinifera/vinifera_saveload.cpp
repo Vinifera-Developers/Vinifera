@@ -122,7 +122,7 @@ unsigned ViniferaGameVersion = 0x0;
 template<class T>
 static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list, const char *heap_name)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    DEBUG_INFO("Saving {}...\n", heap_name);
 
     /**
      *  Save the number of instances of this class.
@@ -139,7 +139,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
         return hr;
     }
 
-    DEBUG_INFO("  Count: %d\n", list.Count());
+    DEBUG_INFO("  Count: {}\n", list.Count());
 
     /**
      *  Save each instance of this class.
@@ -188,7 +188,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
 template<class T>
 static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, const char *heap_name)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    DEBUG_INFO("Loading {}...\n", heap_name);
 
     /**
      *  Read the number of instances of this class.
@@ -204,7 +204,7 @@ static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, 
         return hr;
     }
 
-    DEBUG_INFO("  Count: %d\n", count);
+    DEBUG_INFO("  Count: {}\n", count);
     
     /**
      *  Read each class instance.
@@ -437,11 +437,11 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     Disable_Addon(ADDON_BASE_GAME);
 
-    DEBUG_INFO("Setting required addon to '%d'\n", Scen->RequiredAddOn);
+    DEBUG_INFO("Setting required addon to '{}'\n", (int)Scen->RequiredAddOn);
     Set_Required_Addon(Scen->RequiredAddOn);
 
     if (!Addon_Installed(Scen->RequiredAddOn)) {
-        DEBUG_ERROR("Addon '%d' is not installed!\n", Scen->RequiredAddOn);
+        DEBUG_ERROR("Addon '{}' is not installed!\n", (int)Scen->RequiredAddOn);
         return false;
     }
 
@@ -723,7 +723,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
      */
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
 
-    DEBUG_INFO("SAVING GAME [%s - %s]\n", formatted_file_name, descr);
+    DEBUG_INFO("SAVING GAME [{} - {}]\n", formatted_file_name, descr);
 
     /**
      *  This is required for compatibility with TS Client's sidebar hack.
@@ -832,7 +832,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    DEBUG_INFO("SAVING GAME [%s] - Complete.\n", formatted_file_name);
+    DEBUG_INFO("SAVING GAME [{}] - Complete.\n", formatted_file_name);
     
     return result;
 }
@@ -855,7 +855,7 @@ bool Vinifera_Load_Game(const char* file_name)
      */
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
 
-    DEBUG_INFO("LOADING GAME [%s]\n", formatted_file_name);
+    DEBUG_INFO("LOADING GAME [{}]\n", formatted_file_name);
 
     /**
      *  Convert the file name to a wide string.
@@ -923,7 +923,7 @@ bool Vinifera_Load_Game(const char* file_name)
 
     DEBUG_INFO("Calling Vinifera_Get_All().\n");
     if (!Vinifera_Get_All(stream)) {
-        DEBUG_FATAL("Error loading save game \"%s\"!\n", formatted_file_name);
+        DEBUG_FATAL("Error loading save game \"{}\"!\n", formatted_file_name);
         return false;
     }
 
@@ -948,7 +948,7 @@ bool Vinifera_Load_Game(const char* file_name)
     ScenarioActive = true;
     TacticalActive = true;
 
-    DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
+    DEBUG_INFO("LOADING GAME [{}] - Complete\n", formatted_file_name);
 
     return true;
 }
@@ -1063,13 +1063,13 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
 
             unsigned game_version = saveversion.Get_Internal_Version();
             if (game_version != GameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! Tiberian Sun: File version 0x%X, Expected version 0x%X.\n", formatted_file_name, game_version, GameVersion);
+                DEBUG_WARNING("Save file \"{}\" is incompatible! Tiberian Sun: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, game_version, GameVersion);
                 return false;
             }
 
             unsigned vinifera_version = saveversion.Get_Vinifera_Version();
             if (vinifera_version != ViniferaGameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
+                DEBUG_WARNING("Save file \"{}\" is incompatible! Vinifera: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
                 return false;
             }
 
@@ -1089,7 +1089,7 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             return true;
         }
         else {
-            DEBUG_WARNING("Failed to read save file \"%s\"!\n", formatted_file_name);
+            DEBUG_WARNING("Failed to read save file \"{}\"!\n", formatted_file_name);
         }
     }
 

@@ -28,8 +28,6 @@ SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
     IsChatToAllies(false),
     MessageRecipientName("")
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
    /**
      *  Initialises the default game options.
      */
@@ -47,7 +45,6 @@ SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
 SessionClassExtension::SessionClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit)
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -58,7 +55,6 @@ SessionClassExtension::SessionClassExtension(const NoInitClass &noinit) :
  */
 SessionClassExtension::~SessionClassExtension()
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::~SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -69,8 +65,6 @@ SessionClassExtension::~SessionClassExtension()
  */
 HRESULT SessionClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -89,8 +83,6 @@ HRESULT SessionClassExtension::Load(IStream *pStm)
  */
 HRESULT SessionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -107,8 +99,6 @@ HRESULT SessionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SessionClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -122,7 +112,6 @@ int SessionClassExtension::Get_Object_Size() const
  */
 void SessionClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -133,7 +122,6 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
  */
 void SessionClassExtension::Read_MultiPlayer_Settings()
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Read_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -144,5 +132,4 @@ void SessionClassExtension::Read_MultiPlayer_Settings()
  */
 void SessionClassExtension::Write_MultiPlayer_Settings()
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Write_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(This()));
 }

@@ -173,7 +173,7 @@ IFACEMETHODIMP TestLocomotionClass::Link_To_Object(void *object)
     HRESULT hr = LocomotionClass::Link_To_Object(object);
 
     if (SUCCEEDED(hr)) {
-        DEBUG_INFO("TestLocomotionClass - Sucessfully linked to \"%s\"\n", LinkedTo->Name());
+        DEBUG_INFO("TestLocomotionClass - Sucessfully linked to \"{}\"\n", LinkedTo->Name());
     }
 
     return hr;

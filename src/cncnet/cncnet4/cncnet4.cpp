@@ -71,7 +71,7 @@ bool __stdcall CnCNet4::Init()
         CnCNet4::Port = 9001;
     }
 
-    DEBUG_INFO("CnCNet4: Broadcasting to \"%s:%d\".\n", CnCNet4::Host, CnCNet4::Port);
+    DEBUG_INFO("CnCNet4: Broadcasting to \"{}:{}\".\n", CnCNet4::Host, CnCNet4::Port);
 
     CnCNet4::IsDedicated = true;
 
@@ -148,7 +148,7 @@ void __stdcall CnCNet4::Shutdown()
 SOCKET __stdcall CnCNet4::socket(int af, int type, int protocol)
 {
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet4: socket(af=%08X, type=%08X, protocol=%08X)\n", af, type, protocol);
+    DEV_DEBUG_INFO("CnCNet4: socket(af={:08X}, type={:08X}, protocol={:08X})\n", af, type, protocol);
 #endif
 
     if (af == AF_IPX) {
@@ -162,7 +162,7 @@ SOCKET __stdcall CnCNet4::socket(int af, int type, int protocol)
 int __stdcall CnCNet4::bind(SOCKET s, const struct sockaddr *name, int namelen)
 {
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet4: bind(s=%d, name=%p, namelen=%d)\n", s, name, namelen);
+    DEV_DEBUG_INFO("CnCNet4: bind(s={}, name={}, namelen={})\n", (uintptr_t)s, (const void *)name, namelen);
 #endif
 
     if (s == net_socket) {
@@ -176,7 +176,7 @@ int __stdcall CnCNet4::bind(SOCKET s, const struct sockaddr *name, int namelen)
 int __stdcall CnCNet4::recvfrom(SOCKET s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen)
 {
 #ifndef NDEBUG
-    //DEV_DEBUG_INFO("CnCNet4: recvfrom(s=%d, buf=%p, len=%d, flags=%08X, from=%p, fromlen=%p (%d))\n", s, buf, len, flags, from, fromlen, *fromlen);
+    //DEV_DEBUG_INFO("CnCNet4: recvfrom(s={}, buf={}, len={}, flags={:08X}, from={}, fromlen={} ({}))\n", s, buf, len, flags, from, fromlen, *fromlen);
 #endif
 
     if (s == net_socket) {
@@ -254,7 +254,7 @@ int __stdcall CnCNet4::recvfrom(SOCKET s, char *buf, int len, int flags, struct 
 int __stdcall CnCNet4::sendto(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen)
 {
 #ifndef NDEBUG
-    //DEV_DEBUG_INFO("CnCNet4: sendto(s=%d, buf=%p, len=%d, flags=%08X, to=%p, tolen=%d)\n", s, buf, len, flags, to, tolen);
+    //DEV_DEBUG_INFO("CnCNet4: sendto(s={}, buf={}, len={}, flags={:08X}, to={}, tolen={})\n", s, buf, len, flags, to, tolen);
 #endif
 
     if (to->sa_family == AF_IPX) {
@@ -314,7 +314,7 @@ int __stdcall CnCNet4::sendto(SOCKET s, const char *buf, int len, int flags, con
 int __stdcall CnCNet4::getsockopt(SOCKET s, int level, int optname, char *optval, int *optlen)
 {
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet4: getsockopt(s=%d, level=%08X, optname=%08X, optval=%p, optlen=%p (%d))\n", s, level, optname, optval, optlen, *optlen);
+    DEV_DEBUG_INFO("CnCNet4: getsockopt(s={}, level={:08X}, optname={:08X}, optval={}, optlen={} ({}))\n", (uintptr_t)s, level, optname, (const void *)optval, (const void *)optlen, *optlen);
 #endif
 
     if (level == 0x3E8) {
@@ -336,7 +336,7 @@ int __stdcall CnCNet4::getsockopt(SOCKET s, int level, int optname, char *optval
 int __stdcall CnCNet4::setsockopt(SOCKET s, int level, int optname, const char *optval, int optlen)
 {
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet4: setsockopt(s=%d, level=%08X, optname=%08X, optval=%p, optlen=%d)\n", s, level, optname, optval, optlen);
+    DEV_DEBUG_INFO("CnCNet4: setsockopt(s={}, level={:08X}, optname={:08X}, optval={}, optlen={})\n", s, level, optname, optval, optlen);
 #endif
 
     if (level == 0x3E8) {
@@ -353,7 +353,7 @@ int __stdcall CnCNet4::setsockopt(SOCKET s, int level, int optname, const char *
 int __stdcall CnCNet4::closesocket(SOCKET s)
 {
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet4: closesocket(s=%d)\n", s);
+    DEV_DEBUG_INFO("CnCNet4: closesocket(s={})\n", s);
 #endif
 
     if (s == net_socket) {
@@ -371,7 +371,7 @@ int __stdcall CnCNet4::closesocket(SOCKET s)
 int __stdcall CnCNet4::getsockname(SOCKET s, struct sockaddr *name, int *namelen)
 {
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet4: getsockname(s=%d, name=%p, namelen=%p (%d)\n", s, name, namelen, *namelen);
+    DEV_DEBUG_INFO("CnCNet4: getsockname(s={}, name={}, namelen={} ({})\n", (uintptr_t)s, (const void *)name, (const void *)namelen, *namelen);
 #endif
 
     if (s == net_socket) {
@@ -382,10 +382,10 @@ int __stdcall CnCNet4::getsockname(SOCKET s, struct sockaddr *name, int *namelen
         gethostname(hostname, 256);
         he = ::gethostbyname(hostname);
 
-        DEBUG_INFO("getsockname: local hostname: %s\n", hostname);
+        DEBUG_INFO("getsockname: local hostname: {}\n", hostname);
 
         if (he) {
-            DEBUG_INFO("getsockname: local ip: %s\n", inet_ntoa(*(struct in_addr *)(he->h_addr_list[0])));
+            DEBUG_INFO("getsockname: local ip: {}\n", inet_ntoa(*(struct in_addr *)(he->h_addr_list[0])));
             name_in.sin_addr = *(struct in_addr *)(he->h_addr_list[0]);
             in2ipx(&name_in, (struct sockaddr_ipx *)name);
         }

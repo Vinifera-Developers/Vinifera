@@ -52,7 +52,6 @@ extern _EXCEPTION_POINTERS *ExceptionInfo;
 extern exceptioncallback_ptr_t ExceptionHandlerPtr;
 
 extern std::atomic<bool> AlreadyExiting;
-extern std::atomic<bool> ExitAfterException;
 extern std::atomic<bool> ShowExceptionWindow;
 extern std::atomic<bool> ExceptionDumpFinished;
 

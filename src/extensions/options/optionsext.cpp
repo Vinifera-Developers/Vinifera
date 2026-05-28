@@ -156,7 +156,6 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     SubtitleMode(SUBTITLE_MODE_NONE),
     IsPauseRepairs(true)
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -168,7 +167,6 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
 OptionsClassExtension::OptionsClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit)
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -179,7 +177,6 @@ OptionsClassExtension::OptionsClassExtension(const NoInitClass &noinit) :
  */
 OptionsClassExtension::~OptionsClassExtension()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::~OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -190,8 +187,6 @@ OptionsClassExtension::~OptionsClassExtension()
  */
 HRESULT OptionsClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -210,8 +205,6 @@ HRESULT OptionsClassExtension::Load(IStream *pStm)
  */
 HRESULT OptionsClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -228,8 +221,6 @@ HRESULT OptionsClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int OptionsClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -243,7 +234,6 @@ int OptionsClassExtension::Get_Object_Size() const
  */
 void OptionsClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -254,8 +244,6 @@ void OptionsClassExtension::Object_CRC(CRCEngine &crc) const
  */
 void OptionsClassExtension::Load_Settings()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
-
     SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
     FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
     IsPauseRepairs = ConfigINI.Get_Bool("Options", "PauseRepairs", IsPauseRepairs);
@@ -267,7 +255,7 @@ void OptionsClassExtension::Load_Settings()
         SidebarViewTypeOverride = Sidebar_View_From_Name(sidebar_view.c_str(), SIDEBAR_COUNT);
 
         if (SidebarViewTypeOverride == SIDEBAR_COUNT) {
-            DEBUG_WARNING("Unknown sidebar view type \"%s\", using UI.INI setting.\n", sidebar_view.c_str());
+            DEBUG_WARNING("Unknown sidebar view type \"{}\", using UI.INI setting.\n", sidebar_view);
         }
     }
 
@@ -311,8 +299,6 @@ void OptionsClassExtension::Load_Settings()
  */
 void OptionsClassExtension::Load_Init_Settings()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
-
     WindowWidth = ConfigINI.Get_Int("Video", "WindowWidth", WindowWidth);
     WindowHeight = ConfigINI.Get_Int("Video", "WindowHeight", WindowHeight);
 
@@ -335,7 +321,7 @@ void OptionsClassExtension::Load_Init_Settings()
         RendererDriver = Parse_Renderer_Driver(buffer);
 
         if (RendererDriver == RENDERER_DRIVER_AUTO && stricmp(buffer, "Auto") != 0) {
-            DEBUG_WARNING("Unknown renderer driver \"%s\", falling back to Auto.\n", buffer);
+            DEBUG_WARNING("Unknown renderer driver \"{}\", falling back to Auto.\n", buffer);
         }
     }
 }
@@ -348,8 +334,6 @@ void OptionsClassExtension::Load_Init_Settings()
  */
 void OptionsClassExtension::Save_Settings()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Save_Settings - 0x%08X\n", (uintptr_t)(This()));
-    
     RawFileClass file("SUN.INI");
 
     /**
@@ -385,7 +369,6 @@ void OptionsClassExtension::Save_Settings()
  */
 void OptionsClassExtension::Set()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Set - 0x%08X\n", (uintptr_t)(This()));
 }
 
 

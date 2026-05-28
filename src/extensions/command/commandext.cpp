@@ -25,6 +25,7 @@
 #include "buildingtype.h"
 #include "bullettype.h"
 #include "combat.h"
+#include "debug_overlay.h"
 #include "debughandler.h"
 #include "dsurface.h"
 #include "event.h"
@@ -51,6 +52,7 @@
 #include "rockettype.h"
 #include "rules.h"
 #include "scenario.h"
+#include "scenario_overlay.h"
 #include "scenarioext.h"
 #include "session.h"
 #include "sidebar_tabbed_view.h"
@@ -322,9 +324,9 @@ bool PNGScreenCaptureCommandClass::Process()
     bool success = Write_PNG_File(&RawFileClass(fullpath_buffer), *HiddenSurface, &GamePalette);
 
     if (success) {
-        DEBUG_INFO("PNG screenshot \"%s\" written sucessfully.\n", buffer);
+        DEBUG_INFO("PNG screenshot \"{}\" written sucessfully.\n", buffer);
     } else {
-        DEBUG_ERROR("Failed to write PNG screenshot \"%s\"!\n", buffer);
+        DEBUG_ERROR("Failed to write PNG screenshot \"{}\"!\n", buffer);
     }
 
     return success;
@@ -538,7 +540,7 @@ bool RepeatLastBuildingCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("RepeatLastBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
+    DEBUG_INFO("RepeatLastBuildingCommandClass - \"{}\"\n", buildingtype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building, TechnoTypeClassExtension::Get_Production_Flags(RTTI_BUILDINGTYPE, building)).As_Event());
 
@@ -608,7 +610,7 @@ bool RepeatLastInfantryCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("RepeatLastInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
+    DEBUG_INFO("RepeatLastInfantryCommandClass - \"{}\"\n", infantrytype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry, TechnoTypeClassExtension::Get_Production_Flags(RTTI_INFANTRYTYPE, infantry)).As_Event());
 
@@ -678,7 +680,7 @@ bool RepeatLastUnitCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("RepeatLastUnitCommandClass - \"%s\"\n", unittype->Full_Name());
+    DEBUG_INFO("RepeatLastUnitCommandClass - \"{}\"\n", unittype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_UNITTYPE, unit, TechnoTypeClassExtension::Get_Production_Flags(RTTI_UNITTYPE, unit)).As_Event());
 
@@ -748,7 +750,7 @@ bool RepeatLastAircraftCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("RepeatLastAircraftCommandClass - \"%s\"\n", aircrafttype->Full_Name());
+    DEBUG_INFO("RepeatLastAircraftCommandClass - \"{}\"\n", aircrafttype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft, TechnoTypeClassExtension::Get_Production_Flags(RTTI_AIRCRAFTTYPE, aircraft)).As_Event());
 
@@ -1423,12 +1425,12 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
                     ptr->Object_CRC(crc); \
                     if (ptr->RTTI == RTTI_INFANTRY || ptr->RTTI == RTTI_UNIT || ptr->RTTI == RTTI_BUILDING || ptr->RTTI == RTTI_AIRCRAFT) {                                                                                                                                                                    \
                         TechnoClass* techno = (TechnoClass*)ptr;                                                                                                                                                                                                                                               \
-                        DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\tOwner: %s (%d) (Class: %s)\tCoord: %d,%d,%d\n", i, ptr->Name(), crc.CRC_Value(), techno->House->IniName.c_str(), techno->House->HeapID, techno->House->Class->IniName.c_str(), techno->Position.X, techno->Position.Y, techno->Position.Z); \
+                        DEBUG_INFO("  {:04}\tName: {}\tCRC: 0x{:08X}\tOwner: {} ({}) (Class: {})\tCoord: {},{},{}\n", i, ptr->Name(), crc.CRC_Value(), techno->House->IniName, (int)techno->House->HeapID, techno->House->Class->IniName, techno->Position.X, techno->Position.Y, techno->Position.Z); \
                     } else {                                                                                                                                                                                                                                                                                   \
-                        DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value());                                                                                                                                                                                                        \
+                        DEBUG_INFO("  {:04}\tName: {}\tCRC: 0x{:08X}\n", i, ptr->Name(), crc.CRC_Value());                                                                                                                                                                                                        \
                     } \
                 } else { \
-                    DEBUG_INFO("  %04d\tFAILED!\n", i); \
+                    DEBUG_INFO("  {:04}\tFAILED!\n", i); \
                 } \
             } \
         } \
@@ -1468,9 +1470,9 @@ bool DumpHeapCRCCommandClass::Process()
             for (unsigned i = 0; i < ColorSchemes.Count(); ++i) {
                 ColorScheme *ptr = ColorSchemes[i];
                 if (ptr != nullptr) {
-                    DEBUG_INFO("  %04d\tName: %s\tfield_310: %d\n", i, ptr->Name, ptr->field_310);
+                    DEBUG_INFO("  {:04}\tName: {}\tfield_310: {}\n", i, ptr->Name, ptr->field_310);
                 } else {
-                    DEBUG_INFO("  %04d\tFAILED!\n", i);
+                    DEBUG_INFO("  {:04}\tFAILED!\n", i);
                 }
             }
         }
@@ -1516,18 +1518,18 @@ bool DumpTriggersCommandClass::Process()
     {
         TriggerClass* trigger = Triggers[i];
 
-        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->GivenName.c_str());
-        DEBUG_INFO("    IsToDie: %d\n", trigger->IsToDie);
-        DEBUG_INFO("    TrippedFlags: %d\n", trigger->TrippedFlags);
-        DEBUG_INFO("    IsActive: %d\n", trigger->IsActive);
+        DEBUG_INFO("Trigger {}: {}\n", i, trigger->Class->GivenName);
+        DEBUG_INFO("    IsToDie: {}\n", trigger->IsToDie);
+        DEBUG_INFO("    TrippedFlags: {}\n", trigger->TrippedFlags);
+        DEBUG_INFO("    IsActive: {}\n", trigger->IsActive);
 
         while (trigger->LinkedTo != nullptr) {
             trigger = trigger->LinkedTo;
 
-            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->GivenName.c_str());
-            DEBUG_INFO("        IsToDie: %d\n", trigger->IsToDie);
-            DEBUG_INFO("        TrippedFlags: %d\n", trigger->TrippedFlags);
-            DEBUG_INFO("        IsActive: %d\n", trigger->IsActive);
+            DEBUG_INFO("    LinkedTo: {}\n", trigger->Class->GivenName);
+            DEBUG_INFO("        IsToDie: {}\n", trigger->IsToDie);
+            DEBUG_INFO("        TrippedFlags: {}\n", trigger->TrippedFlags);
+            DEBUG_INFO("        IsActive: {}\n", trigger->IsActive);
         }
     }
 
@@ -1537,18 +1539,18 @@ bool DumpTriggersCommandClass::Process()
     {
         TagClass* tag = Tags[i];
 
-        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->GivenName.c_str());
-        DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
-        DEBUG_INFO("    CellID: %d,%d\n", tag->CellID.X, tag->CellID.Y);
-        DEBUG_INFO("    IsToDie: %d\n", tag->IsToDie);
-        DEBUG_INFO("    IsSprung: %d\n", tag->IsSprung);
+        DEBUG_INFO("Tag {}: {}\n", i, tag->Class->GivenName);
+        DEBUG_INFO("    AttachCount: {}\n", tag->AttachCount);
+        DEBUG_INFO("    CellID: {},{}\n", tag->CellID.X, tag->CellID.Y);
+        DEBUG_INFO("    IsToDie: {}\n", tag->IsToDie);
+        DEBUG_INFO("    IsSprung: {}\n", tag->IsSprung);
     }
 
     DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
 
     for (int i = 0; i < std::size(ScenExtension->LocalFlags); i++)
     {
-        DEBUG_INFO("LocalFlag %d: %s, value: %d\n", i, ScenExtension->LocalFlags[i].VariableName, ScenExtension->LocalFlags[i].Value);
+        DEBUG_INFO("LocalFlag {}: {}, value: {}\n", i, ScenExtension->LocalFlags[i].VariableName, ScenExtension->LocalFlags[i].Value);
     }
 
     DEBUG_INFO("\nFinished!\n\n");
@@ -2749,7 +2751,7 @@ bool MapSnapshotCommandClass::Process()
     
     DEBUG_INFO(" COMPLETE!\n");
 
-    DEBUG_INFO("Filename: %s\n", buffer);
+    DEBUG_INFO("Filename: {}\n", buffer);
 
     return true;
 }
@@ -2920,7 +2922,7 @@ bool SpawnAllCommandClass::Process()
                 attempt = origin;
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(building, attempt)) {
-                        DEBUG_INFO("BuildingType %s spawned at %d,%d.\n", building_type.Name(),  attempt.X, attempt.Y);
+                        DEBUG_INFO("BuildingType {} spawned at {},{}.\n", building_type.Name(),  attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -2938,7 +2940,7 @@ bool SpawnAllCommandClass::Process()
 
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(unit, attempt)) {
-                        DEBUG_INFO("UnitType %s spawned at %d,%d.\n", unit_type.Name(), attempt.X, attempt.Y);
+                        DEBUG_INFO("UnitType {} spawned at {},{}.\n", unit_type.Name(), attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -2954,7 +2956,7 @@ bool SpawnAllCommandClass::Process()
                 attempt = origin;
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(inf, attempt)) {
-                        DEBUG_INFO("InfantryType %s spawned at %d,%d.\n", infantry_type.Name(),  attempt.X, attempt.Y);
+                        DEBUG_INFO("InfantryType {} spawned at {},{}.\n", infantry_type.Name(),  attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -2977,7 +2979,7 @@ bool SpawnAllCommandClass::Process()
                 attempt = origin;
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(air, attempt)) {
-                        DEBUG_INFO("AircraftType %s spawned at %d,%d.\n", aircraft_type.Name(),  attempt.X, attempt.Y);
+                        DEBUG_INFO("AircraftType {} spawned at {},{}.\n", aircraft_type.Name(),  attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -3372,16 +3374,16 @@ bool DumpAIBaseNodesCommandClass::Process()
 
             DEBUG_INFO("\n");
 
-            DEBUG_INFO("%02d \"%s\":\n", house_index, house->Class->Name());
+            DEBUG_INFO("{:02} \"{}\":\n", house_index, house->Class->Name());
 
-            //DEBUG_INFO("  field_50: %d\n", house->Base.field_50);
-            //DEBUG_INFO("  field_64: %d\n", house->Base.field_64);
-            //DEBUG_INFO("  field_68: %d\n", house->Base.field_68);
-            //DEBUG_INFO("  field_6C: %d\n", house->Base.field_6C);
-            //DEBUG_INFO("  field_70: %d\n", house->Base.field_70);
-            DEBUG_INFO("  PercentBuilt: %03d\n", house->Base.PercentBuilt);
+            //DEBUG_INFO("  field_50: {}\n", house->Base.field_50);
+            //DEBUG_INFO("  field_64: {}\n", house->Base.field_64);
+            //DEBUG_INFO("  field_68: {}\n", house->Base.field_68);
+            //DEBUG_INFO("  field_6C: {}\n", house->Base.field_6C);
+            //DEBUG_INFO("  field_70: {}\n", house->Base.field_70);
+            DEBUG_INFO("  PercentBuilt: {:03}\n", house->Base.PercentBuilt);
 
-            DEBUG_INFO("  Nodes.Count: %d\n", house->Base.Nodes.Count());
+            DEBUG_INFO("  Nodes.Count: {}\n", house->Base.Nodes.Count());
 
             /**
              *  Iterate all nodes for this house.
@@ -3394,7 +3396,7 @@ bool DumpAIBaseNodesCommandClass::Process()
                 }
 
                 const char *name = BuildingTypeClass::Name_From(node.Type);
-                DEBUG_INFO("  Node %03d: \"%s\" at %d,%d\n", node_index, name, node.CellID.X, node.CellID.Y);
+                DEBUG_INFO("  Node {:03}: \"{}\" at {},{}\n", node_index, name, node.CellID.X, node.CellID.Y);
             }
         }
     }
@@ -3681,7 +3683,7 @@ bool PlaceCrateCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Crate placed at %d, %d\n", mouse_cell.X, mouse_cell.Y);
+    DEBUG_INFO("Crate placed at {}, {}\n", mouse_cell.X, mouse_cell.Y);
 
     return true;
 }
@@ -4112,7 +4114,7 @@ bool PlaceInfantryCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Position.X, inf->Position.Y, inf->Position.Z);
+    DEBUG_INFO("Placed infantry \"{}\" at {},{},{}\n", inf->Name(), inf->Position.X, inf->Position.Y, inf->Position.Z);
     return true;
 }
 
@@ -4190,7 +4192,7 @@ bool PlaceUnitCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Position.X, unit->Position.Y, unit->Position.Z);
+    DEBUG_INFO("Placed unit \"{}\" at {},{},{}\n", unit->Name(), unit->Position.X, unit->Position.Y, unit->Position.Z);
     return true;
 }
 
@@ -4235,7 +4237,7 @@ bool PlaceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 1)) {
-        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed tiberium \"{}\" at {},{},{}\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4283,7 +4285,7 @@ bool ReduceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Reduce_Tiberium(1)) {
-        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Reduced tiberium \"{}\" at {},{},{}\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4331,7 +4333,7 @@ bool PlaceFullTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 11)) {
-        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed fully grown tiberium \"{}\" at {},{},{}\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4379,7 +4381,7 @@ bool RemoveTiberiumCommandClass::Process()
     }
 
     if (cellptr->Reduce_Tiberium(12)) {
-        DEBUG_INFO("Removed tiberium at %d,%d,%d\n", mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Removed tiberium at {},{},{}\n", mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4534,7 +4536,7 @@ bool DumpNetworkCRCCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Writing sync log to file %s.\n", filename_buffer);
+    DEBUG_INFO("Writing sync log to file {}.\n", filename_buffer);
 
     Extension::Print_CRCs(fp, nullptr);
 
@@ -4582,7 +4584,7 @@ const char* DumpHeapsCommandClass::Get_Description() const
             for (unsigned i = 0; i < heap_name.Count(); ++i) { \
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
-                    DEBUG_INFO("  %04d=%s\n", i, ptr->Name()); \
+                    DEBUG_INFO("  {:04}={}\n", i, ptr->Name()); \
                 } \
             } \
         } \
@@ -4784,5 +4786,69 @@ bool MeteorImpactCommandClass::Process()
 
     new VoxelAnimClass(voxelanimtypeptr, mouse_coord);
 
+    return true;
+}
+
+
+/**
+ *  Toggle the in-game ImGui debug overlay window.
+ *
+ *  @author: ZivDero
+ */
+const char *ToggleDebugOverlayCommandClass::Get_Name() const
+{
+    return "ToggleDebugOverlay";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_UI_Name() const
+{
+    return "Toggle Debug Overlay";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_Description() const
+{
+    return "Shows or hides the Vinifera debug overlay window.";
+}
+
+bool ToggleDebugOverlayCommandClass::Process()
+{
+    DebugOverlay::IsVisible = !DebugOverlay::IsVisible;
+    return true;
+}
+
+
+/**
+ *  Toggle the developer-mode scenario debug window.
+ *
+ *  @author: ZivDero
+ */
+const char *ToggleScenarioOverlayCommandClass::Get_Name() const
+{
+    return "ToggleScenarioOverlay";
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_UI_Name() const
+{
+    return "Toggle Scenario Overlay";
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_Description() const
+{
+    return "Shows or hides the Vinifera scenario debug window (types, instances, variables, waypoints, AI nodes).";
+}
+
+bool ToggleScenarioOverlayCommandClass::Process()
+{
+    ScenarioOverlay::IsVisible = !ScenarioOverlay::IsVisible;
     return true;
 }

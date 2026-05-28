@@ -167,13 +167,13 @@ void AudioThemeClass::AI()
      */
     if (Pending == THEME_PICK_ANOTHER) {
         Pending = Next_Song(Score);
-        DEBUG_INFO("Theme::AI - Next_Song returned \"%s\".\n", Themes[Pending]->Name.c_str());
+        DEBUG_INFO("Theme::AI - Next_Song returned \"{}\".\n", Themes[Pending]->Name);
     }
     
     /**
      *  Start the song playing.
      */
-    DEBUG_INFO("Theme::AI - About to call Play_Song with \"%s\".\n", Themes[Pending]->Name.c_str());
+    DEBUG_INFO("Theme::AI - About to call Play_Song with \"{}\".\n", Themes[Pending]->Name);
     Play_Song(Pending);
 
     /**
@@ -265,9 +265,9 @@ void AudioThemeClass::Queue_Song(ThemeType theme)
     if (Pending == THEME_NONE || Pending == THEME_PICK_ANOTHER || theme == THEME_NONE || theme == THEME_QUIET) {
 
         if (Is_Valid_Theme(theme)) {
-            DEBUG_INFO("Theme::Queue_Song - Queued \"%s\".\n", Themes[theme]->Name.c_str());
+            DEBUG_INFO("Theme::Queue_Song - Queued \"{}\".\n", Themes[theme]->Name);
         } else {
-            DEBUG_INFO("Theme::Queue_Song - Pending %d, theme %d.\n", Pending, theme);
+            DEBUG_INFO("Theme::Queue_Song - Pending {}, theme {}.\n", (int)Pending, (int)theme);
         }
 
         Pending = theme;
@@ -359,11 +359,11 @@ bool AudioThemeClass::Play_Song(ThemeType theme)
      *  If this theme is flagged to repeat, set pending.
      */
     if (tctrl->Repeat || IsRepeat) {
-        DEBUG_INFO("Theme::Play_Song - Playing \"%s\" (Repeating)\n", Themes[theme]->Name.c_str());
+        DEBUG_INFO("Theme::Play_Song - Playing \"{}\" (Repeating)\n", Themes[theme]->Name);
         Pending = theme;
 
     } else {
-        DEBUG_INFO("Theme::Play_Song - Playing \"%s\" (Normal)\n", Themes[theme]->Name.c_str());
+        DEBUG_INFO("Theme::Play_Song - Playing \"{}\" (Normal)\n", Themes[theme]->Name);
     }
 
     return true;
@@ -416,10 +416,10 @@ void AudioThemeClass::Stop(bool fade)
 
     if (Still_Playing()) {
         if (fade) {
-            DEBUG_INFO("Theme::Stop - Fading out \"%s\"...\n", Themes[Score]->Name.c_str());
+            DEBUG_INFO("Theme::Stop - Fading out \"{}\"...\n", Themes[Score]->Name);
             AudioManager.Request_Stop(ScoreHandle, FadeOutSeconds);
         } else {
-            DEBUG_INFO("Theme::Stop - Forced \"%s\" to stop.\n", Themes[Score]->Name.c_str());
+            DEBUG_INFO("Theme::Stop - Forced \"{}\" to stop.\n", Themes[Score]->Name);
             AudioManager.Request_Stop(ScoreHandle);
         }
     }
@@ -444,7 +444,7 @@ bool AudioThemeClass::Suspend()
         return false;
     }
 
-    DEBUG_INFO("Theme::Suspend - Suspending score \"%s\"\n", Themes[Score]->Name.c_str());
+    DEBUG_INFO("Theme::Suspend - Suspending score \"{}\"\n", Themes[Score]->Name);
     
     return AudioManager.Request_Pause(ScoreHandle);
 }
@@ -465,7 +465,7 @@ bool AudioThemeClass::Resume()
         return false;
     }
 
-    DEBUG_INFO("Theme::Resume - Resuming score \"%s\"\n", Themes[Score]->Name.c_str());
+    DEBUG_INFO("Theme::Resume - Resuming score \"{}\"\n", Themes[Score]->Name);
     
     return AudioManager.Request_Resume(ScoreHandle);
 }

@@ -88,7 +88,7 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
 
     HANDLE dump_file = CreateFile(MinidumpFilename, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_FLAG_WRITE_THROUGH, nullptr);
     if (dump_file == INVALID_HANDLE_VALUE) {
-        DEBUG_FATAL("Failed to create minidump file with filename \"%s\"! (error %d).", MinidumpFilename, GetLastError());
+        DEBUG_FATAL("Failed to create minidump file with filename \"{}\"! (error {}).", MinidumpFilename, GetLastError());
         return false;
     }
 
@@ -122,7 +122,7 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
 
     CloseHandle(dump_file);
 
-    DEBUG_WARNING("Minidump generated: \"%s\".\n", MinidumpFilename);
+    DEBUG_WARNING("Minidump generated: \"{}\".\n", MinidumpFilename);
 
     return true;
 }
