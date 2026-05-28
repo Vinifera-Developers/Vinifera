@@ -316,7 +316,7 @@ bool PNGScreenCaptureCommandClass::Process()
      *  @author: CCHyper
      */
     char fullpath_buffer[PATH_MAX];
-    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory, buffer);
+    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory.c_str(), buffer);
 
     /**
      *  We found a free filename, now write the buffer to a PNG file.
@@ -4522,7 +4522,7 @@ bool DumpNetworkCRCCommandClass::Process()
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
-        Vinifera_DebugDirectory,
+        Vinifera_DebugDirectory.c_str(),
         PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         day, month, year, hour, min, sec);

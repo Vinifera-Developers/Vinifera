@@ -566,7 +566,7 @@ void Debug_Hooks()
     /**
      *  Create the debug output directory.
      */
-    CreateDirectory(Vinifera_DebugDirectory, nullptr);
+    CreateDirectory(Vinifera_DebugDirectory.c_str(), nullptr);
 
     /**
      *  MSVC does not need to know this information.
@@ -578,12 +578,12 @@ void Debug_Hooks()
      */
     DEBUG_INFO("Running cleanup on debug folder...\n");
     DEBUG_INFO("(files older than 5 days will be removed)\n");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "DEBUG_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "STACK_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "EXCEPT_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "CRASHDUMP_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "MINIDUMP_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "DEBUG_*.ZIP");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "DEBUG_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "STACK_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "EXCEPT_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "CRASHDUMP_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "MINIDUMP_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "DEBUG_*.ZIP");
 
     DisableDebuggerOutput = false;
 }

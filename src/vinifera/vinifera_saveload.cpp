@@ -757,15 +757,15 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
      *  In the future, it should be the call sites of Save_Game that are patched so that we can still
      *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
      */
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(file_name), nullptr);
 
     DEBUG_INFO("SAVING GAME [{} - {}]\n", formatted_file_name, descr);
 
     /**
      *  Make sure our saved games folder exists.
      */
-    if (!Directory_Exists(Vinifera_SavedGamesDirectory)) {
-        Create_Directory(Vinifera_SavedGamesDirectory);
+    if (!Directory_Exists(Vinifera_SavedGamesDirectory.c_str())) {
+        Create_Directory(Vinifera_SavedGamesDirectory.c_str());
     }
 
     /**
@@ -873,7 +873,7 @@ bool Vinifera_Load_Game(const char* file_name)
      *  In the future, it should be the call sites of Load_Game that are patched so that we can still
      *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
      */
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(file_name), nullptr);
 
     DEBUG_INFO("LOADING GAME [{}]\n", formatted_file_name);
 
@@ -1006,7 +1006,7 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
     ScenarioActive = false;
     TacticalActive = false;
 
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);
 
     if (handle) {
@@ -1033,7 +1033,7 @@ bool LoadOptionsClassExt::_Save_File(const char* filename, const char* descripti
         WinDialogClass::Display_Dialog(handle);
     }
 
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
     const bool result = Save_Game(formatted_file_name, description, false);
 
     if (handle) {
@@ -1053,7 +1053,7 @@ bool LoadOptionsClassExt::_Delete_File(const char* filename)
 {
     char formatted_file_name[PATH_MAX];
 
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
     return DeleteFileA(formatted_file_name);
 }
 
@@ -1072,7 +1072,7 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
 
     if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) != 0) {
 
-        _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename->cFileName), nullptr);
+        _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename->cFileName), nullptr);
 
         ViniferaSaveVersionInfo saveversion;
         if (Vinifera_Get_Savefile_Info(formatted_file_name, saveversion)) {
@@ -1141,7 +1141,7 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper1(char* buffer, const char*, int num
     char formatted_file_name[PATH_MAX];
 
     // First create the format string itself, using our custom folder, e. g. "Saved Games\SAVE%04lX.%3s"
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, "SAVE%04lX.%3s", nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), "SAVE%04lX.%3s", nullptr);
 
     // Now actually format the path
     return std::sprintf(buffer, formatted_file_name, number, str);
@@ -1159,7 +1159,7 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* s
     char formatted_file_name[PATH_MAX];
 
     // First create the format string itself, using our custom folder, e. g. "Saved Games\*.%3s"
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, "*.%3s", nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), "*.%3s", nullptr);
 
     // Now actually format the path
     return std::sprintf(buffer, formatted_file_name, str);

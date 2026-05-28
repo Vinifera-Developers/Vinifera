@@ -70,9 +70,10 @@ bool Vinifera_Load_INI()
 
     ini.Load(file);
 
-    ini.Get_String("General", "ProjectName", "", Vinifera_ProjectName, sizeof(Vinifera_ProjectName));
-    ini.Get_String("General", "IconFile", "", Vinifera_IconName, sizeof(Vinifera_IconName));
-    ini.Get_String("General", "CursorFile", "", Vinifera_CursorName, sizeof(Vinifera_CursorName));
+    Vinifera_ProjectName = ini.Get_String("General", "ProjectName", "");
+    Vinifera_ProjectVersion = ini.Get_String("General", "ProjectVersion", "");
+    Vinifera_IconName = ini.Get_String("General", "IconFile", "");
+    Vinifera_CursorName = ini.Get_String("General", "CursorFile", "");
 
     /**
      *  TS Client uses a seperate "version" file, so its best we fetch the current
@@ -83,15 +84,10 @@ bool Vinifera_Load_INI()
     if (ver_file.Is_Available()) {
         INIClass ver_ini;
         ver_ini.Load(ver_file);
-        ver_ini.Get_String("DTA", "Version", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+        Vinifera_ProjectVersion = ver_ini.Get_String("DTA", "Version", "");
     } else {
-        ini.Get_String("General", "ProjectVersion", "", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+        Vinifera_ProjectVersion = ini.Get_String("General", "ProjectVersion", "");
     }
-
-    Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
-    Vinifera_ProjectVersion[sizeof(Vinifera_ProjectVersion)-1] = '\0';
-    Vinifera_IconName[sizeof(Vinifera_IconName)-1] = '\0';
-    Vinifera_CursorName[sizeof(Vinifera_CursorName)-1] = '\0';
 
     char buffer[1024];
     if (ini.Get_String("General", "SearchPaths", "", buffer, sizeof(buffer)) > 0) {
@@ -105,11 +101,7 @@ bool Vinifera_Load_INI()
     }
 
     Vinifera_NoTacticalVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoTacticalVersionString);
-
-    ini.Get_String("General", "SavedGamesDirectory", "", buffer, std::size(buffer));
-    if (std::strlen(buffer) > 0) {
-        std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);
-    }
+    Vinifera_SavedGamesDirectory = ini.Get_String("General", "SavedGamesDirectory", Vinifera_SavedGamesDirectory);
 
     return true;
 }

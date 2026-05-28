@@ -371,7 +371,7 @@ void Init_Vinifera_Commands()
     /**
      *  Create any supporting directories.
      */
-    CreateDirectory(Vinifera_ScreenshotDirectory, nullptr);
+    CreateDirectory(Vinifera_ScreenshotDirectory.c_str(), nullptr);
     
     DEBUG_INFO("Init_Vinifera_Commands(exit).\n");
 }

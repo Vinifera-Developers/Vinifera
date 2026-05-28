@@ -10,7 +10,6 @@
 #pragma once
 
 #include "ccfile.h"
-#include "extension_globals.h"
 #include "vector.h"
 
 #include <unordered_map>
@@ -45,15 +44,15 @@ extern bool Vinifera_PrintFileErrors;
 extern bool Vinifera_FatalFileErrors;
 extern bool Vinifera_AssertFileErrors;
 
-extern char Vinifera_ExceptionDatabaseFilename[PATH_MAX];
-extern char Vinifera_DebugDirectory[PATH_MAX];
-extern char Vinifera_ScreenshotDirectory[PATH_MAX];
-extern char Vinifera_SavedGamesDirectory[PATH_MAX];
+extern std::string Vinifera_ExceptionDatabaseFilename;
+extern std::string Vinifera_DebugDirectory;
+extern std::string Vinifera_ScreenshotDirectory;
+extern std::string Vinifera_SavedGamesDirectory;
 
-extern char Vinifera_ProjectName[64];
-extern char Vinifera_ProjectVersion[64];
-extern char Vinifera_IconName[64];
-extern char Vinifera_CursorName[64];
+extern std::string Vinifera_ProjectName;
+extern std::string Vinifera_ProjectVersion;
+extern std::string Vinifera_IconName;
+extern std::string Vinifera_CursorName;
 
 /**
  *  Captured in DllMain DLL_PROCESS_ATTACH. Used by the exception handler to
