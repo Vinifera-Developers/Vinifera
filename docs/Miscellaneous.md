@@ -170,8 +170,8 @@ PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of 
 ### Bridge Strength
 - Vinifera adds the ability to replace the random chance to break bridges with strength trackers for all bridge types. When enabled, bridges will sustain damage over time and break when they accumulate enough damage.
 - Bridge strength is determined via the existing `BridgeStrength=` key.
-- Tracking is done per 3x1 for each bridge tile, which means each tile can sustain a separate amount of damage before it breaks.
-- Repairing the bridge by placing an Engineer into a Bridge Repair Hut resets all of that bridge's strength trackers.
+- Remaining strength is tracked separately for each 3x1 (1x3) bridge tile.
+- Repairing the bridge by entering a bridge repair hut with an engineer fully replenishes all of that bridge's strength trackers.
 - When bridge strength trackers are enabled, bridges can now have an armor type associated with them in order to apply the appropriate Verses of all warheads to them. If no armor type is assigned to the bridge, then bridges will take 100% of all weapon damage.
 
 in `RULES.INI`:
@@ -180,7 +180,7 @@ in `RULES.INI`:
 UseBridgeHealth=no 	; boolean, should bridge health trackers
 
 [CombatDamage]
-BridgeStrength=1500 	; integer, the health each bridge tile can sustain before breaking. Existing key from vanilla.
+BridgeStrength=1000 	; integer, the health each bridge tile can sustain before breaking. Existing key from vanilla.
 BridgeArmor= 			; Armor Type, the armor type of associated with the bridge for damage calculations. Requires UseBridgeHealth=yes under [General] for this to take effect.
 ```
 
