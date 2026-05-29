@@ -358,7 +358,7 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
     OverlayType overlay = cellptr->Overlay;
     Cell cell_to_use = cell;
 
-    if (overlay == -1) { // rail or high bridge
+    if (overlay == OVERLAY_NONE) { // rail or high bridge
         // search only orthogonally for high bridge cells that have the overlays
         FacingType dirs[4] = {FACING_N, FACING_E, FACING_S, FACING_W};
 
@@ -390,11 +390,11 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
             * Handle two low overlay bridges that are very close to each other.
             * We skip one side checking another side that should never be part of the same low bridge.
             */
-            if (current_cellptr->OverlayData == 0 && (dir == FACING_N || dir == FACING_W)) {
+            if (current_cellptr->OverlayData == OVERLAYDATA_LOWBRIDGE_FRAME_TOP && (dir == FACING_N || dir == FACING_W)) {
                 continue;
             }
 
-            if (current_cellptr->OverlayData == 2 && (dir == FACING_S || dir == FACING_E)) {
+            if (current_cellptr->OverlayData == OVERLAYDATA_LOWBRIDGE_FRAME_BOTTOM && (dir == FACING_S || dir == FACING_E)) {
                 continue;
             }
 

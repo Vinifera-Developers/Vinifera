@@ -229,7 +229,7 @@ static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, 
 template<typename TKey, typename TValue, typename THash, typename TEqual>
 static HRESULT Vinifera_Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
 {
-    DEBUG_INFO("Saving unordered map %s...\n", heap_name);
+    DEBUG_INFO("Saving unordered map {}...\n", heap_name);
 
     /**
      *  Save the number of entries in the map.
@@ -246,7 +246,7 @@ static HRESULT Vinifera_Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TK
         return hr;
     }
 
-    DEBUG_INFO("  Count: %d\n", count);
+    DEBUG_INFO("  Count: {}\n", count);
 
     /**
      *  Iterate through the map.
@@ -276,13 +276,11 @@ static HRESULT Vinifera_Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TK
 
 /**
  * Loads a map of objects from the data stream.
- *
- * @author: Gemini (adapted from CCHyper's style)
  */
 template<typename TKey, typename TValue, typename THash, typename TEqual>
 static HRESULT Vinifera_Load_Unordered_Map(IStream* pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
 {
-    DEBUG_INFO("Loading unordered map %s...\n", heap_name);
+    DEBUG_INFO("Loading unordered map {}...\n", heap_name);
     
     map.clear();
 
@@ -301,7 +299,7 @@ static HRESULT Vinifera_Load_Unordered_Map(IStream* pStm, std::unordered_map<TKe
         return hr;
     }
 
-    DEBUG_INFO("  Count: %d\n", count);
+    DEBUG_INFO("  Count: {}\n", count);
 
     /**
      * Read each Key-Value pair.
@@ -313,14 +311,14 @@ static HRESULT Vinifera_Load_Unordered_Map(IStream* pStm, std::unordered_map<TKe
         // Read the Key (The Cell data)
         hr = pStm->Read(&key, sizeof(TKey), nullptr);
         if (FAILED(hr)) {
-            DEBUG_ERROR("  Failed to read Key at index %d!\n", i);
+            DEBUG_ERROR("  Failed to read Key at index {}!\n", i);
             return hr;
         }
 
         // Read the Value (The int)
         hr = pStm->Read(&value, sizeof(TValue), nullptr);
         if (FAILED(hr)) {
-            DEBUG_ERROR("  Failed to read Value at index %d!\n", i);
+            DEBUG_ERROR("  Failed to read Value at index {}!\n", i);
             return hr;
         }
 
