@@ -105,6 +105,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     EscortRange(-1),
     AbandonTargetEscortRange(-1),
 	IsFreeRadarOnLowPower(false),
+    IsUseBridgeHealth(false),
 	BridgeArmor(ARMOR_NULL)
 {
     /**
@@ -263,6 +264,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(EscortRange);
     crc(AbandonTargetEscortRange);
     crc(IsFreeRadarOnLowPower);
+    crc(IsUseBridgeHealth);
     crc(BridgeArmor);
 }
 
@@ -697,6 +699,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
     IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);
+    IsUseBridgeHealth = ini.Get_Bool(GENERAL, "UseBridgeHealth", IsUseBridgeHealth);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

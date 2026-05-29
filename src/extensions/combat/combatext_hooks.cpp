@@ -354,6 +354,10 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
  */
 bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
 {    
+    if (!RuleExtension->IsUseBridgeHealth) {
+        return Random_Pick(1, Rule->BridgeStrength) < damage;
+    }
+
     CellClass* cellptr = &Map[cell];
     OverlayType overlay = cellptr->Overlay;
     Cell cell_to_use = cell;

@@ -38,6 +38,7 @@
 #include "vinifera_globals.h"
 #include "voc.h"
 #include "wwkeyboard.h"
+#include "rulesext.h"
 
 
 /**
@@ -786,7 +787,9 @@ DEFINE_HOOK(0x004D356B, _InfantryClass_Process_Per_Cell_Engineer_Bridge_Patch, 6
 {    
     GET(Cell*, cell_ptr, EAX);
 
-    Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+    if (RuleExtension->IsUseBridgeHealth) {
+        Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+    }
 
     return 0;
 }
@@ -802,7 +805,9 @@ DEFINE_HOOK(0x004D3551, _InfantryClass_Process_Per_Cell_Engineer_Train_Bridge_Pa
 {    
     GET(Cell*, cell_ptr, EAX);
 
-    Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+    if (RuleExtension->IsUseBridgeHealth) {
+        Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+    }
 
     return 0;
 }
