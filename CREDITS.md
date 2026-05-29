@@ -174,7 +174,6 @@ This page lists all the individual contributions to the project by their author.
   - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
   - Add Q-Move support for aircraft.
-  - Fix a bug where aircraft would not dock properly on available Helipads after attacking.
   - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving. 
   - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
   - Fix a vanilla bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
