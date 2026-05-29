@@ -22,6 +22,7 @@
 #include "cncnet4_globals.h"
 #include "cncnet5_globals.h"
 #include "debughandler.h"
+#include "exceptionhandler.h"
 #include "extension.h"
 #include "filestraw.h"
 #include "kamikazetracker.h"
@@ -764,6 +765,12 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
  */
 int Vinifera_Post_Init_Game(int argc, char *argv[])
 {
+    /**
+     *  Spawn the crash-dump thread (main thread, past dbghelp init, outside the
+     *  DllMain loader lock). Idempotent.
+     */
+    Start_Dumper_Thread();
+
     TheaterTypeClass::One_Time();
 
     CCFileClass theater_file("THEATERS.INI");

@@ -31,4 +31,4 @@ extern bool MinidumpUseCurrentTime;
 extern char MinidumpFilename[PATH_MAX];
 
 
-bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name = nullptr, const char *path = nullptr);
+bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name = nullptr, const char *path = nullptr, DWORD crashed_tid = 0);

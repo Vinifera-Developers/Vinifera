@@ -108,6 +108,7 @@ New:
 - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
+- Allow Free Radar to be used when players are in low power (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -182,6 +183,7 @@ Vanilla fixes:
 - Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
+- Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 
 :::
 
@@ -418,5 +420,7 @@ Vanilla fixes:
 - Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
 - Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
 - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use (by JoyfulShush)
+- Fix a bug that would make healer units unselect themselves when adding other units to current selection (by JoyfulShush)
+- Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection (by JoyfulShush)
 
 :::
