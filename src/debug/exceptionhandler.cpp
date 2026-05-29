@@ -38,6 +38,7 @@
 #include <eh.h>
 #include <exception>
 #include <mutex>
+#include <thread>
 #include <tlhelp32.h>
 #include <vector>
 #include <windows.h>
@@ -84,6 +85,13 @@ std::atomic<bool> ExceptionDumpFinished{false};
 
 std::atomic<int> RecursionCount{-1};
 
+/**
+ *  Thread currently running the inline (in-filter) dump. A nested fault there
+ *  is uncatchable (see DumperRequest), so the handler bails on re-entry from
+ *  this thread rather than recursing to the old ExitProcess CTD.
+ */
+static std::atomic<DWORD> DumpingThreadId{0};
+
 FixedString<65536> ExceptionBuffer;
 
 static TextFileClass ExceptionFile;
@@ -107,6 +115,37 @@ static FixedString<1024> ExceptionInfoDescription;
 static CRITICAL_SECTION ExceptionCriticalSection;
 static bool ExceptionCriticalSectionReady = false;
 static std::atomic<DWORD> FirstCrashThreadId{0};
+
+
+/**
+ *  Dedicated crash-dump thread. The dump reads the crashing thread's corrupt
+ *  stack and calls dbghelp, which can fault - and on the crashing thread the
+ *  dump runs inside an exception *filter*, where that fault is uncatchable (a
+ *  nested exception's search skips frames newer than the active filter).
+ *  Running it here gives normal context (so the per-section __try guards work)
+ *  and a fresh stack (survives stack overflow).
+ *
+ *  Protocol: the crasher fills TheDumperRequest, signals DumperRequestEvent,
+ *  and waits on DumperDoneEvent; the dumper runs Write_Crash_Artifacts and
+ *  signals back. Created once at Vinifera_Post_Init_Game and detached.
+ */
+struct DumperRequest
+{
+    CONTEXT             Context;          // copy of *e_info->ContextRecord
+    EXCEPTION_RECORD    Record;           // copy of *e_info->ExceptionRecord
+    EXCEPTION_POINTERS  Pointers;         // { &Record, &Context }
+    unsigned int        ECode;
+    DWORD               CrashedThreadId;
+    std::atomic<bool>   DumpOK;
+};
+static DumperRequest TheDumperRequest;
+
+static std::atomic<DWORD> DumperThreadId{0};   // 0 == dumper not available yet
+static HANDLE DumperRequestEvent = nullptr;
+static HANDLE DumperDoneEvent = nullptr;
+static std::atomic<bool> DumperStarted{false};
+
+#define DUMPER_TIMEOUT_MS 60000
 
 
 bool Any_Surface_Locked()
@@ -161,7 +200,14 @@ static void Suspend_Other_Threads(std::vector<DWORD>& out_suspended_tids)
             if (te.dwSize < FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID)) {
                 continue;
             }
-            if (te.th32OwnerProcessID != self_pid || te.th32ThreadID == self_tid) {
+            /**
+             *  Never suspend ourselves or the dedicated dumper thread - a
+             *  suspended dumper would deadlock the handoff wait.
+             */
+            const DWORD dumper_tid = DumperThreadId.load();
+            if (te.th32OwnerProcessID != self_pid
+                || te.th32ThreadID == self_tid
+                || (dumper_tid != 0 && te.th32ThreadID == dumper_tid)) {
                 continue;
             }
             HANDLE th = OpenThread(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT, FALSE, te.th32ThreadID);
@@ -401,6 +447,201 @@ static void __cdecl Exception_Stack_Dump_Handler(const char *buffer)
 }
 
 
+/**
+ *  Each dbghelp-touching section of the dump runs in its own lock-free __try
+ *  helper, so a fault in one is contained and the rest still writes. (These
+ *  only catch off-filter, on the dumper thread; inline, a fault hits the
+ *  DumpingThreadId latch instead.) Per C2712 a __try function can't own
+ *  unwinding objects, so they use C-style locals and raw DbgHelpMutex
+ *  lock()/unlock(), not std::scoped_lock.
+ */
+
+/**
+ *  Resolve and print the crashing instruction's function/file/line.
+ */
+static void Guarded_Crash_Site(CONTEXT *context)
+{
+    __try {
+        static char filename[512];
+        static char funcname[PATH_MAX];
+
+        uintptr_t addr;
+        unsigned line;
+
+        Get_Function_Details(reinterpret_cast<void*>(context->Eip), funcname, filename, &line, &addr);
+
+        if (addr != -1) {
+            addr = context->Eip - addr;
+        }
+
+        Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " (%s +0x%" PRIXPTR ") [%s:%d]\r\n", context->Eip, funcname, addr, filename, line);
+
+        if (SyringeData::LastHookOrigin != nullptr) {
+            Exception_Printf("Last entered hook at address: 0x%" PRIPTRSIZE PRIXPTR "\r\n", reinterpret_cast<register_t>(SyringeData::LastHookOrigin));
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " <symbol lookup faulted>\r\n", context->Eip);
+    }
+}
+
+
+/**
+ *  Symbol-free backtrace by walking the EBP frame chain, each frame validated
+ *  before deref. Needs no dbghelp, so it yields a usable return-address list
+ *  even when the dbghelp walk below dies entirely.
+ */
+static void Guarded_Manual_Backtrace(CONTEXT *context)
+{
+    __try {
+        Exception_Printf("Raw EBP-chain backtrace:\r\n");
+
+        uintptr_t *frame = reinterpret_cast<uintptr_t *>(context->Ebp);
+        uintptr_t prev = 0;
+
+        for (int i = 0; i < EXCEPTION_STACK_DEPTH_MAX; ++i) {
+
+            /**
+             *  A valid frame must be readable as a [saved-EBP, return-address]
+             *  pair and strictly increasing (the x86 stack grows downward, so
+             *  each saved EBP is at a higher address than the last).
+             */
+            if (frame == nullptr
+                || reinterpret_cast<uintptr_t>(frame) <= prev
+                || IsBadReadPtr(frame, 2 * sizeof(uintptr_t))) {
+                break;
+            }
+
+            Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR "\r\n", frame[1]);
+
+            prev = reinterpret_cast<uintptr_t>(frame);
+            frame = reinterpret_cast<uintptr_t *>(frame[0]);
+        }
+
+        Exception_Printf("\r\n");
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        Exception_Printf("  <manual backtrace faulted>\r\n");
+    }
+}
+
+
+/**
+ *  Full dbghelp call-stack walk (StackWalk64 + symbol resolution). The #1
+ *  faulter on a corrupt stack. Lock-free here - Make_Stack_Trace locks
+ *  DbgHelpMutex internally.
+ */
+static void Guarded_Call_Stack(CONTEXT *context)
+{
+    __try {
+        /**
+         *  The EIP/ESP/EBP from EXCEPTION_POINTERS point at the crashing
+         *  instruction itself - the first reported frame should be that
+         *  instruction, so no frames are skipped.
+         */
+        Stack_Dump_From_Context(context->Eip, context->Esp, context->Ebp, Exception_Stack_Dump_Handler, 0);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        Exception_Printf("  <call-stack walk faulted (corrupt stack or symbols); skipped>\r\n");
+    }
+}
+
+
+/**
+ *  Raw scan of stack memory from ESP: print each slot and, when it looks like
+ *  a code pointer, resolve a symbol. SymGetSymFromAddr64 can fault inside
+ *  dbghelp even when IsBadCodePtr passes, so the whole scan is guarded.
+ */
+static void Guarded_Raw_Stack_Scan(CONTEXT *context)
+{
+    /**
+     *  Lock once for the whole scan. Raw lock/unlock (not scoped_lock) so this
+     *  function can own the __try (C2712); recursive_mutex makes a missed
+     *  unlock on a caught fault harmless.
+     */
+    DbgHelpMutex.lock();
+
+    __try {
+
+        uintptr_t *address = reinterpret_cast<uintptr_t *>(context->Esp);
+
+        char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64)+EXCEPTION_STACK_SYMNAME_MAX];
+        IMAGEHLP_SYMBOL64 *const symbol_bufferp = reinterpret_cast<IMAGEHLP_SYMBOL64 *>(symbol_buffer);
+
+        for (int frame = 0; frame < EXCEPTION_STACK_DEPTH_MAX; ++frame) {
+
+            /**
+             *  If we can't read the address, then we don't know where we are.
+             */
+            if (IsBadReadPtr(address, sizeof(uintptr_t))) {
+                Exception_Printf("%" PRIPTRSIZE PRIXPTR ": " UNKNOWN_MEMORY_AREA "\r\n", (uintptr_t)address);
+                ++address;
+                continue;
+            }
+
+            /**
+             *  If we aren't in code, then we don't know where we are.
+             *
+             *  #WARNING: From Microsoft Docs.
+             *  If the application is compiled as a debugging version, and the process does not
+             *  have read access to the specified memory location, the function causes an assertion
+             *  and breaks into the debugger. Leaving the debugger, the function continues as
+             *  usual, and returns a nonzero value. This behavior is by design, as a debugging aid.
+             */
+#ifndef NDEBUG
+            if (!IsDebuggerPresent()) {
+#endif
+            if (IsBadCodePtr(reinterpret_cast<FARPROC>(*address))) {
+                Exception_Printf("%" PRIPTRSIZE PRIXPTR ": %" PRIPTRSIZE PRIXPTR " DATA_PTR\r\n", (uintptr_t)address, *address);
+                ++address;
+                continue;
+            }
+#ifndef NDEBUG
+            }
+#endif
+
+            /**
+             *  Looks like a good address, try and find the debug symbol name for it.
+             */
+            Exception_Printf("%" PRIPTRSIZE PRIXPTR ": %" PRIPTRSIZE PRIXPTR "", (uintptr_t)address, *address);
+
+            if (SymbolInit) {
+
+                ZeroMemory(symbol_buffer, sizeof(symbol_buffer));
+                symbol_bufferp->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL64)+EXCEPTION_STACK_SYMNAME_MAX;
+                symbol_bufferp->MaxNameLength = EXCEPTION_STACK_SYMNAME_MAX-1;
+                symbol_bufferp->Address = *address; // Fetch address (to code) located at ESP address.
+                symbol_bufferp->Size = 0;
+
+                DWORD64 displacement = 0;
+                HANDLE process = SymbolProcess; //GetCurrentProcess();
+
+                /**
+                 *  Translate the current address into a symbol and byte offset (displacement) from the symbol.
+                 */
+                BOOL got_it = SymGetSymFromAddr64(process, symbol_bufferp->Address, &displacement, symbol_bufferp);
+                if (got_it) {
+                    Exception_Printf(" - %s(); + %" PRIPTRSIZE PRIXPTR "", symbol_bufferp->Name, displacement);
+                }
+
+            } else {
+
+                /**
+                 *  Debug symbols not available.
+                 */
+                Exception_Printf(" *");
+            }
+
+            Exception_Printf("\r\n");
+
+            ++address;
+        }
+
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        Exception_Printf("  <raw stack scan faulted; truncated>\r\n");
+    }
+
+    DbgHelpMutex.unlock();
+}
+
+
 static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS *e_info)
 {
     static char scratch[1024]; // Scratch buffer, to use for anything.
@@ -489,33 +730,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
         }
     }
 
-    {
-        Init_Symbol_Info();
-
-        static char filename[512];
-        static char funcname[PATH_MAX];
-
-        uintptr_t addr;
-        unsigned line;
-
-        /**
-         *  Fetch function details for the EIP address.
-         */
-        Get_Function_Details(reinterpret_cast<void*>(context->Eip), funcname, filename, &line, &addr);
-
-        /**
-         *  If we got a function address, calculate our EIP's offset into the function.
-         */
-        if (addr != -1) {
-            addr = context->Eip - addr;
-        }
-
-        Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " (%s +0x%" PRIXPTR ") [%s:%d]\r\n", context->Eip, funcname, addr, filename, line);
-
-        if (SyringeData::LastHookOrigin != nullptr) {
-            Exception_Printf("Last entered hook at address: 0x%" PRIPTRSIZE PRIXPTR "\r\n", reinterpret_cast<register_t>(SyringeData::LastHookOrigin));
-        }
-    }
+    Guarded_Crash_Site(context);
 
     Exception_Printf("\r\n");
 
@@ -531,14 +746,14 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     }
 
     DEBUG_WARNING("Call dump...\n");
-    //Exception_Printf("Call stack:\r\n");
 
     /**
-     *  The EIP/ESP/EBP from EXCEPTION_POINTERS point at the crashing
-     *  instruction itself - the first reported frame should be that
-     *  instruction, so no frames are skipped.
+     *  A symbol-free EBP-chain backtrace first (always works, even if dbghelp
+     *  dies), then the full dbghelp call-stack walk. Both are individually
+     *  guarded so a fault in either doesn't cost us the rest of the dump.
      */
-    Stack_Dump_From_Context(context->Eip, context->Esp, context->Ebp, Exception_Stack_Dump_Handler, 0);
+    Guarded_Manual_Backtrace(context);
+    Guarded_Call_Stack(context);
 
     Exception_Printf("\r\n");
 
@@ -700,106 +915,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
         Exception_Printf("\r\nStack dump :\r\n");
     }
 
-    uintptr_t *address = reinterpret_cast<uintptr_t *>(context->Esp);
-
-    char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64)+EXCEPTION_STACK_SYMNAME_MAX];
-    IMAGEHLP_SYMBOL64 *const symbol_bufferp = reinterpret_cast<IMAGEHLP_SYMBOL64 *>(symbol_buffer);
-
-    /**
-     *  Hold the dbghelp lock for the duration of this loop instead of
-     *  taking and releasing it 1024 times.
-     */
-    std::scoped_lock dbghelp_lock(DbgHelpMutex);
-
-    /**
-     *  Dump the contents of the stack as defined by the maximum depth.
-     */
-    for (int frame = 0; frame < EXCEPTION_STACK_DEPTH_MAX; ++frame) {
-
-        //DEBUG_WARNING("Frame {}\n", frame);
-
-        /**
-         *  If we can't read the address, then we don't know where we are.
-         */
-        if (IsBadReadPtr(address, sizeof(uintptr_t))) {
-            Exception_Printf("%" PRIPTRSIZE PRIXPTR ": " UNKNOWN_MEMORY_AREA "\r\n", (uintptr_t)address);
-            ++address;
-            continue;
-        }
-
-        /**
-         *  If we aren't in code, then we don't know where we are.
-         * 
-         *  #WARNING: From Microsoft Docs.
-         *  If the application is compiled as a debugging version, and the process does not
-         *  have read access to the specified memory location, the function causes an assertion
-         *  and breaks into the debugger. Leaving the debugger, the function continues as
-         *  usual, and returns a nonzero value. This behavior is by design, as a debugging aid.
-         */
-#ifndef NDEBUG
-        if (!IsDebuggerPresent()) {
-#endif
-        if (IsBadCodePtr(reinterpret_cast<FARPROC>(*address))) {
-            Exception_Printf("%" PRIPTRSIZE PRIXPTR ": %" PRIPTRSIZE PRIXPTR " DATA_PTR\r\n", (uintptr_t)address, *address);
-            ++address;
-            continue;
-        }
-#ifndef NDEBUG
-        }
-#endif
-
-        /**
-         *  Removed, no longer needed as we ship a fake PDB for GAME.EXE that contains
-         *  most of the addresses for the original game.
-         */
-#if 0
-        /**
-         *  Super kludge for catching target binary addresses!
-         */
-        if ((uintptr_t)*address >= (uintptr_t)0x00401000 && (uintptr_t)*address < (uintptr_t)0x006CA000) {
-            Exception_Printf("%" PRIPTRSIZE PRIXPTR ": %" PRIPTRSIZE PRIXPTR " - (Game code, function-name not available)\r\n", (uintptr_t)address, *address);
-            ++address;
-            continue;
-        }
-#endif
-
-        /**
-         *  Looks like a good address, try and find the debug symbol name for it.
-         */
-
-        Exception_Printf("%" PRIPTRSIZE PRIXPTR ": %" PRIPTRSIZE PRIXPTR "", (uintptr_t)address, *address);
-
-        if (SymbolInit) {
-
-            ZeroMemory(symbol_buffer, sizeof(symbol_buffer));
-            symbol_bufferp->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL64)+EXCEPTION_STACK_SYMNAME_MAX;
-            symbol_bufferp->MaxNameLength = EXCEPTION_STACK_SYMNAME_MAX-1;
-            symbol_bufferp->Address = *address; // Fetch address (to code) located at ESP address.
-            symbol_bufferp->Size = 0;
-
-            DWORD64 displacement = 0;
-            HANDLE process = SymbolProcess; //GetCurrentProcess();
-
-            /**
-             *  Translate the current address into a symbol and byte offset (displacement) from the symbol.
-             */
-            BOOL got_it = SymGetSymFromAddr64(process, symbol_bufferp->Address, &displacement, symbol_bufferp);
-            if (got_it) {
-                Exception_Printf(" - %s(); + %" PRIPTRSIZE PRIXPTR "", symbol_bufferp->Name, displacement);
-            }
-
-        } else {
-        
-            /**
-             *  Debug symbols not available.
-             */
-            Exception_Printf(" *");
-        }
-
-        Exception_Printf("\r\n");
-
-        ++address;
-    }
+    Guarded_Raw_Stack_Scan(context);
 
     /**
      *  Flag that we have finished so functions who use the buffer outside
@@ -990,14 +1106,123 @@ static INT_PTR Exception_Dialog(HWND parent)
 }
 
 
+/**
+ *  Write the on-disk artifacts: minidump first (independent of the fragile
+ *  walk), then the text dump, then the EXCEPT_*.TXT. Shared by the dumper
+ *  thread and the inline fallback. crashed_tid lets the minidump record the
+ *  faulting thread even when this runs on the dumper.
+ */
+static void Write_Crash_Artifacts(struct _EXCEPTION_POINTERS *ptrs, unsigned int e_code, DWORD crashed_tid)
+{
+    /**
+     *  Minidump first - anything after can crash, but it's already on disk.
+     */
+    GenerateFullCrashDump = false;
+    Create_Mini_Dump(ptrs, Get_Module_File_Name(), nullptr, crashed_tid);
+
+    ExceptionBuffer.clear();
+
+    DEBUG_WARNING("About to call Dump_Exception_Info()\n");
+    Dump_Exception_Info(e_code, ptrs);
+
+    /**
+     *  Create a unique filename for the crash dump based on the time of execution.
+     */
+    char filename_buffer[512];
+    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
+        Vinifera_DebugDirectory,
+        Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+
+    ExceptionFile.Set_Name(filename_buffer);
+
+    /**
+     *  Write the exception log buffer to the file.
+     */
+    ExceptionFile.Write(ExceptionBuffer.c_str(), ExceptionBuffer.size());
+
+    if (LastExceptionCRC && CurrentExceptionCRC == LastExceptionCRC) {
+        DEBUG_WARNING("Exception dump is identical to the previous exception!\n");
+    }
+
+    LastExceptionCRC = CurrentExceptionCRC;
+}
+
+
+/**
+ *  Dumper thread body: park on DumperRequestEvent, run the dump (normal
+ *  context, so its __try guards catch faults), signal DumperDoneEvent.
+ */
+static void Dumper_Thread_Proc()
+{
+    /**
+     *  Publish our TID first: the handler keys "dumper available" off it, and
+     *  Suspend_Other_Threads must exclude us.
+     */
+    DumperThreadId.store(GetCurrentThreadId());
+
+    /**
+     *  The __except below is the catch-all for a dump fault - and must never
+     *  forward to Vinifera_Exception_Handler, or the dumper waits on itself.
+     */
+    for (;;) {
+        if (WaitForSingleObject(DumperRequestEvent, INFINITE) != WAIT_OBJECT_0) {
+            continue;
+        }
+
+        TheDumperRequest.DumpOK.store(false);
+
+        __try {
+            Write_Crash_Artifacts(&TheDumperRequest.Pointers, TheDumperRequest.ECode, TheDumperRequest.CrashedThreadId);
+            TheDumperRequest.DumpOK.store(true);
+        } __except (EXCEPTION_EXECUTE_HANDLER) {
+            /**
+             *  Fault escaped the per-section guards; the minidump was written
+             *  first, so the key artifact survived.
+             */
+            DEBUG_WARNING("Dumper thread faulted writing crash artifacts; report is partial.\n");
+        }
+
+        SetEvent(DumperDoneEvent);
+    }
+}
+
+
+void Start_Dumper_Thread()
+{
+    /**
+     *  Idempotent - only ever one dumper.
+     */
+    bool expected = false;
+    if (!DumperStarted.compare_exchange_strong(expected, true)) {
+        return;
+    }
+
+    /**
+     *  Create the events before spawning, so DumperThreadId != 0 (the
+     *  availability signal) implies both are valid. Auto-reset = one-shot.
+     */
+    DumperRequestEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    DumperDoneEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (DumperRequestEvent == nullptr || DumperDoneEvent == nullptr) {
+        DEBUG_WARNING("Could not create dumper events; crash dumps will use the inline path.\n");
+        return;
+    }
+
+    /**
+     *  Detached daemon, never joined (a join from Shutdown_Exception_Handler
+     *  would run under the DllMain loader lock).
+     */
+    std::thread(&Dumper_Thread_Proc).detach();
+}
+
+
 LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS *e_info)
 {
     /**
      *  First-thread-wins entry gate. A second thread that crashes while the
-     *  winner is dumping cannot be allowed to touch the global crash state:
-     *  it parks forever and the winner ExitProcess'es when the dump is done.
-     *  Re-entry from the same thread (e.g. crash inside Dump_Exception_Info)
-     *  falls through and is bounded by the recursion counter below.
+     *  winner is dumping parks forever; the winner owns the exit. Same-thread
+     *  re-entry falls through, bounded by the DumpingThreadId latch and
+     *  recursion counter below.
      */
     const DWORD self_tid = GetCurrentThreadId();
     DWORD expected = 0;
@@ -1006,6 +1231,17 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         // Lost the race - park this thread forever; winner owns the exit.
         SuspendThread(GetCurrentThread());
         ExitProcess(EXIT_FAILURE);
+    }
+
+    /**
+     *  Same-thread re-entry mid-(inline-)dump means the dump faulted - which
+     *  can't be caught in filter context (see DumperRequest). Re-running it
+     *  would recurse to the old ExitProcess CTD; terminate here instead (the
+     *  minidump is already on disk).
+     */
+    if (DumpingThreadId.load() == self_tid) {
+        DEBUG_WARNING("Nested fault inside the exception dump - terminating (minidump already written).\n");
+        Terminate_Now();
     }
 
     if (ExceptionCriticalSectionReady) {
@@ -1094,39 +1330,60 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
     if (RecursionCount.load() < 2) {
 
-        ExceptionBuffer.clear();
-
-        DEBUG_WARNING("About to call Dump_Exception_Info()\n");
-        Dump_Exception_Info(e_code, e_info);
-
         /**
-         *  Always generate the minidump up-front, before any dialog. Anything
-         *  that runs after this (dialog, debug-file zip) can crash or be
-         *  closed by the user, but the dump is already on disk.
+         *  Prefer the dumper thread: off-filter, so a walk/dbghelp fault is
+         *  caught by the per-section guards instead of recursing. Only the
+         *  first crash on a non-dumper thread with a usable context delegates.
          */
-        GenerateFullCrashDump = false;
-        Create_Mini_Dump(ExceptionInfo, Get_Module_File_Name());
+        const DWORD dumper_tid = DumperThreadId.load();
+        const bool dumper_available =
+            dumper_tid != 0
+            && self_tid != dumper_tid
+            && RecursionCount.load() == 0
+            && e_info != nullptr
+            && e_info->ContextRecord != nullptr
+            && e_info->ExceptionRecord != nullptr;
 
-        /**
-         *  Create a unique filename for the crash dump based on the time of execution.
-         */
-        char filename_buffer[512];
-        std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
-            Vinifera_DebugDirectory,
-            Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+        bool delegated = false;
 
-        ExceptionFile.Set_Name(filename_buffer);
+        if (dumper_available) {
 
-        /**
-         *  Write the exception log buffer to the file.
-         */
-        ExceptionFile.Write(ExceptionBuffer.c_str(), ExceptionBuffer.size());
+            /**
+             *  Copy the context into stable storage (don't hand the dumper a
+             *  pointer into this thread's live stack), then hand off and park.
+             */
+            TheDumperRequest.Context = *e_info->ContextRecord;
+            TheDumperRequest.Record = *e_info->ExceptionRecord;
+            TheDumperRequest.Pointers.ContextRecord = &TheDumperRequest.Context;
+            TheDumperRequest.Pointers.ExceptionRecord = &TheDumperRequest.Record;
+            TheDumperRequest.ECode = e_code;
+            TheDumperRequest.CrashedThreadId = self_tid;
 
-        if (LastExceptionCRC && CurrentExceptionCRC == LastExceptionCRC) {
-            DEBUG_WARNING("Exception dump is identical to the previous exception!\n");
+            DEBUG_WARNING("Handing crash dump to the dumper thread...\n");
+            SetEvent(DumperRequestEvent);
+            delegated = (WaitForSingleObject(DumperDoneEvent, DUMPER_TIMEOUT_MS) == WAIT_OBJECT_0);
+
+            if (!delegated) {
+                /**
+                 *  Dumper wedged. Don't re-run inline (the faulting path we're
+                 *  avoiding) - minidump-first means the key artifact likely
+                 *  already landed.
+                 */
+                DEBUG_WARNING("Dumper thread timed out; continuing with whatever artifacts exist.\n");
+            }
         }
 
-        LastExceptionCRC = CurrentExceptionCRC;
+        if (!delegated) {
+
+            /**
+             *  Inline fallback: dumper not up yet, crash is on the dumper, or a
+             *  recursive entry. Filter context (guards inert) - the
+             *  DumpingThreadId latch is what stops a nested fault recursing.
+             */
+            DumpingThreadId.store(self_tid);
+            Write_Crash_Artifacts(e_info, e_code, self_tid);
+            DumpingThreadId.store(0);
+        }
     }
 
     /**
