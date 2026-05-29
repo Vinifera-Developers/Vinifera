@@ -29,8 +29,6 @@ UnitClassExtension::UnitClassExtension(const UnitClass *this_ptr) :
     Vinifera::Detach::Listener<BuildingClass>(),
     LastDockedBuilding(nullptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     UnitExtensions.Add(this);
 }
 
@@ -44,7 +42,6 @@ UnitClassExtension::UnitClassExtension(const NoInitClass &noinit) :
     FootClassExtension(noinit),
     Vinifera::Detach::Listener<BuildingClass>(noinit)
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -55,8 +52,6 @@ UnitClassExtension::UnitClassExtension(const NoInitClass &noinit) :
  */
 UnitClassExtension::~UnitClassExtension()
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::~UnitClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     UnitExtensions.Delete(this);
 }
 
@@ -68,8 +63,6 @@ UnitClassExtension::~UnitClassExtension()
  */
 HRESULT UnitClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -87,8 +80,6 @@ HRESULT UnitClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT UnitClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = FootClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -109,8 +100,6 @@ HRESULT UnitClassExtension::Load(IStream *pStm)
  */
 HRESULT UnitClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = FootClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -127,8 +116,6 @@ HRESULT UnitClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int UnitClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -151,7 +138,5 @@ void UnitClassExtension::On_Detach(BuildingClass *target, bool all)
  */
 void UnitClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(LastDockedBuilding != nullptr ? LastDockedBuilding->Fetch_ID() : 0);
 }

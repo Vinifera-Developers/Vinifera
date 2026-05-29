@@ -58,8 +58,6 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     DamageRate(-1),
     StopSound(VOC_NONE)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimTypeExtensions.Add(this);
 
     // The half-way frame is the middle frame by default.
@@ -91,7 +89,6 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
     EndAnimsDelay(noinit),
     MiddleFrames(noinit)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -102,8 +99,6 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
  */
 AnimTypeClassExtension::~AnimTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::~AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimTypeExtensions.Delete(this);
 }
 
@@ -115,8 +110,6 @@ AnimTypeClassExtension::~AnimTypeClassExtension()
  */
 HRESULT AnimTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -134,8 +127,6 @@ HRESULT AnimTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     StartAnims.Clear();
     StartAnimsCount.Clear();
     StartAnimsMinimum.Clear();
@@ -193,8 +184,6 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -228,8 +217,6 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int AnimTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -243,8 +230,6 @@ int AnimTypeClassExtension::Get_Object_Size() const
  */
 void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(AttachLayer);
     crc(NumberOfParticles);
     crc(StartAnims.Count());
@@ -275,7 +260,6 @@ void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
     { while (list.Count() < count) \
         list.Add(value); }
 
-
 /**
  *  Fetches the extension data from the INI database.  
  *  
@@ -283,8 +267,6 @@ void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -304,19 +286,19 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
         TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
 
         if (random_rate.X == 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'Low' value!\n", This()->Name());
+            DEV_DEBUG_WARNING("Animation \"{}\" has a zero random rate 'Low' value!\n", This()->Name());
         } else {
             if (random_rate.X < 0) {
-                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'Low' value!\n", This()->Name());
+                DEV_DEBUG_WARNING("Animation \"{}\" has a negative random rate 'Low' value!\n", This()->Name());
             }
             random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
         }
 
         if (random_rate.Y == 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'High' value!\n", This()->Name());
+            DEV_DEBUG_WARNING("Animation \"{}\" has a zero random rate 'High' value!\n", This()->Name());
         } else {
             if (random_rate.Y < 0) {
-                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'High' value!\n", This()->Name());
+                DEV_DEBUG_WARNING("Animation \"{}\" has a negative random rate 'High' value!\n", This()->Name());
             }
             random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
         }

@@ -29,7 +29,7 @@ static const WarheadTypeClass* _Find_Or_Make(const char* name)
 
         if (wptr != nullptr)
         {
-            DEBUG_WARNING("Requested Warhead %s that is not listed under [Warheads]! To increase loading speed, please consider listing it under [Warheads]!\n", name);
+            DEBUG_WARNING("Requested Warhead {} that is not listed under [Warheads]! To increase loading speed, please consider listing it under [Warheads]!\n", name);
             Verses::Resize();
         }
 

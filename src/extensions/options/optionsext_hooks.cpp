@@ -12,6 +12,7 @@
 #include "optionsext_hooks.h"
 
 #include "audio_voc.h"
+#include "ccini.h"
 #include "hooker.h"
 #include "optionsext.h"
 #include "optionsext_init.h"
@@ -33,7 +34,7 @@ DEFINE_HOOK(0x0058AA18, _Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch, 0)
 
 
 /**
- *  x
+ *  Sets the volume for the sound audio groups.
  * 
  *  @author: CCHyper
  */
@@ -42,6 +43,25 @@ DEFINE_HOOK(0x00589B68, _OptionsClass_Set_Sound_Volume_Patch, 4)
     AudioVocClass::Set_Volume(static_cast<int>(Options.SoundVolume * 255));
 
     return 0;
+}
+
+
+/**
+ *  Replace inlined calls setting the volume on settings load with function calls.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x00589EFE, _OptionsClass_Load_Settings_Volume_Patch, 0)
+{
+    GET(OptionsClass*, this_ptr, ESI);
+
+    this_ptr->Set_Sound_Volume(ConfigINI.Get_Float("Audio", "SoundVolume", this_ptr->SoundVolume), false);
+    this_ptr->Set_Voice_Volume(ConfigINI.Get_Float("Audio", "VoiceVolume", this_ptr->VoiceVolume), false);
+    this_ptr->Set_Score_Volume(ConfigINI.Get_Float("Audio", "ScoreVolume", this_ptr->ScoreVolume), false);
+
+    R->ESP(R->ESP() - 0xC); // stack fixup
+
+    return 0x00589FFB;
 }
 
 

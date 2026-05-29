@@ -20,7 +20,6 @@
 RadioClassExtension::RadioClassExtension(const RadioClass *this_ptr) :
     MissionClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("RadioClassExtension::RadioClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -32,7 +31,6 @@ RadioClassExtension::RadioClassExtension(const RadioClass *this_ptr) :
 RadioClassExtension::RadioClassExtension(const NoInitClass &noinit) :
     MissionClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::RadioClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -43,7 +41,6 @@ RadioClassExtension::RadioClassExtension(const NoInitClass &noinit) :
  */
 RadioClassExtension::~RadioClassExtension()
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::~RadioClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -54,8 +51,6 @@ RadioClassExtension::~RadioClassExtension()
  */
 HRESULT RadioClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = MissionClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -72,8 +67,6 @@ HRESULT RadioClassExtension::Load(IStream *pStm)
  */
 HRESULT RadioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = MissionClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -92,7 +85,5 @@ HRESULT RadioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 void RadioClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     MissionClassExtension::Object_CRC(crc);
 }

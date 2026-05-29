@@ -45,7 +45,6 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
     WaterVoxelIndex(),
     AmbientSound(VOC_NONE)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -61,7 +60,6 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
     NoSpawnVoxel(noinit),
     WaterVoxel(noinit)
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -72,7 +70,6 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
  */
 ObjectTypeClassExtension::~ObjectTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::~ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -88,8 +85,6 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
 
     NoSpawnVoxel.~VoxelObject();
     WaterVoxel.~VoxelObject();
-
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
@@ -118,8 +113,6 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     /**
      *  Store the graphic name strings, these are used by the load operation.
      */
@@ -144,7 +137,6 @@ HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 void ObjectTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -155,8 +147,6 @@ void ObjectTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char* ini_name = Name();
 
     if (!IsInitialized) {

@@ -240,7 +240,7 @@ bool FactoryClassExt::_Abandon()
 {
     if (Object) {
 
-        DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->GivenName.c_str());
+        DEBUG_INFO("Abandoning production of {}\n", Object->Class_Of()->GivenName);
 
         /*
         **  Refund all money expended so far, back to the owner of the object under construction.
@@ -301,17 +301,17 @@ bool FactoryClassExt::_Abandon()
  */
 void FactoryClassExt::_Object_CRC(CRCEngine& crc) const
 {
-    DEBUG_INFO("Frame == %d\n", Frame);
-    DEBUG_INFO("QueuedObjects.Count() == %d\n", QueuedObjects.Count());
-    if (Object != nullptr) DEBUG_INFO("Object->RTTI == %d\n", Object->RTTI);
-    if (Object != nullptr) DEBUG_INFO("Object->HeapID == %d\n", Object->Fetch_Heap_ID());
-    DEBUG_INFO("IsSuspended\t= %d\n", IsSuspended);
-    DEBUG_INFO("IsDifferent\t= %d\n", IsDifferent);
-    DEBUG_INFO("Balance\t= %d\n", Balance);
-    DEBUG_INFO("OriginalBalance = %d\n", OriginalBalance);
-    DEBUG_INFO("SpecialItem\t= %d\n", SpecialItem);
-    if (House != nullptr) DEBUG_INFO("House->Fetch_ID()\t= %d\n", House->Fetch_ID());
-    DEBUG_INFO("ID\t= %d\n", Fetch_ID());
+    DEBUG_INFO("Frame == {}\n", Frame);
+    DEBUG_INFO("QueuedObjects.Count() == {}\n", QueuedObjects.Count());
+    if (Object != nullptr) DEBUG_INFO("Object->RTTI == {}\n", (int)Object->RTTI);
+    if (Object != nullptr) DEBUG_INFO("Object->HeapID == {}\n", Object->Fetch_Heap_ID());
+    DEBUG_INFO("IsSuspended\t= {}\n", IsSuspended);
+    DEBUG_INFO("IsDifferent\t= {}\n", IsDifferent);
+    DEBUG_INFO("Balance\t= {}\n", Balance);
+    DEBUG_INFO("OriginalBalance = {}\n", OriginalBalance);
+    DEBUG_INFO("SpecialItem\t= {}\n", SpecialItem);
+    if (House != nullptr) DEBUG_INFO("House->Fetch_ID()\t= {}\n", House->Fetch_ID());
+    DEBUG_INFO("ID\t= {}\n", Fetch_ID());
 
     AbstractClass::Object_CRC(crc);
 

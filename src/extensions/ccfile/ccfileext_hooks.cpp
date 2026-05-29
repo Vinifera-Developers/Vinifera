@@ -53,7 +53,7 @@ void CCFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fil
          */
         if (!CD::ForceAvailable()) {
 
-            DEV_DEBUG_ERROR("File - Error, CD '%d' not found!", CD::RequiredCD);
+            DEV_DEBUG_ERROR("File - Error, CD '{}' not found!", (int)CD::RequiredCD);
 
             /**
              *  If still not available, now let the low level file interface report the error.

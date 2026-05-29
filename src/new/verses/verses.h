@@ -75,10 +75,10 @@ private:
     static T Get_Value(ArmorType armor, WarheadType warhead, std::vector<std::vector<VersesData<T>>>& vector, T ArmorTypeClass::* specific);
 
     template <typename T>
-    static HRESULT Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name);
+    static HRESULT Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector);
 
     template <typename T>
-    static HRESULT Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name);
+    static HRESULT Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector);
 
 private:
     /**

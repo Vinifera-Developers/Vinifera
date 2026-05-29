@@ -25,8 +25,6 @@ OverlayTypeClassExtension::OverlayTypeClassExtension(const OverlayTypeClass *thi
     ObjectTypeClassExtension(this_ptr),
     IsWaterTunnel(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("OverlayTypeClassExtension::OverlayTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     OverlayTypeExtensions.Add(this);
 }
 
@@ -39,7 +37,6 @@ OverlayTypeClassExtension::OverlayTypeClassExtension(const OverlayTypeClass *thi
 OverlayTypeClassExtension::OverlayTypeClassExtension(const NoInitClass &noinit) :
     ObjectTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::OverlayTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -50,8 +47,6 @@ OverlayTypeClassExtension::OverlayTypeClassExtension(const NoInitClass &noinit) 
  */
 OverlayTypeClassExtension::~OverlayTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::~OverlayTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     OverlayTypeExtensions.Delete(this);
 }
 
@@ -63,8 +58,6 @@ OverlayTypeClassExtension::~OverlayTypeClassExtension()
  */
 HRESULT OverlayTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -82,8 +75,6 @@ HRESULT OverlayTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT OverlayTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -102,8 +93,6 @@ HRESULT OverlayTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT OverlayTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -120,8 +109,6 @@ HRESULT OverlayTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int OverlayTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -135,7 +122,6 @@ int OverlayTypeClassExtension::Get_Object_Size() const
  */
 void OverlayTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -146,8 +132,6 @@ void OverlayTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool OverlayTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }

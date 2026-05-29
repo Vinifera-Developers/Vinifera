@@ -330,7 +330,7 @@ bool MoviePlayer::Update_Playback_State()
 
     if (Keyboard->Check()) {
         if (Keyboard->Get() == (KN_RLSE_BIT | KN_ESC)) {
-            DEBUG_INFO("%s: Breakout.\n", Backend->Get_Name());
+            DEBUG_INFO("{}: Breakout.\n", Backend->Get_Name());
             Stop();
             UpdateWindow(MainWindow);
             return false;
@@ -541,7 +541,7 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
         CachedFrameHeight = frame.Height;
 
         if (!CachedNV12Surface || !CachedRGB565Surface) {
-            DEBUG_ERROR("Present_Ingame_Frame: Failed to allocate cached surfaces: %s\n", SDL_GetError());
+            DEBUG_ERROR("Present_Ingame_Frame: Failed to allocate cached surfaces: {}\n", SDL_GetError());
             SDL_DestroySurface(CachedNV12Surface);
             SDL_DestroySurface(CachedRGB565Surface);
             CachedNV12Surface = nullptr;
@@ -579,7 +579,7 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
             frame.Width, frame.Height,
             SDL_PIXELFORMAT_NV12, nv12->pixels, nv12->pitch,
             SDL_PIXELFORMAT_RGB565, CachedRGB565Surface->pixels, CachedRGB565Surface->pitch)) {
-        DEBUG_ERROR("Present_Ingame_Frame: SDL_ConvertPixels failed: %s\n", SDL_GetError());
+        DEBUG_ERROR("Present_Ingame_Frame: SDL_ConvertPixels failed: {}\n", SDL_GetError());
         return false;
     }
 
@@ -589,7 +589,7 @@ bool IngameMoviePlayback::Present_Frame(const MovieVideoFrame &frame)
     const bool ok = SDL_BlitSurfaceScaled(CachedRGB565Surface, nullptr, dst_sdl, &dst_rect, SDL_SCALEMODE_NEAREST);
 
     if (!ok) {
-        DEBUG_ERROR("Present_Ingame_Frame: SDL_BlitSurfaceScaled failed: %s\n", SDL_GetError());
+        DEBUG_ERROR("Present_Ingame_Frame: SDL_BlitSurfaceScaled failed: {}\n", SDL_GetError());
     }
 
     return ok;
@@ -699,11 +699,11 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
 
     MoviePlayer player;
     if (!player.Open(filename.c_str())) {
-        DEBUG_WARNING("Failed to open \"%s\" with any modern movie backend.\n", filename.c_str());
+        DEBUG_WARNING("Failed to open \"{}\" with any modern movie backend.\n", filename);
         return false;
     }
 
-    DEBUG_INFO("Play_Movie \"%s\" with %s.\n", filename.c_str(), player.Backend->Get_Name());
+    DEBUG_INFO("Play_Movie \"{}\" with {}.\n", filename, player.Backend->Get_Name());
 
     Keyboard->Clear();
     MouseCursor->Hide_Mouse();
@@ -823,14 +823,14 @@ bool MoviePlayback_Play_Ingame(const char *basename)
     auto state = std::make_unique<IngameMoviePlayback>();
 
     if (!state->Player.Open(filename.c_str())) {
-        DEBUG_WARNING("Failed to open ingame movie \"%s\" with any modern movie backend.\n", filename.c_str());
+        DEBUG_WARNING("Failed to open ingame movie \"{}\" with any modern movie backend.\n", filename);
         return false;
     }
 
     const int width = state->Player.Backend->Get_Video_Width();
     const int height = state->Player.Backend->Get_Video_Height();
     if (width <= 0 || height <= 0) {
-        DEBUG_WARNING("Modern ingame movie \"%s\" reported invalid dimensions.\n", filename.c_str());
+        DEBUG_WARNING("Modern ingame movie \"{}\" reported invalid dimensions.\n", filename);
         return false;
     }
 
@@ -867,7 +867,7 @@ bool MoviePlayback_Play_Ingame(const char *basename)
      */
     state->DestinationRect = state->Handle->InitialRect;
 
-    DEBUG_INFO("MoviePlayback_Play_Ingame \"%s\" with %s.\n", filename.c_str(), state->Player.Backend->Get_Name());
+    DEBUG_INFO("MoviePlayback_Play_Ingame \"{}\" with {}.\n", filename, state->Player.Backend->Get_Name());
     IngameMoviePlaybacks.push_back(std::move(state));
     return true;
 }

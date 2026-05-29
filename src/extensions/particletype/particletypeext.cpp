@@ -24,8 +24,6 @@
 ParticleTypeClassExtension::ParticleTypeClassExtension(const ParticleTypeClass *this_ptr) :
     ObjectTypeClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("ParticleTypeClassExtension::ParticleTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     ParticleTypeExtensions.Add(this);
 }
 
@@ -38,7 +36,6 @@ ParticleTypeClassExtension::ParticleTypeClassExtension(const ParticleTypeClass *
 ParticleTypeClassExtension::ParticleTypeClassExtension(const NoInitClass &noinit) :
     ObjectTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::ParticleTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -49,8 +46,6 @@ ParticleTypeClassExtension::ParticleTypeClassExtension(const NoInitClass &noinit
  */
 ParticleTypeClassExtension::~ParticleTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::~ParticleTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     ParticleTypeExtensions.Delete(this);
 }
 
@@ -62,8 +57,6 @@ ParticleTypeClassExtension::~ParticleTypeClassExtension()
  */
 HRESULT ParticleTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -81,8 +74,6 @@ HRESULT ParticleTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT ParticleTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -101,8 +92,6 @@ HRESULT ParticleTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT ParticleTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -119,8 +108,6 @@ HRESULT ParticleTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int ParticleTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -134,7 +121,6 @@ int ParticleTypeClassExtension::Get_Object_Size() const
  */
 void ParticleTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -145,8 +131,6 @@ void ParticleTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool ParticleTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }

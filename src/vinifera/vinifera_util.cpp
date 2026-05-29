@@ -405,8 +405,9 @@ void Vinifera_Log_And_Show_WWMessageBox(const char* msg, ...)
     int message_length = strlen(buffer);
     memcpy(log_buffer, buffer, message_length);
     log_buffer[message_length] = '\n';
+    log_buffer[message_length + 1] = '\0';
 
-    DEBUG_WARNING(log_buffer);
+    DEBUG_WARNING("{}", log_buffer);
     WWMessageBox().Process(buffer, 0, "OK");
 }
 
@@ -506,7 +507,7 @@ bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> 
 
     HZIP hZip = CreateZip((void *)buffer, 0, ZIP_FILENAME);
     if (!hZip) {
-        DEBUG_ERROR("Failed to create zip archive \"%s\"!\n", filename);
+        DEBUG_ERROR("Failed to create zip archive \"{}\"!\n", filename);
         return false;
     }
 
@@ -521,12 +522,12 @@ bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> 
         }
         ZRESULT zresult = ZipAdd(hZip, filelist[i], buffer, 0, ZIP_FILENAME);
         if (zresult != ZR_OK) {
-            DEBUG_ERROR("Failed to add file \"%s\" to zip archive \"%s\"!\n", buffer, filename);
+            DEBUG_ERROR("Failed to add file \"{}\" to zip archive \"{}\"!\n", buffer, filename);
             return false;
         }
     }
     
-    DEBUG_INFO("Zip archive \"%s\" created sucessfully.\n", filename);
+    DEBUG_INFO("Zip archive \"{}\" created sucessfully.\n", filename);
 
     return CloseZip(hZip) == ZR_OK;
 }
@@ -674,7 +675,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
     DWORD rc = LoadString(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer));
     //DWORD rc = Load_String_Ex(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer), ResourceLang);
     if (!rc) {
-        DEBUG_ERROR("Fetch_String() - LoadString failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_String() - LoadString failed. Error! {}.\n", Last_System_Error_As_String());
         return _null;
     }
 
@@ -682,7 +683,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
     //_buffer[sizeof(_buffer)-1] = '\0';
     free_entry.Buffer[sizeof(free_entry.Buffer)-1] = '\0';
 
-    //DEBUG_INFO("Fetch_String() - Returning '%s'.\n", free_entry.Buffer);
+    //DEBUG_INFO("Fetch_String() - Returning '{}'.\n", free_entry.Buffer);
 
     return free_entry.Buffer;
 }
@@ -702,13 +703,13 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
     //HRSRC res = FindResourceEx(handle, id, type, ResourceLang);
     HRSRC res = FindResource(handle, id, type);
     if (res == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
     HGLOBAL res_handle = LoadResource(handle, res);
     if (res_handle == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - LoadResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - LoadResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
@@ -721,7 +722,7 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
      */
     void *res_data = LockResource(res_handle);
     if (res_data == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - LockResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - LockResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 

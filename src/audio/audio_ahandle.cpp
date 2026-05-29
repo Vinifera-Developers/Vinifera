@@ -17,6 +17,7 @@
 #include "audio_streaming.h"
 #include "debughandler.h"
 #include "gametime.h"
+#include "vinifera_thread.h"
 
 #include <mutex>
 
@@ -62,39 +63,43 @@ static std::thread AudioHandleThread;
  */
 unsigned __stdcall Audio_Handler_Thread(void * context)
 {
-    auto next_tick = std::chrono::steady_clock::now();
+    Vinifera_Run_Thread([context]() {
 
-    VQAHandle *vqa = static_cast<VQAHandle*>(context);
+        auto next_tick = std::chrono::steady_clock::now();
 
-    while (!AudioHandleThreadExit.load(std::memory_order_relaxed)) {
+        VQAHandle *vqa = static_cast<VQAHandle*>(context);
 
-        if (!(Flags & AHANDLEF_IS_PAUSED)) {
+        while (!AudioHandleThreadExit.load(std::memory_order_relaxed)) {
 
-            /**
-             *  Only feed new audio data when the ring buffer is running low.
-             *  This mirrors the original DirectSound callback which only wrote
-             *  more data when the play cursor had advanced past the last chunk.
-             */
-            bool needs_data = true;
-            if (StreamInstance) {
-                ma_uint32 available = StreamInstance->Get_Available_Read_Frames();
-                needs_data = (available < 2048);
-            }
+            if (!(Flags & AHANDLEF_IS_PAUSED)) {
 
-            if (needs_data) {
-                if (MoveHMIAudioBlock_Callback) {
-                    MoveHMIAudioBlock_Callback(vqa);
+                /**
+                 *  Only feed new audio data when the ring buffer is running low.
+                 *  This mirrors the original DirectSound callback which only wrote
+                 *  more data when the play cursor had advanced past the last chunk.
+                 */
+                bool needs_data = true;
+                if (StreamInstance) {
+                    ma_uint32 available = StreamInstance->Get_Available_Read_Frames();
+                    needs_data = (available < 2048);
                 }
 
-                if (VQASync_Callback && CallbackBufferPtr) {
-                    VQASync_Callback(vqa, static_cast<char*>(CallbackBufferPtr));
+                if (needs_data) {
+                    if (MoveHMIAudioBlock_Callback) {
+                        MoveHMIAudioBlock_Callback(vqa);
+                    }
+
+                    if (VQASync_Callback && CallbackBufferPtr) {
+                        VQASync_Callback(vqa, static_cast<char*>(CallbackBufferPtr));
+                    }
                 }
             }
+
+            next_tick += std::chrono::milliseconds(1000 / 60); // 60 Hz
+            std::this_thread::sleep_until(next_tick);
         }
 
-        next_tick += std::chrono::milliseconds(1000 / 60); // 60 Hz
-        std::this_thread::sleep_until(next_tick);
-    }
+    });
 
     return 0;
 }
@@ -135,7 +140,7 @@ unsigned long __cdecl AudioHandleClass::Timer_Callback_Audio_Handler(VQAHandle *
         }
     }
     
-    //DEBUG_INFO("AudioHandle: Timer_Callback_Audio_Handler -> returning %d\n", PlaybackTime60Hz);
+    //DEBUG_INFO("AudioHandle: Timer_Callback_Audio_Handler -> returning {}\n", PlaybackTime60Hz);
 
     return PlaybackTime60Hz;
 }
@@ -252,7 +257,7 @@ long __cdecl AudioHandleClass::Open_Audio_Handler(VQAHandleP *vqap, AhandleInitP
     CallbackBufferPtr = nullptr;
     CurrentBufferIndex = 0;
 
-    DEBUG_INFO("AudioHandle: Open_Audio_Handler -> %d %d %d\n", SampleRate, Channels, BitsPerSample);
+    DEBUG_INFO("AudioHandle: Open_Audio_Handler -> {} {} {}\n", SampleRate, Channels, BitsPerSample);
 
     if (StreamInstance) {
         delete StreamInstance;
@@ -375,8 +380,8 @@ long __cdecl AudioHandleClass::Load_Audio_Handler(VQAHandleP *vqap, void *buffer
     // Rotate index for next load
     CurrentBufferIndex = (CurrentBufferIndex + 1) % 2;
 
-//    DEBUG_INFO("AudioHandle: Rotated buffer -> idx = %d ptr = %p\n", CurrentBufferIndex, CallbackBufferPtr);
-//    DEBUG_INFO("AudioHandle: Pushed bytes %d to stream handler\n", nbytes);
+//    DEBUG_INFO("AudioHandle: Rotated buffer -> idx = {} ptr = {}\n", CurrentBufferIndex, CallbackBufferPtr);
+//    DEBUG_INFO("AudioHandle: Pushed bytes {} to stream handler\n", nbytes);
 
     return VQAERR_NONE;
 }

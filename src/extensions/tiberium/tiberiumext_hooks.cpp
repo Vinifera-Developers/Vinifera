@@ -94,7 +94,7 @@ DEFINE_HOOK(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch, 0)
 {
     GET(OverlayTypeClass*, overlaytype, EAX);
 
-    DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->IniName.c_str(), overlaytype->HeapID);
+    DEBUG_FATAL("Overlay {} [{}] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->IniName, (int)overlaytype->HeapID);
 
     return 0x0058C951;
 }

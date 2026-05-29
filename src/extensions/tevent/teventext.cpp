@@ -55,8 +55,6 @@ TEventClassExtension::TEventClassExtension(const TEventClass *this_ptr) :
     AbstractClassExtension(this_ptr),
     IniNameArgument { "" }
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TEventClassExtension::TEventClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TEventExtensions.Add(this);
 
     Data2.Value = 0;
@@ -72,7 +70,6 @@ TEventClassExtension::TEventClassExtension(const TEventClass *this_ptr) :
 TEventClassExtension::TEventClassExtension(const NoInitClass &noinit) :
     AbstractClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("TEventClassExtension::TEventClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -83,8 +80,6 @@ TEventClassExtension::TEventClassExtension(const NoInitClass &noinit) :
  */
 TEventClassExtension::~TEventClassExtension()
 {
-    //EXT_DEBUG_TRACE("TEventClassExtension::~TEventClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TEventExtensions.Delete(this);
 }
 
@@ -96,8 +91,6 @@ TEventClassExtension::~TEventClassExtension()
  */
 HRESULT TEventClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("TEventClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -115,8 +108,6 @@ HRESULT TEventClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT TEventClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TEventClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -135,8 +126,6 @@ HRESULT TEventClassExtension::Load(IStream *pStm)
  */
 HRESULT TEventClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TEventClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -153,8 +142,6 @@ HRESULT TEventClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TEventClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TEventClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -168,7 +155,6 @@ int TEventClassExtension::Get_Object_Size() const
  */
 void TEventClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TEventClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

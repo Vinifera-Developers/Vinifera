@@ -58,8 +58,6 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     IronCurtainAvailabilityTimer(),
     IsPauseRepairs(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     for (int i = 0; i < Tiberiums.Count(); i++)
     {
         TiberiumStorage[i] = 0;
@@ -87,7 +85,6 @@ HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
     TiberiumStorage(noinit),
     WeedStorage(noinit)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -98,8 +95,6 @@ HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
  */
 HouseClassExtension::~HouseClassExtension()
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::~HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     HouseExtensions.Delete(this);
 }
 
@@ -111,8 +106,6 @@ HouseClassExtension::~HouseClassExtension()
  */
 HRESULT HouseClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -130,15 +123,13 @@ HRESULT HouseClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT HouseClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    Load_Primitive_Vector(pStm, TiberiumStorage, "TiberiumStorage");
-    Load_Primitive_Vector(pStm, WeedStorage, "WeedStorage");
+    Load_Primitive_Vector(pStm, TiberiumStorage);
+    Load_Primitive_Vector(pStm, WeedStorage);
 
     new (this) HouseClassExtension(NoInitClass());
 
@@ -155,15 +146,13 @@ HRESULT HouseClassExtension::Load(IStream *pStm)
  */
 HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
 
-    Save_Primitive_Vector(pStm, TiberiumStorage, "TiberiumStorage");
-    Save_Primitive_Vector(pStm, WeedStorage, "WeedStorage");
+    Save_Primitive_Vector(pStm, TiberiumStorage);
+    Save_Primitive_Vector(pStm, WeedStorage);
 
     return hr;
 }
@@ -176,8 +165,6 @@ HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int HouseClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -200,8 +187,6 @@ void HouseClassExtension::On_Detach(FactoryClass *target, bool all)
  */
 void HouseClassExtension::Object_CRC(CRCEngine& crc) const
 {
-    // EXT_DEBUG_TRACE("HouseClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
-
     crc(NavalFactories);
     crc(BuildNavalUnit);
     crc(SpawnWaypoint);
@@ -433,7 +418,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         if (who != nullptr) {
             onhold = true;
         } else {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. No-one can build.\n", tech->GivenName.c_str());
+            DEBUG_INFO("Request to Begin_Production of '{}' was rejected. No-one can build.\n", tech->GivenName);
             return PROD_CANT;
         }
     }
@@ -444,7 +429,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         fptr = new FactoryClass;
 
         if (fptr == nullptr) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Unable to create factory\n", tech->GivenName.c_str());
+            DEBUG_INFO("Request to Begin_Production of '{}' was rejected. Unable to create factory\n", tech->GivenName);
             return PROD_CANT;
         }
     }
@@ -455,7 +440,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     */
     if (fptr != nullptr) {
         if (fptr->Is_Building() && type == RTTI_BUILDINGTYPE) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n", tech->GivenName.c_str());
+            DEBUG_INFO("Request to Begin_Production of '{}' was rejected. Cannot queue buildings.\n", tech->GivenName);
             return PROD_CANT;
         }
     }
@@ -495,18 +480,18 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         return PROD_OK;
     }
 
-    DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->GivenName.c_str());
+    DEBUG_INFO("Request to Begin_Production of '{}' was rejected. Factory was unable to create the requested object\n", tech->GivenName);
 
     /*
     **  Output debug information if production failed.
     */
     if (fptr->QueuedObjects.Count() == 0 && fptr->Object == nullptr) {
-        DEBUG_INFO("type=%d\n", type);
-        DEBUG_INFO("Frame == %d\n", Frame);
-        DEBUG_INFO("fptr->QueuedObjects.Count() == %d\n", fptr->QueuedObjects.Count());
-        DEBUG_INFO("Object->RTTI == %d\n", fptr->Object != nullptr ? fptr->Object->Fetch_RTTI() : -1);
-        DEBUG_INFO("Object->HeapID == %d\n", fptr->Object != nullptr ? fptr->Object->Fetch_Heap_ID() : -1);
-        DEBUG_INFO("IsSuspended\t= %d\n", fptr->IsSuspended);
+        DEBUG_INFO("type={}\n", (int)type);
+        DEBUG_INFO("Frame == {}\n", Frame);
+        DEBUG_INFO("fptr->QueuedObjects.Count() == {}\n", fptr->QueuedObjects.Count());
+        DEBUG_INFO("Object->RTTI == {}\n", fptr->Object != nullptr ? (int)fptr->Object->Fetch_RTTI() : -1);
+        DEBUG_INFO("Object->HeapID == {}\n", fptr->Object != nullptr ? fptr->Object->Fetch_Heap_ID() : -1);
+        DEBUG_INFO("IsSuspended\t= {}\n", fptr->IsSuspended);
 
         delete fptr;
         Set_Factory(type, nullptr, flags);

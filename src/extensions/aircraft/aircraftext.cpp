@@ -24,8 +24,6 @@
 AircraftClassExtension::AircraftClassExtension(const AircraftClass *this_ptr) :
     FootClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AircraftClassExtension::AircraftClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AircraftExtensions.Add(this);
 }
 
@@ -38,7 +36,6 @@ AircraftClassExtension::AircraftClassExtension(const AircraftClass *this_ptr) :
 AircraftClassExtension::AircraftClassExtension(const NoInitClass &noinit) :
     FootClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::AircraftClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -49,8 +46,6 @@ AircraftClassExtension::AircraftClassExtension(const NoInitClass &noinit) :
  */
 AircraftClassExtension::~AircraftClassExtension()
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::~AircraftClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AircraftExtensions.Delete(this);
 }
 
@@ -62,8 +57,6 @@ AircraftClassExtension::~AircraftClassExtension()
  */
 HRESULT AircraftClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -81,8 +74,6 @@ HRESULT AircraftClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT AircraftClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = FootClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -101,8 +92,6 @@ HRESULT AircraftClassExtension::Load(IStream *pStm)
  */
 HRESULT AircraftClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = FootClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -119,8 +108,6 @@ HRESULT AircraftClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int AircraftClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -134,5 +121,4 @@ int AircraftClassExtension::Get_Object_Size() const
  */
 void AircraftClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

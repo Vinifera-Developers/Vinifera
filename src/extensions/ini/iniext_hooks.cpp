@@ -236,7 +236,7 @@ int INIClassExt::_Load(Straw& ffile, bool)
             iini.Load(ifile);
             Inherit_File(iini);
         } else {
-            DEBUG_FATAL("INIClassExt::_Load - Inherit file not found: %s\n", filename.c_str());
+            DEBUG_FATAL("INIClassExt::_Load - Inherit file not found: {}\n", filename);
             char error[512];
             std::snprintf(error, sizeof(error), "INIClassExt::_Load - Inherit file not found: %s\nThe game will now exit.", filename.c_str());
             MessageBox(MainWindow, error, "Vinifera", MB_OK | MB_ICONERROR);
@@ -251,7 +251,7 @@ int INIClassExt::_Load(Straw& ffile, bool)
             iini.Load(ifile);
             Include_File(iini);
         } else {
-            DEBUG_FATAL("INIClassExt::_Load - Include file not found: %s\n", filename.c_str());
+            DEBUG_FATAL("INIClassExt::_Load - Include file not found: {}\n", filename);
             char error[512];
             std::snprintf(error, sizeof(error), "INIClassExt::_Load - Include file not found: %s\nThe game will now exit.", filename.c_str());
             MessageBox(MainWindow, error, "Vinifera", MB_OK | MB_ICONERROR);
@@ -301,7 +301,7 @@ int INIClassExt::_Get_String(char const* section, char const* entry, char const*
             for (const std::string& inherited_section : InheritedSections[sectionptr]) {
                 int count = Get_String(inherited_section.c_str(), entry, "", buffer, size);
                 if (count > 0) {
-                    //DEBUG_INFO("Fetched [%s]->%s from %s\n", section, entry, inherited_section.c_str());
+                    //DEBUG_INFO("Fetched [{}]->{} from {}\n", section, entry, inherited_section);
                     return count;
                 }
             }

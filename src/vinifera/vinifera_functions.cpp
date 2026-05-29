@@ -22,6 +22,7 @@
 #include "cncnet4_globals.h"
 #include "cncnet5_globals.h"
 #include "debughandler.h"
+#include "exceptionhandler.h"
 #include "extension.h"
 #include "filestraw.h"
 #include "kamikazetracker.h"
@@ -219,7 +220,7 @@ static bool Vinifera_Load_Exception_Database(const char *filename)
     DEV_DEBUG_INFO("Exception database dump...\n");
     for (int i = 0; i < ExceptionInfoDatabase.Count(); ++i) {
         ExceptionInfoDatabaseStruct &e = ExceptionInfoDatabase[i];
-        DEV_DEBUG_INFO("  0x%08X %s %s \"%.32s...\"\n",
+        DEV_DEBUG_INFO("  0x{:08X} {} {} \"{:.32}...\"\n",
                        e.Address, e.CanContinue ? "true " : "false",
                        e.Ignore ? "true " : "false",
                        e.Description);
@@ -370,7 +371,7 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
 
             CCFileClass::Set_Search_Drives(&string[3]);
             if (CCFileClass::Is_There_Search_Drives()) {
-                DEBUG_INFO("  - Search path set to \"%s\".\n", &string[3]);
+                DEBUG_INFO("  - Search path set to \"{}\".\n", &string[3]);
 
                 /**
                  *  Flag the cd search system to search for files locally.
@@ -510,8 +511,8 @@ bool Vinifera_Startup()
     if (Vinifera_Load_INI()) {
         DEBUG_INFO("\n");
         DEBUG_INFO("Project information:\n");
-        DEBUG_INFO("  Title: %s\n", Vinifera_ProjectName);
-        DEBUG_INFO("  Version: %s\n", Vinifera_ProjectVersion);
+        DEBUG_INFO("  Title: {}\n", Vinifera_ProjectName);
+        DEBUG_INFO("  Version: {}\n", Vinifera_ProjectVersion);
         DEBUG_INFO("\n");
     } else {
         DEBUG_WARNING("Failed to load VINIFERA.INI!\n");
@@ -553,7 +554,7 @@ bool Vinifera_Startup()
 
         delete[] new_path;
 
-        DEBUG_INFO("SearchPath: %s\n", CCFileClass::RawPath);
+        DEBUG_INFO("SearchPath: {}\n", CCFileClass::RawPath);
     }
 
     /**
@@ -764,6 +765,12 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
  */
 int Vinifera_Post_Init_Game(int argc, char *argv[])
 {
+    /**
+     *  Spawn the crash-dump thread (main thread, past dbghelp init, outside the
+     *  DllMain loader lock). Idempotent.
+     */
+    Start_Dumper_Thread();
+
     TheaterTypeClass::One_Time();
 
     CCFileClass theater_file("THEATERS.INI");

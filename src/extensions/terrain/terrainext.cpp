@@ -32,8 +32,6 @@ TerrainClassExtension::TerrainClassExtension(const TerrainClass *this_ptr) :
     ObjectClassExtension(this_ptr),
     LightSource(nullptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TerrainClassExtension::TerrainClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TerrainExtensions.Add(this);
 }
 
@@ -46,7 +44,6 @@ TerrainClassExtension::TerrainClassExtension(const TerrainClass *this_ptr) :
 TerrainClassExtension::TerrainClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("TerrainClassExtension::TerrainClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -57,8 +54,6 @@ TerrainClassExtension::TerrainClassExtension(const NoInitClass &noinit) :
  */
 TerrainClassExtension::~TerrainClassExtension()
 {
-    //EXT_DEBUG_TRACE("TerrainClassExtension::~TerrainClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (LightSource) {
         LightSource->Disable();
         delete LightSource;
@@ -76,8 +71,6 @@ TerrainClassExtension::~TerrainClassExtension()
  */
 HRESULT TerrainClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("TerrainClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -95,8 +88,6 @@ HRESULT TerrainClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT TerrainClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TerrainClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -117,8 +108,6 @@ HRESULT TerrainClassExtension::Load(IStream *pStm)
  */
 HRESULT TerrainClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TerrainClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -135,8 +124,6 @@ HRESULT TerrainClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TerrainClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TerrainClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -150,7 +137,6 @@ int TerrainClassExtension::Get_Object_Size() const
  */
 void TerrainClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TerrainClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

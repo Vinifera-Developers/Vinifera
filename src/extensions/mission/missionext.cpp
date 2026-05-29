@@ -20,7 +20,6 @@
 MissionClassExtension::MissionClassExtension(const MissionClass *this_ptr) :
     ObjectClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("MissionClassExtension::MissionClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -32,7 +31,6 @@ MissionClassExtension::MissionClassExtension(const MissionClass *this_ptr) :
 MissionClassExtension::MissionClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("MissionClassExtension::MissionClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -43,7 +41,6 @@ MissionClassExtension::MissionClassExtension(const NoInitClass &noinit) :
  */
 MissionClassExtension::~MissionClassExtension()
 {
-    //EXT_DEBUG_TRACE("MissionClassExtension::~MissionClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -54,8 +51,6 @@ MissionClassExtension::~MissionClassExtension()
  */
 HRESULT MissionClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("MissionClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -72,8 +67,6 @@ HRESULT MissionClassExtension::Load(IStream *pStm)
  */
 HRESULT MissionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("MissionClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -92,7 +85,5 @@ HRESULT MissionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 void MissionClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("MissionClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     ObjectClassExtension::Object_CRC(crc);
 }

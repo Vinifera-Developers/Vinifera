@@ -253,13 +253,13 @@ bool ActionTypeClass::Read_INI(CCINIClass &ini)
 
         tok = std::strtok(buffer, ",");
         actiontype->Mouse = MouseTypeClass::From_Name(tok);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse Mouse for %s!", actiontype->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse Mouse for {}!", actiontype->Name);
 
         tok = std::strtok(nullptr, ",");
         actiontype->ShadowMouse = MouseTypeClass::From_Name(tok);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse ShadowMouse for %s!", actiontype->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse ShadowMouse for {}!", actiontype->Name);
 
-        DEV_DEBUG_INFO("Action: Name: %s Mouse: %s ShadowMouse: %s\n", actiontype->Name.c_str(), MouseTypeClass::Name_From(actiontype->Mouse), MouseTypeClass::Name_From(actiontype->ShadowMouse));
+        DEV_DEBUG_INFO("Action: Name: {} Mouse: {} ShadowMouse: {}\n", actiontype->Name, MouseTypeClass::Name_From(actiontype->Mouse), MouseTypeClass::Name_From(actiontype->ShadowMouse));
     }
 
     return true;

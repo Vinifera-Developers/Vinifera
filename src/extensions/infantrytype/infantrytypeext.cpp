@@ -27,8 +27,6 @@ InfantryTypeClassExtension::InfantryTypeClassExtension(const InfantryTypeClass *
     IsMechanic(false),
     IsOmniHealer(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("InfantryTypeClassExtension::InfantryTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     InfantryTypeExtensions.Add(this);
 }
 
@@ -41,7 +39,6 @@ InfantryTypeClassExtension::InfantryTypeClassExtension(const InfantryTypeClass *
 InfantryTypeClassExtension::InfantryTypeClassExtension(const NoInitClass &noinit) :
     TechnoTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::InfantryTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -52,8 +49,6 @@ InfantryTypeClassExtension::InfantryTypeClassExtension(const NoInitClass &noinit
  */
 InfantryTypeClassExtension::~InfantryTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::~InfantryTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     InfantryTypeExtensions.Delete(this);
 }
 
@@ -65,8 +60,6 @@ InfantryTypeClassExtension::~InfantryTypeClassExtension()
  */
 HRESULT InfantryTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -84,8 +77,6 @@ HRESULT InfantryTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT InfantryTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -104,8 +95,6 @@ HRESULT InfantryTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT InfantryTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -122,8 +111,6 @@ HRESULT InfantryTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int InfantryTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -137,8 +124,6 @@ int InfantryTypeClassExtension::Get_Object_Size() const
  */
 void InfantryTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsMechanic);
     crc(IsOmniHealer);
 }
@@ -151,8 +136,6 @@ void InfantryTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool InfantryTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("InfantryTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
     }

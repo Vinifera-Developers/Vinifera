@@ -9,6 +9,11 @@
 
 #pragma once
 
+#include <format>
+#include <string>
+#include <string_view>
+#include <utility>
+
 
 extern bool Vinifera_DeveloperMode;
 
@@ -22,58 +27,87 @@ enum DebugType {
     DEBUGTYPE_TRACE,
     DEBUGTYPE_DEBUGGER,
     DEBUGTYPE_DEBUGGER_TRACE,
-    DEBUGTYPE_GAME, // Special case for debug strings printed from the original binary.
-    DEBUGTYPE_GAME_LINE // Special case for debug strings printed from the original binary with no carriage return.
+    DEBUGTYPE_GAME,      // Reserved for vanilla logger intercepts in debug_hooks.cpp.
+    DEBUGTYPE_GAME_LINE, // Reserved for vanilla logger intercepts; no trailing newline expected.
 };
 
 
 /**
- *  Custom printing function.
+ *  Core dispatch. Takes an already-formatted message and routes it through
+ *  the console / debugger / log-file pipeline. All other entry points
+ *  ultimately call this.
  */
-void Vinifera_Printf(DebugType type, const char *file, const char *function, int line, const char *fmt, ...);
+void Vinifera_Log_Raw(DebugType type, const char *file, const char *function, int line, std::string_view message);
 
 
 /**
- *  Custom printing function.
+ *  Compile-time-checked formatting entry point. The format string is validated
+ *  by std::format_string<Args...> at compile time.
+ */
+template <class... Args>
+inline void Vinifera_Log(DebugType type, const char *file, const char *function, int line,
+                         std::format_string<Args...> fmt, Args &&... args)
+{
+    std::string formatted = std::format(fmt, std::forward<Args>(args)...);
+    Vinifera_Log_Raw(type, file, function, line, formatted);
+}
+
+
+/**
+ *  Runtime-format-string entry point. Use when the format string is computed
+ *  at runtime (e.g. read from config). std::vformat throws std::format_error
+ *  if the format string is malformed.
+ */
+template <class... Args>
+inline void Vinifera_Log_VFormat(DebugType type, const char *file, const char *function, int line,
+                                 std::string_view fmt, Args &&... args)
+{
+    std::string formatted = std::vformat(fmt, std::make_format_args(args...));
+    Vinifera_Log_Raw(type, file, function, line, formatted);
+}
+
+
+/**
+ *  Standard logging macros. The format string is compile-time validated
+ *  against the argument types by std::format_string<Args...>.
  */
 #ifndef NDEBUG
-#define DEBUG_SAY(x, ...) Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_INFO(x, ...) Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_WARNING(x, ...) Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_ERROR(x, ...) Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_FATAL(x, ...) Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_TRACE(x, ...) Vinifera_Printf(DEBUGTYPE_TRACE, __FILE__, __FUNCTION__, __LINE__, x, ##__VA_ARGS__)
+#define DEBUG_SAY(fmt, ...)     ::Vinifera_Log(DEBUGTYPE_NORMAL,  nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_INFO(fmt, ...)    ::Vinifera_Log(DEBUGTYPE_INFO,    nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_WARNING(fmt, ...) ::Vinifera_Log(DEBUGTYPE_WARNING, nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_ERROR(fmt, ...)   ::Vinifera_Log(DEBUGTYPE_ERROR,   nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_FATAL(fmt, ...)   ::Vinifera_Log(DEBUGTYPE_FATAL,   nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_TRACE(fmt, ...)   ::Vinifera_Log(DEBUGTYPE_TRACE,   __FILE__, __FUNCTION__, __LINE__, fmt __VA_OPT__(,) __VA_ARGS__)
 #else
-#define DEBUG_SAY(x, ...) Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_INFO(x, ...) Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_WARNING(x, ...) Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_ERROR(x, ...) Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_FATAL(x, ...) Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_TRACE(x, ...) ((void)0)
+#define DEBUG_SAY(fmt, ...)     ::Vinifera_Log(DEBUGTYPE_NORMAL,  nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_INFO(fmt, ...)    ::Vinifera_Log(DEBUGTYPE_INFO,    nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_WARNING(fmt, ...) ::Vinifera_Log(DEBUGTYPE_WARNING, nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_ERROR(fmt, ...)   ::Vinifera_Log(DEBUGTYPE_ERROR,   nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_FATAL(fmt, ...)   ::Vinifera_Log(DEBUGTYPE_FATAL,   nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_TRACE(fmt, ...)   ((void)0)
 #endif
 
 
 /**
- *  Special case macros for debug strings printed from the original binary.
+ *  Runtime-format-string variants (std::vformat). Use when the format string
+ *  is not known at compile time. Throws std::format_error on malformed input.
  */
-#ifndef NDEBUG
-#define DEBUG_GAME(x, ...) Vinifera_Printf(DEBUGTYPE_GAME, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_GAME_LINE(x, ...) Vinifera_Printf(DEBUGTYPE_GAME_LINE, __FILE__, __FUNCTION__, __LINE__, x, ##__VA_ARGS__)
-#else
-#define DEBUG_GAME(x, ...) Vinifera_Printf(DEBUGTYPE_GAME, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_GAME_LINE(x, ...) Vinifera_Printf(DEBUGTYPE_GAME_LINE, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#endif
+#define DEBUG_SAY_VFMT(fmt, ...)     ::Vinifera_Log_VFormat(DEBUGTYPE_NORMAL,  nullptr, nullptr, -1, (fmt) __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_INFO_VFMT(fmt, ...)    ::Vinifera_Log_VFormat(DEBUGTYPE_INFO,    nullptr, nullptr, -1, (fmt) __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_WARNING_VFMT(fmt, ...) ::Vinifera_Log_VFormat(DEBUGTYPE_WARNING, nullptr, nullptr, -1, (fmt) __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_ERROR_VFMT(fmt, ...)   ::Vinifera_Log_VFormat(DEBUGTYPE_ERROR,   nullptr, nullptr, -1, (fmt) __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_FATAL_VFMT(fmt, ...)   ::Vinifera_Log_VFormat(DEBUGTYPE_FATAL,   nullptr, nullptr, -1, (fmt) __VA_OPT__(,) __VA_ARGS__)
 
 
 /**
  *  Macros to only output to the debugger (if attached).
  */
 #ifndef NDEBUG
-#define DEBUG_DBG_OUTPUT(x, ...) Vinifera_Printf(DEBUGTYPE_DEBUGGER, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEBUG_DBG_OUTPUT_TRACE(x, ...) Vinifera_Printf(DEBUGTYPE_DEBUGGER_TRACE, __FILE__, __FUNCTION__, __LINE__, x, ##__VA_ARGS__)
+#define DEBUG_DBG_OUTPUT(fmt, ...)       ::Vinifera_Log(DEBUGTYPE_DEBUGGER,       nullptr, nullptr, -1, fmt __VA_OPT__(,) __VA_ARGS__)
+#define DEBUG_DBG_OUTPUT_TRACE(fmt, ...) ::Vinifera_Log(DEBUGTYPE_DEBUGGER_TRACE, __FILE__, __FUNCTION__, __LINE__, fmt __VA_OPT__(,) __VA_ARGS__)
 #else
-#define DEBUG_DBG_OUTPUT(x, ...) ((void)0)
-#define DEBUG_DBG_OUTPUT_TRACE(x, ...) ((void)0)
+#define DEBUG_DBG_OUTPUT(fmt, ...)       ((void)0)
+#define DEBUG_DBG_OUTPUT_TRACE(fmt, ...) ((void)0)
 #endif
 
 
@@ -81,19 +115,19 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
  *  For printing out debug info in developer mode only.
  */
 #ifndef NDEBUG
-#define DEV_DEBUG_SAY(x, ...) Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEV_DEBUG_INFO(x, ...) Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEV_DEBUG_WARNING(x, ...) Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEV_DEBUG_ERROR(x, ...) Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEV_DEBUG_FATAL(x, ...) Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define DEV_DEBUG_TRACE(x, ...) Vinifera_Printf(DEBUGTYPE_TRACE, __FILE__, __FUNCTION__, __LINE__, x, ##__VA_ARGS__)
+#define DEV_DEBUG_SAY     DEBUG_SAY
+#define DEV_DEBUG_INFO    DEBUG_INFO
+#define DEV_DEBUG_WARNING DEBUG_WARNING
+#define DEV_DEBUG_ERROR   DEBUG_ERROR
+#define DEV_DEBUG_FATAL   DEBUG_FATAL
+#define DEV_DEBUG_TRACE   DEBUG_TRACE
 #else
-#define DEV_DEBUG_SAY(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define DEV_DEBUG_INFO(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define DEV_DEBUG_WARNING(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define DEV_DEBUG_ERROR(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define DEV_DEBUG_FATAL(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define DEV_DEBUG_TRACE(x, ...) ((void)0)
+#define DEV_DEBUG_SAY(fmt, ...)     do { if (Vinifera_DeveloperMode) { DEBUG_SAY    (fmt __VA_OPT__(,) __VA_ARGS__); } } while (false)
+#define DEV_DEBUG_INFO(fmt, ...)    do { if (Vinifera_DeveloperMode) { DEBUG_INFO   (fmt __VA_OPT__(,) __VA_ARGS__); } } while (false)
+#define DEV_DEBUG_WARNING(fmt, ...) do { if (Vinifera_DeveloperMode) { DEBUG_WARNING(fmt __VA_OPT__(,) __VA_ARGS__); } } while (false)
+#define DEV_DEBUG_ERROR(fmt, ...)   do { if (Vinifera_DeveloperMode) { DEBUG_ERROR  (fmt __VA_OPT__(,) __VA_ARGS__); } } while (false)
+#define DEV_DEBUG_FATAL(fmt, ...)   do { if (Vinifera_DeveloperMode) { DEBUG_FATAL  (fmt __VA_OPT__(,) __VA_ARGS__); } } while (false)
+#define DEV_DEBUG_TRACE(fmt, ...)   ((void)0)
 #endif
 
 
@@ -106,10 +140,6 @@ void __cdecl Vinifera_Debug_Handler_Shutdown();
  */
 void Vinifera_Output_Debug_String(const char *string);
 
-/**
- *  Helper that re-escapes the % sign so that it can be further passed to sprintf.
- */
-void Vinifera_Escape_Percent_Sign(char *string, size_t buffer_length);
 
 extern char CrashdumpFilename[PATH_MAX];
 

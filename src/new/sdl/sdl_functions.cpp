@@ -52,7 +52,7 @@ namespace
         const char* requested_driver_name = OptionsClassExtension::Get_Renderer_Driver_SDL_Name(OptionsExtension->RendererDriver);
         const char* requested_driver_config_name = OptionsClassExtension::Get_Renderer_Driver_Config_Name(OptionsExtension->RendererDriver);
 
-        DEBUG_INFO("Requested renderer driver: %s\n", requested_driver_config_name);
+        DEBUG_INFO("Requested renderer driver: {}\n", requested_driver_config_name);
 
         if (requested_driver_name != nullptr) {
             SDL_SetHint(SDL_HINT_RENDER_DRIVER, requested_driver_name);
@@ -166,37 +166,37 @@ bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, 
     if (hidden_first && hidden_rect.Is_Valid()) {
         HiddenSurface = new SDLSurface(hidden_rect.Width, hidden_rect.Height);
         HiddenSurface->Fill(0);
-        DEBUG_INFO("HiddenSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
+        DEBUG_INFO("HiddenSurface ({}x{})\n", hidden_rect.Width, hidden_rect.Height);
     }
 
     if (composite_rect.Is_Valid()) {
         CompositeSurface = new SDLSurface(composite_rect.Width, composite_rect.Height);
         CompositeSurface->Fill(0);
-        DEBUG_INFO("CompositeSurface (%dx%d)\n", composite_rect.Width, composite_rect.Height);
+        DEBUG_INFO("CompositeSurface ({}x{})\n", composite_rect.Width, composite_rect.Height);
     }
 
     if (tile_rect.Is_Valid()) {
         TileSurface = new SDLSurface(tile_rect.Width, tile_rect.Height);
         TileSurface->Fill(0);
-        DEBUG_INFO("TileSurface (%dx%d)\n", tile_rect.Width, tile_rect.Height);
+        DEBUG_INFO("TileSurface ({}x{})\n", tile_rect.Width, tile_rect.Height);
     }
 
     if (sidebar_rect.Is_Valid()) {
         SidebarSurface = new SDLSurface(sidebar_rect.Width, sidebar_rect.Height);
         SidebarSurface->Fill(0);
-        DEBUG_INFO("SidebarSurface (%dx%d)\n", sidebar_rect.Width, sidebar_rect.Height);
+        DEBUG_INFO("SidebarSurface ({}x{})\n", sidebar_rect.Width, sidebar_rect.Height);
     }
 
     if (!hidden_first && hidden_rect.Is_Valid()) {
         HiddenSurface = new SDLSurface(hidden_rect.Width, hidden_rect.Height);
         HiddenSurface->Fill(0);
-        DEBUG_INFO("HiddenSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
+        DEBUG_INFO("HiddenSurface ({}x{})\n", hidden_rect.Width, hidden_rect.Height);
     }
 
     if (hidden_rect.Is_Valid()) {
         AlternateSurface = new SDLSurface(hidden_rect.Width, hidden_rect.Height);
         AlternateSurface->Fill(0);
-        DEBUG_INFO("AlternateSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
+        DEBUG_INFO("AlternateSurface ({}x{})\n", hidden_rect.Width, hidden_rect.Height);
     }
 
     return true;
@@ -225,11 +225,11 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
      */
     SDL_PixelFormat pixel_format = SDL_GetWindowPixelFormat(SDLWindow);
     if (pixel_format == SDL_PIXELFORMAT_UNKNOWN || SDL_BITSPERPIXEL(pixel_format) < 16) {
-        DEBUG_ERROR("SDL3 window pixel format unsupported: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
+        DEBUG_ERROR("SDL3 window pixel format unsupported: {} ({} bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
         return false;
     }
 
-    DEBUG_INFO("Pixel format: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
+    DEBUG_INFO("Pixel format: {} ({} bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
 
     /**
      *  Apply the renderer backend selection before creating the renderer.
@@ -241,13 +241,13 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
      */
     SDLWindowRenderer = SDL_CreateRenderer(SDLWindow, nullptr);
     if (SDLWindowRenderer == nullptr) {
-        DEBUG_ERROR("SDLWindowRenderer could not be created! SDL Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDLWindowRenderer could not be created! SDL Error: {}\n", SDL_GetError());
         return false;
     }
     DEBUG_INFO("SDLWindowRenderer created.\n");
 
     const char* driver_name = SDL_GetRendererName(SDLWindowRenderer);
-    DEBUG_INFO("Renderer driver: %s\n", driver_name != nullptr ? driver_name : "<unknown>");
+    DEBUG_INFO("Renderer driver: {}\n", driver_name != nullptr ? driver_name : "<unknown>");
 
     /**
      *  Toggle VSync.
@@ -266,7 +266,7 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
      */
     SDLWindowTexture = SDL_CreateTexture(SDLWindowRenderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, width, height);
     if (SDLWindowTexture == nullptr) {
-        DEBUG_ERROR("SDLWindowTexture could not be created! SDL_Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDLWindowTexture could not be created! SDL_Error: {}\n", SDL_GetError());
         return false;
     }
     DEBUG_INFO("SDLWindowTexture created.\n");
@@ -554,7 +554,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
 bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        DEBUG_ERROR("SDL_Init failed! SDL_Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDL_Init failed! SDL_Error: {}\n", SDL_GetError());
         return false;
     }
 
@@ -591,7 +591,7 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
      */
     SDLWindow = SDL_CreateWindowWithProperties(props);
     if (SDLWindow == nullptr) {
-        DEBUG_ERROR("SDLWindow could not be created! SDL_Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDLWindow could not be created! SDL_Error: {}\n", SDL_GetError());
         return false;
     }
     DEBUG_INFO("SDLWindow created.\n");
@@ -600,7 +600,7 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
      *  Record the size that the window has been created at.
      */
     SDL_GetWindowSize(SDLWindow, &SDLWindowWidth, &SDLWindowHeight);
-    DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+    DEBUG_INFO("SDLWindow size: {} X {}.\n", SDLWindowWidth, SDLWindowHeight);
 
     /**
      *  Save the window handle for the game to use.
@@ -808,7 +808,7 @@ bool SDL_Change_Display_Mode(int width, int height)
 
         SDLWindowWidth = window_width;
         SDLWindowHeight = window_height;
-        DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+        DEBUG_INFO("SDLWindow size: {} X {}.\n", SDLWindowWidth, SDLWindowHeight);
     }
 
     /**
@@ -822,7 +822,7 @@ bool SDL_Change_Display_Mode(int width, int height)
             SDL_SetWindowSize(SDLWindow, old_window_width, old_window_height);
             SDLWindowWidth = old_window_width;
             SDLWindowHeight = old_window_height;
-            DEBUG_INFO("SDLWindow size restored: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+            DEBUG_INFO("SDLWindow size restored: {} X {}.\n", SDLWindowWidth, SDLWindowHeight);
         }
 
         if (old_visible_rect.Is_Valid() && old_video_width > 0 && old_video_height > 0) {
@@ -847,7 +847,7 @@ bool SDL_Change_Display_Mode(int width, int height)
      *  Set the new surface resolution and reallocate the game surfaces.
      */
     SDL_Rebuild_Display_State(Rect(0, 0, width, height));
-    DEBUG_INFO("VisibleRect: %dx%d\n", width, height);
+    DEBUG_INFO("VisibleRect: {}x{}\n", width, height);
 
     DEBUG_INFO("Mode change complete.\n");
 

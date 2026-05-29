@@ -100,12 +100,12 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IronCurtainSound(VOC_NONE),
     ComesNearWaypointDistance(CELL_LEPTON_W * 5),
     IsAIDetectDisguise(true),
-    IsAIOneHarvesterInSingleplayer(true),    
+    IsAIOneHarvesterInSingleplayer(true),
     PausedRepairsFrame(6),
-    BridgeArmor(ARMOR_NULL)
+    EscortRange(-1),
+    AbandonTargetEscortRange(-1),
+	BridgeArmor(ARMOR_NULL)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
      *  need change the default engineer capture values. These values are from
@@ -156,7 +156,6 @@ RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     IronCurtainPulseTable(noinit),
     AIHarvestersPerRefinery(noinit)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -167,7 +166,6 @@ RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
  */
 RulesClassExtension::~RulesClassExtension()
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::~RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -178,8 +176,6 @@ RulesClassExtension::~RulesClassExtension()
  */
 HRESULT RulesClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     MaxPips.Clear();
     IronCurtains.Clear();
     IronCurtainPulseTable.Clear();
@@ -210,8 +206,6 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
  */
 HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -233,8 +227,6 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int RulesClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -248,8 +240,6 @@ int RulesClassExtension::Get_Object_Size() const
  */
 void RulesClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
-
     crc(IsMPAutoDeployMCV);
     crc(IsMPPrePlacedConYards);
     crc(IsBuildOffAlly);
@@ -269,6 +259,8 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(AIHarvestersPerRefinery.Count());
     crc(IsAIOneHarvesterInSingleplayer);
     crc(PausedRepairsFrame);
+    crc(EscortRange);
+    crc(AbandonTargetEscortRange);
     crc(BridgeArmor);
 }
 
@@ -280,8 +272,6 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
  */
 void RulesClassExtension::Process(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Process - 0x%08X\n", (uintptr_t)(This()));
-
     /**
      *  This function replaces the original rules process, so we need to duplicate
      *  the its behaviour here first.
@@ -433,8 +423,6 @@ void RulesClassExtension::Process(CCINIClass &ini)
  */
 void RulesClassExtension::Initialize(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Initialize - 0x%08X\n", (uintptr_t)(This()));
-
     Verses::Clear();
     ArmorTypeClass::One_Time();
     PrerequisiteGroupClass::One_Time();
@@ -448,199 +436,197 @@ void RulesClassExtension::Initialize(CCINIClass &ini)
  */
 bool RulesClassExtension::Objects(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Objects - 0x%08X\n", (uintptr_t)(This()));
-
     /**
      *  Fetch the game object and extension values from the rules file.
      */
 
-    DEBUG_INFO("Rules: Processing HouseTypes (Count: %d)...\n", HouseTypes.Count());
+    DEBUG_INFO("Rules: Processing HouseTypes (Count: {})...\n", HouseTypes.Count());
     for (int index = 0; index < HouseTypes.Count(); ++index) {
         HouseTypes[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing HouseTypeExtensions (Count: %d)...\n", HouseTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing HouseTypeExtensions (Count: {})...\n", HouseTypeExtensions.Count());
     for (int index = 0; index < HouseTypeExtensions.Count(); ++index) {
         HouseTypeExtensions[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing SuperWeaponTypes (Count: %d)...\n", SuperWeaponTypes.Count());
+    DEBUG_INFO("Rules: Processing SuperWeaponTypes (Count: {})...\n", SuperWeaponTypes.Count());
     for (int index = 0; index < SuperWeaponTypes.Count(); ++index) {
         SuperWeaponTypes[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing SuperWeaponTypeExtensions (Count: %d)...\n", SuperWeaponTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing SuperWeaponTypeExtensions (Count: {})...\n", SuperWeaponTypeExtensions.Count());
     for (int index = 0; index < SuperWeaponTypeExtensions.Count(); ++index) {
         SuperWeaponTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing AnimTypes (Count: %d)...\n", AnimTypes.Count());
+    DEBUG_INFO("Rules: Processing AnimTypes (Count: {})...\n", AnimTypes.Count());
     for (int index = 0; index < AnimTypes.Count(); ++index) {
         AnimTypes[index]->Read_INI(ArtINI); // Animations are loaded explicitly from ArtINI.
     }
     
-    DEBUG_INFO("Rules: Processing AnimTypeExtensions (Count: %d)...\n", AnimTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing AnimTypeExtensions (Count: {})...\n", AnimTypeExtensions.Count());
     for (int index = 0; index < AnimTypeExtensions.Count(); ++index) {
         AnimTypeExtensions[index]->Read_INI(ArtINI); // Animations are loaded explicitly from ArtINI.
     }
     
-    DEBUG_INFO("Rules: Processing BuildingTypes (Count: %d)...\n", BuildingTypes.Count());
+    DEBUG_INFO("Rules: Processing BuildingTypes (Count: {})...\n", BuildingTypes.Count());
     for (int index = 0; index < BuildingTypes.Count(); ++index) {
         BuildingTypes[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing BuildingTypeExtensions (Count: %d)...\n", BuildingTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing BuildingTypeExtensions (Count: {})...\n", BuildingTypeExtensions.Count());
     for (int index = 0; index < BuildingTypeExtensions.Count(); ++index) {
         BuildingTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing AircraftTypes (Count: %d)...\n", AircraftTypes.Count());
+    DEBUG_INFO("Rules: Processing AircraftTypes (Count: {})...\n", AircraftTypes.Count());
     for (int index = 0; index < AircraftTypes.Count(); ++index) {
         AircraftTypes[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing AircraftTypeExtensions (Count: %d)...\n", AircraftTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing AircraftTypeExtensions (Count: {})...\n", AircraftTypeExtensions.Count());
     for (int index = 0; index < AircraftTypeExtensions.Count(); ++index) {
         AircraftTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing UnitTypes (Count: %d)...\n", UnitTypes.Count());
+    DEBUG_INFO("Rules: Processing UnitTypes (Count: {})...\n", UnitTypes.Count());
     for (int index = 0; index < UnitTypes.Count(); ++index) {
         UnitTypes[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing UnitTypeExtensions (Count: %d)...\n", UnitTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing UnitTypeExtensions (Count: {})...\n", UnitTypeExtensions.Count());
     for (int index = 0; index < UnitTypeExtensions.Count(); ++index) {
         UnitTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing InfantryTypes (Count: %d)...\n", InfantryTypes.Count());
+    DEBUG_INFO("Rules: Processing InfantryTypes (Count: {})...\n", InfantryTypes.Count());
     for (int index = 0; index < InfantryTypes.Count(); ++index) {
         InfantryTypes[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing InfantryTypeExtensions (Count: %d)...\n", InfantryTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing InfantryTypeExtensions (Count: {})...\n", InfantryTypeExtensions.Count());
     for (int index = 0; index < InfantryTypeExtensions.Count(); ++index) {
         InfantryTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing WeaponTypes (Count: %d)...\n", ::Weapons.Count());
+    DEBUG_INFO("Rules: Processing WeaponTypes (Count: {})...\n", ::Weapons.Count());
     for (int index = 0; index < ::Weapons.Count(); ++index) {
         ::Weapons[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing WeaponTypeExtensions (Count: %d)...\n", WeaponTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing WeaponTypeExtensions (Count: {})...\n", WeaponTypeExtensions.Count());
     for (int index = 0; index < WeaponTypeExtensions.Count(); ++index) {
         WeaponTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing BulletTypes (Count: %d)...\n", BulletTypes.Count());
+    DEBUG_INFO("Rules: Processing BulletTypes (Count: {})...\n", BulletTypes.Count());
     for (int index = 0; index < BulletTypes.Count(); ++index) {
         BulletTypes[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing BulletTypeExtensions (Count: %d)...\n", BulletTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing BulletTypeExtensions (Count: {})...\n", BulletTypeExtensions.Count());
     for (int index = 0; index < BulletTypeExtensions.Count(); ++index) {
         BulletTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing WarheadTypes (Count: %d)...\n", Warheads.Count());
+    DEBUG_INFO("Rules: Processing WarheadTypes (Count: {})...\n", Warheads.Count());
     for (int index = 0; index < Warheads.Count(); ++index) {
         Warheads[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing WarheadTypeExtensions (Count: %d)...\n", WarheadTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing WarheadTypeExtensions (Count: {})...\n", WarheadTypeExtensions.Count());
     for (int index = 0; index < WarheadTypeExtensions.Count(); ++index) {
         WarheadTypeExtensions[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Calling WeaponTypeClass::Set_Speed (Count: %d)...\n", ::Weapons.Count());
+    DEBUG_INFO("Rules: Calling WeaponTypeClass::Set_Speed (Count: {})...\n", ::Weapons.Count());
     for (int index = 0; index < ::Weapons.Count(); ++index) {
         ::Weapons[index]->Set_Speed();
     }
 
-    DEBUG_INFO("Rules: Calling BuildingTypeClass::Set_Base_Defense_Values (Count: %d)...\n", BuildingTypes.Count());
+    DEBUG_INFO("Rules: Calling BuildingTypeClass::Set_Base_Defense_Values (Count: {})...\n", BuildingTypes.Count());
     for (int index = 0; index < BuildingTypes.Count(); ++index) {
         BuildingTypes[index]->Set_Base_Defense_Values();
     }
     
-    DEBUG_INFO("Rules: Processing TerrainTypes (Count: %d)...\n", TerrainTypes.Count());
+    DEBUG_INFO("Rules: Processing TerrainTypes (Count: {})...\n", TerrainTypes.Count());
     for (int index = 0; index < TerrainTypes.Count(); ++index) {
         TerrainTypes[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing TerrainTypeExtensions (Count: %d)...\n", TerrainTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing TerrainTypeExtensions (Count: {})...\n", TerrainTypeExtensions.Count());
     for (int index = 0; index < TerrainTypeExtensions.Count(); ++index) {
         TerrainTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing SmudgeTypes (Count: %d)...\n", SmudgeTypes.Count());
+    DEBUG_INFO("Rules: Processing SmudgeTypes (Count: {})...\n", SmudgeTypes.Count());
     for (int index = 0; index < SmudgeTypes.Count(); ++index) {
         SmudgeTypes[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing SmudgeTypeExtensions (Count: %d)...\n", SmudgeTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing SmudgeTypeExtensions (Count: {})...\n", SmudgeTypeExtensions.Count());
     for (int index = 0; index < SmudgeTypeExtensions.Count(); ++index) {
         SmudgeTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing OverlayTypes (Count: %d)...\n", OverlayTypes.Count());
+    DEBUG_INFO("Rules: Processing OverlayTypes (Count: {})...\n", OverlayTypes.Count());
     for (int index = 0; index < OverlayTypes.Count(); ++index) {
         OverlayTypes[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing OverlayTypeExtensions (Count: %d)...\n", OverlayTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing OverlayTypeExtensions (Count: {})...\n", OverlayTypeExtensions.Count());
     for (int index = 0; index < OverlayTypeExtensions.Count(); ++index) {
         OverlayTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing ParticleTypes (Count: %d)...\n", ParticleTypes.Count());
+    DEBUG_INFO("Rules: Processing ParticleTypes (Count: {})...\n", ParticleTypes.Count());
     for (int index = 0; index < ParticleTypes.Count(); ++index) {
         ParticleTypes[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing ParticleTypeExtensions (Count: %d)...\n", ParticleTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing ParticleTypeExtensions (Count: {})...\n", ParticleTypeExtensions.Count());
     for (int index = 0; index < ParticleTypeExtensions.Count(); ++index) {
         ParticleTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing ParticleSystemTypes (Count: %d)...\n", ParticleSystemTypes.Count());
+    DEBUG_INFO("Rules: Processing ParticleSystemTypes (Count: {})...\n", ParticleSystemTypes.Count());
     for (int index = 0; index < ParticleSystemTypes.Count(); ++index) {
         ParticleSystemTypes[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing ParticleSystemTypeExtensions (Count: %d)...\n", ParticleSystemTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing ParticleSystemTypeExtensions (Count: {})...\n", ParticleSystemTypeExtensions.Count());
     for (int index = 0; index < ParticleSystemTypeExtensions.Count(); ++index) {
         ParticleSystemTypeExtensions[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing Tiberiums (Count: %d)...\n", ::Tiberiums.Count());
+    DEBUG_INFO("Rules: Processing Tiberiums (Count: {})...\n", ::Tiberiums.Count());
     for (int index = 0; index < ::Tiberiums.Count(); ++index) {
         ::Tiberiums[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing TiberiumExtensions (Count: %d)...\n", TiberiumExtensions.Count());
+    DEBUG_INFO("Rules: Processing TiberiumExtensions (Count: {})...\n", TiberiumExtensions.Count());
     for (int index = 0; index < TiberiumExtensions.Count(); ++index) {
         TiberiumExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing VoxelAnimTypes (Count: %d)...\n", VoxelAnimTypes.Count());
+    DEBUG_INFO("Rules: Processing VoxelAnimTypes (Count: {})...\n", VoxelAnimTypes.Count());
     for (int index = 0; index < VoxelAnimTypes.Count(); ++index) {
         VoxelAnimTypes[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing VoxelAnimTypeExtensions (Count: %d)...\n", VoxelAnimTypeExtensions.Count());
+    DEBUG_INFO("Rules: Processing VoxelAnimTypeExtensions (Count: {})...\n", VoxelAnimTypeExtensions.Count());
     for (int index = 0; index < VoxelAnimTypeExtensions.Count(); ++index) {
         VoxelAnimTypeExtensions[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing MissionControlClasses (Count: %d)...\n", MISSION_COUNT);
+    DEBUG_INFO("Rules: Processing MissionControlClasses (Count: {})...\n", (int)MISSION_COUNT);
     for (int mission = 0; mission < MISSION_COUNT; mission++) {
         MissionControl[mission].Mission = static_cast<MissionType>(mission);
         MissionControl[mission].Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing SideExtensions (Count: %d)...\n", SideExtensions.Count());
+    DEBUG_INFO("Rules: Processing SideExtensions (Count: {})...\n", SideExtensions.Count());
     for (int index = 0; index < SideExtensions.Count(); ++index) {
         SideExtensions[index]->Read_INI(ini);
     }
@@ -649,12 +635,12 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
      *  Fetch new Vinifera object values from the rules file.
      */
 
-    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
+    DEBUG_INFO("Rules: Processing ArmorTypes (Count: {})...\n", ArmorTypes.Count());
     for (int index = 0; index < ArmorTypes.Count(); ++index) {
         ArmorTypes[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Processing RocketTypes (Count: %d)...\n", RocketTypes.Count());
+    DEBUG_INFO("Rules: Processing RocketTypes (Count: {})...\n", RocketTypes.Count());
     for (int index = 0; index < RocketTypes.Count(); ++index) {
         RocketTypes[index]->Read_INI(ini);
     }
@@ -662,7 +648,7 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     DEBUG_INFO("Rules: Processing global PrerequisiteGroups...\n");
     PrerequisiteGroupClass::Read_Global_INI(ini);
 
-    DEBUG_INFO("Rules: Processing PrerequisiteGroups (Count: %d)...\n", ::PrerequisiteGroups.Count());
+    DEBUG_INFO("Rules: Processing PrerequisiteGroups (Count: {})...\n", ::PrerequisiteGroups.Count());
     for (int index = 0; index < ::PrerequisiteGroups.Count(); ++index) {
         ::PrerequisiteGroups[index]->Read_INI(ini);
     }
@@ -678,8 +664,6 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
  */
 bool RulesClassExtension::General(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::General - 0x%08X\n", (uintptr_t)(This()));
-
     static char const * const GENERAL = "General";
 
     if (!ini.Is_Present(GENERAL)) {
@@ -708,6 +692,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
     SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
+    EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
+    AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
@@ -740,8 +726,6 @@ bool RulesClassExtension::General(CCINIClass &ini)
  */
 bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::AudioVisual - 0x%08X\n", (uintptr_t)(This()));
-
     static char const * const AUDIOVISUAL = "AudioVisual";
 
     if (!ini.Is_Present(AUDIOVISUAL)) {
@@ -783,8 +767,6 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
  */
 bool RulesClassExtension::CombatDamage(CCINIClass & ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::CombatDamage - 0x%08X\n", (uintptr_t)(This()));
-
     static char const * const COMBATDAMAGE = "CombatDamage";
 
     if (!ini.Is_Present(COMBATDAMAGE)) {
@@ -806,8 +788,6 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
  */
 bool RulesClassExtension::AI(CCINIClass& ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::AI - 0x%08X\n", (uintptr_t)(This()));
-
     static char const* const AI = "AI";
 
     if (!ini.Is_Present(AI)) {
@@ -831,8 +811,6 @@ bool RulesClassExtension::AI(CCINIClass& ini)
  */
 bool RulesClassExtension::MPlayer(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::MPlayer - 0x%08X\n", (uintptr_t)(This()));
-
     static char const * const MPLAYER = "MultiplayerDefaults";
 
     if (!ini.Is_Present(MPLAYER)) {
@@ -854,8 +832,6 @@ bool RulesClassExtension::MPlayer(CCINIClass &ini)
  */
 bool RulesClassExtension::Weapons(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Weapons - 0x%08X\n", (uintptr_t)(This()));
-
     static const char * const WEAPONS = "Weapons";
 
     char buf[128];
@@ -875,9 +851,9 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
              */
             weapontype = WeaponTypeClass::Find_Or_Make(buf);
             if (weapontype) {
-                DEV_DEBUG_INFO("Rules: Found WeaponType \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Rules: Found WeaponType \"{}\".\n", buf);
             } else {
-                DEV_DEBUG_WARNING("Rules: Error processing WeaponType \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Rules: Error processing WeaponType \"{}\"!\n", buf);
             }
 
         }
@@ -895,8 +871,6 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
  */
 bool RulesClassExtension::Armors(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Armors - 0x%08X\n", (uintptr_t)(This()));
-
     static const char *const ARMORTYPES = "ArmorTypes";
 
     char buf[128];
@@ -916,9 +890,9 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
              */
             armortype = ArmorTypeClass::Find_Or_Make(buf);
             if (armortype) {
-                DEV_DEBUG_INFO("Rules: Found ArmorType \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Rules: Found ArmorType \"{}\".\n", buf);
             } else {
-                DEV_DEBUG_WARNING("Rules: Error processing ArmorType \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Rules: Error processing ArmorType \"{}\"!\n", buf);
             }
         }
     }
@@ -934,8 +908,6 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
  */
 bool RulesClassExtension::Rockets(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Rockets - 0x%08X\n", (uintptr_t)(This()));
-
     static const char *const ROCKETTYPES = "RocketTypes";
 
     char buf[128];
@@ -955,9 +927,9 @@ bool RulesClassExtension::Rockets(CCINIClass &ini)
              */
             rockettype = RocketTypeClass::Find_Or_Make(buf);
             if (rockettype) {
-                DEV_DEBUG_INFO("Rules: Found RocketType \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Rules: Found RocketType \"{}\".\n", buf);
             } else {
-                DEV_DEBUG_WARNING("Rules: Error processing RocketType \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Rules: Error processing RocketType \"{}\"!\n", buf);
             }
         }
     }
@@ -974,8 +946,6 @@ bool RulesClassExtension::Rockets(CCINIClass &ini)
  */
 bool RulesClassExtension::Tiberiums(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Tiberiums - 0x%08X\n", (uintptr_t)(This()));
-
     static const char * const TIBERIUMS = "Tiberiums";
 
     char buf[128];
@@ -995,9 +965,9 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
              */
             tiberium = TiberiumClass::Find_Or_Make(buf);
             if (tiberium) {
-                DEV_DEBUG_INFO("Rules: Found Tiberium \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Rules: Found Tiberium \"{}\".\n", buf);
             } else {
-                DEV_DEBUG_WARNING("Rules: Error processing Tiberium \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Rules: Error processing Tiberium \"{}\"!\n", buf);
             }
 
         }
@@ -1015,8 +985,6 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
  */
 bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Armors - 0x%08X\n", (uintptr_t)(This()));
-
     static const char* const PREREQUISITE_GROUPS = "PrerequisiteGroups";
 
     char buf[128];
@@ -1036,9 +1004,9 @@ bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
              */
             group = PrerequisiteGroupClass::Find_Or_Make(entry);
             if (group) {
-                DEV_DEBUG_INFO("Rules: Found PrerequisiteGroup \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Rules: Found PrerequisiteGroup \"{}\".\n", buf);
             } else {
-                DEV_DEBUG_WARNING("Rules: Error processing PrerequisiteGroup \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Rules: Error processing PrerequisiteGroup \"{}\"!\n", buf);
             }
         }
     }
@@ -1085,11 +1053,11 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
      *  Fetch the unique crc values for both rule databases.
      */
     int rule_crc = RuleINI->Get_Unique_ID();
-    DEV_DEBUG_INFO("Rules: RuleINI CRC = %lX\n", rule_crc);
+    DEV_DEBUG_INFO("Rules: RuleINI CRC = {:X}\n", rule_crc);
 
     int fsrule_crc = FSRuleINI.Get_Unique_ID();
     if (Addon_Installed(ADDON_FIRESTORM)) {
-        DEV_DEBUG_INFO("Rules: FSRuleINI CRC = %lX\n", fsrule_crc);
+        DEV_DEBUG_INFO("Rules: FSRuleINI CRC = {:X}\n", fsrule_crc);
     }
 
     /**
@@ -1134,12 +1102,12 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
 
         if (This()->EngineerCaptureLevel == 1.0f && This()->EngineerDamage == 0.0f) {
 
-            DEBUG_WARNING("Rules: EngineerCaptureLevel is '%.2f', changing to '%.2f'!\n", This()->EngineerDamage, CorrectEngineerCaptureLevel);
-            DEBUG_WARNING("Rules: Please consider changing EngineerCaptureLevel to %.2f!\n", CorrectEngineerCaptureLevel);
+            DEBUG_WARNING("Rules: EngineerCaptureLevel is '{:.2f}', changing to '{:.2f}'!\n", This()->EngineerDamage, CorrectEngineerCaptureLevel);
+            DEBUG_WARNING("Rules: Please consider changing EngineerCaptureLevel to {:.2f}!\n", CorrectEngineerCaptureLevel);
             This()->EngineerCaptureLevel = CorrectEngineerCaptureLevel;
 
-            DEBUG_WARNING("Rules: EngineerDamage is '%.2f', changing to '%.2f'!\n", This()->EngineerDamage, CorrectEngineerDamage);
-            DEBUG_WARNING("Rules: Please consider changing EngineerDamage to %.2f!\n", CorrectEngineerDamage);
+            DEBUG_WARNING("Rules: EngineerDamage is '{:.2f}', changing to '{:.2f}'!\n", This()->EngineerDamage, CorrectEngineerDamage);
+            DEBUG_WARNING("Rules: Please consider changing EngineerDamage to {:.2f}!\n", CorrectEngineerDamage);
             This()->EngineerDamage = CorrectEngineerDamage;
 
         }
@@ -1163,8 +1131,8 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
          *  we need to use a math utility function to do a "essentually equal" comparison.
          */
         if (WWMath::EssentiallyEqual(This()->WorstLowPowerBuildRateCoefficient, 0.3)) {
-            DEBUG_WARNING("Rules: WorstLowPowerBuildRateCoefficient is '%.2f', changing to '%.2f'!\n", This()->WorstLowPowerBuildRateCoefficient, CorrectWorstLowPowerBuildRateCoefficient);
-            DEBUG_WARNING("Rules: Please consider changing WorstLowPowerBuildRateCoefficient to %.2f!\n", CorrectWorstLowPowerBuildRateCoefficient);
+            DEBUG_WARNING("Rules: WorstLowPowerBuildRateCoefficient is '{:.2f}', changing to '{:.2f}'!\n", This()->WorstLowPowerBuildRateCoefficient, CorrectWorstLowPowerBuildRateCoefficient);
+            DEBUG_WARNING("Rules: Please consider changing WorstLowPowerBuildRateCoefficient to {:.2f}!\n", CorrectWorstLowPowerBuildRateCoefficient);
             This()->WorstLowPowerBuildRateCoefficient = CorrectWorstLowPowerBuildRateCoefficient;
         }
     }
@@ -1201,7 +1169,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
                 && Sides[housetype->Side]->IniName == "GDI"
                 && Sides[SIDE_NOD]->IniName == "Nod") {
 
-                DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Side=GDI\", changing Side to \"Nod\"!\n",
+                DEBUG_WARNING("Rules: House \"{}\" ({}) has \"Side=GDI\", changing Side to \"Nod\"!\n",
                     housetype->Name(), housetype->Fetch_Heap_ID());
 
                 /**
@@ -1209,7 +1177,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
                  */
                 housetype->Side = SIDE_NOD;
 
-                DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
+                DEBUG_WARNING("Rules: Please consider changing House \"{}\" to have \"Side=Nod\"!\n",
                     housetype->Name());
             }
 
@@ -1227,7 +1195,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
                 && housetype->Fetch_Heap_ID() == HOUSE_NOD
                 && housetype->Prefix == 'B') {
 
-                DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Prefix=B\", changing Prefix to \"N\"!\n",
+                DEBUG_WARNING("Rules: House \"{}\" ({}) has \"Prefix=B\", changing Prefix to \"N\"!\n",
                     housetype->Name(), housetype->Fetch_Heap_ID());
 
                 /**
@@ -1235,7 +1203,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
                  */
                 housetype->Prefix = 'N';
 
-                DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
+                DEBUG_WARNING("Rules: Please consider changing House \"{}\" to have \"Side=Nod\"!\n",
                     housetype->Name());
             }
 

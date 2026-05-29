@@ -25,7 +25,6 @@
 AbstractClassExtension::AbstractClassExtension(const AbstractClass *this_ptr) :
     ThisPtr(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AbstractClassExtension::AbstractClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
     //ASSERT(ThisPtr != nullptr);      // NULL ThisPtr is valid when performing a Load state operation.
 }
 
@@ -37,7 +36,6 @@ AbstractClassExtension::AbstractClassExtension(const AbstractClass *this_ptr) :
  */
 AbstractClassExtension::AbstractClassExtension(const NoInitClass &noinit)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::AbstractClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -48,8 +46,6 @@ AbstractClassExtension::AbstractClassExtension(const NoInitClass &noinit)
  */
 AbstractClassExtension::~AbstractClassExtension()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::~AbstractClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     ThisPtr = nullptr;
 }
 
@@ -101,8 +97,6 @@ LONG AbstractClassExtension::QueryInterface(REFIID riid, LPVOID *ppv)
  */
 ULONG AbstractClassExtension::AddRef()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::AddRef - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     return 1;
 }
 
@@ -114,8 +108,6 @@ ULONG AbstractClassExtension::AddRef()
  */
 ULONG AbstractClassExtension::Release()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::Release - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     return 1;
 }
 
@@ -127,8 +119,6 @@ ULONG AbstractClassExtension::Release()
  */
 HRESULT AbstractClassExtension::IsDirty()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::IsDirty - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     return S_OK;
 }
 
@@ -141,8 +131,6 @@ HRESULT AbstractClassExtension::IsDirty()
  */
 HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::Internal_Load - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -184,8 +172,6 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
  */
 HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::Internal_Save - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -198,7 +184,7 @@ HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
     LONG id;
     VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(this, id, this_name.c_str());
 
-    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
 
     HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
@@ -224,8 +210,6 @@ HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
  */
 LONG AbstractClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::GetSizeMax - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     if (!pcbSize) {
         return E_POINTER;
     }

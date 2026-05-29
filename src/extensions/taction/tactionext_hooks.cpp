@@ -58,7 +58,7 @@ bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass*
     bool success = true;
 
     if (Vinifera_DeveloperMode) {
-        DEBUG_INFO("Executing TAction %d %s. Trigger: \"%s\", Frame: %d\n", Action, TActionClassExtension::Action_Name(Action), trigger->Class->GivenName.c_str(), Frame);
+        DEBUG_INFO("Executing TAction {} {}. Trigger: \"{}\", Frame: {}\n", (int)Action, TActionClassExtension::Action_Name(Action), trigger->Class->GivenName, Frame);
     }
 
     /**

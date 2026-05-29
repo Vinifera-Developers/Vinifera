@@ -133,7 +133,7 @@ void _IPX_Call_Back()
                 case NET_PROGRESS_REPORT: {
                     for (int i = 0; i < Session.Players.Count(); i++) {
                         if (Session.Players[i]->Address == Session.GAddress) {
-                            DEBUG_INFO("Received progress message - %d%% from %s\n", Session.GPacket.Progress.Percent, Session.Players[i]->Name);
+                            DEBUG_INFO("Received progress message - {}% from {}\n", Session.GPacket.Progress.Percent, Session.Players[i]->Name);
                             Progress.Set_Progress_Percent(i, Session.GPacket.Progress.Percent);
                             break;
                         }

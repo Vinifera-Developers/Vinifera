@@ -26,8 +26,6 @@
 SmudgeClassExtension::SmudgeClassExtension(const SmudgeClass *this_ptr) :
     ObjectClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SmudgeClassExtension::SmudgeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SmudgeExtensions.Add(this);
 }
 
@@ -40,7 +38,6 @@ SmudgeClassExtension::SmudgeClassExtension(const SmudgeClass *this_ptr) :
 SmudgeClassExtension::SmudgeClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::SmudgeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -51,8 +48,6 @@ SmudgeClassExtension::SmudgeClassExtension(const NoInitClass &noinit) :
  */
 SmudgeClassExtension::~SmudgeClassExtension()
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::~SmudgeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SmudgeExtensions.Delete(this);
 }
 
@@ -64,8 +59,6 @@ SmudgeClassExtension::~SmudgeClassExtension()
  */
 HRESULT SmudgeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -83,8 +76,6 @@ HRESULT SmudgeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SmudgeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -103,8 +94,6 @@ HRESULT SmudgeClassExtension::Load(IStream *pStm)
  */
 HRESULT SmudgeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -121,8 +110,6 @@ HRESULT SmudgeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SmudgeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -136,5 +123,4 @@ int SmudgeClassExtension::Get_Object_Size() const
  */
 void SmudgeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

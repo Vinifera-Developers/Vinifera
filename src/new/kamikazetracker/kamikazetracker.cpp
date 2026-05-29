@@ -41,8 +41,6 @@ KamikazeTrackerClass::~KamikazeTrackerClass()
  */
 HRESULT KamikazeTrackerClass::Load(IStream* pStm)
 {
-    //EXT_DEBUG_TRACE("KamikazeTrackerClass::Load - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -114,8 +112,6 @@ HRESULT KamikazeTrackerClass::Load(IStream* pStm)
  */
 HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("KamikazeTrackerClass::Save - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -125,7 +121,7 @@ HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
      */
     const LONG id = reinterpret_cast<LONG>(this);
 
-    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
 
     HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
