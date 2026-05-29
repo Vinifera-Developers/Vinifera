@@ -24,8 +24,6 @@
 SmudgeTypeClassExtension::SmudgeTypeClassExtension(const SmudgeTypeClass *this_ptr) :
     ObjectTypeClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SmudgeTypeClassExtension::SmudgeTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SmudgeTypeExtensions.Add(this);
 }
 
@@ -38,7 +36,6 @@ SmudgeTypeClassExtension::SmudgeTypeClassExtension(const SmudgeTypeClass *this_p
 SmudgeTypeClassExtension::SmudgeTypeClassExtension(const NoInitClass &noinit) :
     ObjectTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::SmudgeTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -49,8 +46,6 @@ SmudgeTypeClassExtension::SmudgeTypeClassExtension(const NoInitClass &noinit) :
  */
 SmudgeTypeClassExtension::~SmudgeTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::~SmudgeTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SmudgeTypeExtensions.Delete(this);
 }
 
@@ -62,8 +57,6 @@ SmudgeTypeClassExtension::~SmudgeTypeClassExtension()
  */
 HRESULT SmudgeTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -81,8 +74,6 @@ HRESULT SmudgeTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SmudgeTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -101,8 +92,6 @@ HRESULT SmudgeTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT SmudgeTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -119,8 +108,6 @@ HRESULT SmudgeTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SmudgeTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -134,7 +121,6 @@ int SmudgeTypeClassExtension::Get_Object_Size() const
  */
 void SmudgeTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -145,8 +131,6 @@ void SmudgeTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool SmudgeTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }

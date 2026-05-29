@@ -73,6 +73,8 @@ static FARPROC *_sym_pointers[] = {
  */
 bool SymbolInit = false;
 
+std::recursive_mutex DbgHelpMutex;
+
 
 static void Init_DbgHelp()
 {
@@ -91,7 +93,7 @@ static void Init_DbgHelp()
             *_sym_pointers[i] = GetProcAddress(dll_handle, _sym_functions[i]);
 
             if (*_sym_pointers[i] == nullptr) {
-                DEBUG_WARNING("Init_DbgHelp: Unable to load %s from dbghelp.dll.", _sym_functions[i]);
+                DEBUG_WARNING("Init_DbgHelp: Unable to load {} from dbghelp.dll.", _sym_functions[i]);
             }
         }
     } else {
@@ -105,6 +107,8 @@ static void Init_DbgHelp()
  */
 void __cdecl Uninit_Symbol_Info()
 {
+    std::scoped_lock lock(DbgHelpMutex);
+
     if (SymbolInit) {
         SymbolInit = false;
 
@@ -120,6 +124,8 @@ void __cdecl Uninit_Symbol_Info()
  */
 bool __cdecl Init_Symbol_Info()
 {
+    std::scoped_lock lock(DbgHelpMutex);
+
     char drive[10];
     char pathname[PATH_MAX + 1];
     char directory[PATH_MAX + 1];

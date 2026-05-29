@@ -350,7 +350,7 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
         #define declhook(address, funcname, size) \
             EXPORT_FUNC(funcname##_##address##_LogStub) \
             { \
-                DEBUG_INFO("[Syringe] Hook %s entered at %08X.\n", #funcname, address); \
+                DEBUG_INFO("[Syringe] Hook {} entered at {:08X}.\n", #funcname, address); \
                 SyringeData::LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
                 return 0; \
             } \

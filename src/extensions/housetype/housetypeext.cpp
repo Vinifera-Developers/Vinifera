@@ -24,8 +24,6 @@
 HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HouseTypeExtensions.Add(this);
 }
 
@@ -38,7 +36,6 @@ HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr)
 HouseTypeClassExtension::HouseTypeClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -49,8 +46,6 @@ HouseTypeClassExtension::HouseTypeClassExtension(const NoInitClass &noinit) :
  */
 HouseTypeClassExtension::~HouseTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::~HouseTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HouseTypeExtensions.Delete(this);
 }
 
@@ -62,8 +57,6 @@ HouseTypeClassExtension::~HouseTypeClassExtension()
  */
 HRESULT HouseTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -81,8 +74,6 @@ HRESULT HouseTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT HouseTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -101,8 +92,6 @@ HRESULT HouseTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT HouseTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -119,8 +108,6 @@ HRESULT HouseTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int HouseTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -134,7 +121,6 @@ int HouseTypeClassExtension::Get_Object_Size() const
  */
 void HouseTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -145,8 +131,6 @@ void HouseTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool HouseTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }

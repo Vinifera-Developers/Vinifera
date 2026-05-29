@@ -41,10 +41,10 @@ DEFINE_HOOK(0x004E7B63, _Init_Theater_Patch, 0)
     std::snprintf(iso_root, 16, "%s.MIX", TheaterTypeClass::IsoRoot_From(theater));
     std::snprintf(suffix_name, 16, "%s.MIX", TheaterTypeClass::Suffix_From(theater));
     
-    DEBUG_INFO("Init theater \"%s\"\n"
-               "  %s\n"
-               "  %s\n"
-               "  %s\n",
+    DEBUG_INFO("Init theater \"{}\"\n"
+               "  {}\n"
+               "  {}\n"
+               "  {}\n",
         TheaterTypeClass::Name_From(theater), root_name, iso_root, suffix_name);
 
     /**
@@ -761,7 +761,7 @@ DEFINE_HOOK(0x004F51DF, _IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_P
     GET(char *, fullname, ECX); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", filename, TheaterTypeClass::MMSuffix_From(theater));
-    //DEV_DEBUG_INFO("MM: %s\n", fullname);
+    //DEV_DEBUG_INFO("MM: {}\n", fullname);
 
     return 0x004F51E4;
 }

@@ -25,6 +25,7 @@
 #include "miniaudio.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "vinifera_thread.h"
 
 #include <algorithm>
 #include <cmath>
@@ -57,7 +58,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
 
     using clock = std::chrono::steady_clock;
 
-    try {
+    Vinifera_Run_Thread([self]() {
 
         auto lastTime = clock::now();
 
@@ -200,18 +201,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
             self->RequestCV.wait_for(wait_lock, std::chrono::milliseconds(25));
         }
 
-    } catch (const std::runtime_error& e) {
-        (void)e;
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::runtime_error - %s\n", e.what());
-    } catch (const std::logic_error& e) {
-        (void)e;
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::logic_error - %s\n", e.what());
-    } catch (const std::exception& ex) {
-        (void)ex;
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::exception - %s\n", ex.what());
-    } catch (...) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - Unknown non-std exception occurred!\n");
-    }
+    });
 
     return 0;
 }
@@ -478,7 +468,7 @@ void AudioManagerClass::Process_Play_Request(AudioRequest req)
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Creating instance of \"%s\".\n", req.Filename.c_str());
 
     auto instance = std::make_unique<AudioInstanceClass>(sample, req.HandleID);
-    ASSERT_FATAL(instance != nullptr, "Failed to create instance of sample \"%s\"!", sample->Get_FileName().c_str());
+    ASSERT_FATAL_PRINT(instance != nullptr, "Failed to create instance of sample \"{}\"!", sample->Get_FileName());
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: About to load sample for \"%s\".\n", req.Filename.c_str());
 

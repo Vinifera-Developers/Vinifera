@@ -39,22 +39,16 @@ BEGIN
 END
 
 
-IDD_EXCEPTION DIALOGEX 0, 0, 350, 225
+IDD_EXCEPTION DIALOGEX 0, 0, 350, 320
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Exception!"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
+FONT 9, "Segoe UI", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Quit",IDC_EXCEPTION_QUIT,19,202,60,14
-    PUSHBUTTON      "Debug",IDC_EXCEPTION_DEBUG,81,202,60,14,BS_CENTER
-    PUSHBUTTON      "Main Menu",IDC_EXCEPTION_MAINMENU,270,202,60,14
-    PUSHBUTTON      "Save",IDC_EXCEPTION_SAVE,144,202,60,14
-    PUSHBUTTON      "Continue",IDC_EXCEPTION_CONTINUE,207,202,60,14
     CTEXT           "The game has encountered an error and is unable to continue normally.\nPlease see the DEBUG.LOG for details.",-1,7,7,335,19,NOT WS_GROUP
-    LTEXT           "Press Quit to close the application immediately.",-1,17,27,325,41,NOT WS_GROUP
-    LTEXT           "Press Debug to debug the application (JIT must be enabled).",-1,17,35,325,41,NOT WS_GROUP
-    LTEXT           "Press Save to attempt an emergency save of the scenario (map editor only).",-1,17,43,325,41,NOT WS_GROUP
-    LTEXT           "Press Continue to ignore this exception and attempt to continue the process.",-1,17,51,325,41,NOT WS_GROUP
-    LTEXT           "Press Main Menu to ignore this exception and attempt to return to the main menu.\n",-1,17,59,325,41,NOT WS_GROUP
-    LTEXT           "EXCEPT.TXT Details:",IDC_EXCEPTION_FILENAME,19,72,141,8
-    EDITTEXT        IDC_EXCEPTION_LOG,17,82,315,116,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    LTEXT           "Press Quit to close the application immediately.",-1,17,29,325,8,NOT WS_GROUP
+    LTEXT           "Press Debug to break into the debugger (attached or JIT).",-1,17,39,325,8,NOT WS_GROUP
+    GROUPBOX        "EXCEPT.TXT details",IDC_EXCEPTION_FILENAME,12,50,326,247
+    EDITTEXT        IDC_EXCEPTION_LOG,17,63,316,229,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    PUSHBUTTON      "Debug",IDC_EXCEPTION_DEBUG,216,302,60,14,BS_CENTER
+    DEFPUSHBUTTON   "Quit",IDC_EXCEPTION_QUIT,283,302,60,14
 END

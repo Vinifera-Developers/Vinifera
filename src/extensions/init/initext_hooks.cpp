@@ -244,25 +244,25 @@ bool Vinifera_Prep_For_Side(SideType side)
 {
     char name[64];
 
-    DEBUG_INFO("Preparing Mixfiles for Side %02d.\n", side);
+    DEBUG_INFO("Preparing Mixfiles for Side {:02}.\n", (int)side);
 
     /**
      *  Delete previously loaded mixes.
      */
     if (SideCMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCMix->Filename);
+        DEBUG_INFO("     Releasing {}\n", SideCMix->Filename);
         delete SideCMix;
         SideCMix = nullptr;
     }
 
     if (SideNCMix) {
-        DEBUG_INFO("     Releasing %s\n", SideNCMix->Filename);
+        DEBUG_INFO("     Releasing {}\n", SideNCMix->Filename);
         delete SideNCMix;
         SideNCMix = nullptr;
     }
 
     if (SideCDMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCDMix->Filename);
+        DEBUG_INFO("     Releasing {}\n", SideCDMix->Filename);
         delete SideCDMix;
         SideCDMix = nullptr;
     }
@@ -281,7 +281,7 @@ bool Vinifera_Prep_For_Side(SideType side)
         for (int index = 99; index >= 0; index--) {
             std::snprintf(name, sizeof(name), "E%02dSC%02d.MIX", index, id);
             if (CCFileClass(name).Is_Available()) {
-                DEBUG_INFO("     Initializing %s\n", name);
+                DEBUG_INFO("     Initializing {}\n", name);
                 MFCD* mix = new MFCD(name, &FastKey);
                 ExpandSideMix.Add(mix);
                 mix->Cache();
@@ -294,7 +294,7 @@ bool Vinifera_Prep_For_Side(SideType side)
      */
     std::snprintf(name, sizeof(name), "SIDEC%02d.MIX", id);
     if (CCFileClass(name).Is_Available()) {
-        DEBUG_INFO("     Initializing %s\n", name);
+        DEBUG_INFO("     Initializing {}\n", name);
         SideCMix = new MFCD(name, &FastKey);
         SideCMix->Cache();
     }
@@ -307,7 +307,7 @@ bool Vinifera_Prep_For_Side(SideType side)
             std::snprintf(name, sizeof(name), "E%02dSNC%02d.MIX", index, id);
 
             if (CCFileClass(name).Is_Available()) {
-                DEBUG_INFO("     Initializing %s\n", name);
+                DEBUG_INFO("     Initializing {}\n", name);
                 MFCD* mix = new MFCD(name, &FastKey);
                 ExpandSideMix.Add(mix);
             }
@@ -319,7 +319,7 @@ bool Vinifera_Prep_For_Side(SideType side)
      */
     std::snprintf(name, sizeof(name), "SIDENC%02d.MIX", id);
     if (CCFileClass(name).Is_Available()) {
-        DEBUG_INFO("     Initializing %s\n", name);
+        DEBUG_INFO("     Initializing {}\n", name);
         SideNCMix = new MFCD(name, &FastKey);
     }
 
@@ -333,7 +333,7 @@ bool Vinifera_Prep_For_Side(SideType side)
             std::snprintf(name, sizeof(name), "E%02dSCD%02d.MIX", Get_Required_Addon(), id);
         }
         if (CCFileClass(name).Is_Available()) {
-            DEBUG_INFO("     Initializing %s\n", name);
+            DEBUG_INFO("     Initializing {}\n", name);
             SideCDMix = new MFCD(name, &FastKey);
         }
     }
@@ -363,7 +363,7 @@ bool Vinifera_Prep_Speech_For_Side(SideType side)
      *  Free previously loaded speech MIXes.
      */
     if (SpeechMix != nullptr) {
-        DEBUG_INFO("     Releasing %s\n", SpeechMix->Filename);
+        DEBUG_INFO("     Releasing {}\n", SpeechMix->Filename);
         delete SpeechMix;
         SpeechMix = nullptr;
     }
@@ -398,14 +398,14 @@ bool Vinifera_Prep_Speech_For_Side(SideType side)
                 MFCD* mix = new MFCD(name, &FastKey);
                 if (mix != nullptr) {
                     ExpandSpeechMix.Add(mix);
-                    DEBUG_INFO(" %s", name);
+                    DEBUG_INFO(" {}", name);
                 }
             }
         }
     }
 
     std::snprintf(name, std::size(name), "SPEECH%02d.MIX", id);
-    DEBUG_INFO("     Initializing %s\n", name);
+    DEBUG_INFO("     Initializing {}\n", name);
     if (CCFileClass(name).Is_Available()) {
         SpeechMix = new MFCD(name, &FastKey);
     }
@@ -508,11 +508,11 @@ bool Vinifera_Init_Secondary_Mixfiles()
 
         std::snprintf(buffer, sizeof(buffer), "MAPS*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
-            DEBUG_INFO(" %s\n", buffer);
+            DEBUG_INFO(" {}\n", buffer);
             MapsMix = new MFCD(buffer, &FastKey);
             ASSERT(MapsMix);
             while (CCFileClass::Find_Next_File(buffer)) {
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
                 mix = new MFCD(buffer, &FastKey);
                 ASSERT(mix);
                 if (mix) {
@@ -530,10 +530,10 @@ bool Vinifera_Init_Secondary_Mixfiles()
         }
     }
     if (!MapsMix) {
-        DEBUG_WARNING("Failed to load %s!\n", buffer);
+        DEBUG_WARNING("Failed to load {}!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::IsOverrideSwap()) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::IsOverrideSwap()) DEBUG_INFO(" {}\n", buffer);
     }
 
     if (CCFileClass("MULTI.MIX").Is_Available()) {
@@ -610,11 +610,11 @@ bool Vinifera_Init_Secondary_Mixfiles()
 
         std::snprintf(buffer, sizeof(buffer), "MOVIES*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
-            DEBUG_INFO(" %s\n", buffer);
+            DEBUG_INFO(" {}\n", buffer);
             MoviesMix = new MFCD(buffer, &FastKey);
             ASSERT(MoviesMix);
             while (CCFileClass::Find_Next_File(buffer)) {
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
                 mix = new MFCD(buffer, &FastKey);
                 ASSERT(mix);
                 if (mix) {
@@ -632,10 +632,10 @@ bool Vinifera_Init_Secondary_Mixfiles()
         }
     }
     if (!MoviesMix) {
-        DEBUG_WARNING("Failed to load %s!\n", buffer);
+        DEBUG_WARNING("Failed to load {}!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::IsOverrideSwap()) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::IsOverrideSwap()) DEBUG_INFO(" {}\n", buffer);
     }
 
     return true;
@@ -658,10 +658,10 @@ bool Vinifera_Init_Expansion_Mixfiles()
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }
@@ -672,11 +672,11 @@ bool Vinifera_Init_Expansion_Mixfiles()
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 mix->Cache();
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }
@@ -695,18 +695,18 @@ bool Vinifera_Init_Expansion_Mixfiles()
 #if 0
     std::snprintf(buffer, sizeof(buffer), "ELOCAL*.MIX");
     if (CCFileClass::Find_First_File(buffer)) {
-        DEBUG_INFO(" %s\n", buffer);
+        DEBUG_INFO(" {}\n", buffer);
         mix = new MFCD(buffer, &FastKey);
         ASSERT(mix);
         while (CCFileClass::Find_Next_File(buffer)) {
-            DEBUG_INFO(" %s\n", buffer);
+            DEBUG_INFO(" {}\n", buffer);
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }
@@ -718,10 +718,10 @@ bool Vinifera_Init_Expansion_Mixfiles()
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }

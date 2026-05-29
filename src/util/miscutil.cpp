@@ -323,7 +323,7 @@ bool Get_Version_Info(const char *filename, VS_FIXEDFILEINFO *out_file_info)
      *  Get the file version info size.
      */
     DWORD size = GetFileVersionInfoSize(filename, &handle);
-    ASSERT_PRINT(size > 0, "Error in GetFileVersionInfoSize: %d", GetLastError());
+    ASSERT_PRINT(size > 0, "Error in GetFileVersionInfoSize: {}", GetLastError());
     if (size <= 0) {
         return false;
     }
@@ -334,14 +334,14 @@ bool Get_Version_Info(const char *filename, VS_FIXEDFILEINFO *out_file_info)
     BYTE *verinfo = new BYTE[size];
 
     BOOL info_obtained = GetFileVersionInfo(filename, handle, size, verinfo);
-    ASSERT_PRINT(info_obtained, "Get_Version_Info() - Error in GetFileVersionInfo: %d", GetLastError());
+    ASSERT_PRINT(info_obtained, "Get_Version_Info() - Error in GetFileVersionInfo: {}", GetLastError());
     if (info_obtained) {
 
         UINT len = 0;
         VS_FIXEDFILEINFO *fileinfo = nullptr;
 
         BOOL query_success = VerQueryValue(verinfo, "\\", (LPVOID *)&fileinfo, &len);
-        ASSERT_PRINT(query_success, "Get_Version_Info() - Error in VerQueryValue: %d", GetLastError());
+        ASSERT_PRINT(query_success, "Get_Version_Info() - Error in VerQueryValue: {}", GetLastError());
 
         if (query_success) {
 
@@ -366,7 +366,7 @@ void HexPrint32(const uint32_t *data, size_t size)
         if (!(i % 80)) {
             DEBUG_INFO("\n");
         }
-        DEBUG_INFO("0x%04llX", data[i]);
+        DEBUG_INFO("0x{:04X}", data[i]);
     }
     DEBUG_INFO("\n");
 }
@@ -378,7 +378,7 @@ void HexPrint64(const uint64_t *data, size_t size)
         if (!(i % 80)) {
             DEBUG_INFO("\n");
         }
-        DEBUG_INFO("0x%08llX", data[i]);
+        DEBUG_INFO("0x{:08X}", data[i]);
     }
     DEBUG_INFO("\n");
 }

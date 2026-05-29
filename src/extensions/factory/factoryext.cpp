@@ -26,8 +26,6 @@ FactoryClassExtension::FactoryClassExtension(const FactoryClass *this_ptr) :
     IsHoldingExit(false),
     HasSpoken(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("FactoryClassExtension::FactoryClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     FactoryExtensions.Add(this);
 }
 
@@ -40,7 +38,6 @@ FactoryClassExtension::FactoryClassExtension(const FactoryClass *this_ptr) :
 FactoryClassExtension::FactoryClassExtension(const NoInitClass &noinit) :
     AbstractClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::FactoryClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -51,8 +48,6 @@ FactoryClassExtension::FactoryClassExtension(const NoInitClass &noinit) :
  */
 FactoryClassExtension::~FactoryClassExtension()
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::~FactoryClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     FactoryExtensions.Delete(this);
 }
 
@@ -64,8 +59,6 @@ FactoryClassExtension::~FactoryClassExtension()
  */
 HRESULT FactoryClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -83,8 +76,6 @@ HRESULT FactoryClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT FactoryClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -103,8 +94,6 @@ HRESULT FactoryClassExtension::Load(IStream *pStm)
  */
 HRESULT FactoryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -121,8 +110,6 @@ HRESULT FactoryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int FactoryClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -136,5 +123,4 @@ int FactoryClassExtension::Get_Object_Size() const
  */
 void FactoryClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

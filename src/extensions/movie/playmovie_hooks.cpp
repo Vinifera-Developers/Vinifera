@@ -50,7 +50,7 @@ DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
          */
         this_ptr->StretchRect = stretched_rect;
 
-        DEBUG_INFO("Stretching movie - InitialRect: %d,%d -> StretchRect: %d,%d\n", this_ptr->InitialRect.Width, this_ptr->InitialRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
+        DEBUG_INFO("Stretching movie - InitialRect: {},{} -> StretchRect: {},{}\n", this_ptr->InitialRect.Width, this_ptr->InitialRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
     }
 
     return 0x00563805;
@@ -118,7 +118,7 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     CampaignClassExtension *campaignext = Extension::Fetch(campaign);
     if (campaignext->IntroMovie[0] != '\0') {
         std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
-        DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+        DEBUG_INFO("About to play \"{}\".\n", movie_filename);
         Play_Movie(movie_filename);
 
     /**
@@ -142,7 +142,7 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
          *  Now play the movie if it is found, falling back to original behavior otherwise.
          */
         if (Vinifera_Is_Movie_Available(movie_filename)) {
-            DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+            DEBUG_INFO("About to play \"{}\".\n", movie_filename);
             Play_Movie(movie_filename);
 
         } else if (Vinifera_Is_Movie_Available("INTRO.VQA")) {
@@ -176,7 +176,7 @@ read_scenario:
      *  the address 0x005DB319, so lets handle the debug log print ourself and
      *  jump back at a safe location.
      */
-    DEBUG_GAME("Reading scenario: %s\n", name);
+    DEBUG_INFO("Reading scenario: {}\n", name);
     return 0x005DB327;
 }
 

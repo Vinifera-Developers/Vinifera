@@ -111,10 +111,10 @@ void ExtEnvironmentClass::Snapshot_Game_State()
     Stage = Scen->Stage;
 
     DEBUG_INFO("Recording environment information...\n");
-    DEBUG_INFO("  CarryOverMoney: %d\n", CarryOverMoney);
-    DEBUG_INFO("  MissionTimer: %d\n", MissionTimer);
-    DEBUG_INFO("  Difficulty: %d\n", Difficulty);
-    DEBUG_INFO("  Stage: %d\n", Stage);
+    DEBUG_INFO("  CarryOverMoney: {}\n", CarryOverMoney);
+    DEBUG_INFO("  MissionTimer: {}\n", MissionTimer);
+    DEBUG_INFO("  Difficulty: {}\n", (int)Difficulty);
+    DEBUG_INFO("  Stage: {}\n", Stage);
 }
 
 
@@ -150,10 +150,10 @@ void ExtEnvironmentClass::Apply_To_Game_State()
     Scen->Stage = Stage;
 
     DEBUG_INFO("Applying environment information...\n");
-    DEBUG_INFO("  CarryOverMoney: %d\n", CarryOverMoney);
-    DEBUG_INFO("  MissionTimer: %d\n", MissionTimer);
-    DEBUG_INFO("  Difficulty: %d\n", Difficulty);
-    DEBUG_INFO("  Stage: %d\n", Stage);
+    DEBUG_INFO("  CarryOverMoney: {}\n", CarryOverMoney);
+    DEBUG_INFO("  MissionTimer: {}\n", MissionTimer);
+    DEBUG_INFO("  Difficulty: {}\n", (int)Difficulty);
+    DEBUG_INFO("  Stage: {}\n", Stage);
 }
 
 

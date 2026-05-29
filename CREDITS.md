@@ -177,6 +177,10 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.
   - Add Q-Move support for aircraft.
   - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving. 
+  - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
+  - Fix a vanilla bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
+  - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit.
+  - Fix a bug where AI medics would fail to heal their allies.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -388,3 +392,5 @@ This page lists all the individual contributions to the project by their author.
   - Add subtitle rendering for EVA speeches with customizable styling and a category filter.
   - Add `Attach Sound`, `Detach Sound`, and `Stop Sounds At` trigger actions for managing ambient sounds from scripts.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
+  - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.
+  - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.

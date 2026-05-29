@@ -35,8 +35,6 @@ UnitTypeClassExtension::UnitTypeClassExtension(const UnitTypeClass *this_ptr) :
     TransformsInto(nullptr),
     IsTransformRequiresFullCharge(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("UnitTypeClassExtension::UnitTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     UnitTypeExtensions.Add(this);
 }
 
@@ -49,7 +47,6 @@ UnitTypeClassExtension::UnitTypeClassExtension(const UnitTypeClass *this_ptr) :
 UnitTypeClassExtension::UnitTypeClassExtension(const NoInitClass &noinit) :
     TechnoTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::UnitTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -60,8 +57,6 @@ UnitTypeClassExtension::UnitTypeClassExtension(const NoInitClass &noinit) :
  */
 UnitTypeClassExtension::~UnitTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::~UnitTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     UnitTypeExtensions.Delete(this);
 }
 
@@ -73,8 +68,6 @@ UnitTypeClassExtension::~UnitTypeClassExtension()
  */
 HRESULT UnitTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -92,8 +85,6 @@ HRESULT UnitTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT UnitTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -114,8 +105,6 @@ HRESULT UnitTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT UnitTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -132,8 +121,6 @@ HRESULT UnitTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int UnitTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -147,7 +134,6 @@ int UnitTypeClassExtension::Get_Object_Size() const
  */
 void UnitTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -158,8 +144,6 @@ void UnitTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
     }
