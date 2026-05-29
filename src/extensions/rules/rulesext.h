@@ -259,9 +259,10 @@ public:
      */
     int PausedRepairsFrame;
 
-	*  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) can be separated from its guard target
-	*  before it moves again to its guard target's position.
-	*/
+	/**
+     *  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) can be separated from its guard target
+     *  before it moves again to its guard target's position.
+     */
 	int EscortRange;
 
 	/**
