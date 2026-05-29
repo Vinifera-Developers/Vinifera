@@ -265,7 +265,7 @@ public:
      */
     int EscortRange;
 
-	/**
+    /**
      *  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) will keep engaging its current target
      *  before abandoning it and going back to escort its guard target.
      */
