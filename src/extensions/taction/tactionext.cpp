@@ -1068,7 +1068,7 @@ bool TActionClassExtension::Do_CREATE_AUTOSAVE(HouseClass* house, ObjectClass* o
     /**
      *  Schedule a save.
      */
-    SessionExtension->Flag_To_Save();
+    SessionExtension->Flag_To_Save(false);
 
     return true;
 }

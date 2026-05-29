@@ -34,7 +34,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 
         int Get_Autosave_Interval() const;
         void Schedule_Next_Autosave();
-        void Flag_To_Save();
+        void Flag_To_Save(bool manual);
         void Disable_Multiplayer_Autosaves();
         void Set_Next_Campaign_Autosave_Slot(int slot);
         void Set_Next_Skirmish_Autosave_Slot(int slot);
@@ -126,6 +126,11 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
              *  Has an autosave been queued to run from the main-loop safe point?
              */
             bool IsToSave = false;
+
+            /**
+             *  Is the next multiplayer save a manual save?
+             */
+            bool IsNextMultiplayerSaveManual = false;
 
             /**
              *  Frame on which the next periodic autosave should trigger.

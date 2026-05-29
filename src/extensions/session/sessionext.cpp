@@ -28,10 +28,13 @@
 
 namespace
 {
-    void Print_Saving_Game_Message()
+    void Print_Saving_Game_Message(bool is_autosave)
     {
         const int message_delay = Rule->MessageDelay * TICKS_PER_MINUTE;
-        Session.Messages.Add_Message(nullptr, 0, "Saving game...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
+
+        const char* text = is_autosave ? "Auto-saving..." : "Saving game...";
+
+        Session.Messages.Add_Message(nullptr, 0, text, static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
 
         Map.Flag_To_Redraw(2);
         Map.Render();
@@ -201,11 +204,15 @@ void SessionClassExtension::Schedule_Next_Autosave()
 /**
  *  Queues an autosave to run from the main-loop safe point.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-void SessionClassExtension::Flag_To_Save()
+void SessionClassExtension::Flag_To_Save(bool manual)
 {
     AutoSave.IsToSave = true;
+
+    if (manual && !Session.Singleplayer_Game()) {
+        AutoSave.IsNextMultiplayerSaveManual = manual;
+    }
 }
 
 
@@ -269,23 +276,19 @@ void SessionClassExtension::Restore_Autosave_After_Load()
 void SessionClassExtension::Service_Autosave_After_Main_Loop()
 {
     if (Frame == AutoSave.NextAutoSaveFrame) {
-        Flag_To_Save();
+        Flag_To_Save(false);
     }
 
     if (!AutoSave.IsToSave) {
         return;
     }
 
-    Print_Saving_Game_Message();
-
     if (Session.Singleplayer_Game() && OptionsExtension->AutoSaveCount > 0) {
+        Print_Saving_Game_Message(true);
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
 
-        Pause_Scenario();
-        Call_Back();
         Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
-        Resume_Scenario();
 
         if (Session.Type == GAME_NORMAL) {
             AutoSave.NextCampaignAutoSaveSlot = (AutoSave.NextCampaignAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
@@ -297,10 +300,12 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
     }
     
     if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerSaveSuppressed) {
+        Print_Saving_Game_Message(!AutoSave.IsNextMultiplayerSaveManual);
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
         Init_Multiplayer_Saves_For_Session();
         Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
+        AutoSave.IsNextMultiplayerSaveManual = false;
         return;
     }
 
@@ -399,7 +404,7 @@ std::string SessionClassExtension::Autosave_Description() const
     switch (Session.Type) {
     case GAME_IPX:
     case GAME_INTERNET:
-        return "Multiplayer Game";
+        return AutoSave.IsNextMultiplayerSaveManual ? "Multiplayer Game (Manual Save)" : "Multiplayer Game (Auto-Save)";
     case GAME_NORMAL:
         return std::format("Mission Auto-Save (Slot {})", AutoSave.NextCampaignAutoSaveSlot + 1);
     case GAME_SKIRMISH:

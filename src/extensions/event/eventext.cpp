@@ -316,9 +316,11 @@ void EventClassExt::Execute()
 
         /*
         **  Save a multiplayer game (this event is only generated in multiplayer mode).
+        **  Only manual multiplayer saves go through the event system - auto-save logic
+        **  is handled locally.
         */
     case EVENT_SAVEGAME:
-        SessionExtension->Flag_To_Save();
+        SessionExtension->Flag_To_Save(true);
         break;
 
         /*
