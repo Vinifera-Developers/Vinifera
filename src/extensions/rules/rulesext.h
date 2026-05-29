@@ -274,7 +274,7 @@ public:
 	/**
 	 *  Determines whether Free Radar would still apply even during Low Power
 	 */
-	int IsFreeRadarOnLowPower;
+	bool IsFreeRadarOnLowPower;
 
     /**
      *  Determines whether bridges should use the Bridge Health Tracking feature. 
