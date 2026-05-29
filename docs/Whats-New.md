@@ -182,6 +182,7 @@ Vanilla fixes:
 - Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
+- Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 
 :::
 
