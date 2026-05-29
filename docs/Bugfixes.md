@@ -125,3 +125,5 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
 - Fix a bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
 - Fix a bug where AI medics would fail to heal their allies.
+- Fix a bug that would make healer units unselect themselves when adding other units to current selection.
+- Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.
