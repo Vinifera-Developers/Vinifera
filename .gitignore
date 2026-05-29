@@ -71,3 +71,6 @@ docs/_build/
 
 # JetBrains
 .idea/
+
+# repowise API keys (local)
+.repowise/.env

@@ -3517,6 +3517,27 @@ DEFINE_HOOK(0x00637F0B, _TechnoClass_Find_Docking_Bay_Unoccupied_Aircraft_Patch,
 
 
 /**
+ *  Reimplements TechnoClass::AI where the game tests for AI units that are firing upon a target that is allied.
+ *  Fixes an issue where it would cause medics (and by extension: mechanics and omnihealers) to constantly lose their targeting,
+ *  causing them to never finish their "attack" animation and never actually heal the target unless they were prone.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+
+    if (this_ptr->Combat_Damage() >= 0) {
+        if (this_ptr->RTTI != RTTI_AIRCRAFT && (this_ptr->RTTI != RTTI_INFANTRY || !((InfantryClass*)this_ptr)->Class->IsEngineer)) {
+            this_ptr->Assign_Target(NULL);
+        }
+    }
+
+    return 0x0062E7DD;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()

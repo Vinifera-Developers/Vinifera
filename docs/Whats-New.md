@@ -192,6 +192,7 @@ Vanilla fixes:
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with (by Rampastring)
+- Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 
 :::
 

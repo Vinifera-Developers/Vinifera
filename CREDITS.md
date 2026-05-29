@@ -182,6 +182,7 @@ This page lists all the individual contributions to the project by their author.
   - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
   - Fix a vanilla bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
   - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit.
+  - Fix a bug where AI medics would fail to heal their allies.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
