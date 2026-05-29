@@ -757,15 +757,13 @@ void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_
  *
  *  @author: JoyfulShush
  */
-void Scan_Around_Bridge_Hut_For_Bridge(Cell* bridge_hut_cell)
+void Scan_Around_Bridge_Hut_For_Bridge(Cell const& bridge_hut_cell)
 {
-    Cell cell = *bridge_hut_cell;
-
     DynamicVectorClass<Cell> visited_cells;
 
     for (int depth = 1; depth <= 3; ++depth) {        
         for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
-            Cell target_cell = Get_Nearby_Cell_At_Depth(cell, dir, depth);
+            Cell target_cell = Get_Nearby_Cell_At_Depth(bridge_hut_cell, dir, depth);
             CellClass* target_cellptr = &Map[target_cell];            
             if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {
                 Scan_And_Clear_Bridge(target_cell, visited_cells);
@@ -788,7 +786,7 @@ DEFINE_HOOK(0x004D356B, _InfantryClass_Process_Per_Cell_Engineer_Bridge_Patch, 6
     GET(Cell*, cell_ptr, EAX);
 
     if (RuleExtension->IsUseBridgeHealth) {
-        Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+        Scan_Around_Bridge_Hut_For_Bridge(*cell_ptr);
     }
 
     return 0;
@@ -806,7 +804,7 @@ DEFINE_HOOK(0x004D3551, _InfantryClass_Process_Per_Cell_Engineer_Train_Bridge_Pa
     GET(Cell*, cell_ptr, EAX);
 
     if (RuleExtension->IsUseBridgeHealth) {
-        Scan_Around_Bridge_Hut_For_Bridge(cell_ptr);
+        Scan_Around_Bridge_Hut_For_Bridge(*cell_ptr);
     }
 
     return 0;
