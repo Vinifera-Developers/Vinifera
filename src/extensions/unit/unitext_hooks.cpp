@@ -1416,6 +1416,31 @@ DEFINE_HOOK(0x0064FDB4, _Unit_Class_Take_Damage_Cargo_Hold_Patch, 6)
     return 0;
 }
 
+
+/**
+ *  Patches UnitClass::What_Action at the part where MRVs (AKA units with negative combat damage)
+ *  are evaluated whether they should commit to their action or switch to ACTION_SELECT.
+ *
+ *  Fixes an issue where ACTION_TOGGLE_SELECT (selecting units while shift is held) was converted into ACTION_SELECT,
+ *  causing the game to instead unselect the currently selected units if the MRV was the "best object" in the current selection.
+ *  For MRVs, this only triggers while trying to add infantry to your selection.
+ *
+ *  Causes What_Action to return with the ACTION_TOGGLE_SELECT action if this is the current mission.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x006563FD, _UnitClass_What_Action_MRV_Toggle_Select_Patch, 7) 
+{
+    GET_STACK(ActionType, action, 0x28);
+
+    if (action == ACTION_TOGGLE_SELECT) {
+        return 0x0065648B;
+    }
+
+	return 0;
+}
+
+
 TagClass* Find_Or_Make_Tag(TagTypeClass* type)
 {
     for (int index = 0; index < Tags.Count(); index++) {

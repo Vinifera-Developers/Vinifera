@@ -274,6 +274,22 @@ public:
      */
     int AbandonTargetEscortRange;
 
+	/**
+	 *  Determines whether Free Radar would still apply even during Low Power
+	 */
+	bool IsFreeRadarOnLowPower;
+
+    /**
+     *  Determines whether bridges should use the Bridge Health Tracking feature. 
+     *  When disabled, uses the vanilla bridge destruction logic (by random chance).
+     */
+    bool IsUseBridgeHealth;
+
+	/*
+    * The armor type used by bridges for damage calculation. Only used when Bridge Health mechanism is enabled.
+    */
+    ArmorType BridgeArmor;
+
     /**
      *  List of units to consider "home".
      */

@@ -24,8 +24,10 @@
 #include "infantrytype.h"
 #include "infantrytypeext.h"
 #include "language.h"
+#include "mouse.h"
 #include "options.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "sideext.h"
 #include "syringe.h"
 #include "technotype.h"
@@ -34,6 +36,7 @@
 #include "tiberiumext.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "vinifera_globals.h"
 #include "voc.h"
 #include "wwkeyboard.h"
 
@@ -688,6 +691,126 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
 }
 
 /**
+ *  Clears the current cell from bridge damage trackers, if any.
+ *  Recursively looks around all orthogonal cells in order to find all directly adjacent bridge cells
+ *  That are part of that bridge, which expands until all bridge cells are evaluated.
+ *
+ *  @author: JoyfulShush
+ */
+void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_cells)
+{
+    if (visited_cells.Is_Present(current_cell)) {
+        return;
+    }
+
+    visited_cells.Add(current_cell);
+
+    if (BridgeHealths.contains(current_cell)) {        
+        BridgeHealths.erase(current_cell);
+    }
+
+    CellClass* current_cellptr = &Map[current_cell];
+
+    FacingType dirs[4] = {FACING_W, FACING_E, FACING_S, FACING_N};
+    for (FacingType dir : dirs) {
+        if (current_cellptr->Is_Overlay_Low_Bridge()) {
+            /*
+             * Handle two low overlay bridges that are very close to each other.
+             * We skip one side checking another side that should never be part of the same low bridge.
+             */
+            if (current_cellptr->OverlayData == 0) {
+                if (current_cellptr->Is_Low_Bridge_SE_NW() && dir == FACING_N) {
+                    continue;
+                }
+
+                if (current_cellptr->Is_Low_Bridge_SW_NE() && dir == FACING_E) {
+                    continue;
+                }                    
+            }
+
+            if (current_cellptr->OverlayData == 2) {
+                if (current_cellptr->Is_Low_Bridge_SE_NW() && dir == FACING_S) {
+                    continue;
+                }
+
+                if (current_cellptr->Is_Low_Bridge_SW_NE() && dir == FACING_W) {
+                    continue;
+                }
+            }
+        }
+
+        Cell adjacent_cell = Adjacent_Cell(current_cell, dir);
+        CellClass* adjacent_cellptr = &Map[adjacent_cell];
+
+        if (adjacent_cellptr->Is_Bridge_Here() || adjacent_cellptr->Is_Overlay_Low_Bridge() || adjacent_cellptr->WasUnderBridge) {
+            Scan_And_Clear_Bridge(adjacent_cell, visited_cells);
+        }
+    }
+}
+
+/**
+ *  Scans for a bridge attached to a bridge hut that was just entered by an Engineer.
+ *  Checks for all types of bridges: Low Bridges (via overlay), High Bridges and High Train Bridges.
+ *  Since in some cases, notably high bridges the overlay is actually far, we need to search around the bridge hut
+ *  Up to 3 cells away from it, as only the bridge's center piece in a bridge tile is actually considered a bridge.
+ *  Once a bridge cell is located, it begins evaluation of the entire bridge and returns afterwards.
+ *
+ *  @author: JoyfulShush
+ */
+void Scan_Around_Bridge_Hut_For_Bridge(Cell const& bridge_hut_cell)
+{
+    DynamicVectorClass<Cell> visited_cells;
+
+    for (int depth = 1; depth <= 3; ++depth) {        
+        for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
+            Cell target_cell = Get_Nearby_Cell_At_Depth(bridge_hut_cell, dir, depth);
+            CellClass* target_cellptr = &Map[target_cell];            
+            if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {
+                Scan_And_Clear_Bridge(target_cell, visited_cells);
+                return;
+            }
+        }
+    }
+
+    return;
+}
+/**
+ *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
+ *  that is adjacent to either a Low Bridge or a High (non-train) Bridge.
+ *  Used to find the attached bridge parts and remove all bridge damage registers from it (essentially fully healing all bridge cells)
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D356B, _InfantryClass_Process_Per_Cell_Engineer_Bridge_Patch, 6)
+{    
+    GET(Cell*, cell_ptr, EAX);
+
+    if (RuleExtension->IsUseBridgeHealth) {
+        Scan_Around_Bridge_Hut_For_Bridge(*cell_ptr);
+    }
+
+    return 0;
+}
+
+/**
+ *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
+ *  that is adjacent to a Train High Bridge.
+ *  Used to find the attached bridge parts and remove all bridge damage registers from it (essentially fully healing all bridge cells)
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D3551, _InfantryClass_Process_Per_Cell_Engineer_Train_Bridge_Patch, 6)
+{    
+    GET(Cell*, cell_ptr, EAX);
+
+    if (RuleExtension->IsUseBridgeHealth) {
+        Scan_Around_Bridge_Hut_For_Bridge(*cell_ptr);
+    }
+
+    return 0;
+}
+
+/**
  *  Patches InfantryClass::Assign_Destination at the part that identifies infantry units with mission "MISSION_ENTER",
  *  at a part where units are communicating with a building that has a radio buddy.
  *  For hospitals and armories, this typically means that a unit got the permission to dock into the hospital/armory.
@@ -721,6 +844,27 @@ DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
     return 0x004D425A;
 }
 
+/**
+ *  Patches InfantryClass::What_Action at the part where medics/mechanics (AKA infantry with negative combat damage)
+ *  are evaluated whether they should commit to their action or switch to ACTION_SELECT.
+ *  
+ *  Fixes an issue where ACTION_TOGGLE_SELECT (selecting units while shift is held) was converted into ACTION_SELECT,
+ *  causing the game to instead unselect the currently selected units if the medic was the "best object" in the current selection.
+ * 
+ *  Causes What_Action to return with the ACTION_TOGGLE_SELECT action if this is the current mission.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9)
+{
+    GET(ActionType, action, EBX);
+
+    if (action == ACTION_TOGGLE_SELECT) {
+        return 0x004D76F9;
+    }
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.

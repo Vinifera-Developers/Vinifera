@@ -108,6 +108,8 @@ New:
 - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
+- Allow Free Radar to be used when players are in low power (by JoyfulShush)
+- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 - Implemented the multiplayer spawner (by ZivDero, Rampastring)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
@@ -430,6 +432,8 @@ Vanilla fixes:
 - Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
 - Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
 - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use (by JoyfulShush)
+- Fix a bug that would make healer units unselect themselves when adding other units to current selection (by JoyfulShush)
+- Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection (by JoyfulShush)
 - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses (by ZivDero)
 - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes` (by ZivDero)
 - Fix a bug where mission `Ambush` wouldn't work correctly (by ZivDero)
