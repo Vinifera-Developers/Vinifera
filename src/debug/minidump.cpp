@@ -45,7 +45,7 @@ char MinidumpFilename[PATH_MAX] = { '\0' };
 /**
  *  Creates a new file and dumps the exception info into it.
  */
-bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, const char *path)
+bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, const char *path, DWORD crashed_tid)
 {
     static FastCriticalSectionClass MiniDumpCriticalSection;;
     FastCriticalSectionClass::LockClass critsection(MiniDumpCriticalSection);
@@ -103,7 +103,12 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
 
     MINIDUMP_EXCEPTION_INFORMATION md_e_info;
     ZeroMemory(&md_e_info, sizeof(MINIDUMP_EXCEPTION_INFORMATION));
-    md_e_info.ThreadId = GetCurrentThreadId();
+    /**
+     *  ThreadId must be the CRASHING thread. When the dump runs on the dumper
+     *  thread (see exceptionhandler.cpp) that isn't the current thread, so the
+     *  caller passes the TID; 0 means "use the calling thread".
+     */
+    md_e_info.ThreadId = (crashed_tid != 0) ? crashed_tid : GetCurrentThreadId();
     md_e_info.ExceptionPointers = e_info; // Exception data is optional and can be NULL.
     md_e_info.ClientPointers = FALSE;
 

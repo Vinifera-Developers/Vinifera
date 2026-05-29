@@ -43,6 +43,13 @@ void __cdecl _Structured_Exception_Translator(unsigned int code, EXCEPTION_POINT
 void Init_Exception_Handler();
 void Shutdown_Exception_Handler();
 
+/**
+ *  Spawn the dedicated crash-dump thread. Call once from a post-init, main-
+ *  thread context (not DllMain - loader lock). Idempotent; until it runs,
+ *  crashes use the inline dump path.
+ */
+void Start_Dumper_Thread();
+
 
 extern register_t LastExceptionEIP;
 extern uint32_t LastExceptionCRC;
