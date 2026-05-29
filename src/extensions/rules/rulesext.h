@@ -274,5 +274,5 @@ public:
 	/**
 	 *  Determines whether Free Radar would still apply even during Low Power
 	 */
-	int IsFreeRadarOnLowPower;
+	bool IsFreeRadarOnLowPower;
 };
