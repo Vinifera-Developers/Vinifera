@@ -10,9 +10,9 @@
 #pragma once
 
 #include "ccfile.h"
+#include "cell.h"
 #include "extension_globals.h"
 #include "vector.h"
-#include "cell.h"
 
 #include <unordered_map>
 #include <windows.h>
