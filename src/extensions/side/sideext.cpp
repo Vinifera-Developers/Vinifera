@@ -41,8 +41,6 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     PowerTurbine(nullptr),
     HunterSeeker(nullptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SideExtensions.Add(this);
 }
 
@@ -55,7 +53,6 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
 SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -66,8 +63,6 @@ SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
  */
 SideClassExtension::~SideClassExtension()
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::~SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SideExtensions.Delete(this);
 }
 
@@ -79,8 +74,6 @@ SideClassExtension::~SideClassExtension()
  */
 HRESULT SideClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -98,8 +91,6 @@ HRESULT SideClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SideClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -127,8 +118,6 @@ HRESULT SideClassExtension::Load(IStream *pStm)
  */
 HRESULT SideClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -145,8 +134,6 @@ HRESULT SideClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SideClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -160,7 +147,6 @@ int SideClassExtension::Get_Object_Size() const
  */
 void SideClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -171,7 +157,7 @@ void SideClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool SideClassExtension::Read_INI(CCINIClass &ini)
 {
-    //DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: {} (0x{:08X})\n", Name(), (uintptr_t)(This()));
 
     const char* ini_name = Name();
 

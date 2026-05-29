@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <windows.h>
 #include <dbghelp.h>
 
@@ -19,6 +20,20 @@ void __cdecl Uninit_Symbol_Info();
 
 extern HANDLE SymbolProcess;
 extern bool SymbolInit;
+
+
+/**
+ *  DbgHelp is documented as not thread-safe; every Sym*, StackWalk, and
+ *  MiniDumpWriteDump call across the codebase must hold this mutex.
+ *
+ *  Recursive because Make_Stack_Trace locks once around the whole walk,
+ *  but the per-frame callback re-enters via Get_Function_Details which
+ *  needs the same protection when called on its own from other paths.
+ *
+ *  Lock ordering: ExceptionCriticalSection (exception entry gate) ->
+ *  MiniDumpCriticalSection -> DbgHelpMutex. Never reverse.
+ */
+extern std::recursive_mutex DbgHelpMutex;
 
 
 extern BOOL(__stdcall *SymCleanupPtr)(HANDLE);

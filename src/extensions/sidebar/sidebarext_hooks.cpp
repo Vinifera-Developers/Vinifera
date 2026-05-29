@@ -331,7 +331,7 @@ void SidebarClassExt::_Recalc()
 bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
 {
     DEBUG_FATAL("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    DEBUG_FATAL("Return address: {}\n", _ReturnAddress());
     WWMessageBox().Process("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
     Emergency_Exit(0);
     return false;

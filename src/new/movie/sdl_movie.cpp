@@ -65,7 +65,7 @@ static bool Ensure_Movie_Texture(int width, int height, MovieVideoPixelFormat fo
     SDL_DestroyTexture(MovieTexture);
     MovieTexture = SDL_CreateTexture(SDLWindowRenderer, texture_format, SDL_TEXTUREACCESS_STREAMING, width, height);
     if (!MovieTexture) {
-        DEBUG_ERROR("Failed to create SDL movie texture! SDL Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("Failed to create SDL movie texture! SDL Error: {}\n", SDL_GetError());
         MovieTextureWidth = 0;
         MovieTextureHeight = 0;
         MovieTextureFormat = MOVIE_VIDEO_INVALID;
@@ -103,7 +103,7 @@ bool SDL_Movie_Present_Frame(const MovieVideoFrame &frame, const Rect &destinati
         frame.SecondaryPitch);
 
     if (!updated) {
-        DEBUG_ERROR("Failed to update SDL movie texture! SDL Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("Failed to update SDL movie texture! SDL Error: {}\n", SDL_GetError());
         return false;
     }
 
@@ -118,7 +118,7 @@ bool SDL_Movie_Present_Frame(const MovieVideoFrame &frame, const Rect &destinati
     };
 
     if (!SDL_RenderTexture(SDLWindowRenderer, MovieTexture, nullptr, &dst_rect)) {
-        DEBUG_ERROR("Failed to render SDL movie texture! SDL Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("Failed to render SDL movie texture! SDL Error: {}\n", SDL_GetError());
         return false;
     }
 
@@ -151,7 +151,7 @@ bool SDL_Movie_Repaint()
         };
 
         if (!SDL_RenderTexture(SDLWindowRenderer, MovieTexture, nullptr, &dst_rect)) {
-            DEBUG_ERROR("Failed to repaint SDL movie texture! SDL Error: %s\n", SDL_GetError());
+            DEBUG_ERROR("Failed to repaint SDL movie texture! SDL Error: {}\n", SDL_GetError());
             return false;
         }
     }

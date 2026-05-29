@@ -25,8 +25,10 @@
 #include "miniaudio.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "vinifera_thread.h"
 
 #include <algorithm>
+#include <cmath>
 
 
 /**
@@ -56,7 +58,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
 
     using clock = std::chrono::steady_clock;
 
-    try {
+    Vinifera_Run_Thread([self]() {
 
         auto lastTime = clock::now();
 
@@ -199,18 +201,7 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
             self->RequestCV.wait_for(wait_lock, std::chrono::milliseconds(25));
         }
 
-    } catch (const std::runtime_error& e) {
-        (void)e;
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::runtime_error - %s\n", e.what());
-    } catch (const std::logic_error& e) {
-        (void)e;
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::logic_error - %s\n", e.what());
-    } catch (const std::exception& ex) {
-        (void)ex;
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - std::exception - %s\n", ex.what());
-    } catch (...) {
-        AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_THREAD, "AudioThread: EXCEPTION! - Unknown non-std exception occurred!\n");
-    }
+    });
 
     return 0;
 }
@@ -477,7 +468,7 @@ void AudioManagerClass::Process_Play_Request(AudioRequest req)
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: Creating instance of \"%s\".\n", req.Filename.c_str());
 
     auto instance = std::make_unique<AudioInstanceClass>(sample, req.HandleID);
-    ASSERT_FATAL(instance != nullptr, "Failed to create instance of sample \"%s\"!", sample->Get_FileName().c_str());
+    ASSERT_FATAL_PRINT(instance != nullptr, "Failed to create instance of sample \"{}\"!", sample->Get_FileName());
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: About to load sample for \"%s\".\n", req.Filename.c_str());
 
@@ -1686,17 +1677,26 @@ AudioPriorityType AudioManagerClass::Priority_To_AudioPriority(int priority)
 /**
  *  Utility functions for converting integer audio volume (original DSAudio values) to and from float (miniaudio).
  *
+ *  The vanilla DirectSound engine used a logarithmic curve (Convert_HMI_To_Direct_Sound_Volume):
+ *    ds_vol = log10(vol/255) * 3333.3  [hundredths of dB]
+ *    amplitude = 10^(ds_vol/2000) = (vol/255)^(5/3)
+ *  These functions replicate that curve so volume behaviour matches the original engine.
+ *
  *  @author: CCHyper
  */
 unsigned int AudioManagerClass::fVolume_To_iVolume(float vol)
 {
     vol = std::clamp(vol, 0.0f, 1.0f);
-    return (vol * 255);
+    if (vol == 0.0f) return 0;
+    if (vol >= 1.0f) return 255;
+    return static_cast<unsigned int>(std::pow(vol, 3.0f / 5.0f) * 255.0f);
 }
 
 float AudioManagerClass::iVolume_To_fVolume(unsigned int vol)
 {
-    return float(vol) / 255.0f;
+    if (vol == 0) return 0.0f;
+    if (vol >= 255) return 1.0f;
+    return std::pow(static_cast<float>(vol) / 255.0f, 5.0f / 3.0f);
 }
 
 

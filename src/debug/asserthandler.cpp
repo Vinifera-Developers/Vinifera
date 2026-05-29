@@ -20,6 +20,7 @@
 #include "vinifera_globals.h"
 
 #include <windows.h>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -87,7 +88,7 @@ static wchar_t *to_utf16(const char *str)
 }
 
 
-void Vinifera_Assert(AssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...)
+void Vinifera_Assert(AssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, std::string_view msg)
 {
     static const char *_assert_names[] = {
         "NORMAL", "FATAL"
@@ -105,13 +106,12 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         return;
     }
 
-    if (msg == nullptr) {
+    if (msg.empty()) {
         std::strcpy(msgbuff, "No additional information.");
     } else {
-        va_list args;
-        va_start(args, msg);
-        std::vsnprintf(msgbuff, sizeof(msgbuff), msg, args);
-        va_end(args);
+        const size_t len = std::min(msg.size(), sizeof(msgbuff) - 1);
+        std::memcpy(msgbuff, msg.data(), len);
+        msgbuff[len] = '\0';
     }
 
     /**
@@ -260,7 +260,7 @@ void Vinifera_Assert_StackDump()
     DEBUG_ERROR("See call stack in debugger for more information.\n");
     DEBUG_ERROR("\n");
     if (!StackBuffer.empty()) {
-        DEBUG_ERROR(StackBuffer.c_str());
+        DEBUG_ERROR("{}", StackBuffer);
         DEBUG_ERROR("\n");
     }
 

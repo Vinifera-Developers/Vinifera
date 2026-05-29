@@ -28,7 +28,6 @@ ObjectClassExtension::ObjectClassExtension(const ObjectClass *this_ptr) :
     AttachedAmbientSoundType(VOC_NONE),
     AttachedAmbientSound(nullptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("ObjectClassExtension::ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -40,7 +39,6 @@ ObjectClassExtension::ObjectClassExtension(const ObjectClass *this_ptr) :
 ObjectClassExtension::ObjectClassExtension(const NoInitClass &noinit) :
     AbstractClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::ObjectClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -51,8 +49,6 @@ ObjectClassExtension::ObjectClassExtension(const NoInitClass &noinit) :
  */
 ObjectClassExtension::~ObjectClassExtension()
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::~ObjectClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     Stop_Ambient();
 }
 
@@ -64,8 +60,6 @@ ObjectClassExtension::~ObjectClassExtension()
  */
 HRESULT ObjectClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -86,8 +80,6 @@ HRESULT ObjectClassExtension::Load(IStream *pStm)
  */
 HRESULT ObjectClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -106,7 +98,6 @@ HRESULT ObjectClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 void ObjectClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -117,8 +108,6 @@ void ObjectClassExtension::Object_CRC(CRCEngine &crc) const
  */
 const char *ObjectClassExtension::Name() const
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::Name - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return reinterpret_cast<const ObjectClass *>(This())->Class_Of()->Name();
 }
 
@@ -130,8 +119,6 @@ const char *ObjectClassExtension::Name() const
  */
 const char *ObjectClassExtension::Full_Name() const
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::Full_Name - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return reinterpret_cast<const ObjectClass *>(This())->Class_Of()->Full_Name();
 }
 

@@ -49,13 +49,10 @@
 #define IDC_RULE_SELECT                   1188
 #define IDC_RULE_LISTBOX                  1187
 
-#define IDC_EXCEPTION_SAVE                1149
 #define IDC_EXCEPTION_DEBUG               1150
 #define IDC_EXCEPTION_FILENAME            1151
 #define IDC_EXCEPTION_QUIT                1153
-#define IDC_EXCEPTION_MAINMENU            1154
 #define IDC_EXCEPTION_LOG                 1156
-#define IDC_EXCEPTION_CONTINUE            1157
 
 
 /**

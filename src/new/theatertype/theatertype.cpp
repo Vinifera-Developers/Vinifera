@@ -279,7 +279,7 @@ bool TheaterTypeClass::Read_Theaters_INI(CCINIClass &ini)
              */
             theatertype = (TheaterTypeClass *)TheaterTypeClass::Find_Or_Make(buf);
             if (theatertype) {
-                DEV_DEBUG_INFO("Reading TheaterType \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Reading TheaterType \"{}\".\n", buf);
 
                 /**
                  *  
@@ -287,7 +287,7 @@ bool TheaterTypeClass::Read_Theaters_INI(CCINIClass &ini)
                 theatertype->Read_INI(ini);
 
             } else {
-                DEV_DEBUG_WARNING("Error reading TheaterType \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Error reading TheaterType \"{}\"!\n", buf);
             }
 
         }

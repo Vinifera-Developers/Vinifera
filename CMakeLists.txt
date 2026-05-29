@@ -88,6 +88,12 @@ if (MSVC AND MSVC_VERSION GREATER_EQUAL 1914)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
 endif()
 
+# /Zc:preprocessor enables the conformant preprocessor (required for __VA_OPT__
+# used by the std::format-based DEBUG_* logging macros).
+if (MSVC AND MSVC_VERSION GREATER_EQUAL 1924)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+endif()
+
 
 ################################################################################
 # Set custom module path.

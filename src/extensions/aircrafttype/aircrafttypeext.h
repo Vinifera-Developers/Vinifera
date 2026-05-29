@@ -10,7 +10,11 @@
 #pragma once
 
 #include "aircrafttype.h"
+#include "rules.h"
 #include "technotypeext.h"
+#include "tibsun_globals.h"
+
+#include <optional>
 
 
 class DECLSPEC_UUID(UUID_AIRCRAFTTYPE_EXTENSION)
@@ -42,14 +46,17 @@ AircraftTypeClassExtension final : public TechnoTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        bool Get_IsCurleyShuffle() const { return IsCurleyShuffle.value_or(Rule->IsCurleyShuffle); }
+        double Get_ReloadRate() const { return ReloadRate.value_or(Rule->ReloadRate); }
+
     public:
         /**
          *  Should this aircraft shuffle its position between firing at its target?
          */
-        bool IsCurleyShuffle;
+        std::optional<bool> IsCurleyShuffle;
 
         /**
          *  This is the rate that this aircraft will reload its ammo when docked with a helipad.
          */
-        double ReloadRate;
+        std::optional<double> ReloadRate;
 };

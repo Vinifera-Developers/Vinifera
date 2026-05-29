@@ -95,6 +95,19 @@ New:
 - Replace the vanilla audio engine with a miniaudio-backed system for sound effects, music, EVA speech, subtitles, and VQA movie audio (by CCHyper/tomsons26, ZivDero)
 - Add new customizations options for themes, sounds and speeches (by CCHyper/tomsons26, ZivDero)
 - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies (by ZivDero, CCHyper)
+- Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
+- Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
+- Add the ability to snap camera position instantly when using the Center Camera At Waypoint trigger action (by JoyfulShush)
+- Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points (by JoyfulShush)
+- Units and Reveal Around Waypoints trigger actions can now reveal any desired radius (by JoyfulShush)
+- Allow Reveal Around Waypoints trigger actions to specify their reveal radius and whether they take elevation into account (by JoyfulShush)
+- Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
+- Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
+- Allows aircraft to use Q-Move (by JoyfulShush)
+- Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
+- Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
+- Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
+- Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -120,7 +133,6 @@ Vinifera fixes:
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 - Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
-- Fix a bug where aircraft would not dock properly on available Helipads after attacking (by JoyfulShush)
 
 
 Vanilla fixes:
@@ -168,6 +180,9 @@ Vanilla fixes:
 - Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
 - Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree) (by JoyfulShush)
 - Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
+- Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
+- Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
+- Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 
 :::
 
@@ -329,7 +344,7 @@ New:
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 - Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush)
 - Allows aircraft to use Q-Move (by JoyfulShush)
-- Allow Free Radar to be used when players are in low power.
+- Allow Free Radar to be used when players are in low power (by JoyfulShush)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

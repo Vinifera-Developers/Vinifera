@@ -61,8 +61,6 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     IdleWakeAnim(nullptr),
     IronCurtainTimer()
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     for (int i = 0; i < Tiberiums.Count(); i++)
     {
         Storage[i] = 0;
@@ -91,7 +89,6 @@ TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
     Storage(noinit),
     BurstResetTimer(noinit)
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -102,8 +99,6 @@ TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
  */
 TechnoClassExtension::~TechnoClassExtension()
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::~TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (ElectricBolt) {
         delete ElectricBolt;
         ElectricBolt = nullptr;
@@ -128,14 +123,12 @@ TechnoClassExtension::~TechnoClassExtension()
  */
 HRESULT TechnoClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = RadioClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    Load_Primitive_Vector(pStm, Storage, "Storage");
+    Load_Primitive_Vector(pStm, Storage);
 
     ElectricBolt = nullptr;
 
@@ -155,14 +148,12 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
  */
 HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = RadioClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
 
-    Save_Primitive_Vector(pStm, Storage, "Storage");
+    Save_Primitive_Vector(pStm, Storage);
 
     return hr;
 }
@@ -199,8 +190,6 @@ void TechnoClassExtension::On_Detach(AnimClass *target, bool all)
  */
 void TechnoClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     RadioClassExtension::Object_CRC(crc);
 
     if (SpawnOwner) {
@@ -216,8 +205,6 @@ void TechnoClassExtension::Object_CRC(CRCEngine &crc) const
  */
 EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coord &source_coord)
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Zap - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     EBoltClass *ebolt = new EBoltClass;
     if (!ebolt) {
         return nullptr;
@@ -254,8 +241,6 @@ EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int whic
  */
 EBoltClass * TechnoClassExtension::Electric_Bolt(AbstractClass * target)
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Bolt - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WeaponSlotType which = This()->What_Weapon_Should_I_Use(target);
     const WeaponTypeClass *weapontype = This()->Get_Weapon(which)->Weapon;
     Coord fire_coord = This()->Fire_Coord(which);
@@ -263,7 +248,6 @@ EBoltClass * TechnoClassExtension::Electric_Bolt(AbstractClass * target)
     EBoltClass *ebolt = Electric_Zap(target, which, weapontype, fire_coord);
     if (ebolt) {
         if (This()->IsActive) {
-
             /**
              *  Remove existing electric bolt from the object.
              */
@@ -290,8 +274,6 @@ EBoltClass * TechnoClassExtension::Electric_Bolt(AbstractClass * target)
  */
 void TechnoClassExtension::Response_Capture()
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Capture - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AllowVoice) {
         return;
     }
@@ -325,8 +307,6 @@ void TechnoClassExtension::Response_Capture()
  */
 void TechnoClassExtension::Response_Enter()
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Enter - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AllowVoice) {
         return;
     }
@@ -360,8 +340,6 @@ void TechnoClassExtension::Response_Enter()
  */
 void TechnoClassExtension::Response_Deploy()
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Deploy - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AllowVoice) {
         return;
     }
@@ -395,8 +373,6 @@ void TechnoClassExtension::Response_Deploy()
  */
 void TechnoClassExtension::Response_Harvest()
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Harvest - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AllowVoice) {
         return;
     }
@@ -430,10 +406,7 @@ void TechnoClassExtension::Response_Harvest()
  */
 bool TechnoClassExtension::Can_Passive_Acquire() const
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Can_Passive_Acquire - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if ((!This()->Is_Renovator() || !This()->House->Is_Human_Player()) && This()->Is_Weapon_Equipped()) {
-
         /**
          *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
          */
@@ -452,8 +425,6 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
  */
 int TechnoClassExtension::Time_To_Build() const
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Time_To_Build - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const TechnoTypeClassExtension* technotypeext = Techno_Type_Class_Ext();
 
     int time = Techno_Type_Class()->Time_To_Build();

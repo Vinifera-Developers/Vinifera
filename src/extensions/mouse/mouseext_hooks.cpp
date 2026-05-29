@@ -17,13 +17,18 @@
 #include "hooker.h"
 #include "mouse.h"
 #include "mousetype.h"
+#include "sdlmouse.h"
 #include "syringe.h"
 #include "techno.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
+#include "vinifera_imgui.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
+#include "windialog.h"
 #include "wwmouse.h"
+
+#include <imgui.h>
 
 
 /**
@@ -112,26 +117,84 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
 
 
 /**
+ *  Maps an ImGui cursor shape to an SDL system cursor id.
+ */
+static SDL_SystemCursor Map_ImGui_Cursor(ImGuiMouseCursor c)
+{
+    switch (c) {
+    case ImGuiMouseCursor_TextInput:  return SDL_SYSTEM_CURSOR_TEXT;
+    case ImGuiMouseCursor_ResizeAll:  return SDL_SYSTEM_CURSOR_MOVE;
+    case ImGuiMouseCursor_ResizeNS:   return SDL_SYSTEM_CURSOR_NS_RESIZE;
+    case ImGuiMouseCursor_ResizeEW:   return SDL_SYSTEM_CURSOR_EW_RESIZE;
+    case ImGuiMouseCursor_ResizeNESW: return SDL_SYSTEM_CURSOR_NESW_RESIZE;
+    case ImGuiMouseCursor_ResizeNWSE: return SDL_SYSTEM_CURSOR_NWSE_RESIZE;
+    case ImGuiMouseCursor_Hand:       return SDL_SYSTEM_CURSOR_POINTER;
+    case ImGuiMouseCursor_Wait:       return SDL_SYSTEM_CURSOR_WAIT;
+    case ImGuiMouseCursor_Progress:   return SDL_SYSTEM_CURSOR_PROGRESS;
+    case ImGuiMouseCursor_NotAllowed: return SDL_SYSTEM_CURSOR_NOT_ALLOWED;
+    default:                          return SDL_SYSTEM_CURSOR_DEFAULT;
+    }
+}
+
+
+/**
  *  Process player input as it relates to the mouse.
  *
  *  @author: 12/24/1994 JLB - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun.
  *           CCHyper - Change use of MouseControl to MouseTypes.
+ *           ZivDero - Override the OS cursor for Windows dialogs and ImGui.
  */
 void MouseClassExt::_AI(KeyNumType &input, Point2D &xy)
 {
-    MouseTypeClass const * control = MouseTypes[CurrentMouseShape];
+    SDLMouseClass* sdl_mouse = static_cast<SDLMouseClass*>(MouseCursor);
 
-    if (((IsSmall && control->SmallFrameRate) || control->FrameRate) && Timer == 0) {
+    /**
+     *  Decide up front; apply at the end. ScrollClass::AI runs the game's
+     *  hover logic and may call Override_Mouse_Shape, which would otherwise
+     *  clobber our override mid-tick.
+     */
+    bool want_override = false;
+    bool want_hide = false;
+    SDL_SystemCursor override_id = SDL_SYSTEM_CURSOR_DEFAULT;
 
-        Frame++;
-        Frame %= IsSmall ? control->SmallFrameCount : control->FrameCount;
-        Timer = IsSmall ? control->SmallFrameRate : control->FrameRate;
+    if (WSDialogCount > 0) {
+        want_override = true;
+    } else if (ViniferaImGui::Is_Initialized()) {
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse) {
+            ImGuiMouseCursor c = ImGui::GetMouseCursor();
+            if (c == ImGuiMouseCursor_None || io.MouseDrawCursor) {
+                want_hide = true;
+            } else {
+                want_override = true;
+                override_id = Map_ImGui_Cursor(c);
+            }
+        }
+    }
 
-        MouseCursor->Set_Cursor(Get_Mouse_Hotspot(CurrentMouseShape), MouseShapes, Get_Mouse_Current_Frame(CurrentMouseShape, IsSmall));
+    if (!want_override && !want_hide) {
+        MouseTypeClass const * control = MouseTypes[CurrentMouseShape];
+
+        if (((IsSmall && control->SmallFrameRate) || control->FrameRate) && Timer == 0) {
+
+            Frame++;
+            Frame %= IsSmall ? control->SmallFrameCount : control->FrameCount;
+            Timer = IsSmall ? control->SmallFrameRate : control->FrameRate;
+
+            MouseCursor->Set_Cursor(Get_Mouse_Hotspot(CurrentMouseShape), MouseShapes, Get_Mouse_Current_Frame(CurrentMouseShape, IsSmall));
+        }
     }
 
     ScrollClass::AI(input, xy);
+
+    if (want_hide) {
+        sdl_mouse->Hide_Override_Cursor();
+    } else if (want_override) {
+        sdl_mouse->Set_Override_System_Cursor(override_id);
+    } else {
+        sdl_mouse->Clear_Cursor_Override();
+    }
 }
 
 
@@ -170,7 +233,7 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
         MouseTypeClass const * control = MouseTypes[mouse];
 
         int hotspot_x = IsSmall ? control->SmallHotspot.X : control->Hotspot.X;
-        int hotspot_y = IsSmall ? control->SmallHotspot.X : control->Hotspot.X;
+        int hotspot_y = IsSmall ? control->SmallHotspot.Y : control->Hotspot.Y;
 
         switch (hotspot_x) {
             case MOUSE_HOTSPOT_CENTER:

@@ -128,8 +128,6 @@ LONG RocketTypeClass::QueryInterface(REFIID riid, LPVOID* ppv)
  */
 ULONG RocketTypeClass::AddRef()
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::AddRef - 0x%08X\n", (uintptr_t)(this));
-
     return 1;
 }
 
@@ -141,8 +139,6 @@ ULONG RocketTypeClass::AddRef()
  */
 ULONG RocketTypeClass::Release()
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::Release - 0x%08X\n", (uintptr_t)(this));
-
     return 1;
 }
 
@@ -154,8 +150,6 @@ ULONG RocketTypeClass::Release()
  */
 HRESULT RocketTypeClass::GetClassID(CLSID* lpClassID)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(this));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -173,8 +167,6 @@ HRESULT RocketTypeClass::GetClassID(CLSID* lpClassID)
  */
 HRESULT RocketTypeClass::IsDirty()
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::IsDirty - 0x%08X\n", (uintptr_t)(this));
-
     return S_OK;
 }
 
@@ -187,8 +179,6 @@ HRESULT RocketTypeClass::IsDirty()
  */
 HRESULT RocketTypeClass::Load(IStream* pStm)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::Load - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -234,8 +224,6 @@ HRESULT RocketTypeClass::Load(IStream* pStm)
  */
 HRESULT RocketTypeClass::Save(IStream* pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::Internal_Save - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -245,7 +233,7 @@ HRESULT RocketTypeClass::Save(IStream* pStm, BOOL fClearDirty)
      */
     const LONG id = reinterpret_cast<LONG>(this);
 
-    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
 
     HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
@@ -271,8 +259,6 @@ HRESULT RocketTypeClass::Save(IStream* pStm, BOOL fClearDirty)
  */
 LONG RocketTypeClass::GetSizeMax(ULARGE_INTEGER* pcbSize)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::GetSizeMax - 0x%08X\n", (uintptr_t)(this));
-
     if (!pcbSize) {
         return E_POINTER;
     }

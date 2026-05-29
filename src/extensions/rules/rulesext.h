@@ -255,17 +255,23 @@ public:
     bool IsAIOneHarvesterInSingleplayer;
 
     /**
-     *  Determines whether repairs would pause instead of stopping when a house has insufficient funds.
-     */
-    bool IsPauseRepairs;
-
-    /**
      *  Determines the wrench shape frame that should be used while repairs are paused.
      */
     int PausedRepairsFrame;
 
-    /**
-     *  Determines whether Free Radar would still apply even during Low Power
-     */
-    int IsFreeRadarOnLowPower;
+	*  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) can be separated from its guard target
+	*  before it moves again to its guard target's position.
+	*/
+	int EscortRange;
+
+	/**
+	 *  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) will keep engaging its current target
+	 *  before abandoning it and going back to escort its guard target.
+	 */
+	int AbandonTargetEscortRange;
+
+	/**
+	 *  Determines whether Free Radar would still apply even during Low Power
+	 */
+	int IsFreeRadarOnLowPower;
 };

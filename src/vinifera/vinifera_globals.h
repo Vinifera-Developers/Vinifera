@@ -14,6 +14,7 @@
 #include "vector.h"
 
 #include <unordered_map>
+#include <windows.h>
 
 
 class PrerequisiteGroupClass;
@@ -50,6 +51,12 @@ extern char Vinifera_ProjectName[64];
 extern char Vinifera_ProjectVersion[64];
 extern char Vinifera_IconName[64];
 extern char Vinifera_CursorName[64];
+
+/**
+ *  Captured in DllMain DLL_PROCESS_ATTACH. Used by the exception handler to
+ *  decide whether it can safely show a modal dialog or touch UI/DirectDraw state.
+ */
+extern DWORD Vinifera_MainThreadId;
 
 
 /**
@@ -110,6 +117,7 @@ extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
+extern bool Vinifera_PlayerOptionsSent;
 
 /**
  *  Global vectors and heaps.
@@ -134,7 +142,6 @@ extern bool Vinifera_SkipToSkirmish;
 extern bool Vinifera_SkipToCampaign;
 extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
-
 
 /**
  *  Definition for the exception database struct. If you update this

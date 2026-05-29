@@ -175,6 +175,11 @@ This page lists all the individual contributions to the project by their author.
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
   - Add Q-Move support for aircraft.
   - Fix a bug where aircraft would not dock properly on available Helipads after attacking.
+  - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving. 
+  - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
+  - Fix a vanilla bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
+  - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit.
+  - Fix a bug where AI medics would fail to heal their allies.
   - Allow Free Radar to remain active when players are in low power.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
@@ -258,6 +263,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
   - Vinifera's Developer mode now prints information on executed trigger actions.
   - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
+  - Allow repairs to be paused instead of stopped when a house has insufficient funds.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -386,3 +392,5 @@ This page lists all the individual contributions to the project by their author.
   - Add subtitle rendering for EVA speeches with customizable styling and a category filter.
   - Add `Attach Sound`, `Detach Sound`, and `Stop Sounds At` trigger actions for managing ambient sounds from scripts.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
+  - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.
+  - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.

@@ -18,6 +18,7 @@
 #include "vinifera_globals.h"
 
 #include <dbghelp.h>
+#include <mutex>
 #include <windows.h>
 #include <tlhelp32.h> // Must be after windows.h!
 
@@ -44,7 +45,7 @@ char MinidumpFilename[PATH_MAX] = { '\0' };
 /**
  *  Creates a new file and dumps the exception info into it.
  */
-bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, const char *path)
+bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, const char *path, DWORD crashed_tid)
 {
     static FastCriticalSectionClass MiniDumpCriticalSection;;
     FastCriticalSectionClass::LockClass critsection(MiniDumpCriticalSection);
@@ -87,7 +88,7 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
 
     HANDLE dump_file = CreateFile(MinidumpFilename, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_FLAG_WRITE_THROUGH, nullptr);
     if (dump_file == INVALID_HANDLE_VALUE) {
-        DEBUG_FATAL("Failed to create minidump file with filename \"%s\"! (error %d).", MinidumpFilename, GetLastError());
+        DEBUG_FATAL("Failed to create minidump file with filename \"{}\"! (error {}).", MinidumpFilename, GetLastError());
         return false;
     }
 
@@ -102,23 +103,31 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
 
     MINIDUMP_EXCEPTION_INFORMATION md_e_info;
     ZeroMemory(&md_e_info, sizeof(MINIDUMP_EXCEPTION_INFORMATION));
-    md_e_info.ThreadId = GetCurrentThreadId();
+    /**
+     *  ThreadId must be the CRASHING thread. When the dump runs on the dumper
+     *  thread (see exceptionhandler.cpp) that isn't the current thread, so the
+     *  caller passes the TID; 0 means "use the calling thread".
+     */
+    md_e_info.ThreadId = (crashed_tid != 0) ? crashed_tid : GetCurrentThreadId();
     md_e_info.ExceptionPointers = e_info; // Exception data is optional and can be NULL.
     md_e_info.ClientPointers = FALSE;
 
     //DEBUG_WARNING("Create_Mini_Dump() - About to call MiniDumpWriteDump.\n");
 
-    MiniDumpWriteDump(GetCurrentProcess(),
-        GetCurrentProcessId(),
-        dump_file,
-        flags,
-        &md_e_info,
-        nullptr,
-        nullptr);
+    {
+        std::scoped_lock dbghelp_lock(DbgHelpMutex);
+        MiniDumpWriteDump(GetCurrentProcess(),
+            GetCurrentProcessId(),
+            dump_file,
+            flags,
+            e_info != nullptr ? &md_e_info : nullptr,
+            nullptr,
+            nullptr);
+    }
 
     CloseHandle(dump_file);
 
-    DEBUG_WARNING("Minidump generated: \"%s\".\n", MinidumpFilename);
+    DEBUG_WARNING("Minidump generated: \"{}\".\n", MinidumpFilename);
 
     return true;
 }

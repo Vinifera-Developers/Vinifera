@@ -23,16 +23,6 @@
 #endif
 
 /**
- *  Enable debug printing of class extension creation and destruction process.
- * 
- *  WARNING: This will slow the game down when many instances are created at once.
- */
-#ifndef NDEBUG
-//#define VINIFERA_ENABLE_EXTENSION_DEBUG_PRINTING 1
-#endif
-
-
-/**
  *  CLSIDs for all new locomotors.
  */
 #define CLSID_TEST_LOCOMOTOR                "501DEF92-C7ED-448E-8FEB-7908DCE73377"
@@ -294,7 +284,7 @@ enum ExtEventType {
     /**
      *  Add new ExtEventTypes from here.
      */
-    
+    EXT_EVENT_PLAYER_OPTIONS,
 
     /**
      *  The new total ExtEventTypes count.

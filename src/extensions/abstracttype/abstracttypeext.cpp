@@ -27,7 +27,6 @@ AbstractTypeClassExtension::AbstractTypeClassExtension(const AbstractTypeClass *
     GivenName(),
     IsInitialized(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AbstractTypeClassExtension::AbstractTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -41,7 +40,6 @@ AbstractTypeClassExtension::AbstractTypeClassExtension(const NoInitClass &noinit
     IniName(noinit),
     GivenName(noinit)
 {
-    //EXT_DEBUG_TRACE("AbstractTypeClassExtension::AbstractTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -52,7 +50,6 @@ AbstractTypeClassExtension::AbstractTypeClassExtension(const NoInitClass &noinit
  */
 AbstractTypeClassExtension::~AbstractTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("AbstractTypeClassExtension::~AbstractTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -63,8 +60,6 @@ AbstractTypeClassExtension::~AbstractTypeClassExtension()
  */
 HRESULT AbstractTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AbstractTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return hr;
@@ -81,8 +76,6 @@ HRESULT AbstractTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT AbstractTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AbstractTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-    
     /**
      *  Store the name strings as raw data, these are used by the load operation.
      */
@@ -105,10 +98,7 @@ HRESULT AbstractTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 const char *AbstractTypeClassExtension::Name() const
 {
-    //EXT_DEBUG_TRACE("AbstractTypeClassExtension::Name - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char *name = reinterpret_cast<const AbstractTypeClass *>(This())->Name();
-    //EXT_DEBUG_INFO("AbstractTypeClassExtension: Name -> %s.\n", name);
     return name;
 }
 
@@ -120,10 +110,7 @@ const char *AbstractTypeClassExtension::Name() const
  */
 const char *AbstractTypeClassExtension::Full_Name() const
 {
-    //EXT_DEBUG_TRACE("AbstractTypeClassExtension::Full_Name - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char *name = reinterpret_cast<const AbstractTypeClass *>(This())->Full_Name();
-    //EXT_DEBUG_INFO("AbstractTypeClassExtension: Full_Name -> %s.\n", name);
     return name;
 }
 
@@ -135,8 +122,6 @@ const char *AbstractTypeClassExtension::Full_Name() const
  */
 bool AbstractTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("AbstractTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {

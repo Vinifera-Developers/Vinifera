@@ -91,7 +91,7 @@ bool Write_PNG_File(FileClass *name, Surface &pic, const PaletteClass *palette, 
      *  Handle any errors.
      */
     if (error) {
-        DEBUG_ERROR("lodepng_encode error %u: %s\n", error, lodepng_error_text(error));
+        DEBUG_ERROR("lodepng_encode error {}: {}\n", error, lodepng_error_text(error));
         return false;
     }
 
@@ -192,8 +192,8 @@ BSurface *Read_PNG_File(FileClass *name, unsigned char *palette, void *buff, lon
 
 
 #ifndef NDEBUG
-    DEBUG_INFO("Read_PNG_File() - bitdepth: %d, colortype: %d.\n",
-        state.info_raw.bitdepth, state.info_raw.colortype);
+    DEBUG_INFO("Read_PNG_File() - bitdepth: {}, colortype: {}.\n",
+        state.info_raw.bitdepth, (int)state.info_raw.colortype);
 #endif
 
     if (buff) {

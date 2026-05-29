@@ -139,6 +139,8 @@ DEFINE_HOOK(0x005DC85A, _Clear_Scenario_Patch, 0)
     Clear_Tracked_Static_Sounds();
     IonAmbient::Stop();
 
+    Vinifera_PlayerOptionsSent = false;
+
     return 0x005DC872;
 }
 
@@ -248,7 +250,7 @@ static bool Rule_Addition(const char *fname, bool with_digest = false)
         return false;
     }
 
-    DEBUG_INFO("Calling Rule->Addition() with \"%s\" overrides.\n", fname);
+    DEBUG_INFO("Calling Rule->Addition() with \"{}\" overrides.\n", fname);
 
     Rule->Addition(ini);
 

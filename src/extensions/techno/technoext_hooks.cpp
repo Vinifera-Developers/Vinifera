@@ -13,6 +13,7 @@
 
 #include "aircraft.h"
 #include "asserthandler.h"
+#include "audio_vox.h"
 #include "buildingext.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
@@ -666,7 +667,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeEliteSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
 
                 /**
@@ -680,7 +681,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeVeteranSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
             }
 
@@ -2019,7 +2020,7 @@ DEFINE_HOOK(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 5)
          *  This is legacy behavior similar to that of Red Alert.
          */
         if (weapontypeext->IsSuicide && weapontypeext->IsDeleteOnSuicide) {
-            DEV_DEBUG_INFO("Deleted: %s\n", this_ptr->Name());
+            DEV_DEBUG_INFO("Deleted: {}\n", this_ptr->Name());
             this_ptr->Delete_Me();
 
         /**
@@ -2503,7 +2504,7 @@ DEFINE_HOOK(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 6)
     
     HouseClass* house = this_ptr->House;
     if (!house) {
-        DEBUG_WARNING("Techno \"%s\" has an invalid house!", this_ptr->Name());
+        DEBUG_WARNING("Techno \"{}\" has an invalid house!", this_ptr->Name());
         Vinifera_DeveloperMode_Warning_WWMessageBox("Techno \"%s\" has an invalid house!", this_ptr->Name());
         Fatal("Null house pointer in TechnoClass::Owner!\n");
     }
@@ -3397,6 +3398,27 @@ DEFINE_HOOK(0x00637F0B, _TechnoClass_Find_Docking_Bay_Unoccupied_Aircraft_Patch,
     }
 
     return 0;
+}
+
+
+/**
+ *  Reimplements TechnoClass::AI where the game tests for AI units that are firing upon a target that is allied.
+ *  Fixes an issue where it would cause medics (and by extension: mechanics and omnihealers) to constantly lose their targeting,
+ *  causing them to never finish their "attack" animation and never actually heal the target unless they were prone.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+
+    if (this_ptr->Combat_Damage() >= 0) {
+        if (this_ptr->RTTI != RTTI_AIRCRAFT && (this_ptr->RTTI != RTTI_INFANTRY || !((InfantryClass*)this_ptr)->Class->IsEngineer)) {
+            this_ptr->Assign_Target(NULL);
+        }
+    }
+
+    return 0x0062E7DD;
 }
 
 

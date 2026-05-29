@@ -24,8 +24,6 @@
 WaveClassExtension::WaveClassExtension(const WaveClass *this_ptr) :
     ObjectClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("WaveClassExtension::WaveClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     WaveExtensions.Add(this);
 }
 
@@ -38,7 +36,6 @@ WaveClassExtension::WaveClassExtension(const WaveClass *this_ptr) :
 WaveClassExtension::WaveClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::WaveClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -49,8 +46,6 @@ WaveClassExtension::WaveClassExtension(const NoInitClass &noinit) :
  */
 WaveClassExtension::~WaveClassExtension()
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::~WaveClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     WaveExtensions.Delete(this);
 }
 
@@ -62,8 +57,6 @@ WaveClassExtension::~WaveClassExtension()
  */
 HRESULT WaveClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -81,8 +74,6 @@ HRESULT WaveClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT WaveClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -101,8 +92,6 @@ HRESULT WaveClassExtension::Load(IStream *pStm)
  */
 HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -119,8 +108,6 @@ HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WaveClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -134,5 +121,4 @@ int WaveClassExtension::Get_Object_Size() const
  */
 void WaveClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }

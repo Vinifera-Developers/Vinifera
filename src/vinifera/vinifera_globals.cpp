@@ -35,6 +35,8 @@ char Vinifera_ProjectVersion[64] = { '\0' };
 char Vinifera_IconName[64] = { '\0' };
 char Vinifera_CursorName[64] = { '\0' };
 
+DWORD Vinifera_MainThreadId = 0;
+
 bool Vinifera_Developer_InstantBuild = false;
 bool Vinifera_Developer_AIInstantBuild = false;
 bool Vinifera_Developer_InstantSuperRecharge = false;
@@ -83,6 +85,8 @@ KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;
 
 int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
+
+bool Vinifera_PlayerOptionsSent = false;
 
 std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 

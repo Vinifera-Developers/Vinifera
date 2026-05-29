@@ -23,8 +23,6 @@
 InfantryClassExtension::InfantryClassExtension(const InfantryClass *this_ptr) :
     FootClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("InfantryClassExtension::InfantryClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     InfantryExtensions.Add(this);
 }
 
@@ -37,7 +35,6 @@ InfantryClassExtension::InfantryClassExtension(const InfantryClass *this_ptr) :
 InfantryClassExtension::InfantryClassExtension(const NoInitClass &noinit) :
     FootClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::InfantryClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -48,8 +45,6 @@ InfantryClassExtension::InfantryClassExtension(const NoInitClass &noinit) :
  */
 InfantryClassExtension::~InfantryClassExtension()
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::~InfantryClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     InfantryExtensions.Delete(this);
 }
 
@@ -61,8 +56,6 @@ InfantryClassExtension::~InfantryClassExtension()
  */
 HRESULT InfantryClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -80,8 +73,6 @@ HRESULT InfantryClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT InfantryClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = FootClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -100,8 +91,6 @@ HRESULT InfantryClassExtension::Load(IStream *pStm)
  */
 HRESULT InfantryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = FootClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -118,8 +107,6 @@ HRESULT InfantryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int InfantryClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
@@ -133,5 +120,4 @@ int InfantryClassExtension::Get_Object_Size() const
  */
 void InfantryClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
