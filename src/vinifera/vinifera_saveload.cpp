@@ -227,7 +227,7 @@ static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, 
 }
 
 template<typename TKey, typename TValue, typename THash, typename TEqual>
-static HRESULT Vinifera_Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
+static HRESULT Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
 {
     DEBUG_INFO("Saving unordered map {}...\n", heap_name);
 
@@ -278,7 +278,7 @@ static HRESULT Vinifera_Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TK
  * Loads a map of objects from the data stream.
  */
 template<typename TKey, typename TValue, typename THash, typename TEqual>
-static HRESULT Vinifera_Load_Unordered_Map(IStream* pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
+static HRESULT Load_Unordered_Map(IStream* pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
 {
     DEBUG_INFO("Loading unordered map {}...\n", heap_name);
     
@@ -487,7 +487,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      *  Save the bridge health tracker map
      */
     DEBUG_INFO("Saving bridge health trackers\n");
-    if (FAILED(Vinifera_Save_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
+    if (FAILED(Save_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
         return false;
     }
 
@@ -757,7 +757,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  Load the bridge health tracker map
      */
     DEBUG_INFO("Loading bridge health trackers\n");
-    if (FAILED(Vinifera_Load_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
+    if (FAILED(Load_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
         return false;
     }
 

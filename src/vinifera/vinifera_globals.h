@@ -180,8 +180,4 @@ struct CellHasher {
     }
 };
 
-struct CellEqual {
-    bool operator()(const Cell left_cell, const Cell right_cell) const { return left_cell.X == right_cell.X && left_cell.Y == right_cell.Y; }
-};
-
-extern std::unordered_map<Cell, int, CellHasher, CellEqual> BridgeHealths;
+extern std::unordered_map<Cell, int, CellHasher> BridgeHealths;
