@@ -109,6 +109,7 @@ New:
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 - Allow Free Radar to be used when players are in low power (by JoyfulShush)
+- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

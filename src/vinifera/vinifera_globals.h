@@ -10,6 +10,7 @@
 #pragma once
 
 #include "ccfile.h"
+#include "cell.h"
 #include "extension_globals.h"
 #include "vector.h"
 
@@ -168,3 +169,15 @@ struct ExceptionInfoDatabaseStruct
 };
 
 extern DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;
+
+struct CellHasher {
+    std::size_t operator()(const Cell cell) const
+    {
+        int X = cell.X;
+        int Y = cell.Y;
+
+        return X << 16 | Y;
+    }
+};
+
+extern std::unordered_map<Cell, int, CellHasher> BridgeHealths;
