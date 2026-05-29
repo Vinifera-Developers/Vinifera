@@ -2189,7 +2189,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
 void ScenarioClassExtension::Assign_Houses()
 {
     bool assigned[MAX_PLAYERS] = {};   // true = this house slot is in use.
-    bool color_used[MAX_PLAYERS] = {}; // true = this color is in use.
+    std::vector<bool> color_used(ColorSchemes.Count()); // true = this color is in use.
 
     DEBUG_INFO("Assign_Houses(enter)\n");
 
