@@ -27,6 +27,7 @@
 #include "mouse.h"
 #include "options.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "sideext.h"
 #include "syringe.h"
 #include "technotype.h"
@@ -38,7 +39,6 @@
 #include "vinifera_globals.h"
 #include "voc.h"
 #include "wwkeyboard.h"
-#include "rulesext.h"
 
 
 /**
