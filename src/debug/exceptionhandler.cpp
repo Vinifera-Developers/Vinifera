@@ -548,9 +548,9 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     Exception_Printf("\r\n");
 
     Exception_Printf("Project information:\r\n");
-    if (Vinifera_ProjectName[0] != '\0') {
-        Exception_Printf("Title: %s\r\n", Vinifera_ProjectName);
-        Exception_Printf("Version: %s\r\n", Vinifera_ProjectVersion);
+    if (!Vinifera_ProjectName.empty()) {
+        Exception_Printf("Title: %s\r\n", Vinifera_ProjectName.c_str());
+        Exception_Printf("Version: %s\r\n", Vinifera_ProjectVersion.c_str());
         Exception_Printf("\r\n");
     }
 

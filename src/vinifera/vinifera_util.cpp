@@ -422,7 +422,7 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
     }
 
     char title_buff[32];
-    if (Vinifera_ProjectName[0] != '\0') {
+    if (!Vinifera_ProjectName.empty()) {
         std::strncpy(title_buff, Vinifera_ProjectName.c_str(), sizeof(title_buff));
     } else {
         std::strncpy(title_buff, Text_String(TXT_SHORT_TITLE), sizeof(title_buff));
