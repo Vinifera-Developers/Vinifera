@@ -249,21 +249,16 @@ static HRESULT Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TKey, TValu
     DEBUG_INFO("  Count: {}\n", count);
 
     /**
-     *  Iterate through the map.
-     *  In an unordered_map, 'it->first' is the Key (CellClass)
-     *  and 'it->second' is the Value (int).
+     *  Iterate through the map.     
      */
     for (auto const& [key, val] : map) {
-
-        // 1. Save the Key data (X and Y coordinates)
-        // We write the raw memory of the CellClass instance
+        
         hr = pStm->Write(&key, sizeof(TKey), nullptr);
         if (FAILED(hr)) {
             DEBUG_ERROR("  Failed to write Key data!\n");
             return hr;
         }
-
-        // 2. Save the Value (the int)
+        
         hr = pStm->Write(&val, sizeof(TValue), nullptr);
         if (FAILED(hr)) {
             DEBUG_ERROR("  Failed to write Value data!\n");
