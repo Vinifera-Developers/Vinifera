@@ -270,4 +270,9 @@ public:
      *  before abandoning it and going back to escort its guard target.
      */
     int AbandonTargetEscortRange;
+
+	/**
+	 *  Determines whether Free Radar would still apply even during Low Power
+	 */
+	int IsFreeRadarOnLowPower;
 };

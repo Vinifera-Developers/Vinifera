@@ -103,7 +103,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsAIOneHarvesterInSingleplayer(true),
     PausedRepairsFrame(6),
     EscortRange(-1),
-    AbandonTargetEscortRange(-1)
+    AbandonTargetEscortRange(-1),
+	IsFreeRadarOnLowPower(false)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -260,6 +261,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(PausedRepairsFrame);
     crc(EscortRange);
     crc(AbandonTargetEscortRange);
+    crc(IsFreeRadarOnLowPower);
 }
 
 
@@ -692,6 +694,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
     EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
+    IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

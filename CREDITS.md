@@ -181,6 +181,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a vanilla bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
   - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit.
   - Fix a bug where AI medics would fail to heal their allies.
+  - Allow Free Radar to remain active when players are in low power.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
