@@ -79,7 +79,7 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 ![Score screen colors in DTA:CR](https://github.com/user-attachments/assets/bc901430-abfc-4b8e-9648-107d07b7eafe)
 
 ### Free Radar
-- Free Radar can now be made to work even while the player is in low power. The scenario must enable Free Radar (`FreeRadar=yes`) for this feature to be considered.
+- Free Radar can now be made to work even while the player's house is low power. The scenario must enable Free Radar (`FreeRadar=yes`) for this to take effect.
 - Note that Ion Storms will still cause radars to be turned off for their duration.
 
 In `RULES.INI` or a scenario file:
