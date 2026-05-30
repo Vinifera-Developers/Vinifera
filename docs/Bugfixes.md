@@ -99,3 +99,31 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the last line of an INI file would not be parsed.
 - Fix incorrect merging of sections and keys in INI files.
 - Fix game end text being stretched horizontally.
+- Fix a bug where upon restoring focus to the window the last theme would play twice.
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+- Fix a bug where hijackers are able to hijack vehicles of their allies.
+- Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- Fix a bug where friendly Spies appeared as disguised.
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
+- Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+- Fix an edge case crash when AI is attempting to find a location to place a structure to.
+- Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, granting massive veterancy bonuses to their attackers.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
+- Removes incremental reveal logic when setting `RevealByHeight=no`, which could in some cases cause units with high `Sight` value to not reveal shroud close to them.
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation.
+- Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors.
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
+- Fix a bug where the map would accept input while the user was in a dialog window.
+- Fix a bug where the sidebar could only contain up to 75 items on a strip.
+- Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
+- Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
+- Fix a bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
+- Fix a bug where AI medics would fail to heal their allies.
+- Fix a bug that would make healer units unselect themselves when adding other units to current selection.
+- Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.

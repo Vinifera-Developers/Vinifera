@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended WarheadTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          WARHEADTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended WarheadTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -78,8 +59,6 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     IsVolumetric(false),
     IsSnapToCellCenter(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WarheadTypeExtensions.Add(this);
 }
 
@@ -93,7 +72,6 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) 
     AbstractTypeClassExtension(noinit),
     CellAnim(noinit)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -104,8 +82,6 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) 
  */
 WarheadTypeClassExtension::~WarheadTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::~WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WarheadTypeExtensions.Delete(this);
 }
 
@@ -117,8 +93,6 @@ WarheadTypeClassExtension::~WarheadTypeClassExtension()
  */
 HRESULT WarheadTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -136,8 +110,6 @@ HRESULT WarheadTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     CellAnim.Clear();
 
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
@@ -147,7 +119,7 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 
     new (this) WarheadTypeClassExtension(NoInitClass());
 
-    CellAnim.Load(pStm);
+    CellAnim.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(CellAnim, "CellAnim");
     
@@ -162,14 +134,12 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
 
-    CellAnim.Save(pStm);
+    CellAnim.Save_Self(pStm);
 
     return hr;
 }
@@ -182,21 +152,10 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WarheadTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void WarheadTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -206,8 +165,6 @@ void WarheadTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void WarheadTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsWallAbsoluteDestroyer);
     crc(IsAffectsAllies);
     crc(CombatLightSize);
@@ -241,8 +198,6 @@ void WarheadTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }

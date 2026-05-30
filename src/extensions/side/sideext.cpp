@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended SideClass class.
  *
- *  @project       Vinifera
- *
- *  @file          SIDETYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended SideClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -60,8 +41,6 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     PowerTurbine(nullptr),
     HunterSeeker(nullptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SideExtensions.Add(this);
 }
 
@@ -74,7 +53,6 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
 SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -85,8 +63,6 @@ SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
  */
 SideClassExtension::~SideClassExtension()
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::~SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SideExtensions.Delete(this);
 }
 
@@ -98,8 +74,6 @@ SideClassExtension::~SideClassExtension()
  */
 HRESULT SideClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -117,8 +91,6 @@ HRESULT SideClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SideClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -146,8 +118,6 @@ HRESULT SideClassExtension::Load(IStream *pStm)
  */
 HRESULT SideClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -164,21 +134,10 @@ HRESULT SideClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SideClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void SideClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("SideClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -188,7 +147,6 @@ void SideClassExtension::Detach(AbstractClass * target, bool all)
  */
 void SideClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -199,7 +157,7 @@ void SideClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool SideClassExtension::Read_INI(CCINIClass &ini)
 {
-    //DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: {} (0x{:08X})\n", Name(), (uintptr_t)(This()));
 
     const char* ini_name = Name();
 

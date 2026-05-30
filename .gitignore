@@ -68,3 +68,9 @@ docs/_build/
 
 # AI Agents
 .claude/
+
+# JetBrains
+.idea/
+
+# repowise API keys (local)
+.repowise/.env

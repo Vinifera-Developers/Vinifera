@@ -14,7 +14,25 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Pre-placed units can now have missions in multiplayer.
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
 - Improve alternative factory selection when the primary factory is blocked.
-- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+- When revealing shroud via a unit, structure, or triggers, TS had a maximum allowed sight radius of 10. This meant units could not have a `Sight=` value above 10, and Reveal Around Waypoint trigger actions could not reveal in radius higher than 10 even if specified in `RevealTriggerRadius`. Vinifera now allows and handles revealing shroud in any desired range, with no limit.
+- Aircraft can now click on Helipad that are occupied or about to be occupied by other aircraft, which reassigns them to a different free Helipad, or near the existing Helipad if no free Helipads exist. 
+- Players can now click on a Service Depot with units and aircraft even if it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
+- Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
+- Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
+
+## Modern Video Playback
+
+Vinifera adds support for modern video formats as replacements for the original VQA movies. If a file with the same basename as a VQA is found with one of the supported extensions (`.MP4`, `.WMV`, `.MPG`, `.AVI`), it will be used in place of the VQA.
+
+This applies to both fullscreen cutscene movies and in-game movies played in the radar area.
+
+```{note}
+Modern movies respect the `[Video]->StretchMovies` key in `SUN.INI`. If `StretchMovies=no`, movies will be played at 640x400 (preserving the aspect ratio).
+```
+
+```{note}
+While in-game movies are scaled to play at the size of the radar, it is recommended that they be `140x100` in size. Due to technical reasons they have to be processed in software, and excessively large movies may decrease performance at no benefit.
+```
 
 ## INI
 
@@ -110,10 +128,13 @@ In `SUN.INI`:
 Windowed=no         ; boolean, should the game start in a window
 WindowWidth=-1      ; integer, if positive and Windowed=true, sets the window width override
 WindowHeight=-1     ; integer, if positive and Windowed=true, sets the window height override
+RendererDriver=Auto ; renderer backend, valid options are "Auto", "Direct3D", "Direct3D11", "Direct3D12", "OpenGL" and "Vulkan"
 ScaleMode=PixelArt  ; scale mode, valid options are "Linear", "Nearest" and "PixelArt"
 CursorScale=0       ; integer, cursor scale factor override
 VSync=no            ; boolean, is vertical synchronization on?
 ```
+
+`RendererDriver` supports SDL's Direct3D backends, OpenGL and Vulkan. If SDL cannot initialize the game with the select renderer, startup will fail instead of silently falling back.
 
 ```{note}
 `CursorScale` options:
@@ -144,6 +165,23 @@ AutoDeployMCV=no      ; boolean, should player MCV's auto-deploy on game start?
 PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of spawning an MCV?
                       ; NOTE: This option only has an effect if the unit count is set to 1.
                       ; NOTE: This option has priority over AutoDeployMCV.
+```
+
+### Bridge Strength
+- Vinifera adds the ability to replace the random chance to break bridges with strength trackers for all bridge types. When enabled, bridges will sustain damage over time and break when they accumulate enough damage.
+- Bridge strength is determined via the existing `BridgeStrength=` key.
+- Remaining strength is tracked separately for each 3x1 (1x3) bridge tile.
+- Repairing the bridge by entering a bridge repair hut with an engineer fully replenishes all of that bridge's strength trackers.
+- When bridge strength trackers are enabled, bridges can now have an armor type associated with them in order to apply the appropriate Verses of all warheads to them. If no armor type is assigned to the bridge, then bridges will take 100% of all weapon damage.
+
+in `RULES.INI`:
+```ini
+[General]
+UseBridgeHealth=no 	; boolean, should bridge health trackers
+
+[CombatDamage]
+BridgeStrength=1000 	; integer, the health each bridge tile can sustain before breaking. Existing key from vanilla.
+BridgeArmor= 			; Armor Type, the armor type of associated with the bridge for damage calculations. Requires UseBridgeHealth=yes under [General] for this to take effect.
 ```
 
 ## Prerequisites
@@ -204,7 +242,7 @@ EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity che
                                    ; For buildings with ConstructionYard=yes this defaults to yes, otherwise it defaults to no.
 ```
 
-### AI Repair Base Nodes
+## AI Repair Base Nodes
 
 - You can now customize whether the AI can repair structures created as base nodes. 
 - Applies globally to all AI houses, and only affects non-skirmish games. 
@@ -215,6 +253,11 @@ In a scenario file:
 [AI]
 AIRepairBaseNodes=no   ; boolean, can the AI can repair structures created as base nodes?
 ```
+
+## Armory and Hospital Improvements
+- Hospitals and armories can now set rally points, similarly to production buildings and service depots.
+- Hospitals and armories can now accept multiple infantry, which will form a queue around them. Units will go in one at a time.
+- If charges (ammo) deplete while units are still waiting in the queue, remaining units will be dismissed and be ordered to go to the respective rally point instead.
 
 ## Window Title, Cursor and Icon
 
@@ -311,6 +354,44 @@ BeachIsCrush=  ; boolean, are beaches considered as requiring crushing for pathf
 BuildingFlameSpawnBlockFrames=  ; integer, for how many frames buildings do not get flames spawned on them on damage state change after once catching fire.
 ```
 
+## Pause Building Repairs
+- Vinifera changes building repairs to pause rather than outright stop when the player doesn't have enough funds to continue repairs. This behaviour can optionally be reverted to the vanilla stopping behaviour by each player depending on their preferences.
+
+In `SUN.INI`:
+```ini
+[Options]
+PauseRepairs=yes  ; boolean, whether buildings pause repairs when the player doesn't have enough funds to complete the repairs.
+```
+
+- While repairs are paused, the game draws a specific frame of the wrench shape (`WRENCH.SHP`) on the building. This can be customized in order to draw a different frame.
+
+In `RULES.INI`:
+```ini
+[General]
+PausedRepairsFrame=6  ; integer, the frame index on the wrench shape to show while building repairs are paused.
+```
+
+## Area Guard Escort Logic Improvements
+- Vinifera allows modders to specify the range in which an area-guarding unit that is assigned to guard another unit will follow it, as well as the range where it will abandon targets it is currently attacking (or healing) and go back to their assigned unit.
+- This only applies on Area Guards on a unit; Area Guards on a cell does not count.
+- Can be specified globally or for each unit individually. When both are applied, unit-specific values are used over the global values. 
+- When those values are not stated or are non-positive, Vinifera falls back to the original behavior, which causes area-guarding units to follow their assigned unit once it leaves 2x the area-guarding unit's Guard Range (up to a maximum of 12 cells).
+
+in `RULES.INI`:
+```ini
+[General]
+EscortRange=-1  			 ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
+AbandonTargetEscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will keep engaging targets before abandoning the targets and go back to their assigned unit.
+
+[SOMETECHNO]
+EscortRange=-1  			 ; integer, the range in cells that an area guarding unit assigned to guard a unit will wait before closing the distance to its assigned unit while not engaging another unit.
+AbandonTargetEscortRange=-1  ; integer, the range in cells that an area guarding unit assigned to guard a unit will keep engaging targets before abandoning the targets and go back to their assigned unit.
+```
+
+```{note}
+To achieve good results with `AbandonTargetEscortRange`, it is recommended to set a value that is higher than 2x its `GuardRange`. Otherwise, the unit will keep re-acquiring and abdndoning it repeatedly as long as it is in range.
+```
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.
@@ -327,6 +408,8 @@ The argument supports multiple entries separated by the `;` character. Below are
 - You can enable the developer mode by running Vinifera (`LaunchVinifera.exe`) with the command line argument `-DEVELOPER`. You can also explicitly enable the debug console with `-CONSOLE`.
 
 - `-NO_VERSION_STRING` can be used to hide the build version number from the in-game view.
+
+- `-AUDIO_DEBUG` enables extensive logging for the new audio engine. In debug builds, it also opens the audio debug window.
 
 ```{note}
 If you are using Vinifera with the TS Client, you can add these to the `ExtraCommandLineParams=` in `Resources\ClientDefinitions.ini`

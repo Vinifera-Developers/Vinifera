@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TiberiumClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TIBERIUMEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TiberiumClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -51,8 +32,6 @@ TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
     MinSpreadStage(0),
     SpreadSpawnStage(5)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (this_ptr)
     {
         /**
@@ -83,7 +62,6 @@ TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
 TiberiumClassExtension::TiberiumClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -94,8 +72,6 @@ TiberiumClassExtension::TiberiumClassExtension(const NoInitClass &noinit) :
  */
 TiberiumClassExtension::~TiberiumClassExtension()
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::~TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TiberiumExtensions.Delete(this);
 }
 
@@ -107,8 +83,6 @@ TiberiumClassExtension::~TiberiumClassExtension()
  */
 HRESULT TiberiumClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -126,8 +100,6 @@ HRESULT TiberiumClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT TiberiumClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -146,8 +118,6 @@ HRESULT TiberiumClassExtension::Load(IStream *pStm)
  */
 HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -164,21 +134,10 @@ HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TiberiumClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void TiberiumClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -188,7 +147,6 @@ void TiberiumClassExtension::Detach(AbstractClass * target, bool all)
  */
 void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -199,8 +157,6 @@ void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char* ini_name = Name();
 
     if (!IsInitialized) {
@@ -350,7 +306,7 @@ void TiberiumClassExtension::Recalc_Spread()
 
     while (iter != nullptr) {
         if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Spread()) {
-            SpreadQueue.emplace(0.0, iter->CellID);
+            SpreadQueue.emplace((float)Random_Pick(0, 10000), iter->CellID);
             SpreadState[Map_Cell_Index(iter->CellID)] = true;
         }
         iter = Map.Iterate();
@@ -409,7 +365,6 @@ void TiberiumClassExtension::Growth_AI()
             Cell cell = node.second;
             CellClass& cellptr = Map[cell];
 
-
             /**
              *  If we can't grow, skip without increasing the counter. This fixes a bug in vanilla
              *  where sometimes the queue would contain a bunch of entries that all failed,
@@ -467,7 +422,7 @@ void TiberiumClassExtension::Recalc_Growth()
 
     while (iter != nullptr) {
         if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Grow()) {
-            GrowthQueue.emplace(0.0, iter->CellID);
+            GrowthQueue.emplace((float)Random_Pick(0, 10000), iter->CellID);
             GrowthState[Map_Cell_Index(iter->CellID)] = true;
         }
         iter = Map.Iterate();

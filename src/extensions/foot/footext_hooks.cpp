@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended FootClass.
  *
- *  @project       Vinifera
- *
- *  @file          FOOTEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended FootClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -55,6 +36,7 @@
 #include "unittype.h"
 #include "vinifera_globals.h"
 #include "vox.h"
+#include "rulesext.h"
 
 
 /**
@@ -575,7 +557,9 @@ DEFINE_HOOK(0x004A2BE7, _FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch,
     /**
      *  Find a fresh target in my area using the backup target.
      */
-    this_ptr->Target_Something_Nearby(this_ptr->ArchiveTarget->Center_Coord(), THREAT_AREA);
+    if (this_ptr->ArchiveTarget != nullptr) {
+        this_ptr->Target_Something_Nearby(this_ptr->ArchiveTarget->Center_Coord(), THREAT_AREA);
+    }
 
 tarcom_check:
     return 0x004A2C04;
@@ -773,7 +757,131 @@ bool FootClassExt::_Limbo()
     return TechnoClass::Limbo();
 }
 
+/**
+ *  Patches FootClass::Do_MISSION_GUARD_AREA during the archive target check.
+ *  This overrides the distance that a unit can move away before a area-guarding unit will still to chase it,
+ *  as well as allowing units to keep engaging a target before abandoning it and returning to the unit it is guarding.
+ *  When not provided, falls back to the original game logic.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A2B90, _FootClass_Do_MISSION_GUARD_AREA_Escort_Distance_Patch, 6)
+{
+    GET(FootClass*, this_ptr, ESI);
+    TechnoTypeClassExtension* ext = Extension::Fetch(this_ptr->TClass);
 
+    enum {
+        TarComCheck = 0x004A2BDD,
+        GoToArchiveTarget = 0x004A2BBE,
+        ApproachTarcomTarget = 0x004A2C25
+    };
+
+    if (this_ptr->ArchiveTarget == nullptr) {
+        return TarComCheck;
+    }
+    
+    if (this_ptr->TarCom != nullptr) {
+        int abandon_target_escort_range = -1;
+        if (ext->AbandonTargetEscortRange > 0) {
+            abandon_target_escort_range = ext->AbandonTargetEscortRange;
+        }
+
+        if (abandon_target_escort_range <= 0 && RuleExtension->AbandonTargetEscortRange > 0) {
+            abandon_target_escort_range = RuleExtension->AbandonTargetEscortRange;
+        }
+
+        if (abandon_target_escort_range > 0) {
+            if (this_ptr->Distance_To(this_ptr->ArchiveTarget) >= abandon_target_escort_range) {
+                return GoToArchiveTarget;
+            }
+        }
+
+        return ApproachTarcomTarget;
+    }
+    
+    int escort_range = -1;
+    if (ext->EscortRange > 0) {
+        escort_range = ext->EscortRange;
+    }
+
+    if (escort_range <= 0 && RuleExtension->EscortRange > 0) {
+        escort_range = RuleExtension->EscortRange;
+    }
+
+    if (escort_range > 0) {
+        if (this_ptr->Distance_To(this_ptr->ArchiveTarget) >= escort_range) {
+            return GoToArchiveTarget;
+        }
+
+        return TarComCheck;
+    }
+    
+    return 0;
+}
+
+/**
+ *  Patches FootClass::Active_Click_With inside the 'ACTION_ATTACK_SUPPORT' case.
+ *  Makes healing units (negative damage) prefer to guard other units instead of themselves.
+ *  Healing units will guard other combatants, if any, and will assign themselves to the unit closest to them.
+ *  
+ *  If they can't find any, or they are not healing units, then they'll simply guard themselves instead.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A3518, _FootClass_Active_Click_With_Attack_Support_Patch, 0)
+{
+    GET(FootClass*, this_ptr, ESI);
+    bool has_negative_damage = R->AL();
+
+    ObjectClass* guard_object = this_ptr;
+    MissionType mission = MISSION_GUARD;    
+    if (has_negative_damage) {
+        mission = MISSION_GUARD_AREA;
+        for (int i = 0; i < CurrentObjects.Count(); ++i) {
+            ObjectClass* object = CurrentObjects[i];
+            if (!object || object == this_ptr || !object->Is_Techno() || object->Fetch_RTTI() == RTTI_BUILDING) {
+                continue;
+            }
+
+            TechnoClass* techno = static_cast<TechnoClass*>(object);
+            if (techno->Combat_Damage() <= 0) {
+                continue;
+            }
+
+            if (techno->House->Is_Player_Control() && techno->House == this_ptr->House) {
+                // if the object that is currently assigned is the unit doing the guard, simply assign it an eligible unit to guard
+                if (guard_object == this_ptr) {
+                    guard_object = object;
+                } else {
+                    if (this_ptr->Distance_To(object) < this_ptr->Distance_To(guard_object)) {
+                        guard_object = object;
+                    }
+                }
+            }
+        }
+    }
+
+    this_ptr->Player_Assign_Mission(mission, guard_object, nullptr);
+
+    return 0x004A2F95;
+}
+
+/**
+ *  Patches FootClass::Do_MISSION_GUARD_AREA inside the 'this->TarCom' case, where the unit is assigned to approach its tarcom target.
+ *  Clears the current destination, which made object-specific Area Guarding units have to go back to their guard object
+ *  between each time a tarcom target is acquired, as Approach_Target in vanilla code only kicked in
+ *  after the unit started moving towards its guard object.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A2C25, _FootClass_Do_MISSION_GUARD_AREA_Approach_Target_Patch, 10)
+{
+    GET(FootClass*, this_ptr, ESI);
+
+    this_ptr->Assign_Destination(nullptr);
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.

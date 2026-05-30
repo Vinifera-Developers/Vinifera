@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TechnoTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TechnoTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -111,9 +92,12 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IdleWakeAnim(nullptr),
     IsHideWakeWhenCloaked(false),
     SelfHealingCap(-1),
-    SelfHealingRate(-1)
+    SelfHealingRate(-1),
+    IsDetectDisguise(false),
+    IronCurtainPriorityTarget(false),
+    EscortRange(-1),
+    AbandonTargetEscortRange(-1)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -130,7 +114,6 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
     VoiceHarvest(noinit),
     BuiltAt(noinit)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -141,8 +124,6 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
  */
 TechnoTypeClassExtension::~TechnoTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::~TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     delete CameoImageSurface;
     CameoImageSurface = nullptr;
 }
@@ -155,8 +136,6 @@ TechnoTypeClassExtension::~TechnoTypeClassExtension()
  */
 HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     VoiceCapture.Clear();
     VoiceEnter.Clear();
     VoiceDeploy.Clear();
@@ -168,11 +147,11 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    VoiceCapture.Load(pStm);
-    VoiceEnter.Load(pStm);
-    VoiceDeploy.Load(pStm);
-    VoiceHarvest.Load(pStm);
-    BuiltAt.Load(pStm);
+    VoiceCapture.Load_Self(pStm);
+    VoiceEnter.Load_Self(pStm);
+    VoiceDeploy.Load_Self(pStm);
+    VoiceHarvest.Load_Self(pStm);
+    BuiltAt.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
@@ -192,7 +171,6 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     
     ArtINI.Get_String(ini_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
     if (std::string_view(cameo_buffer) != "XXICON") {
-
         ArtINI.Get_String(graphic_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
 
         /**
@@ -216,18 +194,16 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
 
-    VoiceCapture.Save(pStm);
-    VoiceEnter.Save(pStm);
-    VoiceDeploy.Save(pStm);
-    VoiceHarvest.Save(pStm);
-    BuiltAt.Save(pStm);
+    VoiceCapture.Save_Self(pStm);
+    VoiceEnter.Save_Self(pStm);
+    VoiceDeploy.Save_Self(pStm);
+    VoiceHarvest.Save_Self(pStm);
+    BuiltAt.Save_Self(pStm);
 
     return hr;
 }
@@ -240,8 +216,6 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::GetSizeMax - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!pcbSize) {
         return E_POINTER;
     }
@@ -255,15 +229,6 @@ LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void TechnoTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -273,8 +238,6 @@ void TechnoTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsShakeScreen);
     crc(IsImmuneToEMP);
     crc(ShakePixelYHi);
@@ -305,6 +268,10 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsHideWakeWhenCloaked);
     crc(SelfHealingCap);
     crc(SelfHealingRate);
+    crc(IsDetectDisguise);
+    crc(IronCurtainPriorityTarget);
+    crc(EscortRange);
+    crc(AbandonTargetEscortRange);
 }
 
 
@@ -344,8 +311,6 @@ TargetZoneScanType _Get_TargetZoneScanType(CCINIClass& ini, const char* section,
  */
 bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -451,6 +416,13 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     SelfHealingCap = ini.Get_Float(ini_name, "SelfHealingCap", SelfHealingCap);
     SelfHealingRate = ini.Get_Float(ini_name, "SelfHealingRate", SelfHealingRate);
+
+    IsDetectDisguise = ini.Get_Bool(ini_name, "DetectDisguise", IsDetectDisguise);
+
+    IronCurtainPriorityTarget = ini.Get_Bool(ini_name, "IronCurtainPriorityTarget", IronCurtainPriorityTarget);
+
+    EscortRange = ini.Get_Lepton(ini_name, "EscortRange", EscortRange);
+    AbandonTargetEscortRange = ini.Get_Lepton(ini_name, "AbandonTargetEscortRange", AbandonTargetEscortRange);
 
     return true;
 }

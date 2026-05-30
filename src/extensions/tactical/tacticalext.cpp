@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended Tactical class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTICALEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended Tactical class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -35,14 +16,17 @@
 #include "debughandler.h"
 #include "ebolt.h"
 #include "extension.h"
+#include "extension_globals.h"
 #include "foot.h"
 #include "house.h"
 #include "housetype.h"
 #include "mouse.h"
+#include "optionsext.h"
 #include "rgb.h"
 #include "rulesext.h"
 #include "scenario.h"
 #include "scenarioext.h"
+#include "sdlsurface.h"
 #include "session.h"
 #include "super.h"
 #include "superext.h"
@@ -58,6 +42,8 @@
 #include "vinifera_util.h"
 #include "wwfont.h"
 #include "wwmouse.h"
+
+#include <windows.h>
 
 
 /**
@@ -76,17 +62,19 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     InfoTextTimer(0),
     CellRedrawCount(0),
     IsTemplatedTextVisible(false),
-    TemplatedTextIndex(0),
+    TemplatedTextIndex(""),
     TemplatedTextPosition(TOP_RIGHT),
     TemplatedTextColor(COLORSCHEME_NONE),
     TemplatedTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
     IsTemplatedTextCached(false),
     TemplatedTextCache {""},
     IsBeaconPlacementMode(false),
-    IsEditingBeaconText(false)
+    IsEditingBeaconText(false),
+    SubtitleCategoryCur(SUBTITLE_CATEGORY_SYSTEM),
+    SubtitleFont(nullptr),
+    SubtitleFontCacheHeight(0),
+    SubtitleFontCacheWeight(0)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     std::memset(CellRedraw, 0, sizeof(CellRedraw));
 }
 
@@ -98,9 +86,9 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
  */
 TacticalExtension::TacticalExtension(const NoInitClass& noinit) :
     GlobalExtensionClass(noinit),
-    InfoTextTimer(noinit)
+    InfoTextTimer(noinit),
+    TemplatedTextIndex(noinit)
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -111,7 +99,7 @@ TacticalExtension::TacticalExtension(const NoInitClass& noinit) :
  */
 TacticalExtension::~TacticalExtension()
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::~TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    Invalidate_Subtitle_Font();
 }
 
 
@@ -122,8 +110,6 @@ TacticalExtension::~TacticalExtension()
  */
 HRESULT TacticalExtension::Load(IStream* pStm)
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -146,8 +132,6 @@ HRESULT TacticalExtension::Load(IStream* pStm)
  */
 HRESULT TacticalExtension::Save(IStream* pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -164,21 +148,10 @@ HRESULT TacticalExtension::Save(IStream* pStm, BOOL fClearDirty)
  */
 int TacticalExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *
- *  @author: CCHyper
- */
-void TacticalExtension::Detach(AbstractClass* target, bool all)
-{
-    //EXT_DEBUG_TRACE("TacticalExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -188,7 +161,6 @@ void TacticalExtension::Detach(AbstractClass* target, bool all)
  */
 void TacticalExtension::Object_CRC(CRCEngine& crc) const
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -209,7 +181,7 @@ void TacticalExtension::Set_Info_Text(const char* text)
  *
  *  @authors: ZivDero
  */
-void TacticalExtension::Enable_Templated_Text(int label, ColorSchemeType color)
+void TacticalExtension::Enable_Templated_Text(std::string_view label, ColorSchemeType color)
 {
     IsTemplatedTextVisible = true;
     TemplatedTextIndex = label;
@@ -451,7 +423,6 @@ void TacticalExtension::Draw_Information_Text()
     int pos_y = 0;
 
     switch (InfoTextPosition) {
-
     default:
     case InfoTextPosType::TOP_LEFT:
         pos_x = TacticalRect.X;
@@ -553,8 +524,6 @@ void TacticalExtension::Draw_Information_Text()
  */
 void TacticalExtension::Render_Post()
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Render_Post - 0x%08X\n", (uintptr_t)(This()));
-
     /**
      *  Draw any new post effects here.
      */
@@ -676,8 +645,6 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int
  */
 void TacticalExtension::Draw_Super_Timers()
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Draw_Super_Timers - 0x%08X\n", (uintptr_t)(This()));
-
     /**
      *  Super weapon timers are for multiplayer only.
      */
@@ -766,7 +733,7 @@ void TacticalExtension::Draw_Templated_Text()
 
     int padding = 2;
 
-    if (!TutorialText.Is_Present(TemplatedTextIndex)) {
+    if (!Vinifera_TutorialText.contains(std::string(TemplatedTextIndex))) {
         return;
     }
 
@@ -774,7 +741,7 @@ void TacticalExtension::Draw_Templated_Text()
      *  Substitute the placeholders in the tutorial string.
      */
     if (!IsTemplatedTextCached) {
-        std::strncpy(TemplatedTextCache, ScenarioClassExtension::Substitute_Variable_Placeholders(TutorialText[TemplatedTextIndex]).c_str(), sizeof(TemplatedTextCache));
+        std::strncpy(TemplatedTextCache, ScenarioClassExtension::Substitute_Variable_Placeholders(Vinifera_TutorialText[std::string(TemplatedTextIndex)]).c_str(), sizeof(TemplatedTextCache));
         IsTemplatedTextCached = true;
     }
 
@@ -796,7 +763,6 @@ void TacticalExtension::Draw_Templated_Text()
     }
 
     switch (TemplatedTextPosition) {
-
     default:
     case InfoTextPosType::TOP_LEFT:
         pos_x = TacticalRect.X;
@@ -989,4 +955,173 @@ void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme& s
     CompositeSurface->Draw_Rect(visible_box_rect, fore);
 
     Fancy_Text_Print(text.c_str(), *CompositeSurface, cliprect, text_rect.TopLeft - cliprect.TopLeft, &scheme, COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
+}
+
+
+/**
+ *  Sets the currently displayed VOX subtitle. Pushed by AudioVoxClass::AI when a
+ *  VOX with non-empty Text= begins playing.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Set_Subtitle(const char* text, SubtitleCategoryType cat)
+{
+    if (text == nullptr || *text == '\0') {
+        SubtitleText.clear();
+        return;
+    }
+    SubtitleText = text;
+    SubtitleCategoryCur = cat;
+}
+
+
+/**
+ *  Clears the currently displayed VOX subtitle. Pushed by AudioVoxClass when a
+ *  VOX stops playing or is interrupted.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Clear_Subtitle()
+{
+    SubtitleText.clear();
+}
+
+
+/**
+ *  Frees the cached HFONT used by the subtitle renderer. Safe to call when
+ *  no font has been created yet.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Invalidate_Subtitle_Font()
+{
+    if (SubtitleFont) {
+        DeleteObject(SubtitleFont);
+        SubtitleFont = nullptr;
+    }
+    SubtitleFontCacheName.clear();
+    SubtitleFontCacheHeight = 0;
+    SubtitleFontCacheWeight = 0;
+}
+
+
+/**
+ *  Decides whether the current subtitle should be drawn given the player's
+ *  SubtitleMode preference (sun.ini) and the category of the active VOX.
+ *
+ *  @author: ZivDero
+ */
+bool TacticalExtension::Should_Show_Subtitle() const
+{
+    if (SubtitleText.empty()) return false;
+
+    switch (OptionsExtension->SubtitleMode) {
+    case OptionsClassExtension::SUBTITLE_MODE_NONE:
+        return false;
+    case OptionsClassExtension::SUBTITLE_MODE_ALL:
+        return true;
+    case OptionsClassExtension::SUBTITLE_MODE_SCENARIO:
+        return SubtitleCategoryCur == SUBTITLE_CATEGORY_SCENARIO;
+    case OptionsClassExtension::SUBTITLE_MODE_SYSTEM:
+        return SubtitleCategoryCur == SUBTITLE_CATEGORY_SYSTEM;
+    }
+    return true;
+}
+
+
+/**
+ *  Returns a cached HFONT built from the current ui.ini subtitle font fields.
+ *  Rebuilds lazily if any of those fields have changed since the last call.
+ *
+ *  @author: ZivDero
+ */
+static HFONT Get_Or_Build_Subtitle_Font(TacticalExtension& ext)
+{
+    HFONT existing = static_cast<HFONT>(ext.SubtitleFont);
+    const bool stale = existing == nullptr || ext.SubtitleFontCacheHeight != UIControls->SubtitleFontHeight || ext.SubtitleFontCacheWeight != UIControls->SubtitleFontWeight || ext.SubtitleFontCacheName != UIControls->SubtitleFontName;
+
+    if (stale) {
+        ext.Invalidate_Subtitle_Font();
+        HFONT font = CreateFont(UIControls->SubtitleFontHeight, 0, 0, 0, UIControls->SubtitleFontWeight, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, FF_SWISS | DEFAULT_PITCH, UIControls->SubtitleFontName.c_str());
+        ext.SubtitleFont = font;
+        ext.SubtitleFontCacheName = UIControls->SubtitleFontName;
+        ext.SubtitleFontCacheHeight = UIControls->SubtitleFontHeight;
+        ext.SubtitleFontCacheWeight = UIControls->SubtitleFontWeight;
+        return font;
+    }
+    return existing;
+}
+
+
+/**
+ *  Renders the current VOX subtitle at the bottom of the tactical view using
+ *  Win32 GDI. Word-wraps to the available width inside TacticalRect minus the
+ *  configured horizontal margin, and draws an 8-direction outline around the
+ *  fill so the text stays legible over varied terrain.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Draw_Subtitle()
+{
+    if (!Should_Show_Subtitle()) {
+        return;
+    }
+    if (Debug_Map) {
+        return;
+    }
+    if (!CompositeSurface || !CompositeSurface->Is_Direct_Draw()) {
+        return;
+    }
+
+    HDC hdc = static_cast<SDLSurface*>(CompositeSurface)->GetDC();
+    if (hdc == nullptr) {
+        return;
+    }
+
+    HFONT font = Get_Or_Build_Subtitle_Font(*this);
+    if (font == nullptr) {
+        static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
+        return;
+    }
+
+    HGDIOBJ old_obj = SelectObject(hdc, font);
+    SetBkMode(hdc, TRANSPARENT);
+
+    const int avail_w = TacticalRect.Width - 2 * UIControls->SubtitleMarginX;
+    if (avail_w <= 0) {
+        SelectObject(hdc, old_obj);
+        static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
+        return;
+    }
+
+    RECT calc {0, 0, avail_w, 0};
+    DrawText(hdc, SubtitleText.c_str(), -1, &calc, DT_CALCRECT | DT_WORDBREAK | DT_CENTER | DT_NOPREFIX);
+    const int text_h = calc.bottom - calc.top;
+
+    RECT dst;
+    dst.left = TacticalRect.X + UIControls->SubtitleMarginX;
+    dst.right = TacticalRect.X + TacticalRect.Width - UIControls->SubtitleMarginX;
+    dst.bottom = TacticalRect.Y + TacticalRect.Height - UIControls->SubtitleMarginBottom;
+    dst.top = dst.bottom - text_h;
+
+    const UINT flags = DT_WORDBREAK | DT_CENTER | DT_NOPREFIX;
+
+    const int OW = UIControls->SubtitleOutlineWidth;
+    if (OW > 0) {
+        SetTextColor(hdc, RGB(UIControls->SubtitleOutlineColor.R, UIControls->SubtitleOutlineColor.G, UIControls->SubtitleOutlineColor.B));
+        for (int dy = -OW; dy <= OW; dy += OW) {
+            for (int dx = -OW; dx <= OW; dx += OW) {
+                if (dx == 0 && dy == 0) continue;
+                RECT r = dst;
+                OffsetRect(&r, dx, dy);
+                DrawText(hdc, SubtitleText.c_str(), -1, &r, flags);
+            }
+        }
+    }
+
+    SetTextColor(hdc, RGB(UIControls->SubtitleTextColor.R, UIControls->SubtitleTextColor.G, UIControls->SubtitleTextColor.B));
+    DrawText(hdc, SubtitleText.c_str(), -1, &dst, flags);
+
+    SelectObject(hdc, old_obj);
+    static_cast<SDLSurface*>(CompositeSurface)->ReleaseDC(hdc);
 }

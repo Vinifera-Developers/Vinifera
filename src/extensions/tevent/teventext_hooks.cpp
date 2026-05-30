@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended TEventClass.
  *
- *  @project       Vinifera
- *
- *  @file          TEVENTEXT_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for the extended TEventClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -34,8 +15,10 @@
 #include "building.h"
 #include "hooker.h"
 #include "house.h"
+#include "houseext.h"
 #include "mouse.h"
 #include "object.h"
+#include "rulesext.h"
 #include "scenario.h"
 #include "scenarioext.h"
 #include "syringe.h"
@@ -156,7 +139,7 @@ static bool Compare_With_Variable(int left_index, bool left_global, int right_in
 
 /**
  *  Intercept for TEventClass::operator() to add the
- *  execution of our new TEVents.
+ *  execution of our new TEvents.
  *
  *  @author: ZivDero
  */
@@ -435,14 +418,14 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
     */
     if (Event == TEVENT_PLAYER_ENTERED || Event == TEVENT_CROSS_HORIZONTAL || Event == TEVENT_CROSS_VERTICAL || Event == TEVENT_ENTERS_ZONE) {
         if (event != Event) return false;
-        if (!object || (Data.House != HOUSE_NONE && object->Owner() != House_From_HousesType(Data.House)->HeapID)) return false;
+        if (!object || (Data.House != HOUSE_NONE && object->Owner() != HouseClassExtension::House_From_HousesType(Data.House)->HeapID)) return false;
         is_perm = true;
         return true;
     } else if (Event == TEVENT_NEAR_WAYPOINT) {
         if (event != Event) return false;
         assert(object != NULL);
         Coord waypoint_location(Scen->Waypoint_Coord(Data.Value));
-        if (object->Distance(waypoint_location) > CELL_LEPTON_W * 5) {
+        if (object->Distance(waypoint_location) > RuleExtension->ComesNearWaypointDistance) {
             return false;
         }
         return true;
@@ -509,7 +492,7 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
             break;
 
             /*
-            **  Verify that the structure has been built.
+            **  Verify that the structure exists.
             */
         case TEVENT_BUILDING_EXISTS:
             if (house->ActiveBQuantity.Value(Data.Structure) == 0) return false;
@@ -562,12 +545,20 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
             if (house->UnitsLost < Data.Value) return false;
             break;
 
+            /*
+            **  Verify that the structure does not exist.
+            */
+        case EXT_TEVENT_BUILDING_DOES_NOT_EXIST:
+            if (house->ActiveBQuantity.Value(Data.Structure) > 0) return false;
+            is_perm = true;
+            break;
+
         default:
             break;
         }
     }
 
-    house = House_From_HousesType(Data.House);
+    house = HouseClassExtension::House_From_HousesType(Data.House);
     if (house != nullptr) {
         switch (Event) {
         case TEVENT_LOW_POWER:

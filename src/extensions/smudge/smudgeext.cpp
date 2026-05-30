@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended SmudgeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          SMUDGEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended SmudgeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -45,8 +26,6 @@
 SmudgeClassExtension::SmudgeClassExtension(const SmudgeClass *this_ptr) :
     ObjectClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SmudgeClassExtension::SmudgeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SmudgeExtensions.Add(this);
 }
 
@@ -59,7 +38,6 @@ SmudgeClassExtension::SmudgeClassExtension(const SmudgeClass *this_ptr) :
 SmudgeClassExtension::SmudgeClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::SmudgeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -70,8 +48,6 @@ SmudgeClassExtension::SmudgeClassExtension(const NoInitClass &noinit) :
  */
 SmudgeClassExtension::~SmudgeClassExtension()
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::~SmudgeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SmudgeExtensions.Delete(this);
 }
 
@@ -83,8 +59,6 @@ SmudgeClassExtension::~SmudgeClassExtension()
  */
 HRESULT SmudgeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -102,8 +76,6 @@ HRESULT SmudgeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SmudgeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -122,8 +94,6 @@ HRESULT SmudgeClassExtension::Load(IStream *pStm)
  */
 HRESULT SmudgeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -140,23 +110,10 @@ HRESULT SmudgeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SmudgeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void SmudgeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    ObjectClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -166,5 +123,4 @@ void SmudgeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void SmudgeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

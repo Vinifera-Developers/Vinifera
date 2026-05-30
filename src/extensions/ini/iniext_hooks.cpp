@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended INIClass.
  *
- *  @project       Vinifera
- *
- *  @file          INIEXT_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for the extended INIClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -255,7 +236,7 @@ int INIClassExt::_Load(Straw& ffile, bool)
             iini.Load(ifile);
             Inherit_File(iini);
         } else {
-            DEBUG_FATAL("INIClassExt::_Load - Inherit file not found: %s\n", filename.c_str());
+            DEBUG_FATAL("INIClassExt::_Load - Inherit file not found: {}\n", filename);
             char error[512];
             std::snprintf(error, sizeof(error), "INIClassExt::_Load - Inherit file not found: %s\nThe game will now exit.", filename.c_str());
             MessageBox(MainWindow, error, "Vinifera", MB_OK | MB_ICONERROR);
@@ -270,7 +251,7 @@ int INIClassExt::_Load(Straw& ffile, bool)
             iini.Load(ifile);
             Include_File(iini);
         } else {
-            DEBUG_FATAL("INIClassExt::_Load - Include file not found: %s\n", filename.c_str());
+            DEBUG_FATAL("INIClassExt::_Load - Include file not found: {}\n", filename);
             char error[512];
             std::snprintf(error, sizeof(error), "INIClassExt::_Load - Include file not found: %s\nThe game will now exit.", filename.c_str());
             MessageBox(MainWindow, error, "Vinifera", MB_OK | MB_ICONERROR);
@@ -320,7 +301,7 @@ int INIClassExt::_Get_String(char const* section, char const* entry, char const*
             for (const std::string& inherited_section : InheritedSections[sectionptr]) {
                 int count = Get_String(inherited_section.c_str(), entry, "", buffer, size);
                 if (count > 0) {
-                    //DEBUG_INFO("Fetched [%s]->%s from %s\n", section, entry, inherited_section.c_str());
+                    //DEBUG_INFO("Fetched [{}]->{} from {}\n", section, entry, inherited_section);
                     return count;
                 }
             }

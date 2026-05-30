@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended TechnoClass.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended TechnoClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -32,6 +13,7 @@
 
 #include "aircraft.h"
 #include "asserthandler.h"
+#include "audio_vox.h"
 #include "buildingext.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
@@ -44,6 +26,7 @@
 #include "fetchres.h"
 #include "hooker.h"
 #include "house.h"
+#include "houseext.h"
 #include "housetype.h"
 #include "infantry.h"
 #include "infantrytype.h"
@@ -127,8 +110,30 @@ public:
     int _Refund_Amount() const;
     bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
     bool _Should_Self_Heal_Now() const;
+    int _Apparent_Brightness(int brightness) const;
+    void _Flashing_AI();
+    int _Anti_Air() const;
 };
 
+/**
+ * A unit that has death frames will trigger its death counter upon the first death, and will live until the counter reaches its MaxDeathFrames
+ * During this time, the unit is considered "dying" - in the sense that it was already killed, but still lives for the purposes of playing its death animation.
+ * This has gameplay ramifications, so this helper function helps identify when the unit is in dying state to align its behavior.
+ * Note: currently only RTTI_UNIT technos can have death frames.
+ * 
+ * @author: JoyfulShush
+ */
+static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
+{
+    if (this_ptr->RTTI == RTTI_UNIT) {
+        const auto unit = reinterpret_cast<UnitClass*>(this_ptr);
+        if (unit->DeathCounter >= 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  *  Draw the pips of this Techno.
@@ -662,7 +667,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeEliteSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
 
                 /**
@@ -676,7 +681,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeVeteranSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
             }
 
@@ -884,7 +889,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
 
 
 /**
- *  Determines if the object can move be moved by player.
+ *  Determines if the object can be moved by the player.
  *
  *  @author: 01/19/1995 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
@@ -896,6 +901,15 @@ bool TechnoClassExt::_Can_Player_Move() const
 
     if (Is_Immobilized())
         return false;
+
+     /**
+      * Fixes an issue where a unit that has entered death animation and is being held alive by it
+      * can be issued additional move commands to keep walking until it dies.
+      * This makes it impossible for a player to issue move commands to dying units
+      */
+    if (Is_Unit_Dying(const_cast<TechnoClassExt*>(this))) {
+        return false;
+    }
 
     const auto ext = Extension::Fetch(this);
     if (ext->SpawnManager)
@@ -1215,7 +1229,11 @@ ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force
     if (action == ACTION_ATTACK)
     {
         const bool ctrldown = Keyboard->Down(Options.KeyForceAttack1) || Keyboard->Down(Options.KeyForceAttack2);
-        const FireErrorType error = Can_Fire(object, What_Weapon_Should_I_Use(object));
+
+        // Manually call the TechnoClass override so our TechnoClassExt override gets executed
+        // Otherwise, moving infantry would not hit our override due to vanilla game code
+        // returning early in InfantryClass::Can_Fire
+        const FireErrorType error = TechnoClass::Can_Fire(object, What_Weapon_Should_I_Use(object));
 
         if (error == FIRE_ILLEGAL && !ctrldown)
             return ACTION_NONE;
@@ -2002,7 +2020,7 @@ DEFINE_HOOK(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 5)
          *  This is legacy behavior similar to that of Red Alert.
          */
         if (weapontypeext->IsSuicide && weapontypeext->IsDeleteOnSuicide) {
-            DEV_DEBUG_INFO("Deleted: %s\n", this_ptr->Name());
+            DEV_DEBUG_INFO("Deleted: {}\n", this_ptr->Name());
             this_ptr->Delete_Me();
 
         /**
@@ -2212,28 +2230,26 @@ DEFINE_HOOK(0x0062C5D5, _TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch, 0)
 }
 
 
-/**
- *  #issue-411
- * 
- *  Implements IsAffectsAllies for WarheadTypes.
- * 
- *  @note: This patch does not replace "stolen" code as per our implementation
- *         rules, this is because the call to ObjectClass::Take_Damage that follows
- *         is too much of a risk to not have correctly implemented.
- * 
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x006328DE, _TechnoClass_Take_Damage_IsAffectsAllies_Patch, 7)
+static bool Should_Take_Damage(TechnoClass* this_ptr, TechnoClass* source, const WarheadTypeClass* warhead, int damage)
 {
-    GET(TechnoClass *, this_ptr, ESI);
-    GET_STACK(int *, damage, 0xEC);
-    GET_STACK(const WarheadTypeClass *, warhead, 0xF4);
-    GET_STACK(TechnoClass *, source, 0xF8);
+    /**
+     * Fixes an issue where a unit that has entered death animation and is being held alive by it
+     * can allow its killers to record its death over and over again, granting them an insane amount of veterancy.
+     * It also has other side effects, such as counting the unit as killed for unit death count total, etc.
+     * Units typically have a DeathCounter value of -1; it is set to 0 after it is first killed only if it has death frames.
+     */
+    if (Is_Unit_Dying(reinterpret_cast<TechnoClassExt*>(this_ptr))) {
+        return false;
+    }
 
     if (warhead) {
 
         /**
+         *  #issue-411
+         * 
          *  Is the warhead that hit us one that affects units allied with its firing owner?
+         *
+         *  @author: CCHyper
          */
         WarheadTypeClassExtension* warheadtypeext = Extension::Fetch(warhead);
         if (!warheadtypeext->IsAffectsAllies) {
@@ -2243,12 +2259,50 @@ DEFINE_HOOK(0x006328DE, _TechnoClass_Take_Damage_IsAffectsAllies_Patch, 7)
              *  the damage amount and return that we took no damage.
              */
             if (source && source->House->Is_Ally(this_ptr->House)) {
-                *damage = 0;
-                goto return_RESULT_NONE;
+                return false;
             }
-
         }
+    }
 
+    /**
+     *  #issue-425
+     *
+     *  If this unit is shielded by the Iron Curtain, no damage should be dealt.
+     *
+     *  Author: Rampastring
+     */
+    TechnoClassExtension* technoext = Extension::Fetch(this_ptr);
+    if (technoext->IronCurtainTimer > 0) {
+        return false;
+    }
+
+    /**
+     *  If this unit is a priority for shielding with the Iron Curtain and it would take major damage, shield it.
+     */
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch(this_ptr->TClass);
+    if (technotypeext->IronCurtainPriorityTarget && this_ptr->Strength - damage <= Rule->ConditionYellow * this_ptr->TClass->MaxStrength) {
+        if (technoext->Iron_Curtain_Me(false)) {
+            Extension::Fetch(this_ptr->House)->Expend_Iron_Curtain();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ *  Implements IsAffectsAllies for WarheadTypes as well as the Iron Curtain effect for Technos.
+ */
+DEFINE_HOOK(0x006328DE, _TechnoClass_Take_Damage_Intercept_Patch, 7)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+    GET_STACK(int*, damage, 0xEC);
+    GET_STACK(const WarheadTypeClass*, warhead, 0xF4);
+    GET_STACK(TechnoClass*, source, 0xF8);
+
+    if (!Should_Take_Damage(this_ptr, source, warhead, *damage)) {
+        *damage = 0;
+        goto return_RESULT_NONE;
     }
 
     return 0;
@@ -2450,7 +2504,7 @@ DEFINE_HOOK(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 6)
     
     HouseClass* house = this_ptr->House;
     if (!house) {
-        DEBUG_WARNING("Techno \"%s\" has an invalid house!", this_ptr->Name());
+        DEBUG_WARNING("Techno \"{}\" has an invalid house!", this_ptr->Name());
         Vinifera_DeveloperMode_Warning_WWMessageBox("Techno \"%s\" has an invalid house!", this_ptr->Name());
         Fatal("Null house pointer in TechnoClass::Owner!\n");
     }
@@ -2525,6 +2579,11 @@ bool TechnoClassExt::_Can_Deploy_Now() const
             && !unit->Class->IsMobileEMP &&
             unittypeext->TransformsInto == nullptr) {
 
+            blocked = true;
+        }
+
+        // Hijacked units that are build-limited cannot be deployed because that would allow circumventing the build limit.
+        if (unit->Class->DeploysInto != nullptr && unit->Class->BuildLimit < INT_MAX && EnteredByInfType != INFANTRY_NONE) {
             blocked = true;
         }
 
@@ -2769,6 +2828,15 @@ bool TechnoClassExt::_Should_Self_Heal_Now() const
         return false;
     }
 
+    /*
+    * Prevents units that have died from self-healing. 
+    * This resolves an issue where self-healing aircraft would heal while tumbling down, 
+    * becoming indestructible and being stuck in an looping tumbling animation until they land.
+    */
+    if (Get_Health_Ratio() <= 0) {
+        return false;
+    }
+
     if (!TClass->IsSelfHealing) {
         if (!Has_Ability(ABILITY_SELF_HEAL)) {
             return false;
@@ -2813,7 +2881,7 @@ bool TechnoClassExt::_Should_Self_Heal_Now() const
         repair_cap = Rule->ConditionYellow;
     }
     
-    return repair_cap > HealthRatio;
+    return repair_cap >= HealthRatio;
 }
 
 
@@ -2978,8 +3046,8 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     /*
     **  Never consider a spy to be a valid target, unless you're a dog
     */
-    if (House->Is_Human_Player() && otype == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(tclass)->IsDisguised) {
-        return false;
+    if ((House->Is_Human_Player() || !RuleExtension->IsAIDetectDisguise) && otype == RTTI_INFANTRY && ((InfantryTypeClass const*)tclass)->IsDisguised && !Extension::Fetch(TClass)->IsDetectDisguise) {
+        return (false);
     }
 
     /*
@@ -3077,6 +3145,32 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
         }
     }
 
+    WeaponSlotType which = _What_Weapon_Should_I_Use(const_cast<TechnoClass*>(object));
+
+    /**
+     *  #issue-444
+     *
+     *  If the weapon fires torpedoes and the target is on land,
+     *  then firing is not allowed.
+     *
+     *  UNLESS we're part of a team. Other team members might still be able to fire at the target,
+     *  and teams prefer to synchronize their target. Cancelling targeting in this case
+     *  could confuse other units of the team.
+     *
+     *  @author: Rampastring
+     */
+    if (which != WEAPON_SLOT_NONE && (!Is_Foot() || reinterpret_cast<const FootClass*>(this)->Team == nullptr)) {
+        const WeaponTypeClass* weapon = Get_Weapon(which)->Weapon;
+        if (weapon != nullptr) {
+            const auto bullettypeext = Extension::Fetch(weapon->Bullet);
+            if (bullettypeext->IsTorpedo) {
+                if (Map[object->Center_Coord()].Land_Type() != LAND_WATER) {
+                    return false;
+                }
+            }
+        }
+    }
+
     /*
     **  If this target value is better than the previously recorded best
     **  target value then record this target for possible return as the
@@ -3121,7 +3215,6 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
     **  If we cannot passively acquire the target, then ignore it.
     */
     if (object->RTTI != RTTI_BUILDING || RTTI != RTTI_INFANTRY || !reinterpret_cast<const InfantryClass*>(this)->Class->IsBomber) {
-        WeaponSlotType which = _What_Weapon_Should_I_Use(const_cast<TechnoClass*>(object));
         if (which != WEAPON_SLOT_NONE) {
             const WeaponTypeClass* weapon = TClass->Fetch_Weapon_Info(which).Weapon;
             if (weapon != nullptr) {
@@ -3187,6 +3280,149 @@ DEFINE_HOOK(0x0062AB5E, _TechnoClass_Revealed_Look_For_Allies_Patch, 0)
 
 
 /**
+ *  Implements flashing for the Iron Curtain.
+ *
+ *  Author: tomsons26/ZivDero for original function code, Rampastring for Iron Curtain effect.
+ */
+int TechnoClassExt::_Apparent_Brightness(int brightness) const
+{
+    TechnoClassExtension* technoext = Extension::Fetch(this);
+
+    if (technoext->IronCurtainTimer > 0) {
+        int index = (technoext->IronCurtainTimer.Value() / RuleExtension->IronCurtainFlashRate) % RuleExtension->IronCurtainPulseTable.Count();
+        int extra = RuleExtension->IronCurtainPulseTable[index] * RuleExtension->IronCurtainFlashIntensityMultiplier;
+
+        float scale = Map[Center_Coord()].TileBrightness / 1000.0f;
+        int extrascaled = (int)(extra * scale);
+        int total = brightness + extrascaled;
+        if (total < 0) total = 0;
+
+        return total;
+    }
+
+    if (((FlashCount / 2) % 2) == 1) {
+        return (brightness > 1500 ? 500 : 2000);
+    } else {
+        return (brightness);
+    }
+}
+
+
+void TechnoClassExt::_Flashing_AI()
+{
+    int flash = FlashCount;
+    unsigned b = ((FlashCount / 2) % 2) == 1;
+    TechnoClassExtension* technoext = Extension::Fetch(this);
+
+    if (FlasherClass::Process() || technoext->IronCurtainTimer > 0) {
+        Mark(MARK_CHANGE);
+    }
+
+    if (RTTI == RTTI_BUILDING && (technoext->IronCurtainTimer > 0 || (flash && flash != FlashCount))) {
+        unsigned b2 = ((FlashCount / 2) % 2) == 1;
+        if (b != (unsigned char)b2) {
+            TacticalMap->Register_Dirty_Area(entry_118(), false);
+            ((BuildingClass*)this)->Update_Anim_Appearance();
+        }
+    }
+}
+
+/**
+ *  Makes the game redraw an object while it is flashing with the Iron Curtain effect.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x0062ECE3, _TechnoClass_AI_Iron_Curtain_Flash_Redraw_Patch, 0)
+{
+    GET(TechnoClassExt*, this_ptr, ESI);
+
+    this_ptr->_Flashing_AI();
+
+    return 0x0062ED7A;
+}
+
+/**
+ *  Fixes a bug where a unit believes it is not AA-capable when its primary weapon has no AA capability,
+ *  even when its secondary weapon is AA-capable.
+ *
+ *  Author: Rampastring
+ */
+int TechnoClassExt::_Anti_Air(void) const
+{
+    assert(IsActive);
+
+    if (Is_Weapon_Equipped()) {
+
+        WeaponTypeClass const* weapon = PrimaryWeapon;
+        BulletTypeClass const* bullet = weapon->Bullet;
+        WarheadTypeClass const* warhead = weapon->WarheadPtr;
+
+        if (bullet->IsAntiAircraft) {
+            int value = ((weapon->Attack * warhead->Modifier[ARMOR_ALUMINUM]) * weapon->Range) / weapon->ROF;
+
+            if (TClass->Is_Two_Shooter()) {
+                value *= 2;
+            }
+            return value / 50;
+        }
+
+        // If the primary weapon is not AA-capable, check if we have a secondary weapon that is AA-capable.
+        weapon = SecondaryWeapon;
+        if (weapon) {
+            bullet = weapon->Bullet;
+            warhead = weapon->WarheadPtr;
+
+            if (bullet->IsAntiAircraft) {
+                int value = ((weapon->Attack * warhead->Modifier[ARMOR_ALUMINUM]) * weapon->Range) / weapon->ROF;
+
+                return value / 50;
+            }
+        }
+    }
+    return (0);
+}
+
+/**
+ *  Patches Find_Docking_Bay to make aircraft search for an un-occupied dock to land on.
+ *  This is achieved by changing the "only_unocciped" parameter (third argument, bool) into true when it's aircraft.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x00637F0B, _TechnoClass_Find_Docking_Bay_Unoccupied_Aircraft_Patch, 6)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+    REF_STACK(bool, only_unoccupied_ptr, 0x48);
+
+    if (this_ptr->Fetch_RTTI() == RTTI_AIRCRAFT) {
+        only_unoccupied_ptr = true;
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Reimplements TechnoClass::AI where the game tests for AI units that are firing upon a target that is allied.
+ *  Fixes an issue where it would cause medics (and by extension: mechanics and omnihealers) to constantly lose their targeting,
+ *  causing them to never finish their "attack" animation and never actually heal the target unless they were prone.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+
+    if (this_ptr->Combat_Damage() >= 0) {
+        if (this_ptr->RTTI != RTTI_AIRCRAFT && (this_ptr->RTTI != RTTI_INFANTRY || !((InfantryClass*)this_ptr)->Class->IsEngineer)) {
+            this_ptr->Assign_Target(NULL);
+        }
+    }
+
+    return 0x0062E7DD;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -3217,4 +3453,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
     Patch_Jump(0x0062D0F0, &TechnoClassExt::_Evaluate_Object);
     Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
+    Patch_Jump(0x00639C70, &TechnoClassExt::_Apparent_Brightness);
+    Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
 }

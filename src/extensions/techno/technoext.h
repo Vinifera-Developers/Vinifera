@@ -1,33 +1,15 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TechnoClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TechnoClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
 
+#include "detach_listener.h"
 #include "radioext.h"
 #include "techno.h"
 
@@ -39,7 +21,9 @@ class TechnoTypeClassExtension;
 class AnimClass;
 
 
-class TechnoClassExtension : public RadioClassExtension
+class TechnoClassExtension : public RadioClassExtension,
+                             public Vinifera::Detach::Listener<TechnoClass>,
+                             public Vinifera::Detach::Listener<AnimClass>
 {
     public:
         /**
@@ -53,8 +37,10 @@ class TechnoClassExtension : public RadioClassExtension
         TechnoClassExtension(const NoInitClass &noinit);
         virtual ~TechnoClassExtension();
 
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
+
+        void On_Detach(TechnoClass *target, bool all) override;
+        void On_Detach(AnimClass *target, bool all) override;
 
         virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(RadioClassExtension::This()); }
         virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(RadioClassExtension::This_Const()); }
@@ -73,6 +59,8 @@ class TechnoClassExtension : public RadioClassExtension
         int Time_To_Build() const;
         bool Can_Opportunity_Fire() const;
         bool Opportunity_Fire();
+
+        bool Iron_Curtain_Me(bool forced);
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
@@ -129,4 +117,9 @@ class TechnoClassExtension : public RadioClassExtension
          *  The idle wake animation attached to this object.
          */
         AnimClass* IdleWakeAnim;
+
+        /**
+         *  The countdown until the object's Iron Curtain effect fades away.
+         */
+        CDTimerClass<FrameTimerClass> IronCurtainTimer;
 };

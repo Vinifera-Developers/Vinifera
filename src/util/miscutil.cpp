@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Misc utility functions for common tasks.
  *
- *  @project       Vinifera
- *
- *  @file          MISCUTIL.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Misc utility functions for common tasks.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -342,7 +323,7 @@ bool Get_Version_Info(const char *filename, VS_FIXEDFILEINFO *out_file_info)
      *  Get the file version info size.
      */
     DWORD size = GetFileVersionInfoSize(filename, &handle);
-    ASSERT_PRINT(size > 0, "Error in GetFileVersionInfoSize: %d", GetLastError());
+    ASSERT_PRINT(size > 0, "Error in GetFileVersionInfoSize: {}", GetLastError());
     if (size <= 0) {
         return false;
     }
@@ -353,14 +334,14 @@ bool Get_Version_Info(const char *filename, VS_FIXEDFILEINFO *out_file_info)
     BYTE *verinfo = new BYTE[size];
 
     BOOL info_obtained = GetFileVersionInfo(filename, handle, size, verinfo);
-    ASSERT_PRINT(info_obtained, "Get_Version_Info() - Error in GetFileVersionInfo: %d", GetLastError());
+    ASSERT_PRINT(info_obtained, "Get_Version_Info() - Error in GetFileVersionInfo: {}", GetLastError());
     if (info_obtained) {
 
         UINT len = 0;
         VS_FIXEDFILEINFO *fileinfo = nullptr;
 
         BOOL query_success = VerQueryValue(verinfo, "\\", (LPVOID *)&fileinfo, &len);
-        ASSERT_PRINT(query_success, "Get_Version_Info() - Error in VerQueryValue: %d", GetLastError());
+        ASSERT_PRINT(query_success, "Get_Version_Info() - Error in VerQueryValue: {}", GetLastError());
 
         if (query_success) {
 
@@ -385,7 +366,7 @@ void HexPrint32(const uint32_t *data, size_t size)
         if (!(i % 80)) {
             DEBUG_INFO("\n");
         }
-        DEBUG_INFO("0x%04llX", data[i]);
+        DEBUG_INFO("0x{:04X}", data[i]);
     }
     DEBUG_INFO("\n");
 }
@@ -397,7 +378,7 @@ void HexPrint64(const uint64_t *data, size_t size)
         if (!(i % 80)) {
             DEBUG_INFO("\n");
         }
-        DEBUG_INFO("0x%08llX", data[i]);
+        DEBUG_INFO("0x{:08X}", data[i]);
     }
     DEBUG_INFO("\n");
 }

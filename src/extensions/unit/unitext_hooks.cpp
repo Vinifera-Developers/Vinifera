@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended UnitClass.
  *
- *  @project       Vinifera
- *
- *  @file          UNITEXT_HOOKS.H
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended UnitClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -1273,6 +1254,75 @@ set_mission_delay_and_return:
 
 
 /**
+ *  Prevents deploying hijacked units that have a build limit.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x0065601D, _UnitClass_What_Action_ACTION_SELF_Prevent_Deploying_Hijacked_Build_Limited_Vehicles, 0)
+{
+    GET(UnitClass*, this_ptr, ESI);
+    GET(UnitTypeClass*, unittype, EAX);
+
+    // Stolen bytes / code.
+    if (unittype->DeploysInto == nullptr) {
+        return 0x00656344;
+    }
+
+    // Do not allow deploying if this unit has been hijacked and it would deploy into a build-limited unit.
+    if (unittype->BuildLimit < INT_MAX && this_ptr->EnteredByInfType != INFANTRY_NONE) {
+        R->Stack(0x28, ACTION_NO_DEPLOY);
+        return 0x0065618E;
+    }
+
+    // Continue deployability checks.
+    return 0x0065602B;
+}
+
+/**
+ *  Patches UnitClass::Take_Damage right before iterating on the cargo.
+ *  Fixes an issue where units that have cargo (such as APCs) do not spawn their cargo if they are destroyed
+ *  while moving from one cell to another, resulting in the cargo getting erased instead.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0064FDB4, _Unit_Class_Take_Damage_Cargo_Hold_Patch, 6)
+{
+    GET(UnitClass*, this_ptr, ESI);
+
+    if (this_ptr->Cargo.Is_Something_Attached()) {
+        this_ptr->Stop_Driver();
+        if (this_ptr->Locomotion) {
+            this_ptr->Locomotion->Mark_All_Occupation_Bits(MARK_UP);
+        }
+    }
+    
+    return 0;
+}
+
+/**
+ *  Patches UnitClass::What_Action at the part where MRVs (AKA units with negative combat damage)
+ *  are evaluated whether they should commit to their action or switch to ACTION_SELECT.
+ *
+ *  Fixes an issue where ACTION_TOGGLE_SELECT (selecting units while shift is held) was converted into ACTION_SELECT,
+ *  causing the game to instead unselect the currently selected units if the MRV was the "best object" in the current selection.
+ *  For MRVs, this only triggers while trying to add infantry to your selection.
+ *
+ *  Causes What_Action to return with the ACTION_TOGGLE_SELECT action if this is the current mission.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x006563FD, _UnitClass_What_Action_MRV_Toggle_Select_Patch, 7) 
+{
+    GET_STACK(ActionType, action, 0x28);
+
+    if (action == ACTION_TOGGLE_SELECT) {
+        return 0x0065648B;
+    }
+
+	return 0;
+}
+
+/**
  *  Main function for patching the hooks.
  */
 void UnitClassExtension_Hooks()
@@ -1287,4 +1337,10 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x006571E0, &UnitClassExt::_Approach_Target);
 
     Patch_Byte(0x00658961, 0xEB); // Allow pre-placed units to have missions in multiplayer, change JZ to JMP
+    /*
+    *  Patches the MISSION_HARVEST logic that handles harvesters becoming idle due to being unable to find tiberium in its area.
+    *  It does this by removing the MISSION_GUARD assignment inside the function and instead sets it to MISSION_GUARD_AREA,
+    *  which naturally seeks out tiberium to harvest.
+    */  
+    Patch_Byte(0x0065521C + 1, (unsigned char)MISSION_GUARD_AREA); 
 }

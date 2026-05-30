@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  SDL Mouse class.
  *
- *  @project       Vinifera
- *
- *  @file          SDLMOUSE.H
- *
- *  @author        ZivDero, tomsons26
- *
- *  @brief         SDL Mouse class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -31,7 +12,6 @@
 #include "SDL3/SDL_mouse.h"
 #include "xmouse.h"
 
-#include <mmsystem.h>
 #include <vector>
 
 class SDLSurface;
@@ -51,11 +31,6 @@ public:
     ~SDLMouseClass() override;
 
     /*
-    **  Maintenance callback routine.
-    */
-    void Process_Mouse();
-
-    /*
     **  Sets the game-drawn mouse imagery.
     */
     void Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, int shape) override;
@@ -63,7 +38,7 @@ public:
     /*
     **  Controls visibility of the game-drawn mouse.
     */
-    bool Is_Hidden() const override { return Get_Mouse_State() < 0; }
+    bool Is_Hidden() const override { return HideCount > 0; }
     void Hide_Mouse() override;
     void Show_Mouse() override;
 
@@ -85,9 +60,9 @@ public:
     **  Query about the mouse visiblity state and location.
     */
     int Get_Mouse_State() const override;
-    int Get_Mouse_X() const override { return MouseX; }
-    int Get_Mouse_Y() const override { return MouseY; }
-    Point2D Get_Mouse_Point() const override { return Point2D(MouseX, MouseY); }
+    int Get_Mouse_X() const override;
+    int Get_Mouse_Y() const override;
+    Point2D Get_Mouse_Point() const override;
 
     /*
     **  The following two routines would render the mouse onto a surface.
@@ -107,6 +82,14 @@ public:
     */
     void Recalc_Cursor_Image();
 
+    /*
+    **  Override the game cursor with a system cursor. Safe to call every tick;
+    **  Clear_Cursor_Override restores the prior game cursor.
+    */
+    void Set_Override_System_Cursor(SDL_SystemCursor id);
+    void Hide_Override_Cursor();
+    void Clear_Cursor_Override();
+
 private:
     /*
     **  This specifies the mouse shape data. It records the shape set
@@ -122,14 +105,48 @@ private:
     std::vector<SDL_Surface*> CursorSurfaces;
 
     /*
-    **  The hotspot for the currently used cursor image.
+    **  Cached SDL_Cursor objects, one per frame, lazily created on first use.
+    **  Avoids per-frame SDL_CreateColorCursor / SDL_DestroyCursor churn on
+    **  animated cursors and rapid hover changes.
     */
+    struct CachedCursor
+    {
+        SDL_Cursor* cursor = nullptr;
+        int hotspot_x = 0;
+        int hotspot_y = 0;
+    };
+    std::vector<CachedCursor> CursorCache;
+
+    /*
+    **  The hotspot for the currently used cursor image. Kept in two forms so
+    **  Recalc_Cursor_Image can re-apply the current scale to the unscaled
+    **  value without compounding the previously-applied scale.
+    **    OriginalHotspot - as supplied by Set_Cursor (unscaled).
+    **    Hotspot         - scaled by Get_Cursor_Scale(), used at SDL_SetCursor time.
+    */
+    Point2D OriginalHotspot;
     Point2D Hotspot;
 
     /*
-    **  The currently used cursor.
+    **  The currently used cursor. Non-owning when sourced from CursorCache or
+    **  from the cached SystemCursor; owning is no longer used.
     */
     SDL_Cursor* Cursor;
+    bool CursorOwned;
+
+    /*
+    **  Lazily-created system cursors, one slot per SDL_SystemCursor id.
+    **  Reused so we don't churn Win32 HCURSORs on hover changes.
+    */
+    SDL_Cursor* SystemCursorCache[SDL_SYSTEM_CURSOR_COUNT];
+
+    /*
+    **  Cursor override state. While set, MouseShape / ShapeNumber /
+    **  OriginalHotspot keep describing the game cursor for restoration.
+    */
+    bool IsOverriding;
+    bool IsOverrideHidden;
+    SDL_SystemCursor CurrentOverrideId;
 
     /*
     **  If the mouse is being managed by this class (for the game), then this flag
@@ -140,26 +157,20 @@ private:
     bool IsCaptured;
 
     /*
-    **  This is the last recorded mouse position that it was drawn to.
+    **  Depth of nested Hide_Mouse calls not yet matched by Show_Mouse
+    **  (>= 0; positive means hidden). Mirrors vanilla MouseState semantics.
     */
-    int MouseX;
-    int MouseY;
-
-    /*
-    **  Maintenance timer handle.
-    */
-    MMRESULT TimerHandle;
+    int HideCount;
 
     /*
     **  Various private utility routines.
     */
-    void Update_Mouse_Position(int x, int y);
     void Delete_Cursor_Image();
     void Convert_Cursor_Image(ShapeSet const* shapes);
-    void Replace_Cursor(SDL_Cursor* cursor);
+    void Replace_Cursor(SDL_Cursor* cursor, bool owned);
     void Set_System_Cursor();
+    SDL_Cursor* Get_System_Cursor(SDL_SystemCursor id);
+    void Apply_Cursor_Visibility();
 
     static int Get_Cursor_Scale();
 };
-
-void CALLBACK SDL_Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD);

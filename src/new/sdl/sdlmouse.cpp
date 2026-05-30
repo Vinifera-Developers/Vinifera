@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  SDL Mouse class.
  *
- *  @project       Vinifera
- *
- *  @file          SDLMOUSE.CPP
- *
- *  @author        ZivDero, tomsons26
- *
- *  @brief         SDL Mouse class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -38,27 +19,7 @@
 #include "sdlsurface.h"
 #include "shapeset.h"
 
-/**
- *  Persistent mouse object pointer that is used to facilitate access to the mouse
- *  handler object outside the context of a member function. This will be set to the
- *  mouse object most recently created.
- */
-static SDLMouseClass* _MousePtr = nullptr;
-
-
-/**
- *  Mouse O/S callback function.
- *  This routine is called periodically by the operating system. It handles updating the
- *  mouse cursor position to match the mouse movement.
- *
- *  @author: JLB
- */
-void CALLBACK SDL_Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
-{
-    if (_MousePtr != nullptr) {
-        _MousePtr->Process_Mouse();
-    }
-}
+#include <algorithm>
 
 
 /**
@@ -69,16 +30,17 @@ void CALLBACK SDL_Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
 SDLMouseClass::SDLMouseClass() :
     MouseShape(nullptr),
     ShapeNumber(0),
+    OriginalHotspot(0, 0),
     Hotspot(0, 0),
     Cursor(nullptr),
+    CursorOwned(false),
+    SystemCursorCache{},
+    IsOverriding(false),
+    IsOverrideHidden(false),
+    CurrentOverrideId(SDL_SYSTEM_CURSOR_DEFAULT),
     IsCaptured(false),
-    MouseX(0),
-    MouseY(0),
-    TimerHandle(0)
+    HideCount(0)
 {
-    _MousePtr = this;
-    TimerHandle = timeSetEvent(1000 / 60, 1, SDL_Callback_Process_Mouse, 0, TIME_PERIODIC);
-
     // Ensure the mouse image won't get scaled by SDL
     SDL_SetHint(SDL_HINT_MOUSE_DPI_SCALE_CURSORS, "0");
 }
@@ -91,31 +53,18 @@ SDLMouseClass::SDLMouseClass() :
  */
 SDLMouseClass::~SDLMouseClass()
 {
-    if (TimerHandle != NULL) {
-        timeKillEvent(TimerHandle);
-        TimerHandle = NULL;
-    }
     Delete_Cursor_Image();
-    if (Cursor) {
+    if (Cursor && CursorOwned) {
         SDL_DestroyCursor(Cursor);
-        Cursor = nullptr;
     }
-    if (_MousePtr == this) {
-        _MousePtr = nullptr;
+    Cursor = nullptr;
+    CursorOwned = false;
+    for (int i = 0; i < SDL_SYSTEM_CURSOR_COUNT; ++i) {
+        if (SystemCursorCache[i] != nullptr) {
+            SDL_DestroyCursor(SystemCursorCache[i]);
+            SystemCursorCache[i] = nullptr;
+        }
     }
-}
-
-
-/**
- *  Mouse processing callback routine.
- *
- *  @author: ZivDero, tomsons26
- */
-void SDLMouseClass::Process_Mouse()
-{
-    float x, y;
-    SDL_GetMouseState(&x, &y);
-    Update_Mouse_Position(x, y);
 }
 
 
@@ -139,19 +88,46 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
     if (cursor != MouseShape) {
         Delete_Cursor_Image();
         Convert_Cursor_Image(cursor);
+        CursorCache.assign(CursorSurfaces.size(), CachedCursor{});
     }
 
     MouseShape = cursor;
     ShapeNumber = shape;
 
     /**
+     *  Stash the unscaled hotspot so Recalc_Cursor_Image() can re-apply the
+     *  current scale without compounding from a previously-scaled value.
+     */
+    OriginalHotspot = hotspot;
+
+    /**
      *  Scale the hotspot. The max value is surface dimension - 1 as required by SDL.
      */
-    Hotspot = hotspot;
-    Hotspot.X = std::clamp(Hotspot.X * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->w - 1);
-    Hotspot.Y = std::clamp(Hotspot.Y * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->h - 1);
+    const int scale = Get_Cursor_Scale();
+    Hotspot.X = std::clamp(OriginalHotspot.X * scale, 0, CursorSurfaces[shape]->w - 1);
+    Hotspot.Y = std::clamp(OriginalHotspot.Y * scale, 0, CursorSurfaces[shape]->h - 1);
 
-    Replace_Cursor(SDL_CreateColorCursor(CursorSurfaces[shape], Hotspot.X, Hotspot.Y));
+    /**
+     *  Cache hit: the SDL_Cursor for this (frame, hotspot) already exists.
+     *  Just hand it to SDL without allocating a new Win32 HCURSOR.
+     */
+    CachedCursor& entry = CursorCache[shape];
+    if (entry.cursor != nullptr && entry.hotspot_x == Hotspot.X && entry.hotspot_y == Hotspot.Y) {
+        Replace_Cursor(entry.cursor, false);
+        return;
+    }
+
+    /**
+     *  Cache miss: drop any stale entry for this frame (e.g. hotspot changed),
+     *  create a new SDL_Cursor, and store it for reuse.
+     */
+    if (entry.cursor != nullptr) {
+        SDL_DestroyCursor(entry.cursor);
+    }
+    entry.cursor = SDL_CreateColorCursor(CursorSurfaces[shape], Hotspot.X, Hotspot.Y);
+    entry.hotspot_x = Hotspot.X;
+    entry.hotspot_y = Hotspot.Y;
+    Replace_Cursor(entry.cursor, false);
 }
 
 
@@ -162,7 +138,8 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
  */
 void SDLMouseClass::Hide_Mouse()
 {
-    SDL_HideCursor();
+    ++HideCount;
+    Apply_Cursor_Visibility();
 }
 
 
@@ -173,7 +150,10 @@ void SDLMouseClass::Hide_Mouse()
  */
 void SDLMouseClass::Show_Mouse()
 {
-    SDL_ShowCursor();
+    if (HideCount > 0) {
+        --HideCount;
+    }
+    Apply_Cursor_Visibility();
 }
 
 
@@ -184,16 +164,16 @@ void SDLMouseClass::Show_Mouse()
  */
 void SDLMouseClass::Release_Mouse()
 {
-    if (WindowedMode || !IsCaptured) {
+    if (!IsCaptured) {
         return;
     }
 
-    /**
-     *  Release system capture and unlock cursor.
-     */
-    ClipCursor(nullptr);
+    if (!WindowedMode) {
+        ClipCursor(nullptr);
+    }
 
     IsCaptured = false;
+    Apply_Cursor_Visibility();
 }
 
 
@@ -204,27 +184,26 @@ void SDLMouseClass::Release_Mouse()
  */
 void SDLMouseClass::Capture_Mouse()
 {
-    if (WindowedMode || IsCaptured) {
+    if (IsCaptured) {
         return;
     }
 
-    /**
-     *  Compute the client area in screen coordinates.
-     */
-    RECT client_rect;
-    GetClientRect(MainWindow, &client_rect);
-    POINT ul = {client_rect.left, client_rect.top};
-    POINT lr = {client_rect.right, client_rect.bottom};
-    MapWindowPoints(MainWindow, nullptr, &ul, 1);
-    MapWindowPoints(MainWindow, nullptr, &lr, 1);
-    RECT clip_rect = {ul.x, ul.y, lr.x, lr.y};
-
-    /**
-     *  Lock cursor inside window.
-     */
-    ClipCursor(&clip_rect);
+    if (!WindowedMode) {
+        /**
+         *  Compute the client area in screen coordinates and lock cursor inside window.
+         */
+        RECT client_rect;
+        GetClientRect(MainWindow, &client_rect);
+        POINT ul = {client_rect.left, client_rect.top};
+        POINT lr = {client_rect.right, client_rect.bottom};
+        MapWindowPoints(MainWindow, nullptr, &ul, 1);
+        MapWindowPoints(MainWindow, nullptr, &lr, 1);
+        RECT clip_rect = {ul.x, ul.y, lr.x, lr.y};
+        ClipCursor(&clip_rect);
+    }
 
     IsCaptured = true;
+    Apply_Cursor_Visibility();
 }
 
 
@@ -253,33 +232,53 @@ void SDLMouseClass::Conditional_Show_Mouse()
 
 
 /**
- *  Fetch the current mouse visibility state.
- *  Returns with the current mouse visibility state. If the return value is less than
- *  0 (i.e., negative), then the mouse is hidden.
+ *  Fetch the current mouse visibility state. Zero when visible, negative when
+ *  hidden (mirrors vanilla WWMouseClass::MouseState).
  *
  *  @author: ZivDero
  */
 int SDLMouseClass::Get_Mouse_State() const
 {
-    return SDL_CursorVisible() ? 1 : -1;
+    return -HideCount;
 }
 
 
 /**
- *  Updates the mouse position to match that specified.
+ *  Returns the current mouse cursor X position in window coordinates.
  *
- *  @author: ZivDero, tomsons26
+ *  @author: ZivDero
  */
-void SDLMouseClass::Update_Mouse_Position(int x, int y)
+int SDLMouseClass::Get_Mouse_X() const
 {
-    /**
-     *  If the desired position is not the same as the current
-     *  position, then reposition it.
-     */
-    if (x != MouseX || y != MouseY) {
-        MouseX = x;
-        MouseY = y;
-    }
+    float x, y;
+    SDL_GetMouseState(&x, &y);
+    return static_cast<int>(x);
+}
+
+
+/**
+ *  Returns the current mouse cursor Y position in window coordinates.
+ *
+ *  @author: ZivDero
+ */
+int SDLMouseClass::Get_Mouse_Y() const
+{
+    float x, y;
+    SDL_GetMouseState(&x, &y);
+    return static_cast<int>(y);
+}
+
+
+/**
+ *  Returns the current mouse cursor position in window coordinates.
+ *
+ *  @author: ZivDero
+ */
+Point2D SDLMouseClass::Get_Mouse_Point() const
+{
+    float x, y;
+    SDL_GetMouseState(&x, &y);
+    return Point2D(static_cast<int>(x), static_cast<int>(y));
 }
 
 
@@ -290,6 +289,23 @@ void SDLMouseClass::Update_Mouse_Position(int x, int y)
  */
 void SDLMouseClass::Delete_Cursor_Image()
 {
+    /**
+     *  Destroy every cached cursor before the surfaces they were built from go away.
+     *  If the currently-active Cursor pointer is borrowed from the cache, clear it
+     *  too so we don't leave it dangling.
+     */
+    for (CachedCursor& entry : CursorCache) {
+        if (entry.cursor != nullptr) {
+            if (Cursor == entry.cursor) {
+                Cursor = nullptr;
+                CursorOwned = false;
+            }
+            SDL_DestroyCursor(entry.cursor);
+            entry.cursor = nullptr;
+        }
+    }
+    CursorCache.clear();
+
     while (!CursorSurfaces.empty()) {
         SDL_DestroySurface(*CursorSurfaces.begin());
         CursorSurfaces.erase(CursorSurfaces.begin());
@@ -382,30 +398,116 @@ void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
 
 /**
  *  Replaces the current cursor with the given one.
+ *  `owned` indicates whether this class is responsible for destroying `cursor`
+ *  when it is replaced. Cursors that come from the cache are not owned here.
  *
  *  @author: ZivDero
  */
-void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor)
+void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor, bool owned)
 {
     SDL_Cursor* old_cursor = Cursor;
+    bool old_owned = CursorOwned;
 
     Cursor = cursor;
+    CursorOwned = owned;
     SDL_SetCursor(Cursor);
 
-    if (old_cursor != nullptr) {
+    if (old_cursor != nullptr && old_owned) {
         SDL_DestroyCursor(old_cursor);
     }
 }
 
 
 /**
- *  Resets the cursor to the system default.
+ *  Resets the cursor to the system default. The HCURSOR is allocated lazily
+ *  on first use and kept alive for the lifetime of this class, so repeated
+ *  calls don't churn Win32 cursor handles.
  *
  *  @author: ZivDero
  */
 void SDLMouseClass::Set_System_Cursor()
 {
-    Replace_Cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT));
+    Replace_Cursor(Get_System_Cursor(SDL_SYSTEM_CURSOR_DEFAULT), false);
+}
+
+
+/**
+ *  Lazily allocates and returns a cached SDL_Cursor for the given system id.
+ *  Cached for the lifetime of the class; freed in the destructor.
+ *
+ *  @author: ZivDero
+ */
+SDL_Cursor* SDLMouseClass::Get_System_Cursor(SDL_SystemCursor id)
+{
+    if (SystemCursorCache[id] == nullptr) {
+        SystemCursorCache[id] = SDL_CreateSystemCursor(id);
+    }
+    return SystemCursorCache[id];
+}
+
+
+/**
+ *  Overrides the cursor with a system cursor.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Set_Override_System_Cursor(SDL_SystemCursor id)
+{
+    IsOverrideHidden = false;
+    IsOverriding = true;
+    CurrentOverrideId = id;
+
+    Apply_Cursor_Visibility();
+    Replace_Cursor(Get_System_Cursor(id), false);
+}
+
+
+/**
+ *  Hides the OS cursor as part of an override.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Hide_Override_Cursor()
+{
+    if (IsOverrideHidden) {
+        return;
+    }
+    IsOverrideHidden = true;
+    IsOverriding = true;
+    Apply_Cursor_Visibility();
+}
+
+
+/**
+ *  Ends a cursor override and restores the prior game cursor.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Clear_Cursor_Override()
+{
+    if (!IsOverriding && !IsOverrideHidden) {
+        return;
+    }
+
+    IsOverriding = false;
+    IsOverrideHidden = false;
+    Apply_Cursor_Visibility();
+
+    if (MouseShape == nullptr) {
+        Set_System_Cursor();
+        return;
+    }
+
+    /**
+     *  Null MouseShape so Set_Cursor's early-return can't fire, then re-apply
+     *  via the CursorCache path (no surface / HCURSOR reallocation).
+     */
+    ShapeSet const* shape = MouseShape;
+    int shape_number = ShapeNumber;
+    Point2D unscaled_hotspot = OriginalHotspot;
+
+    MouseShape = nullptr;
+    Set_Cursor(unscaled_hotspot, shape, shape_number);
 }
 
 
@@ -416,11 +518,43 @@ void SDLMouseClass::Set_System_Cursor()
  */
 void SDLMouseClass::Recalc_Cursor_Image()
 {
+    /**
+     *  Skip while overriding; the next Clear_Cursor_Override rebuilds the cache.
+     */
+    if (IsOverriding || IsOverrideHidden) {
+        return;
+    }
+
+    if (MouseShape == nullptr) {
+        return;
+    }
+
     ShapeSet const* shape = MouseShape;
     int shape_number = ShapeNumber;
+    Point2D unscaled_hotspot = OriginalHotspot;
 
     Delete_Cursor_Image();
-    Set_Cursor(Hotspot, shape, shape_number);
+    Set_Cursor(unscaled_hotspot, shape, shape_number);
+}
+
+
+/**
+ *  Reconciles the SDL cursor visibility with HideCount, the cursor override,
+ *  and the release state.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Apply_Cursor_Visibility()
+{
+    const bool should_be_visible = (HideCount == 0 || IsOverriding || !IsCaptured) && !IsOverrideHidden;
+    if (should_be_visible == SDL_CursorVisible()) {
+        return;
+    }
+    if (should_be_visible) {
+        SDL_ShowCursor();
+    } else {
+        SDL_HideCursor();
+    }
 }
 
 

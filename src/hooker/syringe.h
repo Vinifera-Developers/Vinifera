@@ -1,36 +1,18 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Holds macros, structures, classes that are necessary to interact
+ *          with Syringe correctly.
  *
- *  @project       Vinifera
- *
- *  @file          SYRINGE.H
- *
- *  @author        Patrick "pd" Dinklage
- *
- *  @contributors  Ares Contributors, Phobos Contributors, ZivDero
- *
- *  @brief         Holds macros, structures, classes that are necessary to
- *                 interact with Syringe correctly.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
 
+#include <bit>
+#include <cstdint>
+#include <type_traits>
 #include <windows.h>
 
 /**
@@ -141,6 +123,50 @@ public:
 class REGISTERS
 {
 private:
+    template<typename T>
+    using StackValueType = std::remove_cv_t<std::remove_reference_t<T>>;
+
+    template<typename T>
+    static constexpr bool IsPushPopType =
+        std::is_pointer_v<T>
+        || std::is_enum_v<T>
+        || std::is_integral_v<T>
+        || (sizeof(T) == sizeof(DWORD)
+            && std::is_trivially_copyable_v<T>
+            && !std::is_floating_point_v<T>);
+
+    template<typename T>
+    static DWORD PushPopToDWORD(T value) {
+        using ValueType = StackValueType<T>;
+
+        static_assert(IsPushPopType<ValueType>,
+            "REGISTERS::Push/Pop only support pointers, enums, integral values, and trivially-copyable DWORD-sized values.");
+
+        if constexpr (std::is_pointer_v<ValueType>) {
+            return static_cast<DWORD>(reinterpret_cast<std::uintptr_t>(value));
+        } else if constexpr (std::is_enum_v<ValueType> || std::is_integral_v<ValueType>) {
+            return static_cast<DWORD>(value);
+        } else {
+            return std::bit_cast<DWORD>(value);
+        }
+    }
+
+    template<typename T>
+    static T DWORDToPushPop(DWORD value) {
+        using ValueType = StackValueType<T>;
+
+        static_assert(IsPushPopType<ValueType>,
+            "REGISTERS::Push/Pop only support pointers, enums, integral values, and trivially-copyable DWORD-sized values.");
+
+        if constexpr (std::is_pointer_v<ValueType>) {
+            return reinterpret_cast<T>(static_cast<std::uintptr_t>(value));
+        } else if constexpr (std::is_enum_v<ValueType> || std::is_integral_v<ValueType>) {
+            return static_cast<T>(value);
+        } else {
+            return static_cast<T>(std::bit_cast<ValueType>(value));
+        }
+    }
+
     DWORD origin;
     DWORD flags;
 
@@ -207,6 +233,23 @@ public:
 
     BYTE Stack8(int offset) {
         return this->_ESP.At<BYTE>(offset);
+    }
+
+    /**
+     *  Simulate x86 32-bit push/pop instructions on a single stack slot.
+     *  These helpers are not generic stack-resizing primitives.
+     */
+    template<typename T>
+    void Push(T value) {
+        this->ESP(this->ESP() - 4);
+        this->Stack(0, PushPopToDWORD(value));
+    }
+
+    template<typename T = DWORD>
+    T Pop() {
+        const DWORD value = this->Stack32(0);
+        this->ESP(this->ESP() + 4);
+        return DWORDToPushPop<T>(value);
     }
 
     template<typename T>
@@ -307,7 +350,7 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
         #define declhook(address, funcname, size) \
             EXPORT_FUNC(funcname##_##address##_LogStub) \
             { \
-                DEBUG_INFO("[Syringe] Hook %s entered at %08X.\n", #funcname, address); \
+                DEBUG_INFO("[Syringe] Hook {} entered at {:08X}.\n", #funcname, address); \
                 SyringeData::LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
                 return 0; \
             } \
@@ -358,3 +401,18 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 #define GET_STACK(clsname, var, offset) clsname var = R->Stack<clsname>(offset);
 #define GET_BASE(clsname, var, offset) clsname var = R->Base<clsname>(offset);
 #define STACK_OFFSET(cur_offset, wanted_offset) (cur_offset + wanted_offset)
+
+/**
+ *  Feature flags set by Syringe at injection time.
+ *  DLLs can check these at runtime to verify that the running Syringe
+ *  version supports the features they rely on. Each flag defaults to false
+ *  and is set to true by Syringe after the DLL is loaded into the target
+ *  process. If a DLL is loaded by an older Syringe that does not know about
+ *  feature flags, the values will remain false.
+ */
+namespace SyringeFeatures
+{
+extern "C" __declspec(dllexport) inline bool ESPModification = false;
+extern "C" __declspec(dllexport) inline bool ZFPreservation = false;
+extern "C" __declspec(dllexport) inline bool ReladdrInstructionFixup = false;
+} // namespace SyringeFeatures

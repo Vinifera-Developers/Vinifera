@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended ObjectClass.
  *
- *  @project       Vinifera
- *
- *  @file          OBJECTEXT_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for the extended ObjectClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -33,6 +14,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "asserthandler.h"
+#include "audio_voc_handle.h"
 #include "cell.h"
 #include "colorscheme.h"
 #include "extension.h"
@@ -41,7 +23,10 @@
 #include "mouse.h"
 #include "object.h"
 #include "objectext.h"
+#include "objecttype.h"
+#include "objecttypeext.h"
 #include "rules.h"
+#include "syringe.h"
 #include "techno.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
@@ -161,6 +146,32 @@ DEFINE_HOOK(0x0058634A, _Take_Damage_Unit_Destroyed_Trigger_Event_Patch, 6) {
 
     if (obj->Tag) {        
         obj->Tag->Spring(static_cast<TEventType>(EXT_TEVENT_DESTROYED_ONLY), obj);
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00584C18, _ObjectClass_AI_AmbientSound_Patch, 5)
+{
+    GET(ObjectClass*, this_ptr, ESI);
+
+    auto ext = Extension::Fetch(this_ptr);
+    if (ext != nullptr) {
+        Extension::Fetch(this_ptr)->Ambient_AI();
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x00585AAD, _ObjectClass_Limbo_AmbientSound_Patch, 5)
+{
+    GET(ObjectClass*, this_ptr, ESI);
+
+    auto ext = Extension::Fetch(this_ptr);
+    if (ext != nullptr) {
+        Extension::Fetch(this_ptr)->Stop_Ambient();
     }
 
     return 0;

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TerrainTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TERRAINTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TerrainTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -55,8 +36,6 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* thi
     TiberiumSpawnStageFalloff(0),
     IsTiberiumScatterSpawn(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TerrainTypeExtensions.Add(this);
 }
 
@@ -69,7 +48,6 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* thi
 TerrainTypeClassExtension::TerrainTypeClassExtension(const NoInitClass &noinit) :
     ObjectTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -80,8 +58,6 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const NoInitClass &noinit) 
  */
 TerrainTypeClassExtension::~TerrainTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::~TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TerrainTypeExtensions.Delete(this);
 }
 
@@ -93,8 +69,6 @@ TerrainTypeClassExtension::~TerrainTypeClassExtension()
  */
 HRESULT TerrainTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -112,8 +86,6 @@ HRESULT TerrainTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT TerrainTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -132,8 +104,6 @@ HRESULT TerrainTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT TerrainTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -150,23 +120,10 @@ HRESULT TerrainTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TerrainTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void TerrainTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    ObjectTypeClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -176,8 +133,6 @@ void TerrainTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void TerrainTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsLightEnabled);
 }
 
@@ -189,8 +144,6 @@ void TerrainTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }

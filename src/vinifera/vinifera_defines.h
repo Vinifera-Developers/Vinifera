@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Vinifera defines and constants.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_DEFINES.H
- *
- *  @authors       CCHyper
- *
- *  @brief         Vinifera defines and constants.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -40,16 +21,6 @@
 #ifndef NDEBUG
 //#define VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING 1
 #endif
-
-/**
- *  Enable debug printing of class extension creation and destruction process.
- * 
- *  WARNING: This will slow the game down when many instances are created at once.
- */
-#ifndef NDEBUG
-//#define VINIFERA_ENABLE_EXTENSION_DEBUG_PRINTING 1
-#endif
-
 
 /**
  *  CLSIDs for all new locomotors.
@@ -212,7 +183,7 @@ typedef enum ExtTActionType
     EXT_TACTION_GIVE_CREDITS,
     EXT_TACTION_ENABLE_SHORT_GAME,
     EXT_TACTION_DISABLE_SHORT_GAME,
-    EXT_TACTION_UNUSED1, // unused, used to print the difficulty as a message in ts-patches
+    EXT_TACTION_CREATE_BUILDING_AT,
     EXT_TACTION_HOUSE_DESTROY_ALL,
     EXT_TACTION_MAKE_ELITE,
     EXT_TACTION_ENABLE_ALLYREVEAL,
@@ -239,6 +210,10 @@ typedef enum ExtTActionType
     EXT_TACTION_ENABLE_TEMPLATED_TEXT,
     EXT_TACTION_DISABLE_TEMPLATED_TEXT,
     EXT_TACTION_ADJUST_HOUSE_MODIFIER,
+    EXT_TACTION_APPLY_IRON_CURTAIN,
+    EXT_TACTION_STOP_SOUNDS_AT,
+    EXT_TACTION_ATTACH_SOUND,
+    EXT_TACTION_DETACH_SOUND,
 
     /**
      *  The new total ExtTActionType count.
@@ -286,6 +261,7 @@ typedef enum ExtTEventType
     EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT,
     EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL,
     EXT_TEVENT_LOCAL_LESS_THAN_LOCAL,
+    EXT_TEVENT_BUILDING_DOES_NOT_EXIST,
     EXT_TEVENT_DESTROYED_ONLY,
 
     /**
@@ -309,7 +285,7 @@ enum ExtEventType {
     /**
      *  Add new ExtEventTypes from here.
      */
-    
+    EXT_EVENT_PLAYER_OPTIONS,
 
     /**
      *  The new total ExtEventTypes count.

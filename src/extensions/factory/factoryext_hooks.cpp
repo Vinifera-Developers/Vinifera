@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended FactoryClass.
  *
- *  @project       Vinifera
- *
- *  @file          FACTORYEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended FactoryClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -40,7 +21,7 @@
 #include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"
-#include "sidebarext.h"
+#include "battleui.h"
 #include "techno.h"
 #include "technotype.h"
 #include "tibsun_globals.h"
@@ -111,10 +92,6 @@ void FactoryClassExt::_Sanitize_Queue()
     }
 
     if (need_update) {
-        if (House == PlayerPtr) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, TechnoTypeClassExtension::Get_Production_Flags(producing_type));
-        }
-
         House->Update_Factories(type);
         Resume_Queue();
     }
@@ -263,7 +240,7 @@ bool FactoryClassExt::_Abandon()
 {
     if (Object) {
 
-        DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->GivenName.c_str());
+        DEBUG_INFO("Abandoning production of {}\n", Object->Class_Of()->GivenName);
 
         /*
         **  Refund all money expended so far, back to the owner of the object under construction.
@@ -324,17 +301,17 @@ bool FactoryClassExt::_Abandon()
  */
 void FactoryClassExt::_Object_CRC(CRCEngine& crc) const
 {
-    DEBUG_INFO("Frame == %d\n", Frame);
-    DEBUG_INFO("QueuedObjects.Count() == %d\n", QueuedObjects.Count());
-    if (Object != nullptr) DEBUG_INFO("Object->RTTI == %d\n", Object->RTTI);
-    if (Object != nullptr) DEBUG_INFO("Object->HeapID == %d\n", Object->Fetch_Heap_ID());
-    DEBUG_INFO("IsSuspended\t= %d\n", IsSuspended);
-    DEBUG_INFO("IsDifferent\t= %d\n", IsDifferent);
-    DEBUG_INFO("Balance\t= %d\n", Balance);
-    DEBUG_INFO("OriginalBalance = %d\n", OriginalBalance);
-    DEBUG_INFO("SpecialItem\t= %d\n", SpecialItem);
-    if (House != nullptr) DEBUG_INFO("House->Fetch_ID()\t= %d\n", House->Fetch_ID());
-    DEBUG_INFO("ID\t= %d\n", Fetch_ID());
+    DEBUG_INFO("Frame == {}\n", Frame);
+    DEBUG_INFO("QueuedObjects.Count() == {}\n", QueuedObjects.Count());
+    if (Object != nullptr) DEBUG_INFO("Object->RTTI == {}\n", (int)Object->RTTI);
+    if (Object != nullptr) DEBUG_INFO("Object->HeapID == {}\n", Object->Fetch_Heap_ID());
+    DEBUG_INFO("IsSuspended\t= {}\n", IsSuspended);
+    DEBUG_INFO("IsDifferent\t= {}\n", IsDifferent);
+    DEBUG_INFO("Balance\t= {}\n", Balance);
+    DEBUG_INFO("OriginalBalance = {}\n", OriginalBalance);
+    DEBUG_INFO("SpecialItem\t= {}\n", SpecialItem);
+    if (House != nullptr) DEBUG_INFO("House->Fetch_ID()\t= {}\n", House->Fetch_ID());
+    DEBUG_INFO("ID\t= {}\n", Fetch_ID());
 
     AbstractClass::Object_CRC(crc);
 

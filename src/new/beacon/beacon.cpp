@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  New classes adding Beacons to TS.
  *
- *  @project       Vinifera
- *
- *  @file          BEACON.CPP
- *
- *  @author        ZivDero, tomsons26
- *
- *  @brief         New classes adding Beacons to TS.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -479,11 +460,11 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
         beacon->ID = Frame;
     }
 
-    DEBUG_INFO("Placing beacon: (%d, %d, %d)\n", coord.X, coord.Y, coord.Z);
+    DEBUG_INFO("Placing beacon: ({}, {}, {})\n", coord.X, coord.Y, coord.Z);
     beacon->Set(coord, house);
 
     if (beacon->House == PlayerPtr->HeapID) {
-        Speak(RuleExtension->PlaceBeaconVoice);
+        AudioVoxClass::Speak(RuleExtension->PlaceBeaconVoice);
         Sound_Effect(RuleExtension->PlaceBeaconSound);
     }
 
@@ -501,7 +482,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
          */
         else if (beacon->Is_Visible_To_Player()) {
             if (Submit_Radar_Event(RADAREVENT_DROPZONE, coord.As_Cell())) {
-                Speak(RuleExtension->DetectBeaconVoice);
+                AudioVoxClass::Speak(RuleExtension->DetectBeaconVoice);
             }
         }
     }
@@ -785,7 +766,7 @@ void BeaconManagerClass::Send_Beacon_Place(Coord const& coord, HousesType house,
     packet.PlaceBeacon.Position = coord;
     packet.PlaceBeacon.House = house;
     for (int i = 1; i < Session.Players.Count(); i++) {
-        DEBUG_INFO("Sending beacon placement to %s\n", static_cast<const char*>(Session.Players[i]->Name));
+        DEBUG_INFO("Sending beacon placement to {}\n", static_cast<const char*>(Session.Players[i]->Name));
         Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
     }
 }
@@ -804,7 +785,7 @@ void BeaconManagerClass::Send_Beacon_Delete(HousesType house, int beacon_id)
     packet.DeleteBeacon.House = house;
     packet.DeleteBeacon.Number = beacon_id;
     for (int i = 1; i < Session.Players.Count(); i++) {
-        DEBUG_INFO("Sending beacon delete to %s\n", static_cast<const char*>(Session.Players[i]->Name));
+        DEBUG_INFO("Sending beacon delete to {}\n", static_cast<const char*>(Session.Players[i]->Name));
         Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
     }
 }
@@ -831,7 +812,7 @@ void BeaconManagerClass::Send_Set_Beacon_Text(char const * text, HousesType hous
 
     if (beacon_id != -1) {
         for (int i = 1; i < Session.Players.Count(); i++) {
-            DEBUG_INFO("Sending beacon text to %s\n", static_cast<const char*>(Session.Players[i]->Name));
+            DEBUG_INFO("Sending beacon text to {}\n", static_cast<const char*>(Session.Players[i]->Name));
             Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
         }
     }

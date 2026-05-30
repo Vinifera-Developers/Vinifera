@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended DisplayClass.
  *
- *  @project       Vinifera
- *
- *  @file          DISPLAYEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended DisplayClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -382,6 +363,25 @@ DEFINE_HOOK(0x0047A856, _DisplayClass_47A790_Patch, 0)
     }
 }
 
+/**
+ *  Patches DisplayClass::Mouse_Left_Release to skip the 'Active_Click' call when the action
+ *  is ACTION_TOGGLE_SELECT (adding to selection). In most cases, this was unnecessary and did nothing.
+ * 
+ *  However, in the case of medics, since they can click on themselves to switch to Area Guard,
+ *  this caused adding them to selection to immediately move them to Area Guard, while also flashing.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x00478BC7, _Display_Class_Mouse_Left_Release_Toggle_Select_Patch, 5)
+{
+    GET(ActionType, action, EDI);
+
+    if (action == ACTION_TOGGLE_SELECT) {
+        return 0x00478BD8;
+    }
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.

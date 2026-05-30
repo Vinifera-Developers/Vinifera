@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended CampaignClass.
  *
- *  @project       Vinifera
- *
- *  @file          CAMPAIGNEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended CampaignClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -59,7 +40,7 @@ DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)
      *  first before allowing it to continue availability checks.
      */
     if (campaignext->IsDebugOnly && !Vinifera_DeveloperMode) {
-        DEBUG_INFO("  Skipping Debug-Only Campaign [%d] - %s\n", index, campaign->Description);
+        DEBUG_INFO("  Skipping Debug-Only Campaign [{}] - {}\n", index, campaign->Description);
         goto skip_no_print;
     }
     
@@ -86,7 +67,7 @@ DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)
      *  Add the campaign to the dialog list.
      */
 add_campaign:
-    DEBUG_INFO("  Adding Campaign [%d] - %s\n", index, campaign->Description);
+    DEBUG_INFO("  Adding Campaign [{}] - {}\n", index, campaign->Description);
 add_no_print:
     R->ESI(&campaign->Description);
     R->EDI(index);
@@ -96,7 +77,7 @@ add_no_print:
      *  Skip this campaign.
      */
 skip_campaign:
-    DEBUG_GAME("  Skipping Campaign [%d] - %s\n", index, campaign->Description);
+    DEBUG_INFO("  Skipping Campaign [{}] - {}\n", index, campaign->Description);
 skip_no_print:
     return 0x004E33E6;
 }

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Various utility functions.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_UTIL.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Various utility functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -406,6 +387,32 @@ int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2
 
 
 /**
+ *  Shows a in-game warning message box and logs the message.
+ *
+ *  @author: Rampastring
+ */
+void Vinifera_Log_And_Show_WWMessageBox(const char* msg, ...)
+{
+    char buffer[510]; // Working staging buffer.
+    va_list arg;      // Argument list var.
+
+    va_start(arg, msg);
+    vsnprintf(buffer, sizeof(buffer), msg, arg);
+    va_end(arg);
+
+    // For the log file, append a line-terminator at the end of the message.
+    char log_buffer[512];
+    int message_length = strlen(buffer);
+    memcpy(log_buffer, buffer, message_length);
+    log_buffer[message_length] = '\n';
+    log_buffer[message_length + 1] = '\0';
+
+    DEBUG_WARNING("{}", log_buffer);
+    WWMessageBox().Process(buffer, 0, "OK");
+}
+
+
+/**
  *  Shows a in-game warning message box only if developer mode is active.
  * 
  *  This has been made its own function because we can not allocate on the stack with
@@ -500,7 +507,7 @@ bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> 
 
     HZIP hZip = CreateZip((void *)buffer, 0, ZIP_FILENAME);
     if (!hZip) {
-        DEBUG_ERROR("Failed to create zip archive \"%s\"!\n", filename);
+        DEBUG_ERROR("Failed to create zip archive \"{}\"!\n", filename);
         return false;
     }
 
@@ -515,12 +522,12 @@ bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> 
         }
         ZRESULT zresult = ZipAdd(hZip, filelist[i], buffer, 0, ZIP_FILENAME);
         if (zresult != ZR_OK) {
-            DEBUG_ERROR("Failed to add file \"%s\" to zip archive \"%s\"!\n", buffer, filename);
+            DEBUG_ERROR("Failed to add file \"{}\" to zip archive \"{}\"!\n", buffer, filename);
             return false;
         }
     }
     
-    DEBUG_INFO("Zip archive \"%s\" created sucessfully.\n", filename);
+    DEBUG_INFO("Zip archive \"{}\" created sucessfully.\n", filename);
 
     return CloseZip(hZip) == ZR_OK;
 }
@@ -668,7 +675,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
     DWORD rc = LoadString(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer));
     //DWORD rc = Load_String_Ex(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer), ResourceLang);
     if (!rc) {
-        DEBUG_ERROR("Fetch_String() - LoadString failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_String() - LoadString failed. Error! {}.\n", Last_System_Error_As_String());
         return _null;
     }
 
@@ -676,7 +683,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
     //_buffer[sizeof(_buffer)-1] = '\0';
     free_entry.Buffer[sizeof(free_entry.Buffer)-1] = '\0';
 
-    //DEBUG_INFO("Fetch_String() - Returning '%s'.\n", free_entry.Buffer);
+    //DEBUG_INFO("Fetch_String() - Returning '{}'.\n", free_entry.Buffer);
 
     return free_entry.Buffer;
 }
@@ -696,13 +703,13 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
     //HRSRC res = FindResourceEx(handle, id, type, ResourceLang);
     HRSRC res = FindResource(handle, id, type);
     if (res == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
     HGLOBAL res_handle = LoadResource(handle, res);
     if (res_handle == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - LoadResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - LoadResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
@@ -715,7 +722,7 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
      */
     void *res_data = LockResource(res_handle);
     if (res_data == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - LockResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - LockResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
@@ -763,4 +770,59 @@ BSurface *Vinifera_Get_Image_Surface(const char *filename)
     }
 
     return nullptr;
+}
+
+
+/**
+ *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
+ * 
+ *  @author: CCHyper
+ */
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio)
+{
+    if (maintain_ratio) {
+
+        double dSurfaceWidth = area_width;
+        double dSurfaceHeight = area_height;
+        double dSurfaceAspectRatio = dSurfaceWidth / dSurfaceHeight;
+
+        double dVideoWidth = rect.Width;
+        double dVideoHeight = rect.Height;
+        double dVideoAspectRatio = dVideoWidth / dVideoHeight;
+    
+        /**
+         *  If the aspect ratios are the same then the screen rectangle
+         *  will do, otherwise we need to calculate the new rectangle.
+         */
+        if (dVideoAspectRatio > dSurfaceAspectRatio) {
+            int nNewHeight = (int)(area_width/dVideoWidth*dVideoHeight);
+            int nCenteringFactor = (area_height - nNewHeight) / 2;
+            rect.X = 0;
+            rect.Y = nCenteringFactor;
+            rect.Width = area_width;
+            rect.Height = nNewHeight;
+
+        } else if (dVideoAspectRatio < dSurfaceAspectRatio) {
+            int nNewWidth = (int)(area_height/dVideoHeight*dVideoWidth);
+            int nCenteringFactor = (area_width - nNewWidth) / 2;
+            rect.X = nCenteringFactor;
+            rect.Y = 0;
+            rect.Width = nNewWidth;
+            rect.Height = area_height;
+
+        } else {
+            rect.X = 0;
+            rect.Y = 0;
+            rect.Width = area_width;
+            rect.Height = area_height;
+        }
+
+    } else {
+        rect.X = 0;
+        rect.Y = 0;
+        rect.Width = area_width;
+        rect.Height = area_height;
+    }
+
+    return true;
 }

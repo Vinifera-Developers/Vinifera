@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the intercepting Main_Loop().
  *
- *  @project       Vinifera
- *
- *  @file          MAINLOOPEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the intercepting Main_Loop().
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -33,11 +14,13 @@
 #include "addon.h"
 #include "asserthandler.h"
 #include "beacon.h"
+#include "battleui.h"
 #include "ccfile.h"
 #include "ccini.h"
 #include "command.h"
 #include "debughandler.h"
 #include "event.h"
+#include "eventext.h"
 #include "fatal.h"
 #include "hooker.h"
 #include "house.h"
@@ -92,6 +75,14 @@ static void Before_Main_Loop()
 
 static void After_Main_Loop()
 {
+    /**
+     *  Have we not yet sent our options? If not, do so now.
+     */
+    if (!Vinifera_PlayerOptionsSent) {
+        OutList.Add(EventClassExt(PlayerPtr->HeapID, (EventType)EXT_EVENT_PLAYER_OPTIONS, OptionsExtension->IsPauseRepairs).As_Event());
+        Vinifera_PlayerOptionsSent = true;
+    }
+
     /**
      *  Has we been flagged to reload the rules data?
      */
@@ -176,14 +167,11 @@ static void After_Main_Loop()
          *  Finally, reload miscellaneous classes.
          */
         {
-            CCFileClass workingfile;
-            CCINIClass workingini;
-
             DEBUG_INFO("Calling UIControls->Read_INI().\n");
-            workingfile.Set_Name("UI.INI");
-            workingini.Clear();
-            workingini.Load(workingfile, false);
-            UIControls->Read_INI(workingini);
+            UIControls->Read_INI_File("UI.INI", true);
+            UIControls->Read_INI_File("UIOVERRIDES.INI");
+            BattleUI.Shift_Sidebar();
+            Map.Flag_To_Redraw(GS_REDRAW_ALL);
             DEBUG_INFO("Finished UIControls->Read_INI().\n");
         }
 
