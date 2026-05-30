@@ -22,9 +22,11 @@
 #include "ionstorm.h"
 #include "levitatelocomotion.h"
 #include "radarevent.h"
+#include "rulesext.h";
 #include "session.h"
 #include "syringe.h"
 #include "tactical.h"
+#include "tag.h"
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
@@ -36,8 +38,6 @@
 #include "unittype.h"
 #include "vinifera_globals.h"
 #include "vox.h"
-#include "tag.h"
-#include "rulesext.h";
 
 
 /**
