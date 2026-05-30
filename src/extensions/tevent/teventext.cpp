@@ -43,6 +43,7 @@ TEventClass::EventDescriptionStruct TEventClassExtension::ExtActionDescriptions[
     { "Local less than Global", "Checks if a local variable is less than a global variable." },
     { "Local less than Local", "Checks if one local variable is less than another." },
     { "Building does not exist", "Triggers when the building specified (owned by the house of this trigger) does not exist." },
+    { "Destroyed Only", "Triggers when the attached object is destroyed by damage." },
 };
 
 
@@ -165,12 +166,12 @@ void TEventClassExtension::Object_CRC(CRCEngine &crc) const
  */
 const char* TEventClassExtension::Event_Name(int event)
 {
-    if (event < TACTION_COUNT) {
+    if (event < TEVENT_COUNT) {
         return TEventClass::Event_Name(static_cast<TEventType>(event));
     }
 
-    if (event < EXT_TACTION_COUNT) {
-        return ExtActionDescriptions[event - EXT_TACTION_FIRST].Name;
+    if (event < EXT_TEVENT_COUNT) {
+        return ExtActionDescriptions[event - EXT_TEVENT_FIRST].Name;
     }
 
     return "<invalid>";
@@ -184,12 +185,12 @@ const char* TEventClassExtension::Event_Name(int event)
  */
 const char* TEventClassExtension::Event_Description(int event)
 {
-    if (event < TACTION_COUNT) {
+    if (event < TEVENT_COUNT) {
         return TEventClass::Event_Description(static_cast<TEventType>(event));
     }
 
-    if (event < EXT_TACTION_COUNT) {
-        return ExtActionDescriptions[event - EXT_TACTION_FIRST].Description;
+    if (event < EXT_TEVENT_COUNT) {
+        return ExtActionDescriptions[event - EXT_TEVENT_FIRST].Description;
     }
 
     return "<invalid>";
