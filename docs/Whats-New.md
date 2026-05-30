@@ -185,6 +185,7 @@ Vanilla fixes:
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
+- Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 
 :::
 

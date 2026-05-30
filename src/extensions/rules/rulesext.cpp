@@ -106,7 +106,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     AbandonTargetEscortRange(-1),
 	IsFreeRadarOnLowPower(false),
     IsUseBridgeHealth(false),
-	BridgeArmor(ARMOR_NULL)
+	BridgeArmor(ARMOR_NULL),
+	IsCellTagsIgnoreStealth(true)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -266,6 +267,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsFreeRadarOnLowPower);
     crc(IsUseBridgeHealth);
     crc(BridgeArmor);
+    crc(IsCellTagsIgnoreStealth);
 }
 
 
@@ -700,6 +702,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
     IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);
     IsUseBridgeHealth = ini.Get_Bool(GENERAL, "UseBridgeHealth", IsUseBridgeHealth);
+    IsCellTagsIgnoreStealth = ini.Get_Bool(GENERAL, "CellTagsIgnoreStealth", IsCellTagsIgnoreStealth);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
