@@ -776,44 +776,26 @@ bool FootClassExt::_Limbo()
 }
 
 /*
-* Patches FootClass::Per_Cell_Process at the cloak check.
-* Reimplements the logic inside the if check to safely add to it.
-* This is done in order to add the logic to allow cloaked units to trigger cell tags via the TEVENT_PLAYER_ENTERED trigger event.
+* Patches FootClass::Per_Cell_Process inside the cloak check.
+* Trigger cell tags via the TEVENT_PLAYER_ENTERED trigger event.
 * Cell Tags can only be sprung by cloaked units if the 'CloakedTechnosTriggerCellTags' key is set in rules under [General].
 * 
 * @author: JoyfulShush
 */
-DEFINE_HOOK(0x004A3E14, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
+DEFINE_HOOK(0x004A3E25, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
 {
     GET(FootClass*, this_ptr, ESI);
+        
+    if (!RuleExtension->IsCellTagsIgnoreStealth) {
+        CellClass* cellptr = &Map[this_ptr->PositionCell];
+        TagClass* tag = cellptr->CellTag;
 
-    if (this_ptr->Cloak == CLOAKED) {
-        /* Reimplementation based on RE effort */
-        for (int face = FACING_N; face < FACING_COUNT; face++) {
-            Cell cell = Adjacent_Cell(this_ptr->PositionCell, (FacingType)face);
-
-            if (Map.In_Local_Radar(cell)) {
-                TechnoClass const* techno = Map[cell].Cell_Techno();
-
-                if (techno && !techno->House->Is_Ally(this_ptr) && (techno->TClass->IsScanner || techno->Has_Ability(ABILITY_SENSORS))) {
-                    this_ptr->Do_Shimmer();
-                    break;
-                }
-            }
+        if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
+            tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
         }
+    }    
 
-        /* Conditionally spring cell tags for cloaked units */
-        if (!RuleExtension->IsCellTagsIgnoreStealth) {
-            CellClass* cellptr = &Map[this_ptr->PositionCell];
-            TagClass* tag = cellptr->CellTag;
-
-            if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
-                tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
-            }
-        }
-    }
-
-    return 0x4A3EE3;
+    return 0;
 }
 
 
