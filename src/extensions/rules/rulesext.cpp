@@ -104,7 +104,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     PausedRepairsFrame(6),
     EscortRange(-1),
     AbandonTargetEscortRange(-1),
-	IsFreeRadarOnLowPower(false)
+	IsFreeRadarOnLowPower(false),
+    IsUseBridgeHealth(false),
+	BridgeArmor(ARMOR_NULL)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -262,6 +264,8 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(EscortRange);
     crc(AbandonTargetEscortRange);
     crc(IsFreeRadarOnLowPower);
+    crc(IsUseBridgeHealth);
+    crc(BridgeArmor);
 }
 
 
@@ -695,6 +699,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
     IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);
+    IsUseBridgeHealth = ini.Get_Bool(GENERAL, "UseBridgeHealth", IsUseBridgeHealth);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
@@ -776,6 +781,7 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
     BuildingFlameSpawnBlockFrames = ini.Get_Int(COMBATDAMAGE, "BuildingFlameSpawnBlockFrames", BuildingFlameSpawnBlockFrames);
+    BridgeArmor = ini.Get_ArmorType(COMBATDAMAGE, "BridgeArmor", BridgeArmor);
 
     return true;
 }

@@ -182,6 +182,7 @@ This page lists all the individual contributions to the project by their author.
   - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit.
   - Fix a bug where AI medics would fail to heal their allies.
   - Allow Free Radar to remain active when players are in low power.
+  - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
