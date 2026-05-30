@@ -110,6 +110,7 @@ New:
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 - Allow Free Radar to be used when players are in low power (by JoyfulShush)
 - Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
+- Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -185,7 +186,6 @@ Vanilla fixes:
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
-- Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 
 :::
 
