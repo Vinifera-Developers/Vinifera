@@ -1,38 +1,21 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Vinifera global values.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_GLOBALS.H
- *
- *  @authors       CCHyper
- *
- *  @brief         Vinifera global values.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
 
 #include "ccfile.h"
+#include "cell.h"
 #include "extension_globals.h"
 #include "vector.h"
 
 #include <unordered_map>
+#include <windows.h>
 
 
 class PrerequisiteGroupClass;
@@ -52,6 +35,8 @@ struct SDL_Texture;
 
 extern bool Vinifera_DeveloperMode;
 
+extern bool Vinifera_AudioDebug;
+
 extern bool Vinifera_PerformingLoad;
 
 extern bool Vinifera_PrintFileErrors;
@@ -67,6 +52,12 @@ extern char Vinifera_ProjectName[64];
 extern char Vinifera_ProjectVersion[64];
 extern char Vinifera_IconName[64];
 extern char Vinifera_CursorName[64];
+
+/**
+ *  Captured in DllMain DLL_PROCESS_ATTACH. Used by the exception handler to
+ *  decide whether it can safely show a modal dialog or touch UI/DirectDraw state.
+ */
+extern DWORD Vinifera_MainThreadId;
 
 
 /**
@@ -99,6 +90,7 @@ extern SDL_Renderer* SDLWindowRenderer;
 extern SDL_Texture* SDLWindowTexture;
 extern int SDLWindowWidth;
 extern int SDLWindowHeight;
+extern bool Vinifera_ModernMoviePlaying;
 
 
 /**
@@ -118,7 +110,6 @@ extern DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
 extern MFCD *GenericMix;
 extern MFCD *IsoGenericMix;
-extern MFCD *SideCTMix;
 
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
@@ -127,6 +118,7 @@ extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 
+extern bool Vinifera_PlayerOptionsSent;
 
 /**
  *  Global vectors and heaps.
@@ -151,10 +143,6 @@ extern bool Vinifera_SkipToSkirmish;
 extern bool Vinifera_SkipToCampaign;
 extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
-
-
-extern bool Vinifera_NewSidebar;
-
 
 /**
  *  Definition for the exception database struct. If you update this
@@ -181,3 +169,15 @@ struct ExceptionInfoDatabaseStruct
 };
 
 extern DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;
+
+struct CellHasher {
+    std::size_t operator()(const Cell cell) const
+    {
+        int X = cell.X;
+        int Y = cell.Y;
+
+        return X << 16 | Y;
+    }
+};
+
+extern std::unordered_map<Cell, int, CellHasher> BridgeHealths;

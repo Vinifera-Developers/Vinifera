@@ -1,0 +1,291 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *  @brief  Simple stdio wrappers for miniaudio's read/seek/tell procs that are
+ *          required for the custom audio decoder.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+
+#include "always.h"
+
+#include "audio_io.h"
+
+#include "audio_debug.h"
+#include "ccfile.h"
+
+
+/**
+ *  Helper function to convert wchar to char.
+ */
+static std::string wchar_to_utf8(const std::wstring& wstr)
+{
+    if (wstr.empty()) {
+        return {};
+    }
+    int size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr);
+    if (size <= 0) {
+        return {};
+    }
+    std::string result(size, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.size()), &result[0], size, nullptr, nullptr);
+    return result;
+}
+
+
+/**
+ *  miniaudio callback functions that use the C&C engine file io.
+ * 
+ *  Read:
+ *    Function used to read data from memory.
+ *    
+ *    ptr = Pointer to the buffer that the vorbis files need.
+ *    size = How big a byte is.
+ *    count = How much we should read.
+ *    datasource = This is a pointer to the data we passed into ov_open_callbacks.
+ * 
+ *  Seek:
+ *    Function used to seek to a specific part of the file in memory.
+ * 
+ *    datasource = This is a pointer to the data we passed into ov_open_callbacks.
+ *    offset = The offset from the point we wish to seek to.
+ *    origin = Where we want to seek to.
+ * 
+ *  Close:
+ *    Function used to close the file in memory.
+ * 
+ *    datasource = This is a pointer to the data we passed into ov_open_callbacks.
+ * 
+ *  Tell:
+ *    Function used to tell how much we have read so far.
+ * 
+ *    datasource = This is a pointer to the data we passed into ov_open_callbacks.
+ */
+
+static ma_result Audio_CCFile_onOpen(ma_vfs *pVFS, const char *pFilePath, ma_uint32 openMode, ma_vfs_file *pFile)
+{
+    (void)pVFS;
+
+    if (pFile == nullptr) {
+        return MA_INVALID_ARGS;
+    }
+
+    CCFileClass * file_handle = new CCFileClass(pFilePath);
+
+    if (!file_handle->Is_Available()) {
+        delete file_handle;
+        return MA_DOES_NOT_EXIST;
+    }
+
+    bool opened = false;
+
+    if ((openMode & MA_OPEN_MODE_READ) != 0) {
+        opened = file_handle->Open(FILE_ACCESS_READ);
+
+    } else if ((openMode & MA_OPEN_MODE_WRITE) != 0) {
+        opened = file_handle->Open(FILE_ACCESS_WRITE);
+    }
+
+    if (!opened || !file_handle->Is_Open()) {
+        delete file_handle;
+        return MA_DOES_NOT_EXIST;
+    }
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onOpen -> %s\n", file_handle->File_Name());
+
+    if (pFile != nullptr) {
+        *pFile = file_handle;
+    }
+
+    return MA_SUCCESS;
+}
+
+static ma_result Audio_CCFile_onOpenW(ma_vfs *pVFS, const wchar_t *pFilePath, ma_uint32 openMode, ma_vfs_file *pFile)
+{
+    (void)pVFS;
+
+    if (pFile == nullptr) {
+        return MA_INVALID_ARGS;
+    }
+
+    // Convert the input path to UTF8 as CCFileClass does not support wide strings.
+    std::string file_path = wchar_to_utf8(std::wstring(pFilePath));
+
+    CCFileClass * file_handle = new CCFileClass(file_path.c_str());
+
+    if (!file_handle->Is_Available()) {
+        delete file_handle;
+        return MA_DOES_NOT_EXIST;
+    }
+
+    bool opened = false;
+
+    if ((openMode & MA_OPEN_MODE_READ) != 0) {
+        opened = file_handle->Open(FILE_ACCESS_READ);
+
+    } else if ((openMode & MA_OPEN_MODE_WRITE) != 0) {
+        opened = file_handle->Open(FILE_ACCESS_WRITE);
+    }
+
+    if (!opened || !file_handle->Is_Open()) {
+        delete file_handle;
+        return MA_DOES_NOT_EXIST;
+    }
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onOpenW -> %s\n", file_handle->File_Name());
+
+    if (pFile != nullptr) {
+        *pFile = file_handle;
+    }
+
+    return MA_SUCCESS;
+}
+
+static ma_result Audio_CCFile_onClose(ma_vfs *pVFS, ma_vfs_file file)
+{
+    (void)pVFS;
+
+    if (file == nullptr) {
+        return MA_INVALID_ARGS;
+    }
+
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onClose -> %s\n", file_handle->File_Name());
+
+    if (file_handle != nullptr) {
+        if (file_handle->Is_Open()) {
+            file_handle->Close();
+        }
+        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: Deleting file object at %p (%s)\n", file_handle, file_handle->File_Name());
+        delete file_handle;
+    }
+
+    return MA_SUCCESS;
+}
+
+static ma_result Audio_CCFile_onRead(ma_vfs *pVFS, ma_vfs_file file, void *pDst, size_t sizeInBytes, size_t *pBytesRead)
+{
+    (void)pVFS;
+
+    if (file == nullptr || pDst == nullptr || sizeInBytes <= 0 || pBytesRead == nullptr) {
+        return MA_INVALID_ARGS;
+    }
+
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
+
+    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_IO, "AudioIO: onRead -> %s, Read %zu bytes\n", file_handle->File_Name(), sizeInBytes);
+
+    long totalBytesRead = file_handle->Read(pDst, sizeInBytes);
+    if (totalBytesRead == 0) {
+        *pBytesRead = 0; // #BUGFIX: This will be fixed upstream in Miniaudio soon?
+        return MA_AT_END;
+    }
+
+    if (pBytesRead != nullptr) {
+        *pBytesRead = totalBytesRead;
+    }
+
+    return MA_SUCCESS;
+}
+
+static ma_result Audio_CCFile_onWrite(ma_vfs *pVFS, ma_vfs_file file, const void *pSrc, size_t sizeInBytes, size_t *pBytesWritten)
+{
+    (void)pVFS;
+    (void)file;
+    (void)pSrc;
+    (void)sizeInBytes;
+
+    if (pBytesWritten != nullptr) {
+        *pBytesWritten = 0;
+    }
+
+    return MA_NOT_IMPLEMENTED;
+}
+
+static ma_result Audio_CCFile_onSeek(ma_vfs *pVFS, ma_vfs_file file, ma_int64 offset, ma_seek_origin origin)
+{
+    (void)pVFS;
+
+    if (file == nullptr) {
+        return MA_INVALID_ARGS;
+    }
+
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
+
+    off_t off = (uint32_t)(offset);
+    off_t retoff = 0;
+
+    switch (origin) {
+        default:
+        case ma_seek_origin_start:
+            retoff = file_handle->Seek(off, FILE_SEEK_START);
+            break;
+
+        case ma_seek_origin_current:
+            retoff = file_handle->Seek(off, FILE_SEEK_CURRENT);
+            break;
+
+        case ma_seek_origin_end:
+            retoff = file_handle->Seek(off, FILE_SEEK_END);
+            break;
+    };
+
+    if (retoff < 0) {
+        return MA_BAD_SEEK;
+    }
+
+    return MA_SUCCESS;
+}
+
+static ma_result Audio_CCFile_onTell(ma_vfs *pVFS, ma_vfs_file file, ma_int64 *pCursor)
+{
+    (void)pVFS;
+
+    if (file == nullptr) {
+        return MA_INVALID_ARGS;
+    }
+
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
+
+    if (pCursor != nullptr) {
+        *pCursor = file_handle->Tell();
+    }
+
+    return MA_SUCCESS;
+}
+
+static ma_result Audio_CCFile_onInfo(ma_vfs *pVFS, ma_vfs_file file, ma_file_info *pInfo)
+{
+    (void)pVFS;
+
+    if (file == nullptr) {
+        return MA_INVALID_ARGS;
+    }
+
+    CCFileClass * file_handle = reinterpret_cast<CCFileClass *>(file);
+
+    if (pInfo != nullptr) {
+        pInfo->sizeInBytes = file_handle->Size();
+    }
+
+    return MA_SUCCESS;
+}
+
+
+/**
+ *  Vtable for the custom VFS that uses the CCFileClass IO.
+ * 
+ *  NOTE: This must be the last in the file as the functions are local to this source file!
+ */
+/*static*/ ma_vfs_callbacks ma_custom_vfs_callbacks = {
+    Audio_CCFile_onOpen,
+    Audio_CCFile_onOpenW,
+    Audio_CCFile_onClose,
+    Audio_CCFile_onRead,
+    Audio_CCFile_onWrite,    // Not required, we don't need to write audio files.
+    Audio_CCFile_onSeek,
+    Audio_CCFile_onTell,
+    Audio_CCFile_onInfo
+};

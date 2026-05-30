@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Class containing configuration for AircraftType rockets.
  *
- *  @project       Vinifera
- *
- *  @file          ROCKETTYPE.CPP
- *
- *  @authors       ZivDero
- *
- *  @brief         Class containing configuration for AircraftType rockets.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -147,8 +128,6 @@ LONG RocketTypeClass::QueryInterface(REFIID riid, LPVOID* ppv)
  */
 ULONG RocketTypeClass::AddRef()
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::AddRef - 0x%08X\n", (uintptr_t)(this));
-
     return 1;
 }
 
@@ -160,8 +139,6 @@ ULONG RocketTypeClass::AddRef()
  */
 ULONG RocketTypeClass::Release()
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::Release - 0x%08X\n", (uintptr_t)(this));
-
     return 1;
 }
 
@@ -173,8 +150,6 @@ ULONG RocketTypeClass::Release()
  */
 HRESULT RocketTypeClass::GetClassID(CLSID* lpClassID)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(this));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -192,8 +167,6 @@ HRESULT RocketTypeClass::GetClassID(CLSID* lpClassID)
  */
 HRESULT RocketTypeClass::IsDirty()
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::IsDirty - 0x%08X\n", (uintptr_t)(this));
-
     return S_OK;
 }
 
@@ -206,8 +179,6 @@ HRESULT RocketTypeClass::IsDirty()
  */
 HRESULT RocketTypeClass::Load(IStream* pStm)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::Load - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -253,8 +224,6 @@ HRESULT RocketTypeClass::Load(IStream* pStm)
  */
 HRESULT RocketTypeClass::Save(IStream* pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::Internal_Save - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -264,7 +233,7 @@ HRESULT RocketTypeClass::Save(IStream* pStm, BOOL fClearDirty)
      */
     const LONG id = reinterpret_cast<LONG>(this);
 
-    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
 
     HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
@@ -290,8 +259,6 @@ HRESULT RocketTypeClass::Save(IStream* pStm, BOOL fClearDirty)
  */
 LONG RocketTypeClass::GetSizeMax(ULARGE_INTEGER* pcbSize)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::GetSizeMax - 0x%08X\n", (uintptr_t)(this));
-
     if (!pcbSize) {
         return E_POINTER;
     }

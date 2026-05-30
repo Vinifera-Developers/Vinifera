@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Utility functions for saving and loading.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_SAVELOAD.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Utility functions for saving and loading.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -39,6 +20,8 @@
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
+#include "audio_static_sound.h"
+#include "battleui.h"
 #include "beacon.h"
 #include "building.h"
 #include "buildinglight.h"
@@ -112,7 +95,7 @@
 #include "verses.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_savever.h"
-#include "vinifera_util.h"
+#include "vox.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
@@ -139,7 +122,7 @@ unsigned ViniferaGameVersion = 0x0;
 template<class T>
 static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list, const char *heap_name)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    DEBUG_INFO("Saving {}...\n", heap_name);
 
     /**
      *  Save the number of instances of this class.
@@ -156,7 +139,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
         return hr;
     }
 
-    DEBUG_INFO("  Count: %d\n", list.Count());
+    DEBUG_INFO("  Count: {}\n", list.Count());
 
     /**
      *  Save each instance of this class.
@@ -205,7 +188,7 @@ static HRESULT Vinifera_Save_Vector(LPSTREAM &pStm, DynamicVectorClass<T> &list,
 template<class T>
 static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, const char *heap_name)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    DEBUG_INFO("Loading {}...\n", heap_name);
 
     /**
      *  Read the number of instances of this class.
@@ -221,7 +204,7 @@ static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, 
         return hr;
     }
 
-    DEBUG_INFO("  Count: %d\n", count);
+    DEBUG_INFO("  Count: {}\n", count);
     
     /**
      *  Read each class instance.
@@ -241,6 +224,107 @@ static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, 
     }
 
     return hr;
+}
+
+template<typename TKey, typename TValue, typename THash, typename TEqual>
+static HRESULT Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
+{
+    DEBUG_INFO("Saving unordered map {}...\n", heap_name);
+
+    /**
+     *  Save the number of entries in the map.
+     */
+    int count = static_cast<int>(map.size());
+    HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        DEBUG_ERROR("  Failed to write map count!\n");
+        return hr;
+    }
+
+    if (count <= 0) {
+        DEV_DEBUG_INFO("  Map count was zero, skipping save.\n");
+        return hr;
+    }
+
+    DEBUG_INFO("  Count: {}\n", count);
+
+    /**
+     *  Iterate through the map.     
+     */
+    for (auto const& [key, val] : map) {
+        
+        hr = pStm->Write(&key, sizeof(TKey), nullptr);
+        if (FAILED(hr)) {
+            DEBUG_ERROR("  Failed to write Key data!\n");
+            return hr;
+        }
+        
+        hr = pStm->Write(&val, sizeof(TValue), nullptr);
+        if (FAILED(hr)) {
+            DEBUG_ERROR("  Failed to write Value data!\n");
+            return hr;
+        }
+    }
+
+    return S_OK;
+}
+
+/**
+ * Loads a map of objects from the data stream.
+ */
+template<typename TKey, typename TValue, typename THash, typename TEqual>
+static HRESULT Load_Unordered_Map(IStream* pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
+{
+    DEBUG_INFO("Loading unordered map {}...\n", heap_name);
+    
+    map.clear();
+
+    /**
+     * Read the number of entries.
+     */
+    int count = 0;
+    HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        DEBUG_ERROR("  Failed to read map count!\n");
+        return hr;
+    }
+
+    if (count <= 0) {
+        DEV_DEBUG_INFO("  Count was zero, skipping load.\n");
+        return hr;
+    }
+
+    DEBUG_INFO("  Count: {}\n", count);
+
+    /**
+     * Read each Key-Value pair.
+     */
+    for (int i = 0; i < count; ++i) {
+        TKey key;
+        TValue value;
+
+        // Read the Key (The Cell data)
+        hr = pStm->Read(&key, sizeof(TKey), nullptr);
+        if (FAILED(hr)) {
+            DEBUG_ERROR("  Failed to read Key at index {}!\n", i);
+            return hr;
+        }
+
+        // Read the Value (The int)
+        hr = pStm->Read(&value, sizeof(TValue), nullptr);
+        if (FAILED(hr)) {
+            DEBUG_ERROR("  Failed to read Value at index {}!\n", i);
+            return hr;
+        }
+
+        /**
+         * Insert into the map.
+         * This automatically invokes your custom Hash and Equality logic.
+         */
+        map[key] = value;
+    }
+
+    return S_OK;
 }
 
 
@@ -369,6 +453,8 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     KamikazeTracker->Save(pStm, false);
     AircraftTracker->Save(pStm);
 
+    Save_Tracked_Static_Sounds(pStm);
+
     /**
      *  Save skirmish values.
      */
@@ -383,6 +469,20 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     DEBUG_INFO("Saving class extensions\n");
     if (!Extension::Save(pStm)) {
         DEBUG_ERROR("\t***** FAILED!\n");
+        return false;
+    }
+
+    /**
+     *  Save the battle UI state.
+     */
+    DEBUG_INFO("Saving BattleUI...\n");
+    if (FAILED(BattleUI.Save(pStm))) { return false; }
+
+    /**
+     *  Save the bridge health tracker map
+     */
+    DEBUG_INFO("Saving bridge health trackers\n");
+    if (FAILED(Save_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
         return false;
     }
 
@@ -446,11 +546,11 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     Disable_Addon(ADDON_BASE_GAME);
 
-    DEBUG_INFO("Setting required addon to '%d'\n", Scen->RequiredAddOn);
+    DEBUG_INFO("Setting required addon to '{}'\n", (int)Scen->RequiredAddOn);
     Set_Required_Addon(Scen->RequiredAddOn);
 
     if (!Addon_Installed(Scen->RequiredAddOn)) {
-        DEBUG_ERROR("Addon '%d' is not installed!\n", Scen->RequiredAddOn);
+        DEBUG_ERROR("Addon '{}' is not installed!\n", (int)Scen->RequiredAddOn);
         return false;
     }
 
@@ -617,6 +717,8 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     AircraftTracker->Clear();
     AircraftTracker->Load(pStm);
 
+    Load_Tracked_Static_Sounds(pStm);
+
     /**
      *  Load skirmish values.
      */
@@ -634,9 +736,25 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         return false;
     }
 
-    Map.Flag_To_Redraw(2);
+    /**
+     *  Load the battle UI state.
+     */
+    DEBUG_INFO("Loading BattleUI...\n");
+    SpeechEnabled = false;
+    if (FAILED(BattleUI.Load(pStm))) { return false; }
+    SpeechEnabled = true;
+
+    Map.Flag_To_Redraw(GS_REDRAW_ALL);
 
     //Vinifera_Remap_Extension_Pointers();
+
+    /**
+     *  Load the bridge health tracker map
+     */
+    DEBUG_INFO("Loading bridge health trackers\n");
+    if (FAILED(Load_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
+        return false;
+    }
 
     /**
      *  We have finished loading the game data, reset the load flag.
@@ -722,7 +840,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
      */
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
 
-    DEBUG_INFO("SAVING GAME [%s - %s]\n", formatted_file_name, descr);
+    DEBUG_INFO("SAVING GAME [{} - {}]\n", formatted_file_name, descr);
 
     /**
      *  This is required for compatibility with TS Client's sidebar hack.
@@ -831,7 +949,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    DEBUG_INFO("SAVING GAME [%s] - Complete.\n", formatted_file_name);
+    DEBUG_INFO("SAVING GAME [{}] - Complete.\n", formatted_file_name);
     
     return result;
 }
@@ -854,7 +972,7 @@ bool Vinifera_Load_Game(const char* file_name)
      */
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
 
-    DEBUG_INFO("LOADING GAME [%s]\n", formatted_file_name);
+    DEBUG_INFO("LOADING GAME [{}]\n", formatted_file_name);
 
     /**
      *  Convert the file name to a wide string.
@@ -922,7 +1040,7 @@ bool Vinifera_Load_Game(const char* file_name)
 
     DEBUG_INFO("Calling Vinifera_Get_All().\n");
     if (!Vinifera_Get_All(stream)) {
-        DEBUG_FATAL("Error loading save game \"%s\"!\n", formatted_file_name);
+        DEBUG_FATAL("Error loading save game \"{}\"!\n", formatted_file_name);
         return false;
     }
 
@@ -935,13 +1053,19 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Init_IO();
     Map.Activate(1);
     Map.Shift_Sidebar();
+
+    /**
+     *  Relink factories to the sidebar model items.
+     */
+    BattleUI.Get_Sidebar().Relink_Factories();
+
     TiberiumClass::Initialize_Tiberium_Growth_System();
     TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
     ScenarioActive = true;
     TacticalActive = true;
 
-    DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
+    DEBUG_INFO("LOADING GAME [{}] - Complete\n", formatted_file_name);
 
     return true;
 }
@@ -1056,13 +1180,13 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
 
             unsigned game_version = saveversion.Get_Internal_Version();
             if (game_version != GameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! Tiberian Sun: File version 0x%X, Expected version 0x%X.\n", formatted_file_name, game_version, GameVersion);
+                DEBUG_WARNING("Save file \"{}\" is incompatible! Tiberian Sun: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, game_version, GameVersion);
                 return false;
             }
 
             unsigned vinifera_version = saveversion.Get_Vinifera_Version();
             if (vinifera_version != ViniferaGameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
+                DEBUG_WARNING("Save file \"{}\" is incompatible! Vinifera: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
                 return false;
             }
 
@@ -1082,7 +1206,7 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             return true;
         }
         else {
-            DEBUG_WARNING("Failed to read save file \"%s\"!\n", formatted_file_name);
+            DEBUG_WARNING("Failed to read save file \"{}\"!\n", formatted_file_name);
         }
     }
 

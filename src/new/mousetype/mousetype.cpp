@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Mouse cursor controls and overrides.
  *
- *  @project       Vinifera
- *
- *  @file          MOUSETYPE.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Mouse cursor controls and overrides.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/ }.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -333,30 +314,30 @@ bool MouseTypeClass::Read_INI(CCINIClass &ini)
 
         tok = std::strtok(buffer, ",");
         mousectrl->StartFrame = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse StartFrame for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse StartFrame for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
         mousectrl->FrameCount = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameCount for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameCount for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
         mousectrl->FrameRate = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameRate for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameRate for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
         mousectrl->SmallFrame = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrame for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrame for {}!", mousectrl->Name);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameCount for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameCount for {}!", mousectrl->Name);
         mousectrl->SmallFrameCount = std::strtol(tok, nullptr, 10);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameRate for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameRate for {}!", mousectrl->Name);
         mousectrl->SmallFrameRate = std::strtol(tok, nullptr, 10);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotX for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotX for {}!", mousectrl->Name);
         if (!strcmpi(tok, "left")) {
             value = MOUSE_HOTSPOT_MIN;
         } else if (!strcmpi(tok, "center")) {
@@ -369,7 +350,7 @@ bool MouseTypeClass::Read_INI(CCINIClass &ini)
         mousectrl->Hotspot.X = value;
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotY for %s!", mousectrl->Name.c_str());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotY for {}!", mousectrl->Name);
         if (!strcmpi(tok, "top")) {
             value = MOUSE_HOTSPOT_MIN;
         } else if (!strcmpi(tok, "middle")) {
@@ -421,7 +402,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot X for {}!\n", control.Name);
                 return false;
         }
 
@@ -436,7 +417,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for {}!\n", control.Name);
                 return false;
         }
 
@@ -451,7 +432,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot X for {}!\n", control.Name);
                 return false;
         }
 
@@ -466,7 +447,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for {}!\n", control.Name);
                 return false;
         }
 

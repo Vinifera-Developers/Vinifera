@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  New Verses handler.
  *
- *  @project       Vinifera
- *
- *  @file          VERSES.H
- *
- *  @authors       ZivDero
- *
- *  @brief         New Verses handler.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -63,28 +44,28 @@ public:
     static void Clear();
 
     static void Set_Modifier(ArmorType armor, WarheadType warhead, double value) { Set_Value(armor, warhead, value, Modifier); }
-    static double Get_Modifier(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, Modifier, &ArmorTypeClass::Modifier); }
+    static double Get_Modifier(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, Modifier, &ArmorTypeClass::Modifier); }
 
     static void Set_Modifier(ArmorType armor, WarheadTypeClass* warhead, double value) { Set_Modifier(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static double Get_Modifier(ArmorType armor, WarheadTypeClass* warhead) { return Get_Modifier(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
+    static double Get_Modifier(ArmorType armor, const WarheadTypeClass* warhead) { return Get_Modifier(armor, static_cast<const WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
 
     static void Set_ForceFire(ArmorType armor, WarheadType warhead, bool value) { Set_Value(armor, warhead, value, ForceFire); }
-    static bool Get_ForceFire(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, ForceFire, &ArmorTypeClass::ForceFire); }
+    static bool Get_ForceFire(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, ForceFire, &ArmorTypeClass::ForceFire); }
 
     static void Set_ForceFire(ArmorType armor, WarheadTypeClass* warhead, bool value) { Set_ForceFire(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static bool Get_ForceFire(ArmorType armor, WarheadTypeClass* warhead) { return Get_ForceFire(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
+    static bool Get_ForceFire(ArmorType armor, const WarheadTypeClass* warhead) { return Get_ForceFire(armor, static_cast<WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
 
     static void Set_PassiveAcquire(ArmorType armor, WarheadType warhead, bool value) { Set_Value(armor, warhead, value, PassiveAcquire); }
-    static bool Get_PassiveAcquire(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, PassiveAcquire, &ArmorTypeClass::PassiveAcquire); }
+    static bool Get_PassiveAcquire(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, PassiveAcquire, &ArmorTypeClass::PassiveAcquire); }
 
     static void Set_PassiveAcquire(ArmorType armor, WarheadTypeClass* warhead, bool value) { Set_PassiveAcquire(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static bool Get_PassiveAcquire(ArmorType armor, WarheadTypeClass* warhead) { return Get_PassiveAcquire(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
+    static bool Get_PassiveAcquire(ArmorType armor, const WarheadTypeClass* warhead) { return Get_PassiveAcquire(armor, static_cast<WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
 
     static void Set_Retaliate(ArmorType armor, WarheadType warhead, bool value) { Set_Value(armor, warhead, value, Retaliate); }
-    static bool Get_Retaliate(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, Retaliate, &ArmorTypeClass::Retaliate); }
+    static bool Get_Retaliate(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, Retaliate, &ArmorTypeClass::Retaliate); }
 
     static void Set_Retaliate(ArmorType armor, WarheadTypeClass* warhead, bool value) { Set_Retaliate(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static bool Get_Retaliate(ArmorType armor, WarheadTypeClass* warhead) { return Get_Retaliate(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
+    static bool Get_Retaliate(ArmorType armor, const WarheadTypeClass* warhead) { return Get_Retaliate(armor, static_cast<WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
 
 private:
     template <typename T>
@@ -94,10 +75,10 @@ private:
     static T Get_Value(ArmorType armor, WarheadType warhead, std::vector<std::vector<VersesData<T>>>& vector, T ArmorTypeClass::* specific);
 
     template <typename T>
-    static HRESULT Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name);
+    static HRESULT Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector);
 
     template <typename T>
-    static HRESULT Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name);
+    static HRESULT Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector);
 
 private:
     /**

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended TechnoClass.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended TechnoClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -32,6 +13,7 @@
 
 #include "aircraft.h"
 #include "asserthandler.h"
+#include "audio_vox.h"
 #include "buildingext.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
@@ -133,6 +115,25 @@ public:
     int _Anti_Air() const;
 };
 
+/**
+ * A unit that has death frames will trigger its death counter upon the first death, and will live until the counter reaches its MaxDeathFrames
+ * During this time, the unit is considered "dying" - in the sense that it was already killed, but still lives for the purposes of playing its death animation.
+ * This has gameplay ramifications, so this helper function helps identify when the unit is in dying state to align its behavior.
+ * Note: currently only RTTI_UNIT technos can have death frames.
+ * 
+ * @author: JoyfulShush
+ */
+static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
+{
+    if (this_ptr->RTTI == RTTI_UNIT) {
+        const auto unit = reinterpret_cast<UnitClass*>(this_ptr);
+        if (unit->DeathCounter >= 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  *  Draw the pips of this Techno.
@@ -666,7 +667,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeEliteSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
 
                 /**
@@ -680,7 +681,7 @@ void TechnoClassExt::_Mission_AI()
                  */
                 if (House->Is_Player_Control()) {
                     Static_Sound(RuleExtension->UpgradeVeteranSound, PositionCoord);
-                    Speak(RuleExtension->VoxUnitPromoted);
+                    AudioVoxClass::Speak(RuleExtension->VoxUnitPromoted);
                 }
             }
 
@@ -888,7 +889,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
 
 
 /**
- *  Determines if the object can move be moved by player.
+ *  Determines if the object can be moved by the player.
  *
  *  @author: 01/19/1995 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
@@ -900,6 +901,15 @@ bool TechnoClassExt::_Can_Player_Move() const
 
     if (Is_Immobilized())
         return false;
+
+     /**
+      * Fixes an issue where a unit that has entered death animation and is being held alive by it
+      * can be issued additional move commands to keep walking until it dies.
+      * This makes it impossible for a player to issue move commands to dying units
+      */
+    if (Is_Unit_Dying(const_cast<TechnoClassExt*>(this))) {
+        return false;
+    }
 
     const auto ext = Extension::Fetch(this);
     if (ext->SpawnManager)
@@ -2010,7 +2020,7 @@ DEFINE_HOOK(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 5)
          *  This is legacy behavior similar to that of Red Alert.
          */
         if (weapontypeext->IsSuicide && weapontypeext->IsDeleteOnSuicide) {
-            DEV_DEBUG_INFO("Deleted: %s\n", this_ptr->Name());
+            DEV_DEBUG_INFO("Deleted: {}\n", this_ptr->Name());
             this_ptr->Delete_Me();
 
         /**
@@ -2222,6 +2232,16 @@ DEFINE_HOOK(0x0062C5D5, _TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch, 0)
 
 static bool Should_Take_Damage(TechnoClass* this_ptr, TechnoClass* source, const WarheadTypeClass* warhead, int damage)
 {
+    /**
+     * Fixes an issue where a unit that has entered death animation and is being held alive by it
+     * can allow its killers to record its death over and over again, granting them an insane amount of veterancy.
+     * It also has other side effects, such as counting the unit as killed for unit death count total, etc.
+     * Units typically have a DeathCounter value of -1; it is set to 0 after it is first killed only if it has death frames.
+     */
+    if (Is_Unit_Dying(reinterpret_cast<TechnoClassExt*>(this_ptr))) {
+        return false;
+    }
+
     if (warhead) {
 
         /**
@@ -2484,7 +2504,7 @@ DEFINE_HOOK(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 6)
     
     HouseClass* house = this_ptr->House;
     if (!house) {
-        DEBUG_WARNING("Techno \"%s\" has an invalid house!", this_ptr->Name());
+        DEBUG_WARNING("Techno \"{}\" has an invalid house!", this_ptr->Name());
         Vinifera_DeveloperMode_Warning_WWMessageBox("Techno \"%s\" has an invalid house!", this_ptr->Name());
         Fatal("Null house pointer in TechnoClass::Owner!\n");
     }
@@ -2805,6 +2825,15 @@ bool TechnoClassExt::_Should_Self_Heal_Now() const
      *  Prevents overhealing - allowing Strength to get above 100%.
      */
     if (Get_Health_Ratio() >= 1) {
+        return false;
+    }
+
+    /*
+    * Prevents units that have died from self-healing. 
+    * This resolves an issue where self-healing aircraft would heal while tumbling down, 
+    * becoming indestructible and being stuck in an looping tumbling animation until they land.
+    */
+    if (Get_Health_Ratio() <= 0) {
         return false;
     }
 
@@ -3351,6 +3380,45 @@ int TechnoClassExt::_Anti_Air(void) const
         }
     }
     return (0);
+}
+
+/**
+ *  Patches Find_Docking_Bay to make aircraft search for an un-occupied dock to land on.
+ *  This is achieved by changing the "only_unocciped" parameter (third argument, bool) into true when it's aircraft.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x00637F0B, _TechnoClass_Find_Docking_Bay_Unoccupied_Aircraft_Patch, 6)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+    REF_STACK(bool, only_unoccupied_ptr, 0x48);
+
+    if (this_ptr->Fetch_RTTI() == RTTI_AIRCRAFT) {
+        only_unoccupied_ptr = true;
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Reimplements TechnoClass::AI where the game tests for AI units that are firing upon a target that is allied.
+ *  Fixes an issue where it would cause medics (and by extension: mechanics and omnihealers) to constantly lose their targeting,
+ *  causing them to never finish their "attack" animation and never actually heal the target unless they were prone.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+
+    if (this_ptr->Combat_Damage() >= 0) {
+        if (this_ptr->RTTI != RTTI_AIRCRAFT && (this_ptr->RTTI != RTTI_INFANTRY || !((InfantryClass*)this_ptr)->Class->IsEngineer)) {
+            this_ptr->Assign_Target(NULL);
+        }
+    }
+
+    return 0x0062E7DD;
 }
 
 

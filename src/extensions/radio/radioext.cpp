@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended Radio class.
  *
- *  @project       Vinifera
- *
- *  @file          RADIOEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended Radio class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -39,7 +20,6 @@
 RadioClassExtension::RadioClassExtension(const RadioClass *this_ptr) :
     MissionClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("RadioClassExtension::RadioClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -51,7 +31,6 @@ RadioClassExtension::RadioClassExtension(const RadioClass *this_ptr) :
 RadioClassExtension::RadioClassExtension(const NoInitClass &noinit) :
     MissionClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::RadioClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -62,7 +41,6 @@ RadioClassExtension::RadioClassExtension(const NoInitClass &noinit) :
  */
 RadioClassExtension::~RadioClassExtension()
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::~RadioClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,8 +51,6 @@ RadioClassExtension::~RadioClassExtension()
  */
 HRESULT RadioClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = MissionClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -91,8 +67,6 @@ HRESULT RadioClassExtension::Load(IStream *pStm)
  */
 HRESULT RadioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = MissionClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -102,17 +76,6 @@ HRESULT RadioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void RadioClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("RadioClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    MissionClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -122,7 +85,5 @@ void RadioClassExtension::Detach(AbstractClass * target, bool all)
  */
 void RadioClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     MissionClassExtension::Object_CRC(crc);
 }

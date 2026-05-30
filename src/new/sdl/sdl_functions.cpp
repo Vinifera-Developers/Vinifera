@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains functions for the SDL system.
  *
- *  @project       Vinifera
- *
- *  @file          SDL_FUNCTIONS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains functions for the SDL system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -44,11 +25,13 @@
 #include "optionsext.h"
 #include "playmovie.h"
 #include "rect.h"
+#include "sdl_movie.h"
 #include "sdlmouse.h"
 #include "sdlsurface.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "vinifera_imgui.h"
 #include "vinifera_util.h"
 #include "windialog.h"
 #include "wsproto.h"
@@ -69,7 +52,7 @@ namespace
         const char* requested_driver_name = OptionsClassExtension::Get_Renderer_Driver_SDL_Name(OptionsExtension->RendererDriver);
         const char* requested_driver_config_name = OptionsClassExtension::Get_Renderer_Driver_Config_Name(OptionsExtension->RendererDriver);
 
-        DEBUG_INFO("Requested renderer driver: %s\n", requested_driver_config_name);
+        DEBUG_INFO("Requested renderer driver: {}\n", requested_driver_config_name);
 
         if (requested_driver_name != nullptr) {
             SDL_SetHint(SDL_HINT_RENDER_DRIVER, requested_driver_name);
@@ -183,37 +166,37 @@ bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, 
     if (hidden_first && hidden_rect.Is_Valid()) {
         HiddenSurface = new SDLSurface(hidden_rect.Width, hidden_rect.Height);
         HiddenSurface->Fill(0);
-        DEBUG_INFO("HiddenSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
+        DEBUG_INFO("HiddenSurface ({}x{})\n", hidden_rect.Width, hidden_rect.Height);
     }
 
     if (composite_rect.Is_Valid()) {
         CompositeSurface = new SDLSurface(composite_rect.Width, composite_rect.Height);
         CompositeSurface->Fill(0);
-        DEBUG_INFO("CompositeSurface (%dx%d)\n", composite_rect.Width, composite_rect.Height);
+        DEBUG_INFO("CompositeSurface ({}x{})\n", composite_rect.Width, composite_rect.Height);
     }
 
     if (tile_rect.Is_Valid()) {
         TileSurface = new SDLSurface(tile_rect.Width, tile_rect.Height);
         TileSurface->Fill(0);
-        DEBUG_INFO("TileSurface (%dx%d)\n", tile_rect.Width, tile_rect.Height);
+        DEBUG_INFO("TileSurface ({}x{})\n", tile_rect.Width, tile_rect.Height);
     }
 
     if (sidebar_rect.Is_Valid()) {
         SidebarSurface = new SDLSurface(sidebar_rect.Width, sidebar_rect.Height);
         SidebarSurface->Fill(0);
-        DEBUG_INFO("SidebarSurface (%dx%d)\n", sidebar_rect.Width, sidebar_rect.Height);
+        DEBUG_INFO("SidebarSurface ({}x{})\n", sidebar_rect.Width, sidebar_rect.Height);
     }
 
     if (!hidden_first && hidden_rect.Is_Valid()) {
         HiddenSurface = new SDLSurface(hidden_rect.Width, hidden_rect.Height);
         HiddenSurface->Fill(0);
-        DEBUG_INFO("HiddenSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
+        DEBUG_INFO("HiddenSurface ({}x{})\n", hidden_rect.Width, hidden_rect.Height);
     }
 
     if (hidden_rect.Is_Valid()) {
         AlternateSurface = new SDLSurface(hidden_rect.Width, hidden_rect.Height);
         AlternateSurface->Fill(0);
-        DEBUG_INFO("AlternateSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
+        DEBUG_INFO("AlternateSurface ({}x{})\n", hidden_rect.Width, hidden_rect.Height);
     }
 
     return true;
@@ -242,11 +225,11 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
      */
     SDL_PixelFormat pixel_format = SDL_GetWindowPixelFormat(SDLWindow);
     if (pixel_format == SDL_PIXELFORMAT_UNKNOWN || SDL_BITSPERPIXEL(pixel_format) < 16) {
-        DEBUG_ERROR("SDL3 window pixel format unsupported: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
+        DEBUG_ERROR("SDL3 window pixel format unsupported: {} ({} bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
         return false;
     }
 
-    DEBUG_INFO("Pixel format: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
+    DEBUG_INFO("Pixel format: {} ({} bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
 
     /**
      *  Apply the renderer backend selection before creating the renderer.
@@ -258,13 +241,13 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
      */
     SDLWindowRenderer = SDL_CreateRenderer(SDLWindow, nullptr);
     if (SDLWindowRenderer == nullptr) {
-        DEBUG_ERROR("SDLWindowRenderer could not be created! SDL Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDLWindowRenderer could not be created! SDL Error: {}\n", SDL_GetError());
         return false;
     }
     DEBUG_INFO("SDLWindowRenderer created.\n");
 
     const char* driver_name = SDL_GetRendererName(SDLWindowRenderer);
-    DEBUG_INFO("Renderer driver: %s\n", driver_name != nullptr ? driver_name : "<unknown>");
+    DEBUG_INFO("Renderer driver: {}\n", driver_name != nullptr ? driver_name : "<unknown>");
 
     /**
      *  Toggle VSync.
@@ -283,7 +266,7 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
      */
     SDLWindowTexture = SDL_CreateTexture(SDLWindowRenderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, width, height);
     if (SDLWindowTexture == nullptr) {
-        DEBUG_ERROR("SDLWindowTexture could not be created! SDL_Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDLWindowTexture could not be created! SDL_Error: {}\n", SDL_GetError());
         return false;
     }
     DEBUG_INFO("SDLWindowTexture created.\n");
@@ -294,6 +277,10 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
     VideoWidth = width;
     VideoHeight = height;
     VideoBitsPerPixel = bits_per_pixel;
+
+    if (!ViniferaImGui::Initialize(MainWindow, SDLWindowRenderer)) {
+        DEBUG_ERROR("Vinifera ImGui could not be initialized.\n");
+    }
 
     return true;
 }
@@ -306,6 +293,8 @@ bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
  */
 void SDL_Reset_Video_Mode()
 {
+    ViniferaImGui::Shutdown();
+
     /**
      *  Destroy the renderer.
      */
@@ -339,6 +328,12 @@ static WNDPROC SDL_Proc = nullptr;
  */
 LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    const LPARAM original_lParam = lParam;
+
+    if (ViniferaImGui::Process_Window_Message(hwnd, message, wParam, original_lParam)) {
+        return 0;
+    }
+
     /*
     **  Scale mouse inputs before they are processed by SDL or the game.
     */
@@ -391,7 +386,9 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         **  Refresh the window.
         */
     case WM_PAINT:
-        if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
+        if (Vinifera_ModernMoviePlaying) {
+            SDL_Movie_Repaint();
+        } else if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
             if (TacticalActive == true) {
                 Update_Visible_Surface(MouseCursor->Is_Captured(), CompositeSurface);
                 Map.Blit_Sidebar(true);
@@ -557,7 +554,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
 bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        DEBUG_ERROR("SDL_Init failed! SDL_Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDL_Init failed! SDL_Error: {}\n", SDL_GetError());
         return false;
     }
 
@@ -594,7 +591,7 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
      */
     SDLWindow = SDL_CreateWindowWithProperties(props);
     if (SDLWindow == nullptr) {
-        DEBUG_ERROR("SDLWindow could not be created! SDL_Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SDLWindow could not be created! SDL_Error: {}\n", SDL_GetError());
         return false;
     }
     DEBUG_INFO("SDLWindow created.\n");
@@ -603,7 +600,7 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
      *  Record the size that the window has been created at.
      */
     SDL_GetWindowSize(SDLWindow, &SDLWindowWidth, &SDLWindowHeight);
-    DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+    DEBUG_INFO("SDLWindow size: {} X {}.\n", SDLWindowWidth, SDLWindowHeight);
 
     /**
      *  Save the window handle for the game to use.
@@ -715,6 +712,8 @@ bool SDL_Update_Screen(Surface* surface)
     /**
      *  Present the image to the window.
      */
+    ViniferaImGui::Render();
+
     SDL_RenderPresent(SDLWindowRenderer);
 
     return true;
@@ -809,7 +808,7 @@ bool SDL_Change_Display_Mode(int width, int height)
 
         SDLWindowWidth = window_width;
         SDLWindowHeight = window_height;
-        DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+        DEBUG_INFO("SDLWindow size: {} X {}.\n", SDLWindowWidth, SDLWindowHeight);
     }
 
     /**
@@ -823,7 +822,7 @@ bool SDL_Change_Display_Mode(int width, int height)
             SDL_SetWindowSize(SDLWindow, old_window_width, old_window_height);
             SDLWindowWidth = old_window_width;
             SDLWindowHeight = old_window_height;
-            DEBUG_INFO("SDLWindow size restored: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+            DEBUG_INFO("SDLWindow size restored: {} X {}.\n", SDLWindowWidth, SDLWindowHeight);
         }
 
         if (old_visible_rect.Is_Valid() && old_video_width > 0 && old_video_height > 0) {
@@ -848,7 +847,7 @@ bool SDL_Change_Display_Mode(int width, int height)
      *  Set the new surface resolution and reallocate the game surfaces.
      */
     SDL_Rebuild_Display_State(Rect(0, 0, width, height));
-    DEBUG_INFO("VisibleRect: %dx%d\n", width, height);
+    DEBUG_INFO("VisibleRect: {}x{}\n", width, height);
 
     DEBUG_INFO("Mode change complete.\n");
 

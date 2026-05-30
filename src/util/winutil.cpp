@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Utility functions for interacting with the Windows API.
  *
- *  @project       Vinifera
- *
- *  @file          WINUTIL.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Utility functions for interacting with the Windows API.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -43,8 +24,12 @@
 
 const char *Get_Module_File_Name()
 {
-    static char outbuff[PATH_MAX] = "";
+    static char outbuff[PATH_MAX] = { '\0' };
     char buffer[PATH_MAX];
+
+    if (outbuff[0] != '\0') {
+        return outbuff;
+    }
 
     /**
      *  Get the fully-qualified path of the executable.
@@ -214,7 +199,7 @@ int Load_String_Ex(HINSTANCE hInstance, UINT uID, LPCSTR lpBuffer, INT nBufferMa
 {
     wchar_t pwBuffer[2048];
     if (!Load_String_Ex(hInstance, uID, pwBuffer, sizeof(pwBuffer), wLanguage)) {
-        DEBUG_INFO("Load_String_Ex() - Load_String_Ex(wide) failed. Error! %s\n", Last_System_Error_As_String());
+        DEBUG_INFO("Load_String_Ex() - Load_String_Ex(wide) failed. Error! {}\n", Last_System_Error_As_String());
         return 0;
     }
 
@@ -272,7 +257,7 @@ HANDLE Get_Process_by_Id(DWORD pId)
     }
 
     while (Process32Next(processesSnapshot, &processInfo)) {
-        //DEBUG_INFO("Checking process %s %d...\n", processInfo.szExeFile, processInfo.th32ProcessID);
+        //DEBUG_INFO("Checking process {} {}...\n", processInfo.szExeFile, processInfo.th32ProcessID);
         if (processInfo.th32ProcessID == pId) {
             CloseHandle(processesSnapshot);
             return OpenProcess(PROCESS_ALL_ACCESS, FALSE, processInfo.th32ProcessID);
@@ -439,7 +424,7 @@ bool DeleteFilesOlderThan(unsigned days, const char *in, const char *filename)
              *  Process only files...
              */
             if ((info.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)) {
-                DEBUG_INFO("%s is dir\n", composite_filename.c_str());
+                DEBUG_INFO("{} is dir\n", composite_filename);
                 continue;
             }
 
@@ -455,7 +440,7 @@ bool DeleteFilesOlderThan(unsigned days, const char *in, const char *filename)
              */
             if (CompareFileTime(&(info.ftLastWriteTime), &ftDaysAgo) < 0) {
 
-                DEBUG_INFO("  Deleting \"%s\".\n", composite_filename.c_str());
+                DEBUG_INFO("  Deleting \"{}\".\n", composite_filename);
 
                 /**
                  *  And delete!

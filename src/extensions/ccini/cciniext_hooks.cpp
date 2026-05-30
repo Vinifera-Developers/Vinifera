@@ -1,41 +1,24 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended CCINIClass.
  *
- *  @project       Vinifera
- *
- *  @file          CCINIEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended CCINIClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
 
 #include "actiontype.h"
 #include "armortype.h"
+#include "audio_vox.h"
 #include "ccini.h"
 #include "hooker.h"
 #include "housetype.h"
 #include "theatertype.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "vox.h"
 
 
 /**
@@ -58,6 +41,8 @@ public:
     bool _Put_ArmorType(const char* section, const char* entry, ArmorType value);
 
     ActionType _Get_ActionType(const char* section, const char* entry, const ActionType defvalue);
+
+    VoxType _Get_VoxType(const char* section, const char* entry, const VoxType defvalue);
 };
 
 
@@ -80,7 +65,7 @@ long CCINIClassExt::_Get_Owners(const char *section, const char *entry, const lo
 
     if (CCINIClass::Get_String(section, entry, "", buffer, sizeof(buffer)) > 0) {
 
-        //DEV_DEBUG_INFO("Get_Owners(\"%s\",\"%s\") - \"%s\"\n", section, entry, buffer);
+        //DEV_DEBUG_INFO("Get_Owners(\"{}\",\"{}\") - \"{}\"\n", section, entry, buffer);
 
         ownable = 0;
         char *name = std::strtok(buffer, ",");
@@ -127,7 +112,7 @@ bool CCINIClassExt::_Put_Owners(const char *section, const char *entry, long val
 
     if (buffer[0] != '\0') {
 
-        //DEV_DEBUG_INFO("Put_Owners(\"%s\",\"%s\") - \"%s\"\n", section, entry, buffer);
+        //DEV_DEBUG_INFO("Put_Owners(\"{}\",\"{}\") - \"{}\"\n", section, entry, buffer);
 
         return CCINIClass::Put_String(section, entry, buffer);
     }
@@ -210,6 +195,29 @@ bool CCINIClassExt::_Put_ArmorType(const char *section, const char *entry, Armor
 
 
 /**
+ *  Fetches the EVA speech type from the INI database.
+ *
+ *  @author: ZivDero
+ */
+VoxType CCINIClassExt::_Get_VoxType(const char *section, const char *entry, const VoxType defvalue)
+{
+    char buffer[256];
+    const char *default_name = defvalue != VOX_NONE ? AudioVoxClass::Name_From(defvalue) : nullptr;
+
+    if (CCINIClass::Get_String(section, entry, default_name, buffer, sizeof(buffer)) <= 0) {
+        return VOX_NONE;
+    }
+
+    VoxType voice = AudioVoxClass::From_Name(buffer);
+    if (voice != VOX_NONE) {
+        return voice;
+    }
+
+    return AudioVoxClass::From_Sound_Name(buffer);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void CCINIClassExtension_Hooks()
@@ -220,6 +228,7 @@ void CCINIClassExtension_Hooks()
     Patch_Jump(0x0044B360, &CCINIClassExt::_Put_TheaterType);
     Patch_Jump(0x0044AF50, &CCINIClassExt::_Get_ArmorType);
     Patch_Jump(0x0044AFA0, &CCINIClassExt::_Put_ArmorType);
+    Patch_Jump(0x0044ACE0, &CCINIClassExt::_Get_VoxType);
 
     // Put this here as it was only called in INIClass::Get_ArmorType.
     Patch_Jump(0x00681320, &ArmorTypeClass::From_Name);

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  KamikazeTrackerClass reimplementation from YR.
  *
- *  @project       Vinifera
- *
- *  @file          KAMIKAZETRACKER.CPP
- *
- *  @authors       ZivDero
- *
- *  @brief         KamikazeTrackerClass reimplementation from YR.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -60,8 +41,6 @@ KamikazeTrackerClass::~KamikazeTrackerClass()
  */
 HRESULT KamikazeTrackerClass::Load(IStream* pStm)
 {
-    //EXT_DEBUG_TRACE("KamikazeTrackerClass::Load - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -133,8 +112,6 @@ HRESULT KamikazeTrackerClass::Load(IStream* pStm)
  */
 HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("KamikazeTrackerClass::Save - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -144,7 +121,7 @@ HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
      */
     const LONG id = reinterpret_cast<LONG>(this);
 
-    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
 
     HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
@@ -239,11 +216,10 @@ void KamikazeTrackerClass::AI()
 
 
 /**
- *  Removes an aircraft from the tracker.
- *
- *  @author: ZivDero
+ *  Removes an aircraft from the tracker. Invoked via the detach registry
+ *  whenever any AircraftClass is destroyed.
  */
-void KamikazeTrackerClass::Detach(AircraftClass const* aircraft)
+void KamikazeTrackerClass::On_Detach(AircraftClass *aircraft, bool all)
 {
     for (int i = 0; i < Controls.Count(); i++)
     {

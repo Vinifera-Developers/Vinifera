@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended command class.
  *
- *  @project       Vinifera
- *
- *  @file          COMMANDEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended command class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -231,18 +212,17 @@ void Init_Vinifera_Commands()
     Commands.Add(new HealthFilterCommandClass);
     Commands.Add(new HealthFilterAddNextCommandClass);
     Commands.Add(new BeaconPlacementCommandClass);
+    Commands.Add(new ToggleDebugOverlayCommandClass);
 
     /**
-     *  Initialize hotkeys for the sidebar tabs, if sidebar tabs are enabled.
+     *  Initialize hotkeys for sidebar tabs.
      */
-    if (Vinifera_NewSidebar) {
-        DEBUG_INFO("Initializing sidebar tab commands.\n");
+    DEBUG_INFO("Initializing sidebar tab commands.\n");
 
-        Commands.Add(new SetStructureTabCommandClass);
-        Commands.Add(new SetInfantryTabCommandClass);
-        Commands.Add(new SetUnitTabCommandClass);
-        Commands.Add(new SetSpecialTabCommandClass);
-    }
+    Commands.Add(new SetStructureTabCommandClass);
+    Commands.Add(new SetInfantryTabCommandClass);
+    Commands.Add(new SetUnitTabCommandClass);
+    Commands.Add(new SetSpecialTabCommandClass);
 
     /**
      *  Next, initialize any developer mode commands if developer mode is enabled.
@@ -304,6 +284,7 @@ void Init_Vinifera_Commands()
         Commands.Add(new MeteorShowerCommandClass);
         Commands.Add(new MeteorImpactCommandClass);
         Commands.Add(new VeterancyPromoteCommandClass);
+        Commands.Add(new ToggleScenarioOverlayCommandClass);
     }
 
     /**

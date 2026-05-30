@@ -8,6 +8,7 @@ This page describes all mapping-related additions and changes introduced by Vini
 - Tutorial messages are now loaded from scenarios. This can be used to replace/update an existing entry from `TUTORIAL.INI`, or to add a new tutorial message index which can be used by trigger actions.
 - Remove a hardcoded limitation where the remap color of `Neutral` and `Special` could not be overridden in multiplayer games. Due to the inconsistencies between the official maps, values of `Grey` and `LightGrey` will be forced to `LightGrey`.
 - `[Basic]->SkipScore` is now considered when showing the multiplayer score screen. Setting to `SkipScore=yes` in the map file will now be all that is required for skip the score screen.
+- The game now supports using a negative value (such as `-1`) in the Center Camera At Waypoint trigger action in order to snap the camera position to the waypoint instead of scrolling to it over time.
 
 ## Increased Overlay Limit
 
@@ -77,6 +78,16 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 
 ![Score screen colors in DTA:CR](https://github.com/user-attachments/assets/bc901430-abfc-4b8e-9648-107d07b7eafe)
 
+### Free Radar
+- Free Radar can now be made to work even while the player's house is low power. The scenario must enable Free Radar (`FreeRadar=yes`) for this to take effect.
+- Note that Ion Storms will still cause radars to be turned off for their duration.
+
+In `RULES.INI` or a scenario file:
+```ini
+[General]
+FreeRadarOnLowPower=no ; boolean, can free radar stay active when player is in low power?
+```
+
 ## Pre-placed units
 
 - Pre-placed units could not have missions in multiplayer maps, regardless of who they belonged to. Vinifera lifts this limitation.
@@ -104,12 +115,19 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 | NeedTrigger      | 2                 | PARAM1 is parsed as a trigger name, PARAM6 is parsed as a waypoint |
 | NeedTag          | 3                 | PARAM1 is parsed as a tag name, PARAM6 is parsed as a waypoint     |
 | NeedTeamAndTime  | 4                 | PARAM1 is parsed as a team name, PARAM6 is parsed as a number      |
+| NeedSpeech       | 5                 | PARAM1 is parsed as a speech name, PARAM6 is parsed as a waypoint  |
+| NeedSound        | 6                 | PARAM1 is parsed as a sound name, PARAM6 is parsed as a waypoint   |
+| NeedTheme        | 7                 | PARAM1 is parsed as a theme name, PARAM6 is parsed as a waypoint   |
 
 - A trigger action is parsed from the map as follows:
 
 ```ini
 [Actions]
 NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
+```
+
+```{note}
+Any action that takes a `VocType` (sound), `VoxType` (speech/EVA), or `ThemeType` (music), including vanilla actions, can be used with need code 0 (`NeedOther`), specifying the ordinal number of the relevant type as `PARAM1`, or with need codes 5, 6, or 7 (`NeedSpeech`, `NeedSound`, `NeedTheme` respectively), specifying the INI name of the type.
 ```
 
 ### Operation Types
@@ -134,16 +152,51 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 | 14       | Maximum            | x = max(x, y)  |
 | 15       | Minimum            | x = min(x, y)  |
 
-### New Trigger Actions
+### Enhanced Trigger Actions
+
+Vinifera enhances a few existing trigger actions to allow them to be customizable for mappers.
+
+|  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** | **PARAM7** |
+|----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|------------|
+| 11       | Text Trigger     |
+|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text ID (string)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   | *unused* |
+| 17       | Reveal Around Waypoint     |
+|          | Reveals a region of the map to the player around the waypoint specified. | Other (0) | *unused*     | Waypoint (#) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused* | *unused* | *unused*
+| 45       | Center Camera on Waypoint     |
+|          | Moves the tactical view to a specified waypoint with the given speed (-1 to 4). | Other (0) | *unused*     | Number (-1 - 4) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused* | *unused* | Waypoint (#)
+
+#### [11] Text Trigger
 
 ```{warning}
-Trigger action 11 `Text Trigger` now takes a string key for the tutorial text entry, not an interer!
+Trigger action 11 `Text Trigger` now takes a string key for the tutorial text entry, not an integer!
 ```
+
+Text Trigger trigger action now comes with 2 new parameters that can be set by mappers:
+* Text: the text index of `[Tutorial]` in `Tutorial.ini` that should be shown. If the text includes `{{g_variableName}}`, its value will be replaced with the value of the provided global variable. If the text includes `{{l_variableName}}`, its value will be replaced with the value of the provided local variable.
+* Color: the color that the text should appear with. The color is picked based on the index of `[Colors]` in `Rules.ini`. If set to 0, uses the default message color.
+* Duration: the duration, in real-time seconds, that the text should stay on the screen. If set to 0, uses the default message duration.
+
+
+#### [17] Reveal Around Waypoint
+
+Reveal Around Waypoint trigger action now comes with 2 new parameters that can be set by mappers: 
+* Reveal Radius: specify the radius to reveal in this instance of the trigger action. If set to 0 or a negative value, falls back to the value specified in `RevealTriggerRadius` in `Rules.ini`.
+* Ignore Elevation: specifies whether the reveal should ignore elevation. When elevation is taken into account, cells that are higher than 3 elevations will not be revealed. Possible values: 0 = No (default), any other value = Yes. 
+  * Requires `RevealByHeight=yes` (or omitted) for elevation to be taken into account.
+
+#### [45] Center Camera at Waypoint
+
+Center Camera at Waypoint action now supports the -1 for the camera scroll rate, which snaps the camera instantly to the target position.
+
+### New Trigger Actions
+
 
 |  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
 | 11       | Text Trigger (Enhanced)     |
 |          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text ID (string)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
+| 17       | Reveal Around Waypoint (Enhanced)     |
+|          | Reveals a region of the map to the player around the waypoint specified. | Other (0) | *unused*     | Waypoint (#) | Reveal Radius (number)  | Ignore Elevation (boolean)   | *unused*   | *unused*   |
 | 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
 | 107      | Enable Short Game        |
@@ -206,6 +259,12 @@ Trigger action 11 `Text Trigger` now takes a string key for the tutorial text en
 |          | Adjusts a house modifier by given percentage points. | Other (0) | Modifier (#)           | Amount (%)            | *unused*   | *unused*   | *unused*   | *unused*   |
 | 136      | Apply Iron Curtain             |
 |          | Applies Iron Curtain to attached objects. Can optionally bypass legality checks. | Other (0) | Boolean (skip legality check)           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
+| 137      | Stop Sounds At             |
+|          | Stops sounds started by Play Sound At at the specified waypoint. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
+| 138      | Attach Sound             |
+|          | Attaches an ambient sound to all objects associated with the trigger. The VocType should have `Control=LOOP` for a continuous attachment; non-looping vocs play once and then go silent. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
+| 139      | Detach Sound             |
+|          | Detaches any ambient sound from all objects associated with the trigger. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 
 ### [135] Adjust House Modifier — Modifier Types
 

@@ -1,31 +1,12 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Provides methods for accessing data and functions in an existing
+ *          binary and replacing functions with new implementations from an
+ *          injected DLL.
  *
- *  @project       Vinifera
- *
- *  @file          HOOKER.H
- *
- *  @author        CCHyper, OmniBlade
- *
- *  @brief         Provides methods for accessing data and functions in an
- *                 existing binary and replacing functions with new 
- *                 implementations from an injected DLL.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -80,7 +61,7 @@ void Patch_Call(uintptr_t address, T new_address)
     call_opcode cmd;
     cmd.addr = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(call_opcode);
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(call_opcode), &bytes_written);
-    ASSERT_FATAL_PRINT(bytes_written == sizeof(call_opcode), "Failed to patch call at 0x%p!", address);
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(call_opcode), "Failed to patch call at 0x{}!", address);
 }
 
 
@@ -97,7 +78,7 @@ void Patch_Jump(uintptr_t address, T new_address)
     jump_opcode cmd;
     cmd.addr = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(jump_opcode);
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(jump_opcode), &bytes_written);
-    ASSERT_FATAL_PRINT(bytes_written == sizeof(jump_opcode), "Failed to patch jump at 0x%p!", address);
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(jump_opcode), "Failed to patch jump at 0x{}!", address);
 }
 
 
@@ -108,21 +89,21 @@ inline void Patch_Byte(uintptr_t in, uint8_t byte)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &byte, sizeof(uint8_t), &bytes_written);
-    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint8_t), "Failed to patch byte at 0x%p!", in);
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint8_t), "Failed to patch byte at 0x{}!", in);
 }
 
 inline void Patch_Word(uintptr_t in, uint16_t word)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &word, sizeof(uint16_t), &bytes_written);
-    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint16_t), "Failed to patch word at 0x%p!", in);
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint16_t), "Failed to patch word at 0x{}!", in);
 }
 
 inline void Patch_Dword(uintptr_t in, uint32_t dword)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &dword, sizeof(uint32_t), &bytes_written);
-    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint32_t), "Failed to patch dword at 0x%p!", in);
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint32_t), "Failed to patch dword at 0x{}!", in);
 }
 
 inline void Patch_Byte_Range(uintptr_t in, uint8_t byte, int count = 1)
@@ -131,7 +112,7 @@ inline void Patch_Byte_Range(uintptr_t in, uint8_t byte, int count = 1)
     for (int i = 0; i < count; ++i) {
         uintptr_t in_adj = in+i;
         WriteProcessMemory(GetCurrentProcess(), (LPVOID)in_adj, &byte, sizeof(uint8_t), &bytes_written);
-        ASSERT_FATAL_PRINT(bytes_written == sizeof(uint8_t), "Failed to patch %d bytes at 0x%p!", count, in);
+        ASSERT_FATAL_PRINT(bytes_written == sizeof(uint8_t), "Failed to patch {} bytes at 0x{}!", count, in);
     }
 }
 
@@ -187,15 +168,15 @@ __forceinline void Change_Virtual_Address(uintptr_t addr, uintptr_t newaddr)
     DWORD oldprotect;
 
     success = VirtualProtect((LPVOID)addr, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
-    ASSERT_FATAL_PRINT(success == true, "VirtualProtect failed to change permissions at 0x%p!", addr);
+    ASSERT_FATAL_PRINT(success == true, "VirtualProtect failed to change permissions at 0x{}!", addr);
 
     //std::memcpy((void *)addr, (void *)newaddr, sizeof(uint32_t));
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)addr, &newaddr, sizeof(uint32_t), &bytes_written);
-    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint32_t), "Failed to patch dword at 0x%p!", addr);
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint32_t), "Failed to patch dword at 0x{}!", addr);
 
     success = VirtualProtect((LPVOID)addr, sizeof(uint32_t), oldprotect, &oldprotect);
-    ASSERT_FATAL_PRINT(success == true, "VirtualProtect failed to restore permissions at 0x%p!", addr);
+    ASSERT_FATAL_PRINT(success == true, "VirtualProtect failed to restore permissions at 0x{}!", addr);
 }
 
 

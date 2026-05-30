@@ -1,40 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TActionClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TACTIONEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TActionClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
 
 #include "tactionext.h"
 
-#include "debughandler.h"
+#include "audio_static_sound.h"
+#include "audio_voc.h"
+#include "audio_vox.h"
 #include "building.h"
+#include "debughandler.h"
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
+#include "mouse.h"
 #include "object.h"
 #include "rules.h"
 #include "scenario.h"
@@ -46,12 +31,14 @@
 #include "tagtype.h"
 #include "techno.h"
 #include "technoext.h"
+#include "terrain.h"
 #include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
 #include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "voc.h"
+#include "mouse.h";
 
 
 TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST] = {
@@ -86,6 +73,9 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Disable templated text", "Removes the currently active templated text from the screen." },
     { "Adjust House Modifier", "Adjusts a house modifier by given percentage points." },
     { "Apply Iron Curtain", "Applies Iron Curtain to attached objects. Can optionally bypass legality checks." },
+    { "Stop Sounds At", "Stops sounds at the waypoint that were started by Play Sound At, and detaches any ambient previously attached to a building or terrain there."},
+    { "Attach sound", "Attaches an ambient sound to all objects associated with the trigger. The VocType should have Control=LOOP for a continuous attachment; non-looping vocs play once and then go silent." },
+    { "Detach sound", "Detaches any ambient sound from all objects associated with the trigger." },
 };
 
 
@@ -98,8 +88,6 @@ TActionClassExtension::TActionClassExtension(const TActionClass* this_ptr) :
     AbstractClassExtension(this_ptr),
     Text {""}
 {
-    // if (this_ptr) EXT_DEBUG_TRACE("TActionClassExtension::TActionClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TActionExtensions.Add(this);
 }
 
@@ -113,7 +101,6 @@ TActionClassExtension::TActionClassExtension(const NoInitClass& noinit) :
     AbstractClassExtension(noinit),
     Text(noinit)
 {
-    // EXT_DEBUG_TRACE("TActionClassExtension::TActionClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -124,8 +111,6 @@ TActionClassExtension::TActionClassExtension(const NoInitClass& noinit) :
  */
 TActionClassExtension::~TActionClassExtension()
 {
-    // EXT_DEBUG_TRACE("TActionClassExtension::~TActionClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TActionExtensions.Delete(this);
 }
 
@@ -137,8 +122,6 @@ TActionClassExtension::~TActionClassExtension()
  */
 HRESULT TActionClassExtension::GetClassID(CLSID* lpClassID)
 {
-    // EXT_DEBUG_TRACE("TActionClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -156,8 +139,6 @@ HRESULT TActionClassExtension::GetClassID(CLSID* lpClassID)
  */
 HRESULT TActionClassExtension::Load(IStream* pStm)
 {
-    // EXT_DEBUG_TRACE("TActionClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -176,8 +157,6 @@ HRESULT TActionClassExtension::Load(IStream* pStm)
  */
 HRESULT TActionClassExtension::Save(IStream* pStm, BOOL fClearDirty)
 {
-    // EXT_DEBUG_TRACE("TActionClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -194,21 +173,10 @@ HRESULT TActionClassExtension::Save(IStream* pStm, BOOL fClearDirty)
  */
 int TActionClassExtension::Get_Object_Size() const
 {
-    // EXT_DEBUG_TRACE("TActionClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *
- *  @author: ZivDero
- */
-void TActionClassExtension::Detach(AbstractClass* target, bool all)
-{
-    // EXT_DEBUG_TRACE("TActionClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -218,7 +186,6 @@ void TActionClassExtension::Detach(AbstractClass* target, bool all)
  */
 void TActionClassExtension::Object_CRC(CRCEngine& crc) const
 {
-    // EXT_DEBUG_TRACE("TActionClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -290,6 +257,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         /**
          *  Intercepted vanilla TActions.
          */
+        DISPATCH(PLAY_SPEECH)
         DISPATCH(WIN);
         DISPATCH(LOSE);
         DISPATCH(TEXT_TRIGGER);
@@ -297,6 +265,9 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         DISPATCH(ENABLE_TRIGGER);
         DISPATCH(DESTROY_TAG);
         DISPATCH(PLAY_SOUND_RANDOM);
+        DISPATCH(CENTER_VIEWPOINT);
+        DISPATCH(REVEAL_SOME);
+        DISPATCH(PLAY_SOUND_AT);
 
         /**
          *  New Vinifera TActions.
@@ -332,12 +303,15 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
         EXT_DISPATCH(APPLY_IRON_CURTAIN);
+        EXT_DISPATCH(STOP_SOUNDS_AT);
+        EXT_DISPATCH(ATTACH_SOUND);
+        EXT_DISPATCH(DETACH_SOUND);
 
         /**
          *  Unexpected TActionType.
          */
     default:
-        DEV_DEBUG_WARNING("Invalid action type (%d)!\n", This()->Action);
+        DEV_DEBUG_WARNING("Invalid action type ({})!\n", (int)This()->Action);
         break;
     }
 
@@ -380,6 +354,8 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     case TACTION_ENABLE_TRIGGER:
     case TACTION_DESTROY_TAG:
     case TACTION_PLAY_SOUND_RANDOM:
+    case TACTION_CENTER_VIEWPOINT:
+    case TACTION_REVEAL_SOME:
         return true;
 
     default:
@@ -422,6 +398,19 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
  *  [Actions]
  *  TActionType = [Name], [DEF_PARAM1_VALUE], [PARAM1_TYPE], [PARAM2_TYPE], [PARAM3_TYPE], [PARAM4_TYPE], [PARAM5_TYPE], [PARAM6_TYPE], [USE_WP], [USE_TAG], [Description], 1, 0, [TActionType]
  */
+
+
+/**
+ *  Replaces Do_PLAY_SPEECH because we need to call the new AudioVoxClass::Speak handler.
+ *  The old Speak() function is proxied to query the speech by a hardcoded name.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PLAY_SPEECH(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell const& cell)
+{
+    AudioVoxClass::Speak(This()->Data.Speech);
+    return true;
+}
 
 
 /**
@@ -481,7 +470,6 @@ bool TActionClassExtension::Do_LOSE(HouseClass* house, ObjectClass* object, Trig
     }
     
     if (Session.Type != GAME_NORMAL) {
-
         /**
          *  Mark all losers as defeated.
          */
@@ -577,6 +565,18 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* ob
     if (This()->Trigger != nullptr) {
         for (int index = 0; index < Triggers.Count(); index++) {
             if (Triggers[index]->Class == This()->Trigger) {
+
+                /**
+                 *  #issue-1608
+                 *
+                 *  Bugfix: if the trigger is already enabled, there's nothing to do here.
+                 *
+                 *  @author: Rampastring
+                 */
+                if (Triggers[index]->Is_Enabled()) {
+                    continue;
+                }
+
                 bool really_enable = true;
 
                 /**
@@ -1524,7 +1524,7 @@ bool TActionClassExtension::Do_PRINT_LOCAL(HouseClass* house, ObjectClass* objec
  */
 bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Enable_Templated_Text(This()->Data.Value, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
+    TacticalMapExtension->Enable_Templated_Text(Text, static_cast<ColorSchemeType>(This()->TriggerRect.X * 2));
     return true;
 }
 
@@ -1613,4 +1613,204 @@ bool TActionClassExtension::Do_APPLY_IRON_CURTAIN(HouseClass* house, ObjectClass
 
     houseext->Expend_Iron_Curtain();
     return true;
+}
+
+/**
+ *  Reimplementation of the trigger action for centering the camera at the desired waypoint.
+ *  Enhanced to allow using a negative speed value for an instant snap of the camera to the waypoint, rather than a slow scroll to it.
+ *
+ *  @author: JoyfulShush
+ */
+bool TActionClassExtension::Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     * Represents valid speeds that are supported by the game
+     * -1 = Instant (also supports any negative value)
+     * 0 = Very Slow
+     * 1 = Slow
+     * 2 = Medium
+     * 3 = Fast
+     * 4 = Very Fast
+     */
+    constexpr int SCROLL_SPEED_COUNT = 5;
+
+    /**
+     * Disallow invalid speeds that could result in reading OOB addresses
+     * Speed can be any negative value, or up to 4
+     */
+    if (This()->Data.Speed > SCROLL_SPEED_COUNT - 1) {
+        return false;
+    }
+
+    Cell waypt = Scen->Waypoint_Cell(This()->EffectLocation);
+    Coord coord = Coord(waypt);
+
+    coord.Z = Map.Get_Height_GL(coord);
+
+    if (Map[waypt].IsUnderBridge || Map[waypt].WasUnderBridge) {
+        coord.Z += BRIDGE_LEPTON_HEIGHT;
+    }
+
+    if (This()->Data.Speed <= -1) {
+        TacticalMap->Set_Tactical_Position(coord);
+        return true;
+    }
+
+    TacticalMap->Setup_Trigger_Scroll(coord, This()->Data.Speed);
+    return true;
+}
+
+/**
+ *  Reimplements Reveal Around Waypoint trigger action.
+ *  This reimplementation allows accepting a second optional value which defines the radius of the reveal.
+ *  If this value is 0 or negative, falls back to the original radius through `RevealTriggerRadius` from Rules.
+ *
+ *  @author: JoyfulShush
+ */
+bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    if (!PlayerPtr->IsVisionary) {
+        Cell waypoint_cell = Scen->Waypoint_Cell(This()->Data.Value);
+        
+        const auto& cell = Map[waypoint_cell];
+        int height = cell.Height;
+
+        if (cell.IsUnderBridge || cell.WasUnderBridge) {
+            height += BRIDGE_CELL_HEIGHT;
+        }
+
+        /* Allows for a custom reveal radius for the trigger */
+        int radius = This()->TriggerRect.X; // P3 value
+        if (radius <= 0) {
+            radius = Rule->RevealTriggerRadius;
+        }
+
+        /*
+        *  Requires 'RevealByHeight=yes' (default) to consider elevation, even when set to true, since it is checked in 'Map.Sight_From'
+        *  The value is default 0 for true in order to be backwards compatible
+        */        
+        int consider_elevation = This()->TriggerRect.Y == 0 ? true : false; // P4 value
+
+        Map.Sight_From(Coord(waypoint_cell - Cell(height / 2, height / 2)) + Coord(0, 0, height * LEVEL_LEPTON_H), radius, PlayerPtr, false, false, false, consider_elevation);
+    }
+    return true;
+}
+
+
+
+/**
+ *  Fetches the object to attach a sound to at a coordinate.
+ *
+ *  @author: ZivDero
+ */
+static ObjectClass* Get_Audio_Object(const Coord& coord)
+{
+    Cell cell = coord.As_Cell();
+    ObjectClass* object = nullptr;
+
+    if (cell != CELL_NONE) {
+        CellClass* cellptr = &Map[cell];
+        object = cellptr->Cell_Building();
+        if (!object) {
+            object = cellptr->Cell_Terrain();
+        }
+    }
+
+    return object;
+}
+
+
+/**
+ *  Plays a sound at the coordinate, or attaches it to an object there.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PLAY_SOUND_AT(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    VocType sound = This()->Data.Sound;
+    if (sound < VOC_FIRST || sound >= AudioVocs.Count()) {
+        return false;
+    }
+
+    Coord coord = Scen->Waypoint_Coord(This()->EffectLocation);
+    ObjectClass* object = Get_Audio_Object(coord);
+
+    if (object) {
+        Extension::Fetch(object)->Attach_Ambient(sound);
+    } else {
+        Play_Tracked_Static_Sound(sound, coord);
+    }
+    return true;
+}
+
+
+/**
+ *  Plays playing the sound at the coordinate, or detaches it from the object there.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_STOP_SOUNDS_AT(HouseClass*, ObjectClass*, TriggerClass*, Cell const&)
+{
+    Coord coord = Scen->Waypoint_Coord(This()->EffectLocation);
+    ObjectClass* object;
+
+    object = Get_Audio_Object(coord);
+
+    if (object) {
+        Extension::Fetch(object)->Attach_Ambient(VOC_NONE);
+    } else {
+        Stop_Tracked_Static_Sounds_At(coord);
+    }
+    return true;
+}
+
+
+/**
+ *  Attaches an ambient sound to all objects associated with the trigger.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_ATTACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    VocType sound = This()->Data.Sound;
+    if (sound < VOC_FIRST || sound >= AudioVocs.Count()) {
+        return false;
+    }
+
+    bool success = false;
+
+    for (int index = 0; index < Objects.Count(); index++) {
+        ObjectClass* obj = Objects[index];
+        if (obj->IsActive && obj->IsDown && !obj->IsInLimbo && obj->Tag != nullptr && obj->Tag->Is_Trigger_Attached(trig)) {
+            auto extension = Extension::Fetch(obj);
+            if (extension != nullptr) {
+                extension->Attach_Ambient(sound);
+                success = true;
+            }
+        }
+    }
+    return success;
+}
+
+
+/**
+ *  Attaches any ambient sounds from all objects associated with the trigger.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DETACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    bool success = false;
+
+    for (int index = 0; index < Objects.Count(); index++) {
+        ObjectClass* obj = Objects[index];
+        if (obj->IsActive && obj->IsDown && !obj->IsInLimbo && obj->Tag != nullptr && obj->Tag->Is_Trigger_Attached(trig)) {
+            auto extension = Extension::Fetch(obj);
+            if (extension != nullptr) {
+                extension->Attach_Ambient(VOC_NONE);
+                success = true;
+            }
+        }
+    }
+    return success;
 }

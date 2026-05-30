@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended FactoryClass class.
  *
- *  @project       Vinifera
- *
- *  @file          FACTORYEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended FactoryClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -45,8 +26,6 @@ FactoryClassExtension::FactoryClassExtension(const FactoryClass *this_ptr) :
     IsHoldingExit(false),
     HasSpoken(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("FactoryClassExtension::FactoryClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     FactoryExtensions.Add(this);
 }
 
@@ -59,7 +38,6 @@ FactoryClassExtension::FactoryClassExtension(const FactoryClass *this_ptr) :
 FactoryClassExtension::FactoryClassExtension(const NoInitClass &noinit) :
     AbstractClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::FactoryClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -70,8 +48,6 @@ FactoryClassExtension::FactoryClassExtension(const NoInitClass &noinit) :
  */
 FactoryClassExtension::~FactoryClassExtension()
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::~FactoryClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     FactoryExtensions.Delete(this);
 }
 
@@ -83,8 +59,6 @@ FactoryClassExtension::~FactoryClassExtension()
  */
 HRESULT FactoryClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -102,8 +76,6 @@ HRESULT FactoryClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT FactoryClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -122,8 +94,6 @@ HRESULT FactoryClassExtension::Load(IStream *pStm)
  */
 HRESULT FactoryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -140,21 +110,10 @@ HRESULT FactoryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int FactoryClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void FactoryClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -164,5 +123,4 @@ void FactoryClassExtension::Detach(AbstractClass * target, bool all)
  */
 void FactoryClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

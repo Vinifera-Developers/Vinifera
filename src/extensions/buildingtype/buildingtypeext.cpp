@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended BuildingTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          BUILDINGTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended BuildingTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -63,8 +44,6 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     IsWallOwner(true),
     IsBarGate(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BuildingTypeExtensions.Add(this);
 }
 
@@ -77,7 +56,6 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
 BuildingTypeClassExtension::BuildingTypeClassExtension(const NoInitClass &noinit) :
     TechnoTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -88,8 +66,6 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const NoInitClass &noinit
  */
 BuildingTypeClassExtension::~BuildingTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::~BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BuildingTypeExtensions.Delete(this);
 }
 
@@ -101,8 +77,6 @@ BuildingTypeClassExtension::~BuildingTypeClassExtension()
  */
 HRESULT BuildingTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -120,8 +94,6 @@ HRESULT BuildingTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -140,8 +112,6 @@ HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -158,23 +128,10 @@ HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int BuildingTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void BuildingTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    TechnoTypeClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -184,8 +141,6 @@ void BuildingTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsEligibleForAllyBuilding);
     crc(IsExclusiveFactory);
 }
@@ -198,8 +153,6 @@ void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!IsInitialized) {
         IsEligibleForAllyBuilding = This()->IsConstructionYard;
         EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE ? 25 : 0;

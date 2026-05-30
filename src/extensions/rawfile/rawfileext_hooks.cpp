@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended RawFileClass.
  *
- *  @project       Vinifera
- *
- *  @file          RAWFILEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended RawFileClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -61,8 +42,8 @@ class RawFileClassExt : public RawFileClass
  */
 long RawFileClassExt::_Read(void *buffer, int length)
 {
-    ASSERT_PRINT(buffer != nullptr, "Filename -> %s", Get_Safe_File_Name());
-    ASSERT_PRINT(length > 0, "Filename -> %s", Get_Safe_File_Name());
+    ASSERT_PRINT(buffer != nullptr, "Filename -> {}", Get_Safe_File_Name());
+    ASSERT_PRINT(length > 0, "Filename -> {}", Get_Safe_File_Name());
 
     long bytesread = 0; // Running count of the number of bytes read into the buffer.
     int	opened = false; // Was the file opened by this routine?
@@ -151,7 +132,7 @@ void RawFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fi
      *  Output error to the debug system.
      */
     if (Vinifera_PrintFileErrors) {
-        DEV_DEBUG_ERROR(buffer);
+        DEV_DEBUG_ERROR("{}", buffer);
     }
 
     /**
@@ -165,7 +146,7 @@ void RawFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fi
      *  If flagged, trigger a fatal assert to the user.
      */
     if (Vinifera_AssertFileErrors) {
-        ASSERT_FATAL_PRINT(can_retry, buffer);
+        ASSERT_FATAL_PRINT(can_retry, "{}", buffer);
     }
 }
 

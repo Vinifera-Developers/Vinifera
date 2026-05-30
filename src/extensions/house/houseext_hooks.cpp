@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended HouseClass.
  *
- *  @project       Vinifera
- *
- *  @file          HOUSEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended HouseClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -49,7 +30,6 @@
 #include "rules.h"
 #include "rulesext.h"
 #include "session.h"
-#include "sidebarext.h"
 #include "sideext.h"
 #include "super.h"
 #include "syringe.h"
@@ -145,7 +125,7 @@ int HouseClassExt::_AI_Building()
      *  Build some walls.
      */
     if (node->Type == BASE_WALL) {
-        Base.Nodes.Delete(Base.Nodes.ID(node));
+        Base.Nodes.Delete(*node);
         AI_Build_Wall();
         return 1;
     }
@@ -578,7 +558,7 @@ DEFINE_HOOK(0x004BBD26, _HouseClass_Can_Build_BuildCheat_Patch, 8)
              *  if true, force this 
              */
             if ((1 << this_ptr->Class->HeapID & objecttype->Get_Ownable()) != 0) {
-                //DEBUG_INFO("Forcing \"%s\" available.\n", objecttype->IniName.c_str());
+                //DEBUG_INFO("Forcing \"{}\" available.\n", objecttype->IniName);
                 return 0x004BBD17;
             }
         }
@@ -828,7 +808,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
     BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(btype);
     if (buildingtypeext && buildingtypeext->IsNaval) {
 
-        DEV_DEBUG_INFO("Find_Build_Location(%s): Searching for Naval Yard \"%s\" build location...\n", Name(), btype->Name());
+        DEV_DEBUG_INFO("Find_Build_Location({}): Searching for Naval Yard \"{}\" build location...\n", IniName, btype->Name());
 
         Cell cell(0, 0);
 
@@ -844,7 +824,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
         Cell found_cell = Map.Nearby_Location(Center.As_Cell(), SPEED_FLOAT, -1, MZONE_NORMAL, false, Point2D(area_w, area_h));
         if (found_cell != CELL_NONE) {
 
-            DEV_DEBUG_INFO("Find_Build_Location(%s): Found possible Naval Yard location at %d,%d...\n", Name(), found_cell.X, found_cell.Y);
+            DEV_DEBUG_INFO("Find_Build_Location({}): Found possible Naval Yard location at {},{}...\n", IniName, found_cell.X, found_cell.Y);
 
             /**
              *  Iterate over all owned construction yards and find the first that is closest to our cell.
@@ -860,7 +840,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
                      *  Is this location close enough to the construction yard for us to use?
                      */
                     if (Distance(conyard_coord, found_coord) <= Cell_To_Lepton(RuleExtension->AINavalYardAdjacency)) {
-                        DEV_DEBUG_INFO("Find_Build_Location(%s): Using location %d,%d for Naval Yard.\n", Name(), found_cell.X, found_cell.Y);
+                        DEV_DEBUG_INFO("Find_Build_Location({}): Using location {},{} for Naval Yard.\n", IniName, found_cell.X, found_cell.Y);
                         cell = found_cell;
                         break;
                     }
@@ -869,7 +849,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
         }
 
         if (cell == CELL_NONE) {
-            DEV_DEBUG_WARNING("Find_Build_Location(%s): Failed to find suitable location for \"%s\"!\n", Name(), btype->Name());
+            DEV_DEBUG_WARNING("Find_Build_Location({}): Failed to find suitable location for \"{}\"!\n", IniName, btype->Name());
         }
 
         return cell;
@@ -924,7 +904,7 @@ DEFINE_HOOK(0x004BC0B7, _HouseClass_Can_Build_Multi_MCV_Patch, 6)
  */
 #define WARN_AND_EXIT(funcname) { \
     DEBUG_FATAL("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.\n"); \
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress()); \
+    DEBUG_FATAL("Return address: {}\n", _ReturnAddress()); \
     WWMessageBox().Process("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK); \
     Emergency_Exit(0); } \
 
@@ -1283,6 +1263,21 @@ DEFINE_HOOK(0x004C0F87, _HouseClass_AI_Raise_Money_Fix_Memory_Corruption, 0)
     return 0x004C0F9F;
 }
 
+/**
+ *  Patches HouseClass::Recalc_Radar_Availability to allow Free Radar to still function when the player is in low power.
+ *  This requires 'FreeRadarOnLowPower=yes' to be set under [General].
+ *  Note that Ion Storms still turns off the radar regardless of this flag.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004C958D, _HouseClass_Recalc_Radar_Availability_Free_Radar_Low_Power_Patch, 6)
+{
+    if (Scen->IsFreeRadar && RuleExtension->IsFreeRadarOnLowPower) {
+        return 0x004C966A;
+    }
+
+    return 0;
+}
 
 /**
  *  Main function for patching the hooks.

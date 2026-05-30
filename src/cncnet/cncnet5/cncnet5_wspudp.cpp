@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Variation of the UDP Winsock interface for CnCNet5.
  *
- *  @project       Vinifera
- *
- *  @file          CNCNET_WSPUDP.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Variation of the UDP Winsock interface for CnCNet5.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -100,7 +81,7 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
             addr_len = sizeof(addr);
             rc = CnCNet5UDPInterfaceClass::Receive_From(Socket, (char*)ReceiveBuffer, sizeof(ReceiveBuffer), 0, (PSOCKADDR_IN)&addr, &addr_len);
             if (rc == SOCKET_ERROR) {
-                DEBUG_WARNING("CnCNet5: Send_To returned %d!\n", WSAGetLastError());
+                DEBUG_WARNING("CnCNet5: Send_To returned {}!\n", WSAGetLastError());
                 Clear_Socket_Error(Socket);
                 return 0;
             }
@@ -251,7 +232,7 @@ int CnCNet5UDPInterfaceClass::Send_To(SOCKET s, const char *buf, int len, int fl
     }
 
 #ifndef NDEBUG
-    //DEV_DEBUG_INFO("CnCNet5: sendto(s=%d, buf=%p, len=%d, flags=%08X, to=%p, addrlen=%d)\n", s, buf, len, flags, dest_addr, addrlen);
+    //DEV_DEBUG_INFO("CnCNet5: sendto(s={}, buf={}, len={}, flags={:08X}, to={}, addrlen={})\n", s, buf, len, flags, dest_addr, addrlen);
 #endif
 
     /**
@@ -292,7 +273,7 @@ int CnCNet5UDPInterfaceClass::Receive_From(SOCKET s, char *buf, int len, int fla
     }
 
 #ifndef NDEBUG
-    //DEV_DEBUG_INFO("CnCNet5: recvfrom(s=%d, buf=%p, len=%d, flags=%08X, from=%p, addrlen=%p (%d))\n", s, buf, len, flags, src_addr, addrlen, *addrlen);
+    //DEV_DEBUG_INFO("CnCNet5: recvfrom(s={}, buf={}, len={}, flags={:08X}, from={}, addrlen={} ({}))\n", s, buf, len, flags, src_addr, addrlen, *addrlen);
 #endif
 
     /**

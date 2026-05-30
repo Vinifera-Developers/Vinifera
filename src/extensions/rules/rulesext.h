@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended RulesClass class.
  *
- *  @project       Vinifera
- *
- *  @file          RULESEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended RulesClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -48,7 +29,6 @@ public:
     virtual ~RulesClassExtension();
 
     virtual int Get_Object_Size() const override;
-    virtual void Detach(AbstractClass* target, bool all = true) override;
     virtual void Object_CRC(CRCEngine& crc) const override;
 
     virtual const char* Name() const override { return "Rule"; }
@@ -275,7 +255,40 @@ public:
     bool IsAIOneHarvesterInSingleplayer;
 
     /**
-     *  Determines whether the cloaked technos can trigger cell tags when used with Entered By trigger event.
+     *  Determines the wrench shape frame that should be used while repairs are paused.
+     */
+    int PausedRepairsFrame;
+
+    /**
+     *  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) can be separated from its guard target
+     *  before it moves again to its guard target's position.
+     */
+    int EscortRange;
+
+    /**
+     *  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) will keep engaging its current target
+     *  before abandoning it and going back to escort its guard target.
+     */
+    int AbandonTargetEscortRange;
+
+	/**
+	 *  Determines whether Free Radar would still apply even during Low Power
+	 */
+	bool IsFreeRadarOnLowPower;
+
+    /**
+     *  Determines whether bridges should use the Bridge Health Tracking feature. 
+     *  When disabled, uses the vanilla bridge destruction logic (by random chance).
+     */
+    bool IsUseBridgeHealth;
+
+	/**
+     * The armor type used by bridges for damage calculation. Only used when Bridge Health mechanism is enabled.
+     */
+    ArmorType BridgeArmor;
+
+	/**     
+	 *  Determines whether the cloaked technos can trigger cell tags when used with Entered By trigger event.
      */
     bool IsCellTagsIgnoreStealth;
 };

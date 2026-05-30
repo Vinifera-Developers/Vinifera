@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TechnoTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOTYPEEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TechnoTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -56,7 +37,6 @@ public:
     TechnoTypeClassExtension(const NoInitClass &noinit);
     virtual ~TechnoTypeClassExtension();
 
-    virtual void Detach(AbstractClass * target, bool all = true) override;
     virtual void Object_CRC(CRCEngine &crc) const override;
 
     virtual TechnoTypeClass *This() const override { return reinterpret_cast<TechnoTypeClass *>(ObjectTypeClassExtension::This()); }
@@ -286,6 +266,17 @@ public:
      *  Does this object need to decloak before firing?
      */
     bool IsDecloakToFire;
+
+    /**
+     *  Determines how far away, in leptons, an Area Guarding unit wait to its guard target before moving towards it again.
+     */
+    int EscortRange;
+
+    /**
+     *  Determines how far away, in leptons, an Area Guarding unit will keep engaging its target unit before abandoning it
+     *  and going back to escort its guard target.
+     */
+    int AbandonTargetEscortRange;
 
 private:
 

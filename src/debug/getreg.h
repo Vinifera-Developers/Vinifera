@@ -1,30 +1,11 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Macros for fetching assembly register values to assist in debug
+ *          exception and stack dumping.
  *
- *  @project       Vinifera
- *
- *  @file          GETREG.H
- *
- *  @author        CCHyper
- *
- *  @brief         Macros for fetching assembly register values to assist
- *                 in debug exception and stack dumping.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #pragma once
@@ -49,7 +30,7 @@ typedef uint32_t register_t;
  */
 #define GET_EIP_ESP_EBP_REGISTERS(the_eip, the_esp, the_ebp) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
 _label: /* Label to fetch EIP address. */\
@@ -62,7 +43,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_EIP_ESP_EBP_REGISTERS_LABEL(the_eip, the_esp, the_ebp, __label) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     __asm __volatile { \
@@ -74,7 +55,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_EAX_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Eax; \
@@ -82,7 +63,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_ECX_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Ecx; \
@@ -90,7 +71,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_EBX_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Ebx; \
@@ -98,7 +79,7 @@ _label: /* Label to fetch EIP address. */\
 
 #define GET_ESP_REGISTER(reg) \
 { \
-    static CONTEXT _ctx; \
+    CONTEXT _ctx; \
     ZeroMemory(&_ctx, sizeof(_ctx)); \
     RtlCaptureContext(&_ctx); \
     reg = _ctx.Esp; \

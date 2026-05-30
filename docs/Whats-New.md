@@ -81,7 +81,6 @@ New:
 - Add "Only Harvesters" quarry (by Rampastring)
 - Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
 - Implement INI inheritance/includes (by ZivDero)
-- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files (by ZivDero)
 - Add "Building Does Not Exist" trigger event (by Rampastring)
 - Add "Create Building At" trigger action (by Rampastring)
 - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI (by Rampastring)
@@ -90,6 +89,27 @@ New:
 - Add DetectDisguise to TechnoTypes (by Rampastring)
 - Allow customizing whether AI sees through disguise (by Rampastring)
 - Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
+- Make spawners respect `IonSensitive` on weapons (by ZivDero)
+- Vinifera's Developer mode now prints information on executed trigger actions (by Rampastring)
+- Extended sidebar customizability (by ZivDero)
+- Replace the vanilla audio engine with a miniaudio-backed system for sound effects, music, EVA speech, subtitles, and VQA movie audio (by CCHyper/tomsons26, ZivDero)
+- Add new customizations options for themes, sounds and speeches (by CCHyper/tomsons26, ZivDero)
+- Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies (by ZivDero, CCHyper)
+- Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
+- Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
+- Add the ability to snap camera position instantly when using the Center Camera At Waypoint trigger action (by JoyfulShush)
+- Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points (by JoyfulShush)
+- Units and Reveal Around Waypoints trigger actions can now reveal any desired radius (by JoyfulShush)
+- Allow Reveal Around Waypoints trigger actions to specify their reveal radius and whether they take elevation into account (by JoyfulShush)
+- Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
+- Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
+- Allows aircraft to use Q-Move (by JoyfulShush)
+- Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
+- Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
+- Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
+- Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
+- Allow Free Radar to be used when players are in low power (by JoyfulShush)
+- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -114,6 +134,7 @@ Vinifera fixes:
 - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
+- Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
 
 
 Vanilla fixes:
@@ -157,6 +178,14 @@ Vanilla fixes:
 - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
 - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it (by Rampastring)
+- Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
+- Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree) (by JoyfulShush)
+- Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
+- Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
+- Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
+- Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
+- Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 
 :::
 
@@ -309,9 +338,6 @@ New:
 - Allow customizing which Tiberiums can grow on a tile (by ZivDero)
 - Allow customizing which Smudges can appear on a tile (by ZivDero)
 - Allow customizing if Veins can grow on a tile (by ZivDero)
-- Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
-- Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
-- Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -390,5 +416,13 @@ Vanilla fixes:
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction (by ZivDero)
 - Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation (by JoyfulShush)
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, granting massive veterancy bonuses to their attackers.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
+- Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
+- Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use (by JoyfulShush)
+- Fix a bug that would make healer units unselect themselves when adding other units to current selection (by JoyfulShush)
+- Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection (by JoyfulShush)
 
 :::

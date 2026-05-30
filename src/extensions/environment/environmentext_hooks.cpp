@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended EnvironmentClass.
  *
- *  @project       Vinifera
- *
- *  @file          ENVIRONMENTEXT_HOOKS.CPP
- *
- *  @author        CCHyper, ZivDero
- *
- *  @brief         Contains the hooks for the extended EnvironmentClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -130,10 +111,10 @@ void ExtEnvironmentClass::Snapshot_Game_State()
     Stage = Scen->Stage;
 
     DEBUG_INFO("Recording environment information...\n");
-    DEBUG_INFO("  CarryOverMoney: %d\n", CarryOverMoney);
-    DEBUG_INFO("  MissionTimer: %d\n", MissionTimer);
-    DEBUG_INFO("  Difficulty: %d\n", Difficulty);
-    DEBUG_INFO("  Stage: %d\n", Stage);
+    DEBUG_INFO("  CarryOverMoney: {}\n", CarryOverMoney);
+    DEBUG_INFO("  MissionTimer: {}\n", MissionTimer);
+    DEBUG_INFO("  Difficulty: {}\n", (int)Difficulty);
+    DEBUG_INFO("  Stage: {}\n", Stage);
 }
 
 
@@ -169,10 +150,10 @@ void ExtEnvironmentClass::Apply_To_Game_State()
     Scen->Stage = Stage;
 
     DEBUG_INFO("Applying environment information...\n");
-    DEBUG_INFO("  CarryOverMoney: %d\n", CarryOverMoney);
-    DEBUG_INFO("  MissionTimer: %d\n", MissionTimer);
-    DEBUG_INFO("  Difficulty: %d\n", Difficulty);
-    DEBUG_INFO("  Stage: %d\n", Stage);
+    DEBUG_INFO("  CarryOverMoney: {}\n", CarryOverMoney);
+    DEBUG_INFO("  MissionTimer: {}\n", MissionTimer);
+    DEBUG_INFO("  Difficulty: {}\n", (int)Difficulty);
+    DEBUG_INFO("  Stage: {}\n", Stage);
 }
 
 

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  New Prerequisite Group class.
  *
- *  @project       Vinifera
- *
- *  @file          PREREQUISITEGROUP.CPP
- *
- *  @authors       ZivDero
- *
- *  @brief         New Prerequisite Group class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -120,8 +101,6 @@ LONG PrerequisiteGroupClass::QueryInterface(REFIID riid, LPVOID* ppv)
  */
 ULONG PrerequisiteGroupClass::AddRef()
 {
-    //EXT_DEBUG_TRACE("PrerequisiteGroupClass::AddRef - 0x%08X\n", (uintptr_t)(this));
-
     return 1;
 }
 
@@ -133,8 +112,6 @@ ULONG PrerequisiteGroupClass::AddRef()
  */
 ULONG PrerequisiteGroupClass::Release()
 {
-    //EXT_DEBUG_TRACE("PrerequisiteGroupClass::Release - 0x%08X\n", (uintptr_t)(this));
-
     return 1;
 }
 
@@ -146,8 +123,6 @@ ULONG PrerequisiteGroupClass::Release()
  */
 HRESULT PrerequisiteGroupClass::GetClassID(CLSID* lpClassID)
 {
-    //EXT_DEBUG_TRACE("PrerequisiteGroupClass::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(this));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -165,8 +140,6 @@ HRESULT PrerequisiteGroupClass::GetClassID(CLSID* lpClassID)
  */
 HRESULT PrerequisiteGroupClass::IsDirty()
 {
-    //EXT_DEBUG_TRACE("PrerequisiteGroupClass::IsDirty - 0x%08X\n", (uintptr_t)(this));
-
     return S_OK;
 }
 
@@ -179,8 +152,6 @@ HRESULT PrerequisiteGroupClass::IsDirty()
  */
 HRESULT PrerequisiteGroupClass::Load(IStream* pStm)
 {
-    //EXT_DEBUG_TRACE("PrerequisiteGroupClass::Internal_Load - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -224,8 +195,6 @@ HRESULT PrerequisiteGroupClass::Load(IStream* pStm)
  */
 HRESULT PrerequisiteGroupClass::Save(IStream* pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("PrerequisiteGroupClass::Internal_Save - 0x%08X\n", (uintptr_t)(this));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -235,7 +204,7 @@ HRESULT PrerequisiteGroupClass::Save(IStream* pStm, BOOL fClearDirty)
      */
     const LONG id = reinterpret_cast<LONG>(this);
 
-    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
 
     HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
@@ -263,8 +232,6 @@ HRESULT PrerequisiteGroupClass::Save(IStream* pStm, BOOL fClearDirty)
  */
 LONG PrerequisiteGroupClass::GetSizeMax(ULARGE_INTEGER* pcbSize)
 {
-    //EXT_DEBUG_TRACE("PrerequisiteGroupClass::GetSizeMax - 0x%08X\n", (uintptr_t)(this));
-
     if (!pcbSize) {
         return E_POINTER;
     }

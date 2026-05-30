@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Basic debug assertion implementation.
  *
- *  @project       Vinifera
- *
- *  @file          ASSERTHANDLER.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Basic debug assertion implementation.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -39,6 +20,7 @@
 #include "vinifera_globals.h"
 
 #include <windows.h>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -106,7 +88,7 @@ static wchar_t *to_utf16(const char *str)
 }
 
 
-void Vinifera_Assert(AssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...)
+void Vinifera_Assert(AssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, std::string_view msg)
 {
     static const char *_assert_names[] = {
         "NORMAL", "FATAL"
@@ -124,13 +106,12 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         return;
     }
 
-    if (msg == nullptr) {
+    if (msg.empty()) {
         std::strcpy(msgbuff, "No additional information.");
     } else {
-        va_list args;
-        va_start(args, msg);
-        std::vsnprintf(msgbuff, sizeof(msgbuff), msg, args);
-        va_end(args);
+        const size_t len = std::min(msg.size(), sizeof(msgbuff) - 1);
+        std::memcpy(msgbuff, msg.data(), len);
+        msgbuff[len] = '\0';
     }
 
     /**
@@ -279,7 +260,7 @@ void Vinifera_Assert_StackDump()
     DEBUG_ERROR("See call stack in debugger for more information.\n");
     DEBUG_ERROR("\n");
     if (!StackBuffer.empty()) {
-        DEBUG_ERROR(StackBuffer.c_str());
+        DEBUG_ERROR("{}", StackBuffer);
         DEBUG_ERROR("\n");
     }
 

@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TeamTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TEAMTYPEEXT.CPP
- *
- *  @author        Rampastring
- *
- *  @brief         Extended TeamTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -44,8 +25,6 @@
 TeamTypeClassExtension::TeamTypeClassExtension(const TeamTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("TeamTypeClassExtension::TeamTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TeamTypeExtensions.Add(this);
 }
 
@@ -58,7 +37,6 @@ TeamTypeClassExtension::TeamTypeClassExtension(const TeamTypeClass *this_ptr) :
 TeamTypeClassExtension::TeamTypeClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::TeamTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -69,8 +47,6 @@ TeamTypeClassExtension::TeamTypeClassExtension(const NoInitClass &noinit) :
  */
 TeamTypeClassExtension::~TeamTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::~TeamTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     TeamTypeExtensions.Delete(this);
 }
 
@@ -82,8 +58,6 @@ TeamTypeClassExtension::~TeamTypeClassExtension()
  */
 HRESULT TeamTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -101,8 +75,6 @@ HRESULT TeamTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT TeamTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -121,8 +93,6 @@ HRESULT TeamTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT TeamTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -139,21 +109,10 @@ HRESULT TeamTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TeamTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: Rampastring
- */
-void TeamTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -163,7 +122,6 @@ void TeamTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void TeamTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -174,8 +132,6 @@ void TeamTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool TeamTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("TeamTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char *ini_name = Name();
 
     IsInitialized = true;

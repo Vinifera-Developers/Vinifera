@@ -1,31 +1,11 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Replacement pointer swizzling interface for debugging save load
+ *          issues.
  *
- *  @project       Vinifera
- *
- *  @file          NEWSWIZZLE.CPP
- *
- *  @author        CCHyper
- *
- *  @contributors  tomsons26, ZivDero
- *
- *  @brief         Replacement pointer swizzling interface for debugging save load issues.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -152,7 +132,7 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID(void* point
 
     *id = reinterpret_cast<uintptr_t>(pointer);
 
-    // DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x%08X.\n", *id);
+    // DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x{:08X}.\n", *id);
 
     return S_OK;
 }
@@ -245,14 +225,14 @@ void ViniferaSwizzleManagerClass::Process_Tables()
     if (!RequestTable.empty()) {
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - RequestTable.Count %d.\n", RequestTable.size());
-        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - PointerTable.Count %d.\n", PointerTable.size());
+        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - RequestTable.Count {}.\n", RequestTable.size());
+        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - PointerTable.Count {}.\n", PointerTable.size());
 #endif
 
         for (SwizzlePointerStruct& request : RequestTable) {
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-            DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Processing request \"%s\" from %s.\n", request.Variable.c_str(), request.Function.c_str());
+            DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Processing request \"{}\" from {}.\n", request.Variable, request.Function);
 #endif
 
             auto it = PointerTable.find(request.ID);
@@ -265,7 +245,7 @@ void ViniferaSwizzleManagerClass::Process_Tables()
                 *ptr = reinterpret_cast<uintptr_t>(it->second.Pointer);
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-                DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Remapped \"%s\" (ID: %08X) to 0x%08X.\n", request.Variable.c_str(), request.ID, reinterpret_cast<uintptr_t>(request.Pointer));
+                DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Remapped \"{}\" (ID: {:08X}) to 0x{:08X}.\n", request.Variable, request.ID, reinterpret_cast<uintptr_t>(request.Pointer));
 #endif
             } else {
 
@@ -287,7 +267,7 @@ void ViniferaSwizzleManagerClass::Process_Tables()
                      */
                     static char buffer[1024];
 
-                    DEV_DEBUG_ERROR("SwizzleManager::Process_Tables() - Request info:\n  File: %s\n  Line: %d\n  Function: %s\n  Variable: %s\n"
+                    DEV_DEBUG_ERROR("SwizzleManager::Process_Tables() - Request info:\n  File: {}\n  Line: {}\n  Function: {}\n  Variable: {}\n"
                                     , !request.File.empty() ? request.File.c_str() : "<no-filename-info>"
                                     , request.Line
                                     , !request.Function.empty() ? request.Function.c_str() : "<no-function-info>"
@@ -392,7 +372,7 @@ LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Swizzle_Dbg(void** pointer, con
     *pointer = nullptr;
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-    DEV_DEBUG_INFO("SwizzleManager::Swizzle() - Requested remap for \"%s\" (0x%08X) in %s.\n", var, id, func);
+    DEV_DEBUG_INFO("SwizzleManager::Swizzle() - Requested remap for \"{}\" (0x{:08X}) in {}.\n", var, id, func);
 #endif
 
     return S_OK;
@@ -413,16 +393,16 @@ LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID_Dbg(void* poin
     *id = reinterpret_cast<uintptr_t>(pointer);
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-    DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x%08X.\n", *id);
-    DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - File: %s.\n", file);
+    DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x{:08X}.\n", *id);
+    DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - File: {}.\n", file);
     if (line != -1) {
-        DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - Line: %d.\n", line);
+        DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - Line: {}.\n", line);
     }
     if (func) {
-        DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - Func: %s.\n", func);
+        DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - Func: {}.\n", func);
     }
     if (var) {
-        DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - Var: %s.\n", var);
+        DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - Var: {}.\n", var);
     }
 #endif
 
@@ -440,8 +420,8 @@ LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Here_I_Am_Dbg(LONG id, void* po
     PointerTable.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(id, pointer, file, line, func, var));
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-    DEV_DEBUG_INFO("SwizzleManager::Here_I_Am() - PointerTable.Count = %d.\n", PointerTable.size());
-    DEV_DEBUG_INFO("SwizzleManager::Here_I_Am() - Informed swizzler of \"%s\" (0x%08X) in %s.\n", var, id, func);
+    DEV_DEBUG_INFO("SwizzleManager::Here_I_Am() - PointerTable.Count = {}.\n", PointerTable.size());
+    DEV_DEBUG_INFO("SwizzleManager::Here_I_Am() - Informed swizzler of \"{}\" (0x{:08X}) in {}.\n", var, id, func);
 #endif
 
     return S_OK;

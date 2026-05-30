@@ -1,39 +1,23 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Defines the entry point for the DLL.
  *
- *  @project       Vinifera
- *
- *  @file          DLLMAIN.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Defines the entry point for the DLL.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
 
+#include "exceptionhandler.h"
 #include "hooker.h"
 #include "miscutil.h"
 #include "setup_hooks.h"
+#include "vinifera_globals.h"
 #include "vinifera_util.h"
 
 #include <cstdio>
+#include <exception>
 #include <windows.h>
 
 
@@ -73,6 +57,21 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 
             OutputDebugString(VINIFERA_DLL " attached to " VINIFERA_TARGET_EXE ".\n");
 
+            /**
+             *  Capture the main thread id and prepare the exception handler
+             *  before any hook can fire.
+             *
+             *  Syringe is a debugger-based loader (see Syringe's
+             *  SyringeDebugger::Run): it stops GAME.EXE at its entry-point
+             *  breakpoint and uses SetThreadContext on the main thread to
+             *  redirect EIP into a stub that calls LoadLibraryA. So DllMain
+             *  runs on GAME.EXE's main thread, even though lpReserved is
+             *  null (the OS sees this as a dynamic load).
+             */
+            Vinifera_MainThreadId = GetCurrentThreadId();
+            Init_Exception_Handler();
+            std::set_terminate(&Vinifera_Terminate_Handler);
+
             OutputDebugString("About to call StartHooking()...\n\n");
 
             if (!StartHooking()) {
@@ -110,7 +109,9 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
              *  Collect the debug files from this session.
              */
             Vinifera_Collect_Debug_Files();
-            
+
+            Shutdown_Exception_Handler();
+
             DLLInstance = nullptr;
 
             OutputDebugString(VINIFERA_DLL " detached from " VINIFERA_TARGET_EXE ".\n");

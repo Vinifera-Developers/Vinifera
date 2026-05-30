@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks related to Play_Movie and related functions.
  *
- *  @project       Vinifera
- *
- *  @file          PLAYMOVIE_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks related to Play_Movie and related functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -37,84 +18,14 @@
 #include "extension.h"
 #include "hooker.h"
 #include "movie.h"
-#include "options.h"
+#include "movie/movieplayback.h"
 #include "playmovie.h"
 #include "scenario.h"
 #include "syringe.h"
 #include "tibsun_globals.h"
+#include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "vqa.h"
-
-
-/**
- *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
- *
- *  @author: CCHyper
- */
-static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio = false)
-{
-    /**
-     *  No need to scale the rect if it is larger than the max width/height
-     */
-    bool smaller = rect.Width < max_width && rect.Height < max_height;
-    if (!smaller) {
-        return false;
-    }
-
-    /**
-     *  This is a workaround for edge case issues with some versions
-     *  of cnc-ddraw. This ensures the available draw area is actually
-     *  the resolution the user defines, not what the cnc-ddraw forces
-     *  the primary surface to.
-     */
-    int surface_width = std::clamp(HiddenSurface->Width, 0, Options.ScreenWidth);
-    int surface_height = std::clamp(HiddenSurface->Height, 0, Options.ScreenHeight);
-
-    if (maintain_ratio) {
-
-        double dSurfaceWidth = surface_width;
-        double dSurfaceHeight = surface_height;
-        double dSurfaceAspectRatio = dSurfaceWidth / dSurfaceHeight;
-
-        double dVideoWidth = rect.Width;
-        double dVideoHeight = rect.Height;
-        double dVideoAspectRatio = dVideoWidth / dVideoHeight;
-    
-        /**
-         *  If the aspect ratios are the same then the screen rectangle
-         *  will do, otherwise we need to calculate the new rectangle.
-         */
-        if (dVideoAspectRatio > dSurfaceAspectRatio) {
-            int nNewHeight = (int)(surface_width/dVideoWidth*dVideoHeight);
-            int nCenteringFactor = (surface_height - nNewHeight) / 2;
-            rect.X = 0;
-            rect.Y = nCenteringFactor;
-            rect.Width = surface_width;
-            rect.Height = nNewHeight;
-
-        } else if (dVideoAspectRatio < dSurfaceAspectRatio) {
-            int nNewWidth = (int)(surface_height/dVideoHeight*dVideoWidth);
-            int nCenteringFactor = (surface_width - nNewWidth) / 2;
-            rect.X = nCenteringFactor;
-            rect.Y = 0;
-            rect.Width = nNewWidth;
-            rect.Height = surface_height;
-
-        } else {
-            rect.X = 0;
-            rect.Y = 0;
-            rect.Width = surface_width;
-            rect.Height = surface_height;
-        }
-
-    } else {
-        rect.X = 0;
-        rect.Y = 0;
-        rect.Width = surface_width;
-        rect.Height = surface_height;
-    }
-
-    return true;
-}
 
 
 /**
@@ -139,10 +50,25 @@ DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
          */
         this_ptr->StretchRect = stretched_rect;
 
-        DEBUG_INFO("Stretching movie - InitialRect: %d,%d -> StretchRect: %d,%d\n", this_ptr->InitialRect.Width, this_ptr->InitialRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
+        DEBUG_INFO("Stretching movie - InitialRect: {},{} -> StretchRect: {},{}\n", this_ptr->InitialRect.Width, this_ptr->InitialRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
     }
 
     return 0x00563805;
+}
+
+
+bool Vinifera_Is_Movie_Available(const char* name)
+{
+    const std::string basename = Normalize_Movie_Basename(name);
+    if (basename.empty()) {
+        return false;
+    }
+
+    if (MoviePlayback_Is_Available(basename.c_str())) {
+        return true;
+    }
+
+    return CCFileClass(name).Is_Available();
 }
 
 
@@ -179,8 +105,8 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     /**
      *  Check if the current campaign is an original GDI or NOD campaign.
      */
-    bool is_original_gdi = (cd_num == DISK_GDI && campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && campaign->Scenario == "GDI1A.MAP";
-    bool is_original_nod = (cd_num == DISK_NOD && campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && campaign->Scenario == "NOD1A.MAP";
+    bool is_original_gdi = cd_num == DISK_GDI && (campaign->IniName == "GDI1" || campaign->IniName == "GDI1A") && stricmp(campaign->Scenario, "GDI1A.MAP") == 0;
+    bool is_original_nod = cd_num == DISK_NOD && (campaign->IniName == "NOD1" || campaign->IniName == "NOD1A") && stricmp(campaign->Scenario, "NOD1A.MAP") == 0;
 
     /**
      *  #issue-762
@@ -192,7 +118,7 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     CampaignClassExtension *campaignext = Extension::Fetch(campaign);
     if (campaignext->IntroMovie[0] != '\0') {
         std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
-        DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+        DEBUG_INFO("About to play \"{}\".\n", movie_filename);
         Play_Movie(movie_filename);
 
     /**
@@ -215,11 +141,11 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
         /**
          *  Now play the movie if it is found, falling back to original behavior otherwise.
          */
-        if (CCFileClass(movie_filename).Is_Available()) {
-            DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+        if (Vinifera_Is_Movie_Available(movie_filename)) {
+            DEBUG_INFO("About to play \"{}\".\n", movie_filename);
             Play_Movie(movie_filename);
 
-        } else if (CCFileClass("INTRO.VQA").Is_Available()) {
+        } else if (Vinifera_Is_Movie_Available("INTRO.VQA")) {
             DEBUG_INFO("About to play \"INTRO.VQA\".\n");
             Play_Movie("INTRO.VQA");
 
@@ -250,7 +176,7 @@ read_scenario:
      *  the address 0x005DB319, so lets handle the debug log print ourself and
      *  jump back at a safe location.
      */
-    DEBUG_GAME("Reading scenario: %s\n", name);
+    DEBUG_INFO("Reading scenario: {}\n", name);
     return 0x005DB327;
 }
 
@@ -274,9 +200,9 @@ static void Play_Intro_SneakPeak_Movies()
     /**
      *  Find out what movies are available locally.
      */
-    bool intro_available = CCFileClass("INTRO.VQA").Is_Available();
-    bool intr0_available = CCFileClass("INTR0.VQA").Is_Available();
-    bool sizzle_available = CCFileClass("SIZZLE1.VQA").Is_Available();
+    bool intro_available = Vinifera_Is_Movie_Available("INTRO.VQA");
+    bool intr0_available = Vinifera_Is_Movie_Available("INTR0.VQA");
+    bool sizzle_available = Vinifera_Is_Movie_Available("SIZZLE1.VQA");
 
     bool movie_pair_available = (intro_available && sizzle_available) || (intr0_available && sizzle_available);
 
@@ -351,4 +277,8 @@ void PlayMovieExtension_Hooks()
      */
     Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
     Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
+
+    // Allow playing radar movies outside of campaign
+    Patch_Jump(0x00563A81, 0x00563A89);
+    Patch_Jump(0x00563BBA, 0x00563BC2);
 }

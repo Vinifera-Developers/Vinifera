@@ -1,29 +1,10 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended ObjectTypeClass.
  *
- *  @project       Vinifera
- *
- *  @file          OBJECTTYPEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended ObjectTypeClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 
 #include "always.h"
@@ -97,7 +78,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
      *  to hard code checks for this filename prefixes and skip any remap attempt.
      */
     if (RTTI == RTTI_BUILDINGTYPE && (!std::strncmp(fname, "CITY", 4) || !std::strncmp(fname, "ABAN", 4) || !std::strncmp(fname, "BBOARD", 5))) {
-        DEV_DEBUG_WARNING("Skipping new theater filename remap of %s!\n", fname);
+        DEV_DEBUG_WARNING("Skipping new theater filename remap of {}!\n", fname);
         return;
     }
 
@@ -106,7 +87,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
      *  respective animations.
      */
     if (RTTI == RTTI_BUILDINGTYPE && (std::strstr(fname, "MWAR") || std::strstr(fname, "OBL1"))) {
-        DEV_DEBUG_WARNING("Skipping new theater filename remap of %s!\n", fname);
+        DEV_DEBUG_WARNING("Skipping new theater filename remap of {}!\n", fname);
         return;
     }
 
@@ -124,7 +105,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
             fname[1] = TheaterTypeClass::ImageLetter_From(theater);
 
         } else {
-            DEV_DEBUG_WARNING("Failed to remap filename \"%s\" to current theater (%s)!\n", fname, TheaterTypeClass::Name_From(theater));
+            DEV_DEBUG_WARNING("Failed to remap filename \"{}\" to current theater ({})!\n", fname, TheaterTypeClass::Name_From(theater));
         }
     }
 }
@@ -155,7 +136,7 @@ DEFINE_HOOK(0x0058891D, _ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Th
 const ShapeSet * ObjectTypeClassExt::_Get_Image_Data() const
 {
     if (Image == nullptr) {
-        DEBUG_WARNING("Object %s has NULL image data!\n", Name());
+        DEBUG_WARNING("Object {} has NULL image data!\n", Name());
     }
 
     return Image;
