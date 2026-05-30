@@ -46,8 +46,8 @@
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
 #include "vinifera_globals.h"
-#include "syringe.h"
 #include "tag.h"
+#include "syringe.h"
 #include "vinifera_defines.h"
 
 
