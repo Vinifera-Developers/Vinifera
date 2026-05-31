@@ -23,9 +23,11 @@
 #include "levitatelocomotion.h"
 #include "radarevent.h"
 #include "rules.h"
+#include "rulesext.h";
 #include "session.h"
 #include "syringe.h"
 #include "tactical.h"
+#include "tag.h"
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
@@ -37,7 +39,6 @@
 #include "unittype.h"
 #include "vinifera_globals.h"
 #include "vox.h"
-#include "rulesext.h"
 
 
 /**
@@ -884,6 +885,29 @@ DEFINE_HOOK(0x004A2C25, _FootClass_Do_MISSION_GUARD_AREA_Approach_Target_Patch, 
     return 0;
 }
 
+
+/**
+ *  Patches FootClass::Per_Cell_Process inside the cloak check.
+ *  Trigger cell tags via the TEVENT_PLAYER_ENTERED trigger event.
+ *  Cell Tags can only be sprung by cloaked units if the 'CloakedTechnosTriggerCellTags' key is set in rules under [General].
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A3E25, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
+{
+    GET(FootClass*, this_ptr, ESI);
+        
+    if (!RuleExtension->IsCellTagsIgnoreStealth) {
+        CellClass* cellptr = &Map[this_ptr->PositionCell];
+        TagClass* tag = cellptr->CellTag;
+
+        if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
+            tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
+        }
+    }    
+
+    return 0;
+}
 
 /**
  *  #issue-177

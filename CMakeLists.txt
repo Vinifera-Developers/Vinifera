@@ -169,6 +169,18 @@ if(WIN32)
 	add_compile_definitions(_USE_32BIT_TIME_T) # This is for ABI compatibility with a few functions.
 	add_compile_definitions(WIN32_LEAN_AND_MEAN) # Go lean and mean on windows.
 	add_compile_definitions(NOMINMAX) # Windows min/max clashes with std::min/max
+
+	# VS 2022 17.10 gave std::mutex (and the other standard mutexes / condition
+	# variables) a constexpr constructor, so a global like DbgHelpMutex becomes
+	# constant-initialized (zeroed) with no runtime constructor; first-lock init
+	# then happens inside msvcp140.dll. We link the CRT dynamically (/MD), so on
+	# machines with an older VC++ redistributable (msvcp140.dll < 14.40) that
+	# lazy-init path doesn't exist and the very first std::mutex lock faults
+	# (typically Init_Symbol_Info's lock on DbgHelpMutex). This define is the
+	# Microsoft-sanctioned escape hatch: it reverts to the old run-at-construction
+	# init, which is compatible with older redistributables. Must be defined for
+	# the whole program, hence here (directory-wide, before any add_subdirectory).
+	add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 endif()
 
 

@@ -110,6 +110,7 @@ New:
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 - Allow Free Radar to be used when players are in low power (by JoyfulShush)
 - Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
+- Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 - Implemented the multiplayer spawner (by ZivDero, Rampastring)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
