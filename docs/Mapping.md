@@ -322,6 +322,16 @@ In `RULES.INI`, or a scenario INI:
 ComesNearWaypointDistance=1280   ; integer, defines how close, in leptons, an object needs to be to a waypoint for the "Comes Near Waypoint" event to be fired
 ```
 
+### Entered By
+
+- Now allows to conditionally make cloaked units be able to trigger Entered By trigger events by moving into cell tags. Disabled by default.
+
+In `RULES.INI`, or a scenario INI:
+```ini
+[General]
+CellTagsIgnoreStealth=yes ; boolean, whether cell tags ignore cloaked units moving into them. If set to no, cloaked units would trigger Entered By trigger events like regular units
+```
+
 ### New Trigger Events
 
 | **Code** | **Action**                                                                           | **NeedCode**      | **PARAM1**          | **PARAM2**          | **PARAM3**             |
