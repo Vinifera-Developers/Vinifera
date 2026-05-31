@@ -38,6 +38,7 @@
 #include "tibsun_globals.h"
 #include "uicontrol.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 
 #include <bcrypt.h>
 #include <tlhelp32.h> // must be after windows.h
@@ -62,11 +63,13 @@ extern HMODULE DLLInstance;
  *  the assets. This also means this bugfix works without extending any of
  *  the games classes.
  *
+ *  Also sets up the playthrough ID for the session.
+ *
  *  @warning: This does mean we are limited to 255 unique houses (oh no!).
  *
- *  @author: CCHyper
+ *  @author: CCHyper, Rampastring
  */
-DEFINE_HOOK(0x004E2CE4, _Select_Game_PreStart_SetPlayerHouse_Patch, 0)
+DEFINE_HOOK(0x004E2CE4, _Select_Game_PreStart_Patch, 0)
 {
     /**
      *  This patch removes the code that sets the "IsGDI" member of SessionClass
@@ -74,6 +77,11 @@ DEFINE_HOOK(0x004E2CE4, _Select_Game_PreStart_SetPlayerHouse_Patch, 0)
      *  the player HouseType directly.
      */
     SessionExtension->House = Session.Players.Fetch_Head()->Player.House;
+
+    /**
+     *  Generate a new playthrough ID because we're about to start a new scenario or campaign run.
+     */
+    Vinifera_Generate_PlaythroughID();
 
     return 0x004E2D13;
 }

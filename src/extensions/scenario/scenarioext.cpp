@@ -1331,10 +1331,6 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
     Scen->InitTime = ini.Get_Int(BASIC, "InitTime", 10000);
     const bool official = ini.Get_Bool(BASIC, "Official", false);
 
-    /**
-     *  Set the unique playthrough ID.
-     */
-    Vinifera_PlaythroughID = std::time(nullptr);
     DEBUG_INFO("[Vinifera] Starting new scenario. Playthrough ID: {}.\n", Vinifera_PlaythroughID);
 
     /**

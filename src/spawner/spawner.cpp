@@ -36,6 +36,7 @@
 #include "tab.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "wspudp.h"
 #include "wwmouse.h"
 
@@ -333,6 +334,13 @@ bool Spawner::Start_Scenario(char* scenario_name)
     std::snprintf(save_game_name, sizeof(save_game_name), "%s", Config->SaveGameName.c_str());
 
     Init_Random();
+
+    /**
+     *  Generate a unique ID for this playthrough.
+     *  Inconsequential when loading a saved game, because the playthrough ID
+     *  is loaded from saved games.
+     */
+    Vinifera_Generate_PlaythroughID();
 
     /**
      *  Start the scenario.
