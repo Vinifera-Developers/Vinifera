@@ -106,6 +106,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     AbandonTargetEscortRange(-1),
 	IsFreeRadarOnLowPower(false),
 	IsCellTagsIgnoreStealth(true)
+    IsUseBridgeHealth(false),
+	BridgeArmor(ARMOR_NULL)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -264,6 +266,8 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(AbandonTargetEscortRange);
     crc(IsFreeRadarOnLowPower);
     crc(IsCellTagsIgnoreStealth);
+    crc(IsUseBridgeHealth);
+    crc(BridgeArmor);
 }
 
 
@@ -698,6 +702,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
     IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);
     IsCellTagsIgnoreStealth = ini.Get_Bool(GENERAL, "CellTagsIgnoreStealth", IsCellTagsIgnoreStealth);
+    IsUseBridgeHealth = ini.Get_Bool(GENERAL, "UseBridgeHealth", IsUseBridgeHealth);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
@@ -779,6 +784,7 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
     BuildingFlameSpawnBlockFrames = ini.Get_Int(COMBATDAMAGE, "BuildingFlameSpawnBlockFrames", BuildingFlameSpawnBlockFrames);
+    BridgeArmor = ini.Get_ArmorType(COMBATDAMAGE, "BridgeArmor", BridgeArmor);
 
     return true;
 }

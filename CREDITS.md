@@ -183,6 +183,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where AI medics would fail to heal their allies.
   - Allow Free Radar to remain active when players are in low power.
   - Allow cloaked units to trigger cell tags when using Entered By trigger events.
+  - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
