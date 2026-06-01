@@ -3527,7 +3527,7 @@ DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
 {
     GET(TechnoClass*, this_ptr, ESI);
 
-    if (this_ptr->Combat_Damage() >= 0) {
+    if (this_ptr->House->Is_Ally(this_ptr->TarCom) && this_ptr->Combat_Damage() >= 0) {
         if (this_ptr->RTTI != RTTI_AIRCRAFT && (this_ptr->RTTI != RTTI_INFANTRY || !((InfantryClass*)this_ptr)->Class->IsEngineer)) {
             this_ptr->Assign_Target(NULL);
         }
