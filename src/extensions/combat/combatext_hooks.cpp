@@ -338,104 +338,6 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
     }
 }
 
-/**
- *  Deals damage to a bridge, taking into account the damage dealt and the warhead for calculation purposes.
- *  A bridge will be destroyed one state when its health reaches 0,
- *  and its damage tracking will be removed until the next damage instance that will be reset.
- *  Returns whether the bridge sustained enough damage to be destroyed.
- * 
- *  Tracks all bridge types and makes sure damage is dealt in a 3x1 format.
- *  This is typically achieved by checking if there already is a tracked cell or one that should be used for tracking purposes,
- *  which is not always the one that the damage was dealt on.
- * 
- *  Since Low Bridges and High Bridges behave differently, the tracking logic is separated for each bridge type.
- *
- *  @author: JoyfulShush
- */
-bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
-{    
-    if (!RuleExtension->IsUseBridgeHealth) {
-        return Random_Pick(1, Rule->BridgeStrength) < damage;
-    }
-
-    CellClass* cellptr = &Map[cell];
-    OverlayType overlay = cellptr->Overlay;
-    Cell cell_to_use = cell;
-
-    if (overlay == OVERLAY_NONE) { // rail or high bridge
-        // search only orthogonally for high bridge cells that have the overlays
-        FacingType dirs[4] = {FACING_N, FACING_E, FACING_S, FACING_W};
-
-        for (FacingType dir : dirs) {
-            Cell adjacent_cell = Adjacent_Cell(cell, dir);
-            CellClass* adjacent_cellptr = &Map[adjacent_cell];
-            if (adjacent_cellptr->Is_Overlay_Bridge() || adjacent_cellptr->Is_Overlay_Rail_Bridge()) {
-                cell_to_use = adjacent_cell;
-                break;
-            }
-        }
-        
-    } else if (cellptr->Is_Overlay_Low_Bridge()) { // low bridges
-        FacingType dirs[2] = {};
-        if (cellptr->Is_Low_Bridge_SE_NW()) {
-            dirs[0] = FACING_N;
-            dirs[1] = FACING_S;
-        } else {
-            dirs[0] = FACING_E;
-            dirs[1] = FACING_W;
-        }
-
-        bool cell_found = false;
-        for (FacingType dir : dirs) {
-            Cell current_cell = cell;
-            CellClass* current_cellptr = &Map[current_cell];
-            
-            /*
-            * Handle two low overlay bridges that are very close to each other.
-            * We skip one side checking another side that should never be part of the same low bridge.
-            */
-            if (current_cellptr->OverlayData == OVERLAYDATA_LOWBRIDGE_FRAME_TOP && (dir == FACING_N || dir == FACING_W)) {
-                continue;
-            }
-
-            if (current_cellptr->OverlayData == OVERLAYDATA_LOWBRIDGE_FRAME_BOTTOM && (dir == FACING_S || dir == FACING_E)) {
-                continue;
-            }
-
-            while (current_cellptr->Overlay == cellptr->Overlay) {
-                if (BridgeHealths.contains(current_cell)) {
-                    cell_to_use = current_cell;
-                    cell_found = true;
-                    break;
-                }
-
-                current_cell = Adjacent_Cell(current_cell, dir);
-                current_cellptr = &Map[current_cell];
-            }
-
-            if (cell_found) {
-                break;
-            }
-        }
-    }
-
-    if (!BridgeHealths.contains(cell_to_use)) {
-        BridgeHealths[cell_to_use] = Rule->BridgeStrength;
-    }
-    
-    if (RuleExtension->BridgeArmor != ARMOR_NULL) {
-        damage *= Verses::Get_Modifier(RuleExtension->BridgeArmor, warhead);
-    }
-    
-    BridgeHealths[cell_to_use] -= damage;
-
-    if (BridgeHealths[cell_to_use] <= 0) {
-        BridgeHealths.erase(cell_to_use);
-        return true;
-    }
-    
-    return false;
-}
 
 /**
  *  Inflict an explosion damage affect.
@@ -609,42 +511,46 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
      *  If there is a bridge at this location, then it may be destroyed by the
      *  combat damage.
      */
+    bool ion_cannon = warhead == Rule->IonCannonWarhead;
     if (Scen->Special.IsDestroyableBridges && warhead->IsWallDestroyer) {
-        bool ion_cannon_warhead = warhead == Rule->IonCannonWarhead;
         const CellClass* bridge_owner_cell = cellptr->Get_Bridge_Owner();
-        
-        bool is_standard_bridge = (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()) || cellptr->Is_Tile_Bridge_Middle();
-        bool is_rail_bridge = (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()) || cellptr->Is_Tile_Train_Bridge_Middle();
 
-        if (is_standard_bridge || is_rail_bridge) {            
-            if (!cellptr->IsUnderBridge || (explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2))) {
-                
-                bool should_destroy_bridge = false;
-                if (ion_cannon_warhead) {
-                    should_destroy_bridge = true;
-                } else {
-                    should_destroy_bridge = Damage_Bridge(cell, strength, warhead);
-                }
-
-                if (should_destroy_bridge) {                    
-                    for (int i = 0; i < (ion_cannon_warhead ? 4 : 1); i++) {
+        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
+            || cellptr->Is_Tile_Bridge_Middle()) {
+            if (!cellptr->IsUnderBridge || explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2)) {
+                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
+                    for (int i = 0; i < (ion_cannon ? 4 : 1); i++) {
                         if (Map.Destroy_Bridge_At(cell)) {
                             TechnoClass::Update_Mission_Targets(cellptr);
                             break;
                         }
                     }
-                    
-                    int radius = is_standard_bridge ? 128 : 96;
-
                     Point2D point;
                     TacticalMap->Coord_To_Pixel(explosion_coord, point);
-                    TacticalMap->Register_Dirty_Area(Rect(point.X - radius, point.Y - radius, radius * 2, radius * 2), false);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
+                }
+            }
+        }
+
+        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
+            || cellptr->Is_Tile_Train_Bridge_Middle()) {
+            if (!cellptr->IsUnderBridge || explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2)) {
+                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
+                    for (int i = 0; i < (ion_cannon ? 4 : 1); i++) {
+                        if (Map.Destroy_Bridge_At(cell)) {
+                            TechnoClass::Update_Mission_Targets(cellptr);
+                            break;
+                        }
+                    }
+                    Point2D point;
+                    TacticalMap->Coord_To_Pixel(explosion_coord, point);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - 96, point.Y - 96, 192, 192), false);
                 }
             }
         }
 
         if (cellptr->Is_Overlay_Low_Bridge() && close_to_ground) {
-            if (ion_cannon_warhead || Damage_Bridge(cell, strength, warhead)) {
+            if (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength) {
                 const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
                 Map.Destroy_Low_Bridge_At(cell);
                 if (destroyed) {
@@ -736,6 +642,7 @@ static int Scale_Float_To_Int(float value, int scale)
     value = std::clamp(value, 0.0f, 1.0f);
     return (value * scale);
 }
+
 
 /**
  *  #issue-412
