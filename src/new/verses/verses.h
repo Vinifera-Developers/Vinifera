@@ -44,28 +44,28 @@ public:
     static void Clear();
 
     static void Set_Modifier(ArmorType armor, WarheadType warhead, double value) { Set_Value(armor, warhead, value, Modifier); }
-    static double Get_Modifier(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, Modifier, &ArmorTypeClass::Modifier); }
+    static double Get_Modifier(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, Modifier, &ArmorTypeClass::Modifier); }
 
     static void Set_Modifier(ArmorType armor, WarheadTypeClass* warhead, double value) { Set_Modifier(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static double Get_Modifier(ArmorType armor, const WarheadTypeClass* warhead) { return Get_Modifier(armor, static_cast<const WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
+    static double Get_Modifier(ArmorType armor, WarheadTypeClass* warhead) { return Get_Modifier(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
 
     static void Set_ForceFire(ArmorType armor, WarheadType warhead, bool value) { Set_Value(armor, warhead, value, ForceFire); }
-    static bool Get_ForceFire(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, ForceFire, &ArmorTypeClass::ForceFire); }
+    static bool Get_ForceFire(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, ForceFire, &ArmorTypeClass::ForceFire); }
 
     static void Set_ForceFire(ArmorType armor, WarheadTypeClass* warhead, bool value) { Set_ForceFire(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static bool Get_ForceFire(ArmorType armor, const WarheadTypeClass* warhead) { return Get_ForceFire(armor, static_cast<WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
+    static bool Get_ForceFire(ArmorType armor, WarheadTypeClass* warhead) { return Get_ForceFire(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
 
     static void Set_PassiveAcquire(ArmorType armor, WarheadType warhead, bool value) { Set_Value(armor, warhead, value, PassiveAcquire); }
-    static bool Get_PassiveAcquire(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, PassiveAcquire, &ArmorTypeClass::PassiveAcquire); }
+    static bool Get_PassiveAcquire(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, PassiveAcquire, &ArmorTypeClass::PassiveAcquire); }
 
     static void Set_PassiveAcquire(ArmorType armor, WarheadTypeClass* warhead, bool value) { Set_PassiveAcquire(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static bool Get_PassiveAcquire(ArmorType armor, const WarheadTypeClass* warhead) { return Get_PassiveAcquire(armor, static_cast<WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
+    static bool Get_PassiveAcquire(ArmorType armor, WarheadTypeClass* warhead) { return Get_PassiveAcquire(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
 
     static void Set_Retaliate(ArmorType armor, WarheadType warhead, bool value) { Set_Value(armor, warhead, value, Retaliate); }
-    static bool Get_Retaliate(ArmorType armor, const WarheadType warhead) { return Get_Value(armor, warhead, Retaliate, &ArmorTypeClass::Retaliate); }
+    static bool Get_Retaliate(ArmorType armor, WarheadType warhead) { return Get_Value(armor, warhead, Retaliate, &ArmorTypeClass::Retaliate); }
 
     static void Set_Retaliate(ArmorType armor, WarheadTypeClass* warhead, bool value) { Set_Retaliate(armor, static_cast<WarheadType>(Warheads.ID(warhead)), value); }
-    static bool Get_Retaliate(ArmorType armor, const WarheadTypeClass* warhead) { return Get_Retaliate(armor, static_cast<WarheadType>(Warheads.ID(const_cast<WarheadTypeClass*>(warhead)))); }
+    static bool Get_Retaliate(ArmorType armor, WarheadTypeClass* warhead) { return Get_Retaliate(armor, static_cast<WarheadType>(Warheads.ID(warhead))); }
 
 private:
     template <typename T>

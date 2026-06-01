@@ -226,107 +226,6 @@ static HRESULT Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, 
     return hr;
 }
 
-template<typename TKey, typename TValue, typename THash, typename TEqual>
-static HRESULT Save_Unordered_Map(LPSTREAM& pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
-{
-    DEBUG_INFO("Saving unordered map {}...\n", heap_name);
-
-    /**
-     *  Save the number of entries in the map.
-     */
-    int count = static_cast<int>(map.size());
-    HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
-    if (FAILED(hr)) {
-        DEBUG_ERROR("  Failed to write map count!\n");
-        return hr;
-    }
-
-    if (count <= 0) {
-        DEV_DEBUG_INFO("  Map count was zero, skipping save.\n");
-        return hr;
-    }
-
-    DEBUG_INFO("  Count: {}\n", count);
-
-    /**
-     *  Iterate through the map.     
-     */
-    for (auto const& [key, val] : map) {
-        
-        hr = pStm->Write(&key, sizeof(TKey), nullptr);
-        if (FAILED(hr)) {
-            DEBUG_ERROR("  Failed to write Key data!\n");
-            return hr;
-        }
-        
-        hr = pStm->Write(&val, sizeof(TValue), nullptr);
-        if (FAILED(hr)) {
-            DEBUG_ERROR("  Failed to write Value data!\n");
-            return hr;
-        }
-    }
-
-    return S_OK;
-}
-
-/**
- * Loads a map of objects from the data stream.
- */
-template<typename TKey, typename TValue, typename THash, typename TEqual>
-static HRESULT Load_Unordered_Map(IStream* pStm, std::unordered_map<TKey, TValue, THash, TEqual>& map, const char* heap_name)
-{
-    DEBUG_INFO("Loading unordered map {}...\n", heap_name);
-    
-    map.clear();
-
-    /**
-     * Read the number of entries.
-     */
-    int count = 0;
-    HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
-    if (FAILED(hr)) {
-        DEBUG_ERROR("  Failed to read map count!\n");
-        return hr;
-    }
-
-    if (count <= 0) {
-        DEV_DEBUG_INFO("  Count was zero, skipping load.\n");
-        return hr;
-    }
-
-    DEBUG_INFO("  Count: {}\n", count);
-
-    /**
-     * Read each Key-Value pair.
-     */
-    for (int i = 0; i < count; ++i) {
-        TKey key;
-        TValue value;
-
-        // Read the Key (The Cell data)
-        hr = pStm->Read(&key, sizeof(TKey), nullptr);
-        if (FAILED(hr)) {
-            DEBUG_ERROR("  Failed to read Key at index {}!\n", i);
-            return hr;
-        }
-
-        // Read the Value (The int)
-        hr = pStm->Read(&value, sizeof(TValue), nullptr);
-        if (FAILED(hr)) {
-            DEBUG_ERROR("  Failed to read Value at index {}!\n", i);
-            return hr;
-        }
-
-        /**
-         * Insert into the map.
-         * This automatically invokes your custom Hash and Equality logic.
-         */
-        map[key] = value;
-    }
-
-    return S_OK;
-}
-
 
 /**
  *  Saves the game state to the file stream.
@@ -477,14 +376,6 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      */
     DEBUG_INFO("Saving BattleUI...\n");
     if (FAILED(BattleUI.Save(pStm))) { return false; }
-
-    /**
-     *  Save the bridge health tracker map
-     */
-    DEBUG_INFO("Saving bridge health trackers\n");
-    if (FAILED(Save_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
-        return false;
-    }
 
     return true;
 }
@@ -747,14 +638,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     Map.Flag_To_Redraw(GS_REDRAW_ALL);
 
     //Vinifera_Remap_Extension_Pointers();
-
-    /**
-     *  Load the bridge health tracker map
-     */
-    DEBUG_INFO("Loading bridge health trackers\n");
-    if (FAILED(Load_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
-        return false;
-    }
 
     /**
      *  We have finished loading the game data, reset the load flag.
