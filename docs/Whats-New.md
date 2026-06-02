@@ -136,6 +136,7 @@ Vinifera fixes:
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 - Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
+- Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no` (by Rampastring)
 
 
 Vanilla fixes:

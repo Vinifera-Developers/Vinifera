@@ -706,7 +706,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
          *
          *  @author: Rampastring
          */
-        if ((warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(explosion_coord)
+        if (ScenExtension->IsIceDestruction && (warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(explosion_coord)
             && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)) {
             Map.DirtyIceCells.Clear();
             if (Map.Crack_Ice(*cellptr, nullptr)) {
