@@ -25,7 +25,7 @@ public:
 
     void Snapshot_Game_State();
     void Apply_To_Game_State();
-    void Apply_Difficulty();
+    void Apply_Difficulty() const;
     void Apply_Globals();
 
     HRESULT Load(IStream* stream);

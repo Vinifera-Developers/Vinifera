@@ -126,11 +126,16 @@ void ExtEnvironmentClass::Apply_To_Game_State()
  *
  *  @author: Rampastring
  */
-void ExtEnvironmentClass::Apply_Difficulty()
+void ExtEnvironmentClass::Apply_Difficulty() const
 {
     DEBUG_INFO("Applying environment difficulty information...\n");
     DEBUG_INFO("  Difficulty: {}\n", (int)Difficulty);
     DEBUG_INFO("  CDifficulty: {}\n", (int)CDifficulty);
+
+    if (Scen) {
+        Scen->Difficulty = Difficulty;
+        Scen->CDifficulty = CDifficulty;
+    }
 }
 
 
