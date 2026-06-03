@@ -69,6 +69,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
              *  null (the OS sees this as a dynamic load).
              */
             Vinifera_MainThreadId = GetCurrentThreadId();
+            Vinifera_Reserve_Exception_Stack();
             Init_Exception_Handler();
             std::set_terminate(&Vinifera_Terminate_Handler);
 

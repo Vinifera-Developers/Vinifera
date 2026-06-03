@@ -148,6 +148,29 @@ static std::atomic<bool> DumperStarted{false};
 #define DUMPER_TIMEOUT_MS 60000
 
 
+/**
+ *  Stack reserved by SetThreadStackGuarantee so the SEH filter has room to run
+ *  after EXCEPTION_STACK_OVERFLOW (which fires with only ~1 page of stack left).
+ *  64 KB comfortably covers the gate + Suspend_Other_Threads + dumper handoff on
+ *  the crashing thread; the heavy dump itself runs on the dumper's full stack.
+ *  Costs nothing unless used; trims ~64 KB off a 1 MB stack, which is negligible.
+ */
+static constexpr ULONG VINIFERA_EXCEPTION_STACK_GUARANTEE = 64 * 1024;
+
+
+/**
+ *  Reserve a guaranteed stack region for exception handling on the calling
+ *  thread. Must be called per-thread (the guarantee only ever increases). Call
+ *  as early as possible on every thread so a stack overflow can
+ *  still reach the crash dumper instead of instantly killing the process.
+ */
+void Vinifera_Reserve_Exception_Stack()
+{
+    ULONG guarantee = VINIFERA_EXCEPTION_STACK_GUARANTEE;
+    SetThreadStackGuarantee(&guarantee); // Ignore failure - best effort.
+}
+
+
 bool Any_Surface_Locked()
 {
     return (VisibleSurface && VisibleSurface->Is_Locked())
@@ -1159,6 +1182,12 @@ static void Dumper_Thread_Proc()
      *  Suspend_Other_Threads must exclude us.
      */
     DumperThreadId.store(GetCurrentThreadId());
+
+    /**
+     *  Give the dumper's own __try/__except fault catcher guaranteed stack
+     *  headroom too, in case the heavy dump path overflows.
+     */
+    Vinifera_Reserve_Exception_Stack();
 
     /**
      *  The __except below is the catch-all for a dump fault - and must never
