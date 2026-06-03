@@ -51,6 +51,7 @@ DEFINE_HOOK(0x0060F0DD, _Tactical_Destructor_Patch, 10)
      *  Remove the extended class instance.
      */
     Extension::Singleton::Destroy<Tactical, TacticalExtension>(TacticalMapExtension);
+    TacticalMapExtension = nullptr;
 
 original_code:
     return 0;
@@ -72,6 +73,7 @@ DEFINE_HOOK(0x00618020, _Tactical_Scalar_Destructor_Patch, 10)
      *  Remove the extended class instance.
      */
     Extension::Singleton::Destroy<Tactical, TacticalExtension>(TacticalMapExtension);
+    TacticalMapExtension = nullptr;
 
 original_code:
     return 0;
