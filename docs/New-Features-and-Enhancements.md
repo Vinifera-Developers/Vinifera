@@ -2080,6 +2080,16 @@ HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the A
 AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
 ```
 
+### Harvester Under Attack Event
+
+- In the original game, EVA can alert you needlessly often when a harvester is being attacked. Vinifera allows you to throttle the frequency of the alert.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+HarvesterUnderAttackThrottleTime=0.0  ; float, minutes that EVA is forbidden from alerting about a harvester being under attack after last alerting about it. Automatically scaled by game speed (iow. it's real-life minutes)
+```
+
 ## Difficulty
 
 - Vinifera adds more multiplayer difficulty options available to CnCNet clients calling the spawner. These are parsed from `RULES.INI` sections `[VeryEasy]`, `[BrutallyEasy]`, `[ExtremelyEasy]` and `[UltimatelyEasy]`, and have the same keys as the original game's difficulty sections (`[Easy]`, `[Normal]`, `[Difficult]`).
@@ -2104,4 +2114,3 @@ BuildSlowdown=yes
 DestroyWalls=yes
 ContentScan=yes
 ```
-

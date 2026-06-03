@@ -111,6 +111,7 @@ New:
 - Allow Free Radar to be used when players are in low power (by JoyfulShush)
 - Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 - Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
+- Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
 - Implemented the multiplayer spawner (by ZivDero, Rampastring)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
@@ -145,6 +146,7 @@ Vinifera fixes:
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 - Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
+- Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no` (by Rampastring)
 
 
 Vanilla fixes:
@@ -196,6 +198,7 @@ Vanilla fixes:
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with (by Rampastring)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
+- EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
 
 :::
 
