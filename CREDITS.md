@@ -268,6 +268,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
   - Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no`.
+  - EVA no longer says "Harvester under attack" when harvesters receive environmental damage.
+  - Allow throttling the frequency of the "Harvester under attack" EVA event.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
