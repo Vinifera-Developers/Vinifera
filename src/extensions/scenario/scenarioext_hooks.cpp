@@ -347,7 +347,7 @@ static void Init_Loading_Screen(const char* filename)
     char gamenamebuffer[128];
     const char* prog_msg = nullptr;
 
-    if (Session.Type == GAME_INTERNET && WestwoodOnline_Tournament == 0) {
+    if (Session.Type == GAME_INTERNET && WestwoodOnline_Tournament != 0) {
         std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), WestwoodOnline_GameID);
         prog_msg = gamenamebuffer;
     }
