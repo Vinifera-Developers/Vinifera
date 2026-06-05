@@ -74,6 +74,7 @@
 #include "spawnmanager.h"
 #include "super.h"
 #include "supertype.h"
+#include "syringe.h"
 #include "tactical.h"
 #include "taction.h"
 #include "tag.h"
@@ -1199,12 +1200,12 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             }
 
             /**
-             *  Don't allow loading saves from other campaign playthroughs, or campaign saves in general if we're not in campaign
+             *  Don't allow loading saves from other playthroughs, or campaign saves if we're not in campaign
              *  (to facilitate the client's playthrough tracking).
              */
             if (GameActive) {
 
-                if (Session.Type == GAME_NORMAL && saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
+                if (saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
                     DEBUG_INFO("Save file \"{}\" belongs to a different playthough, skipping.\n", formatted_file_name);
                     return false;
                 }
@@ -1272,6 +1273,29 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* s
 
     // Now actually format the path
     return std::sprintf(buffer, formatted_file_name, str);
+}
+
+
+/**
+ *  Patches LoadOptionsClass constructor to define the save file extension
+ *  based on whether we are currently playing singleplayer or multiplayer.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x005047E6, _LoadOptionsClass_CTOR_Set_Extension_Patch, 0)
+{
+    GET(LoadOptionsClass*, this_ptr, ESI);
+
+    if (GameActive && !Session.Singleplayer_Game())
+    {
+        this_ptr->Extension = "NET";
+    }
+    else
+    {
+        this_ptr->Extension = "SAV";
+    }
+
+    return 0x005047ED;
 }
 
 

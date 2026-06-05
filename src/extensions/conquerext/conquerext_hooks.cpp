@@ -13,9 +13,12 @@
 
 #include "beacon.h"
 #include "debughandler.h"
+#include "event.h"
+#include "gamedlg.h"
 #include "hooker.h"
 #include "house.h"
 #include "ipxmgr.h"
+#include "loadoptions.h"
 #include "mouse.h"
 #include "msgloop.h"
 #include "netdlg.h"
@@ -24,6 +27,10 @@
 #include "progressscreen.h"
 #include "rules.h"
 #include "sessionext.h"
+#include "sounddlg.h"
+#include "syringe.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "voc.h"
 
 
@@ -174,10 +181,137 @@ void _IPX_Call_Back()
 
 
 /**
+ *  Replacement for Special_Dialog.
+ *
+ *  @author: Rampastring, tomsons26, ZivDero
+ */
+void _Special_Dialog()
+{
+    static const int TXT_SURRENDER = 265;
+
+    if (SpecialDialog != SDLG_NONE) {
+        if (Session.Type == GAME_NORMAL || (!PlayerPtr->IsToLose && !PlayerPtr->IsToWin && !PlayerPtr->IsToDie) && (SpecialDialogFlag || PlayerPtr->IsDefeated)) {
+            SpecialDialogFlag = true;
+        }
+
+        Pause_Scenario();
+
+
+        while (SpecialDialog != SDLG_NONE) {
+            switch (SpecialDialog) {
+#if 0
+				case SDLG_SPECIAL:
+					Map.Help_Text(TXT_NONE);
+					Map.Override_Mouse_Shape(MOUSE_NORMAL, false);
+					Special_Dialog();
+					Map.Revert_Mouse_Shape();
+					SpecialDialog = SDLG_NONE;
+					break;
+#endif
+
+            case SDLG_OPTIONS:
+                Game_Options_Dialog();
+                if (SpecialDialog != SDLG_OPTIONS) {
+                    break;
+                }
+                SpecialDialog = SDLG_NONE;
+                break;
+
+            case SDLG_SETTINGS:
+                GameControlsClass().Dialog();
+                if (SpecialDialog != SDLG_SETTINGS) {
+                    break;
+                }
+                SpecialDialog = SDLG_OPTIONS;
+                break;
+
+            case SDLG_SOUND:
+                SoundControlsClass().Dialog();
+                SpecialDialog = SDLG_SETTINGS;
+                break;
+
+            case SDLG_KEYBOARD:
+                Options.Hotkey_Dialog();
+                SpecialDialog = SDLG_SETTINGS;
+                break;
+
+            case SDLG_ABORT:
+                switch (Abort_Dialog()) {
+
+                // cancel
+                case 1:
+                    Queue_Exit();
+                    SpecialDialog = SDLG_NONE;
+                    break;
+
+                case 2:
+                    break;
+
+                // abort
+                case 3:
+                    if (Session.Type == GAME_NORMAL) {
+                        PlayerRestarts = true;
+                    } else {
+                        OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_DESTRUCT));
+                        SpecialDialogFlag = false;
+                    }
+                    break;
+                }
+                SpecialDialog = SDLG_NONE;
+                break;
+
+            case SDLG_SURRENDER:
+                if (!PlayerPtr->IsDefeated && !PlayerPtr->IsToWin && !PlayerPtr->IsToLose && !PlayerPtr->IsToDie && Surrender_Dialog(TXT_SURRENDER)) {
+                    if (Session.Type == GAME_NORMAL || Session.Type == GAME_SKIRMISH) {
+                        PlayerPtr->Flag_To_Lose();
+                    } else {
+                        OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_DESTRUCT));
+                        SpecialDialogFlag = false;
+                    }
+                }
+                SpecialDialog = SDLG_NONE;
+                break;
+
+            case SDLG_WOL_OPTIONS:
+                DoFindPage();
+                SpecialDialog = SDLG_NONE;
+                break;
+
+            case EXT_SDLG_LOAD:
+                if (!LoadOptionsClass().Load_Dialog()) {
+                    SpecialDialog = SDLG_OPTIONS;
+                    break;
+                } else {
+                    // maybe we should return if Load_Dialog returns true? to avoid calling Resume_Scenario after loading a save
+                    SpecialDialog = SDLG_NONE;
+                    return;
+                }
+
+            default:
+                break;
+            }
+        }
+
+        Resume_Scenario();
+    }
+}
+
+
+DEFINE_HOOK(0x004B6AC7, _Game_Options_Dialog_Proc_Load_Through_SpecialDialog_Patch, 0)
+{
+    GET(long*, retval, EBX);
+    SpecialDialog = (SpecialDialogType)EXT_SDLG_LOAD;
+    *retval = 1;       // Signal game options dialog to exit
+    return 0x004B6956; // Abuse exit procedure of another case because it has just the code sequence we need
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ConquerExtension_Hooks()
 {
     Patch_Jump(0x00463180, &_Unselect_All);
     Patch_Jump(0x00462DC0, &_IPX_Call_Back);
+    Patch_Jump(0x00462640, &_Special_Dialog);
 }

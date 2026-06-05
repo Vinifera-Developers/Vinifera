@@ -15,10 +15,12 @@
 #include "debughandler.h"
 #include "event.h"
 #include "eventext.h"
+#include "extension_globals.h"
 #include "hooker.h"
 #include "house.h"
 #include "ipxmgr.h"
 #include "session.h"
+#include "sessionext.h"
 #include "syringe.h"
 #include "version.h"
 
@@ -803,6 +805,18 @@ DEFINE_HOOK(0x004948A5, _EventClass_Execute_QMove_Aircraft_Patch, 6)
         this_ptr->Assign_Target(nullptr);
     }
 
+    return 0;
+}
+
+
+/**
+ *  Patches Destroy_Connection to disable multiplayer saves.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x005751E8, _Destroy_Connection_Disable_Multiplayer_Saves_Patch, 6)
+{
+    SessionExtension->Disable_Multiplayer_Saves();
     return 0;
 }
 

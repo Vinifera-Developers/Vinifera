@@ -35,7 +35,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         int Get_Autosave_Interval() const;
         void Schedule_Next_Autosave();
         void Flag_To_Save(bool manual);
-        void Disable_Multiplayer_Autosaves();
+        void Disable_Multiplayer_Saves();
         void Set_Next_Campaign_Autosave_Slot(int slot);
         void Set_Next_Skirmish_Autosave_Slot(int slot);
         void Restore_Autosave_After_Load();

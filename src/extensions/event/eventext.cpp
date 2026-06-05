@@ -449,13 +449,6 @@ void EventClassExt::Do_REMOVEPLAYER()
     DEBUG_INFO("Executing REMOVEPLAYER event. Frame is {}\n", Frame);
     HouseClass* house = Houses[Data.General.Value];
 
-    /**
-     *  Turn off autosaves when a player disconnects.
-     */
-    if (Session.Type == GAME_IPX && SessionExtension->ExtOptions.MultiplayerAutoSaveInterval > 0) {
-        SessionExtension->Disable_Multiplayer_Autosaves();
-    }
-
     if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || (Session.Type == GAME_IPX && SessionExtension->ExtOptions.IsAutoSurrender)) {
         house->Flag_To_Die();
     } else if (house->Is_Human_Player()) {

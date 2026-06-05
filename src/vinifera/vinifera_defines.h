@@ -468,7 +468,6 @@ inline const char *CDifficulty_Name(DiffType d)
 }
 
 
-
 /**
  *  Extension of the HousesType enum.
  */
@@ -483,3 +482,16 @@ enum ExtHousesType {
     EXT_HOUSE_SPAWN8
 };
 DEFINE_ENUMERATION_OPERATORS(ExtHousesType);
+
+
+/**
+ *  Extension of the SpecialDialogType enum.
+ */
+typedef enum ExtSpecialDialogType {
+    EXT_SDLG_PAD = SDLG_SPECIAL,
+
+    /**
+     *  Add new ExtSpecialDialogTypes from here.
+     */
+    EXT_SDLG_LOAD
+} ExtSpecialDialogType;

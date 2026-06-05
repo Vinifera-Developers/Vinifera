@@ -221,7 +221,7 @@ void SessionClassExtension::Flag_To_Save(bool manual)
  *
  *  @author: ZivDero
  */
-void SessionClassExtension::Disable_Multiplayer_Autosaves()
+void SessionClassExtension::Disable_Multiplayer_Saves()
 {
     AutoSave.IsMultiplayerSaveSuppressed = true;
     Schedule_Next_Autosave();
