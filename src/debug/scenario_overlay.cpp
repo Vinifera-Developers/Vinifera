@@ -650,9 +650,10 @@ namespace
                     ? s->MissionCount : ScriptTypeClass::MAX_SCRIPT_MISSIONS;
                 for (int m = 0; m < show; ++m) {
                     const ScriptMissionClass& mc = s->MissionList[m];
+                    const bool valid = mc.Mission >= SMISSION_FIRST && mc.Mission < SMISSION_COUNT;
                     ImGui::Text("[%d] %s  (data=%d)",
                         m,
-                        ScriptMissionClass::Mission_Name(mc.Mission),
+                        valid ? ScriptMissionClass::Mission_Name(mc.Mission) : "<invalid>",
                         mc.Data.Value);
                 }
             });
