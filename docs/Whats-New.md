@@ -104,7 +104,7 @@ New:
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 - Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
 - Allows aircraft to use Q-Move (by JoyfulShush)
-- Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
+- Add an in-game ImGui "Game Info" overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
 - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
