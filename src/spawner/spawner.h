@@ -32,7 +32,6 @@ private:
 
     static bool Init_Session(char* scenario_name);
     static void Init_Network();
-    static bool Reconcile_Players();
 
 private:
     static bool HasSpawned;

@@ -120,6 +120,7 @@ New:
 - Allow defining Options menu text colors per side (by Rampastring)
 - Add support for additional multiplayer difficulty levels (by Rampastring)
 - Allow separating human players' and AI players' normal-difficulty settings (by Rampastring)
+- Make it possible to load multiplayer saves (by Rampastring)
 
 
 Vinifera fixes:
@@ -199,6 +200,8 @@ Vanilla fixes:
 - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with (by Rampastring)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
+- Fix a bug where the game often reported multiple synchronization errors when one player got out of sync (by Rampastring)
+
 
 :::
 

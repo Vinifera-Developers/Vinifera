@@ -280,6 +280,8 @@ This page lists all the individual contributions to the project by their author.
   - Add support for additional multiplayer difficulty levels.
   - Allow separating human players' and AI players' normal-difficulty settings.
   - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with.
+  - Make it possible to load multiplayer saves.
+  - Fix a bug where the game often reported multiple synchronization errors when one player got out of sync.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

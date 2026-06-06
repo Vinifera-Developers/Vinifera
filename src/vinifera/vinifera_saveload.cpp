@@ -44,6 +44,7 @@
 #include "infantry.h"
 #include "infantrytype.h"
 #include "iomap.h"
+#include "ipxmgr.h"
 #include "isotiletypeext.h"
 #include "kamikazetracker.h"
 #include "language.h"
@@ -114,6 +115,7 @@
 #include "scenarioext.h"
 
 #include <atlbase.h>
+#include <charconv>
 
 
 /**
@@ -1296,6 +1298,76 @@ DEFINE_HOOK(0x005047E6, _LoadOptionsClass_CTOR_Set_Extension_Patch, 0)
     }
 
     return 0x005047ED;
+}
+
+
+/**
+ *  Patches LoadOptionsClass::Dialog to schedule loading and
+ *  send a network message in multiplayer instead of loading right away.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x0050520E, LoadOptionsClass_Dialog_Multiplayer_Load_Patch, 0x6)
+{
+    // In singleplayer, just execute the original code. Same if we only have 1 player.
+    if (Session.Singleplayer_Game() || Session.Players.Count() <= 1) {
+        return 0;
+    }
+
+    // If we are not the host, bail.
+    if (!Session.Am_I_Master()) {
+        return 0x005050C3;
+    }
+
+    // If we are already loading a multiplayer game, do nothing - just close the dialog.
+    if (PendingMultiplayerSaveLoadTime) {
+        DEBUG_INFO("Save load already scheduled - ignoring request.\n");
+        return 0x005050C3;
+    }
+
+    GET(FileEntryClass*, entry, ESI);
+
+    // Parse the save file number from the save file path.
+    std::string_view filename(entry->Filename);
+
+    // Strip saved games directory from the file path.
+    if (filename.starts_with(Vinifera_SavedGamesDirectory)) {
+        filename.remove_prefix(Vinifera_SavedGamesDirectory.length() + 1);
+    }
+
+    int save_number = -1;
+
+    if (filename.starts_with("SAVEGAME_")) {
+
+        const char* begin = filename.data() + 9;
+        const char* end = begin + 3;
+
+        std::from_chars(begin, end, save_number);
+    }
+
+    if (save_number == -1) {
+        DEBUG_ERROR("Failed to parse saved number from saved game name {}!\n", entry->Filename);
+        return 0x005050C3;
+    }
+
+    // Schedule the load.
+    PendingMultiplayerSaveLoadSlot = save_number;
+    PendingMultiplayerSaveLoadTime = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+
+    // Show a message to ourselves.
+    Session.Messages.Add_Message(nullptr, 0, "The game host wants to load a saved game. Loading in 5 seconds...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+
+    // Broadcast load to other players.
+    ExtGlobalPacketType packet;
+    packet.Command = EXT_NET_LOAD_GAME;
+    strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    packet.SaveInfo.ID = save_number;
+    for (int i = 1; i < Session.Players.Count(); i++) {
+        Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
+    }
+
+    // Exit the function.
+    return 0x005050C3;
 }
 
 

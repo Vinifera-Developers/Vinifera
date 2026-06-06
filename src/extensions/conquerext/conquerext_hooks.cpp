@@ -31,8 +31,10 @@
 #include "syringe.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "vinifera_globals.h"
 #include "voc.h"
 
+#include <chrono>
 
 /**
  *  Replacement for Unselect_All.
@@ -164,6 +166,39 @@ void _IPX_Call_Back()
 
                 case EXT_NET_BEACON_TEXT:
                     BeaconManager.Set_Beacon_Text(reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).BeaconText.Text, static_cast<HousesType>(reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).BeaconText.House), reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).BeaconText.Number);
+                    break;
+
+                case EXT_NET_LOAD_GAME:
+                    // Only accept this message from the game host.
+                    // TODO IpxAddressClass comparison is somehow broken
+                    // if (Session.HostAddress != Session.GAddress) {
+                    //     const char* expected = Session.HostAddress.As_String();
+                    //     const char* actual = Session.GAddress.As_String();
+                    //     DEBUG_INFO("EXT_NET_LOAD_GAME received from someone else than the game host! Expected: {}, actual: {}\n", expected, actual);
+                    //     break;
+                    // }
+
+                    // Only allow loading in spawner sessions.
+                    if (!SessionExtension->IsSpawnerSession) {
+                        DEBUG_INFO("EXT_NET_LOAD_GAME can only be executed in a spawner session!\n");
+                        break;
+                    }
+
+                    // If we are already scheduled to load a game, bail.
+                    if (PendingMultiplayerSaveLoadTime) {
+                        DEBUG_INFO("Game loading already scheduled, ignoring EXT_NET_LOAD_GAME\n");
+                        break;
+                    }
+
+                    DEBUG_INFO("EXT_NET_LOAD_GAME received from game host.\n");
+
+                    Session.Messages.Add_Message(nullptr, 0, "The game host wants to load a saved game. Loading in 5 seconds...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+
+                    {
+                        int saveid = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).SaveInfo.ID;
+                        PendingMultiplayerSaveLoadSlot = saveid;
+                        PendingMultiplayerSaveLoadTime = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+                    }
                     break;
 
                 default: {

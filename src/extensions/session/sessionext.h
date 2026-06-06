@@ -13,6 +13,7 @@
 #include "session.h"
 #include "wolapi.h"
 
+#include <chrono>
 #include <optional>
 #include <string>
 
@@ -40,6 +41,12 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         void Set_Next_Skirmish_Autosave_Slot(int slot);
         void Restore_Autosave_After_Load();
         void Service_Autosave_After_Main_Loop();
+        bool Load_Multiplayer_Save(int slot);
+        bool Reconcile_Players();
+
+        inline bool Is_Out_of_Sync(int id) { return IsOutOfSync[id]; }
+        inline void Mark_Player_As_Out_of_Sync(int id) { IsOutOfSync[id] = true; }
+        inline void Clear_Out_Of_Sync_Data() { std::fill(std::begin(IsOutOfSync), std::end(IsOutOfSync), false); }
 
     private:
         static std::string Multiplayer_Save_File_Name_From_Index(int index);
@@ -210,6 +217,8 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         unsigned char ProtocolZeroMaxLatencyLevel = 0xFF;
         int ConnTimeout = 0;
         SpawnerSlotInfoType SlotInfo[MAX_PLAYERS];
+
+        bool IsOutOfSync[MAX_PLAYERS];
 
         /**
          *  Is the message we're currently writing meant to be sent to allies only?

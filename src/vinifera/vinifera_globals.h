@@ -13,6 +13,7 @@
 #include "cell.h"
 #include "vector.h"
 
+#include <chrono>
 #include <unordered_map>
 #include <windows.h>
 
@@ -121,6 +122,9 @@ extern std::unordered_map<std::string, std::string> Vinifera_TutorialText;
 extern bool Vinifera_PlayerOptionsSent;
 
 extern unsigned Vinifera_PlaythroughID;
+
+extern int PendingMultiplayerSaveLoadSlot;
+extern std::optional<std::chrono::steady_clock::time_point> PendingMultiplayerSaveLoadTime;
 
 /**
  *  Global vectors and heaps.

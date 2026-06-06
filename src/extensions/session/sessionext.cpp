@@ -12,6 +12,9 @@
 #include "sessionext.h"
 
 #include "debughandler.h"
+#include "house.h"
+#include "ipxmgr.h"
+#include "loadoptions.h"
 #include "mouse.h"
 #include "optionsext.h"
 #include "rules.h"
@@ -21,6 +24,7 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "wsproto.h"
 
 #include <filesystem>
 #include <format>
@@ -165,6 +169,8 @@ void SessionClassExtension::Init_Clear()
 
     IsChatToAllies = false;
     std::memset(MessageRecipientName, '\0', sizeof(MessageRecipientName));
+
+    Clear_Out_Of_Sync_Data();
 }
 
 
@@ -299,7 +305,7 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         return;
     }
     
-    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerSaveSuppressed) {
+    if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !AutoSave.IsMultiplayerSaveSuppressed && !PendingMultiplayerSaveLoadTime) {
         Print_Saving_Game_Message(!AutoSave.IsNextMultiplayerSaveManual);
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
@@ -314,12 +320,90 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
 }
 
 
+/**
+ *  Returns the file name of a multiplayer save for a specific save slot.
+ *
+ *  @author: Rampastring
+ */
 std::string SessionClassExtension::Multiplayer_Save_File_Name_From_Index(int index)
 {
     return std::format("SAVEGAME_{:03}.NET", index);
 }
 
 
+/**
+ *  Attempts to load a multiplayer game from the specified multiplayer save slot.
+ *  Returns true if succeeded, false otherwise.
+ *
+ *  @author: Rampastring
+ */
+bool SessionClassExtension::Load_Multiplayer_Save(int slot)
+{
+    namespace fs = std::filesystem;
+
+    std::string filename = Multiplayer_Save_File_Name_From_Index(slot);
+
+    fs::path saved_games_directory(Vinifera_SavedGamesDirectory);
+    fs::path fullpath = saved_games_directory / filename;
+
+    if (!fs::exists(fullpath)) {
+        DEBUG_ERROR("SessionClassExtension::Load_Multiplayer_Save: No save exists for slot {}!\n", slot);
+        return false;
+    }
+
+    // Discard old networking data to prevent pre-load packets from interfering with state after load.
+    PacketTransport->Discard_In_Buffers();
+    PacketTransport->Discard_Out_Buffers();
+    PacketTransport->Stop_Listening();
+
+    bool result = LoadOptionsClass().Load_File(fullpath.string().c_str()); // using LoadOptionsClass().Load_File here gives us a "Mission is loading. Please wait..." box.
+    if (!result) {
+        DEBUG_ERROR("SessionClassExtension::Load_Multiplayer_Save: Load_Game failed!\n", slot);
+        return false;
+    }
+
+    DEBUG_INFO("SessionClassExtension::Load_Multiplayer_Save: Save loaded. Restarting networking. Frame: {}\n", Frame);
+
+    // Set the load game flag. It allows the event queue logic to re-perform the
+    // post-scenario-load "handshake" and set initial networking delay properly.
+    // The queue logic automatically clears the flag afterwards.
+    Session.LoadGame = true;
+
+    // If anyone was out of sync before we loaded the save, mark them as not out of sync anymore.
+    Clear_Out_Of_Sync_Data();
+
+    // Discard possible async leftovers.
+    PacketTransport->Discard_In_Buffers();
+    PacketTransport->Discard_Out_Buffers();
+    PacketTransport->Start_Listening();
+
+    for (int i = 0; i < Session.Players.Count(); i++)
+    {
+        DEBUG_INFO("Load_Multiplayer_Save: Deleting connection #{}\n", (int)Session.Players[i]->Player.ID);
+        Ipx.Delete_Connection(Session.Players[i]->Player.ID);
+    }
+
+    if (!Reconcile_Players()) {
+        DEBUG_ERROR("SessionClassExtension::Load_Multiplayer_Save: Reconcile_Players failed!\n", slot);
+        return false;
+    }
+
+    if (!This()->Create_Connections()) {
+        DEBUG_ERROR("SessionClassExtension::Load_Multiplayer_Save: Create_Connections failed!\n", slot);
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  One-time initialization of multiplayer saved games for the current session.
+ *  Clears existing multiplayer saves and copies spawn.ini
+ *  to the saved games directory so it is available to the client.
+ *
+ *  @author: Rampastring
+ */
 void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
 {
     if (MultiplayerSavesInitializedForThisSession) {
@@ -361,6 +445,11 @@ void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
 }
 
 
+/**
+ *  Returns the file name of the next multiplayer save file.
+ *
+ *  @author: Rampastring
+ */
 std::string SessionClassExtension::Multiplayer_Save_File_Name() const
 {
     namespace fs = std::filesystem;
@@ -411,5 +500,104 @@ std::string SessionClassExtension::Autosave_Description() const
         return std::format("Skirmish Auto-Save (Slot {})", AutoSave.NextSkirmishAutoSaveSlot + 1);
     default:
         return "";
+    }
+}
+
+
+/**
+ *  Reconciles loaded data with the "Players" vector.
+ *
+ *  This function is for supporting loading a saved multiplayer game.
+ *  When the game is loaded, we have to figure out which house goes with
+ *  which entry in the Players vector. We also have to figure out if
+ *  everyone who was originally in the game is still with us, and if not,
+ *  turn their stuff over to the computer.
+ */
+bool SessionClassExtension::Reconcile_Players()
+{
+    int i;
+    bool found;
+    int house;
+    HouseClass* housep;
+
+    /**
+     *  If there are no players, there's nothing to do.
+     */
+    if (This()->Players.Count() == 0) return true;
+
+    /**
+     *  Make sure every name we're connected to can be found in a House.
+     */
+    for (i = 0; i < This()->Players.Count(); i++) {
+        found = false;
+        for (house = 0; house < This()->Players.Count(); house++) {
+            housep = Houses[house];
+            if (!housep) {
+                continue;
+            }
+
+            if (!stricmp(This()->Players[i]->Name, housep->IniName.c_str())) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) return false;
+    }
+
+    /**
+     *  Loop through all Houses; if we find a human-owned house that we're
+     *  not connected to, turn it over to the computer.
+     */
+    for (house = 0; house < This()->Players.Count(); house++) {
+        housep = Houses[house];
+        if (!housep) {
+            continue;
+        }
+
+        /**
+         *  Skip this house if it wasn't human to start with.
+         */
+        if (!housep->IsHuman) {
+            continue;
+        }
+
+        /**
+         *  Try to find this name in the Players vector; if it's found, set
+         *  its ID to this house.
+         */
+        found = false;
+        for (i = 0; i < This()->Players.Count(); i++) {
+            if (!stricmp(This()->Players[i]->Name, housep->IniName.c_str())) {
+                found = true;
+                This()->Players[i]->Player.ID = static_cast<HousesType>(house);
+                break;
+            }
+        }
+
+        /**
+         *  If this name wasn't found, remove it
+         */
+        if (!found) {
+
+            /**
+             *  Turn the player's house over to the computer's AI
+             */
+            housep->IsHuman = false;
+            housep->IsStarted = true;
+            housep->IQ = Rule->MaxIQ;
+            housep->IniName = std::string(housep->IniName) + " (AI)";
+
+            Session.NumPlayers--;
+        }
+    }
+
+    /**
+     *  If all went well, our Session.NumPlayers value should now equal the value
+     *  from the saved game, minus any players we removed.
+     */
+    if (This()->NumPlayers == This()->Players.Count()) {
+        return true;
+    } else {
+        return false;
     }
 }

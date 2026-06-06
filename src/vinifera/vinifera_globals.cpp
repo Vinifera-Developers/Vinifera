@@ -14,6 +14,9 @@
 #include "aircrafttracker.h"
 #include "prerequisitegroup.h"
 
+#include <chrono>
+#include <optional>
+
 bool Vinifera_DeveloperMode = false;
 
 bool Vinifera_AudioDebug = false;
@@ -66,6 +69,9 @@ DynamicVectorClass<MFCD *> ViniferaMapsMixes;
 DynamicVectorClass<MFCD*> ViniferaMoviesMixes;
 
 unsigned Vinifera_PlaythroughID = 0;
+
+int PendingMultiplayerSaveLoadSlot = -1;
+std::optional<std::chrono::steady_clock::time_point> PendingMultiplayerSaveLoadTime;
 
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
