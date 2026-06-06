@@ -696,4 +696,5 @@ void MainLoop_Hooks()
     Patch_Call(0x005A0B85, &Main_Loop_Intercept);
     Patch_Jump(0x005B10F0, &_Queue_Options);
     Patch_Jump(0x005098D0, &_Message_Input);
+    Patch_Byte(0x00508A90 + 1, 0x1); // Patch Sleep(0xA) to Sleep(1) to prevent lag in multiplayer when game is not in focus
 }
