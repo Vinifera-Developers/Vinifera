@@ -17,7 +17,7 @@
 #include "wwcrc.h"
 
 
-TEventClass::EventDescriptionStruct TEventClassExtension::ExtActionDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST] = {
+TEventClass::EventDescriptionStruct TEventClassExtension::ExtEventDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST] = {
     { "Compare Global with Constant", "Compares a global variable with a constant using a selected operation." },
     { "Compare Global with Global", "Compares two global variables using a selected operation." },
     { "Compare Global with Local", "Compares a global variable with a local variable using a selected operation." },
@@ -165,12 +165,12 @@ void TEventClassExtension::Object_CRC(CRCEngine &crc) const
  */
 const char* TEventClassExtension::Event_Name(int event)
 {
-    if (event < TACTION_COUNT) {
+    if (event < TEVENT_COUNT) {
         return TEventClass::Event_Name(static_cast<TEventType>(event));
     }
 
-    if (event < EXT_TACTION_COUNT) {
-        return ExtActionDescriptions[event - EXT_TACTION_FIRST].Name;
+    if (event < EXT_TEVENT_COUNT) {
+        return ExtEventDescriptions[event - EXT_TEVENT_FIRST].Name;
     }
 
     return "<invalid>";
@@ -184,12 +184,12 @@ const char* TEventClassExtension::Event_Name(int event)
  */
 const char* TEventClassExtension::Event_Description(int event)
 {
-    if (event < TACTION_COUNT) {
+    if (event < TEVENT_COUNT) {
         return TEventClass::Event_Description(static_cast<TEventType>(event));
     }
 
-    if (event < EXT_TACTION_COUNT) {
-        return ExtActionDescriptions[event - EXT_TACTION_FIRST].Description;
+    if (event < EXT_TEVENT_COUNT) {
+        return ExtEventDescriptions[event - EXT_TEVENT_FIRST].Description;
     }
 
     return "<invalid>";

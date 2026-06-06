@@ -23,6 +23,7 @@
 #include "script.h"
 #include "scripttype.h"
 #include "taction.h"
+#include "tactionext.h"
 #include "tactical.h"
 #include "tag.h"
 #include "tagtype.h"
@@ -31,6 +32,7 @@
 #include "teamtype.h"
 #include "technotype.h"
 #include "tevent.h"
+#include "teventext.h"
 #include "theatertype.h"
 #include "tibsun_globals.h"
 #include "trigger.h"
@@ -419,7 +421,7 @@ namespace
         int n = 0;
         for (const TEventClass* e = t->Event; e != nullptr; e = e->Next, ++n) {
             ImGui::Text("[%d] %s  (data=%ld)", n,
-                TEventClass::Event_Name(e->Event), e->Data.Value);
+                TEventClassExtension::Event_Name(e->Event), e->Data.Value);
         }
         if (n == 0) {
             ImGui::TextDisabled("(no events)");
@@ -435,7 +437,7 @@ namespace
         for (const TActionClass* a = t->Action; a != nullptr; a = a->Next, ++n) {
             ImGui::PushID(n);
             ImGui::Text("[%d] %s  (data=%ld)", n,
-                TActionClass::Action_Name(a->Action), a->Data.Value);
+                TActionClassExtension::Action_Name(a->Action), a->Data.Value);
             ImGui::Indent();
             if (a->Tag != nullptr) {
                 Goto_Row("Tag", Display_Name(a->Tag), NavTarget::TagType,
@@ -840,18 +842,36 @@ namespace
                 }
 
                 /**
-                 *  TrippedFlags is a bitmask; bit `n` = n-th event tripped.
+                 *  Per-event condition state, mirroring the engine's own springing
+                 *  test (TriggerClass::Spring): an event counts as satisfied if it is
+                 *  already latched in TrippedFlags (bit `n` = n-th event) or its live
+                 *  op() currently evaluates true. Calling op() with TEVENT_ANY and null
+                 *  object/source is side-effect-free and never dereferences them (every
+                 *  object path is behind an `event == Event` guard), so this does not
+                 *  mutate game state. Temporal events without memory (attacked, entered,
+                 *  paralyzed, ...) can't be observed this way and read false except at
+                 *  the instant they fire.
                  */
-                ImGui::SeparatorText("TrippedFlags");
-                ImGui::Text("Raw : 0x%X", t->TrippedFlags);
+                ImGui::SeparatorText("Events");
                 if (t->Class != nullptr) {
+                    HouseClass* trig_house = t->Class->House != nullptr
+                        ? House_From_HousesType(static_cast<HousesType>(t->Class->House->HeapID))
+                        : nullptr;
+
                     int n = 0;
                     for (const TEventClass* e = t->Class->Event; e != nullptr; e = e->Next, ++n) {
-                        const bool tripped = (t->TrippedFlags & (1 << n)) != 0;
+                        bool fulfilled = (t->TrippedFlags & (1 << n)) != 0;
+                        if (!fulfilled) {
+                            bool is_perm = false;
+                            CDTimerClass<FrameTimerClass> scratch = t->Timer;
+                            fulfilled = const_cast<TEventClass*>(e)->operator()(
+                                TEVENT_ANY, trig_house, nullptr, scratch, is_perm, nullptr);
+                        }
+
                         char label[96];
-                        std::snprintf(label, sizeof(label), "[%d] %s##trip",
-                            n, TEventClass::Event_Name(e->Event));
-                        RO_Checkbox(label, tripped);
+                        std::snprintf(label, sizeof(label), "[%d] %s##evt",
+                            n, TEventClassExtension::Event_Name(e->Event));
+                        RO_Checkbox(label, fulfilled);
                     }
                     if (n == 0) {
                         ImGui::TextDisabled("(class has no events)");

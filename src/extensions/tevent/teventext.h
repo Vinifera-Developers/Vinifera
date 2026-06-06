@@ -69,5 +69,5 @@ public:
     } Data3;
 
 private:
-    static TEventClass::EventDescriptionStruct ExtActionDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST];
+    static TEventClass::EventDescriptionStruct ExtEventDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST];
 };
