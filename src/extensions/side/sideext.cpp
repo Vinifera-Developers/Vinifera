@@ -52,7 +52,8 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
  *  @author: CCHyper
  */
 SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    OptionsMenuTextColor(noinit)
 {
 }
 

@@ -32,7 +32,8 @@ DEFINE_HOOK(0x00591367, _OwnerDraw_Set_Colors_Text_Color_Patch, 0)
     if (PlayerPtr == nullptr) {
         rgb = OPTIONS_MENU_TEXT_DEFAULT_COLOR;
     } else {
-        rgb = Extension::Fetch(Sides[PlayerPtr->Class->Side])->OptionsMenuTextColor;
+        SideClassExtension* sideext = Extension::Fetch(Sides[PlayerPtr->Class->Side]);
+        rgb = sideext->OptionsMenuTextColor;
     }
 
     OwnerDraw::TextColor1 = RGB(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
