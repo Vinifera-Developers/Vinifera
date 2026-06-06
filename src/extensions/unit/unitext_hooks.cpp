@@ -1342,7 +1342,7 @@ DEFINE_HOOK(0x0064E0D7, _UnitClass_AI_BuildConst_Patch, 0)
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x00656074, _UnitClass_What_Action_BuildConst, 0)
+DEFINE_HOOK(0x0065607A, _UnitClass_What_Action_BuildConst, 0)
 {
     GET(BuildingTypeClass*, buildingtype, EBP);
 
