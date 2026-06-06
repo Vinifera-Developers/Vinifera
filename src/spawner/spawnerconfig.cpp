@@ -65,6 +65,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     MapHash = spawn_ini.Get_String(SETTINGS, "MapHash", std::string(MapHash));
     MapName = spawn_ini.Get_String(SETTINGS, "UIMapName", std::string(MapName));
     PlayMoviesInMultiplayer = spawn_ini.Get_Bool(SETTINGS, "PlayMoviesInMultiplayer", PlayMoviesInMultiplayer);
+    IsHost = spawn_ini.Get_Bool(SETTINGS, "Host", IsHost);
 
     /**
      *  Network Options

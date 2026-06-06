@@ -1315,7 +1315,7 @@ DEFINE_HOOK(0x0050520E, LoadOptionsClass_Dialog_Multiplayer_Load_Patch, 0x6)
     }
 
     // If we are not the host, bail.
-    if (!Session.Am_I_Master()) {
+    if (!SessionExtension->IsOriginalHost) {
         return 0x005050C3;
     }
 

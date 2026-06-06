@@ -218,6 +218,14 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         int ConnTimeout = 0;
         SpawnerSlotInfoType SlotInfo[MAX_PLAYERS];
 
+        /**
+         *  Are we the original host of the current game session?
+         */
+        bool IsOriginalHost = false;
+
+        /**
+         *  Keeps a record of which players are out of sync with us.
+         */
         bool IsOutOfSync[MAX_PLAYERS];
 
         /**

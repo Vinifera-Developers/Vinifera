@@ -230,6 +230,7 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->ExtOptions.IsScrapMetal = Config->ScrapMetal;
     SessionExtension->ExtOptions.IsAINamesByDifficulty = Config->AINamesByDifficulty;
     SessionExtension->MultiplayerSavesInitializedForThisSession = Config->LoadSaveGame;
+    SessionExtension->IsOriginalHost = Config->IsHost;
 
     SessionExtension->SpawnerInfo.StatsMapName = Config->MapName.c_str();
     SessionExtension->SpawnerInfo.StatsMapHash = Config->MapHash.c_str();

@@ -61,6 +61,7 @@ public:
     bool HarvesterTruce = false;
     bool FogOfWar = false;
     bool MCVRedeploy = true;
+    bool IsHost = false;
 
     /**
      *  Savegame Options

@@ -335,7 +335,17 @@ void _Special_Dialog()
 DEFINE_HOOK(0x004B6AC7, _Game_Options_Dialog_Proc_Load_Through_SpecialDialog_Patch, 0)
 {
     GET(long*, retval, EBX);
-    SpecialDialog = (SpecialDialogType)EXT_SDLG_LOAD;
+
+    if (!Session.Singleplayer_Game() && !SessionExtension->IsOriginalHost)
+    {
+        Session.Messages.Add_Message(nullptr, 0, "Only the original game host can initiate loading a game in multiplayer.", Fetch_Scheme_Index_By_Name("White"), TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE / 2));
+        SpecialDialog = SDLG_NONE;
+    }
+    else
+    {
+        SpecialDialog = (SpecialDialogType)EXT_SDLG_LOAD;
+    }
+
     *retval = 1;       // Signal game options dialog to exit
     return 0x004B6956; // Abuse exit procedure of another case because it has just the code sequence we need
 }
