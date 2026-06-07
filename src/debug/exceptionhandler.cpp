@@ -408,7 +408,7 @@ static const char *ExceptionText[] = {
 #if defined(EXCEPTION_POSSIBLE_DEADLOCK) && defined(STATUS_POSSIBLE_DEADLOCK) // This type seems to be non-existent in practice.
     "Error code: EXCEPTION_POSSIBLE_DEADLOCK\r\r\nDescription: The wait operation on the critical section timed out.",
 #endif
-    "Error code: CONTROL_C_EXIT\r\r\nDescription: The application terminated as a result of a CTRL+C."
+    "Error code: CONTROL_C_EXIT\r\r\nDescription: The application terminated as a result of a CTRL+C.",
     "Error code: " UNKNOWN_MEMORY_AREA "\r\r\nDescription: Unknown exception."
 };
 

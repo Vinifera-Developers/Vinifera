@@ -14,7 +14,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -303,7 +302,17 @@ private:
 
     std::queue<AudioRequest> RequestQueue;
     std::mutex RequestMutex;
-    std::condition_variable_any RequestCV;
+
+    /**
+     *  Wake handle the worker waits on between polls. A Win32 auto-reset event
+     *  is used instead of std::condition_variable: the STL's cv wait path
+     *  (SRWLOCK + condition variable) raises a structured exception under Wine
+     *  that escapes C++ catch and takes the whole process down through the
+     *  thread's SEH handler. A raw event waits reliably on both native Windows
+     *  and Wine. Signaled by producers after enqueuing, and by End() to wake
+     *  the worker for shutdown. Created in Init, closed in the destructor.
+     */
+    HANDLE RequestEvent = nullptr;
 
     /**
      *  Request states for handles that may be queued, deferred, active, or
