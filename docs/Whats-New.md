@@ -121,6 +121,7 @@ New:
 - Add support for additional multiplayer difficulty levels (by Rampastring)
 - Allow separating human players' and AI players' normal-difficulty settings (by Rampastring)
 - Make it possible to load multiplayer saves (by Rampastring)
+- Fix Win32 dialog scaling with SDL (by Rampastring)
 
 
 Vinifera fixes:

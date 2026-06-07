@@ -37,11 +37,532 @@
 #include "wsproto.h"
 #include "wwmouse.h"
 
+#include <algorithm>
+#include <commctrl.h>
+#include <unordered_map>
 #include <windowsx.h>
+
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL 0x020E
+#endif
 
 
 namespace
 {
+    thread_local bool SDLForwardingMouseMessage = false;
+    thread_local bool SDLCallingTranslatedMouseProc = false;
+
+    std::unordered_map<HWND, WNDPROC> SDLChildWindowProcedures;
+
+    constexpr int MusicVolumeTrackbarID = 1327;
+    constexpr int SoundVolumeTrackbarID = 1330;
+    constexpr int VoiceVolumeTrackbarID = 1334;
+
+    struct SDLTrackbarDragInfo
+    {
+        bool IsDragging = false;
+        bool HasRange = false;
+        int Minimum = 0;
+        int Maximum = 0;
+    };
+    std::unordered_map<HWND, SDLTrackbarDragInfo> SDLTrackbarDragState;
+
+    LRESULT CALLBACK SDL_Child_Windows_Procedure(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
+    void SDL_Subclass_Child_Window(HWND window);
+
+    /**
+     *  Calls a child window's saved original procedure without re-entering the
+     *  coordinate router.
+     *
+     *  @author: Rampastring
+     */
+    LRESULT SDL_Call_Stored_Child_Window_Procedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+    {
+        auto proc = SDLChildWindowProcedures.find(window);
+        if (proc == SDLChildWindowProcedures.end() || proc->second == nullptr) {
+            return DefWindowProc(window, message, wparam, lparam);
+        }
+
+        const bool was_calling_translated_mouse_proc = SDLCallingTranslatedMouseProc;
+        SDLCallingTranslatedMouseProc = true;
+        LRESULT result = CallWindowProc(proc->second, window, message, wparam, lparam);
+        SDLCallingTranslatedMouseProc = was_calling_translated_mouse_proc;
+
+        return result;
+    }
+
+    /**
+     *  Returns true if this message carries mouse coordinates in lParam.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Is_Mouse_Coordinate_Message(UINT message)
+    {
+        switch (message) {
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_RBUTTONDBLCLK:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_MBUTTONDBLCLK:
+        case WM_MOUSEWHEEL:
+        case WM_MOUSEHWHEEL:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP:
+        case WM_XBUTTONDBLCLK:
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     *  Mouse wheel messages carry screen coordinates. Other mouse messages use
+     *  coordinates relative to the receiving window's client area.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Mouse_Message_Uses_Screen_Coordinates(UINT message)
+    {
+        return message == WM_MOUSEWHEEL || message == WM_MOUSEHWHEEL;
+    }
+
+    /**
+     *  Packs signed mouse coordinates into an LPARAM.
+     *
+     *  @author: Rampastring
+     */
+    LPARAM SDL_Make_Mouse_LParam(int x, int y)
+    {
+        return MAKELPARAM(static_cast<SHORT>(x), static_cast<SHORT>(y));
+    }
+
+    /**
+     *  Returns true if the window is a standard Win32 trackbar control.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Is_Trackbar_Window(HWND window)
+    {
+        char class_name[64] = {};
+        if (GetClassNameA(window, class_name, sizeof(class_name)) == 0) {
+            return false;
+        }
+
+        return lstrcmpiA(class_name, "msctls_trackbar32") == 0;
+    }
+
+    /**
+     *  Returns true if the window is the game's custom combo box drop-down
+     *  child window.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Is_Combo_Dropdown_Window(HWND window)
+    {
+        char class_name[64] = {};
+        if (GetClassNameA(window, class_name, sizeof(class_name)) == 0) {
+            return false;
+        }
+
+        return lstrcmpiA(class_name, "ComboDropWin") == 0;
+    }
+
+    /**
+     *  Converts a point in the source message's coordinate space to physical
+     *  coordinates relative to MainWindow's client area.
+     *
+     *  @author: Rampastring
+     */
+    POINT SDL_Mouse_Message_Point_To_Main_Window(HWND source, UINT message, LPARAM lparam)
+    {
+        POINT point = { GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+
+        if (SDL_Mouse_Message_Uses_Screen_Coordinates(message)) {
+            ScreenToClient(MainWindow, &point);
+        } else if (source != MainWindow) {
+            MapWindowPoints(source, MainWindow, &point, 1);
+        }
+
+        return point;
+    }
+
+    /**
+     *  Converts a physical MainWindow client point to the logical game-space
+     *  coordinate system used by TS dialogs and surfaces.
+     *
+     *  @author: Rampastring
+     */
+    POINT SDL_Physical_Point_To_Logical_Game_Point(POINT point)
+    {
+        if (SDL_Should_Scale()) {
+            point.x = static_cast<LONG>(point.x * SDL_XScale());
+            point.y = static_cast<LONG>(point.y * SDL_YScale());
+        }
+
+        return point;
+    }
+
+    /**
+     *  Sends the parent notification expected after a trackbar position change.
+     *
+     *  @author: Rampastring
+     */
+    void SDL_Notify_Trackbar_Parent(HWND trackbar, int code, int position)
+    {
+        HWND parent = GetParent(trackbar);
+        if (parent == nullptr) {
+            return;
+        }
+
+        const UINT scroll_message = (GetWindowLongPtr(trackbar, GWL_STYLE) & TBS_VERT) != 0 ? WM_VSCROLL : WM_HSCROLL;
+        SendMessage(parent, scroll_message, MAKEWPARAM(code, position), reinterpret_cast<LPARAM>(trackbar));
+    }
+
+    /**
+     *  Returns the logical range that was previously sent to a game-owned
+     *  trackbar subclass.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Get_Recorded_Trackbar_Range(HWND trackbar, int& min_pos, int& max_pos)
+    {
+        auto state = SDLTrackbarDragState.find(trackbar);
+        if (state != SDLTrackbarDragState.end() && state->second.HasRange && state->second.Maximum > state->second.Minimum) {
+            min_pos = state->second.Minimum;
+            max_pos = state->second.Maximum;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     *  Returns true for trackbars that reserve a 50-pixel value-number gutter
+     *  at the right side of the control.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Trackbar_Shows_Numbers(HWND trackbar)
+    {
+        switch (GetDlgCtrlID(trackbar)) {
+        case MusicVolumeTrackbarID:
+        case SoundVolumeTrackbarID:
+        case VoiceVolumeTrackbarID:
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     *  Computes and applies a trackbar position from a logical client point.
+     *
+     *  @author: Rampastring
+     */
+    int SDL_Set_Trackbar_Pos_From_Point(HWND trackbar, POINT point)
+    {
+        const int min_pos = static_cast<int>(SDL_Call_Stored_Child_Window_Procedure(trackbar, TBM_GETRANGEMIN, 0, 0));
+        int max_pos = static_cast<int>(SDL_Call_Stored_Child_Window_Procedure(trackbar, TBM_GETRANGEMAX, 0, 0));
+        int effective_min_pos = min_pos;
+        int effective_max_pos = max_pos;
+
+        if (effective_max_pos <= effective_min_pos) {
+            SDL_Get_Recorded_Trackbar_Range(trackbar, effective_min_pos, effective_max_pos);
+        }
+
+        const int range = effective_max_pos - effective_min_pos;
+        if (range <= 0) {
+            return effective_min_pos;
+        }
+
+        RECT client_rect = {};
+        GetClientRect(trackbar, &client_rect);
+
+        SDLTrackbarDragInfo& state = SDLTrackbarDragState[trackbar];
+        const int number_width = SDL_Trackbar_Shows_Numbers(trackbar) ? 50 : 0;
+        int slider_width = client_rect.right - client_rect.left - number_width - 13;
+        if (slider_width <= 1) {
+            slider_width = 1;
+        }
+
+        int xpos = point.x - 6;
+        if (xpos < 1) {
+            xpos = 1;
+        }
+
+        int max_x = client_rect.right - number_width - 12;
+        if (max_x < xpos) {
+            xpos = max_x;
+        }
+
+        if (max_x <= 1) {
+            return effective_min_pos;
+        }
+
+        int idx = ((range + 1) * (xpos - 1)) / slider_width;
+        if (idx >= range) {
+            idx = range;
+        }
+
+        int new_pos = effective_min_pos + idx;
+        new_pos = std::clamp(new_pos, effective_min_pos, effective_max_pos);
+        state.HasRange = true;
+        state.Minimum = effective_min_pos;
+        state.Maximum = effective_max_pos;
+        SDL_Call_Stored_Child_Window_Procedure(trackbar, TBM_SETPOS, TRUE, new_pos);
+        return new_pos;
+    }
+
+    /**
+     *  Handles scaled dragging for standard Win32 trackbars without relying on
+     *  the common control's internal mouse-to-position tracking.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Handle_Trackbar_Mouse_Message(HWND trackbar, UINT message, LPARAM lparam)
+    {
+        if (!SDL_Is_Trackbar_Window(trackbar)) {
+            return false;
+        }
+
+        switch (message) {
+        case WM_LBUTTONDOWN:
+        {
+            SetFocus(trackbar);
+            SetCapture(trackbar);
+            SDLTrackbarDragInfo& state = SDLTrackbarDragState[trackbar];
+            state.IsDragging = true;
+
+            POINT point = { GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+            int position = SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
+            SDL_Notify_Trackbar_Parent(trackbar, TB_THUMBTRACK, position);
+            return true;
+        }
+
+        case WM_MOUSEMOVE:
+        {
+            auto drag_state = SDLTrackbarDragState.find(trackbar);
+            if (drag_state != SDLTrackbarDragState.end() && drag_state->second.IsDragging && GetCapture() == trackbar) {
+                POINT point = { GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+                int position = SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
+                SDL_Notify_Trackbar_Parent(trackbar, TB_THUMBTRACK, position);
+                return true;
+            }
+            return false;
+        }
+
+        case WM_LBUTTONUP:
+        {
+            auto drag_state = SDLTrackbarDragState.find(trackbar);
+            if (drag_state != SDLTrackbarDragState.end() && drag_state->second.IsDragging) {
+                POINT point = { GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+                int position = SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
+                drag_state->second.IsDragging = false;
+
+                if (GetCapture() == trackbar) {
+                    ReleaseCapture();
+                }
+
+                SDL_Notify_Trackbar_Parent(trackbar, TB_THUMBPOSITION, position);
+                SDL_Notify_Trackbar_Parent(trackbar, TB_ENDTRACK, position);
+                return true;
+            }
+            return false;
+        }
+
+        case WM_CAPTURECHANGED:
+        {
+            auto drag_state = SDLTrackbarDragState.find(trackbar);
+            if (drag_state != SDLTrackbarDragState.end() && drag_state->second.IsDragging) {
+                drag_state->second.IsDragging = false;
+            }
+            return false;
+        }
+
+        case WM_NCDESTROY:
+            SDLTrackbarDragState.erase(trackbar);
+            return false;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     *  Finds the deepest child window that would contain the logical point if
+     *  the Win32 window tree existed at the game's render resolution.
+     *
+     *  @author: Rampastring
+     */
+    HWND SDL_Window_From_Logical_Point(POINT logical_point)
+    {
+        HWND capture = GetCapture();
+        if (capture != nullptr && (capture == MainWindow || IsChild(MainWindow, capture))) {
+            return capture;
+        }
+
+        HWND current = MainWindow;
+
+        for (;;) {
+            POINT child_point = logical_point;
+            if (current != MainWindow) {
+                MapWindowPoints(MainWindow, current, &child_point, 1);
+            }
+
+            HWND child = ChildWindowFromPointEx(current, child_point, CWP_SKIPINVISIBLE | CWP_SKIPDISABLED);
+            if (child == nullptr || child == current) {
+                return current;
+            }
+
+            current = child;
+        }
+    }
+
+    /**
+     *  Installs our coordinate-transforming proxy on native child controls
+     *  that can receive captured mouse drags directly from Windows.
+     *
+     *  @author: Rampastring
+     */
+    void SDL_Subclass_Child_Window(HWND window)
+    {
+        if (window == nullptr || window == MainWindow || !IsChild(MainWindow, window)) {
+            return;
+        }
+
+        if (SDLChildWindowProcedures.find(window) != SDLChildWindowProcedures.end()) {
+            return;
+        }
+
+        WNDPROC previous_proc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(window, GWLP_WNDPROC));
+        if (previous_proc == nullptr || previous_proc == SDL_Child_Windows_Procedure) {
+            return;
+        }
+
+        WNDPROC replaced_proc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(SDL_Child_Windows_Procedure)));
+        if (replaced_proc != nullptr) {
+            SDLChildWindowProcedures[window] = replaced_proc;
+        }
+    }
+
+    /**
+     *  Subclasses combo drop-down children after the game creates them and
+     *  gives them mouse capture.
+     *
+     *  @author: Rampastring
+     */
+    BOOL CALLBACK SDL_Subclass_Combo_Dropdown_Window(HWND window, LPARAM)
+    {
+        if (SDL_Is_Combo_Dropdown_Window(window)) {
+            SDL_Subclass_Child_Window(window);
+        }
+
+        return TRUE;
+    }
+
+    /**
+     *  Installs the coordinate-transforming proxy on combo drop-down children
+     *  below a dialog window.
+     *
+     *  @author: Rampastring
+     */
+    void SDL_Subclass_Combo_Dropdown_Windows_For_Parent(HWND parent)
+    {
+        if (parent == nullptr) {
+            return;
+        }
+
+        EnumChildWindows(parent, SDL_Subclass_Combo_Dropdown_Window, 0);
+    }
+
+    /**
+     *  Presents combo drop-down hover changes immediately after the custom
+     *  control invalidates itself from WM_MOUSEMOVE.
+     *
+     *  @author: Rampastring
+     */
+    void SDL_Update_Combo_Dropdown_Window(HWND window, UINT message)
+    {
+        if (!SDL_Is_Combo_Dropdown_Window(window)) {
+            return;
+        }
+
+        if (message == WM_MOUSEMOVE) {
+            UpdateWindow(window);
+        } else if (message == WM_PAINT) {
+            SDL_Update_Screen(VisibleSurface);
+        }
+    }
+
+    /**
+     *  Calls a child window's original procedure while suppressing a nested
+     *  routing pass if the original procedure is another Vinifera proxy.
+     *
+     *  @author: Rampastring
+     */
+    LRESULT SDL_Call_Child_Window_Procedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+    {
+        LRESULT result = SDL_Call_Stored_Child_Window_Procedure(window, message, wparam, lparam);
+
+        if (message == CB_SHOWDROPDOWN && wparam != 0) {
+            SDL_Subclass_Combo_Dropdown_Windows_For_Parent(GetParent(window));
+        }
+
+        SDL_Update_Combo_Dropdown_Window(window, message);
+
+        if (message == WM_NCDESTROY) {
+            SDLChildWindowProcedures.erase(window);
+        }
+
+        return result;
+    }
+
+    /**
+     *  Window procedure for native child controls that need logical mouse
+     *  coordinates during captured drags.
+     *
+     *  @author: Rampastring
+     */
+    LRESULT CALLBACK SDL_Child_Windows_Procedure(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+    {
+        LPARAM translated_lparam = lparam;
+        if (SDL_Redirect_Mouse_Message(hwnd, message, wparam, lparam, &translated_lparam)) {
+            return 0;
+        }
+
+        if (SDL_Handle_Trackbar_Mouse_Message(hwnd, message, translated_lparam)) {
+            return 0;
+        }
+
+        return SDL_Call_Child_Window_Procedure(hwnd, message, wparam, translated_lparam);
+    }
+
+    /**
+     *  Converts a logical MainWindow client point into the lParam coordinate
+     *  space expected by the target window for the given mouse message.
+     *
+     *  @author: Rampastring
+     */
+    LPARAM SDL_Logical_Mouse_LParam_For_Target(HWND target, UINT message, POINT logical_point)
+    {
+        POINT target_point = logical_point;
+
+        if (SDL_Mouse_Message_Uses_Screen_Coordinates(message)) {
+            ClientToScreen(MainWindow, &target_point);
+        } else if (target != MainWindow) {
+            MapWindowPoints(MainWindow, target, &target_point, 1);
+        }
+
+        return SDL_Make_Mouse_LParam(target_point.x, target_point.y);
+    }
+
     /**
      *  Applies the SDL renderer driver hint for the selected backend.
      *
@@ -120,6 +641,91 @@ namespace
         Map.Shift_Sidebar();
         Map.Flag_To_Redraw(GS_REDRAW_ALL);
         Show_Mouse();
+    }
+}
+
+
+/**
+ *  Retargets mouse messages from the scaled outer SDL window to the Win32
+ *  window/control that owns the corresponding logical game-space point.
+ *
+ *  @author: Rampastring
+ */
+bool SDL_Redirect_Mouse_Message(HWND window, UINT message, WPARAM wparam, LPARAM lparam, LPARAM* translated_lparam)
+{
+    if (translated_lparam != nullptr) {
+        *translated_lparam = lparam;
+    }
+
+    if (!SDL_Is_Mouse_Coordinate_Message(message) || MainWindow == nullptr || SDLCallingTranslatedMouseProc) {
+        return false;
+    }
+
+    if (SDLForwardingMouseMessage) {
+        return false;
+    }
+
+    POINT physical_point = SDL_Mouse_Message_Point_To_Main_Window(window, message, lparam);
+    POINT logical_point = SDL_Physical_Point_To_Logical_Game_Point(physical_point);
+    HWND target = SDL_Window_From_Logical_Point(logical_point);
+    SDL_Subclass_Child_Window(target);
+    LPARAM target_lparam = SDL_Logical_Mouse_LParam_For_Target(target, message, logical_point);
+
+    if (target == window) {
+        if (translated_lparam != nullptr) {
+            *translated_lparam = target_lparam;
+        }
+        return false;
+    }
+
+    SDLForwardingMouseMessage = true;
+    SendMessage(target, message, wparam, target_lparam);
+    SDLForwardingMouseMessage = false;
+
+    return true;
+}
+
+
+/**
+ *  Installs the SDL child window proxy on any active combo box drop-downs
+ *  below the given dialog.
+ *
+ *  @author: Rampastring
+ */
+void SDL_Subclass_Combo_Dropdown_Windows(HWND parent)
+{
+    SDL_Subclass_Combo_Dropdown_Windows_For_Parent(parent);
+}
+
+
+/**
+ *  Records custom trackbar state from messages that the game sends through its
+ *  owner-drawn control procedure.
+ *
+ *  @author: Rampastring
+ */
+void SDL_Record_Trackbar_State_Message(HWND window, UINT message, WPARAM, LPARAM lparam)
+{
+    if (!SDL_Is_Trackbar_Window(window)) {
+        return;
+    }
+
+    switch (message) {
+    case TBM_SETRANGE:
+    {
+        SDLTrackbarDragInfo& state = SDLTrackbarDragState[window];
+        state.Minimum = static_cast<unsigned short>(LOWORD(lparam));
+        state.Maximum = static_cast<unsigned short>(HIWORD(lparam));
+        state.HasRange = state.Maximum > state.Minimum;
+        break;
+    }
+
+    case WM_NCDESTROY:
+        SDLTrackbarDragState.erase(window);
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -334,36 +940,11 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         return 0;
     }
 
-    /*
-    **  Scale mouse inputs before they are processed by SDL or the game.
-    */
-    switch (message) {
-    case WM_MOUSEMOVE:
-    case WM_LBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_LBUTTONDBLCLK:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
-    case WM_RBUTTONDBLCLK:
-    case WM_MBUTTONDOWN:
-    case WM_MBUTTONUP:
-    case WM_MBUTTONDBLCLK:
-    case WM_MOUSEWHEEL:
-    case WM_XBUTTONDOWN:
-    case WM_XBUTTONUP:
-        if (SDL_Should_Scale()) {
-            int x = GET_X_LPARAM(lParam);
-            int y = GET_Y_LPARAM(lParam);
-
-            x = static_cast<int>(x * SDL_XScale());
-            y = static_cast<int>(y * SDL_YScale());
-
-            lParam = MAKELPARAM(x, y);
-        }
-        break;
-    default:
-        break;
+    LPARAM translated_lParam = lParam;
+    if (SDL_Redirect_Mouse_Message(hwnd, message, wParam, lParam, &translated_lParam)) {
+        return 0;
     }
+    lParam = translated_lParam;
 
     /*
     **  Pass on any messages intended for the winsock message handler.
@@ -721,14 +1302,12 @@ bool SDL_Update_Screen(Surface* surface)
 
 /**
  *  Returns if scaling should currently be applied.
- *  We turn off scaling when any windows dialogs are open
- *  because we cannot properly scale their input.
  *
  *  @author: ZivDero
  */
 bool SDL_Should_Scale()
 {
-    return WSDialogCount == 0 && SpecialDialog == SDLG_NONE;
+    return true;
 }
 
 
