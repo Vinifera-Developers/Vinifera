@@ -174,6 +174,28 @@ namespace
     }
 
     /**
+     *  Returns true for child controls whose capture should override normal
+     *  logical hit testing.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Should_Use_Captured_Child_Window(HWND window)
+    {
+        return SDL_Is_Trackbar_Window(window) || SDL_Is_Combo_Dropdown_Window(window);
+    }
+
+    /**
+     *  Returns true for child controls whose captured mouse handling must pass
+     *  through the SDL coordinate-transforming proxy.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Should_Subclass_Child_Window(HWND window)
+    {
+        return SDL_Should_Use_Captured_Child_Window(window);
+    }
+
+    /**
      *  Converts a point in the source message's coordinate space to physical
      *  coordinates relative to MainWindow's client area.
      *
@@ -404,7 +426,7 @@ namespace
     HWND SDL_Window_From_Logical_Point(POINT logical_point)
     {
         HWND capture = GetCapture();
-        if (capture != nullptr && (capture == MainWindow || IsChild(MainWindow, capture))) {
+        if (capture != nullptr && (capture == MainWindow || (IsChild(MainWindow, capture) && SDL_Should_Use_Captured_Child_Window(capture)))) {
             return capture;
         }
 
@@ -434,6 +456,10 @@ namespace
     void SDL_Subclass_Child_Window(HWND window)
     {
         if (window == nullptr || window == MainWindow || !IsChild(MainWindow, window)) {
+            return;
+        }
+
+        if (!SDL_Should_Subclass_Child_Window(window)) {
             return;
         }
 
