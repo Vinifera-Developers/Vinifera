@@ -174,6 +174,28 @@ namespace
     }
 
     /**
+     *  Returns true for child controls whose capture should override normal
+     *  logical hit testing.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Should_Use_Captured_Child_Window(HWND window)
+    {
+        return SDL_Is_Trackbar_Window(window) || SDL_Is_Combo_Dropdown_Window(window);
+    }
+
+    /**
+     *  Returns true for child controls whose captured mouse handling must pass
+     *  through the SDL coordinate-transforming proxy.
+     *
+     *  @author: Rampastring
+     */
+    bool SDL_Should_Subclass_Child_Window(HWND window)
+    {
+        return SDL_Should_Use_Captured_Child_Window(window);
+    }
+
+    /**
      *  Converts a point in the source message's coordinate space to physical
      *  coordinates relative to MainWindow's client area.
      *
@@ -193,17 +215,16 @@ namespace
     }
 
     /**
-     *  Converts a physical MainWindow client point to the logical game-space
-     *  coordinate system used by TS dialogs and surfaces.
+     *  Converts a physical MainWindow client point to the unscaled
+     *  coordinates used by TS dialogs and surfaces based on the
+     *  resolution the game thinks it is running at.
      *
      *  @author: Rampastring
      */
     POINT SDL_Physical_Point_To_Logical_Game_Point(POINT point)
     {
-        if (SDL_Should_Scale()) {
-            point.x = static_cast<LONG>(point.x * SDL_XScale());
-            point.y = static_cast<LONG>(point.y * SDL_YScale());
-        }
+        point.x = static_cast<LONG>(point.x * SDL_XScale());
+        point.y = static_cast<LONG>(point.y * SDL_YScale());
 
         return point;
     }
@@ -298,9 +319,7 @@ namespace
         }
 
         int max_x = client_rect.right - number_width - 12;
-        if (max_x < xpos) {
-            xpos = max_x;
-        }
+        xpos = std::max(xpos, max_x);
 
         if (max_x <= 1) {
             return effective_min_pos;
@@ -404,7 +423,7 @@ namespace
     HWND SDL_Window_From_Logical_Point(POINT logical_point)
     {
         HWND capture = GetCapture();
-        if (capture != nullptr && (capture == MainWindow || IsChild(MainWindow, capture))) {
+        if (capture != nullptr && (capture == MainWindow || (IsChild(MainWindow, capture) && SDL_Should_Use_Captured_Child_Window(capture)))) {
             return capture;
         }
 
@@ -434,6 +453,10 @@ namespace
     void SDL_Subclass_Child_Window(HWND window)
     {
         if (window == nullptr || window == MainWindow || !IsChild(MainWindow, window)) {
+            return;
+        }
+
+        if (!SDL_Should_Subclass_Child_Window(window)) {
             return;
         }
 
@@ -1267,26 +1290,10 @@ bool SDL_Update_Screen(Surface* surface)
             surface->Unlock();
         }
 
-        static bool scaled = SDL_Should_Scale();
-
         /**
          *  Then, copy the texture to the renderer.
          */
-        if (!SDL_Should_Scale()) {
-            Rect src_rect = surface->Get_Rect();
-            SDL_FRect dst_rect = {static_cast<float>(src_rect.X), static_cast<float>(src_rect.Y), static_cast<float>(src_rect.Width), static_cast<float>(src_rect.Height)};
-            SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, &dst_rect);
-        } else {
-            SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
-        }
-
-        /**
-         *  If the scale has changed, recalculate the mouse cursor image.
-         */
-        if (scaled != SDL_Should_Scale()) {
-            scaled = SDL_Should_Scale();
-            static_cast<SDLMouseClass*>(MouseCursor)->Recalc_Cursor_Image();
-        }
+        SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
     }
 
     /**
@@ -1296,17 +1303,6 @@ bool SDL_Update_Screen(Surface* surface)
 
     SDL_RenderPresent(SDLWindowRenderer);
 
-    return true;
-}
-
-
-/**
- *  Returns if scaling should currently be applied.
- *
- *  @author: ZivDero
- */
-bool SDL_Should_Scale()
-{
     return true;
 }
 

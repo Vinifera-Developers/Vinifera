@@ -4802,7 +4802,7 @@ const char *ToggleDebugOverlayCommandClass::Get_Name() const
 
 const char *ToggleDebugOverlayCommandClass::Get_UI_Name() const
 {
-    return "Toggle Debug Overlay";
+    return "Toggle Game Info";
 }
 
 const char *ToggleDebugOverlayCommandClass::Get_Category() const
@@ -4812,7 +4812,7 @@ const char *ToggleDebugOverlayCommandClass::Get_Category() const
 
 const char *ToggleDebugOverlayCommandClass::Get_Description() const
 {
-    return "Shows or hides the Vinifera debug overlay window.";
+    return "Shows or hides the Game Info overlay window.";
 }
 
 bool ToggleDebugOverlayCommandClass::Process()
