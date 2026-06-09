@@ -1050,7 +1050,8 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
 
             // If this player has been marked as being out of sync, don't execute their events.
             // TODO execute them anyway?
-            if (SessionExtension->Is_Out_of_Sync(event.ID)) {
+            // Don't check this in campaign games, because in campaign, the player's house ID can be higher than MAX_PLAYERS.
+            if (Session.Type != GAME_NORMAL && SessionExtension->Is_Out_of_Sync(event.ID)) {
                 continue;
             }
 

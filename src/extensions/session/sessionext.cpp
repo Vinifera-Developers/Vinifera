@@ -603,6 +603,13 @@ bool SessionClassExtension::Reconcile_Players()
 }
 
 
+bool SessionClassExtension::Is_Out_of_Sync(int id)
+{
+    ASSERT_FATAL(id > -1 && id < MAX_PLAYERS);
+    return IsOutOfSync[id];
+}
+
+
 void SessionClassExtension::Clear_Out_Of_Sync_Data()
 {
     std::fill(std::begin(IsOutOfSync), std::end(IsOutOfSync), false);
@@ -612,6 +619,7 @@ void SessionClassExtension::Clear_Out_Of_Sync_Data()
 
 void SessionClassExtension::Mark_Player_As_Out_of_Sync(int id)
 {
+    ASSERT_FATAL(id > -1 && id < MAX_PLAYERS);
     IsOutOfSync[id] = true;
     if (OutOfSyncFrame < 0) OutOfSyncFrame = Frame;
 }

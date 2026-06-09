@@ -44,7 +44,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         bool Load_Multiplayer_Save(int slot);
         bool Reconcile_Players();
 
-        bool Is_Out_of_Sync(int id) { return IsOutOfSync[id]; }
+        bool Is_Out_of_Sync(int id);
         void Clear_Out_Of_Sync_Data();
         void Mark_Player_As_Out_of_Sync(int id);
 
