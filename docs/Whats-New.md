@@ -112,6 +112,7 @@ New:
 - Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 - Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 - Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
+- Fix Win32 dialog scaling with SDL (by Rampastring)
 
 
 Vinifera fixes:
