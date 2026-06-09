@@ -716,7 +716,7 @@ void HouseClassExt::_MPlayer_Defeated()
     /**
      *  If the local player is been defeated, check if they should be given OBIWAN mode.
      */
-    if (PlayerPtr->IsDefeated && !Extension::Fetch(PlayerPtr)->IsObserver && Session.ObiWan == false) {
+    if (PlayerPtr->IsDefeated && !Extension::Fetch(PlayerPtr)->IsObserver && !Session.ObiWan) {
 
         /**
          *  With the spawner active, if Coach mode is enabled, players don't get vision.
@@ -740,19 +740,16 @@ void HouseClassExt::_MPlayer_Defeated()
         /**
          *  - Set MPlayerObiWan, so I can only send messages to all players, and
          *    not just one (so I can't be obnoxiously omnipotent)
-         *  - Make the player the local observer
          *  - Reveal the map
          */
         if (obiwan) {
             Session.ObiWan = true;
             Map.Reveal_The_Map();
-            Extension::Fetch(PlayerPtr)->IsObserver = true;
             PlayerPtr->RecalcRadar = true;
             HiddenSurface->Fill(0);
             Map.Flag_To_Redraw();
             DEBUG_INFO("MPlayer_Defeated() - Player {} has no allies left (OBIWAN MODE)\n", IniName);
         }
-
     }
 
     /**
