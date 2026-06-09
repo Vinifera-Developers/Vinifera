@@ -937,11 +937,10 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
     }
 #endif
 
-    // Skip the CRC check if we're less than 32 frames into the game;
-    // this will prevent a newly-loaded modem game from instantly
-    // going out of sync, if the games were saved at different
-    // frame numbers.
-    // Is this actually necessary?
+    // Skip the CRC check if we're less than 256 frames into the game;
+    // this will prevent a new game from instantly going out of sync.
+    // (for some reason, FRAMEINFO CRCs are different between players
+    // at the start of the game, and Westwood circumvented it with this hack)
     bool check_crc = true;
 
     if (!skip_crc || *skip_crc == 0) {
@@ -949,6 +948,10 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
     } else {
         check_crc = false;
     }
+
+    // Only print CRCs once, even if we desynced from multiple players at once.
+    // There's no use writing multiple desync logs for one desync, or the same log multiple times.
+    bool print_crcs = true;
 
     if (check_crc)
     {
@@ -967,27 +970,39 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                     {
                         SessionExtension->Mark_Player_As_Out_of_Sync(event.ID);
 
-                        Print_CRCs(&event);
+                        if (print_crcs) {
+                            Print_CRCs(&event);
+                            print_crcs = false;
+                        }
+
                         Session.Suspended++;
 
                         char buffer[128];
-                        std::sprintf(buffer, "Player %s has gone out of sync. Continue without them?", Houses[event.ID]->IniName.c_str());
 
-                        if (WWMessageBox().Process(buffer, 0, TXT_CONTINUE, TXT_STOP) == 0)
-                        {
-                            // If the user wants to continue without this player, destroy the connection to them only.
-                            Session.Suspended--;
+                        std::sprintf(buffer, "Player %s has gone out of sync!", Houses[event.ID]->IniName.c_str());
+                        Session.Messages.Add_Message(nullptr, 0, buffer, Fetch_Scheme_Index_By_Name("White"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
 
-                            if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && net) {
-                                Destroy_Connection(event.ID, -1);
-                            }
-                            Map.Flag_To_Redraw(GS_REDRAW_ALL);
-                        }
-                        else
-                        {
-                            Session.Suspended--;
-                            return 0;
-                        }
+                        // Try to keep the connection alive to the desynced player, so we can still chat with them, and sync "load game" messages between us.
+                        // However, execute a REMOVEPLAYER event to turn their stuff over to the AI, or if auto-surrender is enabled, blow them up.
+                        // TODO: Check that kicking still works in case the desynced player disconnects (that got bugged in the similar ts-patches implementation).
+                        OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_REMOVEPLAYER, event.ID));
+
+                        // if (WWMessageBox().Process(buffer, 0, TXT_CONTINUE, TXT_STOP) == 0)
+                        // {
+                        //     // If the user wants to continue without this player, destroy the connection to them only.
+                        //     Session.Suspended--;
+                        // 
+                        //     if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && net) {
+                        //         Destroy_Connection(event.ID, -1);
+                        //     }
+                        // 
+                        //     Map.Flag_To_Redraw(GS_REDRAW_ALL);
+                        // }
+                        // else
+                        // {
+                        //     Session.Suspended--;
+                        //     return 0;
+                        // }
 
                         return 1;
                     }

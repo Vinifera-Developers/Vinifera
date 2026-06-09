@@ -192,6 +192,22 @@ static void After_Main_Loop()
 
     SessionExtension->Service_Autosave_After_Main_Loop();
 
+    /**
+     *  If we have gone out of sync, instruct the players on it.
+     *  This is done with a slight delay to avoid overwhelming the player with information.
+     */
+    if (SessionExtension->OutOfSyncFrame >= 0)
+    {
+        if (Frame == SessionExtension->OutOfSyncFrame + Options.Normalize_Delay(TICKS_PER_SECOND * 2))
+        {
+            Session.Messages.Add_Message(nullptr, 0, "If there are saves available from this session, the game host can attempt to load a save to re-sync the game.", Fetch_Scheme_Index_By_Name("White"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+        }
+        else if (Frame == SessionExtension->OutOfSyncFrame + Options.Normalize_Delay(TICKS_PER_SECOND * 4))
+        {
+            Session.Messages.Add_Message(nullptr, 0, "Otherwise, the desynced player(s) will continue in a separate session from you.", Fetch_Scheme_Index_By_Name("White"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+        }
+    }
+
     if (PendingMultiplayerSaveLoadTime && std::chrono::steady_clock::now() >= *PendingMultiplayerSaveLoadTime)
     {
         int slot = PendingMultiplayerSaveLoadSlot;

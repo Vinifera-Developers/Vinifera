@@ -45,8 +45,18 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         bool Reconcile_Players();
 
         inline bool Is_Out_of_Sync(int id) { return IsOutOfSync[id]; }
-        inline void Mark_Player_As_Out_of_Sync(int id) { IsOutOfSync[id] = true; }
-        inline void Clear_Out_Of_Sync_Data() { std::fill(std::begin(IsOutOfSync), std::end(IsOutOfSync), false); }
+
+        inline void Clear_Out_Of_Sync_Data()
+        {
+            std::fill(std::begin(IsOutOfSync), std::end(IsOutOfSync), false);
+            OutOfSyncFrame = -1;
+        }
+
+        inline void Mark_Player_As_Out_of_Sync(int id)
+        {
+            IsOutOfSync[id] = true;
+            if (OutOfSyncFrame < 0) OutOfSyncFrame = Frame;
+        }
 
     private:
         static std::string Multiplayer_Save_File_Name_From_Index(int index);
@@ -227,6 +237,11 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
          *  Keeps a record of which players are out of sync with us.
          */
         bool IsOutOfSync[MAX_PLAYERS];
+
+        /**
+         *  Frame when the game first went out of sync.
+         */
+        int OutOfSyncFrame = -1;
 
         /**
          *  Is the message we're currently writing meant to be sent to allies only?
