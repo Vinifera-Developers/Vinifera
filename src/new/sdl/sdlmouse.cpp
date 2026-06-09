@@ -566,15 +566,6 @@ void SDLMouseClass::Apply_Cursor_Visibility()
 int SDLMouseClass::Get_Cursor_Scale()
 {
     /**
-     *  If we aren't scaling the game, don't scale the cursor.
-     *  This is so that the cursor doesn't loook gigantic in
-     *  Windows menus.
-     */
-    if (!SDL_Should_Scale()) {
-        return 1;
-    }
-
-    /**
      *  Negative values mean no scaling.
      */
     if (OptionsExtension->CursorScale < 0) {

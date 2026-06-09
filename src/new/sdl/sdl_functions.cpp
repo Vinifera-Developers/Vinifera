@@ -215,17 +215,16 @@ namespace
     }
 
     /**
-     *  Converts a physical MainWindow client point to the logical game-space
-     *  coordinate system used by TS dialogs and surfaces.
+     *  Converts a physical MainWindow client point to the unscaled
+     *  coordinates used by TS dialogs and surfaces based on the
+     *  resolution the game thinks it is running at.
      *
      *  @author: Rampastring
      */
     POINT SDL_Physical_Point_To_Logical_Game_Point(POINT point)
     {
-        if (SDL_Should_Scale()) {
-            point.x = static_cast<LONG>(point.x * SDL_XScale());
-            point.y = static_cast<LONG>(point.y * SDL_YScale());
-        }
+        point.x = static_cast<LONG>(point.x * SDL_XScale());
+        point.y = static_cast<LONG>(point.y * SDL_YScale());
 
         return point;
     }
@@ -320,9 +319,7 @@ namespace
         }
 
         int max_x = client_rect.right - number_width - 12;
-        if (max_x < xpos) {
-            xpos = max_x;
-        }
+        xpos = std::max(xpos, max_x);
 
         if (max_x <= 1) {
             return effective_min_pos;
@@ -1294,26 +1291,10 @@ bool SDL_Update_Screen(Surface* surface)
             surface->Unlock();
         }
 
-        static bool scaled = SDL_Should_Scale();
-
         /**
          *  Then, copy the texture to the renderer.
          */
-        if (!SDL_Should_Scale()) {
-            Rect src_rect = surface->Get_Rect();
-            SDL_FRect dst_rect = {static_cast<float>(src_rect.X), static_cast<float>(src_rect.Y), static_cast<float>(src_rect.Width), static_cast<float>(src_rect.Height)};
-            SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, &dst_rect);
-        } else {
-            SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
-        }
-
-        /**
-         *  If the scale has changed, recalculate the mouse cursor image.
-         */
-        if (scaled != SDL_Should_Scale()) {
-            scaled = SDL_Should_Scale();
-            static_cast<SDLMouseClass*>(MouseCursor)->Recalc_Cursor_Image();
-        }
+        SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
     }
 
     /**
@@ -1323,17 +1304,6 @@ bool SDL_Update_Screen(Surface* surface)
 
     SDL_RenderPresent(SDLWindowRenderer);
 
-    return true;
-}
-
-
-/**
- *  Returns if scaling should currently be applied.
- *
- *  @author: ZivDero
- */
-bool SDL_Should_Scale()
-{
     return true;
 }
 
