@@ -44,19 +44,9 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         bool Load_Multiplayer_Save(int slot);
         bool Reconcile_Players();
 
-        inline bool Is_Out_of_Sync(int id) { return IsOutOfSync[id]; }
-
-        inline void Clear_Out_Of_Sync_Data()
-        {
-            std::fill(std::begin(IsOutOfSync), std::end(IsOutOfSync), false);
-            OutOfSyncFrame = -1;
-        }
-
-        inline void Mark_Player_As_Out_of_Sync(int id)
-        {
-            IsOutOfSync[id] = true;
-            if (OutOfSyncFrame < 0) OutOfSyncFrame = Frame;
-        }
+        bool Is_Out_of_Sync(int id) { return IsOutOfSync[id]; }
+        void Clear_Out_Of_Sync_Data();
+        void Mark_Player_As_Out_of_Sync(int id);
 
     private:
         static std::string Multiplayer_Save_File_Name_From_Index(int index);

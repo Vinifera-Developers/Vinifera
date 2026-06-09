@@ -601,3 +601,17 @@ bool SessionClassExtension::Reconcile_Players()
         return false;
     }
 }
+
+
+void SessionClassExtension::Clear_Out_Of_Sync_Data()
+{
+    std::fill(std::begin(IsOutOfSync), std::end(IsOutOfSync), false);
+    OutOfSyncFrame = -1;
+}
+
+
+void SessionClassExtension::Mark_Player_As_Out_of_Sync(int id)
+{
+    IsOutOfSync[id] = true;
+    if (OutOfSyncFrame < 0) OutOfSyncFrame = Frame;
+}
