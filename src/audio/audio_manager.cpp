@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 
 
 /**
@@ -62,143 +63,178 @@ unsigned __stdcall AudioManagerClass::CleanupThreadFunction(void* context)
 
         auto lastTime = clock::now();
 
+        /**
+         *  Tracks consecutive iterations that ended in a thrown exception. A few
+         *  transient failures (for example a synchronization primitive briefly
+         *  reporting an error, as seen under Wine) are logged and retried; a
+         *  sustained run of them means the thread state is unrecoverable, so the
+         *  loop exits instead of spin-throwing and pegging a core. Letting an
+         *  exception escape this lambda would tear the whole process down through
+         *  Vinifera_Run_Thread's handler, turning a recoverable audio hiccup into
+         *  a crash to desktop.
+         */
+        int consecutive_failures = 0;
+        constexpr int max_consecutive_failures = 16;
+
         while (!self->ThreadExitFlag.load()) {
 
-            auto now = clock::now();
-            std::chrono::duration<float> elapsed = now - lastTime;
-            float deltaTime = elapsed.count();
-            lastTime = now;
+            try {
 
-            deltaTime = std::min(deltaTime, 0.25f);
+                auto now = clock::now();
+                std::chrono::duration<float> elapsed = now - lastTime;
+                float deltaTime = elapsed.count();
+                lastTime = now;
 
-            /**
-             *  STEP 1: Process queued play/stop requests.
-             */
-            std::queue<AudioRequest> requests;
-            {
-                std::scoped_lock lock(self->RequestMutex);
-                std::swap(requests, self->RequestQueue);
-            }
+                deltaTime = std::min(deltaTime, 0.25f);
 
-            while (!requests.empty()) {
-                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: RequestQueue - Woke up!\n");
-
-                AudioRequest req = std::move(requests.front());
-                requests.pop();
-
-                switch (req.Type) {
-                case AudioRequestType::AUDIO_REQUEST_PLAY:
-                    self->Process_Play_Request(std::move(req));
-                    break;
-
-                case AudioRequestType::AUDIO_REQUEST_STOP:
-                    self->Process_Stop_Request(std::move(req));
-                    break;
+                /**
+                 *  STEP 1: Process queued play/stop requests.
+                 */
+                std::queue<AudioRequest> requests;
+                {
+                    std::scoped_lock lock(self->RequestMutex);
+                    std::swap(requests, self->RequestQueue);
                 }
-            }
 
-            /**
-             *  STEP 2: Update active handles and prune finished instances.
-             */
-            std::queue<AudioRequest> promoted_requests;
-            {
-                std::scoped_lock lock(self->ThreadMutex);
+                while (!requests.empty()) {
+                    AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: RequestQueue - Woke up!\n");
 
-                for (int group = 0; group < AUDIO_GROUP_COUNT; ++group) {
+                    AudioRequest req = std::move(requests.front());
+                    requests.pop();
 
-                    AudioGroupType groupType = static_cast<AudioGroupType>(group);
-                    auto& group_vec = self->GroupedActiveInstanceMap[groupType];
+                    switch (req.Type) {
+                    case AudioRequestType::AUDIO_REQUEST_PLAY:
+                        self->Process_Play_Request(std::move(req));
+                        break;
 
-                    for (auto it = group_vec.begin(); it != group_vec.end();) {
+                    case AudioRequestType::AUDIO_REQUEST_STOP:
+                        self->Process_Stop_Request(std::move(req));
+                        break;
+                    }
+                }
 
-                        auto& handle = *it;
+                /**
+                 *  STEP 2: Update active handles and prune finished instances.
+                 */
+                std::queue<AudioRequest> promoted_requests;
+                {
+                    std::scoped_lock lock(self->ThreadMutex);
 
-                        if (handle == nullptr) {
-                            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stale null pointer.\n");
-                            it = group_vec.erase(it);
-                            continue;
-                        }
+                    for (int group = 0; group < AUDIO_GROUP_COUNT; ++group) {
 
-                        handle->Update(deltaTime);
+                        AudioGroupType groupType = static_cast<AudioGroupType>(group);
+                        auto& group_vec = self->GroupedActiveInstanceMap[groupType];
 
-                        if (handle->Is_Finished()) {
-                            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed \"%s\" as it finished\n", handle->Get_FileName().c_str());
+                        for (auto it = group_vec.begin(); it != group_vec.end();) {
 
-                            // Capture identity before the handle is freed.
-                            const std::string finished_file = handle->Get_FileName();
-                            const AudioGroupType finished_group = handle->Get_Sample_Template().Get_Group();
-                            const AudioInstanceHandle finished_id = handle->Get_ID();
+                            auto& handle = *it;
 
-                            /**
-                             *  Inlined removal instead of Remove_Active_Handle_NoLock so we
-                             *  can advance the iterator cleanly. A full `it = group_vec.begin()`
-                             *  restart would re-Update every earlier handle in the same tick,
-                             *  and Update is not idempotent (it decrements FadeTime and
-                             *  RemainingLoopRepeats), so fades and finite-loop counts would
-                             *  drift whenever a sound finishes mid-tick.
-                             */
-                            it = group_vec.erase(it);
-                            self->ActiveInstanceMap.erase(finished_id);
-                            self->Clear_Request_State(finished_id);
-
-                            // Promote the first deferred request for this sample now that a
-                            // concurrent slot has opened up.
-                            if (!self->DeferredPlayQueue.empty()) {
-                                std::queue<AudioRequest> still_deferred;
-                                bool promoted = false;
-                                while (!self->DeferredPlayQueue.empty()) {
-                                    AudioRequest deferred = std::move(self->DeferredPlayQueue.front());
-                                    self->DeferredPlayQueue.pop();
-
-                                    if (self->Is_Request_Canceled(deferred.HandleID)) {
-                                        self->Clear_Request_State(deferred.HandleID);
-                                        continue;
-                                    }
-
-                                    if (!promoted && deferred.Filename == finished_file && deferred.Group == finished_group) {
-                                        if (self->Try_Set_Request_State(deferred.HandleID, AUDIO_REQUEST_STATE_QUEUED)) {
-                                            promoted_requests.push(std::move(deferred));
-                                            promoted = true;
-                                        }
-                                    } else {
-                                        still_deferred.push(std::move(deferred));
-                                    }
-                                }
-                                self->DeferredPlayQueue = std::move(still_deferred);
+                            if (handle == nullptr) {
+                                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stale null pointer.\n");
+                                it = group_vec.erase(it);
+                                continue;
                             }
+
+                            handle->Update(deltaTime);
+
+                            if (handle->Is_Finished()) {
+                                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed \"%s\" as it finished\n", handle->Get_FileName().c_str());
+
+                                // Capture identity before the handle is freed.
+                                const std::string finished_file = handle->Get_FileName();
+                                const AudioGroupType finished_group = handle->Get_Sample_Template().Get_Group();
+                                const AudioInstanceHandle finished_id = handle->Get_ID();
+
+                                /**
+                                 *  Inlined removal instead of Remove_Active_Handle_NoLock so we
+                                 *  can advance the iterator cleanly. A full `it = group_vec.begin()`
+                                 *  restart would re-Update every earlier handle in the same tick,
+                                 *  and Update is not idempotent (it decrements FadeTime and
+                                 *  RemainingLoopRepeats), so fades and finite-loop counts would
+                                 *  drift whenever a sound finishes mid-tick.
+                                 */
+                                it = group_vec.erase(it);
+                                self->ActiveInstanceMap.erase(finished_id);
+                                self->Clear_Request_State(finished_id);
+
+                                // Promote the first deferred request for this sample now that a
+                                // concurrent slot has opened up.
+                                if (!self->DeferredPlayQueue.empty()) {
+                                    std::queue<AudioRequest> still_deferred;
+                                    bool promoted = false;
+                                    while (!self->DeferredPlayQueue.empty()) {
+                                        AudioRequest deferred = std::move(self->DeferredPlayQueue.front());
+                                        self->DeferredPlayQueue.pop();
+
+                                        if (self->Is_Request_Canceled(deferred.HandleID)) {
+                                            self->Clear_Request_State(deferred.HandleID);
+                                            continue;
+                                        }
+
+                                        if (!promoted && deferred.Filename == finished_file && deferred.Group == finished_group) {
+                                            if (self->Try_Set_Request_State(deferred.HandleID, AUDIO_REQUEST_STATE_QUEUED)) {
+                                                promoted_requests.push(std::move(deferred));
+                                                promoted = true;
+                                            }
+                                        } else {
+                                            still_deferred.push(std::move(deferred));
+                                        }
+                                    }
+                                    self->DeferredPlayQueue = std::move(still_deferred);
+                                }
+                            } else {
+                                ++it;
+                            }
+                        }
+                    }
+
+                    // Prune any nullptrs from ActiveInstanceMap.
+                    for (auto it = self->ActiveInstanceMap.begin(); it != self->ActiveInstanceMap.end();) {
+                        if (it->second == nullptr) {
+                            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stale null pointer.\n");
+                            it = self->ActiveInstanceMap.erase(it);
                         } else {
                             ++it;
                         }
                     }
                 }
 
-                // Prune any nullptrs from ActiveInstanceMap.
-                for (auto it = self->ActiveInstanceMap.begin(); it != self->ActiveInstanceMap.end();) {
-                    if (it->second == nullptr) {
-                        AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_THREAD, "AudioThread: CLEANUP - Removed a stale null pointer.\n");
-                        it = self->ActiveInstanceMap.erase(it);
-                    } else {
-                        ++it;
+                if (!promoted_requests.empty()) {
+                    {
+                        std::scoped_lock req_lock(self->RequestMutex);
+                        while (!promoted_requests.empty()) {
+                            self->RequestQueue.push(std::move(promoted_requests.front()));
+                            promoted_requests.pop();
+                        }
                     }
+                    SetEvent(self->RequestEvent);
+                }
+
+                /**
+                 *  STEP 3: Wait up to 25ms or until a producer signals a new
+                 *  request. WaitForSingleObject on a Win32 event is used rather
+                 *  than a condition_variable - see RequestEvent's declaration.
+                 */
+                WaitForSingleObject(self->RequestEvent, 25);
+
+                /**
+                 *  A clean pass clears the failure streak.
+                 */
+                consecutive_failures = 0;
+
+            } catch (const std::exception& ex) {
+                DEBUG_WARNING("AudioThread: exception in cleanup loop: {}\n", ex.what());
+                if (++consecutive_failures >= max_consecutive_failures) {
+                    DEBUG_WARNING("AudioThread: {} consecutive failures, stopping cleanup loop.\n", consecutive_failures);
+                    break;
+                }
+            } catch (...) {
+                DEBUG_WARNING("AudioThread: unknown exception in cleanup loop.\n");
+                if (++consecutive_failures >= max_consecutive_failures) {
+                    DEBUG_WARNING("AudioThread: {} consecutive failures, stopping cleanup loop.\n", consecutive_failures);
+                    break;
                 }
             }
-
-            if (!promoted_requests.empty()) {
-                {
-                    std::scoped_lock req_lock(self->RequestMutex);
-                    while (!promoted_requests.empty()) {
-                        self->RequestQueue.push(std::move(promoted_requests.front()));
-                        promoted_requests.pop();
-                    }
-                }
-                self->RequestCV.notify_all();
-            }
-
-            /**
-             *  STEP 3: Sleep up to 25ms or until a new request arrives.
-             */
-            std::unique_lock<std::mutex> wait_lock(self->RequestMutex);
-            self->RequestCV.wait_for(wait_lock, std::chrono::milliseconds(25));
         }
 
     });
@@ -567,6 +603,15 @@ AudioManagerClass::AudioManagerClass()
 AudioManagerClass::~AudioManagerClass()
 {
     End();
+
+    /**
+     *  Close the wake event last - the worker (the only other user) is already
+     *  joined by End().
+     */
+    if (RequestEvent != nullptr) {
+        CloseHandle(RequestEvent);
+        RequestEvent = nullptr;
+    }
 }
 
 
@@ -648,6 +693,21 @@ bool AudioManagerClass::Init(HWND hWnd)
      *  Start the background cleanup and request processing thread.
      */
     ThreadExitFlag = false;
+
+    /**
+     *  Create the wake event the worker waits on (auto-reset, initially
+     *  unsignaled). Created lazily and kept for the manager's lifetime - the
+     *  destructor closes it - so producers can signal it safely even after End().
+     */
+    if (RequestEvent == nullptr) {
+        RequestEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (RequestEvent == nullptr) {
+            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_MANAGER, "AudioMgr: Failed to create request event!\n");
+            End();
+            return false;
+        }
+    }
+
     try {
         CleanupThread = std::thread(&AudioManagerClass::CleanupThreadFunction, this);
     } catch (const std::exception& ex) {
@@ -693,7 +753,9 @@ void AudioManagerClass::End()
     AudioVocClass::Wait_For_Scan();
     AudioVoxClass::Wait_For_Scan();
     ThreadExitFlag = true;
-    RequestCV.notify_all();
+    if (RequestEvent != nullptr) {
+        SetEvent(RequestEvent);
+    }
     if (CleanupThread.joinable()) {
         CleanupThread.join();
     }
@@ -923,7 +985,7 @@ AudioInstanceHandle AudioManagerClass::Request_Play(const std::string& filename,
         );
     }
 
-    RequestCV.notify_all();
+    SetEvent(RequestEvent);
 
     AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Play - Request to play \"%s\" submitted.\n", filename.c_str());
 
@@ -945,7 +1007,7 @@ bool AudioManagerClass::Request_Stop(AudioInstanceHandle id, float fade_out)
 
     if (Cancel_Queued_Request(id)) {
         AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_MANAGER, "AudioMgr::Request_Stop - Canceled queued/deferred handle 0x%08X.\n", id.ID);
-        RequestCV.notify_all();
+        SetEvent(RequestEvent);
         return true;
     }
 
@@ -954,7 +1016,7 @@ bool AudioManagerClass::Request_Stop(AudioInstanceHandle id, float fade_out)
         RequestQueue.emplace(id, fade_out);
     }
 
-    RequestCV.notify_all();
+    SetEvent(RequestEvent);
 
 #ifndef NDEBUG
     /**

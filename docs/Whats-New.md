@@ -104,13 +104,16 @@ New:
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 - Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
 - Allows aircraft to use Q-Move (by JoyfulShush)
-- Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
+- Add an in-game ImGui "Game Info" overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
 - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 - Allow Free Radar to be used when players are in low power (by JoyfulShush)
 - Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 - Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
+- Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
+- Fix Win32 dialog scaling with SDL (by Rampastring)
+
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -136,6 +139,7 @@ Vinifera fixes:
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 - Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
+- Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no` (by Rampastring)
 
 
 Vanilla fixes:
@@ -186,6 +190,7 @@ Vanilla fixes:
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
+- EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
 
 :::
 

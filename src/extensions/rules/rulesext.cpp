@@ -104,10 +104,11 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     PausedRepairsFrame(6),
     EscortRange(-1),
     AbandonTargetEscortRange(-1),
-	IsFreeRadarOnLowPower(false),
-	IsCellTagsIgnoreStealth(true)
+    IsFreeRadarOnLowPower(false),
     IsUseBridgeHealth(false),
-	BridgeArmor(ARMOR_NULL)
+    BridgeArmor(ARMOR_NULL),
+    IsCellTagsIgnoreStealth(true),
+    HarvesterUnderAttackThrottleTime(-1)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -764,6 +765,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     IronCurtainFlashIntensityMultiplier = ini.Get_Int(AUDIOVISUAL, "IronCurtainFlashIntensityMultiplier", IronCurtainFlashIntensityMultiplier);
     IronCurtainPulseTable = ini.Get_IntList(AUDIOVISUAL, "IronCurtainPulseTable", IronCurtainPulseTable);
     IronCurtainSound = ini.Get_VocType(AUDIOVISUAL, "IronCurtainSound", IronCurtainSound);
+
+    float harvthrottle = ini.Get_Float(AUDIOVISUAL, "HarvesterUnderAttackThrottleTime");
+    if (harvthrottle != 0.0) {
+        HarvesterUnderAttackThrottleTime = harvthrottle * 900.0f;
+    }
 
     return true;
 }

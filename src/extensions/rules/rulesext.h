@@ -271,7 +271,7 @@ public:
      */
     int AbandonTargetEscortRange;
 
-	/**
+    /**
 	 *  Determines whether Free Radar would still apply even during Low Power
 	 */
 	bool IsFreeRadarOnLowPower;
@@ -287,8 +287,13 @@ public:
      */
     bool IsUseBridgeHealth;
 
-	/*
-    * The armor type used by bridges for damage calculation. Only used when Bridge Health mechanism is enabled.
-    */
-    ArmorType BridgeArmor;
+    /**
+     * The armor type used by bridges for damage calculation. Only used when Bridge Health mechanism is enabled.
+     */
+    ArmorType BridgeArmor;    
+
+    /**
+     *  When EVA has told the player "harvester under attack", prevent EVA from saying that line again for this many frames.
+     */
+    int HarvesterUnderAttackThrottleTime;
 };

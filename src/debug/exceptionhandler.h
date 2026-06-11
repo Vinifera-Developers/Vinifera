@@ -44,6 +44,13 @@ void Init_Exception_Handler();
 void Shutdown_Exception_Handler();
 
 /**
+ *  Reserve a guaranteed stack region (via SetThreadStackGuarantee) for the SEH
+ *  filter on the calling thread, so a stack overflow can still reach the crash
+ *  dumper. Per-thread; call as early as possible on every thread.
+ */
+void Vinifera_Reserve_Exception_Stack();
+
+/**
  *  Spawn the dedicated crash-dump thread. Call once from a post-init, main-
  *  thread context (not DllMain - loader lock). Idempotent; until it runs,
  *  crashes use the inline dump path.

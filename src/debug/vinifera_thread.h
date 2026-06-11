@@ -45,6 +45,7 @@ __declspec(noinline) static void Vinifera_Thread_Stub(F& body)
 template<class F>
 inline void Vinifera_Run_Thread(F&& body)
 {
+    Vinifera_Reserve_Exception_Stack();
     _set_se_translator((_se_translator_function)&_Structured_Exception_Translator);
     std::set_terminate(&Vinifera_Terminate_Handler);
 

@@ -73,6 +73,12 @@ if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type default to RelWithDebInfo")
 endif()
 
+# Emit compile_commands.json so editor tooling (clangd) can resolve includes,
+# defines and the C++ standard. Only the Ninja/Makefile generators honour this;
+# the Visual Studio generator ignores it, so configure once with Ninja (e.g. a
+# CLion build dir) to produce the database. See .clangd for how it is consumed.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 ################################################################################
 # Configure C++ standard
@@ -657,7 +663,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 
 # Build with multiple processes.
 target_compile_options(${PROJECT_NAME} PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:/MP2>
+    $<$<COMPILE_LANGUAGE:CXX>:/MP>
 )
 
 # Link to the TS++ static library.
