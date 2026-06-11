@@ -113,7 +113,9 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
      */
     CachedCursor& entry = CursorCache[shape];
     if (entry.cursor != nullptr && entry.hotspot_x == Hotspot.X && entry.hotspot_y == Hotspot.Y) {
-        Replace_Cursor(entry.cursor, false);
+        if (IsCaptured) {
+            Replace_Cursor(entry.cursor, false);
+        }
         return;
     }
 
@@ -127,7 +129,14 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
     entry.cursor = SDL_CreateColorCursor(CursorSurfaces[shape], Hotspot.X, Hotspot.Y);
     entry.hotspot_x = Hotspot.X;
     entry.hotspot_y = Hotspot.Y;
-    Replace_Cursor(entry.cursor, false);
+
+    /**
+     *  While the mouse is released, the OS owns the cursor image; shape
+     *  changes are only bookkept and get applied on Capture_Mouse.
+     */
+    if (IsCaptured) {
+        Replace_Cursor(entry.cursor, false);
+    }
 }
 
 
@@ -174,6 +183,12 @@ void SDLMouseClass::Release_Mouse()
 
     IsCaptured = false;
     Apply_Cursor_Visibility();
+
+    /**
+     *  The OS owns the cursor now, so show the standard arrow instead of the
+     *  game shape. The shape bookkeeping is kept so Capture_Mouse can restore it.
+     */
+    Set_System_Cursor();
 }
 
 
@@ -204,6 +219,15 @@ void SDLMouseClass::Capture_Mouse()
 
     IsCaptured = true;
     Apply_Cursor_Visibility();
+
+    /**
+     *  The game owns the cursor again, so re-apply the game shape that was
+     *  current when the mouse was released (unless an override is active,
+     *  in which case Clear_Cursor_Override restores it later).
+     */
+    if (!IsOverriding && !IsOverrideHidden && MouseShape != nullptr) {
+        Apply_Current_Cursor();
+    }
 }
 
 
@@ -493,6 +517,28 @@ void SDLMouseClass::Clear_Cursor_Override()
     IsOverrideHidden = false;
     Apply_Cursor_Visibility();
 
+    /**
+     *  While the mouse is released, the OS owns the cursor, so restore the
+     *  standard arrow rather than the game shape.
+     */
+    if (!IsCaptured || MouseShape == nullptr) {
+        Set_System_Cursor();
+        return;
+    }
+
+    Apply_Current_Cursor();
+}
+
+
+/**
+ *  Re-applies the current game cursor shape, going through the cursor cache
+ *  (no surface / HCURSOR reallocation). Falls back to the system cursor if
+ *  no game shape has been set.
+ *
+ *  @author: ZivDero
+ */
+void SDLMouseClass::Apply_Current_Cursor()
+{
     if (MouseShape == nullptr) {
         Set_System_Cursor();
         return;
@@ -500,7 +546,7 @@ void SDLMouseClass::Clear_Cursor_Override()
 
     /**
      *  Null MouseShape so Set_Cursor's early-return can't fire, then re-apply
-     *  via the CursorCache path (no surface / HCURSOR reallocation).
+     *  via the CursorCache path.
      */
     ShapeSet const* shape = MouseShape;
     int shape_number = ShapeNumber;
