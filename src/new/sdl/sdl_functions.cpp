@@ -38,6 +38,7 @@
 #include "wwmouse.h"
 
 #include <algorithm>
+#include <cmath>
 #include <commctrl.h>
 #include <unordered_map>
 #include <windowsx.h>
@@ -54,9 +55,17 @@ namespace
 
     std::unordered_map<HWND, WNDPROC> SDLChildWindowProcedures;
 
-    constexpr int MusicVolumeTrackbarID = 1327;
-    constexpr int SoundVolumeTrackbarID = 1330;
-    constexpr int VoiceVolumeTrackbarID = 1334;
+    /**
+     *  Custom OwnerDraw control messages (mirrors vanilla ownrdraw.h).
+     */
+    constexpr UINT OD_SETTRACKSTEP = WM_USER + 171;
+    constexpr UINT OD_TRACKNUMBERS = WM_USER + 172;
+
+    /**
+     *  The border thickness used by OwnerDraw controls, fixed at 1 by
+     *  OwnerDraw's one-time initialization (vanilla ODBorderThickness).
+     */
+    constexpr int OD_BORDER_THICKNESS = 1;
 
     struct SDLTrackbarDragInfo
     {
@@ -64,8 +73,28 @@ namespace
         bool HasRange = false;
         int Minimum = 0;
         int Maximum = 0;
+
+        /**
+         *  Step set by OD_SETTRACKSTEP; 0 means never set, which the game's
+         *  trackbar procedure treats as a step of 1.
+         */
+        int Step = 0;
+
+        /**
+         *  Set by OD_TRACKNUMBERS. Trackbars showing numbers reserve a
+         *  50-pixel value-number gutter at the right side of the control.
+         */
+        bool ShowNumbers = true;
     };
     std::unordered_map<HWND, SDLTrackbarDragInfo> SDLTrackbarDragState;
+
+    struct SDLScrollBarDragInfo
+    {
+        bool IsDragging = false;
+        bool HasRange = false;
+        int Range = 0;
+    };
+    std::unordered_map<HWND, SDLScrollBarDragInfo> SDLScrollBarDragState;
 
     LRESULT CALLBACK SDL_Child_Windows_Procedure(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
     void SDL_Subclass_Child_Window(HWND window);
@@ -174,6 +203,22 @@ namespace
     }
 
     /**
+     *  Returns true if the window is a standard Win32 scrollbar control
+     *  (the game's listboxes and combo drop-downs attach these).
+     *
+     *  @author: ZivDero
+     */
+    bool SDL_Is_ScrollBar_Window(HWND window)
+    {
+        char class_name[64] = {};
+        if (GetClassNameA(window, class_name, sizeof(class_name)) == 0) {
+            return false;
+        }
+
+        return lstrcmpiA(class_name, "ScrollBar") == 0;
+    }
+
+    /**
      *  Returns true for child controls whose capture should override normal
      *  logical hit testing.
      *
@@ -181,7 +226,7 @@ namespace
      */
     bool SDL_Should_Use_Captured_Child_Window(HWND window)
     {
-        return SDL_Is_Trackbar_Window(window) || SDL_Is_Combo_Dropdown_Window(window);
+        return SDL_Is_Trackbar_Window(window) || SDL_Is_Combo_Dropdown_Window(window) || SDL_Is_ScrollBar_Window(window);
     }
 
     /**
@@ -230,22 +275,6 @@ namespace
     }
 
     /**
-     *  Sends the parent notification expected after a trackbar position change.
-     *
-     *  @author: Rampastring
-     */
-    void SDL_Notify_Trackbar_Parent(HWND trackbar, int code, int position)
-    {
-        HWND parent = GetParent(trackbar);
-        if (parent == nullptr) {
-            return;
-        }
-
-        const UINT scroll_message = (GetWindowLongPtr(trackbar, GWL_STYLE) & TBS_VERT) != 0 ? WM_VSCROLL : WM_HSCROLL;
-        SendMessage(parent, scroll_message, MAKEWPARAM(code, position), reinterpret_cast<LPARAM>(trackbar));
-    }
-
-    /**
      *  Returns the logical range that was previously sent to a game-owned
      *  trackbar subclass.
      *
@@ -264,28 +293,12 @@ namespace
     }
 
     /**
-     *  Returns true for trackbars that reserve a 50-pixel value-number gutter
-     *  at the right side of the control.
+     *  Computes and applies a trackbar position from a logical client point,
+     *  mirroring the position math of the game's own trackbar procedure.
+     *  The game's procedure sends the WM_HSCROLL parent notification itself
+     *  when the position actually changes.
      *
-     *  @author: Rampastring
-     */
-    bool SDL_Trackbar_Shows_Numbers(HWND trackbar)
-    {
-        switch (GetDlgCtrlID(trackbar)) {
-        case MusicVolumeTrackbarID:
-        case SoundVolumeTrackbarID:
-        case VoiceVolumeTrackbarID:
-            return true;
-
-        default:
-            return false;
-        }
-    }
-
-    /**
-     *  Computes and applies a trackbar position from a logical client point.
-     *
-     *  @author: Rampastring
+     *  @author: Rampastring, ZivDero
      */
     int SDL_Set_Trackbar_Pos_From_Point(HWND trackbar, POINT point)
     {
@@ -307,7 +320,8 @@ namespace
         GetClientRect(trackbar, &client_rect);
 
         SDLTrackbarDragInfo& state = SDLTrackbarDragState[trackbar];
-        const int number_width = SDL_Trackbar_Shows_Numbers(trackbar) ? 50 : 0;
+        const int step = state.Step > 0 ? state.Step : 1;
+        const int number_width = state.ShowNumbers ? 50 : 0;
         int slider_width = client_rect.right - client_rect.left - number_width - 13;
         if (slider_width <= 1) {
             slider_width = 1;
@@ -319,7 +333,7 @@ namespace
         }
 
         int max_x = client_rect.right - number_width - 12;
-        xpos = std::max(xpos, max_x);
+        xpos = std::min(xpos, max_x);
 
         if (max_x <= 1) {
             return effective_min_pos;
@@ -330,7 +344,7 @@ namespace
             idx = range;
         }
 
-        int new_pos = effective_min_pos + idx;
+        int new_pos = step * ((effective_min_pos + idx) / step);
         new_pos = std::clamp(new_pos, effective_min_pos, effective_max_pos);
         state.HasRange = true;
         state.Minimum = effective_min_pos;
@@ -360,8 +374,7 @@ namespace
             state.IsDragging = true;
 
             POINT point = { GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
-            int position = SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
-            SDL_Notify_Trackbar_Parent(trackbar, TB_THUMBTRACK, position);
+            SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
             return true;
         }
 
@@ -370,8 +383,7 @@ namespace
             auto drag_state = SDLTrackbarDragState.find(trackbar);
             if (drag_state != SDLTrackbarDragState.end() && drag_state->second.IsDragging && GetCapture() == trackbar) {
                 POINT point = { GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
-                int position = SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
-                SDL_Notify_Trackbar_Parent(trackbar, TB_THUMBTRACK, position);
+                SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
                 return true;
             }
             return false;
@@ -382,15 +394,12 @@ namespace
             auto drag_state = SDLTrackbarDragState.find(trackbar);
             if (drag_state != SDLTrackbarDragState.end() && drag_state->second.IsDragging) {
                 POINT point = { GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
-                int position = SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
+                SDL_Set_Trackbar_Pos_From_Point(trackbar, point);
                 drag_state->second.IsDragging = false;
 
                 if (GetCapture() == trackbar) {
                     ReleaseCapture();
                 }
-
-                SDL_Notify_Trackbar_Parent(trackbar, TB_THUMBPOSITION, position);
-                SDL_Notify_Trackbar_Parent(trackbar, TB_ENDTRACK, position);
                 return true;
             }
             return false;
@@ -407,6 +416,210 @@ namespace
 
         case WM_NCDESTROY:
             SDLTrackbarDragState.erase(trackbar);
+            return false;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     *  Computes the scrollbar grip geometry the same way the game's own
+     *  scrollbar procedure does.
+     *
+     *  @author: ZivDero
+     */
+    struct SDLScrollBarMetrics
+    {
+        RECT ClientRect;
+        int GripHeight;
+        int Travel;
+        int GripTop;
+        int GripBottom;
+    };
+
+    void SDL_Get_ScrollBar_Metrics(HWND scrollbar, int range, SDLScrollBarMetrics& metrics)
+    {
+        GetClientRect(scrollbar, &metrics.ClientRect);
+        metrics.ClientRect.right -= 2 * OD_BORDER_THICKNESS;
+        metrics.ClientRect.bottom -= 2 * OD_BORDER_THICKNESS;
+
+        const int travel_height = metrics.ClientRect.bottom - metrics.ClientRect.top - 44;
+        metrics.GripHeight = static_cast<int>(travel_height - std::log(static_cast<double>(range + 1)) * travel_height * 0.2);
+        if (metrics.GripHeight <= 14) {
+            metrics.GripHeight = 14;
+        }
+
+        metrics.Travel = travel_height - metrics.GripHeight;
+        if (metrics.Travel <= 1) {
+            metrics.Travel = 1;
+        }
+
+        int position = static_cast<int>(SDL_Call_Stored_Child_Window_Procedure(scrollbar, SBM_GETPOS, 0, 0));
+        position = std::clamp(position, 0, range);
+        metrics.GripTop = position * metrics.Travel / range + metrics.ClientRect.top + 22;
+        metrics.GripBottom = metrics.GripTop + metrics.GripHeight;
+    }
+
+    /**
+     *  Applies a scrollbar position through the game's own scrollbar
+     *  procedure, which notifies the owner window and repaints itself
+     *  when the position actually changes.
+     *
+     *  @author: ZivDero
+     */
+    void SDL_Apply_ScrollBar_Position(HWND scrollbar, int range, int position)
+    {
+        SCROLLINFO info {};
+        info.cbSize = sizeof(info);
+        info.fMask = SIF_RANGE | SIF_POS;
+        info.nMax = range;
+        info.nPos = std::clamp(position, 0, range);
+        SDL_Call_Stored_Child_Window_Procedure(scrollbar, SBM_SETSCROLLINFO, 0, reinterpret_cast<LPARAM>(&info));
+    }
+
+    /**
+     *  Computes and applies a scrollbar position from a logical client point,
+     *  mirroring the grip math of the game's own scrollbar procedure.
+     *
+     *  @author: ZivDero
+     */
+    void SDL_Set_ScrollBar_Pos_From_Point(HWND scrollbar, int range, const SDLScrollBarMetrics& metrics, int y)
+    {
+        int grip_top = y - metrics.GripHeight / 2;
+        if (grip_top < 22) {
+            grip_top = 22;
+        }
+
+        const int max_top = metrics.ClientRect.bottom - metrics.GripHeight - 22;
+        if (grip_top > max_top) {
+            grip_top = max_top;
+        }
+
+        SDL_Apply_ScrollBar_Position(scrollbar, range, range * (grip_top - 22) / metrics.Travel);
+    }
+
+    /**
+     *  Returns the current physical cursor position converted to the given
+     *  window's logical client coordinates.
+     *
+     *  @author: ZivDero
+     */
+    POINT SDL_Logical_Cursor_Point_For_Window(HWND window)
+    {
+        POINT point;
+        GetCursorPos(&point);
+        ScreenToClient(MainWindow, &point);
+        point = SDL_Physical_Point_To_Logical_Game_Point(point);
+        if (window != MainWindow) {
+            MapWindowPoints(MainWindow, window, &point, 1);
+        }
+        return point;
+    }
+
+    /**
+     *  Handles scaled grip dragging and arrow auto-repeat for the game's
+     *  scrollbar controls. The game's own scrollbar procedure computes both
+     *  from the physical cursor position (GetCursorPos), which does not map
+     *  to the logical control layout when the display is scaled. Arrow and
+     *  track clicks are left to the game's procedure, which handles them
+     *  from the (already translated) message coordinates.
+     *
+     *  @author: ZivDero
+     */
+    bool SDL_Handle_ScrollBar_Mouse_Message(HWND scrollbar, UINT message, LPARAM lparam)
+    {
+        if (!SDL_Is_ScrollBar_Window(scrollbar)) {
+            return false;
+        }
+
+        auto state = SDLScrollBarDragState.find(scrollbar);
+        const bool has_range = state != SDLScrollBarDragState.end() && state->second.HasRange && state->second.Range > 0;
+
+        switch (message) {
+        case WM_LBUTTONDOWN:
+        {
+            if (!has_range) {
+                return false;
+            }
+
+            SDLScrollBarMetrics metrics;
+            SDL_Get_ScrollBar_Metrics(scrollbar, state->second.Range, metrics);
+
+            const int y = GET_Y_LPARAM(lparam);
+            if (y < metrics.GripTop || y >= metrics.GripBottom) {
+                return false;
+            }
+
+            SetCapture(scrollbar);
+            state->second.IsDragging = true;
+            return true;
+        }
+
+        case WM_MOUSEMOVE:
+        {
+            if (has_range && state->second.IsDragging && GetCapture() == scrollbar) {
+                SDLScrollBarMetrics metrics;
+                SDL_Get_ScrollBar_Metrics(scrollbar, state->second.Range, metrics);
+                SDL_Set_ScrollBar_Pos_From_Point(scrollbar, state->second.Range, metrics, GET_Y_LPARAM(lparam));
+                return true;
+            }
+            return false;
+        }
+
+        case WM_LBUTTONUP:
+        {
+            if (has_range && state->second.IsDragging) {
+                SDLScrollBarMetrics metrics;
+                SDL_Get_ScrollBar_Metrics(scrollbar, state->second.Range, metrics);
+                SDL_Set_ScrollBar_Pos_From_Point(scrollbar, state->second.Range, metrics, GET_Y_LPARAM(lparam));
+                state->second.IsDragging = false;
+
+                if (GetCapture() == scrollbar) {
+                    ReleaseCapture();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        case WM_TIMER:
+        {
+            /**
+             *  The game's procedure runs the arrow auto-repeat from a timer
+             *  it starts on (non-grip) button-down, while it holds capture.
+             */
+            if (!has_range || state->second.IsDragging || GetCapture() != scrollbar) {
+                return false;
+            }
+
+            SDLScrollBarMetrics metrics;
+            SDL_Get_ScrollBar_Metrics(scrollbar, state->second.Range, metrics);
+
+            const POINT point = SDL_Logical_Cursor_Point_For_Window(scrollbar);
+            if (point.x > metrics.ClientRect.left) {
+                const int position = static_cast<int>(SDL_Call_Stored_Child_Window_Procedure(scrollbar, SBM_GETPOS, 0, 0));
+                if (point.y < 22) {
+                    SDL_Apply_ScrollBar_Position(scrollbar, state->second.Range, position - 1);
+                } else if (point.y > metrics.ClientRect.bottom - 22) {
+                    SDL_Apply_ScrollBar_Position(scrollbar, state->second.Range, position + 1);
+                }
+            }
+
+            SetTimer(scrollbar, 0, 0x19, nullptr);
+            return true;
+        }
+
+        case WM_CAPTURECHANGED:
+        {
+            if (state != SDLScrollBarDragState.end()) {
+                state->second.IsDragging = false;
+            }
+            return false;
+        }
+
+        case WM_NCDESTROY:
+            SDLScrollBarDragState.erase(scrollbar);
             return false;
 
         default:
@@ -561,6 +774,10 @@ namespace
         }
 
         if (SDL_Handle_Trackbar_Mouse_Message(hwnd, message, translated_lparam)) {
+            return 0;
+        }
+
+        if (SDL_Handle_ScrollBar_Mouse_Message(hwnd, message, translated_lparam)) {
             return 0;
         }
 
@@ -722,33 +939,73 @@ void SDL_Subclass_Combo_Dropdown_Windows(HWND parent)
 
 
 /**
- *  Records custom trackbar state from messages that the game sends through its
- *  owner-drawn control procedure.
+ *  Records custom trackbar and scrollbar state from messages that the game
+ *  sends through its owner-drawn control procedure.
  *
- *  @author: Rampastring
+ *  @author: Rampastring, ZivDero
  */
-void SDL_Record_Trackbar_State_Message(HWND window, UINT message, WPARAM, LPARAM lparam)
+void SDL_Record_Control_State_Message(HWND window, UINT message, WPARAM, LPARAM lparam)
 {
-    if (!SDL_Is_Trackbar_Window(window)) {
+    if (SDL_Is_Trackbar_Window(window)) {
+
+        switch (message) {
+        case TBM_SETRANGE:
+        {
+            SDLTrackbarDragInfo& state = SDLTrackbarDragState[window];
+            state.Minimum = static_cast<unsigned short>(LOWORD(lparam));
+            state.Maximum = static_cast<unsigned short>(HIWORD(lparam));
+            state.HasRange = state.Maximum > state.Minimum;
+            break;
+        }
+
+        case OD_SETTRACKSTEP:
+            SDLTrackbarDragState[window].Step = static_cast<int>(lparam);
+            break;
+
+        case OD_TRACKNUMBERS:
+            SDLTrackbarDragState[window].ShowNumbers = lparam != 0;
+            break;
+
+        case WM_NCDESTROY:
+            SDLTrackbarDragState.erase(window);
+            break;
+
+        default:
+            break;
+        }
+
         return;
     }
 
-    switch (message) {
-    case TBM_SETRANGE:
-    {
-        SDLTrackbarDragInfo& state = SDLTrackbarDragState[window];
-        state.Minimum = static_cast<unsigned short>(LOWORD(lparam));
-        state.Maximum = static_cast<unsigned short>(HIWORD(lparam));
-        state.HasRange = state.Maximum > state.Minimum;
-        break;
-    }
+    if (SDL_Is_ScrollBar_Window(window)) {
 
-    case WM_NCDESTROY:
-        SDLTrackbarDragState.erase(window);
-        break;
+        switch (message) {
+        case SBM_SETRANGE:
+        {
+            SDLScrollBarDragInfo& state = SDLScrollBarDragState[window];
+            state.Range = static_cast<int>(lparam);
+            state.HasRange = state.Range > 0;
+            break;
+        }
 
-    default:
-        break;
+        case SBM_SETSCROLLINFO:
+        {
+            const SCROLLINFO* info = reinterpret_cast<const SCROLLINFO*>(lparam);
+            if (info != nullptr) {
+                SDLScrollBarDragInfo& state = SDLScrollBarDragState[window];
+                state.Range = info->nMax;
+                state.HasRange = state.Range > 0;
+            }
+            break;
+        }
+
+        case WM_NCDESTROY:
+            SDLScrollBarDragState.erase(window);
+            break;
+
+        default:
+            break;
+        }
     }
 }
 
