@@ -13,6 +13,7 @@
 
 #include "connmgr.h"
 #include "debughandler.h"
+#include "desyncdialog.h"
 #include "event.h"
 #include "eventext.h"
 #include "extension_globals.h"
@@ -913,121 +914,172 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
         return 0;
     }
 
-#define TIMING_FIX 1
-#if (TIMING_FIX)
-    //
-    // If MPlayerMaxAhead is recomputed such that it increases, the systems
-    // may try to free-run to the new MaxAhead value.  If so, they may miss
-    // an event that was generated after the TIMING event was created, but
-    // before it executed; this event will be scheduled with the older,
-    // shorter MaxAhead value.  If a system doesn't receive this event, it
-    // may execute past the frame it's scheduled to execute on, creating
-    // a Packet-Recieved-Too-Late error.  To prevent this, find any events
-    // that are scheduled to execute during this "period of vulnerability",
-    // and re-schedule for the end of that period.
-    //
+    /**
+     *  If MPlayerMaxAhead is recomputed such that it increases, the systems
+     *  may try to free-run to the new MaxAhead value. If so, they may miss
+     *  an event that was generated after the TIMING event was created, but
+     *  before it executed; this event will be scheduled with the older,
+     *  shorter MaxAhead value. If a system doesn't receive this event, it
+     *  may execute past the frame it's scheduled to execute on, creating
+     *  a Packet-Received-Too-Late error. To prevent this, find any events
+     *  that are scheduled to execute during this "period of vulnerability",
+     *  and re-schedule for the end of that period.
+     */
     for (int j = 0; j < DoList.Count; j++) {
         if (DoList[j].Type != EVENT_FRAMEINFO && DoList[j].Frame > NewMaxAheadFrame1 && DoList[j].Frame < NewMaxAheadFrame2) {
             DEBUG_INFO("DoList: Moving event from frame {} to frame {}\n", DoList[j].Frame, NewMaxAheadFrame2);
             DoList[j].Frame = NewMaxAheadFrame2;
-#ifdef MIRROR_QUEUE
-            MirrorList[j].Frame = NewMaxAheadFrame2;
-#endif
         }
     }
-#endif
 
-    // Skip the CRC check if we're less than 256 frames into the game;
-    // this will prevent a new game from instantly going out of sync.
-    // (for some reason, FRAMEINFO CRCs are different between players
-    // at the start of the game, and Westwood circumvented it with this hack)
-    bool check_crc = true;
+    /**
+     *  Skip the CRC check if we're less than 256 frames into the game; this will
+     *  prevent a new game from instantly going out of sync. (For some reason,
+     *  FRAMEINFO CRCs are different between players at the start of the game, and
+     *  Westwood circumvented it with this hack.)
+     */
+    bool check_crc = !skip_crc || *skip_crc == 0;
 
-    if (!skip_crc || *skip_crc == 0) {
-        check_crc = true;
-    } else {
-        check_crc = false;
-    }
-
-    // Only print CRCs once, even if we desynced from multiple players at once.
-    // There's no use writing multiple desync logs for one desync, or the same log multiple times.
+    /**
+     *  Only print CRCs once, even if we desynced from multiple players at once.
+     *  There's no use writing multiple desync logs for one desync.
+     */
     bool print_crcs = true;
 
-    if (check_crc)
-    {
-        // First, check for desyncs. For this, loop through all events.
-        // For FRAMEINFO events to be executed on this frame, check their CRC.
+    if (check_crc) {
+
+        /**
+         *  First, check for desyncs. Loop through all events, and for FRAMEINFO
+         *  events to be executed on this frame, check their CRC. Collect all the
+         *  players that have desynced this frame before reacting, so that if
+         *  several players desync at once we still only show one dialog.
+         */
+        bool newly_desynced = false;
+
         for (int i = 0; i < DoList.Count; i++) {
 
             EventClass& event = DoList[i];
 
             if (event.ID < Session.Players.Count() && !SessionExtension->Is_Out_of_Sync(event.ID) && Frame == event.Frame && event.Type == EVENT_FRAMEINFO) {
-                if (event.Data.FrameInfo.Delay < std::size(CRC)) 
-                {
+                if (event.Data.FrameInfo.Delay < std::size(CRC)) {
+
                     int index = ((event.Frame - event.Data.FrameInfo.Delay) & std::size(CRC) - 1);
 
-                    if (CRC[index] != event.Data.FrameInfo.CRC) 
-                    {
+                    if (CRC[index] != event.Data.FrameInfo.CRC) {
+
                         SessionExtension->Mark_Player_As_Out_of_Sync(event.ID);
+                        newly_desynced = true;
 
                         if (print_crcs) {
                             Print_CRCs(&event);
                             print_crcs = false;
                         }
 
-                        Session.Suspended++;
-
-                        char buffer[128];
-
-                        std::sprintf(buffer, "Player %s has gone out of sync!", Houses[event.ID]->IniName.c_str());
-                        Session.Messages.Add_Message(nullptr, 0, buffer, Fetch_Scheme_Index_By_Name("White"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
-
-                        // Try to keep the connection alive to the desynced player, so we can still chat with them, and sync "load game" messages between us.
-                        // However, execute a REMOVEPLAYER event to turn their stuff over to the AI, or if auto-surrender is enabled, blow them up.
-                        // TODO: Check that kicking still works in case the desynced player disconnects (that got bugged in the similar ts-patches implementation).
-                        OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_REMOVEPLAYER, event.ID));
-
-                        // if (WWMessageBox().Process(buffer, 0, TXT_CONTINUE, TXT_STOP) == 0)
-                        // {
-                        //     // If the user wants to continue without this player, destroy the connection to them only.
-                        //     Session.Suspended--;
-                        // 
-                        //     if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && net) {
-                        //         Destroy_Connection(event.ID, -1);
-                        //     }
-                        // 
-                        //     Map.Flag_To_Redraw(GS_REDRAW_ALL);
-                        // }
-                        // else
-                        // {
-                        //     Session.Suspended--;
-                        //     return 0;
-                        // }
-
-                        return 1;
+                        DEBUG_WARNING("Player %s has gone out of sync!\n", Houses[event.ID]->IniName.c_str());
                     }
                 }
             }
         }
+
+        if (newly_desynced) {
+
+            /**
+             *  If a multiplayer save load is already scheduled, the imminent reload
+             *  will re-sync everyone - just skip executing events until it happens.
+             */
+            if (PendingMultiplayerSaveLoadTime) {
+                return 1;
+            }
+
+            /**
+             *  Open the desync dialog and halt the game until the host decides
+             *  what to do. The dialog keeps the connections alive in the meantime.
+             */
+            DesyncDialogOutcomeType outcome = DesyncDialog.Run();
+
+            switch (outcome) {
+
+            /**
+             *  Continue without the players that are out of sync with us.
+             *  Destroy_Connection queues an EVENT_REMOVEPLAYER for each of them.
+             *  This is symmetric: the desynced players drop us in the same way.
+             */
+            case DESYNC_OUTCOME_CONTINUE:
+                for (int id = 0; id < MAX_PLAYERS; id++) {
+                    if (SessionExtension->Is_Out_of_Sync(id)) {
+                        Destroy_Connection(id, -1);
+                    }
+                }
+                SessionExtension->Update_Master_After_Player_Removal();
+
+                /**
+                 *  Reset the desync frame so that a later, separate desync opens
+                 *  the dialog again. Keep IsOutOfSync[] set so that any further
+                 *  events from the dropped players keep being skipped consistently.
+                 */
+                SessionExtension->OutOfSyncFrame = -1;
+
+                /**
+                 *  Fall through to executing the DoList - the game resumes.
+                 */
+                break;
+
+            /**
+             *  A multiplayer save load has been scheduled. Skip executing events;
+             *  After_Main_Loop performs the load at a safe point.
+             */
+            case DESYNC_OUTCOME_LOAD:
+                return 1;
+
+            /**
+             *  Sign off to every player and let the caller stop the game.
+             */
+            case DESYNC_OUTCOME_QUIT: {
+                GlobalPacketType packet;
+                packet.Command = NET_SIGN_OFF;
+                std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+
+                /**
+                 *  Send twice for good measure, since these are not acked.
+                 */
+                for (int attempt = 0; attempt < 2; attempt++) {
+                    for (int i = 1; i < Session.Players.Count(); i++) {
+                        Ipx.Send_Global_Message(&packet, sizeof(packet), 0, &Session.Players[i]->Address);
+                        Ipx.Service();
+                    }
+                }
+
+                /**
+                 *  Make sure the sign-off packets actually go out before we exit.
+                 */
+                while (Ipx.Global_Num_Send() > 0 && Ipx.Service()) {
+                }
+
+                return 0;
+            }
+            }
+        }
     }
 
+    /**
+     *  Execute the DoList. Events must be executed in the same order on all
+     *  systems; so, execute them in the order of the HouseClass array. This
+     *  array is stored in the same order on all systems.
+     */
+    for (int i = 0; i < Houses.Count(); i++) {
 
-    // Execute the DoList.  Events must be executed in the same order on all
-    // systems; so, execute them in the order of the HouseClass array.  This
-    // array is stored in the same order on all systems.
-    for (int i = 0; i < Houses.Count(); i++)
-    {
-        // Convert our index into a HousesType value
         HousesType house = (HousesType)(i);
         HouseClass* hptr = Houses[house];
 
-        // If for some reason this house doesn't exist, skip it.
-        // Also, if this house has exited the game, skip it.  (The user can
-        // generate events after he exits, because the exit event is scheduled
-        // at least FrameSendRate*3 frames ahead.  If one system gets these
-        // packets & another system doesn't, they'll go out of sync because
-        // they aren't checking the CommandCount for that house, since that
-        // house isn't connected any more.)
+        /**
+         *  If for some reason this house doesn't exist, skip it. Also, if this
+         *  house has exited the game, skip it. (The user can generate events
+         *  after he exits, because the exit event is scheduled at least
+         *  FrameSendRate*3 frames ahead. If one system gets these packets and
+         *  another system doesn't, they'll go out of sync because they aren't
+         *  checking the CommandCount for that house, since that house isn't
+         *  connected any more.)
+         */
         if (!hptr) {
             continue;
         }
@@ -1036,49 +1088,58 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
             continue;
         }
 
-        // Loop through all events
         for (int j = 0; j < DoList.Count; j++) {
 
             EventClass& event = DoList[j];
 
-            // Skip FRAMEINFO commends, we already processed them above.
+            /**
+             *  Skip FRAMEINFO events, we already processed them above.
+             */
             if (event.Type == EVENT_FRAMEINFO) {
                 continue;
             }
 
-            // if (net) Update_Queue_Mono(net, 6);
-
-            // If this player has been marked as being out of sync, don't execute their events.
-            // TODO execute them anyway?
-            // Don't check this in campaign games, because in campaign, the player's house ID can be higher than MAX_PLAYERS.
+            /**
+             *  If this player has been marked as being out of sync, don't execute
+             *  their events. Don't check this in campaign games, because there the
+             *  player's house ID can be higher than MAX_PLAYERS.
+             */
             if (Session.Type != GAME_NORMAL && SessionExtension->Is_Out_of_Sync(event.ID)) {
                 continue;
             }
 
-            // If this event was from the currently-executing player ID, and it's
-            // time to execute it, execute it.
+            /**
+             *  If this event was from the currently-executing player ID, and it's
+             *  time to execute it, execute it.
+             */
             if (event.ID == hptr->HeapID && Frame >= event.Frame && !event.IsExecuted) {
 
-                // Error if it's too late to execute this packet!
-                // (Hack: disable this check for solo or skirmish mode.)
+                /**
+                 *  Error if it's too late to execute this packet!
+                 *  (Hack: disable this check for solo or skirmish mode.)
+                 */
                 if (Frame > event.Frame && event.Type != EVENT_FRAMEINFO && Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
                     _Dump_Packet_Too_Late_Stuff(&event);
                     Session.Suspended++;
                     WWMessageBox().Process(TXT_PACKET_TOO_LATE, TXT_OK);
                     Session.Suspended--;
-                    return (0);
+                    return 0;
                 }
 
-                // Only execute EXIT, OPTIONS and PAGEUSER commands if they're from myself.
+                /**
+                 *  Only execute EXIT, OPTIONS and PAGEUSER commands if they're from myself.
+                 */
                 if (event.Type == EVENT_EXIT || event.Type == EVENT_OPTIONS || event.Type == EVENT_PAGEUSER) {
 
                     if (event.Type == EVENT_EXIT) {
+
                         int house_count = Houses.Count();
-                        /*
-                        **	Flag that this house lost because it quit.
-                        */
+
+                        /**
+                         *  Flag that this house lost because it quit.
+                         */
                         HousesType quithouse = HOUSE_NONE;
-                        HouseClass* quithptr = NULL;
+                        HouseClass* quithptr = nullptr;
 
                         for (int player = 0; player < house_count; player++) {
                             quithouse = (HousesType)(player);
@@ -1092,11 +1153,13 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                             }
                         }
 
-                        // Send the game statistics packet now since the game is effectivly over
+                        /**
+                         *  Send the game statistics packet now, since the game is effectively over.
+                         */
                         if (Count_Alive_Teams(quithptr) == 1 && Session.Type == GAME_INTERNET && !GameStatisticsPacketSent) {
                             Session.SawCompletion = true;
                             Register_Game_End_Time();
-                            Send_Statistics_Packet(); // Event - player aborted, and there were only 2 left.
+                            Send_Statistics_Packet();
                         }
 
                         if (Session.Type == GAME_INTERNET && !GameStatisticsPacketSent && PlayerPtr != nullptr && PlayerPtr == quithptr) {
@@ -1105,29 +1168,24 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                         }
                     }
 
-                    if (Debug_Print_Events)
-                    {
-                        if (event.Type == EVENT_EXIT)
-                        {
-                            DEBUG_INFO("Exit Event: ID:{} ({}),  Event Frame:{},  My Frame:{}\n", event.ID, (char*)Houses[(HousesType)(event.ID)]->IniName.c_str(), event.Frame, Frame);
-                        }
+                    if (Debug_Print_Events && event.Type == EVENT_EXIT) {
+                        DEBUG_INFO("Exit Event: ID:{} ({}),  Event Frame:{},  My Frame:{}\n", event.ID, (char*)Houses[(HousesType)(event.ID)]->IniName.c_str(), event.Frame, Frame);
                     }
 
-                    if (event.ID == PlayerPtr->HeapID)
-                    {
+                    if (event.ID == PlayerPtr->HeapID) {
+
                         event.Execute();
-                    }
-                    else if (event.Type == EVENT_EXIT)
-                    {
-                        // If this EXIT event isn't from myself, destroy the connection
-                        // for that player.  The HousesType for this event is the connection ID.
-                        if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && net)
-                        {
+
+                    } else if (event.Type == EVENT_EXIT) {
+
+                        /**
+                         *  If this EXIT event isn't from myself, destroy the connection
+                         *  for that player. The HousesType for this event is the connection ID.
+                         */
+                        if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && net) {
                             int index = net->Connection_Index(house);
-                            if (index != -1)
-                            {
-                                for (int k = index; k < net->Num_Connections() - 1; k++)
-                                {
+                            if (index != -1) {
+                                for (int k = index; k < net->Num_Connections() - 1; k++) {
                                     their[k] = their[k + 1];
                                 }
 
@@ -1135,10 +1193,11 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                             }
                         }
 
-                        // Special case for recording playback: turn the house over
-                        // to the computer.
-                        if (Session.Play && DoList[j].Type == EVENT_EXIT)
-                        {
+                        /**
+                         *  Special case for recording playback: turn the house over
+                         *  to the computer.
+                         */
+                        if (Session.Play && DoList[j].Type == EVENT_EXIT) {
                             DEBUG_INFO("Replacing a player with AI for recording playback\n");
                             hptr->IsHuman = false;
                             hptr->IQ = Rule->MaxIQ;
@@ -1147,18 +1206,19 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                             Session.NumPlayers--;
                         }
                     }
-                }
-                // Execute other commands
-                else
-                {
+
+                } else {
+
+                    /**
+                     *  Execute other commands.
+                     */
                     event.Execute();
                 }
 
-                //	Mark this event as executed.
+                /**
+                 *  Mark this event as executed.
+                 */
                 event.IsExecuted = 1;
-#ifdef MIRROR_QUEUE
-                event.IsExecuted = 1;
-#endif
             }
         }
     }

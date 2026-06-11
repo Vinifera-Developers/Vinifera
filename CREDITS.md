@@ -426,3 +426,4 @@ This page lists all the individual contributions to the project by their author.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
   - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.
   - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.
+  - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.

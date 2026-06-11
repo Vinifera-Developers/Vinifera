@@ -48,6 +48,10 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         void Clear_Out_Of_Sync_Data();
         void Mark_Player_As_Out_of_Sync(int id);
 
+        void Set_Master(int house_id);
+        void Announce_Master();
+        void Update_Master_After_Player_Removal();
+
     private:
         static std::string Multiplayer_Save_File_Name_From_Index(int index);
         void Init_Multiplayer_Saves_For_Session();

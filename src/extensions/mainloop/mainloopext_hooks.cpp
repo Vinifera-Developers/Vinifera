@@ -18,7 +18,9 @@
 #include "ccfile.h"
 #include "ccini.h"
 #include "command.h"
+#include "conquerext_hooks.h"
 #include "debughandler.h"
+#include "desyncdialog.h"
 #include "event.h"
 #include "eventext.h"
 #include "fatal.h"
@@ -191,22 +193,6 @@ static void After_Main_Loop()
     }
 
     SessionExtension->Service_Autosave_After_Main_Loop();
-
-    /**
-     *  If we have gone out of sync, instruct the players on it.
-     *  This is done with a slight delay to avoid overwhelming the player with information.
-     */
-    if (SessionExtension->OutOfSyncFrame >= 0)
-    {
-        if (Frame == SessionExtension->OutOfSyncFrame + Options.Normalize_Delay(TICKS_PER_SECOND * 2))
-        {
-            Session.Messages.Add_Message(nullptr, 0, "If there are saves available from this session, the game host can attempt to load a save to re-sync the game.", Fetch_Scheme_Index_By_Name("White"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
-        }
-        else if (Frame == SessionExtension->OutOfSyncFrame + Options.Normalize_Delay(TICKS_PER_SECOND * 4))
-        {
-            Session.Messages.Add_Message(nullptr, 0, "Otherwise, the desynced player(s) will continue in a separate session from you.", Fetch_Scheme_Index_By_Name("White"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
-        }
-    }
 
     if (PendingMultiplayerSaveLoadTime && std::chrono::steady_clock::now() >= *PendingMultiplayerSaveLoadTime)
     {
@@ -621,77 +607,18 @@ void _Message_Input(KeyNumType& input)
             strcpy(Session.LastMessage, serial_packet->Message.Message);
         } else if (Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) {
 
-            /*
-            **  Network game: fill in a GlobalPacketType & send it.
-            */
-            ExtGlobalPacketType& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
-            packet.Command = static_cast<ExtNetCommandType>(NET_MESSAGE);
-            strcpy(packet.Name, Session.Players[0]->Name);
-            packet.Message.Color = Session.ColorIdx;
-            packet.Message.NameCRC = Compute_Name_CRC(Session.GameName);
-
-            /*
-            **  Add a scope marker.
-            */
-            if (Session.MessageAddress.Is_Broadcast()) {
-                if (SessionExtension->IsChatToAllies) {
-                    strcpy(packet.Message.Scope, "to team");
-                } else {
-                    strcpy(packet.Message.Scope, "to all");
-                }
+            const char* text;
+            if (rc == 3) {
+                text = Session.Messages.Get_Edit_Buf();
             } else {
-                std::snprintf(packet.Message.Scope, std::size(packet.Message.Scope), "to %s", SessionExtension->MessageRecipientName);
+                text = Session.Messages.Get_Overflow_Buf();
             }
 
-            if (rc == 3) {
-                std::strncpy(packet.Message.Buf, Session.Messages.Get_Edit_Buf(), std::size(packet.Message.Buf) - 1);
-            } else {
-                std::strncpy(packet.Message.Buf, Session.Messages.Get_Overflow_Buf(), std::size(packet.Message.Buf) - 1);
+            Vinifera_Send_Network_Chat(text);
+
+            if (rc == 4) {
                 Session.Messages.Clear_Overflow_Buf();
             }
-
-            /*
-            **  If the chat to all key was hit, MessageAddress will be a broadcast address; send
-            **  the message to every player we have a connection with.
-            */
-            if (Session.MessageAddress.Is_Broadcast()) {
-                for (int i = 0; i < Ipx.Num_Connections(); i++) {
-
-                    /*
-                    **  If this is a "to allies" message, check if the player is allied to the target house.
-                    */
-                    if (!SessionExtension->IsChatToAllies || PlayerPtr->Is_Ally(Session.Players[i + 1]->Player.ID)) {
-                        Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, Ipx.Connection_Address(Ipx.Connection_ID(i)));
-                        Ipx.Service();
-                    }
-                }
-            } else {
-
-                /*
-                **  Otherwise, MessageAddress contains the exact address to send to.
-                **  Send to that address only.
-                */
-                Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, &Session.MessageAddress);
-                Ipx.Service();
-            }
-
-            /*
-            **  Print the message for the sender player as well.
-            */
-            char name[32];
-            std::snprintf(name, std::size(name), "%s [%s]" , packet.Name, packet.Message.Scope);
-            Session.Messages.Add_Message(name, packet.Message.Color, packet.Message.Buf, Session.Scheme_From_Color_ID(packet.Message.Color), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE));
-
-            /*
-            **  Tell the map to do an update.
-            */
-            Map.Flag_To_Redraw(GS_REDRAW_ALL);
-
-            /*
-            **  Store this message in our LastMessage buffer; the computer may send
-            **  us a version of it later.
-            */
-            strcpy(Session.LastMessage, Session.GPacket.Message.Buf);
         }
 
         /*
@@ -699,6 +626,92 @@ void _Message_Input(KeyNumType& input)
         */
         Map.Flag_To_Redraw(GS_REDRAW_ALL);
     }
+}
+
+
+/**
+ *  Sends a network chat message to the other players, using the current
+ *  Session.MessageAddress and SessionExtension->IsChatToAllies settings,
+ *  and echoes it into our own message list.
+ *
+ *  Extracted from _Message_Input so the desync dialog can reuse it.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+void Vinifera_Send_Network_Chat(const char* text)
+{
+    /*
+    **  Network game: fill in a GlobalPacketType & send it.
+    */
+    ExtGlobalPacketType& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+    packet.Command = static_cast<ExtNetCommandType>(NET_MESSAGE);
+    strcpy(packet.Name, Session.Players[0]->Name);
+    packet.Message.Color = Session.ColorIdx;
+    packet.Message.NameCRC = Compute_Name_CRC(Session.GameName);
+
+    /*
+    **  Add a scope marker.
+    */
+    if (Session.MessageAddress.Is_Broadcast()) {
+        if (SessionExtension->IsChatToAllies) {
+            strcpy(packet.Message.Scope, "to team");
+        } else {
+            strcpy(packet.Message.Scope, "to all");
+        }
+    } else {
+        std::snprintf(packet.Message.Scope, std::size(packet.Message.Scope), "to %s", SessionExtension->MessageRecipientName);
+    }
+
+    std::strncpy(packet.Message.Buf, text, std::size(packet.Message.Buf) - 1);
+    packet.Message.Buf[std::size(packet.Message.Buf) - 1] = '\0';
+
+    /*
+    **  If the chat to all key was hit, MessageAddress will be a broadcast address; send
+    **  the message to every player we have a connection with.
+    */
+    if (Session.MessageAddress.Is_Broadcast()) {
+        for (int i = 0; i < Ipx.Num_Connections(); i++) {
+
+            /*
+            **  If this is a "to allies" message, check if the player is allied to the target house.
+            */
+            if (!SessionExtension->IsChatToAllies || PlayerPtr->Is_Ally(Session.Players[i + 1]->Player.ID)) {
+                Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, Ipx.Connection_Address(Ipx.Connection_ID(i)));
+                Ipx.Service();
+            }
+        }
+    } else {
+
+        /*
+        **  Otherwise, MessageAddress contains the exact address to send to.
+        **  Send to that address only.
+        */
+        Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, &Session.MessageAddress);
+        Ipx.Service();
+    }
+
+    /*
+    **  Print the message for the sender player as well.
+    */
+    char name[32];
+    std::snprintf(name, std::size(name), "%s [%s]" , packet.Name, packet.Message.Scope);
+    Session.Messages.Add_Message(name, packet.Message.Color, packet.Message.Buf, Session.Scheme_From_Color_ID(packet.Message.Color), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE));
+
+    /*
+    **  Echo our own message into the desync dialog's chat box, if it is open.
+    */
+    DesyncDialog.Notify_Chat(packet.Name, packet.Message.Buf);
+
+    /*
+    **  Tell the map to do an update.
+    */
+    Map.Flag_To_Redraw(GS_REDRAW_ALL);
+
+    /*
+    **  Store this message in our LastMessage buffer; the computer may send
+    **  us a version of it later.
+    */
+    strcpy(Session.LastMessage, Session.GPacket.Message.Buf);
 }
 
 

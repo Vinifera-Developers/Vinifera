@@ -13,6 +13,7 @@
 
 #include "beacon.h"
 #include "debughandler.h"
+#include "desyncdialog.h"
 #include "event.h"
 #include "gamedlg.h"
 #include "hooker.h"
@@ -52,16 +53,13 @@ void _Unselect_All()
 
 
 /**
- *  Replacement for IPX_Call_Back.
+ *  Processes incoming global network packets. Extracted from _IPX_Call_Back so
+ *  that the desync dialog's pump loop can share the same packet handling.
  *
  *  @author: tomsons26, ZivDero
  */
-void _IPX_Call_Back()
+void Vinifera_Process_Incoming_Global_Packets()
 {
-    Windows_Message_Handler();
-
-    Ipx.Service();
-
     /*
     ** Read packets only if the game is "closed", so we don't steal global
     ** messages from the connection dialogs.
@@ -90,6 +88,8 @@ void _IPX_Call_Back()
 
                         if (Session.GAddress == *Ipx.Connection_Address(id)) {
                             Destroy_Connection(id, 0);
+                            SessionExtension->Update_Master_After_Player_Removal();
+                            DesyncDialog.Notify_Player_Left(id);
                         }
                     }
                     break;
@@ -135,6 +135,12 @@ void _IPX_Call_Back()
                         **  Save this message in our last-message buffer
                         */
                         strcpy(Session.LastMessage, packet.Message.Buf);
+
+                        /*
+                        **  Also echo the message into the desync dialog's chat box,
+                        **  if it is open.
+                        */
+                        DesyncDialog.Notify_Chat(packet.Name, packet.Message.Buf);
                     }
                     break;
                 }
@@ -192,13 +198,36 @@ void _IPX_Call_Back()
 
                     DEBUG_INFO("EXT_NET_LOAD_GAME received from game host.\n");
 
-                    Session.Messages.Add_Message(nullptr, 0, "The game host wants to load a saved game. Loading in 5 seconds...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+                    /*
+                    **  When the desync dialog is open it shows the countdown itself,
+                    **  so suppress the in-game message in that case.
+                    */
+                    if (!DesyncDialog.Is_Active()) {
+                        Session.Messages.Add_Message(nullptr, 0, "The game host wants to load a saved game. Loading in 5 seconds...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+                    }
 
                     {
                         int saveid = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).SaveInfo.ID;
                         PendingMultiplayerSaveLoadSlot = saveid;
                         PendingMultiplayerSaveLoadTime = std::chrono::steady_clock::now() + std::chrono::seconds(5);
                     }
+                    break;
+
+                case EXT_NET_HOST_ANNOUNCE: {
+                    int house_id = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).Heartbeat.HouseID;
+                    DEBUG_INFO("EXT_NET_HOST_ANNOUNCE received: house {} is the game master.\n", house_id);
+                    SessionExtension->Set_Master(house_id);
+                    break;
+                }
+
+                case EXT_NET_DESYNC_HEARTBEAT: {
+                    auto& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+                    DesyncDialog.Notify_Heartbeat(packet.Heartbeat.HouseID, packet.Heartbeat.IsHost != 0);
+                    break;
+                }
+
+                case EXT_NET_DESYNC_CONTINUE:
+                    DesyncDialog.Notify_Continue();
                     break;
 
                 default: {
@@ -212,6 +241,21 @@ void _IPX_Call_Back()
             Ipx.Service();
         }
     }
+}
+
+
+/**
+ *  Replacement for IPX_Call_Back.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+void _IPX_Call_Back()
+{
+    Windows_Message_Handler();
+
+    Ipx.Service();
+
+    Vinifera_Process_Incoming_Global_Packets();
 }
 
 
@@ -336,9 +380,9 @@ DEFINE_HOOK(0x004B6AC7, _Game_Options_Dialog_Proc_Load_Through_SpecialDialog_Pat
 {
     GET(long*, retval, EBX);
 
-    if (!Session.Singleplayer_Game() && !SessionExtension->IsOriginalHost)
+    if (!Session.Singleplayer_Game() && !(SessionExtension->IsSpawnerSession && Session.Am_I_Master()))
     {
-        Session.Messages.Add_Message(nullptr, 0, "Only the original game host can initiate loading a game in multiplayer.", Fetch_Scheme_Index_By_Name("White"), TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE / 2));
+        Session.Messages.Add_Message(nullptr, 0, "Only the game host can initiate loading a game in multiplayer.", Fetch_Scheme_Index_By_Name("White"), TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE / 2));
         SpecialDialog = SDLG_NONE;
     }
     else

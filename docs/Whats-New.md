@@ -122,6 +122,7 @@ New:
 - Add support for additional multiplayer difficulty levels (by Rampastring)
 - Allow separating human players' and AI players' normal-difficulty settings (by Rampastring)
 - Make it possible to load multiplayer saves (by Rampastring)
+- Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat (by ZivDero)
 
 
 Vinifera fixes:

@@ -339,6 +339,9 @@ enum ExtNetCommandType {
     EXT_NET_BEACON_DELETE,
     EXT_NET_BEACON_TEXT,
     EXT_NET_LOAD_GAME,
+    EXT_NET_HOST_ANNOUNCE,      // Sent by the game host to let the other players know who the host is.
+    EXT_NET_DESYNC_HEARTBEAT,   // Sent periodically while the desync dialog is open; keeps connections alive and detects departures.
+    EXT_NET_DESYNC_CONTINUE,    // The host's decision to continue the game without the desynced players.
 };
 
 /**
@@ -373,6 +376,10 @@ struct ExtGlobalPacketType {
         struct {
             int ID;
         } SaveInfo;
+        struct {
+            char HouseID;
+            char IsHost;
+        } Heartbeat;
         char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
     };
 };

@@ -66,6 +66,7 @@
 #include "savever.h"
 #include "scenario.h"
 #include "scenarioext.h"
+#include "desyncdialog.h"
 #include "sessionext.h"
 #include "script.h"
 #include "scripttype.h"
@@ -116,6 +117,7 @@
 
 #include <atlbase.h>
 #include <charconv>
+#include <filesystem>
 
 
 /**
@@ -1171,74 +1173,93 @@ bool LoadOptionsClassExt::_Delete_File(const char* filename)
 
 
 /**
+ *  Checks whether the given save file can be loaded by the current game:
+ *  the game and Vinifera versions must match, and, when in-game, the save
+ *  must belong to the current playthrough and not be a campaign save while
+ *  we're not in campaign (to facilitate the client's playthrough tracking).
+ *
+ *  This is the single place that decides whether a save is loadable; the
+ *  load dialog and the desync dialog both rely on it. Optionally returns
+ *  the save's header info.
+ *
+ *  @author: ZivDero
+ */
+bool Vinifera_Is_Save_Loadable(std::string_view path, ViniferaSaveVersionInfo* info_out)
+{
+    ViniferaSaveVersionInfo saveversion;
+    if (!Vinifera_Get_Savefile_Info(path, saveversion)) {
+        DEBUG_WARNING("Failed to read save file \"{}\"!\n", path);
+        return false;
+    }
+
+    const unsigned game_version = saveversion.Get_Internal_Version();
+    if (game_version != GameVersion) {
+        DEBUG_WARNING("Save file \"{}\" is incompatible! Tiberian Sun: File version 0x{:X}, Expected version 0x{:X}.\n", path, game_version, GameVersion);
+        return false;
+    }
+
+    const unsigned vinifera_version = saveversion.Get_Vinifera_Version();
+    if (vinifera_version != ViniferaGameVersion) {
+        DEBUG_WARNING("Save file \"{}\" is incompatible! Vinifera: File version 0x{:X}, Expected version 0x{:X}.\n", path, vinifera_version, ViniferaGameVersion);
+        return false;
+    }
+
+    if (GameActive) {
+
+        if (saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
+            DEBUG_INFO("Save file \"{}\" belongs to a different playthough, skipping.\n", path);
+            return false;
+        }
+
+        if (Session.Type != GAME_NORMAL && saveversion.Get_Game_Type() == GAME_NORMAL) {
+            DEBUG_INFO("Save file \"{}\" is a campaign save and the player is currently not in campaign, skipping.\n", path);
+            return false;
+        }
+    }
+
+    if (info_out != nullptr) {
+        *info_out = saveversion;
+    }
+
+    return true;
+}
+
+
+/**
  *  Reads the header from the selected save game file.
  *
  *  @author: ZivDero
  */
 bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* filename)
 {
-    char formatted_file_name[PATH_MAX];
-
     if (!file && !filename)
         return false;
 
-    if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) != 0) {
-
-        _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename->cFileName), nullptr);
-
-        ViniferaSaveVersionInfo saveversion;
-        if (Vinifera_Get_Savefile_Info(formatted_file_name, saveversion)) {
-
-            unsigned game_version = saveversion.Get_Internal_Version();
-            if (game_version != GameVersion) {
-                DEBUG_WARNING("Save file \"{}\" is incompatible! Tiberian Sun: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, game_version, GameVersion);
-                return false;
-            }
-
-            unsigned vinifera_version = saveversion.Get_Vinifera_Version();
-            if (vinifera_version != ViniferaGameVersion) {
-                DEBUG_WARNING("Save file \"{}\" is incompatible! Vinifera: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
-                return false;
-            }
-
-            /**
-             *  Don't allow loading saves from other playthroughs, or campaign saves if we're not in campaign
-             *  (to facilitate the client's playthrough tracking).
-             */
-            if (GameActive) {
-
-                if (saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
-                    DEBUG_INFO("Save file \"{}\" belongs to a different playthough, skipping.\n", formatted_file_name);
-                    return false;
-                }
-
-                if (Session.Type != GAME_NORMAL && saveversion.Get_Game_Type() == GAME_NORMAL) {
-                    DEBUG_INFO("Save file \"{}\" is a campaign save and the player is currently not in campaign, skipping.\n", formatted_file_name);
-                    return false;
-                }
-            }
-
-            wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description().c_str());
-            file->Old = false;
-            file->Valid = true;
-            file->Scenario = saveversion.Get_Scenario_Number();
-            file->Campaign = saveversion.Get_Campaign_Number();
-            file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
-            std::strncpy(file->Filename, formatted_file_name, std::size(file->Filename));
-            std::strncpy(file->Handle, saveversion.Get_Player_House().c_str(), std::size(file->Handle));
-            if (std::strlen(file->Filename) == 0) {
-                std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
-            }
-            file->DateTime = filename->ftLastWriteTime;
-
-            return true;
-        }
-        else {
-            DEBUG_WARNING("Failed to read save file \"{}\"!\n", formatted_file_name);
-        }
+    if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) == 0) {
+        return false;
     }
 
-    return false;
+    const std::string formatted_file_name = (std::filesystem::path(Vinifera_SavedGamesDirectory) / Filename_From_Path(filename->cFileName)).string();
+
+    ViniferaSaveVersionInfo saveversion;
+    if (!Vinifera_Is_Save_Loadable(formatted_file_name, &saveversion)) {
+        return false;
+    }
+
+    wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description().c_str());
+    file->Old = false;
+    file->Valid = true;
+    file->Scenario = saveversion.Get_Scenario_Number();
+    file->Campaign = saveversion.Get_Campaign_Number();
+    file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
+    std::strncpy(file->Filename, formatted_file_name.c_str(), std::size(file->Filename));
+    std::strncpy(file->Handle, saveversion.Get_Player_House().c_str(), std::size(file->Handle));
+    if (std::strlen(file->Filename) == 0) {
+        std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
+    }
+    file->DateTime = filename->ftLastWriteTime;
+
+    return true;
 }
 
 
@@ -1309,13 +1330,22 @@ DEFINE_HOOK(0x005047E6, _LoadOptionsClass_CTOR_Set_Extension_Patch, 0)
  */
 DEFINE_HOOK(0x0050520E, LoadOptionsClass_Dialog_Multiplayer_Load_Patch, 0x6)
 {
-    // In singleplayer, just execute the original code. Same if we only have 1 player.
-    if (Session.Singleplayer_Game() || Session.Players.Count() <= 1) {
+    // In singleplayer, just execute the original code.
+    if (Session.Singleplayer_Game()) {
         return 0;
     }
 
-    // If we are not the host, bail.
-    if (!SessionExtension->IsOriginalHost) {
+    // Normally a load with only one player left can just load right away. But when
+    // the desync dialog is open we must always schedule the load instead: loading
+    // synchronously from inside the dialog's pump loop would rebuild the player list
+    // and the world underneath us. Scheduling lets the dialog run its countdown and
+    // exit cleanly, after which After_Main_Loop performs the load at a safe point.
+    if (Session.Players.Count() <= 1 && !DesyncDialog.Is_Active()) {
+        return 0;
+    }
+
+    // If we are not the game host, bail.
+    if (!Session.Am_I_Master()) {
         return 0x005050C3;
     }
 

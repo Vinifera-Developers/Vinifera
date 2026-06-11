@@ -23,6 +23,7 @@
 #include "textprint.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "wsproto.h"
 
@@ -393,6 +394,16 @@ bool SessionClassExtension::Load_Multiplayer_Save(int slot)
         return false;
     }
 
+    /**
+     *  Re-announce the game master, since players may have dropped out
+     *  during the reload, and the master fields are not saved.
+     */
+    if (Session.Am_I_Master()) {
+        Announce_Master();
+    } else {
+        Update_Master_After_Player_Removal();
+    }
+
     return true;
 }
 
@@ -622,4 +633,91 @@ void SessionClassExtension::Mark_Player_As_Out_of_Sync(int id)
     ASSERT_FATAL(id > -1 && id < MAX_PLAYERS);
     IsOutOfSync[id] = true;
     if (OutOfSyncFrame < 0) OutOfSyncFrame = Frame;
+}
+
+
+/**
+ *  Records the given house as the game's master (host) in the vanilla
+ *  MasterPlayerID/MasterPlayerName fields, which our replacement of
+ *  SessionClass::Am_I_Master reads.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Set_Master(int house_id)
+{
+    if (house_id < 0 || house_id >= Houses.Count() || Houses[house_id] == nullptr) {
+        DEBUG_ERROR("Set_Master: invalid house ID {}!\n", house_id);
+        return;
+    }
+
+    Session.MasterPlayerID = house_id;
+    std::strncpy(Session.MasterPlayerName, Houses[house_id]->IniName.c_str(), std::size(Session.MasterPlayerName) - 1);
+    Session.MasterPlayerName[std::size(Session.MasterPlayerName) - 1] = '\0';
+
+    DEBUG_INFO("Set_Master: game master is now {} (house {})\n", Session.MasterPlayerName, house_id);
+}
+
+
+/**
+ *  Called on the game host to record itself as the game's master and
+ *  let the other players know about it.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Announce_Master()
+{
+    Set_Master(PlayerPtr->HeapID);
+
+    ExtGlobalPacketType packet {};
+    packet.Command = EXT_NET_HOST_ANNOUNCE;
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    packet.Heartbeat.HouseID = static_cast<char>(PlayerPtr->HeapID);
+    packet.Heartbeat.IsHost = 1;
+
+    for (int i = 1; i < Session.Players.Count(); i++) {
+        Ipx.Send_Global_Message(&packet, sizeof(packet), 1, &Session.Players[i]->Address);
+        Ipx.Service();
+    }
+}
+
+
+/**
+ *  Recomputes the game's master after a human player has left the game.
+ *  If the master is gone, the remaining player with the lowest house ID
+ *  is promoted. This is deterministic, so all clients agree on the new
+ *  master without any negotiation.
+ *
+ *  @author: ZivDero
+ */
+void SessionClassExtension::Update_Master_After_Player_Removal()
+{
+    if (Session.Singleplayer_Game()) {
+        return;
+    }
+
+    /**
+     *  If the current master is still in the game, there is nothing to do.
+     */
+    if (Session.MasterPlayerID != -1) {
+        for (int i = 0; i < Session.Players.Count(); i++) {
+            if (Session.Players[i]->Player.ID == Session.MasterPlayerID) {
+                return;
+            }
+        }
+    }
+
+    /**
+     *  Otherwise, promote the remaining player with the lowest house ID.
+     */
+    int new_master = -1;
+    for (int i = 0; i < Session.Players.Count(); i++) {
+        const int id = Session.Players[i]->Player.ID;
+        if (new_master == -1 || id < new_master) {
+            new_master = id;
+        }
+    }
+
+    if (new_master != -1 && new_master != Session.MasterPlayerID) {
+        Set_Master(new_master);
+    }
 }

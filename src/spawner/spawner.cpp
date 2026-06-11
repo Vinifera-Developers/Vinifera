@@ -232,6 +232,13 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->MultiplayerSavesInitializedForThisSession = Config->LoadSaveGame;
     SessionExtension->IsOriginalHost = Config->IsHost;
 
+    /**
+     *  Until the host announces itself, there is no known game master. This makes
+     *  our Am_I_Master replacement fall back to the "first human house" heuristic.
+     */
+    Session.MasterPlayerID = -1;
+    Session.MasterPlayerName[0] = '\0';
+
     SessionExtension->SpawnerInfo.StatsMapName = Config->MapName.c_str();
     SessionExtension->SpawnerInfo.StatsMapHash = Config->MapHash.c_str();
     SessionExtension->SpawnerInfo.DifficultyName = Config->DifficultyName.c_str();
@@ -374,6 +381,14 @@ bool Spawner::Start_Scenario(char* scenario_name)
 
         if (!Session.Create_Connections()) {
             return false;
+        }
+
+        /**
+         *  Let the other players know who the game host is, so that host
+         *  privileges can be migrated if the host leaves the game.
+         */
+        if (SessionExtension->IsOriginalHost) {
+            SessionExtension->Announce_Master();
         }
 
         return true;

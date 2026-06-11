@@ -39,6 +39,51 @@ BEGIN
 END
 
 
+IDD_DESYNC_HOST DIALOG DISCARDABLE  0, 0, 420, 320
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Synchronization Error",IDC_DESYNC_HEADER,30,14,360,16,NOT WS_GROUP
+    LTEXT           "The game has gone out of sync with the following players:",-1,30,40,360,14,NOT WS_GROUP
+    LTEXT           "",IDC_DESYNC_PLAYERS_TEXT,30,56,360,14,NOT WS_GROUP
+    LTEXT           "Press ""Load Game"" to load a saved game from this session, re-syncing the game for all players.",-1,30,80,360,28,NOT WS_GROUP
+    LTEXT           "Press ""Continue"" to continue playing without the desynced players. They will continue in a separate game session.",-1,30,112,360,28,NOT WS_GROUP
+    LTEXT           "Press ""Quit"" to exit the game now.",-1,30,144,360,14,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_CHAT_LIST,30,166,360,90,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    EDITTEXT        IDC_DESYNC_CHAT_EDIT,30,260,360,16,ES_AUTOHSCROLL | NOT WS_BORDER
+    LTEXT           "Loading the saved game in 5 seconds...",IDC_DESYNC_COUNTDOWN_TEXT,30,282,220,14,NOT WS_GROUP | NOT WS_VISIBLE
+    GROUPBOX        "",IDC_DESYNC_COUNTDOWN_BAR,256,281,134,14,NOT WS_VISIBLE
+    CONTROL         "Load Game",IDC_DESYNC_LOAD,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,30,300,116,16
+    CONTROL         "Continue",IDC_DESYNC_CONTINUE,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,152,300,116,16
+    CONTROL         "Quit",IDC_DESYNC_QUIT,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,274,300,116,16
+END
+
+
+IDD_DESYNC_WAIT DIALOG DISCARDABLE  0, 0, 420, 300
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Synchronization Error",IDC_DESYNC_HEADER,30,14,360,16,NOT WS_GROUP
+    LTEXT           "The game has gone out of sync.",IDC_DESYNC_PLAYERS_TEXT,30,40,360,14,NOT WS_GROUP
+    LTEXT           "If there are saves available from this session, the game host can attempt to load a save to re-sync the game.",-1,30,60,360,28,NOT WS_GROUP
+    LTEXT           "Alternatively, the host can select that the desynced players continue in a separate game session from each other.",-1,30,92,360,28,NOT WS_GROUP
+    LTEXT           "Please wait while the host is making a decision.",-1,30,124,360,14,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_CHAT_LIST,30,146,360,90,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    EDITTEXT        IDC_DESYNC_CHAT_EDIT,30,240,360,16,ES_AUTOHSCROLL | NOT WS_BORDER
+    LTEXT           "Loading the saved game in 5 seconds...",IDC_DESYNC_COUNTDOWN_TEXT,30,262,220,14,NOT WS_GROUP | NOT WS_VISIBLE
+    GROUPBOX        "",IDC_DESYNC_COUNTDOWN_BAR,256,261,134,14,NOT WS_VISIBLE
+    CONTROL         "Quit",IDC_DESYNC_QUIT,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP | WS_DISABLED,152,280,116,16
+END
+
+
 IDD_EXCEPTION DIALOGEX 0, 0, 350, 320
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Exception!"

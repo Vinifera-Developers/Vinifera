@@ -295,6 +295,10 @@ void Init_Vinifera_Commands()
     Commands.Add(new BeaconPlacementCommandClass);
     Commands.Add(new ToggleDebugOverlayCommandClass);
 
+#ifndef NDEBUG
+    Commands.Add(new ForceDesyncCommandClass);
+#endif
+
     /**
      *  Initialize hotkeys for sidebar tabs.
      */
