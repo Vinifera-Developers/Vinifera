@@ -71,7 +71,7 @@ BEGIN
     CTEXT           "Synchronization Error",IDC_DESYNC_HEADER,30,14,360,16,NOT WS_GROUP
     LTEXT           "The game has gone out of sync.",IDC_DESYNC_PLAYERS_TEXT,30,40,360,14,NOT WS_GROUP
     LTEXT           "If there are saves available from this session, the game host can attempt to load a save to re-sync the game.",-1,30,60,360,28,NOT WS_GROUP
-    LTEXT           "Alternatively, the host can select that the desynced players continue in a separate game session from each other.",-1,30,92,360,28,NOT WS_GROUP
+    LTEXT           "Alternatively, the host can choose for the desynced players to continue playing in separate game sessions.",-1,30,92,360,28,NOT WS_GROUP
     LTEXT           "Please wait while the host is making a decision.",-1,30,124,360,14,NOT WS_GROUP
     LISTBOX         IDC_DESYNC_CHAT_LIST,30,146,360,90,NOT LBS_NOTIFY |
                     LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
