@@ -859,7 +859,7 @@ DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9
 {
     GET(ActionType, action, EBX);
 
-    if (action == ACTION_TOGGLE_SELECT) {
+    if (action == ACTION_TOGGLE_SELECT || action == ACTION_GUARD_AREA || action == ACTION_MOVE) {
         return 0x004D76F9;
     }
 
