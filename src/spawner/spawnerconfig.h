@@ -128,7 +128,7 @@ public:
     bool AttackNeutralUnits = false;
     bool ScrapMetal = false;
     FixedString<PATH_MAX> CustomLoadScreen {""};
-    TPoint2D<int> CustomLoadScreenPos {};
+    TPoint2D<int> CustomLoadScreenPos {0, 0};
     bool ContinueWithoutHumans = false;
     FixedString<64> DifficultyName {""};
 
