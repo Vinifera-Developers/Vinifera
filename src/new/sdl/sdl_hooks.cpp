@@ -124,7 +124,7 @@ DEFINE_IMPLEMENTATION(LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARA
 
 LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
-    SDL_Record_Trackbar_State_Message(window, message, wparam, lparam);
+    SDL_Record_Control_State_Message(window, message, wparam, lparam);
 
     LPARAM translated_lparam = lparam;
     if (SDL_Redirect_Mouse_Message(window, message, wparam, lparam, &translated_lparam)) {

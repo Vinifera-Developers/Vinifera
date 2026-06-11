@@ -24,7 +24,7 @@ bool SDL_Update_Screen(Surface* surface);
 bool SDL_Change_Display_Mode(int width, int height);
 bool SDL_Redirect_Mouse_Message(HWND window, UINT message, WPARAM wparam, LPARAM lparam, LPARAM* translated_lparam);
 void SDL_Subclass_Combo_Dropdown_Windows(HWND parent);
-void SDL_Record_Trackbar_State_Message(HWND window, UINT message, WPARAM, LPARAM lparam);
+void SDL_Record_Control_State_Message(HWND window, UINT message, WPARAM, LPARAM lparam);
 
 
 /**
