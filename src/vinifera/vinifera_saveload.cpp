@@ -893,7 +893,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
      */
     MultiByteToWideChar(CP_ACP, 0, formatted_file_name, -1, wide_file_name, std::size(wide_file_name));
 
-    DEBUG_INFO("Creating DocFile\n");
+    //DEBUG_INFO("Creating DocFile\n");
     CComPtr<IStorage> storage;
     HRESULT hr = StgCreateDocfile(wide_file_name, STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE, 0, &storage);
     if (FAILED(hr)) {
@@ -918,13 +918,13 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Difficulty(Scen->CDifficulty);
     versioninfo.Set_Elapsed_Time(Scen->ElapsedTimer.Value());
 
-    DEBUG_INFO("Saving version information\n");
+    //DEBUG_INFO("Saving version information\n");
     if (FAILED(versioninfo.Save(storage))) {
         DEBUG_FATAL("Failed to write version information.\n");
         return false;
     }
 
-    DEBUG_INFO("Creating content stream.\n");
+    //DEBUG_INFO("Creating content stream.\n");
     CComPtr<IStream> docfile;
     hr = storage->CreateStream(L"CONTENTS", STGM_CREATE | STGM_WRITE | STGM_SHARE_EXCLUSIVE, 0, 0, &docfile);
     if (FAILED(hr)) {
@@ -932,7 +932,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    DEBUG_INFO("Linking content stream to compressor.\n");
+    //DEBUG_INFO("Linking content stream to compressor.\n");
     CComPtr<ILinkStream> linkstream;
     linkstream.CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC | CLSCTX_LOCAL_SERVER);
     hr = linkstream->Link_Stream(docfile);
@@ -947,17 +947,17 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     DEBUG_INFO("Calling Vinifera_Put_All().\n");
     bool result = Vinifera_Put_All(stream, false);
 
-    DEBUG_INFO("Unlinking content stream from compressor.\n");
+    //DEBUG_INFO("Unlinking content stream from compressor.\n");
     hr = linkstream->Unlink_Stream(nullptr);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to link unstream from compressor.\n");
         return false;
     }
 
-    DEBUG_INFO("Releasing content stream.\n");
+    //DEBUG_INFO("Releasing content stream.\n");
     docfile.Release();
 
-    DEBUG_INFO("Closing DocFile.\n");
+    //DEBUG_INFO("Closing DocFile.\n");
     hr = storage->Commit(STGC_DEFAULT);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to commit storage.\n");
@@ -994,7 +994,7 @@ bool Vinifera_Load_Game(const char* file_name)
      */
     MultiByteToWideChar(CP_ACP, 0, formatted_file_name, -1, wide_file_name, std::size(wide_file_name));
 
-    DEBUG_INFO("Opening DocFile\n");
+    //DEBUG_INFO("Opening DocFile\n");
     CComPtr<IStorage> storage;
     HRESULT hr = StgOpenStorage(wide_file_name, nullptr, STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
     if (FAILED(hr)) {
@@ -1017,14 +1017,14 @@ bool Vinifera_Load_Game(const char* file_name)
     Vinifera_PlaythroughID = saveversion.Get_Playthrough_ID();
     SwizzleManager.Reset();
 
-    DEBUG_INFO("Opening DocFile\n");
+    //DEBUG_INFO("Opening DocFile\n");
     hr = StgOpenStorage(wide_file_name, nullptr, STGM_SHARE_DENY_WRITE, nullptr, 0, &storage);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to open storage.\n");
         return false;
     }
 
-    DEBUG_INFO("Opening content stream.\n");
+    //DEBUG_INFO("Opening content stream.\n");
     CComPtr<IStream> docfile;
     hr = storage->OpenStream(L"CONTENTS", nullptr, STGM_READ | STGM_SHARE_EXCLUSIVE, 0, &docfile);
     if (FAILED(hr)) {
@@ -1032,7 +1032,7 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    DEBUG_INFO("Linking content stream to decompressor.\n");
+    //DEBUG_INFO("Linking content stream to decompressor.\n");
     CComPtr<ILinkStream> linkstream;
     linkstream.CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC | CLSCTX_LOCAL_SERVER);
     hr = linkstream->Link_Stream(docfile);
@@ -1050,7 +1050,7 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    DEBUG_INFO("Unlinking content stream from decompressor.\n");
+    //DEBUG_INFO("Unlinking content stream from decompressor.\n");
     linkstream->Unlink_Stream(nullptr);
 
     SwizzleManager.Reset();
