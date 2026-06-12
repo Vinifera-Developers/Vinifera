@@ -25,7 +25,7 @@
  *
  *  @author: Rampastring
  */
-DEFINE_HOOK(0x00591367, _OwnerDraw_Set_Colors_Text_Color_Patch, 0)
+DEFINE_HOOK(0x00591491, _OwnerDraw_Set_Colors_Text_Color_Patch, 6)
 {
     RGBClass rgb;
 
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x00591367, _OwnerDraw_Set_Colors_Text_Color_Patch, 0)
 
     OwnerDraw::TextColor1 = RGB(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
 
-    return 0x00591371;
+    return 0;
 }
 
 
