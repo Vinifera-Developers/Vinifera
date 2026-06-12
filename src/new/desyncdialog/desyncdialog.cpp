@@ -224,6 +224,46 @@ void DesyncDialogClass::Create_Dialog()
         return;
     }
 
+    /**
+     *  The dialog's pixel size depends on the system's font metrics, not on
+     *  the game's resolution, so at low resolutions it may not fit on the
+     *  screen. If so, take the excess height out of the chat list and move
+     *  everything below it up.
+     */
+    RECT dialog_rect;
+    GetWindowRect(Window, &dialog_rect);
+
+    RECT client_rect;
+    GetClientRect(MainWindow, &client_rect);
+
+    const int dialog_height = dialog_rect.bottom - dialog_rect.top;
+    if (dialog_height > client_rect.bottom) {
+
+        HWND chat = GetDlgItem(Window, IDC_DESYNC_CHAT_LIST);
+        RECT chat_rect;
+        GetWindowRect(chat, &chat_rect);
+        const int chat_height = chat_rect.bottom - chat_rect.top;
+
+        /**
+         *  Don't shrink the chat list to less than a third of its height.
+         */
+        const int delta = std::min<int>(dialog_height - client_rect.bottom, chat_height * 2 / 3);
+
+        SetWindowPos(chat, nullptr, 0, 0, chat_rect.right - chat_rect.left, chat_height - delta, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+
+        for (int id : { IDC_DESYNC_CHAT_EDIT, IDC_DESYNC_COUNTDOWN_TEXT, IDC_DESYNC_COUNTDOWN_BAR, IDC_DESYNC_LOAD, IDC_DESYNC_CONTINUE, IDC_DESYNC_QUIT }) {
+            HWND control = GetDlgItem(Window, id);
+            if (control != nullptr) {
+                RECT rect;
+                GetWindowRect(control, &rect);
+                MapWindowPoints(HWND_DESKTOP, Window, reinterpret_cast<POINT*>(&rect), 1);
+                SetWindowPos(control, nullptr, rect.left, rect.top - delta, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+            }
+        }
+
+        SetWindowPos(Window, nullptr, 0, 0, dialog_rect.right - dialog_rect.left, dialog_height - delta, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+
     WinDialogClass::Center_Window(Window);
 
     /**
