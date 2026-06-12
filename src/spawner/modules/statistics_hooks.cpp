@@ -26,19 +26,6 @@
 #include "tibsun_globals.h"
 
 
-static bool Is_Spawner_Write_Statistics()
-{
-    return SessionExtension->ExtOptions.IsWriteStatistics
-        && Session.Type == GAME_IPX;
-}
-
-
-static bool Is_Statistics_Enabled()
-{
-    return Is_Spawner_Write_Statistics() || Session.Type == GAME_INTERNET;
-}
-
-
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
@@ -66,7 +53,7 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
 {
     char* result = Create_Comms_Packet(size);
 
-    if (Is_Spawner_Write_Statistics()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         CCFileClass stats_file("stats.dmp");
         if (stats_file.Open(FILE_ACCESS_WRITE)) {
             stats_file.Write(result, size);
@@ -87,7 +74,7 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
  */
 void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
-    if (Is_Spawner_Write_Statistics()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         PacketClass::Add_Field(new FieldClass("SCEN", const_cast<char*>(SessionExtension->SpawnerInfo.StatsMapName.c_str())));
         PacketClass::Add_Field(new FieldClass("ACCN", const_cast<char*>(PlayerPtr->IniName.c_str())));
         PacketClass::Add_Field(new FieldClass("HASH", const_cast<char*>(SessionExtension->SpawnerInfo.StatsMapHash.c_str())));
@@ -111,7 +98,7 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
     // It should be also be the house ID.
     static auto& field_player_handle = Make_Global<char[5]>(0x0070FCF4);
 
-    if (Is_Spawner_Write_Statistics()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         const char id = field_player_handle[3] - '0';
 
         const HouseClass* house = Houses[id];
@@ -147,7 +134,7 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
  */
 DEFINE_HOOK(0x0046353C, _Print_MP_Stats_Check, 0)
 {
-    if (Is_Statistics_Enabled()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         return 0x00463542;
     }
 
@@ -157,7 +144,7 @@ DEFINE_HOOK(0x0046353C, _Print_MP_Stats_Check, 0)
 
 DEFINE_HOOK(0x005B4333, _Kick_Player_Now_SendStatistics, 0)
 {
-    if (Is_Statistics_Enabled()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         return 0x005B433C;
     }
 
@@ -167,7 +154,7 @@ DEFINE_HOOK(0x005B4333, _Kick_Player_Now_SendStatistics, 0)
 
 DEFINE_HOOK(0x005B1E94, _Queue_AI_Multiplayer_SendStatistics, 0)
 {
-    if (Is_Statistics_Enabled()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         return 0x005B1EA0;
     }
 
@@ -177,7 +164,7 @@ DEFINE_HOOK(0x005B1E94, _Queue_AI_Multiplayer_SendStatistics, 0)
 
 DEFINE_HOOK(0x00509220, _Main_Loop_SendStatistics1, 0)
 {
-    if (Is_Statistics_Enabled()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         return 0x00509229;
     }
 
@@ -187,7 +174,7 @@ DEFINE_HOOK(0x00509220, _Main_Loop_SendStatistics1, 0)
 
 DEFINE_HOOK(0x0050927A, _Main_Loop_SendStatistics2, 0)
 {
-    if (Is_Statistics_Enabled()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         return 0x00509283;
     }
 
@@ -195,61 +182,36 @@ DEFINE_HOOK(0x0050927A, _Main_Loop_SendStatistics2, 0)
 }
 
 
-DEFINE_HOOK(0x005B4FAE, _Execute_DoList_SendStatistics1, 0)
-{
-    if (Is_Statistics_Enabled()) {
-        return 0x005B4FB9;
-    }
-
-    return 0x005B500C;
-}
-
-
-DEFINE_HOOK(0x005B4FD3, _Execute_DoList_SendStatistics2, 0)
-{
-    if (Is_Statistics_Enabled()) {
-        return 0x005B4FDE;
-    }
-
-    return 0x005B500C;
-}
-
-
 DEFINE_HOOK(0x00462A26, _Main_Game_Start_Timer, 0)
 {
-    if (Is_Statistics_Enabled()) {
+    if (SessionExtension->Are_Statistics_Enabled()) {
         return 0x00462A2F;
     }
 
     return 0x00462A46;
 }
 
-#if 0 // todo look into fixing this
+
 /**
- *  Don't send statistics for observers.
+ *  Don't collect statistics for observers.
+ *
+ *  @note: YRpp spawner also writes non-multiplay-passive AI players, seems weird.
+ *  Skipped that for now.
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(0x006098DA, _Send_Statistics_Packet_Send_AI_Dont_Send_Observers, 0)
+DEFINE_HOOK(0x006098DC, _Send_Statistics_Packet_Send_AI_Dont_Send_Observers, 6)
 {
-    GET(HouseClass**, house, EDX);
+    GET(HouseClass*, house, EAX);
 
-    if (Is_Spawner_Write_Statistics()) {
-        HouseClassExtension* house_ext = Extension::Fetch(*house);
-        if ((*house)->Class->IsMultiplayPassive || house_ext->IsObserver) {
-            return 0x006098EC;
-        }
-    }
-    // Vanilla condition
-    else  {
-        if (!(*house)->IsHuman) {
-            return 0x006098EC;
+    if (SessionExtension->Are_Statistics_Enabled()) {
+        if (Extension::Fetch(house)->IsObserver) {
+            return 0x006098EC; // skip
         }
     }
 
-    return 0x006098E6;
+    return 0;
 }
-#endif
 
 
 /**

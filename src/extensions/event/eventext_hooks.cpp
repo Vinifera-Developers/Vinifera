@@ -1156,13 +1156,13 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                         /**
                          *  Send the game statistics packet now, since the game is effectively over.
                          */
-                        if (Count_Alive_Teams(quithptr) == 1 && Session.Type == GAME_INTERNET && !GameStatisticsPacketSent) {
+                        if (Count_Alive_Teams(quithptr) == 1 && SessionExtension->Are_Statistics_Enabled() && !GameStatisticsPacketSent) {
                             Session.SawCompletion = true;
                             Register_Game_End_Time();
                             Send_Statistics_Packet();
                         }
 
-                        if (Session.Type == GAME_INTERNET && !GameStatisticsPacketSent && PlayerPtr != nullptr && PlayerPtr == quithptr) {
+                        if (SessionExtension->Are_Statistics_Enabled() && !GameStatisticsPacketSent && PlayerPtr != nullptr && PlayerPtr == quithptr) {
                             DEBUG_INFO("Sending game results because I quit, but didn't see completion\n");
                             Send_Statistics_Packet();
                         }

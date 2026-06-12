@@ -721,3 +721,14 @@ void SessionClassExtension::Update_Master_After_Player_Removal()
         Set_Master(new_master);
     }
 }
+
+
+/**
+ *  Is statistics collection enabled?
+ *
+ *  @author: ZivDero
+ */
+bool SessionClassExtension::Are_Statistics_Enabled() const
+{
+    return This()->Type == GAME_INTERNET || (This()->Type == GAME_IPX && ExtOptions.IsWriteStatistics);
+}
