@@ -169,6 +169,7 @@ private:
     void Convert_Cursor_Image(ShapeSet const* shapes);
     void Replace_Cursor(SDL_Cursor* cursor, bool owned);
     void Set_System_Cursor();
+    void Apply_Current_Cursor();
     SDL_Cursor* Get_System_Cursor(SDL_SystemCursor id);
     void Apply_Cursor_Visibility();
 
