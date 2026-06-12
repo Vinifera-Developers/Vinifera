@@ -11,6 +11,7 @@
 
 #include "desyncdialog.h"
 
+#include "bsurface.h"
 #include "conquerext_hooks.h"
 #include "debughandler.h"
 #include "dsurface.h"
@@ -22,6 +23,7 @@
 #include "ownrdraw.h"
 #include "resource.h"
 #include "sessionext.h"
+#include "spritecollection.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_defines.h"
@@ -51,7 +53,27 @@ namespace
     constexpr int LOAD_COUNTDOWN_MS = 5000;
     constexpr int CHAT_BACKLOG_MAX = 50;
 
-    constexpr char CHAT_EDIT_PLACEHOLDER[] = "Type here to chat, press Enter to send...";
+    constexpr char CHAT_EDIT_PLACEHOLDER[] = "Type here to chat...";
+
+    /**
+     *  Player list column positions, in pixels within the listbox client
+     *  area (the same units the game's lobby player lists use).
+     */
+    constexpr int PLAYER_LIST_HOST_COL_X = 2;
+    constexpr int PLAYER_LIST_NAME_COL_X = 20;
+    constexpr int PLAYER_LIST_STATUS_COL_WIDTH = 56;
+
+    /**
+     *  The x-position of the status column. Computed from the listbox's
+     *  actual size, because the dialog is not rescaled by the game and so
+     *  its pixel size depends on the system's font metrics.
+     */
+    int Player_List_Status_Col_X(HWND list)
+    {
+        RECT rect {};
+        GetClientRect(list, &rect);
+        return rect.right - PLAYER_LIST_STATUS_COL_WIDTH;
+    }
 }
 
 
@@ -159,7 +181,7 @@ DesyncDialogOutcomeType DesyncDialogClass::Run()
             EnableWindow(Window, FALSE);
             LoadOptionsClass().Load_Dialog();
             EnableWindow(Window, TRUE);
-            SetFocus(Window);
+            SetFocus(GetDlgItem(Window, IDC_DESYNC_PLAYER_LIST));
             SetTimer(Window, HEARTBEAT_TIMER, HEARTBEAT_INTERVAL_MS, nullptr);
         }
 
@@ -189,21 +211,38 @@ void DesyncDialogClass::Create_Dialog()
     IsHostDialog = Session.Am_I_Master();
 
     /**
-     *  WSCreateDialog finds our template via the hooked Fetch_Resource,
-     *  which falls back to the Vinifera DLL for resources the game's
-     *  language DLL doesn't have. It also takes care of registering the
-     *  dialog with the message loop and rescaling it like other game dialogs.
+     *  BeginDialog finds our template via the hooked Fetch_Resource, which
+     *  falls back to the Vinifera DLL for resources the game's language DLL
+     *  doesn't have, and registers the dialog with the message loop. Unlike
+     *  WSCreateDialog, it does not rescale the dialog with Resize_Dialog,
+     *  whose reference template gets replaced by external resolution patches
+     *  on some installs; this keeps our dialog a fixed size, the same way
+     *  the game's options dialogs work.
      */
-    Window = WSCreateDialog(ProgramInstance, IsHostDialog ? IDD_DESYNC_HOST : IDD_DESYNC_WAIT, MainWindow, &Dialog_Proc, false);
+    Window = OwnerDraw::BeginDialog(IsHostDialog ? IDD_DESYNC_HOST : IDD_DESYNC_WAIT, &Dialog_Proc);
     if (Window == nullptr) {
         return;
     }
 
     WinDialogClass::Center_Window(Window);
 
-    if (IsHostDialog) {
-        Update_Players_Text();
+    /**
+     *  Set up the player list columns: player name, host icon, status.
+     *  The name column must be added first: the listbox automatically
+     *  gives every new row a PRIMARY cell (which draws the row's string)
+     *  in the first column that was added, and INVALID cells in the rest.
+     *  This is also why the game's lobby adds its name column first.
+     */
+    HWND list = GetDlgItem(Window, IDC_DESYNC_PLAYER_LIST);
+    if (list != nullptr) {
+        const int status_x = Player_List_Status_Col_X(list);
+        SendMessage(list, OD_ADDCOLUMN, status_x - PLAYER_LIST_NAME_COL_X - 6, PLAYER_LIST_NAME_COL_X);
+        SendMessage(list, OD_ADDCOLUMN, 0, PLAYER_LIST_HOST_COL_X);
+        SendMessage(list, OD_ADDCOLUMN, 0, status_x);
+    }
+    Update_Player_List();
 
+    if (IsHostDialog) {
         const bool can_load = SessionExtension->IsSpawnerSession && Any_Multiplayer_Save_Exists();
         EnableWindow(GetDlgItem(Window, IDC_DESYNC_LOAD), can_load && !LoadCountdownActive);
         EnableWindow(GetDlgItem(Window, IDC_DESYNC_CONTINUE), !LoadCountdownActive);
@@ -236,6 +275,15 @@ void DesyncDialogClass::Create_Dialog()
 
     ShowWindow(Window, SW_SHOWNORMAL);
     UpdateWindow(Window);
+
+    /**
+     *  Unlike WSCreateDialog, BeginDialog does not give the new dialog focus.
+     *  Focus the player list rather than the dialog itself: the dialog would
+     *  pass focus on to its first tab stop, the chat edit box, dismissing
+     *  the hint text in it right away.
+     */
+    SetForegroundWindow(Window);
+    SetFocus(GetDlgItem(Window, IDC_DESYNC_PLAYER_LIST));
 }
 
 
@@ -248,7 +296,7 @@ void DesyncDialogClass::Destroy_Dialog()
 {
     if (Window != nullptr) {
         KillTimer(Window, HEARTBEAT_TIMER);
-        WSDestroyDialog(Window, 0);
+        OwnerDraw::EndDialog(Window);
         Window = nullptr;
     }
 }
@@ -286,31 +334,71 @@ void DesyncDialogClass::Morph_To_Host_Dialog_If_Needed()
 
 
 /**
- *  Updates the list of desynced players in the decision dialog.
+ *  Refills the player list with every player's name and status.
  *
  *  @author: ZivDero
  */
-void DesyncDialogClass::Update_Players_Text()
+void DesyncDialogClass::Update_Player_List()
 {
-    if (!Is_Active() || !IsHostDialog) {
+    if (!Is_Active()) {
         return;
     }
 
-    std::string text;
-    for (int i = 0; i < MAX_PLAYERS && i < Houses.Count(); i++) {
-        if (!SessionExtension->Is_Out_of_Sync(i) || Houses[i] == nullptr) {
-            continue;
-        }
-        if (!text.empty()) {
-            text += ", ";
-        }
-        text += Houses[i]->IniName.c_str();
-        if (PlayerLeft[i]) {
-            text += " (left the game)";
-        }
+    HWND list = GetDlgItem(Window, IDC_DESYNC_PLAYER_LIST);
+    if (list == nullptr) {
+        return;
     }
 
-    SetDlgItemText(Window, IDC_DESYNC_PLAYERS_TEXT, text.c_str());
+    ListBox_ResetContent(list);
+
+    const int status_x = Player_List_Status_Col_X(list);
+
+    for (int i = 0; i < MAX_PLAYERS && i < Houses.Count(); i++) {
+
+        HouseClass* house = Houses[i];
+        if (house == nullptr || !house->IsHuman) {
+            continue;
+        }
+
+        const int row = ListBox_AddString(list, house->IniName.c_str());
+        if (row < 0) {
+            continue;
+        }
+
+        /**
+         *  The game master gets the same host icon the lobby uses.
+         */
+        if (i == Session.MasterPlayerID) {
+            OwnerDraw::CellData host_cell;
+            host_cell.type = OwnerDraw::CellData::SURFACE;
+            host_cell.string.Set("");
+            host_cell.string2.Set("");
+            host_cell.surf = SpriteCollection.Get_Image_Surface("wolhost.pcx");
+            SendMessage(list, OD_SETCELL, MAKEWPARAM(PLAYER_LIST_HOST_COL_X, row), reinterpret_cast<LPARAM>(&host_cell));
+        }
+
+        const char* status;
+        COLORREF color;
+        if (PlayerLeft[i]) {
+            status = "Quit";
+            color = RGB(200, 0, 0);
+        } else if (SessionExtension->Is_Out_of_Sync(i)) {
+            status = "Desynced";
+            color = RGB(200, 200, 0);
+        } else {
+            status = "OK";
+            color = RGB(0, 200, 0);
+        }
+
+        OwnerDraw::CellData status_cell;
+        status_cell.type = OwnerDraw::CellData::TEXT;
+        status_cell.string.Set(status);
+        status_cell.string2.Set("");
+        status_cell.color = color;
+        SendMessage(list, OD_SETCELL, MAKEWPARAM(status_x, row), reinterpret_cast<LPARAM>(&status_cell));
+    }
+
+    InvalidateRect(list, nullptr, FALSE);
 }
 
 
@@ -686,7 +774,7 @@ void DesyncDialogClass::Notify_Player_Left(int house_id)
         Append_Chat_Line(buf);
     }
 
-    Update_Players_Text();
+    Update_Player_List();
 
     /**
      *  If the master is the one who left, we may have been promoted.
@@ -730,10 +818,12 @@ void DesyncDialogClass::Notify_Heartbeat(int house_id, bool is_host)
     LastHeartbeatFrom[house_id] = std::chrono::steady_clock::now();
 
     /**
-     *  Self-heal the master fields in case we missed the announcement.
+     *  Self-heal the master fields in case we missed the announcement,
+     *  and move the host icon in the player list to the right row.
      */
     if (is_host && Session.MasterPlayerID == -1) {
         SessionExtension->Set_Master(house_id);
+        Update_Player_List();
     }
 }
 

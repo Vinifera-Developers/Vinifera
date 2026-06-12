@@ -23,6 +23,7 @@
 #include "debughandler.h"
 #include "mouse.h"
 #include "optionsext.h"
+#include "ownrdraw.h"
 #include "playmovie.h"
 #include "rect.h"
 #include "sdl_movie.h"
@@ -54,12 +55,6 @@ namespace
     thread_local bool SDLCallingTranslatedMouseProc = false;
 
     std::unordered_map<HWND, WNDPROC> SDLChildWindowProcedures;
-
-    /**
-     *  Custom OwnerDraw control messages (mirrors vanilla ownrdraw.h).
-     */
-    constexpr UINT OD_SETTRACKSTEP = WM_USER + 171;
-    constexpr UINT OD_TRACKNUMBERS = WM_USER + 172;
 
     /**
      *  The border thickness used by OwnerDraw controls, fixed at 1 by

@@ -57,9 +57,9 @@
 #define IDC_EXCEPTION_LOG                 1156
 
 #define IDC_DESYNC_HEADER                 1200
-#define IDC_DESYNC_PLAYERS_TEXT           1201
 #define IDC_DESYNC_CHAT_LIST              1210
 #define IDC_DESYNC_CHAT_EDIT              1211
+#define IDC_DESYNC_PLAYER_LIST            1212
 #define IDC_DESYNC_LOAD                   1220
 #define IDC_DESYNC_CONTINUE               1221
 #define IDC_DESYNC_QUIT                   1222

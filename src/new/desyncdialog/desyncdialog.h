@@ -64,7 +64,7 @@ private:
     void Create_Dialog();
     void Destroy_Dialog();
     void Morph_To_Host_Dialog_If_Needed();
-    void Update_Players_Text();
+    void Update_Player_List();
     void Refill_Chat_List();
     void Append_Chat_Line(const char* line);
     void Send_Chat();
