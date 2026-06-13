@@ -23,6 +23,7 @@
 #include "textprint.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "txtlabel.h"
 #include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "wsproto.h"
@@ -30,6 +31,7 @@
 #include <filesystem>
 #include <format>
 
+#define SAVING_GAME_MESSAGE_ID 0x564E4652
 
 namespace
 {
@@ -39,7 +41,20 @@ namespace
 
         const char* text = is_autosave ? "Auto-saving..." : "Saving game...";
 
-        Session.Messages.Add_Message(nullptr, 0, text, static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
+        Session.Messages.Add_Message(nullptr, SAVING_GAME_MESSAGE_ID, text, static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
+
+        Map.Flag_To_Redraw(2);
+        Map.Render();
+    }
+
+    void Print_Game_Saved_Message(bool is_autosave)
+    {
+        const char* text = is_autosave ? "Game auto-saved." : "Game saved.";
+
+        TextLabelClass* label = Session.Messages.Get_Label(SAVING_GAME_MESSAGE_ID);
+        if (label != nullptr) {
+            label->Set_Text(text);
+        }
 
         Map.Flag_To_Redraw(2);
         Map.Render();
@@ -278,7 +293,7 @@ void SessionClassExtension::Restore_Autosave_After_Load()
 /**
  *  Services autosaves from the post-main-loop safe point.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 void SessionClassExtension::Service_Autosave_After_Main_Loop()
 {
@@ -309,6 +324,7 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
 
         // Actually save the game.
         Save_Game(filename.c_str(), description.c_str());
+        Print_Game_Saved_Message(true);
 
         return;
     }
@@ -319,6 +335,7 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         Schedule_Next_Autosave();
         Init_Multiplayer_Saves_For_Session();
         Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
+        Print_Game_Saved_Message(!AutoSave.IsNextMultiplayerSaveManual);
         AutoSave.IsNextMultiplayerSaveManual = false;
         return;
     }
@@ -335,6 +352,7 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
  */
 std::string SessionClassExtension::Multiplayer_Save_File_Name_From_Index(int index)
 {
+    // SAVEGAME_000.NET
     return std::format("SAVEGAME_{:03}.NET", index);
 }
 
@@ -476,7 +494,6 @@ std::string SessionClassExtension::Multiplayer_Save_File_Name() const
 
     for (int i = 0; i < 1000; ++i) {
 
-        // SAVEGAME_000.NET
         std::string filename = Multiplayer_Save_File_Name_From_Index(i);
 
         fs::path fullpath = saved_games_directory / filename;
