@@ -16,11 +16,45 @@
 #include "asserthandler.h"
 #include "mapview.h"
 
+#include <cstring>
 
-static DWORD OriginalCodeProtect = 0;
-static DWORD OriginalDataProtect = 0;
+struct ProtectedSectionInfo
+{
+    LPVOID Base;
+    SIZE_T Size;
+    DWORD OriginalProtect;
+    char Name[IMAGE_SIZEOF_SHORT_NAME + 1];
+};
+
+static ProtectedSectionInfo ProtectedSections[MAX_MODULE_SECTIONS];
+static int ProtectedSectionCount = 0;
 
 static bool HookingFlag = false;
+
+
+static bool RestoreProtectedSections()
+{
+    bool success = true;
+
+    for (int index = ProtectedSectionCount - 1; index >= 0; --index) {
+        DWORD old_protect;
+        ProtectedSectionInfo &section = ProtectedSections[index];
+
+        if (VirtualProtect(section.Base, section.Size, section.OriginalProtect, &old_protect) == FALSE) {
+            DWORD error = GetLastError();
+            success = false;
+            ASSERT_FATAL_PRINT(success == true, "Failed to restore permissions for section {} at 0x{:X} (size 0x{:X}, error {})!",
+                section.Name, reinterpret_cast<uintptr_t>(section.Base), section.Size, error);
+            break;
+        }
+    }
+
+    if (success) {
+        ProtectedSectionCount = 0;
+    }
+
+    return success;
+}
 
 
 /**
@@ -39,15 +73,29 @@ bool StartHooking()
 
     if (GetModuleSectionInfo(info)) {
         success = true;
-        HANDLE process = GetCurrentProcess();
-        if (VirtualProtectEx(process, info.BaseOfCode, info.SizeOfCode, PAGE_EXECUTE_READWRITE, &OriginalCodeProtect) == FALSE) {
-            success = false;
-            ASSERT_FATAL_PRINT(success == true, "Failed to change code section permissions!");
+        ProtectedSectionCount = 0;
+
+        for (int index = 0; index < info.SectionCount; ++index) {
+            DWORD original_protect;
+            const ImageSectionRange &section = info.Sections[index];
+
+            if (VirtualProtect(section.Base, section.Size, PAGE_EXECUTE_READWRITE, &original_protect) == FALSE) {
+                DWORD error = GetLastError();
+                success = false;
+                RestoreProtectedSections();
+                ASSERT_FATAL_PRINT(success == true, "Failed to change permissions for section {} at 0x{:X} (size 0x{:X}, error {})!",
+                    section.Name, reinterpret_cast<uintptr_t>(section.Base), section.Size, error);
+                break;
+            }
+
+            ProtectedSectionInfo &protected_section = ProtectedSections[ProtectedSectionCount++];
+            protected_section.Base = section.Base;
+            protected_section.Size = section.Size;
+            protected_section.OriginalProtect = original_protect;
+            std::memcpy(protected_section.Name, section.Name, sizeof(protected_section.Name));
         }
-        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, PAGE_EXECUTE_READWRITE, &OriginalDataProtect) == FALSE) {
-            success = false;
-            ASSERT_FATAL_PRINT(success == true, "Failed to change data section permissions!");
-        }
+    } else {
+        ASSERT_FATAL_PRINT(success == true, "Failed to get module section info!");
     }
 
     ASSERT_FATAL(success == true);
@@ -65,22 +113,11 @@ bool StopHooking()
 {
     OutputDebugString("StopHooking()...\n\n");
 
-    bool success = false;
-    DWORD old_protect;
-    ImageSectionInfo info;
-
-    if (GetModuleSectionInfo(info)) {
-        success = true;
-        HANDLE process = GetCurrentProcess();
-        if (VirtualProtectEx(process, info.BaseOfCode, info.SizeOfCode, OriginalCodeProtect, &old_protect) == FALSE) {
-            success = false;
-            ASSERT_FATAL_PRINT(success == true, "Failed to change code section permissions!");
-        }
-        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, OriginalDataProtect, &old_protect) == FALSE) {
-            success = false;
-            ASSERT_FATAL_PRINT(success == true, "Failed to change data section permissions!");
-        }
+    if (!HookingFlag) {
+        return true;
     }
+
+    bool success = RestoreProtectedSections();
     
     ASSERT_FATAL(success == true);
 
