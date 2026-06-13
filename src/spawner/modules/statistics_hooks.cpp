@@ -53,7 +53,7 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
 {
     char* result = Create_Comms_Packet(size);
 
-    if (SessionExtension->Are_Statistics_Enabled()) {
+    if (SessionExtension->Are_Extra_Statistics_Enabled()) {
         CCFileClass stats_file("stats.dmp");
         if (stats_file.Open(FILE_ACCESS_WRITE)) {
             stats_file.Write(result, size);
@@ -74,7 +74,7 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
  */
 void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
-    if (SessionExtension->Are_Statistics_Enabled()) {
+    if (SessionExtension->Are_Extra_Statistics_Enabled()) {
         PacketClass::Add_Field(new FieldClass("SCEN", const_cast<char*>(SessionExtension->SpawnerInfo.StatsMapName.c_str())));
         PacketClass::Add_Field(new FieldClass("ACCN", const_cast<char*>(PlayerPtr->IniName.c_str())));
         PacketClass::Add_Field(new FieldClass("HASH", const_cast<char*>(SessionExtension->SpawnerInfo.StatsMapHash.c_str())));
@@ -98,7 +98,7 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
     // It should be also be the house ID.
     static auto& field_player_handle = Make_Global<char[5]>(0x0070FCF4);
 
-    if (SessionExtension->Are_Statistics_Enabled()) {
+    if (SessionExtension->Are_Extra_Statistics_Enabled()) {
         const char id = field_player_handle[3] - '0';
 
         const HouseClass* house = Houses[id];
@@ -204,12 +204,9 @@ DEFINE_HOOK(0x006098DC, _Send_Statistics_Packet_Send_AI_Dont_Send_Observers, 6)
 {
     GET(HouseClass*, house, EAX);
 
-    if (SessionExtension->Are_Statistics_Enabled()) {
-        if (Extension::Fetch(house)->IsObserver) {
-            return 0x006098EC; // skip
-        }
+    if (Extension::Fetch(house)->IsObserver) {
+        return 0x006098EC; // skip
     }
-
     return 0;
 }
 

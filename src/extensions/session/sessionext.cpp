@@ -732,3 +732,14 @@ bool SessionClassExtension::Are_Statistics_Enabled() const
 {
     return This()->Type == GAME_INTERNET || (This()->Type == GAME_IPX && ExtOptions.IsWriteStatistics);
 }
+
+
+/**
+ *  Is extra statistics collection enabled?
+ *
+ *  @author: ZivDero
+ */
+bool SessionClassExtension::Are_Extra_Statistics_Enabled() const
+{
+    return This()->Type == GAME_IPX && ExtOptions.IsWriteStatistics;
+}
