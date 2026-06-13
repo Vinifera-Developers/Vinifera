@@ -41,6 +41,7 @@
 #include "sessionext.h"
 #include "sideext.h"
 #include "spawnmanager.h"
+#include "syncrecorder.h"
 #include "syringe.h"
 #include "tactical.h"
 #include "tag.h"
@@ -71,6 +72,7 @@
 #include "spawner.h"
 #include "vox.h"
 
+#include <intrin.h>
 #include <vector>
 
 
@@ -1522,6 +1524,16 @@ bool TechnoClassExt::_Revealed(HouseClass* house)
  */
 void TechnoClassExt::_Assign_Target(AbstractClass* target)
 {
+    /*
+    **  Record the targeting change for desync debugging. Infantry are recorded
+    **  in InfantryClass::Assign_Target (which calls into this function) and
+    **  buildings are deliberately not recorded.
+    */
+    RTTIType rtti = Fetch_RTTI();
+    if (rtti != RTTI_INFANTRY && rtti != RTTI_BUILDING) {
+        SyncRecorder::Record_TarCom_Change(this, target, reinterpret_cast<unsigned>(_ReturnAddress()));
+    }
+
     auto extension = Extension::Fetch(this);
 
     /*

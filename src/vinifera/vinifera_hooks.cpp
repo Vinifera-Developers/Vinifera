@@ -119,28 +119,6 @@ static void _Free_Heaps_Intercept()
 }
 
 
-/**
- *  This patch calls the Print_CRCs function from extension interface.
- *
- *  @author: CCHyper
- */
-static void _Print_CRCs_Intercept(EventClass *ev)
-{
-    /**
-     *  Call the original function to print the object CRCs.
-     */
-    DEBUG_INFO("About to call Print_CRCs...\n");
-    Print_CRCs(ev);
-
-    /**
-     *  Calls a reimplementation of Print_CRCs that prints both the original
-     *  information and the new class extension CRCs.
-     */
-    DEBUG_INFO("About to call Extension::Print_CRCs...\n");
-    Extension::Print_CRCs(ev);
-}
-
-
 #if 0
 /**
  *  This function is for intercepting the call to Clear_Scenarion in Load_All
@@ -723,8 +701,13 @@ void Vinifera_Hooks()
     Patch_Call(0x00680C54, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
     Patch_Call(0x006818F4, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
 
-    Patch_Call(0x005B1363, &_Print_CRCs_Intercept);
-    Patch_Call(0x005B5340, &_Print_CRCs_Intercept);
+    /**
+     *  Replace the vanilla Print_CRCs with Extension::Print_CRCs, which writes
+     *  the unified Vinifera desync log instead of SYNC#.TXT. Patching the
+     *  function itself ensures every caller (the game itself, as well as any
+     *  external patch sets) produces a single log.
+     */
+    Patch_Jump(0x005B58F0, static_cast<void (*)(EventClass *)>(&Extension::Print_CRCs)); // Disambiguate the overload set for template deduction.
 
     //Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
 

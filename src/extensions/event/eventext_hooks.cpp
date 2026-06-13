@@ -16,6 +16,7 @@
 #include "desyncdialog.h"
 #include "event.h"
 #include "eventext.h"
+#include "extension.h"
 #include "extension_globals.h"
 #include "hooker.h"
 #include "house.h"
@@ -971,7 +972,7 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                         newly_desynced = true;
 
                         if (print_crcs) {
-                            Print_CRCs(&event);
+                            Extension::Print_CRCs(&event);
                             print_crcs = false;
                         }
 
