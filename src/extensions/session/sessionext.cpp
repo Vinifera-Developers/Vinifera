@@ -295,13 +295,20 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
 
-        Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
+        // Fetch the file name and description for this auto-save. Do this before incrementing the slot.
+        std::string filename = Autosave_File_Name();
+        std::string description = Autosave_Description();
 
+        // Increment the auto-save slot. Do this before saving so the "next slot" is properly saved to the saved game
+        // - so if the user loads slot #3, the next auto-save slot after loading will be slot #4.
         if (Session.Type == GAME_NORMAL) {
             AutoSave.NextCampaignAutoSaveSlot = (AutoSave.NextCampaignAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
         } else {
             AutoSave.NextSkirmishAutoSaveSlot = (AutoSave.NextSkirmishAutoSaveSlot + 1) % OptionsExtension->AutoSaveCount;
         }
+
+        // Actually save the game.
+        Save_Game(filename.c_str(), description.c_str());
 
         return;
     }
