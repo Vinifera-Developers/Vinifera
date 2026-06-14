@@ -16,6 +16,7 @@
 #include "tibsun_globals.h"
 
 #define OPTIONS_MENU_TEXT_DEFAULT_COLOR RGBClass(112, 255, 0)
+#define SCREEN_TEXT_DEFAULT_COLOR       RGBClass(255, 255, 255)
 
 class InfantryTypeClass;
 
@@ -121,4 +122,9 @@ SideClassExtension final : public AbstractTypeClassExtension
          *  Color to be used for options menu text for this side.
          */
         RGBClass OptionsMenuTextColor;
+
+        /**
+         *  Color to be used for screen text for this side.
+         */
+        RGBClass ScreenTextColor;
 };
