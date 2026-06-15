@@ -181,20 +181,21 @@ void MapClassExt::_Calculate_Sight_Radius_If_Needed(int sight_range) {
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6) {    
+DEFINE_HOOK(0x00510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6)
+{
     int sight_range = R->EAX();
-    
+
     MapClassExt::_Calculate_Sight_Radius_If_Needed(sight_range);
-    
+
     int cell_count = MapClassExt::RadiusCountTable[sight_range];
     Cell* radius_offsets_ptr = MapClassExt::RadiusOffsets.data();
     Cell* occlusion_offsets_ptr = MapClassExt::OcclusionOffsets.data();
-    
+
     R->ESI(cell_count);
-    
+
     R->Stack(0x10, radius_offsets_ptr);
     R->Stack(0x4C, occlusion_offsets_ptr);
-    
+
     return 0x510CFB;
 }
 
