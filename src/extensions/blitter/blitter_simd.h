@@ -12,8 +12,8 @@
  *          fully-modelled vanilla class (inheriting its real, table-storing
  *          constructor and its `BlitBackward`) and overrides only `BlitForward`.
  *
- *          Output is bit-exact with the vanilla routines; the SSE2/SSE4.1
- *          kernels live in blitter_simd_sse.cpp and the AVX2 kernel in
+ *          Output is bit-exact with the vanilla routines; the SSE2 kernel
+ *          lives in blitter_simd_sse.cpp and the AVX2 kernel in
  *          blitter_simd_avx2.cpp, each compiled with the matching /arch and
  *          kept strictly floating-point free.
  *
@@ -82,7 +82,7 @@ struct BlitConfig {
  *  startup bit-exactness self-test. The self-test diffs the SIMD output against the original
  *  engine routines, so it can only pass when the handful of shipped engine bugs are reproduced.
  *  Leave BLITTER_TESTS undefined for release: those bugs are then CORRECTED and no test is built.
- *  The affected bug flags are alpha_static / rle_zs2 / rle_skip_noz (see blitter_engine_bugs).
+ *  The affected bug flags are alpha_static / rle_zs2 / rle_skip_noz.
  */
 #define BLITTER_TESTS
 
@@ -96,8 +96,7 @@ inline constexpr bool BlitterBugCompat = false;  // correct them
  *  When NOT building for tests, the L25/L50/L75 translucency blend is upgraded from the engine's
  *  lossy form (`(d>>1)&M + (s>>1)&M`, which truncates a low bit per channel and renders translucent
  *  sprites progressively too dark) to exact per-channel SWAR averaging (same weights, correct
- *  rounding). Gated to off during tests so the self-test stays bit-exact with vanilla. (Mirrors
- *  yr-simd's `FixTransparencyBlitters`, but applied to every Lucent family via the shared blend.)
+ *  rounding). Gated off during tests so the self-test stays bit-exact with vanilla.
  */
 inline constexpr bool FixTranslucentBlend = !BlitterBugCompat;
 
@@ -230,7 +229,6 @@ public:
 
 /**
  *  The taxonomy: each named blitter maps to a (vanilla base, config) pair.
- *  (First wave: the non-Z/Alpha/Warp families. Z/Alpha/Warp + RLE follow.)
  */
 template<SimdTier I> using SimdBlitPlainXlat      = SimdBlit<I, BlitPlainXlat<unsigned short>,      CFG_PlainXlat>;
 template<SimdTier I> using SimdBlitTransXlat      = SimdBlit<I, BlitTransXlat<unsigned short>,      CFG_TransXlat>;
@@ -361,7 +359,7 @@ public:
 };
 
 
-/* The RLE taxonomy (non-Z wave). Reuses the standard CFG values verbatim. */
+/* The RLE taxonomy. Reuses the standard CFG values verbatim. */
 template<SimdTier I> using SimdRLEBlitTransXlat       = SimdRLEBlit<I, RLEBlitTransXlat<unsigned short>,       CFG_TransXlat>;
 template<SimdTier I> using SimdRLEBlitTransZRemapXlat = SimdRLEBlit<I, RLEBlitTransZRemapXlat<unsigned short>, CFG_ZRemapXlat>;
 template<SimdTier I> using SimdRLEBlitTransDarken     = SimdRLEBlit<I, RLEBlitTransDarken<unsigned short>,     CFG_Darken>;

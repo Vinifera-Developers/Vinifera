@@ -683,7 +683,7 @@ static int Run_Tier(const char* tier_name,
     { BlitTranslucent75NonzeroAlpha<unsigned short> v(xl,qb); SimdBlitTranslucent75NonzeroAlpha<ISA> s(xl,qb); total += Compare_Family_Gate("Translucent75NonzeroAlpha", v, s); }
     { BlitTranslucent75ZeroAlpha<unsigned short> v(xl,qb);    SimdBlitTranslucent75ZeroAlpha<ISA> s(xl,qb);    total += Compare_Family_Gate("Translucent75ZeroAlpha", v, s); }
 
-    /* RLE (non-Z wave). */
+    /* RLE non-Z. */
     { RLEBlitTransXlat<unsigned short> v(xl);          SimdRLEBlitTransXlat<ISA> s(xl);          total += Compare_RLE_Family("RLE TransXlat", v, s); }
     { RLEBlitTransZRemapXlat<unsigned short> v(rm, xl);SimdRLEBlitTransZRemapXlat<ISA> s(rm, xl); total += Compare_RLE_Family("RLE ZRemapXlat", v, s); }
     { RLEBlitTransDarken<unsigned short> v(hb);        SimdRLEBlitTransDarken<ISA> s(hb);        total += Compare_RLE_Family("RLE Darken", v, s); }

@@ -14,6 +14,7 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 #include "always.h"
+
 #include "blitter_simd.h"
 #include "convert.h"
 #include "cpudetect.h"
@@ -50,123 +51,134 @@ class ConvertClassExt : public ConvertClass
 public:
     int Get_BBP() const { return BBP; }
 
+    /**
+     *  Per-family tier selection:
+     *    - TransXlat keeps the VANILLA blitter: it measured faster than every SIMD tier. Its
+     *      vanilla loop is already tight, and a plain transparent translate has no per-pixel
+     *      arithmetic for SIMD to amortise its setup against -- only a palette gather (which
+     *      does not vectorise) and a store -- so the SIMD wrapper is pure overhead here.
+     *    - The four non-Z arithmetic families (Darken, Lucent25/50/75) use ISA = the best tier
+     *      (AVX2 when available, else SSE2); their 16-wide blend is where AVX2 wins.
+     *    - Everything else is pinned to SSE2: for the gather / Z / alpha families AVX2 is no
+     *      faster (vpgatherdd is slow, and the Z/alpha path is 128-bit on both tiers).
+     *  `ISA` is therefore consulted only by the four AVX2-benefiting families.
+     */
     template<SimdTier ISA>
     void Install_Blitters_16bit()
     {
-        ConvertClassExt* cc = this;
-        const unsigned short* xl = (const unsigned short*)cc->Translator;
-        const unsigned short* il = (const unsigned short*)cc->IntensityTranslator;
-        unsigned char const* const* rm = reinterpret_cast<unsigned char const* const*>(&cc->RemapTable);
-        unsigned short hb = (unsigned short)cc->HalfbrightMask;
-        unsigned short qb = (unsigned short)cc->QuarterbrightMask;
-        int lv = cc->IntensityLevels;
+        const unsigned short* xl = (const unsigned short*)Translator;
+        const unsigned short* il = (const unsigned short*)IntensityTranslator;
+        unsigned char const* const* rm = reinterpret_cast<unsigned char const* const*>(&RemapTable);
+        unsigned short hb = (unsigned short)HalfbrightMask;
+        unsigned short qb = (unsigned short)QuarterbrightMask;
+        int lv = IntensityLevels;
 
-    cc->PlainBlitter = new SimdBlitPlainXlat<ISA>(xl);
-    cc->TransBlitter = new SimdBlitTransXlat<ISA>(xl);
-    cc->RemapBlitter = new SimdBlitTransZRemapXlat<ISA>(rm, xl);
-    cc->ShadowBlitter = new SimdBlitTransDarken<ISA>(hb);
-    cc->Translucent1Blitter = new SimdBlitTransLucent75<ISA>(xl, qb);
-    cc->Translucent2Blitter = new SimdBlitTransLucent50<ISA>(xl, hb);
-    cc->Translucent3Blitter = new SimdBlitTransLucent25<ISA>(xl, qb);
+        PlainBlitter = new SimdBlitPlainXlat<SimdTier::SSE2>(xl);
+        TransBlitter = new BlitTransXlat<unsigned short>(xl); // vanilla: benchmarks faster (gather-bound)
+        RemapBlitter = new SimdBlitTransZRemapXlat<SimdTier::SSE2>(rm, xl);
+        ShadowBlitter = new SimdBlitTransDarken<ISA>(hb); // AVX2-benefiting (arithmetic)
+        Translucent1Blitter = new SimdBlitTransLucent75<ISA>(xl, qb);
+        Translucent2Blitter = new SimdBlitTransLucent50<ISA>(xl, hb);
+        Translucent3Blitter = new SimdBlitTransLucent25<ISA>(xl, qb);
 
-    cc->BlitPlainXlatZReadPtr = new SimdBlitPlainXlatZRead<ISA>(xl);
-    cc->BlitTransXlatZReadPtr = new SimdBlitTransXlatZRead<ISA>(xl);
-    cc->BlitTransZRemapXlatZReadPtr = new SimdBlitTransZRemapXlatZRead<ISA>(rm, xl);
-    cc->BlitTransDarkenZReadPtr = new SimdBlitTransDarkenZRead<ISA>(hb);
-    cc->BlitTransLucent75ZReadPtr = new SimdBlitTransLucent75ZRead<ISA>(xl, qb);
-    cc->BlitTransLucent50ZReadPtr = new SimdBlitTransLucent50ZRead<ISA>(xl, hb);
-    cc->BlitTransLucent25ZReadPtr = new SimdBlitTransLucent25ZRead<ISA>(xl, qb);
-    cc->BlitTransLucent75ZReadWarpPtr = new SimdBlitTransLucent75ZReadWarp<ISA>(xl, qb);
-    cc->BlitTransLucent50ZReadWarpPtr = new SimdBlitTransLucent50ZReadWarp<ISA>(xl, hb);
-    cc->BlitTransLucent25ZReadWarpPtr = new SimdBlitTransLucent25ZReadWarp<ISA>(xl, qb);
+        BlitPlainXlatZReadPtr = new SimdBlitPlainXlatZRead<SimdTier::SSE2>(xl);
+        BlitTransXlatZReadPtr = new SimdBlitTransXlatZRead<SimdTier::SSE2>(xl);
+        BlitTransZRemapXlatZReadPtr = new SimdBlitTransZRemapXlatZRead<SimdTier::SSE2>(rm, xl);
+        BlitTransDarkenZReadPtr = new SimdBlitTransDarkenZRead<SimdTier::SSE2>(hb);
+        BlitTransLucent75ZReadPtr = new SimdBlitTransLucent75ZRead<SimdTier::SSE2>(xl, qb);
+        BlitTransLucent50ZReadPtr = new SimdBlitTransLucent50ZRead<SimdTier::SSE2>(xl, hb);
+        BlitTransLucent25ZReadPtr = new SimdBlitTransLucent25ZRead<SimdTier::SSE2>(xl, qb);
+        BlitTransLucent75ZReadWarpPtr = new SimdBlitTransLucent75ZReadWarp<SimdTier::SSE2>(xl, qb);
+        BlitTransLucent50ZReadWarpPtr = new SimdBlitTransLucent50ZReadWarp<SimdTier::SSE2>(xl, hb);
+        BlitTransLucent25ZReadWarpPtr = new SimdBlitTransLucent25ZReadWarp<SimdTier::SSE2>(xl, qb);
 
-    cc->BlitPlainXlatZReadWritePtr = new SimdBlitPlainXlatZReadWrite<ISA>(xl);
-    cc->BlitTransXlatZReadWritePtr = new SimdBlitTransXlatZReadWrite<ISA>(xl);
-    cc->BlitTransZRemapXlatZReadWritePtr = new SimdBlitTransZRemapXlatZReadWrite<ISA>(rm, xl);
-    cc->BlitTransDarkenZReadWritePtr = new SimdBlitTransDarkenZReadWrite<ISA>(hb);
-    cc->BlitTransLucent75ZReadWritePtr = new SimdBlitTransLucent75ZReadWrite<ISA>(xl, qb);
-    cc->BlitTransLucent50ZReadWritePtr = new SimdBlitTransLucent50ZReadWrite<ISA>(xl, hb);
-    cc->BlitTransLucent25ZReadWritePtr = new SimdBlitTransLucent25ZReadWrite<ISA>(xl, qb);
+        BlitPlainXlatZReadWritePtr = new SimdBlitPlainXlatZReadWrite<SimdTier::SSE2>(xl);
+        BlitTransXlatZReadWritePtr = new SimdBlitTransXlatZReadWrite<SimdTier::SSE2>(xl);
+        BlitTransZRemapXlatZReadWritePtr = new SimdBlitTransZRemapXlatZReadWrite<SimdTier::SSE2>(rm, xl);
+        BlitTransDarkenZReadWritePtr = new SimdBlitTransDarkenZReadWrite<SimdTier::SSE2>(hb);
+        BlitTransLucent75ZReadWritePtr = new SimdBlitTransLucent75ZReadWrite<SimdTier::SSE2>(xl, qb);
+        BlitTransLucent50ZReadWritePtr = new SimdBlitTransLucent50ZReadWrite<SimdTier::SSE2>(xl, hb);
+        BlitTransLucent25ZReadWritePtr = new SimdBlitTransLucent25ZReadWrite<SimdTier::SSE2>(xl, qb);
 
-    cc->BlitPlainXlatAlphaPtr = new SimdBlitPlainXlatAlpha<ISA>(il, lv);
-    cc->BlitTransXlatAlphaPtr = new SimdBlitTransXlatAlpha<ISA>(il, lv);
-    cc->BlitTransZRemapXlatAlphaPtr = new SimdBlitTransZRemapXlatAlpha<ISA>(rm, il, lv);
-    cc->BlitTransLucent75AlphaPtr = new SimdBlitTransLucent75Alpha<ISA>(il, lv, qb);
-    cc->BlitTransLucent50AlphaPtr = new SimdBlitTransLucent50Alpha<ISA>(il, lv, hb);
-    cc->BlitTransLucent25AlphaPtr = new SimdBlitTransLucent25Alpha<ISA>(il, lv, qb);
+        BlitPlainXlatAlphaPtr = new SimdBlitPlainXlatAlpha<SimdTier::SSE2>(il, lv);
+        BlitTransXlatAlphaPtr = new SimdBlitTransXlatAlpha<SimdTier::SSE2>(il, lv);
+        BlitTransZRemapXlatAlphaPtr = new SimdBlitTransZRemapXlatAlpha<SimdTier::SSE2>(rm, il, lv);
+        BlitTransLucent75AlphaPtr = new SimdBlitTransLucent75Alpha<SimdTier::SSE2>(il, lv, qb);
+        BlitTransLucent50AlphaPtr = new SimdBlitTransLucent50Alpha<SimdTier::SSE2>(il, lv, hb);
+        BlitTransLucent25AlphaPtr = new SimdBlitTransLucent25Alpha<SimdTier::SSE2>(il, lv, qb);
 
-    cc->BlitTransXlatWriteAlphaPtr = new SimdBlitTransXlatWriteAlpha<ISA>();
-    cc->BlitTransXlatMultWriteAlphaPtr = new SimdBlitTransXlatMultWriteAlpha<ISA>();
-    cc->BlitTranslucentWriteAlphaPtr = new SimdBlitTranslucentWriteAlpha<ISA>(il);
-    cc->BlitTranslucent50NonzeroAlphaPtr = new SimdBlitTranslucent50NonzeroAlpha<ISA>(xl, hb);
-    cc->BlitTranslucent50ZeroAlphaPtr = new SimdBlitTranslucent50ZeroAlpha<ISA>(xl, hb);
-    cc->BlitTranslucent75NonzeroAlphaPtr = new SimdBlitTranslucent75NonzeroAlpha<ISA>(xl, qb);
-    cc->BlitTranslucent75ZeroAlphaPtr = new SimdBlitTranslucent75ZeroAlpha<ISA>(xl, qb);
+        BlitTransXlatWriteAlphaPtr = new SimdBlitTransXlatWriteAlpha<SimdTier::SSE2>();
+        BlitTransXlatMultWriteAlphaPtr = new SimdBlitTransXlatMultWriteAlpha<SimdTier::SSE2>();
+        BlitTranslucentWriteAlphaPtr = new SimdBlitTranslucentWriteAlpha<SimdTier::SSE2>(il);
+        BlitTranslucent50NonzeroAlphaPtr = new SimdBlitTranslucent50NonzeroAlpha<SimdTier::SSE2>(xl, hb);
+        BlitTranslucent50ZeroAlphaPtr = new SimdBlitTranslucent50ZeroAlpha<SimdTier::SSE2>(xl, hb);
+        BlitTranslucent75NonzeroAlphaPtr = new SimdBlitTranslucent75NonzeroAlpha<SimdTier::SSE2>(xl, qb);
+        BlitTranslucent75ZeroAlphaPtr = new SimdBlitTranslucent75ZeroAlpha<SimdTier::SSE2>(xl, qb);
 
-    cc->BlitPlainXlatAlpha_2Ptr = new SimdBlitPlainXlatAlpha<ISA>(il, lv);
-    cc->BlitTransXlatAlphaZReadPtr = new SimdBlitTransXlatAlphaZRead<ISA>(il, lv);
-    cc->BlitTransZRemapXlatAlphaZReadPtr = new SimdBlitTransZRemapXlatAlphaZRead<ISA>(rm, il, lv);
-    cc->BlitTransLucent75AlphaZReadPtr = new SimdBlitTransLucent75AlphaZRead<ISA>(il, lv, qb);
-    cc->BlitTransLucent50AlphaZReadPtr = new SimdBlitTransLucent50AlphaZRead<ISA>(il, lv, hb);
-    cc->BlitTransLucent25AlphaZReadPtr = new SimdBlitTransLucent25AlphaZRead<ISA>(il, lv, qb);
-    cc->BlitTransLucent75AlphaZReadWarpPtr = new SimdBlitTransLucent75AlphaZReadWarp<ISA>(il, lv, qb);
-    cc->BlitTransLucent50AlphaZReadWarpPtr = new SimdBlitTransLucent50AlphaZReadWarp<ISA>(il, lv, hb);
-    cc->BlitTransLucent25AlphaZReadWarpPtr = new SimdBlitTransLucent25AlphaZReadWarp<ISA>(il, lv, qb);
+        BlitPlainXlatAlpha_2Ptr = new SimdBlitPlainXlatAlpha<SimdTier::SSE2>(il, lv);
+        BlitTransXlatAlphaZReadPtr = new SimdBlitTransXlatAlphaZRead<SimdTier::SSE2>(il, lv);
+        BlitTransZRemapXlatAlphaZReadPtr = new SimdBlitTransZRemapXlatAlphaZRead<SimdTier::SSE2>(rm, il, lv);
+        BlitTransLucent75AlphaZReadPtr = new SimdBlitTransLucent75AlphaZRead<SimdTier::SSE2>(il, lv, qb);
+        BlitTransLucent50AlphaZReadPtr = new SimdBlitTransLucent50AlphaZRead<SimdTier::SSE2>(il, lv, hb);
+        BlitTransLucent25AlphaZReadPtr = new SimdBlitTransLucent25AlphaZRead<SimdTier::SSE2>(il, lv, qb);
+        BlitTransLucent75AlphaZReadWarpPtr = new SimdBlitTransLucent75AlphaZReadWarp<SimdTier::SSE2>(il, lv, qb);
+        BlitTransLucent50AlphaZReadWarpPtr = new SimdBlitTransLucent50AlphaZReadWarp<SimdTier::SSE2>(il, lv, hb);
+        BlitTransLucent25AlphaZReadWarpPtr = new SimdBlitTransLucent25AlphaZReadWarp<SimdTier::SSE2>(il, lv, qb);
 
-    cc->BlitPlainXlatAlpha_3Ptr = new SimdBlitPlainXlatAlpha<ISA>(il, lv);
-    cc->BlitTransXlatAlphaZReadWritePtr = new SimdBlitTransXlatAlphaZReadWrite<ISA>(il, lv);
-    cc->BlitTransZRemapXlatAlphaZReadWritePtr = new SimdBlitTransZRemapXlatAlphaZReadWrite<ISA>(rm, il, lv);
-    cc->BlitTransLucent75AlphaZReadWritePtr = new SimdBlitTransLucent75AlphaZReadWrite<ISA>(il, lv, qb);
-    cc->BlitTransLucent50AlphaZReadWritePtr = new SimdBlitTransLucent50AlphaZReadWrite<ISA>(il, lv, hb);
-    cc->BlitTransLucent25AlphaZReadWritePtr = new SimdBlitTransLucent25AlphaZReadWrite<ISA>(il, lv, qb);
+        BlitPlainXlatAlpha_3Ptr = new SimdBlitPlainXlatAlpha<SimdTier::SSE2>(il, lv);
+        BlitTransXlatAlphaZReadWritePtr = new SimdBlitTransXlatAlphaZReadWrite<SimdTier::SSE2>(il, lv);
+        BlitTransZRemapXlatAlphaZReadWritePtr = new SimdBlitTransZRemapXlatAlphaZReadWrite<SimdTier::SSE2>(rm, il, lv);
+        BlitTransLucent75AlphaZReadWritePtr = new SimdBlitTransLucent75AlphaZReadWrite<SimdTier::SSE2>(il, lv, qb);
+        BlitTransLucent50AlphaZReadWritePtr = new SimdBlitTransLucent50AlphaZReadWrite<SimdTier::SSE2>(il, lv, hb);
+        BlitTransLucent25AlphaZReadWritePtr = new SimdBlitTransLucent25AlphaZReadWrite<SimdTier::SSE2>(il, lv, qb);
 
-    		/*
-    		**	Create the RLE aware blitter objects.
-    		*/
-    cc->RLEBlitTransXlatPtr = new SimdRLEBlitTransXlat<ISA>(xl);
-    cc->RLEBlitTransZRemapXlatPtr = new SimdRLEBlitTransZRemapXlat<ISA>(rm, xl);
-    cc->RLEBlitTransDarkenPtr = new SimdRLEBlitTransDarken<ISA>(hb);
-    cc->RLEBlitTransLucent75Ptr = new SimdRLEBlitTransLucent75<ISA>(xl, qb);
-    cc->RLEBlitTransLucent50Ptr = new SimdRLEBlitTransLucent50<ISA>(xl, hb);
-    cc->RLEBlitTransLucent25Ptr = new SimdRLEBlitTransLucent25<ISA>(xl, qb);
+        /*
+        **	Create the RLE aware blitter objects.
+        */
+        RLEBlitTransXlatPtr = new SimdRLEBlitTransXlat<SimdTier::SSE2>(xl);
+        RLEBlitTransZRemapXlatPtr = new SimdRLEBlitTransZRemapXlat<SimdTier::SSE2>(rm, xl);
+        RLEBlitTransDarkenPtr = new SimdRLEBlitTransDarken<SimdTier::SSE2>(hb);
+        RLEBlitTransLucent75Ptr = new SimdRLEBlitTransLucent75<SimdTier::SSE2>(xl, qb);
+        RLEBlitTransLucent50Ptr = new SimdRLEBlitTransLucent50<SimdTier::SSE2>(xl, hb);
+        RLEBlitTransLucent25Ptr = new SimdRLEBlitTransLucent25<SimdTier::SSE2>(xl, qb);
 
-    cc->RLEBlitTransXlatZReadPtr = new SimdRLEBlitTransXlatZRead<ISA>(xl);
-    cc->RLEBlitTransZRemapXlatZReadPtr = new SimdRLEBlitTransZRemapXlatZRead<ISA>(rm, xl);
-    cc->RLEBlitTransDarkenZReadPtr = new SimdRLEBlitTransDarkenZRead<ISA>(hb);
-    cc->RLEBlitTransLucent75ZReadPtr = new SimdRLEBlitTransLucent75ZRead<ISA>(xl, qb);
-    cc->RLEBlitTransLucent50ZReadPtr = new SimdRLEBlitTransLucent50ZRead<ISA>(xl, hb);
-    cc->RLEBlitTransLucent25ZReadPtr = new SimdRLEBlitTransLucent25ZRead<ISA>(xl, qb);
-    cc->RLEBlitTransLucent75ZReadWarpPtr = new SimdRLEBlitTransLucent75ZReadWarp<ISA>(xl, qb);
-    cc->RLEBlitTransLucent50ZReadWarpPtr = new SimdRLEBlitTransLucent50ZReadWarp<ISA>(xl, hb);
-    cc->RLEBlitTransLucent25ZReadWarpPtr = new SimdRLEBlitTransLucent25ZReadWarp<ISA>(xl, qb);
+        RLEBlitTransXlatZReadPtr = new SimdRLEBlitTransXlatZRead<SimdTier::SSE2>(xl);
+        RLEBlitTransZRemapXlatZReadPtr = new SimdRLEBlitTransZRemapXlatZRead<SimdTier::SSE2>(rm, xl);
+        RLEBlitTransDarkenZReadPtr = new SimdRLEBlitTransDarkenZRead<SimdTier::SSE2>(hb);
+        RLEBlitTransLucent75ZReadPtr = new SimdRLEBlitTransLucent75ZRead<SimdTier::SSE2>(xl, qb);
+        RLEBlitTransLucent50ZReadPtr = new SimdRLEBlitTransLucent50ZRead<SimdTier::SSE2>(xl, hb);
+        RLEBlitTransLucent25ZReadPtr = new SimdRLEBlitTransLucent25ZRead<SimdTier::SSE2>(xl, qb);
+        RLEBlitTransLucent75ZReadWarpPtr = new SimdRLEBlitTransLucent75ZReadWarp<SimdTier::SSE2>(xl, qb);
+        RLEBlitTransLucent50ZReadWarpPtr = new SimdRLEBlitTransLucent50ZReadWarp<SimdTier::SSE2>(xl, hb);
+        RLEBlitTransLucent25ZReadWarpPtr = new SimdRLEBlitTransLucent25ZReadWarp<SimdTier::SSE2>(xl, qb);
 
-    cc->RLEBlitTransXlatZReadWritePtr = new SimdRLEBlitTransXlatZReadWrite<ISA>(xl);
-    cc->RLEBlitTransZRemapXlatZReadWritePtr = new SimdRLEBlitTransZRemapXlatZReadWrite<ISA>(rm, xl);
-    cc->RLEBlitTransDarkenZReadWritePtr = new SimdRLEBlitTransDarkenZReadWrite<ISA>(hb);
-    cc->RLEBlitTransLucent75ZReadWritePtr = new SimdRLEBlitTransLucent75ZReadWrite<ISA>(xl, qb);
-    cc->RLEBlitTransLucent50ZReadWritePtr = new SimdRLEBlitTransLucent50ZReadWrite<ISA>(xl, hb);
-    cc->RLEBlitTransLucent25ZReadWritePtr = new SimdRLEBlitTransLucent25ZReadWrite<ISA>(xl, qb);
+        RLEBlitTransXlatZReadWritePtr = new SimdRLEBlitTransXlatZReadWrite<SimdTier::SSE2>(xl);
+        RLEBlitTransZRemapXlatZReadWritePtr = new SimdRLEBlitTransZRemapXlatZReadWrite<SimdTier::SSE2>(rm, xl);
+        RLEBlitTransDarkenZReadWritePtr = new SimdRLEBlitTransDarkenZReadWrite<SimdTier::SSE2>(hb);
+        RLEBlitTransLucent75ZReadWritePtr = new SimdRLEBlitTransLucent75ZReadWrite<SimdTier::SSE2>(xl, qb);
+        RLEBlitTransLucent50ZReadWritePtr = new SimdRLEBlitTransLucent50ZReadWrite<SimdTier::SSE2>(xl, hb);
+        RLEBlitTransLucent25ZReadWritePtr = new SimdRLEBlitTransLucent25ZReadWrite<SimdTier::SSE2>(xl, qb);
 
-    cc->RLEBlitTransXlatAlphaPtr = new SimdRLEBlitTransXlatAlpha<ISA>(il, lv);
-    cc->RLEBlitTransZRemapXlatAlphaPtr = new SimdRLEBlitTransZRemapXlatAlpha<ISA>(rm, il, lv);
-    cc->RLEBlitTransLucent75AlphaPtr = new SimdRLEBlitTransLucent75Alpha<ISA>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaPtr = new SimdRLEBlitTransLucent50Alpha<ISA>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaPtr = new SimdRLEBlitTransLucent25Alpha<ISA>(il, lv, qb);
+        RLEBlitTransXlatAlphaPtr = new SimdRLEBlitTransXlatAlpha<SimdTier::SSE2>(il, lv);
+        RLEBlitTransZRemapXlatAlphaPtr = new SimdRLEBlitTransZRemapXlatAlpha<SimdTier::SSE2>(rm, il, lv);
+        RLEBlitTransLucent75AlphaPtr = new SimdRLEBlitTransLucent75Alpha<SimdTier::SSE2>(il, lv, qb);
+        RLEBlitTransLucent50AlphaPtr = new SimdRLEBlitTransLucent50Alpha<SimdTier::SSE2>(il, lv, hb);
+        RLEBlitTransLucent25AlphaPtr = new SimdRLEBlitTransLucent25Alpha<SimdTier::SSE2>(il, lv, qb);
 
-    cc->RLEBlitTransXlatAlphaZReadPtr = new SimdRLEBlitTransXlatAlphaZRead<ISA>(il, lv);
-    cc->RLEBlitTransZRemapXlatAlphaZReadPtr = new SimdRLEBlitTransZRemapXlatAlphaZRead<ISA>(rm, il, lv);
-    cc->RLEBlitTransLucent75AlphaZReadPtr = new SimdRLEBlitTransLucent75AlphaZRead<ISA>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaZReadPtr = new SimdRLEBlitTransLucent50AlphaZRead<ISA>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaZReadPtr = new SimdRLEBlitTransLucent25AlphaZRead<ISA>(il, lv, qb);
-    cc->RLEBlitTransLucent75AlphaZReadWarpPtr = new SimdRLEBlitTransLucent75AlphaZReadWarp<ISA>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaZReadWarpPtr = new SimdRLEBlitTransLucent50AlphaZReadWarp<ISA>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaZReadWarpPtr = new SimdRLEBlitTransLucent25AlphaZReadWarp<ISA>(il, lv, qb);
+        RLEBlitTransXlatAlphaZReadPtr = new SimdRLEBlitTransXlatAlphaZRead<SimdTier::SSE2>(il, lv);
+        RLEBlitTransZRemapXlatAlphaZReadPtr = new SimdRLEBlitTransZRemapXlatAlphaZRead<SimdTier::SSE2>(rm, il, lv);
+        RLEBlitTransLucent75AlphaZReadPtr = new SimdRLEBlitTransLucent75AlphaZRead<SimdTier::SSE2>(il, lv, qb);
+        RLEBlitTransLucent50AlphaZReadPtr = new SimdRLEBlitTransLucent50AlphaZRead<SimdTier::SSE2>(il, lv, hb);
+        RLEBlitTransLucent25AlphaZReadPtr = new SimdRLEBlitTransLucent25AlphaZRead<SimdTier::SSE2>(il, lv, qb);
+        RLEBlitTransLucent75AlphaZReadWarpPtr = new SimdRLEBlitTransLucent75AlphaZReadWarp<SimdTier::SSE2>(il, lv, qb);
+        RLEBlitTransLucent50AlphaZReadWarpPtr = new SimdRLEBlitTransLucent50AlphaZReadWarp<SimdTier::SSE2>(il, lv, hb);
+        RLEBlitTransLucent25AlphaZReadWarpPtr = new SimdRLEBlitTransLucent25AlphaZReadWarp<SimdTier::SSE2>(il, lv, qb);
 
-    cc->RLEBlitTransXlatAlphaZReadWritePtr = new SimdRLEBlitTransXlatAlphaZReadWrite<ISA>(il, lv);
-    cc->RLEBlitTransZRemapXlatAlphaZReadWritePtr = new SimdRLEBlitTransZRemapXlatAlphaZReadWrite<ISA>(rm, il, lv);
-    cc->RLEBlitTransLucent75AlphaZReadWritePtr = new SimdRLEBlitTransLucent75AlphaZReadWrite<ISA>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaZReadWritePtr = new SimdRLEBlitTransLucent50AlphaZReadWrite<ISA>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaZReadWritePtr = new SimdRLEBlitTransLucent25AlphaZReadWrite<ISA>(il, lv, qb);
+        RLEBlitTransXlatAlphaZReadWritePtr = new SimdRLEBlitTransXlatAlphaZReadWrite<SimdTier::SSE2>(il, lv);
+        RLEBlitTransZRemapXlatAlphaZReadWritePtr = new SimdRLEBlitTransZRemapXlatAlphaZReadWrite<SimdTier::SSE2>(rm, il, lv);
+        RLEBlitTransLucent75AlphaZReadWritePtr = new SimdRLEBlitTransLucent75AlphaZReadWrite<SimdTier::SSE2>(il, lv, qb);
+        RLEBlitTransLucent50AlphaZReadWritePtr = new SimdRLEBlitTransLucent50AlphaZReadWrite<SimdTier::SSE2>(il, lv, hb);
+        RLEBlitTransLucent25AlphaZReadWritePtr = new SimdRLEBlitTransLucent25AlphaZReadWrite<SimdTier::SSE2>(il, lv, qb);
     }
 };
 
@@ -176,7 +188,7 @@ public:
  */
 DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
 {
-    GET(ConvertClassExt*, cc, ECX);
+    GET(ConvertClassExt*, this_ptr, ECX);
 
     const SimdTier tier = Blitter_SIMD_Tier();
 
@@ -184,7 +196,7 @@ DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
      *  8-bit drawers and CPUs without SSE2 keep the vanilla blitters entirely:
      *  let the original Create_Blitters run.
      */
-    if (tier == SimdTier::Scalar || cc->Get_BBP() == 1) {
+    if (tier == SimdTier::Scalar || this_ptr->Get_BBP() == 1) {
         return 0;
     }
 
@@ -197,7 +209,7 @@ DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
     static bool tested = false;
     if (!tested) {
         tested = true;
-        Blitter_SIMD_SelfTest(cc);
+        Blitter_SIMD_SelfTest(this_ptr);
     }
 #endif
 
@@ -208,13 +220,17 @@ DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
     static bool benched = false;
     if (!benched) {
         benched = true;
-        Blitter_SIMD_Benchmark(cc);
+        Blitter_SIMD_Benchmark(this_ptr);
     }
 #endif
 
     switch (tier) {
-    case SimdTier::AVX2: cc->Install_Blitters_16bit<SimdTier::AVX2>(); break;
-    default:             cc->Install_Blitters_16bit<SimdTier::SSE2>(); break;
+    case SimdTier::AVX2:
+        this_ptr->Install_Blitters_16bit<SimdTier::AVX2>();
+        break;
+    default:
+        this_ptr->Install_Blitters_16bit<SimdTier::SSE2>();
+        break;
     }
 
     /**
