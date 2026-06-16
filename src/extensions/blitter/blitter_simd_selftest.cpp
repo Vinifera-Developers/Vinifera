@@ -813,39 +813,39 @@ static unsigned long long Time_Call(Fn fn, int iters, int batches)
 }
 
 static void Bench_Std(const char* name, bool avx, const Blitter& v, const Blitter& s2, const Blitter& sa,
-                      unsigned short* dst, unsigned char* src, int w, int z_min, unsigned short* zbuf)
+                      unsigned short* dst, unsigned char* src, int w, int z_min, void* zbuf, void* abuf, int warp)
 {
-    const int IT = 1000, BA = 24;
-    unsigned long long cv = Time_Call([&] { v.BlitForward(dst, src, w, z_min, zbuf, nullptr, 1000, 0); }, IT, BA);
+    const int IT = 1000, BA = 16;
+    unsigned long long cv = Time_Call([&] { v.BlitForward(dst, src, w, z_min, zbuf, abuf, 1000, warp); }, IT, BA);
     g_bench_sink += dst[w >> 1];
-    unsigned long long c2 = Time_Call([&] { s2.BlitForward(dst, src, w, z_min, zbuf, nullptr, 1000, 0); }, IT, BA);
+    unsigned long long c2 = Time_Call([&] { s2.BlitForward(dst, src, w, z_min, zbuf, abuf, 1000, warp); }, IT, BA);
     g_bench_sink += dst[w >> 1];
     if (avx) {
-        unsigned long long ca = Time_Call([&] { sa.BlitForward(dst, src, w, z_min, zbuf, nullptr, 1000, 0); }, IT, BA);
+        unsigned long long ca = Time_Call([&] { sa.BlitForward(dst, src, w, z_min, zbuf, abuf, 1000, warp); }, IT, BA);
         g_bench_sink += dst[w >> 1];
-        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)  avx2={:>6} ({:.2f}x)\n",
+        DEBUG_INFO("[SIMD bench] {:<37} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)  avx2={:>6} ({:.2f}x)\n",
                    name, w, cv, c2, (double)cv / (double)c2, ca, (double)cv / (double)ca);
     } else {
-        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)\n",
+        DEBUG_INFO("[SIMD bench] {:<37} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)\n",
                    name, w, cv, c2, (double)cv / (double)c2);
     }
 }
 
 static void Bench_RLE(const char* name, bool avx, const RLEBlitter& v, const RLEBlitter& s2, const RLEBlitter& sa,
-                      unsigned short* dst, unsigned char* stream, int w)
+                      unsigned short* dst, unsigned char* stream, int w, int z_min, void* zbuf, void* abuf, void const* zshape, int warp)
 {
-    const int IT = 1000, BA = 24;
-    unsigned long long cv = Time_Call([&] { v.Blit(dst, stream, w, 0, 0, 0, 0, 1000, 0, 0); }, IT, BA);
+    const int IT = 1000, BA = 16;
+    unsigned long long cv = Time_Call([&] { v.Blit(dst, stream, w, 0, z_min, zbuf, abuf, 1000, warp, zshape); }, IT, BA);
     g_bench_sink += dst[w >> 1];
-    unsigned long long c2 = Time_Call([&] { s2.Blit(dst, stream, w, 0, 0, 0, 0, 1000, 0, 0); }, IT, BA);
+    unsigned long long c2 = Time_Call([&] { s2.Blit(dst, stream, w, 0, z_min, zbuf, abuf, 1000, warp, zshape); }, IT, BA);
     g_bench_sink += dst[w >> 1];
     if (avx) {
-        unsigned long long ca = Time_Call([&] { sa.Blit(dst, stream, w, 0, 0, 0, 0, 1000, 0, 0); }, IT, BA);
+        unsigned long long ca = Time_Call([&] { sa.Blit(dst, stream, w, 0, z_min, zbuf, abuf, 1000, warp, zshape); }, IT, BA);
         g_bench_sink += dst[w >> 1];
-        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)  avx2={:>6} ({:.2f}x)\n",
+        DEBUG_INFO("[SIMD bench] {:<37} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)  avx2={:>6} ({:.2f}x)\n",
                    name, w, cv, c2, (double)cv / (double)c2, ca, (double)cv / (double)ca);
     } else {
-        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)\n",
+        DEBUG_INFO("[SIMD bench] {:<37} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)\n",
                    name, w, cv, c2, (double)cv / (double)c2);
     }
 }
@@ -853,15 +853,17 @@ static void Bench_RLE(const char* name, bool avx, const RLEBlitter& v, const RLE
 } // namespace
 
 /**
- *  Time the SIMD tiers against the bound vanilla blitters across representative families and row
- *  widths. The gather-bound families (Xlat/ZRemap) should show the AVX2 win; the arithmetic ones
- *  (Darken/Lucent) the SSE2 win; the width sweep shows how the short-row scalar tail erodes wide
- *  vectorisation. Source is ~12% transparent (terrain/unit-like).
+ *  Time every blitter family against its bound vanilla routine, per SIMD tier, over a typical
+ *  (64) and a wide (256) row. Source is ~12% transparent (terrain/unit-like). Reveals, per family,
+ *  whether SIMD beats vanilla and which tier wins -- the inputs for per-family dispatch selection.
  */
 void Blitter_SIMD_Benchmark(ConvertClass* drawer)
 {
     unsigned short const* xl = (unsigned short const*)drawer->Translator;
+    unsigned short const* il = (unsigned short const*)drawer->IntensityTranslator;
+    int lv = drawer->IntensityLevels;
     unsigned short hb = (unsigned short)drawer->HalfbrightMask;
+    unsigned short qb = (unsigned short)drawer->QuarterbrightMask;
 
     static unsigned char remap_data[256];
     for (int i = 0; i < 256; ++i) remap_data[i] = (unsigned char)i;
@@ -870,48 +872,175 @@ void Blitter_SIMD_Benchmark(ConvertClass* drawer)
 
     const bool avx = CPUDetectClass::Has_AVX2_Instruction_Set();
 
-    static unsigned short dst[1024];
+    static unsigned short dstbuf[1088];
+    unsigned short* dst = dstbuf + 32;          // leading slack for warp (negative offset reads)
     static unsigned char  src[512];
     static unsigned char  stream[1200];
     static unsigned short zbuf[1024];
+    static unsigned short abuf[1024];
+    static signed char    zshape[512];
 
+    for (int i = 0; i < 1088; ++i) dstbuf[i] = (unsigned short)(Rng() & 0xFFFF);
     for (int i = 0; i < 512; ++i)  src[i] = (Rng() % 100u < 12u) ? 0 : (unsigned char)(1 + (Rng() % 255));
-    for (int i = 0; i < 1024; ++i) dst[i] = (unsigned short)(Rng() & 0xFFFF);
     for (int i = 0; i < 1024; ++i) zbuf[i] = (unsigned short)(Rng() & 0x7FFF);
+    for (int i = 0; i < 1024; ++i) abuf[i] = (unsigned short)(Rng() & 0xFF);
+    for (int i = 0; i < 512; ++i)  zshape[i] = (signed char)(Rng() & 0xFF);
 
     alignas(8) static unsigned char fakez[sizeof(ZBuffer)];
+    alignas(8) static unsigned char fakea[sizeof(ABuffer)];
     ZBuffer* fz = reinterpret_cast<ZBuffer*>(fakez);
+    ABuffer* fa = reinterpret_cast<ABuffer*>(fakea);
     ZBuffer* savedz = DepthBuffer;
-    fz->BufferStart = (unsigned int)zbuf; fz->BufferEnd = (unsigned int)(zbuf + 1024); fz->BufferSize = 1024 * 2;
-    DepthBuffer = fz;
+    ABuffer* saveda = AlphaBuffer;
+    fz->BufferStart = (unsigned int)zbuf; fz->BufferEnd = (unsigned int)(zbuf + 1024); fz->BufferSize = 1024 * 2; DepthBuffer = fz;
+    fa->BufferStart = (unsigned int)abuf; fa->BufferEnd = (unsigned int)(abuf + 1024); fa->BufferSize = 1024 * 2; AlphaBuffer = fa;
     const int z_min = 0x4000;
 
-    static const int W[] = { 32, 64, 256 };
+    static const int W[] = { 64, 256 };
 
     DEBUG_INFO("[SIMD bench] min cycles/call (lower=faster); source ~12%% transparent; {}\n",
                avx ? "AVX2 present" : "no AVX2 on this CPU");
 
-    for (int wi = 0; wi < 3; ++wi) {
-        int w = W[wi];
-        { BlitTransXlat<unsigned short> v(xl); SimdBlitTransXlat<SimdTier::SSE2> s2(xl); SimdBlitTransXlat<SimdTier::AVX2> sa(xl);
-          Bench_Std("TransXlat (gather)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
-        { BlitTransZRemapXlat<unsigned short> v(rm, xl); SimdBlitTransZRemapXlat<SimdTier::SSE2> s2(rm, xl); SimdBlitTransZRemapXlat<SimdTier::AVX2> sa(rm, xl);
-          Bench_Std("TransZRemapXlat (gather)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
-        { BlitTransDarken<unsigned short> v(hb); SimdBlitTransDarken<SimdTier::SSE2> s2(hb); SimdBlitTransDarken<SimdTier::AVX2> sa(hb);
-          Bench_Std("TransDarken (no gather)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
-        { BlitTransLucent50<unsigned short> v(xl, hb); SimdBlitTransLucent50<SimdTier::SSE2> s2(xl, hb); SimdBlitTransLucent50<SimdTier::AVX2> sa(xl, hb);
-          Bench_Std("TransLucent50 (arith)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
-        { BlitTransXlatZRead<unsigned short> v(xl); SimdBlitTransXlatZRead<SimdTier::SSE2> s2(xl); SimdBlitTransXlatZRead<SimdTier::AVX2> sa(xl);
-          Bench_Std("TransXlatZRead (gather+z)", avx, v, s2, sa, dst, src, w, z_min, zbuf); }
+    /* Construct vanilla + both SIMD tiers for one family and time them. VAN = vanilla class; the
+       SIMD alias is Simd##VAN. Braced init avoids the most-vexing-parse for the no-arg writers. */
+#define BSTD(VAN, ZB, AB, WARP, ZMIN, ...) do { \
+        VAN<unsigned short> v{__VA_ARGS__}; Simd##VAN<SimdTier::SSE2> s2{__VA_ARGS__}; Simd##VAN<SimdTier::AVX2> sa{__VA_ARGS__}; \
+        Bench_Std(#VAN, avx, v, s2, sa, dst, src, w, ZMIN, ZB, AB, WARP); } while (0)
+#define BRLE(VAN, ZB, AB, ZS, WARP, ZMIN, ...) do { \
+        VAN<unsigned short> v{__VA_ARGS__}; Simd##VAN<SimdTier::SSE2> s2{__VA_ARGS__}; Simd##VAN<SimdTier::AVX2> sa{__VA_ARGS__}; \
+        Bench_RLE(#VAN, avx, v, s2, sa, dst, stream, w, ZMIN, ZB, AB, ZS, WARP); } while (0)
 
+    for (int wi = 0; wi < 2; ++wi) {
+        int w = W[wi];
         int n = Encode_RLE(src, w, stream); (void)n;
-        { RLEBlitTransXlat<unsigned short> v(xl); SimdRLEBlitTransXlat<SimdTier::SSE2> s2(xl); SimdRLEBlitTransXlat<SimdTier::AVX2> sa(xl);
-          Bench_RLE("RLE TransXlat (gather)", avx, v, s2, sa, dst, stream, w); }
-        { RLEBlitTransLucent50<unsigned short> v(xl, hb); SimdRLEBlitTransLucent50<SimdTier::SSE2> s2(xl, hb); SimdRLEBlitTransLucent50<SimdTier::AVX2> sa(xl, hb);
-          Bench_RLE("RLE TransLucent50 (arith)", avx, v, s2, sa, dst, stream, w); }
+
+        /* Standard: non-Z. */
+        BSTD(BlitPlainXlat,        nullptr, nullptr, 0, 0, xl);
+        BSTD(BlitTransXlat,        nullptr, nullptr, 0, 0, xl);
+        BSTD(BlitTransZRemapXlat,  nullptr, nullptr, 0, 0, rm, xl);
+        BSTD(BlitTransDarken,      nullptr, nullptr, 0, 0, hb);
+        BSTD(BlitTransLucent75,    nullptr, nullptr, 0, 0, xl, qb);
+        BSTD(BlitTransLucent50,    nullptr, nullptr, 0, 0, xl, hb);
+        BSTD(BlitTransLucent25,    nullptr, nullptr, 0, 0, xl, qb);
+
+        /* Standard: Z-read. */
+        BSTD(BlitPlainXlatZRead,        zbuf, nullptr, 0, z_min, xl);
+        BSTD(BlitTransXlatZRead,        zbuf, nullptr, 0, z_min, xl);
+        BSTD(BlitTransZRemapXlatZRead,  zbuf, nullptr, 0, z_min, rm, xl);
+        BSTD(BlitTransDarkenZRead,      zbuf, nullptr, 0, z_min, hb);
+        BSTD(BlitTransLucent75ZRead,    zbuf, nullptr, 0, z_min, xl, qb);
+        BSTD(BlitTransLucent50ZRead,    zbuf, nullptr, 0, z_min, xl, hb);
+        BSTD(BlitTransLucent25ZRead,    zbuf, nullptr, 0, z_min, xl, qb);
+
+        /* Standard: Z-read/write. */
+        BSTD(BlitPlainXlatZReadWrite,       zbuf, nullptr, 0, z_min, xl);
+        BSTD(BlitTransXlatZReadWrite,       zbuf, nullptr, 0, z_min, xl);
+        BSTD(BlitTransZRemapXlatZReadWrite, zbuf, nullptr, 0, z_min, rm, xl);
+        BSTD(BlitTransDarkenZReadWrite,     zbuf, nullptr, 0, z_min, hb);
+        BSTD(BlitTransLucent75ZReadWrite,   zbuf, nullptr, 0, z_min, xl, qb);
+        BSTD(BlitTransLucent50ZReadWrite,   zbuf, nullptr, 0, z_min, xl, hb);
+        BSTD(BlitTransLucent25ZReadWrite,   zbuf, nullptr, 0, z_min, xl, qb);
+
+        /* Standard: Alpha (no z). */
+        BSTD(BlitPlainXlatAlpha,       nullptr, abuf, 0, 0, il, lv);
+        BSTD(BlitTransXlatAlpha,       nullptr, abuf, 0, 0, il, lv);
+        BSTD(BlitTransZRemapXlatAlpha, nullptr, abuf, 0, 0, rm, il, lv);
+        BSTD(BlitTransLucent75Alpha,   nullptr, abuf, 0, 0, il, lv, qb);
+        BSTD(BlitTransLucent50Alpha,   nullptr, abuf, 0, 0, il, lv, hb);
+        BSTD(BlitTransLucent25Alpha,   nullptr, abuf, 0, 0, il, lv, qb);
+
+        /* Standard: Alpha + Z-read. */
+        BSTD(BlitTransXlatAlphaZRead,       zbuf, abuf, 0, z_min, il, lv);
+        BSTD(BlitTransZRemapXlatAlphaZRead, zbuf, abuf, 0, z_min, rm, il, lv);
+        BSTD(BlitTransLucent75AlphaZRead,   zbuf, abuf, 0, z_min, il, lv, qb);
+        BSTD(BlitTransLucent50AlphaZRead,   zbuf, abuf, 0, z_min, il, lv, hb);
+        BSTD(BlitTransLucent25AlphaZRead,   zbuf, abuf, 0, z_min, il, lv, qb);
+
+        /* Standard: Alpha + Z-read/write. */
+        BSTD(BlitTransXlatAlphaZReadWrite,       zbuf, abuf, 0, z_min, il, lv);
+        BSTD(BlitTransZRemapXlatAlphaZReadWrite, zbuf, abuf, 0, z_min, rm, il, lv);
+        BSTD(BlitTransLucent75AlphaZReadWrite,   zbuf, abuf, 0, z_min, il, lv, qb);
+        BSTD(BlitTransLucent50AlphaZReadWrite,   zbuf, abuf, 0, z_min, il, lv, hb);
+        BSTD(BlitTransLucent25AlphaZReadWrite,   zbuf, abuf, 0, z_min, il, lv, qb);
+
+        /* Standard: Warp (+/- alpha). */
+        BSTD(BlitTransLucent75AlphaZReadWarp, zbuf, abuf, -3, z_min, il, lv, qb);
+        BSTD(BlitTransLucent50AlphaZReadWarp, zbuf, abuf, -3, z_min, il, lv, hb);
+        BSTD(BlitTransLucent25AlphaZReadWarp, zbuf, abuf, -3, z_min, il, lv, qb);
+        BSTD(BlitTransLucent75ZReadWarp,      zbuf, nullptr, -3, z_min, xl, qb);
+        BSTD(BlitTransLucent50ZReadWarp,      zbuf, nullptr, -3, z_min, xl, hb);
+        BSTD(BlitTransLucent25ZReadWarp,      zbuf, nullptr, -3, z_min, xl, qb);
+
+        /* Standard: alpha-buffer writers / compositor / gated. */
+        BSTD(BlitTransXlatWriteAlpha,        nullptr, abuf, 0, 0);
+        BSTD(BlitTransXlatMultWriteAlpha,    nullptr, abuf, 0, 0);
+        BSTD(BlitTranslucentWriteAlpha,      nullptr, abuf, 0, 0, il);
+        BSTD(BlitTranslucent50NonzeroAlpha,  nullptr, abuf, 0, 0, xl, hb);
+        BSTD(BlitTranslucent50ZeroAlpha,     nullptr, abuf, 0, 0, xl, hb);
+        BSTD(BlitTranslucent75NonzeroAlpha,  nullptr, abuf, 0, 0, xl, qb);
+        BSTD(BlitTranslucent75ZeroAlpha,     nullptr, abuf, 0, 0, xl, qb);
+
+        /* RLE: non-Z. */
+        BRLE(RLEBlitTransXlat,        nullptr, nullptr, nullptr, 0, 0, xl);
+        BRLE(RLEBlitTransZRemapXlat,  nullptr, nullptr, nullptr, 0, 0, rm, xl);
+        BRLE(RLEBlitTransDarken,      nullptr, nullptr, nullptr, 0, 0, hb);
+        BRLE(RLEBlitTransLucent75,    nullptr, nullptr, nullptr, 0, 0, xl, qb);
+        BRLE(RLEBlitTransLucent50,    nullptr, nullptr, nullptr, 0, 0, xl, hb);
+        BRLE(RLEBlitTransLucent25,    nullptr, nullptr, nullptr, 0, 0, xl, qb);
+
+        /* RLE: Z-read. */
+        BRLE(RLEBlitTransXlatZRead,        zbuf, nullptr, zshape, 0, z_min, xl);
+        BRLE(RLEBlitTransZRemapXlatZRead,  zbuf, nullptr, zshape, 0, z_min, rm, xl);
+        BRLE(RLEBlitTransDarkenZRead,      zbuf, nullptr, zshape, 0, z_min, hb);
+        BRLE(RLEBlitTransLucent75ZRead,    zbuf, nullptr, zshape, 0, z_min, xl, qb);
+        BRLE(RLEBlitTransLucent50ZRead,    zbuf, nullptr, zshape, 0, z_min, xl, hb);
+        BRLE(RLEBlitTransLucent25ZRead,    zbuf, nullptr, zshape, 0, z_min, xl, qb);
+
+        /* RLE: Z-read/write. */
+        BRLE(RLEBlitTransXlatZReadWrite,       zbuf, nullptr, zshape, 0, z_min, xl);
+        BRLE(RLEBlitTransZRemapXlatZReadWrite, zbuf, nullptr, zshape, 0, z_min, rm, xl);
+        BRLE(RLEBlitTransDarkenZReadWrite,     zbuf, nullptr, zshape, 0, z_min, hb);
+        BRLE(RLEBlitTransLucent75ZReadWrite,   zbuf, nullptr, zshape, 0, z_min, xl, qb);
+        BRLE(RLEBlitTransLucent50ZReadWrite,   zbuf, nullptr, zshape, 0, z_min, xl, hb);
+        BRLE(RLEBlitTransLucent25ZReadWrite,   zbuf, nullptr, zshape, 0, z_min, xl, qb);
+
+        /* RLE: Alpha (no z). */
+        BRLE(RLEBlitTransXlatAlpha,       nullptr, abuf, nullptr, 0, 0, il, lv);
+        BRLE(RLEBlitTransZRemapXlatAlpha, nullptr, abuf, nullptr, 0, 0, rm, il, lv);
+        BRLE(RLEBlitTransLucent75Alpha,   nullptr, abuf, nullptr, 0, 0, il, lv, qb);
+        BRLE(RLEBlitTransLucent50Alpha,   nullptr, abuf, nullptr, 0, 0, il, lv, hb);
+        BRLE(RLEBlitTransLucent25Alpha,   nullptr, abuf, nullptr, 0, 0, il, lv, qb);
+
+        /* RLE: Alpha + Z-read. */
+        BRLE(RLEBlitTransXlatAlphaZRead,       zbuf, abuf, zshape, 0, z_min, il, lv);
+        BRLE(RLEBlitTransZRemapXlatAlphaZRead, zbuf, abuf, zshape, 0, z_min, rm, il, lv);
+        BRLE(RLEBlitTransLucent75AlphaZRead,   zbuf, abuf, zshape, 0, z_min, il, lv, qb);
+        BRLE(RLEBlitTransLucent50AlphaZRead,   zbuf, abuf, zshape, 0, z_min, il, lv, hb);
+        BRLE(RLEBlitTransLucent25AlphaZRead,   zbuf, abuf, zshape, 0, z_min, il, lv, qb);
+
+        /* RLE: Alpha + Z-read/write. */
+        BRLE(RLEBlitTransXlatAlphaZReadWrite,       zbuf, abuf, zshape, 0, z_min, il, lv);
+        BRLE(RLEBlitTransZRemapXlatAlphaZReadWrite, zbuf, abuf, zshape, 0, z_min, rm, il, lv);
+        BRLE(RLEBlitTransLucent75AlphaZReadWrite,   zbuf, abuf, zshape, 0, z_min, il, lv, qb);
+        BRLE(RLEBlitTransLucent50AlphaZReadWrite,   zbuf, abuf, zshape, 0, z_min, il, lv, hb);
+        BRLE(RLEBlitTransLucent25AlphaZReadWrite,   zbuf, abuf, zshape, 0, z_min, il, lv, qb);
+
+        /* RLE: Warp (+/- alpha). */
+        BRLE(RLEBlitTransLucent75ZReadWarp,      zbuf, nullptr, zshape, -3, z_min, xl, qb);
+        BRLE(RLEBlitTransLucent50ZReadWarp,      zbuf, nullptr, zshape, -3, z_min, xl, hb);
+        BRLE(RLEBlitTransLucent25ZReadWarp,      zbuf, nullptr, zshape, -3, z_min, xl, qb);
+        BRLE(RLEBlitTransLucent75AlphaZReadWarp, zbuf, abuf, zshape, -3, z_min, il, lv, qb);
+        BRLE(RLEBlitTransLucent50AlphaZReadWarp, zbuf, abuf, zshape, -3, z_min, il, lv, hb);
+        BRLE(RLEBlitTransLucent25AlphaZReadWarp, zbuf, abuf, zshape, -3, z_min, il, lv, qb);
+
+        DEBUG_INFO("[SIMD bench] ---- end width {} ----\n", w);
     }
 
+#undef BSTD
+#undef BRLE
+
     DepthBuffer = savedz;
+    AlphaBuffer = saveda;
     DEBUG_INFO("[SIMD bench] done (sink={}).\n", (unsigned)g_bench_sink);
 }
 
