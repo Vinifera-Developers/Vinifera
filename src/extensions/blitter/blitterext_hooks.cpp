@@ -68,24 +68,24 @@ public:
     cc->Translucent2Blitter = new SimdBlitTransLucent50<ISA>(xl, hb);
     cc->Translucent3Blitter = new SimdBlitTransLucent25<ISA>(xl, qb);
 
-    cc->BlitPlainXlatZReadPtr = new BlitPlainXlatZRead<unsigned short>(xl);
-    cc->BlitTransXlatZReadPtr = new BlitTransXlatZRead<unsigned short>(xl);
-    cc->BlitTransZRemapXlatZReadPtr = new BlitTransZRemapXlatZRead<unsigned short>(rm, xl);
-    cc->BlitTransDarkenZReadPtr = new BlitTransDarkenZRead<unsigned short>(hb);
-    cc->BlitTransLucent75ZReadPtr = new BlitTransLucent75ZRead<unsigned short>(xl, qb);
-    cc->BlitTransLucent50ZReadPtr = new BlitTransLucent50ZRead<unsigned short>(xl, hb);
-    cc->BlitTransLucent25ZReadPtr = new BlitTransLucent25ZRead<unsigned short>(xl, qb);
+    cc->BlitPlainXlatZReadPtr = new SimdBlitPlainXlatZRead<ISA>(xl);
+    cc->BlitTransXlatZReadPtr = new SimdBlitTransXlatZRead<ISA>(xl);
+    cc->BlitTransZRemapXlatZReadPtr = new SimdBlitTransZRemapXlatZRead<ISA>(rm, xl);
+    cc->BlitTransDarkenZReadPtr = new SimdBlitTransDarkenZRead<ISA>(hb);
+    cc->BlitTransLucent75ZReadPtr = new SimdBlitTransLucent75ZRead<ISA>(xl, qb);
+    cc->BlitTransLucent50ZReadPtr = new SimdBlitTransLucent50ZRead<ISA>(xl, hb);
+    cc->BlitTransLucent25ZReadPtr = new SimdBlitTransLucent25ZRead<ISA>(xl, qb);
     cc->BlitTransLucent75ZReadWarpPtr = new BlitTransLucent75ZReadWarp<unsigned short>(xl, qb);
     cc->BlitTransLucent50ZReadWarpPtr = new BlitTransLucent50ZReadWarp<unsigned short>(xl, hb);
     cc->BlitTransLucent25ZReadWarpPtr = new BlitTransLucent25ZReadWarp<unsigned short>(xl, qb);
 
-    cc->BlitPlainXlatZReadWritePtr = new BlitPlainXlatZReadWrite<unsigned short>(xl);
-    cc->BlitTransXlatZReadWritePtr = new BlitTransXlatZReadWrite<unsigned short>(xl);
-    cc->BlitTransZRemapXlatZReadWritePtr = new BlitTransZRemapXlatZReadWrite<unsigned short>(rm, xl);
-    cc->BlitTransDarkenZReadWritePtr = new BlitTransDarkenZReadWrite<unsigned short>(hb);
-    cc->BlitTransLucent75ZReadWritePtr = new BlitTransLucent75ZReadWrite<unsigned short>(xl, qb);
-    cc->BlitTransLucent50ZReadWritePtr = new BlitTransLucent50ZReadWrite<unsigned short>(xl, hb);
-    cc->BlitTransLucent25ZReadWritePtr = new BlitTransLucent25ZReadWrite<unsigned short>(xl, qb);
+    cc->BlitPlainXlatZReadWritePtr = new SimdBlitPlainXlatZReadWrite<ISA>(xl);
+    cc->BlitTransXlatZReadWritePtr = new SimdBlitTransXlatZReadWrite<ISA>(xl);
+    cc->BlitTransZRemapXlatZReadWritePtr = new SimdBlitTransZRemapXlatZReadWrite<ISA>(rm, xl);
+    cc->BlitTransDarkenZReadWritePtr = new SimdBlitTransDarkenZReadWrite<ISA>(hb);
+    cc->BlitTransLucent75ZReadWritePtr = new SimdBlitTransLucent75ZReadWrite<ISA>(xl, qb);
+    cc->BlitTransLucent50ZReadWritePtr = new SimdBlitTransLucent50ZReadWrite<ISA>(xl, hb);
+    cc->BlitTransLucent25ZReadWritePtr = new SimdBlitTransLucent25ZReadWrite<ISA>(xl, qb);
 
     cc->BlitPlainXlatAlphaPtr = new BlitPlainXlatAlpha<unsigned short>(il, lv);
     cc->BlitTransXlatAlphaPtr = new BlitTransXlatAlpha<unsigned short>(il, lv);

@@ -52,10 +52,11 @@ struct BlitConfig {
     XlatMode xlat   = XlatMode::Direct;
     bool     trans  = false;    // skip source pixels equal to 0
     bool     alpha  = false;    // fold AlphaLightingRemap table into the translate index (not yet implemented)
-    bool     zread  = false;    // depth test: only write where z_min < *z_buff (not yet implemented)
-    bool     zwrite = false;    // also store z_min into the z-buffer (not yet implemented)
+    bool     zread  = false;    // depth test: only write where z_min < *z_buff
+    bool     zwrite = false;    // also store z_min into the z-buffer where written
     bool     warp   = false;    // blend against dest[warp_offset] (not yet implemented)
     Blend    blend  = Blend::Copy;
+    bool     zwbyte = false;    // z-write truncates to (unsigned char) z_min (BlitPlainXlatZReadWrite only)
 };
 
 
@@ -86,6 +87,24 @@ inline constexpr BlitConfig CFG_Darken     { .xlat = XlatMode::Direct, .trans = 
 inline constexpr BlitConfig CFG_Lucent25   { .xlat = XlatMode::Direct, .trans = true,  .blend = Blend::L25 };
 inline constexpr BlitConfig CFG_Lucent50   { .xlat = XlatMode::Direct, .trans = true,  .blend = Blend::L50 };
 inline constexpr BlitConfig CFG_Lucent75   { .xlat = XlatMode::Direct, .trans = true,  .blend = Blend::L75 };
+
+/* Z-read (depth test, no write). */
+inline constexpr BlitConfig CFG_PlainXlatZRead  { .xlat = XlatMode::Direct, .trans = false, .zread = true, .blend = Blend::Copy };
+inline constexpr BlitConfig CFG_TransXlatZRead  { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .blend = Blend::Copy };
+inline constexpr BlitConfig CFG_ZRemapXlatZRead { .xlat = XlatMode::ZRemap, .trans = true,  .zread = true, .blend = Blend::Copy };
+inline constexpr BlitConfig CFG_DarkenZRead     { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .blend = Blend::Darken };
+inline constexpr BlitConfig CFG_Lucent25ZRead   { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .blend = Blend::L25 };
+inline constexpr BlitConfig CFG_Lucent50ZRead   { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .blend = Blend::L50 };
+inline constexpr BlitConfig CFG_Lucent75ZRead   { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .blend = Blend::L75 };
+
+/* Z-read/write (depth test + store z where written). PlainXlat truncates z to a byte. */
+inline constexpr BlitConfig CFG_PlainXlatZReadWrite  { .xlat = XlatMode::Direct, .trans = false, .zread = true, .zwrite = true, .blend = Blend::Copy,   .zwbyte = true };
+inline constexpr BlitConfig CFG_TransXlatZReadWrite  { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .zwrite = true, .blend = Blend::Copy };
+inline constexpr BlitConfig CFG_ZRemapXlatZReadWrite { .xlat = XlatMode::ZRemap, .trans = true,  .zread = true, .zwrite = true, .blend = Blend::Copy };
+inline constexpr BlitConfig CFG_DarkenZReadWrite     { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .zwrite = true, .blend = Blend::Darken };
+inline constexpr BlitConfig CFG_Lucent25ZReadWrite   { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .zwrite = true, .blend = Blend::L25 };
+inline constexpr BlitConfig CFG_Lucent50ZReadWrite   { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .zwrite = true, .blend = Blend::L50 };
+inline constexpr BlitConfig CFG_Lucent75ZReadWrite   { .xlat = XlatMode::Direct, .trans = true,  .zread = true, .zwrite = true, .blend = Blend::L75 };
 
 
 /**
@@ -133,3 +152,19 @@ template<SimdTier I> using SimdBlitTransDarken    = SimdBlit<I, BlitTransDarken<
 template<SimdTier I> using SimdBlitTransLucent25  = SimdBlit<I, BlitTransLucent25<unsigned short>,  CFG_Lucent25>;
 template<SimdTier I> using SimdBlitTransLucent50  = SimdBlit<I, BlitTransLucent50<unsigned short>,  CFG_Lucent50>;
 template<SimdTier I> using SimdBlitTransLucent75  = SimdBlit<I, BlitTransLucent75<unsigned short>,  CFG_Lucent75>;
+
+template<SimdTier I> using SimdBlitPlainXlatZRead       = SimdBlit<I, BlitPlainXlatZRead<unsigned short>,       CFG_PlainXlatZRead>;
+template<SimdTier I> using SimdBlitTransXlatZRead       = SimdBlit<I, BlitTransXlatZRead<unsigned short>,       CFG_TransXlatZRead>;
+template<SimdTier I> using SimdBlitTransZRemapXlatZRead = SimdBlit<I, BlitTransZRemapXlatZRead<unsigned short>, CFG_ZRemapXlatZRead>;
+template<SimdTier I> using SimdBlitTransDarkenZRead     = SimdBlit<I, BlitTransDarkenZRead<unsigned short>,     CFG_DarkenZRead>;
+template<SimdTier I> using SimdBlitTransLucent25ZRead   = SimdBlit<I, BlitTransLucent25ZRead<unsigned short>,   CFG_Lucent25ZRead>;
+template<SimdTier I> using SimdBlitTransLucent50ZRead   = SimdBlit<I, BlitTransLucent50ZRead<unsigned short>,   CFG_Lucent50ZRead>;
+template<SimdTier I> using SimdBlitTransLucent75ZRead   = SimdBlit<I, BlitTransLucent75ZRead<unsigned short>,   CFG_Lucent75ZRead>;
+
+template<SimdTier I> using SimdBlitPlainXlatZReadWrite       = SimdBlit<I, BlitPlainXlatZReadWrite<unsigned short>,       CFG_PlainXlatZReadWrite>;
+template<SimdTier I> using SimdBlitTransXlatZReadWrite       = SimdBlit<I, BlitTransXlatZReadWrite<unsigned short>,       CFG_TransXlatZReadWrite>;
+template<SimdTier I> using SimdBlitTransZRemapXlatZReadWrite = SimdBlit<I, BlitTransZRemapXlatZReadWrite<unsigned short>, CFG_ZRemapXlatZReadWrite>;
+template<SimdTier I> using SimdBlitTransDarkenZReadWrite     = SimdBlit<I, BlitTransDarkenZReadWrite<unsigned short>,     CFG_DarkenZReadWrite>;
+template<SimdTier I> using SimdBlitTransLucent25ZReadWrite   = SimdBlit<I, BlitTransLucent25ZReadWrite<unsigned short>,   CFG_Lucent25ZReadWrite>;
+template<SimdTier I> using SimdBlitTransLucent50ZReadWrite   = SimdBlit<I, BlitTransLucent50ZReadWrite<unsigned short>,   CFG_Lucent50ZReadWrite>;
+template<SimdTier I> using SimdBlitTransLucent75ZReadWrite   = SimdBlit<I, BlitTransLucent75ZReadWrite<unsigned short>,   CFG_Lucent75ZReadWrite>;

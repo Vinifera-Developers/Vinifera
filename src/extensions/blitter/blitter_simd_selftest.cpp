@@ -17,7 +17,11 @@
  ******************************************************************************/
 #include "blitter_simd.h"
 #include "convert.h"
+#include "zbuffer.h"
 #include "debughandler.h"
+
+
+extern ZBuffer*& DepthBuffer;
 
 
 namespace
@@ -94,6 +98,79 @@ static int Compare_Family(const char* name, const Blitter& vanilla, const Blitte
     return mismatches;
 }
 
+/**
+ *  Compare one depth-tested family. Points the (init-time null) DepthBuffer at a fake ring
+ *  z-buffer so the vanilla oracle and the SIMD path wrap identically; the ring is sized so the
+ *  longer rows cross the boundary and exercise the scalar wrap path. ZReadWrite also compares
+ *  the z-buffer writes.
+ */
+static int Compare_Family_Z(const char* name, const Blitter& vanilla, const Blitter& simd, bool zwrite)
+{
+    static const int lengths[] = { 0, 1, 7, 8, 9, 17, 33, 64, 127, 200, 255 };
+    const int z_min = 0x4000;
+    const int ZN = 250;     // ring size in words
+    const int ZOFF = 50;    // z_buff start offset (rows >200 px wrap the ring)
+
+    unsigned char  src[256];
+    unsigned short da[256], db[256];
+    static unsigned short zva[512], zvb[512];
+
+    alignas(8) static unsigned char fakez_store[sizeof(ZBuffer)];
+    ZBuffer* fz = reinterpret_cast<ZBuffer*>(fakez_store);
+    ZBuffer* saved = DepthBuffer;
+
+    int mismatches = 0;
+    int first_len = -1, first_idx = -1;
+
+    for (int li = 0; li < (int)(sizeof(lengths) / sizeof(lengths[0])); ++li) {
+        int len = lengths[li];
+        for (int rep = 0; rep < 32; ++rep) {
+
+            for (int i = 0; i < len; ++i) {
+                src[i] = (Rng() & 3) == 0 ? 0 : (unsigned char)(Rng() & 0xFF);
+            }
+            for (int i = 0; i < len; ++i) {
+                unsigned short v = (unsigned short)(Rng() & 0xFFFF);
+                da[i] = v; db[i] = v;
+            }
+            for (int i = 0; i < ZN; ++i) {
+                unsigned short zv = (unsigned short)(Rng() & 0x7FFF);    // z_min=0x4000 -> ~half pass
+                zva[i] = zv; zvb[i] = zv;
+            }
+
+            fz->BufferStart = (unsigned int)zva;
+            fz->BufferEnd   = (unsigned int)(zva + ZN);
+            fz->BufferSize  = ZN * 2;
+            DepthBuffer = fz;
+            vanilla.BlitForward(da, src, len, z_min, &zva[ZOFF], nullptr, 1000, 0);
+
+            fz->BufferStart = (unsigned int)zvb;
+            fz->BufferEnd   = (unsigned int)(zvb + ZN);
+            fz->BufferSize  = ZN * 2;
+            DepthBuffer = fz;
+            simd.BlitForward(db, src, len, z_min, &zvb[ZOFF], nullptr, 1000, 0);
+
+            for (int i = 0; i < len; ++i) {
+                if (da[i] != db[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
+            }
+            if (zwrite) {
+                for (int i = 0; i < ZN; ++i) {
+                    if (zva[i] != zvb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = -i - 1; } }
+                }
+            }
+        }
+    }
+
+    DepthBuffer = saved;
+
+    if (mismatches != 0) {
+        DEBUG_WARNING("[SIMD blit] {}: {} MISMATCHES (first at len={} idx={})\n", name, mismatches, first_len, first_idx);
+    } else {
+        DEBUG_INFO("[SIMD blit] {}: ok\n", name);
+    }
+    return mismatches;
+}
+
 } // namespace
 
 
@@ -159,6 +236,25 @@ void Blitter_SIMD_SelfTest(ConvertClass* drawer)
         SimdBlitTransLucent25<SimdTier::SSE2> s(t.xl, t.qb);
         total += Compare_Family("TransLucent25", v, s);
     }
+
+    /**
+     *  Depth-tested families (Z-read and Z-read/write), including the ring-buffer wrap path.
+     */
+    { BlitPlainXlatZRead<unsigned short> v(t.xl);          SimdBlitPlainXlatZRead<SimdTier::SSE2> s(t.xl);          total += Compare_Family_Z("PlainXlatZRead", v, s, false); }
+    { BlitTransXlatZRead<unsigned short> v(t.xl);          SimdBlitTransXlatZRead<SimdTier::SSE2> s(t.xl);          total += Compare_Family_Z("TransXlatZRead", v, s, false); }
+    { BlitTransZRemapXlatZRead<unsigned short> v(rm, t.xl);SimdBlitTransZRemapXlatZRead<SimdTier::SSE2> s(rm, t.xl); total += Compare_Family_Z("TransZRemapXlatZRead", v, s, false); }
+    { BlitTransDarkenZRead<unsigned short> v(t.hb);        SimdBlitTransDarkenZRead<SimdTier::SSE2> s(t.hb);        total += Compare_Family_Z("TransDarkenZRead", v, s, false); }
+    { BlitTransLucent75ZRead<unsigned short> v(t.xl, t.qb);SimdBlitTransLucent75ZRead<SimdTier::SSE2> s(t.xl, t.qb); total += Compare_Family_Z("TransLucent75ZRead", v, s, false); }
+    { BlitTransLucent50ZRead<unsigned short> v(t.xl, t.hb);SimdBlitTransLucent50ZRead<SimdTier::SSE2> s(t.xl, t.hb); total += Compare_Family_Z("TransLucent50ZRead", v, s, false); }
+    { BlitTransLucent25ZRead<unsigned short> v(t.xl, t.qb);SimdBlitTransLucent25ZRead<SimdTier::SSE2> s(t.xl, t.qb); total += Compare_Family_Z("TransLucent25ZRead", v, s, false); }
+
+    { BlitPlainXlatZReadWrite<unsigned short> v(t.xl);          SimdBlitPlainXlatZReadWrite<SimdTier::SSE2> s(t.xl);          total += Compare_Family_Z("PlainXlatZReadWrite", v, s, true); }
+    { BlitTransXlatZReadWrite<unsigned short> v(t.xl);          SimdBlitTransXlatZReadWrite<SimdTier::SSE2> s(t.xl);          total += Compare_Family_Z("TransXlatZReadWrite", v, s, true); }
+    { BlitTransZRemapXlatZReadWrite<unsigned short> v(rm, t.xl);SimdBlitTransZRemapXlatZReadWrite<SimdTier::SSE2> s(rm, t.xl); total += Compare_Family_Z("TransZRemapXlatZReadWrite", v, s, true); }
+    { BlitTransDarkenZReadWrite<unsigned short> v(t.hb);        SimdBlitTransDarkenZReadWrite<SimdTier::SSE2> s(t.hb);        total += Compare_Family_Z("TransDarkenZReadWrite", v, s, true); }
+    { BlitTransLucent75ZReadWrite<unsigned short> v(t.xl, t.qb);SimdBlitTransLucent75ZReadWrite<SimdTier::SSE2> s(t.xl, t.qb); total += Compare_Family_Z("TransLucent75ZReadWrite", v, s, true); }
+    { BlitTransLucent50ZReadWrite<unsigned short> v(t.xl, t.hb);SimdBlitTransLucent50ZReadWrite<SimdTier::SSE2> s(t.xl, t.hb); total += Compare_Family_Z("TransLucent50ZReadWrite", v, s, true); }
+    { BlitTransLucent25ZReadWrite<unsigned short> v(t.xl, t.qb);SimdBlitTransLucent25ZReadWrite<SimdTier::SSE2> s(t.xl, t.qb); total += Compare_Family_Z("TransLucent25ZReadWrite", v, s, true); }
 
     if (total == 0) {
         DEBUG_INFO("[SIMD blit] Self-test PASSED (all families bit-exact).\n");
