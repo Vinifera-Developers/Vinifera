@@ -330,3 +330,35 @@ template<SimdTier I> using SimdRLEBlitTransDarkenZReadWrite     = SimdRLEBlit<I,
 template<SimdTier I> using SimdRLEBlitTransLucent75ZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent75ZReadWrite<unsigned short>,   CFG_RLE_Lucent75ZReadWrite>;
 template<SimdTier I> using SimdRLEBlitTransLucent50ZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent50ZReadWrite<unsigned short>,   CFG_Lucent50ZReadWrite>;
 template<SimdTier I> using SimdRLEBlitTransLucent25ZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent25ZReadWrite<unsigned short>,   CFG_RLE_Lucent25ZReadWrite>;
+
+/* RLE Alpha (no z). */
+template<SimdTier I> using SimdRLEBlitTransXlatAlpha       = SimdRLEBlit<I, RLEBlitTransXlatAlpha<unsigned short>,       CFG_TransXlatAlpha>;
+template<SimdTier I> using SimdRLEBlitTransZRemapXlatAlpha = SimdRLEBlit<I, RLEBlitTransZRemapXlatAlpha<unsigned short>, CFG_ZRemapXlatAlpha>;
+template<SimdTier I> using SimdRLEBlitTransLucent75Alpha   = SimdRLEBlit<I, RLEBlitTransLucent75Alpha<unsigned short>,   CFG_Lucent75Alpha>;
+template<SimdTier I> using SimdRLEBlitTransLucent50Alpha   = SimdRLEBlit<I, RLEBlitTransLucent50Alpha<unsigned short>,   CFG_Lucent50Alpha>;
+template<SimdTier I> using SimdRLEBlitTransLucent25Alpha   = SimdRLEBlit<I, RLEBlitTransLucent25Alpha<unsigned short>,   CFG_Lucent25Alpha>;
+
+/* RLE Alpha + Z-read. */
+template<SimdTier I> using SimdRLEBlitTransXlatAlphaZRead       = SimdRLEBlit<I, RLEBlitTransXlatAlphaZRead<unsigned short>,       CFG_TransXlatAlphaZRead>;
+template<SimdTier I> using SimdRLEBlitTransZRemapXlatAlphaZRead = SimdRLEBlit<I, RLEBlitTransZRemapXlatAlphaZRead<unsigned short>, CFG_ZRemapXlatAlphaZRead>;
+template<SimdTier I> using SimdRLEBlitTransLucent75AlphaZRead   = SimdRLEBlit<I, RLEBlitTransLucent75AlphaZRead<unsigned short>,   CFG_Lucent75AlphaZRead>;
+template<SimdTier I> using SimdRLEBlitTransLucent50AlphaZRead   = SimdRLEBlit<I, RLEBlitTransLucent50AlphaZRead<unsigned short>,   CFG_Lucent50AlphaZRead>;
+template<SimdTier I> using SimdRLEBlitTransLucent25AlphaZRead   = SimdRLEBlit<I, RLEBlitTransLucent25AlphaZRead<unsigned short>,   CFG_Lucent25AlphaZRead>;
+
+/* RLE Alpha + Z-read/write. ZRemap needs a clean config (the standard one carries alpha_static). */
+inline constexpr BlitConfig CFG_RLE_ZRemapXlatAlphaZReadWrite { .xlat = XlatMode::ZRemap, .trans = true, .alpha = true, .zread = true, .zwrite = true, .blend = Blend::Copy };
+template<SimdTier I> using SimdRLEBlitTransXlatAlphaZReadWrite       = SimdRLEBlit<I, RLEBlitTransXlatAlphaZReadWrite<unsigned short>,       CFG_TransXlatAlphaZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransZRemapXlatAlphaZReadWrite = SimdRLEBlit<I, RLEBlitTransZRemapXlatAlphaZReadWrite<unsigned short>, CFG_RLE_ZRemapXlatAlphaZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransLucent75AlphaZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent75AlphaZReadWrite<unsigned short>,   CFG_Lucent75AlphaZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransLucent50AlphaZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent50AlphaZReadWrite<unsigned short>,   CFG_Lucent50AlphaZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransLucent25AlphaZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent25AlphaZReadWrite<unsigned short>,   CFG_Lucent25AlphaZReadWrite>;
+
+/* RLE Z-read + Warp (no alpha). */
+template<SimdTier I> using SimdRLEBlitTransLucent75ZReadWarp = SimdRLEBlit<I, RLEBlitTransLucent75ZReadWarp<unsigned short>, CFG_Lucent75ZReadWarp>;
+template<SimdTier I> using SimdRLEBlitTransLucent50ZReadWarp = SimdRLEBlit<I, RLEBlitTransLucent50ZReadWarp<unsigned short>, CFG_Lucent50ZReadWarp>;
+template<SimdTier I> using SimdRLEBlitTransLucent25ZReadWarp = SimdRLEBlit<I, RLEBlitTransLucent25ZReadWarp<unsigned short>, CFG_Lucent25ZReadWarp>;
+
+/* RLE Alpha + Z-read + Warp. */
+template<SimdTier I> using SimdRLEBlitTransLucent75AlphaZReadWarp = SimdRLEBlit<I, RLEBlitTransLucent75AlphaZReadWarp<unsigned short>, CFG_Lucent75AlphaZReadWarp>;
+template<SimdTier I> using SimdRLEBlitTransLucent50AlphaZReadWarp = SimdRLEBlit<I, RLEBlitTransLucent50AlphaZReadWarp<unsigned short>, CFG_Lucent50AlphaZReadWarp>;
+template<SimdTier I> using SimdRLEBlitTransLucent25AlphaZReadWarp = SimdRLEBlit<I, RLEBlitTransLucent25AlphaZReadWarp<unsigned short>, CFG_Lucent25AlphaZReadWarp>;

@@ -397,6 +397,92 @@ static int Compare_RLE_Family_Z(const char* name, const RLEBlitter& vanilla, con
 }
 
 /**
+ *  Compare an Alpha and/or Warp RLE family. Fakes a DepthBuffer ring (zread), an AlphaBuffer
+ *  ring (alpha), a per-pixel signed zshape (zread), and gives the destination slack on both
+ *  sides for the warp background read (dptr[warp_off]). ZReadWrite compares the z-buffer.
+ */
+static int Compare_RLE_Family_AW(const char* name, const RLEBlitter& vanilla, const RLEBlitter& simd,
+                                 bool zread, bool zwrite, bool alpha, int warp_off)
+{
+    static const int lengths[] = { 0, 1, 7, 8, 9, 17, 33, 64, 127, 200, 255 };
+    const int z_min = 0x4000;
+    const int ZN = 250, ZOFF = 50, SLACK = 16;
+
+    unsigned char  logical[600], stream[1200];
+    static unsigned short da[SLACK * 2 + 256], db[SLACK * 2 + 256];
+    static unsigned short zva[512], zvb[512];
+    static unsigned short apa[512], apb[512];
+    static signed char    zshape[512];
+
+    alignas(8) static unsigned char fakez[sizeof(ZBuffer)];
+    alignas(8) static unsigned char fakea[sizeof(ABuffer)];
+    ZBuffer* fz = reinterpret_cast<ZBuffer*>(fakez);
+    ABuffer* fa = reinterpret_cast<ABuffer*>(fakea);
+    ZBuffer* savedz = DepthBuffer;
+    ABuffer* saveda = AlphaBuffer;
+
+    int mismatches = 0, first_len = -1, first_idx = -1;
+
+    for (int li = 0; li < (int)(sizeof(lengths) / sizeof(lengths[0])); ++li) {
+        int len = lengths[li];
+        for (int rep = 0; rep < 32; ++rep) {
+
+            int leadskip = (len > 0 && (rep & 3) == 0) ? (int)(Rng() % (unsigned)(len + 1)) : 0;
+            int total = len + leadskip;
+            for (int i = 0; i < total; ++i) {
+                logical[i] = (Rng() & 3) == 0 ? 0 : (unsigned char)(1 + (Rng() % 255));
+            }
+            Encode_RLE(logical, total, stream);
+
+            for (int i = 0; i < SLACK * 2 + len; ++i) {     // fill incl. slack (warp reads it)
+                unsigned short v = (unsigned short)(Rng() & 0xFFFF);
+                da[i] = v; db[i] = v;
+            }
+            for (int i = 0; i < ZN; ++i) {
+                unsigned short z = (unsigned short)(Rng() & 0x7FFF);
+                zva[i] = z; zvb[i] = z;
+                unsigned short a = (unsigned short)(Rng() & 0xFF);
+                apa[i] = a; apb[i] = a;
+            }
+            for (int i = 0; i < 512; ++i) zshape[i] = (signed char)(Rng() & 0xFF);
+
+            unsigned short* pda = da + SLACK;
+            unsigned short* pdb = db + SLACK;
+            int zsh = (int)reinterpret_cast<intptr_t>(zshape);
+
+            if (zread) { fz->BufferStart = (unsigned int)zva; fz->BufferEnd = (unsigned int)(zva + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz; }
+            if (alpha) { fa->BufferStart = (unsigned int)apa; fa->BufferEnd = (unsigned int)(apa + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa; }
+            vanilla.Blit(pda, stream, len, leadskip, z_min, zread ? (int)reinterpret_cast<intptr_t>(&zva[ZOFF]) : 0,
+                         alpha ? (int)reinterpret_cast<intptr_t>(&apa[ZOFF]) : 0, 1000, warp_off, zread ? zsh : 0);
+
+            if (zread) { fz->BufferStart = (unsigned int)zvb; fz->BufferEnd = (unsigned int)(zvb + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz; }
+            if (alpha) { fa->BufferStart = (unsigned int)apb; fa->BufferEnd = (unsigned int)(apb + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa; }
+            simd.Blit(pdb, stream, len, leadskip, z_min, zread ? (int)reinterpret_cast<intptr_t>(&zvb[ZOFF]) : 0,
+                      alpha ? (int)reinterpret_cast<intptr_t>(&apb[ZOFF]) : 0, 1000, warp_off, zread ? zsh : 0);
+
+            for (int i = 0; i < len; ++i) {
+                if (pda[i] != pdb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
+            }
+            if (zwrite) {
+                for (int i = 0; i < ZN; ++i) {
+                    if (zva[i] != zvb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = -i - 1; } }
+                }
+            }
+        }
+    }
+
+    DepthBuffer = savedz;
+    AlphaBuffer = saveda;
+
+    if (mismatches != 0) {
+        DEBUG_WARNING("[SIMD blit] {}: {} MISMATCHES (first at len={} idx={})\n", name, mismatches, first_len, first_idx);
+    } else {
+        DEBUG_INFO("[SIMD blit] {}: ok\n", name);
+    }
+    return mismatches;
+}
+
+/**
  *  Run the full family matrix for one SIMD tier. Returns the total mismatch count.
  */
 template<SimdTier ISA>
@@ -487,6 +573,37 @@ static int Run_Tier(const char* tier_name,
     { RLEBlitTransLucent75ZReadWrite<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent75ZReadWrite<ISA> s(xl, qb);   total += Compare_RLE_Family_Z("RLE Lucent75ZReadWrite", v, s, true); }
     { RLEBlitTransLucent50ZReadWrite<unsigned short> v(xl, hb);  SimdRLEBlitTransLucent50ZReadWrite<ISA> s(xl, hb);   total += Compare_RLE_Family_Z("RLE Lucent50ZReadWrite", v, s, true); }
     { RLEBlitTransLucent25ZReadWrite<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent25ZReadWrite<ISA> s(xl, qb);   total += Compare_RLE_Family_Z("RLE Lucent25ZReadWrite", v, s, true); }
+
+    /* RLE Alpha (no z). */
+    { RLEBlitTransXlatAlpha<unsigned short> v(il, lv);          SimdRLEBlitTransXlatAlpha<ISA> s(il, lv);          total += Compare_RLE_Family_AW("RLE TransXlatAlpha", v, s, false, false, true, 0); }
+    { RLEBlitTransZRemapXlatAlpha<unsigned short> v(rm, il, lv);SimdRLEBlitTransZRemapXlatAlpha<ISA> s(rm, il, lv); total += Compare_RLE_Family_AW("RLE ZRemapXlatAlpha", v, s, false, false, true, 0); }
+    { RLEBlitTransLucent75Alpha<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent75Alpha<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent75Alpha", v, s, false, false, true, 0); }
+    { RLEBlitTransLucent50Alpha<unsigned short> v(il, lv, hb);  SimdRLEBlitTransLucent50Alpha<ISA> s(il, lv, hb);   total += Compare_RLE_Family_AW("RLE Lucent50Alpha", v, s, false, false, true, 0); }
+    { RLEBlitTransLucent25Alpha<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent25Alpha<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent25Alpha", v, s, false, false, true, 0); }
+
+    /* RLE Alpha + Z-read. */
+    { RLEBlitTransXlatAlphaZRead<unsigned short> v(il, lv);          SimdRLEBlitTransXlatAlphaZRead<ISA> s(il, lv);          total += Compare_RLE_Family_AW("RLE TransXlatAlphaZRead", v, s, true, false, true, 0); }
+    { RLEBlitTransZRemapXlatAlphaZRead<unsigned short> v(rm, il, lv);SimdRLEBlitTransZRemapXlatAlphaZRead<ISA> s(rm, il, lv); total += Compare_RLE_Family_AW("RLE ZRemapXlatAlphaZRead", v, s, true, false, true, 0); }
+    { RLEBlitTransLucent75AlphaZRead<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent75AlphaZRead<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent75AlphaZRead", v, s, true, false, true, 0); }
+    { RLEBlitTransLucent50AlphaZRead<unsigned short> v(il, lv, hb);  SimdRLEBlitTransLucent50AlphaZRead<ISA> s(il, lv, hb);   total += Compare_RLE_Family_AW("RLE Lucent50AlphaZRead", v, s, true, false, true, 0); }
+    { RLEBlitTransLucent25AlphaZRead<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent25AlphaZRead<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent25AlphaZRead", v, s, true, false, true, 0); }
+
+    /* RLE Alpha + Z-read/write. */
+    { RLEBlitTransXlatAlphaZReadWrite<unsigned short> v(il, lv);          SimdRLEBlitTransXlatAlphaZReadWrite<ISA> s(il, lv);          total += Compare_RLE_Family_AW("RLE TransXlatAlphaZReadWrite", v, s, true, true, true, 0); }
+    { RLEBlitTransZRemapXlatAlphaZReadWrite<unsigned short> v(rm, il, lv);SimdRLEBlitTransZRemapXlatAlphaZReadWrite<ISA> s(rm, il, lv); total += Compare_RLE_Family_AW("RLE ZRemapXlatAlphaZReadWrite", v, s, true, true, true, 0); }
+    { RLEBlitTransLucent75AlphaZReadWrite<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent75AlphaZReadWrite<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent75AlphaZReadWrite", v, s, true, true, true, 0); }
+    { RLEBlitTransLucent50AlphaZReadWrite<unsigned short> v(il, lv, hb);  SimdRLEBlitTransLucent50AlphaZReadWrite<ISA> s(il, lv, hb);   total += Compare_RLE_Family_AW("RLE Lucent50AlphaZReadWrite", v, s, true, true, true, 0); }
+    { RLEBlitTransLucent25AlphaZReadWrite<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent25AlphaZReadWrite<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent25AlphaZReadWrite", v, s, true, true, true, 0); }
+
+    /* RLE Z-read + Warp (no alpha). */
+    { RLEBlitTransLucent75ZReadWarp<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent75ZReadWarp<ISA> s(xl, qb);   total += Compare_RLE_Family_AW("RLE Lucent75ZReadWarp", v, s, true, false, false, -3); }
+    { RLEBlitTransLucent50ZReadWarp<unsigned short> v(xl, hb);  SimdRLEBlitTransLucent50ZReadWarp<ISA> s(xl, hb);   total += Compare_RLE_Family_AW("RLE Lucent50ZReadWarp", v, s, true, false, false, -3); }
+    { RLEBlitTransLucent25ZReadWarp<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent25ZReadWarp<ISA> s(xl, qb);   total += Compare_RLE_Family_AW("RLE Lucent25ZReadWarp", v, s, true, false, false, -3); }
+
+    /* RLE Alpha + Z-read + Warp. */
+    { RLEBlitTransLucent75AlphaZReadWarp<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent75AlphaZReadWarp<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent75AlphaZReadWarp", v, s, true, false, true, -3); }
+    { RLEBlitTransLucent50AlphaZReadWarp<unsigned short> v(il, lv, hb);  SimdRLEBlitTransLucent50AlphaZReadWarp<ISA> s(il, lv, hb);   total += Compare_RLE_Family_AW("RLE Lucent50AlphaZReadWarp", v, s, true, false, true, -3); }
+    { RLEBlitTransLucent25AlphaZReadWarp<unsigned short> v(il, lv, qb);  SimdRLEBlitTransLucent25AlphaZReadWarp<ISA> s(il, lv, qb);   total += Compare_RLE_Family_AW("RLE Lucent25AlphaZReadWarp", v, s, true, false, true, -3); }
 
     return total;
 }

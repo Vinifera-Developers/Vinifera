@@ -136,9 +136,9 @@ public:
     cc->RLEBlitTransLucent75ZReadPtr = new SimdRLEBlitTransLucent75ZRead<ISA>(xl, qb);
     cc->RLEBlitTransLucent50ZReadPtr = new SimdRLEBlitTransLucent50ZRead<ISA>(xl, hb);
     cc->RLEBlitTransLucent25ZReadPtr = new SimdRLEBlitTransLucent25ZRead<ISA>(xl, qb);
-    cc->RLEBlitTransLucent75ZReadWarpPtr = new RLEBlitTransLucent75ZReadWarp<unsigned short>(xl, qb);
-    cc->RLEBlitTransLucent50ZReadWarpPtr = new RLEBlitTransLucent50ZReadWarp<unsigned short>(xl, hb);
-    cc->RLEBlitTransLucent25ZReadWarpPtr = new RLEBlitTransLucent25ZReadWarp<unsigned short>(xl, qb);
+    cc->RLEBlitTransLucent75ZReadWarpPtr = new SimdRLEBlitTransLucent75ZReadWarp<ISA>(xl, qb);
+    cc->RLEBlitTransLucent50ZReadWarpPtr = new SimdRLEBlitTransLucent50ZReadWarp<ISA>(xl, hb);
+    cc->RLEBlitTransLucent25ZReadWarpPtr = new SimdRLEBlitTransLucent25ZReadWarp<ISA>(xl, qb);
 
     cc->RLEBlitTransXlatZReadWritePtr = new SimdRLEBlitTransXlatZReadWrite<ISA>(xl);
     cc->RLEBlitTransZRemapXlatZReadWritePtr = new SimdRLEBlitTransZRemapXlatZReadWrite<ISA>(rm, xl);
@@ -147,26 +147,26 @@ public:
     cc->RLEBlitTransLucent50ZReadWritePtr = new SimdRLEBlitTransLucent50ZReadWrite<ISA>(xl, hb);
     cc->RLEBlitTransLucent25ZReadWritePtr = new SimdRLEBlitTransLucent25ZReadWrite<ISA>(xl, qb);
 
-    cc->RLEBlitTransXlatAlphaPtr = new RLEBlitTransXlatAlpha<unsigned short>(il, lv);
-    cc->RLEBlitTransZRemapXlatAlphaPtr = new RLEBlitTransZRemapXlatAlpha<unsigned short>(rm, il, lv);
-    cc->RLEBlitTransLucent75AlphaPtr = new RLEBlitTransLucent75Alpha<unsigned short>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaPtr = new RLEBlitTransLucent50Alpha<unsigned short>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaPtr = new RLEBlitTransLucent25Alpha<unsigned short>(il, lv, qb);
+    cc->RLEBlitTransXlatAlphaPtr = new SimdRLEBlitTransXlatAlpha<ISA>(il, lv);
+    cc->RLEBlitTransZRemapXlatAlphaPtr = new SimdRLEBlitTransZRemapXlatAlpha<ISA>(rm, il, lv);
+    cc->RLEBlitTransLucent75AlphaPtr = new SimdRLEBlitTransLucent75Alpha<ISA>(il, lv, qb);
+    cc->RLEBlitTransLucent50AlphaPtr = new SimdRLEBlitTransLucent50Alpha<ISA>(il, lv, hb);
+    cc->RLEBlitTransLucent25AlphaPtr = new SimdRLEBlitTransLucent25Alpha<ISA>(il, lv, qb);
 
-    cc->RLEBlitTransXlatAlphaZReadPtr = new RLEBlitTransXlatAlphaZRead<unsigned short>(il, lv);
-    cc->RLEBlitTransZRemapXlatAlphaZReadPtr = new RLEBlitTransZRemapXlatAlphaZRead<unsigned short>(rm, il, lv);
-    cc->RLEBlitTransLucent75AlphaZReadPtr = new RLEBlitTransLucent75AlphaZRead<unsigned short>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaZReadPtr = new RLEBlitTransLucent50AlphaZRead<unsigned short>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaZReadPtr = new RLEBlitTransLucent25AlphaZRead<unsigned short>(il, lv, qb);
-    cc->RLEBlitTransLucent75AlphaZReadWarpPtr = new RLEBlitTransLucent75AlphaZReadWarp<unsigned short>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaZReadWarpPtr = new RLEBlitTransLucent50AlphaZReadWarp<unsigned short>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaZReadWarpPtr = new RLEBlitTransLucent25AlphaZReadWarp<unsigned short>(il, lv, qb);
+    cc->RLEBlitTransXlatAlphaZReadPtr = new SimdRLEBlitTransXlatAlphaZRead<ISA>(il, lv);
+    cc->RLEBlitTransZRemapXlatAlphaZReadPtr = new SimdRLEBlitTransZRemapXlatAlphaZRead<ISA>(rm, il, lv);
+    cc->RLEBlitTransLucent75AlphaZReadPtr = new SimdRLEBlitTransLucent75AlphaZRead<ISA>(il, lv, qb);
+    cc->RLEBlitTransLucent50AlphaZReadPtr = new SimdRLEBlitTransLucent50AlphaZRead<ISA>(il, lv, hb);
+    cc->RLEBlitTransLucent25AlphaZReadPtr = new SimdRLEBlitTransLucent25AlphaZRead<ISA>(il, lv, qb);
+    cc->RLEBlitTransLucent75AlphaZReadWarpPtr = new SimdRLEBlitTransLucent75AlphaZReadWarp<ISA>(il, lv, qb);
+    cc->RLEBlitTransLucent50AlphaZReadWarpPtr = new SimdRLEBlitTransLucent50AlphaZReadWarp<ISA>(il, lv, hb);
+    cc->RLEBlitTransLucent25AlphaZReadWarpPtr = new SimdRLEBlitTransLucent25AlphaZReadWarp<ISA>(il, lv, qb);
 
-    cc->RLEBlitTransXlatAlphaZReadWritePtr = new RLEBlitTransXlatAlphaZReadWrite<unsigned short>(il, lv);
-    cc->RLEBlitTransZRemapXlatAlphaZReadWritePtr = new RLEBlitTransZRemapXlatAlphaZReadWrite<unsigned short>(rm, il, lv);
-    cc->RLEBlitTransLucent75AlphaZReadWritePtr = new RLEBlitTransLucent75AlphaZReadWrite<unsigned short>(il, lv, qb);
-    cc->RLEBlitTransLucent50AlphaZReadWritePtr = new RLEBlitTransLucent50AlphaZReadWrite<unsigned short>(il, lv, hb);
-    cc->RLEBlitTransLucent25AlphaZReadWritePtr = new RLEBlitTransLucent25AlphaZReadWrite<unsigned short>(il, lv, qb);
+    cc->RLEBlitTransXlatAlphaZReadWritePtr = new SimdRLEBlitTransXlatAlphaZReadWrite<ISA>(il, lv);
+    cc->RLEBlitTransZRemapXlatAlphaZReadWritePtr = new SimdRLEBlitTransZRemapXlatAlphaZReadWrite<ISA>(rm, il, lv);
+    cc->RLEBlitTransLucent75AlphaZReadWritePtr = new SimdRLEBlitTransLucent75AlphaZReadWrite<ISA>(il, lv, qb);
+    cc->RLEBlitTransLucent50AlphaZReadWritePtr = new SimdRLEBlitTransLucent50AlphaZReadWrite<ISA>(il, lv, hb);
+    cc->RLEBlitTransLucent25AlphaZReadWritePtr = new SimdRLEBlitTransLucent25AlphaZReadWrite<ISA>(il, lv, qb);
     }
 };
 

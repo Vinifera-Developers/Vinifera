@@ -105,4 +105,33 @@ INSTANTIATE_RLE(CFG_RLE_Lucent75ZReadWrite);
 INSTANTIATE_RLE(CFG_Lucent50ZReadWrite);
 INSTANTIATE_RLE(CFG_RLE_Lucent25ZReadWrite);
 
+/* RLE Alpha (no z). */
+INSTANTIATE_RLE(CFG_TransXlatAlpha);
+INSTANTIATE_RLE(CFG_ZRemapXlatAlpha);
+INSTANTIATE_RLE(CFG_Lucent75Alpha);
+INSTANTIATE_RLE(CFG_Lucent50Alpha);
+INSTANTIATE_RLE(CFG_Lucent25Alpha);
+
+/* RLE Alpha + Z-read. */
+INSTANTIATE_RLE(CFG_TransXlatAlphaZRead);
+INSTANTIATE_RLE(CFG_ZRemapXlatAlphaZRead);
+INSTANTIATE_RLE(CFG_Lucent75AlphaZRead);
+INSTANTIATE_RLE(CFG_Lucent50AlphaZRead);
+INSTANTIATE_RLE(CFG_Lucent25AlphaZRead);
+
+/* RLE Alpha + Z-read/write. */
+INSTANTIATE_RLE(CFG_TransXlatAlphaZReadWrite);
+INSTANTIATE_RLE(CFG_RLE_ZRemapXlatAlphaZReadWrite);
+INSTANTIATE_RLE(CFG_Lucent75AlphaZReadWrite);
+INSTANTIATE_RLE(CFG_Lucent50AlphaZReadWrite);
+INSTANTIATE_RLE(CFG_Lucent25AlphaZReadWrite);
+
+/* RLE Warp (Z-read; +/- alpha). */
+INSTANTIATE_RLE(CFG_Lucent75ZReadWarp);
+INSTANTIATE_RLE(CFG_Lucent50ZReadWarp);
+INSTANTIATE_RLE(CFG_Lucent25ZReadWarp);
+INSTANTIATE_RLE(CFG_Lucent75AlphaZReadWarp);
+INSTANTIATE_RLE(CFG_Lucent50AlphaZReadWarp);
+INSTANTIATE_RLE(CFG_Lucent25AlphaZReadWarp);
+
 #undef INSTANTIATE_RLE
