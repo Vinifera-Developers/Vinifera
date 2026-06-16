@@ -257,6 +257,127 @@ static int Compare_Family_AW(const char* name, const Blitter& vanilla, const Bli
 }
 
 /**
+ *  Compare a WriteAlpha family. Writers (composite=false) only write the alpha-buffer ring, so
+ *  the comparison is the alpha ring (z_min is the alpha base, alpha_level the multiplier). The
+ *  compositor (composite=true) reads the ring as a per-pixel weight and writes dest, so it
+ *  compares dest; the weights are 0..255 (with 255 cropping up to hit the a==255 -> 256 path).
+ */
+static int Compare_Family_WriteAlpha(const char* name, const Blitter& vanilla, const Blitter& simd, bool composite)
+{
+    static const int lengths[] = { 0, 1, 7, 8, 9, 17, 33, 64, 127, 200, 255 };
+    const int ZN = 250, ZOFF = 50;
+
+    static unsigned short da[512], db[512];
+    unsigned char src[256];
+    static unsigned short apa[512], apb[512];
+
+    alignas(8) static unsigned char fakea[sizeof(ABuffer)];
+    ABuffer* fa = reinterpret_cast<ABuffer*>(fakea);
+    ABuffer* saveda = AlphaBuffer;
+
+    int mismatches = 0, first_len = -1, first_idx = -1;
+
+    for (int li = 0; li < (int)(sizeof(lengths) / sizeof(lengths[0])); ++li) {
+        int len = lengths[li];
+        for (int rep = 0; rep < 32; ++rep) {
+
+            for (int i = 0; i < len; ++i) {
+                src[i] = (Rng() & 3) == 0 ? 0 : (unsigned char)(1 + (Rng() % 255));
+            }
+            for (int i = 0; i < len; ++i) {
+                unsigned short v = (unsigned short)(Rng() & 0xFFFF);
+                da[i] = v; db[i] = v;
+            }
+            for (int i = 0; i < ZN; ++i) {
+                unsigned short a = composite ? (unsigned short)(Rng() & 0xFF) : (unsigned short)(Rng() & 0xFFFF);
+                apa[i] = a; apb[i] = a;
+            }
+
+            int z_min = composite ? 0x4000 : (int)(Rng() % 200);
+            int alpha_level = composite ? 1000 : (int)(1 + (Rng() % 8));
+
+            fa->BufferStart = (unsigned int)apa; fa->BufferEnd = (unsigned int)(apa + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa;
+            vanilla.BlitForward(da, src, len, z_min, nullptr, &apa[ZOFF], alpha_level, 0);
+
+            fa->BufferStart = (unsigned int)apb; fa->BufferEnd = (unsigned int)(apb + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa;
+            simd.BlitForward(db, src, len, z_min, nullptr, &apb[ZOFF], alpha_level, 0);
+
+            if (composite) {
+                for (int i = 0; i < len; ++i) {
+                    if (da[i] != db[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
+                }
+            } else {
+                for (int i = 0; i < ZN; ++i) {
+                    if (apa[i] != apb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = -i - 1; } }
+                }
+            }
+        }
+    }
+
+    AlphaBuffer = saveda;
+
+    if (mismatches != 0) {
+        DEBUG_WARNING("[SIMD blit] {}: {} MISMATCHES (first at len={} idx={})\n", name, mismatches, first_len, first_idx);
+    } else {
+        DEBUG_INFO("[SIMD blit] {}: ok\n", name);
+    }
+    return mismatches;
+}
+
+/**
+ *  Compare an alpha-gated translucency family (Translucent50/75 Nonzero/ZeroAlpha): the alpha
+ *  buffer is read-only and gates the L50/L75 blend. The ring is filled ~50% zero so both the
+ *  draw and skip sides of the gate get heavy coverage for both polarities. Compares dest.
+ */
+static int Compare_Family_Gate(const char* name, const Blitter& vanilla, const Blitter& simd)
+{
+    static const int lengths[] = { 0, 1, 7, 8, 9, 17, 33, 64, 127, 200, 255 };
+    const int ZN = 250, ZOFF = 50;
+
+    static unsigned short da[512], db[512];
+    unsigned char src[256];
+    static unsigned short apa[512], apb[512];
+
+    alignas(8) static unsigned char fakea[sizeof(ABuffer)];
+    ABuffer* fa = reinterpret_cast<ABuffer*>(fakea);
+    ABuffer* saveda = AlphaBuffer;
+
+    int mismatches = 0, first_len = -1, first_idx = -1;
+
+    for (int li = 0; li < (int)(sizeof(lengths) / sizeof(lengths[0])); ++li) {
+        int len = lengths[li];
+        for (int rep = 0; rep < 32; ++rep) {
+
+            for (int i = 0; i < len; ++i) src[i] = (Rng() & 3) == 0 ? 0 : (unsigned char)(1 + (Rng() % 255));
+            for (int i = 0; i < len; ++i) { unsigned short v = (unsigned short)(Rng() & 0xFFFF); da[i] = v; db[i] = v; }
+            for (int i = 0; i < ZN; ++i) {
+                unsigned short a = (Rng() & 1) ? (unsigned short)(1 + (Rng() % 255)) : (unsigned short)0;
+                apa[i] = a; apb[i] = a;
+            }
+
+            fa->BufferStart = (unsigned int)apa; fa->BufferEnd = (unsigned int)(apa + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa;
+            vanilla.BlitForward(da, src, len, 0, nullptr, &apa[ZOFF], 1000, 0);
+
+            fa->BufferStart = (unsigned int)apb; fa->BufferEnd = (unsigned int)(apb + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa;
+            simd.BlitForward(db, src, len, 0, nullptr, &apb[ZOFF], 1000, 0);
+
+            for (int i = 0; i < len; ++i) {
+                if (da[i] != db[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
+            }
+        }
+    }
+
+    AlphaBuffer = saveda;
+
+    if (mismatches != 0) {
+        DEBUG_WARNING("[SIMD blit] {}: {} MISMATCHES (first at len={} idx={})\n", name, mismatches, first_len, first_idx);
+    } else {
+        DEBUG_INFO("[SIMD blit] {}: ok\n", name);
+    }
+    return mismatches;
+}
+
+/**
  *  Encode a logical pixel row (0 = transparent, else = opaque palette index) into the
  *  RLE-Zero byte stream the blitters decode: a 0x00 byte + count = a transparent run
  *  (split at 255), any non-zero byte = one opaque pixel. Returns the stream length.
@@ -552,6 +673,17 @@ static int Run_Tier(const char* tier_name,
     { BlitTransLucent75ZReadWarp<unsigned short> v(xl,qb);  SimdBlitTransLucent75ZReadWarp<ISA> s(xl,qb);  total += Compare_Family_AW("TransLucent75ZReadWarp", v, s, true, false, false, -3); }
     { BlitTransLucent50ZReadWarp<unsigned short> v(xl,hb);  SimdBlitTransLucent50ZReadWarp<ISA> s(xl,hb);  total += Compare_Family_AW("TransLucent50ZReadWarp", v, s, true, false, false, -3); }
     { BlitTransLucent25ZReadWarp<unsigned short> v(xl,qb);  SimdBlitTransLucent25ZReadWarp<ISA> s(xl,qb);  total += Compare_Family_AW("TransLucent25ZReadWarp", v, s, true, false, false, -3); }
+
+    /* Alpha-buffer writers / compositor. */
+    { BlitTransXlatWriteAlpha<unsigned short> v;      SimdBlitTransXlatWriteAlpha<ISA> s;          total += Compare_Family_WriteAlpha("TransXlatWriteAlpha", v, s, false); }
+    { BlitTransXlatMultWriteAlpha<unsigned short> v;  SimdBlitTransXlatMultWriteAlpha<ISA> s;      total += Compare_Family_WriteAlpha("TransXlatMultWriteAlpha", v, s, false); }
+    { BlitTranslucentWriteAlpha<unsigned short> v(il);SimdBlitTranslucentWriteAlpha<ISA> s(il);    total += Compare_Family_WriteAlpha("TranslucentWriteAlpha", v, s, true); }
+
+    /* Alpha-gated translucency. */
+    { BlitTranslucent50NonzeroAlpha<unsigned short> v(xl,hb); SimdBlitTranslucent50NonzeroAlpha<ISA> s(xl,hb); total += Compare_Family_Gate("Translucent50NonzeroAlpha", v, s); }
+    { BlitTranslucent50ZeroAlpha<unsigned short> v(xl,hb);    SimdBlitTranslucent50ZeroAlpha<ISA> s(xl,hb);    total += Compare_Family_Gate("Translucent50ZeroAlpha", v, s); }
+    { BlitTranslucent75NonzeroAlpha<unsigned short> v(xl,qb); SimdBlitTranslucent75NonzeroAlpha<ISA> s(xl,qb); total += Compare_Family_Gate("Translucent75NonzeroAlpha", v, s); }
+    { BlitTranslucent75ZeroAlpha<unsigned short> v(xl,qb);    SimdBlitTranslucent75ZeroAlpha<ISA> s(xl,qb);    total += Compare_Family_Gate("Translucent75ZeroAlpha", v, s); }
 
     /* RLE (non-Z wave). */
     { RLEBlitTransXlat<unsigned short> v(xl);          SimdRLEBlitTransXlat<ISA> s(xl);          total += Compare_RLE_Family("RLE TransXlat", v, s); }

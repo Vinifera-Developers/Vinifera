@@ -74,6 +74,17 @@ INSTANTIATE(CFG_Lucent75ZReadWarp);
 INSTANTIATE(CFG_Lucent50ZReadWarp);
 INSTANTIATE(CFG_Lucent25ZReadWarp);
 
+/* Alpha-buffer writers / compositor. */
+INSTANTIATE(CFG_TransXlatWriteAlpha);
+INSTANTIATE(CFG_TransXlatMultWriteAlpha);
+INSTANTIATE(CFG_TranslucentWriteAlpha);
+
+/* Alpha-gated translucency. */
+INSTANTIATE(CFG_Translucent50NonzeroAlpha);
+INSTANTIATE(CFG_Translucent50ZeroAlpha);
+INSTANTIATE(CFG_Translucent75NonzeroAlpha);
+INSTANTIATE(CFG_Translucent75ZeroAlpha);
+
 #undef INSTANTIATE
 
 #define INSTANTIATE_RLE(cfg) \

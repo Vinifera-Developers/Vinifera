@@ -61,6 +61,11 @@ struct BlitConfig {
     bool     remapdest = false;     // RLE only: *dest = RemapTable16[*dest] (the source byte only marks opacity)
     bool     rle_skip_noz = false;  // RLE engine bug (Lucent75/25 ZReadWrite): transparent runs do NOT advance z/zshape -> they lag dptr
     bool     rle_zs2 = false;       // RLE engine bug (ZRemapXlatZReadWrite): opaque pixels advance zshape by 2 and z-write samples zshape[+1]
+    bool     awrite = false;        // alpha-buffer WRITER: a_buff[i] = min(z_min + (mult?alpha_level:1)*value, 255), value!=0 gated; dest/z untouched
+    bool     awrite_mult = false;   // awrite multiplies value by alpha_level (BlitTransXlatMultWriteAlpha)
+    bool     acomposite = false;    // per-channel RGB565 alpha composite into dest using a_buff[i] as the weight (BlitTranslucentWriteAlpha)
+    bool     agate = false;         // blend gated on the alpha buffer being non-zero/zero (Translucent50/75 Nonzero/ZeroAlpha); a_buff read-only, advances+wraps
+    bool     agate_zero = false;    // agate polarity: draw when a_buff[i]==0 (Zero); otherwise draw when a_buff[i]!=0 (Nonzero)
 };
 
 
@@ -159,6 +164,17 @@ inline constexpr BlitConfig CFG_Lucent75ZReadWarp { .xlat = XlatMode::Direct, .t
 inline constexpr BlitConfig CFG_Lucent50ZReadWarp { .xlat = XlatMode::Direct, .trans = true, .zread = true, .warp = true, .blend = Blend::L50 };
 inline constexpr BlitConfig CFG_Lucent25ZReadWarp { .xlat = XlatMode::Direct, .trans = true, .zread = true, .warp = true, .blend = Blend::L25 };
 
+/* Alpha-buffer writers / compositor (write a_buff or composite into dest; no z). */
+inline constexpr BlitConfig CFG_TransXlatWriteAlpha     { .trans = true, .blend = Blend::Copy, .awrite = true };
+inline constexpr BlitConfig CFG_TransXlatMultWriteAlpha { .trans = true, .blend = Blend::Copy, .awrite = true, .awrite_mult = true };
+inline constexpr BlitConfig CFG_TranslucentWriteAlpha   { .trans = true, .blend = Blend::Copy, .acomposite = true };
+
+/* Translucency gated on the alpha buffer (Nonzero: draw where a_buff!=0; Zero: where a_buff==0). */
+inline constexpr BlitConfig CFG_Translucent50NonzeroAlpha { .xlat = XlatMode::Direct, .trans = true, .blend = Blend::L50, .agate = true };
+inline constexpr BlitConfig CFG_Translucent50ZeroAlpha    { .xlat = XlatMode::Direct, .trans = true, .blend = Blend::L50, .agate = true, .agate_zero = true };
+inline constexpr BlitConfig CFG_Translucent75NonzeroAlpha { .xlat = XlatMode::Direct, .trans = true, .blend = Blend::L75, .agate = true };
+inline constexpr BlitConfig CFG_Translucent75ZeroAlpha    { .xlat = XlatMode::Direct, .trans = true, .blend = Blend::L75, .agate = true, .agate_zero = true };
+
 
 /**
  *  A SIMD blitter. Derives from the fully-modelled vanilla class `Vanilla`
@@ -183,7 +199,7 @@ public:
         unsigned short mask = 0;
         unsigned short const* alut = nullptr;
 
-        if constexpr (CFG.blend != Blend::Darken) { xlat = this->TranslateTable; }
+        if constexpr (CFG.blend != Blend::Darken && !CFG.awrite) { xlat = this->TranslateTable; }
         if constexpr (CFG.xlat == XlatMode::Remap) { remap1 = this->RemapTable; }
         if constexpr (CFG.xlat == XlatMode::ZRemap) { remap2 = this->RemapTable; }
         if constexpr (CFG.blend != Blend::Copy) { mask = this->Mask; }
@@ -251,6 +267,17 @@ template<SimdTier I> using SimdBlitTransLucent25ZReadWarp = SimdBlit<I, BlitTran
 template<SimdTier I> using SimdBlitTransLucent50ZReadWrite   = SimdBlit<I, BlitTransLucent50ZReadWrite<unsigned short>,   CFG_Lucent50ZReadWrite>;
 template<SimdTier I> using SimdBlitTransLucent75ZReadWrite   = SimdBlit<I, BlitTransLucent75ZReadWrite<unsigned short>,   CFG_Lucent75ZReadWrite>;
 
+/* Alpha-buffer writers / compositor. */
+template<SimdTier I> using SimdBlitTransXlatWriteAlpha     = SimdBlit<I, BlitTransXlatWriteAlpha<unsigned short>,     CFG_TransXlatWriteAlpha>;
+template<SimdTier I> using SimdBlitTransXlatMultWriteAlpha = SimdBlit<I, BlitTransXlatMultWriteAlpha<unsigned short>, CFG_TransXlatMultWriteAlpha>;
+template<SimdTier I> using SimdBlitTranslucentWriteAlpha   = SimdBlit<I, BlitTranslucentWriteAlpha<unsigned short>,   CFG_TranslucentWriteAlpha>;
+
+/* Alpha-gated translucency. */
+template<SimdTier I> using SimdBlitTranslucent50NonzeroAlpha = SimdBlit<I, BlitTranslucent50NonzeroAlpha<unsigned short>, CFG_Translucent50NonzeroAlpha>;
+template<SimdTier I> using SimdBlitTranslucent50ZeroAlpha    = SimdBlit<I, BlitTranslucent50ZeroAlpha<unsigned short>,    CFG_Translucent50ZeroAlpha>;
+template<SimdTier I> using SimdBlitTranslucent75NonzeroAlpha = SimdBlit<I, BlitTranslucent75NonzeroAlpha<unsigned short>, CFG_Translucent75NonzeroAlpha>;
+template<SimdTier I> using SimdBlitTranslucent75ZeroAlpha    = SimdBlit<I, BlitTranslucent75ZeroAlpha<unsigned short>,    CFG_Translucent75ZeroAlpha>;
+
 
 /* ====================================================================================
  *  RLE blitters
@@ -303,7 +330,7 @@ public:
         if constexpr (CFG.remapdest) {
             xlat = this->RemapTable;                 // T const* : 16-bit dest remap
         } else {
-            if constexpr (CFG.blend != Blend::Darken) { xlat = this->TranslateTable; }
+            if constexpr (CFG.blend != Blend::Darken && !CFG.awrite) { xlat = this->TranslateTable; }
             if constexpr (CFG.xlat == XlatMode::Remap)  { remap1 = this->RemapTable; }
             if constexpr (CFG.xlat == XlatMode::ZRemap) { remap2 = this->RemapTable; }
         }

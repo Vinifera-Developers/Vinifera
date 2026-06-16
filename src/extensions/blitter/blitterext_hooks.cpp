@@ -95,13 +95,13 @@ public:
     cc->BlitTransLucent50AlphaPtr = new SimdBlitTransLucent50Alpha<ISA>(il, lv, hb);
     cc->BlitTransLucent25AlphaPtr = new SimdBlitTransLucent25Alpha<ISA>(il, lv, qb);
 
-    cc->BlitTransXlatWriteAlphaPtr = new BlitTransXlatWriteAlpha<unsigned short>();
-    cc->BlitTransXlatMultWriteAlphaPtr = new BlitTransXlatMultWriteAlpha<unsigned short>();
-    cc->BlitTranslucentWriteAlphaPtr = new BlitTranslucentWriteAlpha<unsigned short>(il);
-    cc->BlitTranslucent50NonzeroAlphaPtr = new BlitTranslucent50NonzeroAlpha<unsigned short>(xl, hb);
-    cc->BlitTranslucent50ZeroAlphaPtr = new BlitTranslucent50ZeroAlpha<unsigned short>(xl, hb);
-    cc->BlitTranslucent75NonzeroAlphaPtr = new BlitTranslucent75NonzeroAlpha<unsigned short>(xl, qb);
-    cc->BlitTranslucent75ZeroAlphaPtr = new BlitTranslucent75ZeroAlpha<unsigned short>(xl, qb);
+    cc->BlitTransXlatWriteAlphaPtr = new SimdBlitTransXlatWriteAlpha<ISA>();
+    cc->BlitTransXlatMultWriteAlphaPtr = new SimdBlitTransXlatMultWriteAlpha<ISA>();
+    cc->BlitTranslucentWriteAlphaPtr = new SimdBlitTranslucentWriteAlpha<ISA>(il);
+    cc->BlitTranslucent50NonzeroAlphaPtr = new SimdBlitTranslucent50NonzeroAlpha<ISA>(xl, hb);
+    cc->BlitTranslucent50ZeroAlphaPtr = new SimdBlitTranslucent50ZeroAlpha<ISA>(xl, hb);
+    cc->BlitTranslucent75NonzeroAlphaPtr = new SimdBlitTranslucent75NonzeroAlpha<ISA>(xl, qb);
+    cc->BlitTranslucent75ZeroAlphaPtr = new SimdBlitTranslucent75ZeroAlpha<ISA>(xl, qb);
 
     cc->BlitPlainXlatAlpha_2Ptr = new SimdBlitPlainXlatAlpha<ISA>(il, lv);
     cc->BlitTransXlatAlphaZReadPtr = new SimdBlitTransXlatAlphaZRead<ISA>(il, lv);

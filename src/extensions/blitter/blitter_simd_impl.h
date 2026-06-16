@@ -29,6 +29,7 @@
 #include "blitter_simd.h"
 #include "zbuffer.h"
 #include "abuffer.h"
+#include "dsurface.h"   // channel shift statics for the alpha-composite family
 
 #include <immintrin.h>  // SSE2 .. AVX2
 #include <cstdint>
@@ -300,18 +301,202 @@ static inline int Skip_Leading_Pixels(unsigned char const*& sptr, int skipper)
     return -skipper;
 }
 
+/**
+ *  One alpha-composite pixel (BlitTranslucentWriteAlpha): blend source colour `srcc` over
+ *  background `bg` by weight `alpha` (0..255), per channel, in the surface pixel format.
+ *  Reproduces the engine's exact integer math (channel = (u8)((u8)(x>>right)<<left), the
+ *  (alpha==255 -> 256) bump, >>8, clamp 255). Used at the ring boundary and as the reference.
+ */
+static inline unsigned short Composite1(unsigned short bg, unsigned short srcc, int alpha)
+{
+    int a1 = alpha;
+    int a2 = 255 - alpha;
+    if (a1 == 255) a1 = 256;
+
+    const int Rr = (int)DSurface::Get_Red_Right(),   Rl = (int)DSurface::Get_Red_Left();
+    const int Gr = (int)DSurface::Get_Green_Right(), Gl = (int)DSurface::Get_Green_Left();
+    const int Br = (int)DSurface::Get_Blue_Right(),  Bl = (int)DSurface::Get_Blue_Left();
+
+    auto ch = [](int right, int left, unsigned short x) -> int {
+        return (unsigned char)((unsigned char)(x >> right) << left);
+    };
+
+    int r = (a1 * ch(Rr, Rl, srcc) + a2 * ch(Rr, Rl, bg)) >> 8; if (r > 255) r = 255;
+    int g = (a1 * ch(Gr, Gl, srcc) + a2 * ch(Gr, Gl, bg)) >> 8; if (g > 255) g = 255;
+    int b = (a1 * ch(Br, Bl, srcc) + a2 * ch(Br, Bl, bg)) >> 8; if (b > 255) b = 255;
+
+    return (unsigned short)((b >> Bl << Br) | (g >> Gl << Gr) | (r >> Rl << Rr));
+}
+
 } // namespace
 
 
 template<SimdTier ISA, BlitConfig CFG>
 void Blit_Row(void* dest, void const* source, int length,
-              int z_min, void* z_buff, void* a_buff, int /*alpha_level*/, int warp_offset,
+              int z_min, void* z_buff, void* a_buff, int alpha_level, int warp_offset,
               unsigned short const* xlat, unsigned char const* remap1,
               unsigned char const* const* remap2, unsigned short mask,
               unsigned short const* alut)
 {
     unsigned short* d = static_cast<unsigned short*>(dest);
     unsigned char const* src = static_cast<unsigned char const*>(source);
+
+    /**
+     *  Alpha-buffer writers (no dest/z touch): store min(z_min + k*value, 255) for every
+     *  opaque pixel, k = alpha_level (mult) or 1. The alpha ring wraps after each pixel, so the
+     *  8-wide block only runs over a contiguous span; the scalar step does the boundary wrap.
+     */
+    if constexpr (CFG.awrite) {
+        unsigned short* ap = static_cast<unsigned short*>(a_buff);
+        const unsigned int aend = AlphaBuffer->Get_Buffer_End();
+        const __m128i zero = _mm_setzero_si128();
+        const __m128i vzmin = _mm_set1_epi32(z_min);
+        const __m128i val16 = _mm_set1_epi16((short)alpha_level);
+        const __m128i vthr = _mm_set1_epi32(254);   // t >= 255  <=>  t > 254
+        const __m128i v255 = _mm_set1_epi32(255);
+        const bool clean = (z_min >= 0) && (!CFG.awrite_mult || (unsigned)alpha_level <= 0xFFFFu);
+
+        int i = 0;
+        while (i < length) {
+            if (clean && (length - i) >= 8 && (int)((aend - (unsigned int)ap) / 2) >= 8) {
+                __m128i v8 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(src + i));
+                __m128i v16 = _mm_unpacklo_epi8(v8, zero);            // 8x u16 value
+                __m128i nz = _mm_cmpeq_epi16(v16, zero);              // 0xFFFF where value==0 (skip)
+                __m128i plo, phi;
+                if constexpr (CFG.awrite_mult) {
+                    __m128i lo = _mm_mullo_epi16(v16, val16);
+                    __m128i hi = _mm_mulhi_epu16(v16, val16);
+                    plo = _mm_unpacklo_epi16(lo, hi);                 // 4x u32 product
+                    phi = _mm_unpackhi_epi16(lo, hi);
+                } else {
+                    plo = _mm_unpacklo_epi16(v16, zero);              // 4x u32 value
+                    phi = _mm_unpackhi_epi16(v16, zero);
+                }
+                plo = _mm_add_epi32(plo, vzmin);
+                phi = _mm_add_epi32(phi, vzmin);
+                __m128i ml = _mm_cmpgt_epi32(plo, vthr);
+                __m128i mh = _mm_cmpgt_epi32(phi, vthr);
+                plo = _mm_or_si128(_mm_and_si128(ml, v255), _mm_andnot_si128(ml, plo));
+                phi = _mm_or_si128(_mm_and_si128(mh, v255), _mm_andnot_si128(mh, phi));
+                __m128i t16 = _mm_packs_epi32(plo, phi);             // 8x u16 (0..255)
+                __m128i old = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ap));
+                __m128i res = _mm_or_si128(_mm_and_si128(nz, old), _mm_andnot_si128(nz, t16));
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(ap), res);
+                i += 8; ap += 8;
+                if ((unsigned int)ap >= aend) ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
+            } else {
+                unsigned char v = src[i];
+                if (v != 0) {
+                    int t = CFG.awrite_mult ? (z_min + alpha_level * (int)v) : (z_min + (int)v);
+                    if (t >= 255) t = 255;
+                    *ap = (unsigned short)t;
+                }
+                ++i; ++ap;
+                ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
+            }
+        }
+        return;
+    }
+
+    /**
+     *  Per-channel RGB565 alpha composite into dest. a_buff[i] is the per-pixel weight: the
+     *  source colour gets weight a1 = (a==255 ? 256 : a), the background a2 = 255 - a, each
+     *  channel = (a1*src_c + a2*dst_c) >> 8 (clamped), recombined to the surface pixel format.
+     */
+    if constexpr (CFG.acomposite) {
+        unsigned short* ap = static_cast<unsigned short*>(a_buff);
+        const unsigned int aend = AlphaBuffer->Get_Buffer_End();
+        const __m128i zero = _mm_setzero_si128();
+        const __m128i m0xFF = _mm_set1_epi16(0x00FF);
+        const __m128i v255 = _mm_set1_epi16(255);
+        const __m128i v1 = _mm_set1_epi16(1);
+        const __m128i sRr = _mm_cvtsi32_si128((int)DSurface::Get_Red_Right());
+        const __m128i sRl = _mm_cvtsi32_si128((int)DSurface::Get_Red_Left());
+        const __m128i sGr = _mm_cvtsi32_si128((int)DSurface::Get_Green_Right());
+        const __m128i sGl = _mm_cvtsi32_si128((int)DSurface::Get_Green_Left());
+        const __m128i sBr = _mm_cvtsi32_si128((int)DSurface::Get_Blue_Right());
+        const __m128i sBl = _mm_cvtsi32_si128((int)DSurface::Get_Blue_Left());
+
+        int i = 0;
+        while (i < length) {
+            if ((length - i) >= 8 && (int)((aend - (unsigned int)ap) / 2) >= 8) {
+                unsigned short tmp[8];
+                for (int k = 0; k < 8; ++k) tmp[k] = xlat[src[i + k]];
+                __m128i vsrcc = _mm_loadu_si128(reinterpret_cast<const __m128i*>(tmp));
+                __m128i v8 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(src + i));
+                __m128i nz = _mm_cmpeq_epi16(_mm_unpacklo_epi8(v8, zero), zero);     // transparent lanes
+                __m128i vdst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(d + i));
+                __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ap));   // 8x u16 weight
+                __m128i a2 = _mm_sub_epi16(v255, a);
+                __m128i a1 = _mm_add_epi16(a, _mm_and_si128(_mm_cmpeq_epi16(a, v255), v1));
+
+                auto chan = [&](const __m128i cr, const __m128i cl) -> __m128i {
+                    __m128i sc = _mm_and_si128(_mm_sll_epi16(_mm_and_si128(_mm_srl_epi16(vsrcc, cr), m0xFF), cl), m0xFF);
+                    __m128i dc = _mm_and_si128(_mm_sll_epi16(_mm_and_si128(_mm_srl_epi16(vdst, cr), m0xFF), cl), m0xFF);
+                    __m128i p1 = _mm_mullo_epi16(a1, sc);   // a1<=256, sc<=255 -> fits u16
+                    __m128i p2 = _mm_mullo_epi16(a2, dc);   // a2<=255, dc<=255 -> fits u16
+                    __m128i slo = _mm_add_epi32(_mm_unpacklo_epi16(p1, zero), _mm_unpacklo_epi16(p2, zero));
+                    __m128i shi = _mm_add_epi32(_mm_unpackhi_epi16(p1, zero), _mm_unpackhi_epi16(p2, zero));
+                    __m128i r16 = _mm_packs_epi32(_mm_srli_epi32(slo, 8), _mm_srli_epi32(shi, 8));
+                    __m128i m = _mm_cmpgt_epi16(r16, v255);
+                    r16 = _mm_or_si128(_mm_and_si128(m, v255), _mm_andnot_si128(m, r16));
+                    return _mm_sll_epi16(_mm_srl_epi16(r16, cl), cr);
+                };
+
+                __m128i comp = _mm_or_si128(_mm_or_si128(chan(sRr, sRl), chan(sGr, sGl)), chan(sBr, sBl));
+                __m128i res = _mm_or_si128(_mm_and_si128(nz, vdst), _mm_andnot_si128(nz, comp));
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(d + i), res);
+                i += 8; ap += 8;
+                if ((unsigned int)ap >= aend) ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
+            } else {
+                unsigned char v = src[i];
+                if (v != 0) d[i] = Composite1(d[i], xlat[v], (int)*ap);
+                ++i; ++ap;
+                ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
+            }
+        }
+        return;
+    }
+
+    /**
+     *  Translucency (L50/L75) gated on the alpha buffer: draw only where the source is opaque AND
+     *  a_buff[i] is non-zero (Nonzero) or zero (Zero). a_buff is read-only and advances+wraps per
+     *  pixel, so the 8-wide block runs over the contiguous span and the scalar step wraps.
+     */
+    if constexpr (CFG.agate) {
+        unsigned short* ap = static_cast<unsigned short*>(a_buff);
+        const unsigned int aend = AlphaBuffer->Get_Buffer_End();
+        const __m128i zero = _mm_setzero_si128();
+        const __m128i vmaskL = _mm_set1_epi16((short)mask);
+        const __m128i onesL = _mm_set1_epi16((short)0xFFFF);
+
+        int i = 0;
+        while (i < length) {
+            if ((length - i) >= 8 && (int)((aend - (unsigned int)ap) / 2) >= 8) {
+                unsigned short tmp[8];
+                for (int k = 0; k < 8; ++k) tmp[k] = xlat[src[i + k]];
+                __m128i vsrc16 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(tmp));
+                __m128i trans = Opaque8(src + i, onesL);                         // 0xFFFF where value!=0
+                __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ap));
+                __m128i azero = _mm_cmpeq_epi16(a, zero);                        // 0xFFFF where a_buff==0
+                __m128i gate = CFG.agate_zero ? azero : _mm_andnot_si128(azero, onesL);
+                __m128i draw = _mm_and_si128(trans, gate);
+                __m128i vdst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(d + i));
+                __m128i blend = Blend8<CFG>(vdst, vsrc16, vmaskL);
+                __m128i res = _mm_or_si128(_mm_and_si128(draw, blend), _mm_andnot_si128(draw, vdst));
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(d + i), res);
+                i += 8; ap += 8;
+                if ((unsigned int)ap >= aend) ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
+            } else {
+                unsigned char v = src[i];
+                bool gate = CFG.agate_zero ? (*ap == 0) : (*ap != 0);
+                if (v != 0 && gate) Blend1_bg<CFG>(d + i, xlat[v], d[i], mask);
+                ++i; ++ap;
+                ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
+            }
+        }
+        return;
+    }
 
     const __m128i vmask = _mm_set1_epi16((short)mask);
     const __m128i ones = _mm_set1_epi16((short)0xFFFF);
