@@ -17,13 +17,14 @@
  ******************************************************************************/
 #include "blitter_simd.h"
 
-#ifdef BLITTER_TESTS
+#if defined(BLITTER_TESTS) || defined(BLITTER_BENCH)
 
 #include "convert.h"
 #include "cpudetect.h"
 #include "zbuffer.h"
 #include "abuffer.h"
 #include "debughandler.h"
+#include <intrin.h>   // __rdtsc (benchmark)
 
 
 extern ZBuffer*& DepthBuffer;
@@ -787,4 +788,136 @@ void Blitter_SIMD_SelfTest(ConvertClass* drawer)
     }
 }
 
-#endif // BLITTER_TESTS
+
+#ifdef BLITTER_BENCH
+
+namespace
+{
+
+static volatile unsigned g_bench_sink = 0;
+
+/**
+ *  Time one blit closure: warm up, then take the minimum cycle count over several batches
+ *  (min rejects scheduler/interrupt noise). Returns cycles per call (TSC ticks; only the
+ *  vanilla-vs-SIMD ratio is meaningful, not the absolute).
+ */
+template<class Fn>
+static unsigned long long Time_Call(Fn fn, int iters, int batches)
+{
+    for (int i = 0; i < 200; ++i) fn();
+    unsigned long long best = ~0ull;
+    for (int b = 0; b < batches; ++b) {
+        unsigned long long t0 = __rdtsc();
+        for (int i = 0; i < iters; ++i) fn();
+        unsigned long long t1 = __rdtsc();
+        if (t1 - t0 < best) best = t1 - t0;
+    }
+    return best / (unsigned long long)iters;
+}
+
+static void Bench_Std(const char* name, bool avx, const Blitter& v, const Blitter& s2, const Blitter& sa,
+                      unsigned short* dst, unsigned char* src, int w, int z_min, unsigned short* zbuf)
+{
+    const int IT = 1000, BA = 24;
+    unsigned long long cv = Time_Call([&] { v.BlitForward(dst, src, w, z_min, zbuf, nullptr, 1000, 0); }, IT, BA);
+    g_bench_sink += dst[w >> 1];
+    unsigned long long c2 = Time_Call([&] { s2.BlitForward(dst, src, w, z_min, zbuf, nullptr, 1000, 0); }, IT, BA);
+    g_bench_sink += dst[w >> 1];
+    if (avx) {
+        unsigned long long ca = Time_Call([&] { sa.BlitForward(dst, src, w, z_min, zbuf, nullptr, 1000, 0); }, IT, BA);
+        g_bench_sink += dst[w >> 1];
+        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)  avx2={:>6} ({:.2f}x)\n",
+                   name, w, cv, c2, (double)cv / (double)c2, ca, (double)cv / (double)ca);
+    } else {
+        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)\n",
+                   name, w, cv, c2, (double)cv / (double)c2);
+    }
+}
+
+static void Bench_RLE(const char* name, bool avx, const RLEBlitter& v, const RLEBlitter& s2, const RLEBlitter& sa,
+                      unsigned short* dst, unsigned char* stream, int w)
+{
+    const int IT = 1000, BA = 24;
+    unsigned long long cv = Time_Call([&] { v.Blit(dst, stream, w, 0, 0, 0, 0, 1000, 0, 0); }, IT, BA);
+    g_bench_sink += dst[w >> 1];
+    unsigned long long c2 = Time_Call([&] { s2.Blit(dst, stream, w, 0, 0, 0, 0, 1000, 0, 0); }, IT, BA);
+    g_bench_sink += dst[w >> 1];
+    if (avx) {
+        unsigned long long ca = Time_Call([&] { sa.Blit(dst, stream, w, 0, 0, 0, 0, 1000, 0, 0); }, IT, BA);
+        g_bench_sink += dst[w >> 1];
+        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)  avx2={:>6} ({:.2f}x)\n",
+                   name, w, cv, c2, (double)cv / (double)c2, ca, (double)cv / (double)ca);
+    } else {
+        DEBUG_INFO("[SIMD bench] {:<26} w={:>3}: van={:>6}  sse2={:>6} ({:.2f}x)\n",
+                   name, w, cv, c2, (double)cv / (double)c2);
+    }
+}
+
+} // namespace
+
+/**
+ *  Time the SIMD tiers against the bound vanilla blitters across representative families and row
+ *  widths. The gather-bound families (Xlat/ZRemap) should show the AVX2 win; the arithmetic ones
+ *  (Darken/Lucent) the SSE2 win; the width sweep shows how the short-row scalar tail erodes wide
+ *  vectorisation. Source is ~12% transparent (terrain/unit-like).
+ */
+void Blitter_SIMD_Benchmark(ConvertClass* drawer)
+{
+    unsigned short const* xl = (unsigned short const*)drawer->Translator;
+    unsigned short hb = (unsigned short)drawer->HalfbrightMask;
+
+    static unsigned char remap_data[256];
+    for (int i = 0; i < 256; ++i) remap_data[i] = (unsigned char)i;
+    unsigned char const* rp = remap_data;
+    unsigned char const* const* rm = &rp;
+
+    const bool avx = CPUDetectClass::Has_AVX2_Instruction_Set();
+
+    static unsigned short dst[1024];
+    static unsigned char  src[512];
+    static unsigned char  stream[1200];
+    static unsigned short zbuf[1024];
+
+    for (int i = 0; i < 512; ++i)  src[i] = (Rng() % 100u < 12u) ? 0 : (unsigned char)(1 + (Rng() % 255));
+    for (int i = 0; i < 1024; ++i) dst[i] = (unsigned short)(Rng() & 0xFFFF);
+    for (int i = 0; i < 1024; ++i) zbuf[i] = (unsigned short)(Rng() & 0x7FFF);
+
+    alignas(8) static unsigned char fakez[sizeof(ZBuffer)];
+    ZBuffer* fz = reinterpret_cast<ZBuffer*>(fakez);
+    ZBuffer* savedz = DepthBuffer;
+    fz->BufferStart = (unsigned int)zbuf; fz->BufferEnd = (unsigned int)(zbuf + 1024); fz->BufferSize = 1024 * 2;
+    DepthBuffer = fz;
+    const int z_min = 0x4000;
+
+    static const int W[] = { 32, 64, 256 };
+
+    DEBUG_INFO("[SIMD bench] min cycles/call (lower=faster); source ~12%% transparent; {}\n",
+               avx ? "AVX2 present" : "no AVX2 on this CPU");
+
+    for (int wi = 0; wi < 3; ++wi) {
+        int w = W[wi];
+        { BlitTransXlat<unsigned short> v(xl); SimdBlitTransXlat<SimdTier::SSE2> s2(xl); SimdBlitTransXlat<SimdTier::AVX2> sa(xl);
+          Bench_Std("TransXlat (gather)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
+        { BlitTransZRemapXlat<unsigned short> v(rm, xl); SimdBlitTransZRemapXlat<SimdTier::SSE2> s2(rm, xl); SimdBlitTransZRemapXlat<SimdTier::AVX2> sa(rm, xl);
+          Bench_Std("TransZRemapXlat (gather)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
+        { BlitTransDarken<unsigned short> v(hb); SimdBlitTransDarken<SimdTier::SSE2> s2(hb); SimdBlitTransDarken<SimdTier::AVX2> sa(hb);
+          Bench_Std("TransDarken (no gather)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
+        { BlitTransLucent50<unsigned short> v(xl, hb); SimdBlitTransLucent50<SimdTier::SSE2> s2(xl, hb); SimdBlitTransLucent50<SimdTier::AVX2> sa(xl, hb);
+          Bench_Std("TransLucent50 (arith)", avx, v, s2, sa, dst, src, w, 0, nullptr); }
+        { BlitTransXlatZRead<unsigned short> v(xl); SimdBlitTransXlatZRead<SimdTier::SSE2> s2(xl); SimdBlitTransXlatZRead<SimdTier::AVX2> sa(xl);
+          Bench_Std("TransXlatZRead (gather+z)", avx, v, s2, sa, dst, src, w, z_min, zbuf); }
+
+        int n = Encode_RLE(src, w, stream); (void)n;
+        { RLEBlitTransXlat<unsigned short> v(xl); SimdRLEBlitTransXlat<SimdTier::SSE2> s2(xl); SimdRLEBlitTransXlat<SimdTier::AVX2> sa(xl);
+          Bench_RLE("RLE TransXlat (gather)", avx, v, s2, sa, dst, stream, w); }
+        { RLEBlitTransLucent50<unsigned short> v(xl, hb); SimdRLEBlitTransLucent50<SimdTier::SSE2> s2(xl, hb); SimdRLEBlitTransLucent50<SimdTier::AVX2> sa(xl, hb);
+          Bench_RLE("RLE TransLucent50 (arith)", avx, v, s2, sa, dst, stream, w); }
+    }
+
+    DepthBuffer = savedz;
+    DEBUG_INFO("[SIMD bench] done (sink={}).\n", (unsigned)g_bench_sink);
+}
+
+#endif // BLITTER_BENCH
+
+#endif // BLITTER_TESTS || BLITTER_BENCH

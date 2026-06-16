@@ -201,6 +201,17 @@ DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
     }
 #endif
 
+#ifdef BLITTER_BENCH
+    /**
+     *  Time the SIMD tiers against the bound vanilla blitters once, using this drawer's tables.
+     */
+    static bool benched = false;
+    if (!benched) {
+        benched = true;
+        Blitter_SIMD_Benchmark(cc);
+    }
+#endif
+
     switch (tier) {
     case SimdTier::AVX2: cc->Install_Blitters_16bit<SimdTier::AVX2>(); break;
     default:             cc->Install_Blitters_16bit<SimdTier::SSE2>(); break;

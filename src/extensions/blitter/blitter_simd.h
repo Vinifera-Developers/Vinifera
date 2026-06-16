@@ -36,6 +36,14 @@ class ConvertClass;
  */
 void Blitter_SIMD_SelfTest(ConvertClass* drawer);
 
+/**
+ *  Define BLITTER_BENCH to time the SIMD tiers against the bound vanilla blitters at startup
+ *  (cycles/call per family per row width, via __rdtsc). Independent of BLITTER_TESTS. Lives in
+ *  blitter_simd_selftest.cpp; logs `[SIMD bench]` lines. Turn off for release.
+ */
+#define BLITTER_BENCH
+void Blitter_SIMD_Benchmark(ConvertClass* drawer);
+
 
 /**
  *  Instruction-set tier chosen at blitter creation time from CPU capability.
