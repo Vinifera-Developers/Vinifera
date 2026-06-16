@@ -401,3 +401,4 @@ This page lists all the individual contributions to the project by their author.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
   - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.
   - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.
+  - Reimplement the software blitters with hand-written SIMD (SSE2/AVX2) for faster rendering on modern CPUs, and correct the translucent-blend rounding so layered translucency no longer darkens.

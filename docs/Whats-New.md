@@ -113,6 +113,7 @@ New:
 - Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
 - Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
 - Fix Win32 dialog scaling with SDL (by Rampastring)
+- Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
 
 
 Vinifera fixes:
@@ -191,6 +192,7 @@ Vanilla fixes:
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
+- Correct the 25%/50%/75% translucency blend so layered translucent sprites no longer progressively darken (by ZivDero)
 
 :::
 
