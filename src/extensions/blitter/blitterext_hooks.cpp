@@ -188,10 +188,11 @@ DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
         return 0;
     }
 
-#ifndef NDEBUG
+#ifdef BLITTER_TESTS
     /**
-     *  Debug builds verify bit-exactness against the bound vanilla blitters once,
-     *  using this drawer's live tables, before the SIMD blitters go into service.
+     *  When built for testing, verify bit-exactness against the bound vanilla blitters once,
+     *  using this drawer's live tables, before the SIMD blitters go into service. (This only
+     *  passes because BLITTER_TESTS also builds the blitters bug-compatible with vanilla.)
      */
     static bool tested = false;
     if (!tested) {

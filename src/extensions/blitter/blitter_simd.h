@@ -65,6 +65,22 @@ struct BlitConfig {
 
 
 /**
+ *  Define BLITTER_TESTS to (1) build the blitters bug-compatible with vanilla and (2) run the
+ *  startup bit-exactness self-test. The self-test diffs the SIMD output against the original
+ *  engine routines, so it can only pass when the handful of shipped engine bugs are reproduced.
+ *  Leave BLITTER_TESTS undefined for release: those bugs are then CORRECTED and no test is built.
+ *  The affected bug flags are alpha_static / rle_zs2 / rle_skip_noz (see blitter_engine_bugs).
+ */
+#define BLITTER_TESTS
+
+#ifdef BLITTER_TESTS
+inline constexpr bool BlitterBugCompat = true;   // reproduce vanilla's shipped blitter bugs
+#else
+inline constexpr bool BlitterBugCompat = false;  // correct them
+#endif
+
+
+/**
  *  The single per-scanline kernel. Defined and explicitly instantiated per
  *  (ISA, CFG) in blitter_simd_sse.cpp / blitter_simd_avx2.cpp. The flat
  *  argument list matches the engine's BlitForward ABI; the resolved table
@@ -128,7 +144,7 @@ inline constexpr BlitConfig CFG_Lucent25AlphaZRead   { .xlat = XlatMode::Direct,
 
 /* Alpha + Z-read/write. */
 inline constexpr BlitConfig CFG_TransXlatAlphaZReadWrite  { .xlat = XlatMode::Direct, .trans = true, .alpha = true, .zread = true, .zwrite = true, .blend = Blend::Copy };
-inline constexpr BlitConfig CFG_ZRemapXlatAlphaZReadWrite { .xlat = XlatMode::ZRemap, .trans = true, .alpha = true, .zread = true, .zwrite = true, .blend = Blend::Copy, .alpha_static = true };
+inline constexpr BlitConfig CFG_ZRemapXlatAlphaZReadWrite { .xlat = XlatMode::ZRemap, .trans = true, .alpha = true, .zread = true, .zwrite = true, .blend = Blend::Copy, .alpha_static = BlitterBugCompat };
 inline constexpr BlitConfig CFG_Lucent75AlphaZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .alpha = true, .zread = true, .zwrite = true, .blend = Blend::L75 };
 inline constexpr BlitConfig CFG_Lucent50AlphaZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .alpha = true, .zread = true, .zwrite = true, .blend = Blend::L50 };
 inline constexpr BlitConfig CFG_Lucent25AlphaZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .alpha = true, .zread = true, .zwrite = true, .blend = Blend::L25 };
@@ -320,9 +336,9 @@ template<SimdTier I> using SimdRLEBlitTransLucent25ZRead   = SimdRLEBlit<I, RLEB
 
 /* RLE Z-read/write (stored depth = z_min - *zshape). The three families below carry distinct
  * shipped engine bugs in their depth bookkeeping; the SIMD must reproduce them bit-for-bit. */
-inline constexpr BlitConfig CFG_RLE_ZRemapXlatZReadWrite { .xlat = XlatMode::ZRemap, .trans = true, .zread = true, .zwrite = true, .blend = Blend::Copy, .rle_zs2 = true };
-inline constexpr BlitConfig CFG_RLE_Lucent75ZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .zread = true, .zwrite = true, .blend = Blend::L75, .rle_skip_noz = true };
-inline constexpr BlitConfig CFG_RLE_Lucent25ZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .zread = true, .zwrite = true, .blend = Blend::L25, .rle_skip_noz = true };
+inline constexpr BlitConfig CFG_RLE_ZRemapXlatZReadWrite { .xlat = XlatMode::ZRemap, .trans = true, .zread = true, .zwrite = true, .blend = Blend::Copy, .rle_zs2 = BlitterBugCompat };
+inline constexpr BlitConfig CFG_RLE_Lucent75ZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .zread = true, .zwrite = true, .blend = Blend::L75, .rle_skip_noz = BlitterBugCompat };
+inline constexpr BlitConfig CFG_RLE_Lucent25ZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .zread = true, .zwrite = true, .blend = Blend::L25, .rle_skip_noz = BlitterBugCompat };
 
 template<SimdTier I> using SimdRLEBlitTransXlatZReadWrite       = SimdRLEBlit<I, RLEBlitTransXlatZReadWrite<unsigned short>,       CFG_TransXlatZReadWrite>;
 template<SimdTier I> using SimdRLEBlitTransZRemapXlatZReadWrite = SimdRLEBlit<I, RLEBlitTransZRemapXlatZReadWrite<unsigned short>, CFG_RLE_ZRemapXlatZReadWrite>;

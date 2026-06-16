@@ -16,6 +16,9 @@
  *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
 #include "blitter_simd.h"
+
+#ifdef BLITTER_TESTS
+
 #include "convert.h"
 #include "cpudetect.h"
 #include "zbuffer.h"
@@ -651,3 +654,5 @@ void Blitter_SIMD_SelfTest(ConvertClass* drawer)
         DEBUG_WARNING("[SIMD blit] Self-test FAILED: {} total mismatching pixels.\n", total);
     }
 }
+
+#endif // BLITTER_TESTS
