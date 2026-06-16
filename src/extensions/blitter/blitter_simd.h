@@ -58,6 +58,7 @@ struct BlitConfig {
     Blend    blend  = Blend::Copy;
     bool     zwbyte = false;    // z-write truncates to (unsigned char) z_min (BlitPlainXlatZReadWrite only)
     bool     alpha_static = false;  // engine bug (BlitTransZRemapXlatAlphaZReadWrite): a_buff ptr never advances -> every pixel reads a_buff[0]
+    bool     remapdest = false;     // RLE only: *dest = RemapTable16[*dest] (the source byte only marks opacity)
 };
 
 
@@ -231,3 +232,78 @@ template<SimdTier I> using SimdBlitTransLucent50ZReadWarp = SimdBlit<I, BlitTran
 template<SimdTier I> using SimdBlitTransLucent25ZReadWarp = SimdBlit<I, BlitTransLucent25ZReadWarp<unsigned short>, CFG_Lucent25ZReadWarp>;
 template<SimdTier I> using SimdBlitTransLucent50ZReadWrite   = SimdBlit<I, BlitTransLucent50ZReadWrite<unsigned short>,   CFG_Lucent50ZReadWrite>;
 template<SimdTier I> using SimdBlitTransLucent75ZReadWrite   = SimdBlit<I, BlitTransLucent75ZReadWrite<unsigned short>,   CFG_Lucent75ZReadWrite>;
+
+
+/* ====================================================================================
+ *  RLE blitters
+ *
+ *  RLE shapes (units, buildings, infantry, trees) are a byte stream: a 0x00 byte
+ *  followed by a count = skip that many transparent pixels; any non-zero byte = one
+ *  opaque pixel whose value is the palette index. The decode is inherently scalar, but
+ *  a contiguous run of opaque (non-zero) bytes is translated + blended + stored wide.
+ *
+ *  These reuse the very same BlitConfig values as the standard families above (the
+ *  per-pixel compose is identical) and a separate row kernel (RLE_Blit_Row) that owns
+ *  the decode loop, leadskip clipping, the zshape depth offset and the per-token ring
+ *  wrap.
+ * ==================================================================================== */
+
+/**
+ *  The RLE per-scanline kernel. Defined/instantiated alongside Blit_Row in the SSE2 and
+ *  AVX2 TUs. `xlat` doubles as the 16-bit dest-remap table for the RemapDest families;
+ *  `zshape` is the per-pixel signed depth bias (z = z_min - *zshape).
+ */
+template<SimdTier ISA, BlitConfig CFG>
+void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int z_min,
+                  void* z_buff, void* a_buff, int alpha_level, int warp_offset, void const* zshape,
+                  unsigned short const* xlat,
+                  unsigned char const* remap1,
+                  unsigned char const* const* remap2,
+                  unsigned short mask,
+                  unsigned short const* alut);
+
+
+/**
+ *  A SIMD RLE blitter. Derives from the modelled vanilla RLE class (inheriting its real
+ *  table-storing constructor) and overrides only Blit. RLEBlitter has no BlitBackward.
+ */
+template<SimdTier ISA, class Vanilla, BlitConfig CFG>
+class SimdRLEBlit : public Vanilla
+{
+public:
+    using Vanilla::Vanilla;
+
+    virtual void Blit(void* dest, void const* source, int length, int leadskip, int z_min,
+                      int z_buff, int a_buff, int alpha_level, int warp_offset, int zshape) const override
+    {
+        unsigned short const* xlat = nullptr;
+        unsigned char const* remap1 = nullptr;
+        unsigned char const* const* remap2 = nullptr;
+        unsigned short mask = 0;
+        unsigned short const* alut = nullptr;
+
+        if constexpr (CFG.remapdest) {
+            xlat = this->RemapTable;                 // T const* : 16-bit dest remap
+        } else {
+            if constexpr (CFG.blend != Blend::Darken) { xlat = this->TranslateTable; }
+            if constexpr (CFG.xlat == XlatMode::Remap)  { remap1 = this->RemapTable; }
+            if constexpr (CFG.xlat == XlatMode::ZRemap) { remap2 = this->RemapTable; }
+        }
+        if constexpr (CFG.blend != Blend::Copy) { mask = this->Mask; }
+        if constexpr (CFG.alpha) { alut = this->AlphaLightingRemap->Get_Table(alpha_level); }
+
+        RLE_Blit_Row<ISA, CFG>(dest, source, length, leadskip, z_min,
+                               reinterpret_cast<void*>(z_buff), reinterpret_cast<void*>(a_buff),
+                               alpha_level, warp_offset, reinterpret_cast<void const*>(zshape),
+                               xlat, remap1, remap2, mask, alut);
+    }
+};
+
+
+/* The RLE taxonomy (non-Z wave). Reuses the standard CFG values verbatim. */
+template<SimdTier I> using SimdRLEBlitTransXlat       = SimdRLEBlit<I, RLEBlitTransXlat<unsigned short>,       CFG_TransXlat>;
+template<SimdTier I> using SimdRLEBlitTransZRemapXlat = SimdRLEBlit<I, RLEBlitTransZRemapXlat<unsigned short>, CFG_ZRemapXlat>;
+template<SimdTier I> using SimdRLEBlitTransDarken     = SimdRLEBlit<I, RLEBlitTransDarken<unsigned short>,     CFG_Darken>;
+template<SimdTier I> using SimdRLEBlitTransLucent75   = SimdRLEBlit<I, RLEBlitTransLucent75<unsigned short>,   CFG_Lucent75>;
+template<SimdTier I> using SimdRLEBlitTransLucent50   = SimdRLEBlit<I, RLEBlitTransLucent50<unsigned short>,   CFG_Lucent50>;
+template<SimdTier I> using SimdRLEBlitTransLucent25   = SimdRLEBlit<I, RLEBlitTransLucent25<unsigned short>,   CFG_Lucent25>;

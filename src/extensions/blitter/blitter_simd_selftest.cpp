@@ -254,6 +254,77 @@ static int Compare_Family_AW(const char* name, const Blitter& vanilla, const Bli
 }
 
 /**
+ *  Encode a logical pixel row (0 = transparent, else = opaque palette index) into the
+ *  RLE-Zero byte stream the blitters decode: a 0x00 byte + count = a transparent run
+ *  (split at 255), any non-zero byte = one opaque pixel. Returns the stream length.
+ */
+static int Encode_RLE(const unsigned char* logical, int n, unsigned char* stream)
+{
+    int e = 0, i = 0;
+    while (i < n) {
+        if (logical[i] == 0) {
+            int run = 0;
+            while (i < n && logical[i] == 0 && run < 255) { ++run; ++i; }
+            stream[e++] = 0;
+            stream[e++] = (unsigned char)run;
+        } else {
+            stream[e++] = logical[i++];
+        }
+    }
+    return e;
+}
+
+/**
+ *  Compare one non-Z RLE family. Builds random RLE shapes (with transparent runs) across
+ *  awkward lengths, sometimes with a left-edge leadskip clip, and checks that the SIMD
+ *  decode matches the bound vanilla routine pixel-for-pixel.
+ */
+static int Compare_RLE_Family(const char* name, const RLEBlitter& vanilla, const RLEBlitter& simd)
+{
+    static const int lengths[] = { 0, 1, 2, 3, 7, 8, 9, 15, 16, 17, 31, 33, 64, 127, 255 };
+
+    unsigned char  logical[600];
+    unsigned char  stream[1200];
+    unsigned short da[512], db[512];
+
+    int mismatches = 0, first_len = -1, first_idx = -1;
+
+    for (int li = 0; li < (int)(sizeof(lengths) / sizeof(lengths[0])); ++li) {
+        int len = lengths[li];
+
+        for (int rep = 0; rep < 64; ++rep) {
+
+            int leadskip = (len > 0 && (rep & 3) == 0) ? (int)(Rng() % (unsigned)(len + 1)) : 0;
+            int total = len + leadskip;
+
+            for (int i = 0; i < total; ++i) {
+                logical[i] = (Rng() & 3) == 0 ? 0 : (unsigned char)(1 + (Rng() % 255));
+            }
+            Encode_RLE(logical, total, stream);
+
+            for (int i = 0; i < len; ++i) {
+                unsigned short v = (unsigned short)(Rng() & 0xFFFF);
+                da[i] = v; db[i] = v;
+            }
+
+            vanilla.Blit(da, stream, len, leadskip, 0, 0, 0, 0, 0, 0);
+            simd.Blit(db, stream, len, leadskip, 0, 0, 0, 0, 0, 0);
+
+            for (int i = 0; i < len; ++i) {
+                if (da[i] != db[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
+            }
+        }
+    }
+
+    if (mismatches != 0) {
+        DEBUG_WARNING("[SIMD blit] {}: {} MISMATCHES (first at len={} idx={})\n", name, mismatches, first_len, first_idx);
+    } else {
+        DEBUG_INFO("[SIMD blit] {}: ok\n", name);
+    }
+    return mismatches;
+}
+
+/**
  *  Run the full family matrix for one SIMD tier. Returns the total mismatch count.
  */
 template<SimdTier ISA>
@@ -320,6 +391,14 @@ static int Run_Tier(const char* tier_name,
     { BlitTransLucent75ZReadWarp<unsigned short> v(xl,qb);  SimdBlitTransLucent75ZReadWarp<ISA> s(xl,qb);  total += Compare_Family_AW("TransLucent75ZReadWarp", v, s, true, false, false, -3); }
     { BlitTransLucent50ZReadWarp<unsigned short> v(xl,hb);  SimdBlitTransLucent50ZReadWarp<ISA> s(xl,hb);  total += Compare_Family_AW("TransLucent50ZReadWarp", v, s, true, false, false, -3); }
     { BlitTransLucent25ZReadWarp<unsigned short> v(xl,qb);  SimdBlitTransLucent25ZReadWarp<ISA> s(xl,qb);  total += Compare_Family_AW("TransLucent25ZReadWarp", v, s, true, false, false, -3); }
+
+    /* RLE (non-Z wave). */
+    { RLEBlitTransXlat<unsigned short> v(xl);          SimdRLEBlitTransXlat<ISA> s(xl);          total += Compare_RLE_Family("RLE TransXlat", v, s); }
+    { RLEBlitTransZRemapXlat<unsigned short> v(rm, xl);SimdRLEBlitTransZRemapXlat<ISA> s(rm, xl); total += Compare_RLE_Family("RLE ZRemapXlat", v, s); }
+    { RLEBlitTransDarken<unsigned short> v(hb);        SimdRLEBlitTransDarken<ISA> s(hb);        total += Compare_RLE_Family("RLE Darken", v, s); }
+    { RLEBlitTransLucent75<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent75<ISA> s(xl, qb);   total += Compare_RLE_Family("RLE Lucent75", v, s); }
+    { RLEBlitTransLucent50<unsigned short> v(xl, hb);  SimdRLEBlitTransLucent50<ISA> s(xl, hb);   total += Compare_RLE_Family("RLE Lucent50", v, s); }
+    { RLEBlitTransLucent25<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent25<ISA> s(xl, qb);   total += Compare_RLE_Family("RLE Lucent25", v, s); }
 
     return total;
 }

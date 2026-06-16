@@ -75,3 +75,18 @@ INSTANTIATE(CFG_Lucent50ZReadWarp);
 INSTANTIATE(CFG_Lucent25ZReadWarp);
 
 #undef INSTANTIATE
+
+#define INSTANTIATE_RLE(cfg) \
+    template void RLE_Blit_Row<SimdTier::AVX2, cfg>(void*, void const*, int, int, int, void*, void*, int, int, \
+                                                    void const*, unsigned short const*, unsigned char const*, \
+                                                    unsigned char const* const*, unsigned short, unsigned short const*)
+
+/* RLE non-Z families. */
+INSTANTIATE_RLE(CFG_TransXlat);
+INSTANTIATE_RLE(CFG_ZRemapXlat);
+INSTANTIATE_RLE(CFG_Darken);
+INSTANTIATE_RLE(CFG_Lucent75);
+INSTANTIATE_RLE(CFG_Lucent50);
+INSTANTIATE_RLE(CFG_Lucent25);
+
+#undef INSTANTIATE_RLE

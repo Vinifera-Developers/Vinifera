@@ -123,12 +123,12 @@ public:
     		/*
     		**	Create the RLE aware blitter objects.
     		*/
-    cc->RLEBlitTransXlatPtr = new RLEBlitTransXlat<unsigned short>(xl);
-    cc->RLEBlitTransZRemapXlatPtr = new RLEBlitTransZRemapXlat<unsigned short>(rm, xl);
-    cc->RLEBlitTransDarkenPtr = new RLEBlitTransDarken<unsigned short>(hb);
-    cc->RLEBlitTransLucent75Ptr = new RLEBlitTransLucent75<unsigned short>(xl, qb);
-    cc->RLEBlitTransLucent50Ptr = new RLEBlitTransLucent50<unsigned short>(xl, hb);
-    cc->RLEBlitTransLucent25Ptr = new RLEBlitTransLucent25<unsigned short>(xl, qb);
+    cc->RLEBlitTransXlatPtr = new SimdRLEBlitTransXlat<ISA>(xl);
+    cc->RLEBlitTransZRemapXlatPtr = new SimdRLEBlitTransZRemapXlat<ISA>(rm, xl);
+    cc->RLEBlitTransDarkenPtr = new SimdRLEBlitTransDarken<ISA>(hb);
+    cc->RLEBlitTransLucent75Ptr = new SimdRLEBlitTransLucent75<ISA>(xl, qb);
+    cc->RLEBlitTransLucent50Ptr = new SimdRLEBlitTransLucent50<ISA>(xl, hb);
+    cc->RLEBlitTransLucent25Ptr = new SimdRLEBlitTransLucent25<ISA>(xl, qb);
 
     cc->RLEBlitTransXlatZReadPtr = new RLEBlitTransXlatZRead<unsigned short>(xl);
     cc->RLEBlitTransZRemapXlatZReadPtr = new RLEBlitTransZRemapXlatZRead<unsigned short>(rm, xl);

@@ -233,6 +233,24 @@ template<BlitConfig CFG>
     }
 }
 
+/**
+ *  Skip `skipper` pixels into the RLE source stream (for left-edge clipping). Returns the
+ *  number of leading transparent pixels that remain in the stream after the skip ended
+ *  (the skip may have stopped in the middle of a transparent run). Mirrors the engine's
+ *  Skip_Leading_Pixels exactly.
+ */
+static inline int Skip_Leading_Pixels(unsigned char const*& sptr, int skipper)
+{
+    while (skipper > 0) {
+        if (*sptr++ == 0) {
+            skipper -= *sptr++;
+        } else {
+            skipper--;
+        }
+    }
+    return -skipper;
+}
+
 } // namespace
 
 
@@ -403,5 +421,145 @@ void Blit_Row(void* dest, void const* source, int length,
         for (; i < length; ++i) {
             Compose_Scalar<CFG>(d + i, src[i], xlat, remap1, remap2, mask);
         }
+    }
+}
+
+
+template<SimdTier ISA, BlitConfig CFG>
+void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int z_min,
+                  void* z_buff, void* a_buff, int /*alpha_level*/, int warp_offset, void const* zshape,
+                  unsigned short const* xlat, unsigned char const* remap1,
+                  unsigned char const* const* remap2, unsigned short mask,
+                  unsigned short const* alut)
+{
+    unsigned short* dptr = static_cast<unsigned short*>(dest);
+    unsigned char const* sptr = static_cast<unsigned char const*>(source);
+    unsigned short* zp = static_cast<unsigned short*>(z_buff);
+    unsigned short* ap = static_cast<unsigned short*>(a_buff);
+    signed char const* zs = static_cast<signed char const*>(zshape);
+
+    /**
+     *  A row is "fast" (its opaque runs vectorise) when there is no per-pixel state that
+     *  has to be tracked across the run: no depth test, no alpha gather, no warp
+     *  background, no dest-remap. Those features fall back to a scalar opaque compose.
+     */
+    constexpr bool FAST = !CFG.zread && !CFG.alpha && !CFG.warp && !CFG.remapdest;
+
+    const __m128i vmask = _mm_set1_epi16((short)mask);
+
+    /**
+     *  Left-edge clip. zshape is NOT advanced here (matches the engine); the depth and
+     *  alpha ring pointers advance by the count of transparent pixels and wrap once.
+     */
+    if (leadskip > 0) {
+        int trans = Skip_Leading_Pixels(sptr, leadskip);
+        dptr += trans;
+        length -= trans;
+        if constexpr (CFG.zread) {
+            zp += trans;
+            zp = reinterpret_cast<unsigned short*>(DepthBuffer->Wrap_Overflow((unsigned int)zp));
+        }
+        if constexpr (CFG.alpha) {
+            ap += trans;
+            ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
+        }
+    }
+
+    while (length > 0) {
+        unsigned char value = *sptr++;
+
+        if (value == 0) {
+
+            /**
+             *  Transparent run: advance past `count` pixels. The depth/alpha pointers add
+             *  the whole count then wrap once (a single Wrap_Overflow), per the engine.
+             */
+            int count = *sptr++;
+            length -= count;
+            dptr += count;
+            if constexpr (CFG.zread) { zp += count; zs += count; }
+            if constexpr (CFG.alpha) { ap += count; }
+
+        } else if constexpr (FAST) {
+
+            /**
+             *  Opaque run: the source bytes from here up to the next 0x00 (capped by the
+             *  remaining length) are consecutive opaque pixels -> translate + blend + store
+             *  wide. `run[0]` is the value we just consumed.
+             */
+            unsigned char const* run = sptr - 1;
+            int run_len = 1;
+            while (run_len < length && run[run_len] != 0) ++run_len;
+
+            int k = 0;
+            if constexpr (ISA == SimdTier::AVX2) {
+                const uint32_t* shadow = (CFG.blend != Blend::Darken) ? Get_U32_Shadow<ISA>(xlat) : nullptr;
+                const __m256i vmask256 = _mm256_set1_epi16((short)mask);
+                for (; k + 16 <= run_len; k += 16) {
+                    __m256i vsrc16 = _mm256_setzero_si256();
+                    if constexpr (CFG.blend != Blend::Darken) {
+                        vsrc16 = Translate16_AVX2<CFG>(run + k, shadow, remap1, remap2);
+                    }
+                    __m256i vdst = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(dptr + k));
+                    __m256i vres = Blend16<CFG>(vdst, vsrc16, vmask256);
+                    _mm256_storeu_si256(reinterpret_cast<__m256i*>(dptr + k), vres);
+                }
+                _mm256_zeroupper();
+            }
+            for (; k + 8 <= run_len; k += 8) {
+                __m128i vsrc16 = _mm_setzero_si128();
+                if constexpr (CFG.blend != Blend::Darken) {
+                    vsrc16 = Translate8<CFG>(run + k, xlat, remap1, remap2);
+                }
+                __m128i vdst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(dptr + k));
+                __m128i vres = Blend8<CFG>(vdst, vsrc16, vmask);
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(dptr + k), vres);
+            }
+            for (; k < run_len; ++k) {
+                Compose_Scalar<CFG>(dptr + k, run[k], xlat, remap1, remap2, mask);
+            }
+
+            dptr += run_len;
+            sptr = run + run_len;
+            length -= run_len;
+
+        } else {
+
+            /**
+             *  Scalar opaque compose for the depth / alpha / warp / dest-remap families.
+             *  The depth test is the signed `(z_min - *zshape) < (int)*zp`; on z-write the
+             *  stored value is that same `z_min - *zshape`.
+             */
+            bool zpass = true;
+            int znew = z_min;
+            if constexpr (CFG.zread) {
+                int thr = z_min - (int)*zs;
+                zpass = thr < (int)*zp;
+                znew = thr;
+            }
+            if (zpass) {
+                if constexpr (CFG.remapdest) {
+                    *dptr = xlat[*dptr];
+                } else {
+                    unsigned base;
+                    if constexpr (CFG.xlat == XlatMode::Direct)     base = value;
+                    else if constexpr (CFG.xlat == XlatMode::Remap) base = remap1[value];
+                    else                                            base = (*remap2)[value];
+                    unsigned bits = 0;
+                    if constexpr (CFG.alpha) bits = alut[*ap];
+                    unsigned short s = xlat[base | bits];
+                    unsigned short bg = CFG.warp ? dptr[warp_offset] : *dptr;
+                    Blend1_bg<CFG>(dptr, s, bg, mask);
+                }
+                if constexpr (CFG.zwrite) *zp = (unsigned short)znew;
+            }
+            ++dptr;
+            --length;
+            if constexpr (CFG.zread) { ++zp; ++zs; }
+            if constexpr (CFG.alpha) { ++ap; }
+        }
+
+        if constexpr (CFG.zread) zp = reinterpret_cast<unsigned short*>(DepthBuffer->Wrap_Overflow((unsigned int)zp));
+        if constexpr (CFG.alpha) ap = reinterpret_cast<unsigned short*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
     }
 }
