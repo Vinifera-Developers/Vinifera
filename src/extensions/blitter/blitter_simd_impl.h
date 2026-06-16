@@ -234,6 +234,55 @@ template<BlitConfig CFG>
 }
 
 /**
+ *  Compose 8 contiguous opaque RLE pixels with a depth test (no alpha / warp / dest-remap).
+ *  The caller guarantees zp[0..7] do not cross the ring boundary. The depth test is the
+ *  signed `(z_min - zs[k]) < (int)zp[k]`; because zp is an unsigned 16-bit value but the
+ *  threshold is a wide signed int, the comparison is done in 32-bit lanes. The z-write
+ *  value `(unsigned short)(z_min - zs[k])` is a plain 16-bit subtract (wraps identically).
+ */
+template<BlitConfig CFG>
+static inline void RLE_Z_Chunk8(unsigned short* d, unsigned char const* src, unsigned short* zp,
+                                signed char const* zs, int z_min,
+                                unsigned short const* xlat, unsigned char const* remap1,
+                                unsigned char const* const* remap2, __m128i vmask)
+{
+    const __m128i zero = _mm_setzero_si128();
+
+    __m128i vzp16 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(zp));
+    __m128i vzp_lo = _mm_unpacklo_epi16(vzp16, zero);          // 4 x u32
+    __m128i vzp_hi = _mm_unpackhi_epi16(vzp16, zero);
+
+    __m128i vzs8 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(zs));
+    __m128i sgn8 = _mm_cmpgt_epi8(zero, vzs8);                 // sign bits
+    __m128i vzs16 = _mm_unpacklo_epi8(vzs8, sgn8);             // 8 x s16
+    __m128i sgn16 = _mm_cmpgt_epi16(zero, vzs16);
+    __m128i vzs_lo = _mm_unpacklo_epi16(vzs16, sgn16);         // 4 x s32
+    __m128i vzs_hi = _mm_unpackhi_epi16(vzs16, sgn16);
+
+    __m128i vzmin = _mm_set1_epi32(z_min);
+    __m128i vT_lo = _mm_sub_epi32(vzmin, vzs_lo);              // threshold = z_min - zs
+    __m128i vT_hi = _mm_sub_epi32(vzmin, vzs_hi);
+    __m128i vp_lo = _mm_cmpgt_epi32(vzp_lo, vT_lo);            // zp > threshold  <=>  threshold < zp
+    __m128i vp_hi = _mm_cmpgt_epi32(vzp_hi, vT_hi);
+    __m128i vpass = _mm_packs_epi32(vp_lo, vp_hi);             // 8 x i16 mask (0xFFFF / 0)
+
+    __m128i vsrc16 = zero;
+    if constexpr (CFG.blend != Blend::Darken) {
+        vsrc16 = Translate8<CFG>(src, xlat, remap1, remap2);
+    }
+    __m128i vdst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(d));
+    __m128i vblend = Blend8<CFG>(vdst, vsrc16, vmask);
+    __m128i vres = _mm_or_si128(_mm_and_si128(vpass, vblend), _mm_andnot_si128(vpass, vdst));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(d), vres);
+
+    if constexpr (CFG.zwrite) {
+        __m128i vTwrite = _mm_sub_epi16(_mm_set1_epi16((short)z_min), vzs16);   // (u16)(z_min - zs)
+        __m128i vznew = _mm_or_si128(_mm_and_si128(vpass, vTwrite), _mm_andnot_si128(vpass, vzp16));
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(zp), vznew);
+    }
+}
+
+/**
  *  Skip `skipper` pixels into the RLE source stream (for left-edge clipping). Returns the
  *  number of leading transparent pixels that remain in the stream after the skip ended
  *  (the skip may have stopped in the middle of a transparent run). Mirrors the engine's
@@ -439,13 +488,16 @@ void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int 
     signed char const* zs = static_cast<signed char const*>(zshape);
 
     /**
-     *  A row is "fast" (its opaque runs vectorise) when there is no per-pixel state that
-     *  has to be tracked across the run: no depth test, no alpha gather, no warp
-     *  background, no dest-remap. Those features fall back to a scalar opaque compose.
+     *  A row is "fast" (its opaque runs vectorise with no per-pixel bookkeeping) when there
+     *  is no depth test, alpha gather, warp background or dest-remap. "Z_FAST" rows have a
+     *  depth test but still none of alpha/warp/dest-remap, so their opaque runs vectorise
+     *  8-wide with a per-lane depth test. Everything else uses a scalar opaque compose.
      */
-    constexpr bool FAST = !CFG.zread && !CFG.alpha && !CFG.warp && !CFG.remapdest;
+    constexpr bool FAST   = !CFG.zread && !CFG.alpha && !CFG.warp && !CFG.remapdest;
+    constexpr bool Z_FAST =  CFG.zread && !CFG.alpha && !CFG.warp && !CFG.remapdest && !CFG.rle_zs2;
 
     const __m128i vmask = _mm_set1_epi16((short)mask);
+    const unsigned int zend = CFG.zread ? DepthBuffer->Get_Buffer_End() : 0u;
 
     /**
      *  Left-edge clip. zshape is NOT advanced here (matches the engine); the depth and
@@ -477,7 +529,7 @@ void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int 
             int count = *sptr++;
             length -= count;
             dptr += count;
-            if constexpr (CFG.zread) { zp += count; zs += count; }
+            if constexpr (CFG.zread && !CFG.rle_skip_noz) { zp += count; zs += count; }
             if constexpr (CFG.alpha) { ap += count; }
 
         } else if constexpr (FAST) {
@@ -523,6 +575,47 @@ void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int 
             sptr = run + run_len;
             length -= run_len;
 
+        } else if constexpr (Z_FAST) {
+
+            /**
+             *  Depth-tested opaque run (no alpha/warp/dest-remap). Process 8-wide while the
+             *  depth ring stays contiguous; drop to one scalar pixel at the ring boundary
+             *  (which wraps). zshape is linear and never wraps.
+             */
+            unsigned char const* run = sptr - 1;
+            int run_len = 1;
+            while (run_len < length && run[run_len] != 0) ++run_len;
+
+            int k = 0;
+            while (k < run_len) {
+                int until_wrap = (int)((zend - (unsigned int)zp) / 2);
+                if (run_len - k >= 8 && until_wrap >= 8) {
+                    RLE_Z_Chunk8<CFG>(dptr + k, run + k, zp, zs, z_min, xlat, remap1, remap2, vmask);
+                    k += 8; zp += 8; zs += 8;
+                    if ((unsigned int)zp >= zend) zp = reinterpret_cast<unsigned short*>(DepthBuffer->Wrap_Overflow((unsigned int)zp));
+                } else {
+                    int thr = z_min - (int)*zs;
+                    if (thr < (int)*zp) {
+                        unsigned short s = 0;
+                        if constexpr (CFG.blend != Blend::Darken) {
+                            unsigned base;
+                            if constexpr (CFG.xlat == XlatMode::Direct)     base = run[k];
+                            else if constexpr (CFG.xlat == XlatMode::Remap) base = remap1[run[k]];
+                            else                                            base = (*remap2)[run[k]];
+                            s = xlat[base];
+                        }
+                        Blend1_bg<CFG>(dptr + k, s, dptr[k], mask);
+                        if constexpr (CFG.zwrite) *zp = (unsigned short)thr;
+                    }
+                    ++k; ++zp; ++zs;
+                    zp = reinterpret_cast<unsigned short*>(DepthBuffer->Wrap_Overflow((unsigned int)zp));
+                }
+            }
+
+            dptr += run_len;
+            sptr = run + run_len;
+            length -= run_len;
+
         } else {
 
             /**
@@ -535,7 +628,11 @@ void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int 
             if constexpr (CFG.zread) {
                 int thr = z_min - (int)*zs;
                 zpass = thr < (int)*zp;
-                znew = thr;
+                /**
+                 *  ZRemapXlatZReadWrite (rle_zs2) is shipped with a bug: the stored depth is
+                 *  sampled from the NEXT zshape entry and zshape advances by two per pixel.
+                 */
+                znew = CFG.rle_zs2 ? (z_min - (int)zs[1]) : thr;
             }
             if (zpass) {
                 if constexpr (CFG.remapdest) {
@@ -555,7 +652,7 @@ void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int 
             }
             ++dptr;
             --length;
-            if constexpr (CFG.zread) { ++zp; ++zs; }
+            if constexpr (CFG.zread) { ++zp; zs += (CFG.rle_zs2 ? 2 : 1); }
             if constexpr (CFG.alpha) { ++ap; }
         }
 

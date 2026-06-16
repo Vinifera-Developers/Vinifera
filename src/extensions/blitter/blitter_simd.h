@@ -59,6 +59,8 @@ struct BlitConfig {
     bool     zwbyte = false;    // z-write truncates to (unsigned char) z_min (BlitPlainXlatZReadWrite only)
     bool     alpha_static = false;  // engine bug (BlitTransZRemapXlatAlphaZReadWrite): a_buff ptr never advances -> every pixel reads a_buff[0]
     bool     remapdest = false;     // RLE only: *dest = RemapTable16[*dest] (the source byte only marks opacity)
+    bool     rle_skip_noz = false;  // RLE engine bug (Lucent75/25 ZReadWrite): transparent runs do NOT advance z/zshape -> they lag dptr
+    bool     rle_zs2 = false;       // RLE engine bug (ZRemapXlatZReadWrite): opaque pixels advance zshape by 2 and z-write samples zshape[+1]
 };
 
 
@@ -307,3 +309,24 @@ template<SimdTier I> using SimdRLEBlitTransDarken     = SimdRLEBlit<I, RLEBlitTr
 template<SimdTier I> using SimdRLEBlitTransLucent75   = SimdRLEBlit<I, RLEBlitTransLucent75<unsigned short>,   CFG_Lucent75>;
 template<SimdTier I> using SimdRLEBlitTransLucent50   = SimdRLEBlit<I, RLEBlitTransLucent50<unsigned short>,   CFG_Lucent50>;
 template<SimdTier I> using SimdRLEBlitTransLucent25   = SimdRLEBlit<I, RLEBlitTransLucent25<unsigned short>,   CFG_Lucent25>;
+
+/* RLE Z-read. */
+template<SimdTier I> using SimdRLEBlitTransXlatZRead       = SimdRLEBlit<I, RLEBlitTransXlatZRead<unsigned short>,       CFG_TransXlatZRead>;
+template<SimdTier I> using SimdRLEBlitTransZRemapXlatZRead = SimdRLEBlit<I, RLEBlitTransZRemapXlatZRead<unsigned short>, CFG_ZRemapXlatZRead>;
+template<SimdTier I> using SimdRLEBlitTransDarkenZRead     = SimdRLEBlit<I, RLEBlitTransDarkenZRead<unsigned short>,     CFG_DarkenZRead>;
+template<SimdTier I> using SimdRLEBlitTransLucent75ZRead   = SimdRLEBlit<I, RLEBlitTransLucent75ZRead<unsigned short>,   CFG_Lucent75ZRead>;
+template<SimdTier I> using SimdRLEBlitTransLucent50ZRead   = SimdRLEBlit<I, RLEBlitTransLucent50ZRead<unsigned short>,   CFG_Lucent50ZRead>;
+template<SimdTier I> using SimdRLEBlitTransLucent25ZRead   = SimdRLEBlit<I, RLEBlitTransLucent25ZRead<unsigned short>,   CFG_Lucent25ZRead>;
+
+/* RLE Z-read/write (stored depth = z_min - *zshape). The three families below carry distinct
+ * shipped engine bugs in their depth bookkeeping; the SIMD must reproduce them bit-for-bit. */
+inline constexpr BlitConfig CFG_RLE_ZRemapXlatZReadWrite { .xlat = XlatMode::ZRemap, .trans = true, .zread = true, .zwrite = true, .blend = Blend::Copy, .rle_zs2 = true };
+inline constexpr BlitConfig CFG_RLE_Lucent75ZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .zread = true, .zwrite = true, .blend = Blend::L75, .rle_skip_noz = true };
+inline constexpr BlitConfig CFG_RLE_Lucent25ZReadWrite   { .xlat = XlatMode::Direct, .trans = true, .zread = true, .zwrite = true, .blend = Blend::L25, .rle_skip_noz = true };
+
+template<SimdTier I> using SimdRLEBlitTransXlatZReadWrite       = SimdRLEBlit<I, RLEBlitTransXlatZReadWrite<unsigned short>,       CFG_TransXlatZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransZRemapXlatZReadWrite = SimdRLEBlit<I, RLEBlitTransZRemapXlatZReadWrite<unsigned short>, CFG_RLE_ZRemapXlatZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransDarkenZReadWrite     = SimdRLEBlit<I, RLEBlitTransDarkenZReadWrite<unsigned short>,     CFG_DarkenZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransLucent75ZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent75ZReadWrite<unsigned short>,   CFG_RLE_Lucent75ZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransLucent50ZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent50ZReadWrite<unsigned short>,   CFG_Lucent50ZReadWrite>;
+template<SimdTier I> using SimdRLEBlitTransLucent25ZReadWrite   = SimdRLEBlit<I, RLEBlitTransLucent25ZReadWrite<unsigned short>,   CFG_RLE_Lucent25ZReadWrite>;

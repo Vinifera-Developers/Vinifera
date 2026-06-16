@@ -87,4 +87,20 @@ INSTANTIATE_RLE(CFG_Lucent75);
 INSTANTIATE_RLE(CFG_Lucent50);
 INSTANTIATE_RLE(CFG_Lucent25);
 
+/* RLE Z-read families. */
+INSTANTIATE_RLE(CFG_TransXlatZRead);
+INSTANTIATE_RLE(CFG_ZRemapXlatZRead);
+INSTANTIATE_RLE(CFG_DarkenZRead);
+INSTANTIATE_RLE(CFG_Lucent75ZRead);
+INSTANTIATE_RLE(CFG_Lucent50ZRead);
+INSTANTIATE_RLE(CFG_Lucent25ZRead);
+
+/* RLE Z-read/write families (three carry distinct shipped depth-bookkeeping bugs). */
+INSTANTIATE_RLE(CFG_TransXlatZReadWrite);
+INSTANTIATE_RLE(CFG_RLE_ZRemapXlatZReadWrite);
+INSTANTIATE_RLE(CFG_DarkenZReadWrite);
+INSTANTIATE_RLE(CFG_RLE_Lucent75ZReadWrite);
+INSTANTIATE_RLE(CFG_Lucent50ZReadWrite);
+INSTANTIATE_RLE(CFG_RLE_Lucent25ZReadWrite);
+
 #undef INSTANTIATE_RLE

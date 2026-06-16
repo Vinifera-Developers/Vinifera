@@ -325,6 +325,78 @@ static int Compare_RLE_Family(const char* name, const RLEBlitter& vanilla, const
 }
 
 /**
+ *  Compare a depth-tested RLE family. Fakes a DepthBuffer ring (so both blitters wrap
+ *  identically) and supplies a per-pixel signed zshape so the z-test `(z_min - *zshape) <
+ *  *zp` is exercised with varied thresholds. ZReadWrite also compares the z-buffer.
+ */
+static int Compare_RLE_Family_Z(const char* name, const RLEBlitter& vanilla, const RLEBlitter& simd, bool zwrite)
+{
+    static const int lengths[] = { 0, 1, 7, 8, 9, 17, 33, 64, 127, 200, 255 };
+    const int z_min = 0x4000;
+    const int ZN = 250, ZOFF = 50;
+
+    unsigned char  logical[600], stream[1200];
+    unsigned short da[512], db[512];
+    static unsigned short zva[512], zvb[512];
+    static signed char    zshape[512];
+
+    alignas(8) static unsigned char fakez[sizeof(ZBuffer)];
+    ZBuffer* fz = reinterpret_cast<ZBuffer*>(fakez);
+    ZBuffer* saved = DepthBuffer;
+
+    int mismatches = 0, first_len = -1, first_idx = -1;
+
+    for (int li = 0; li < (int)(sizeof(lengths) / sizeof(lengths[0])); ++li) {
+        int len = lengths[li];
+        for (int rep = 0; rep < 32; ++rep) {
+
+            int leadskip = (len > 0 && (rep & 3) == 0) ? (int)(Rng() % (unsigned)(len + 1)) : 0;
+            int total = len + leadskip;
+            for (int i = 0; i < total; ++i) {
+                logical[i] = (Rng() & 3) == 0 ? 0 : (unsigned char)(1 + (Rng() % 255));
+            }
+            Encode_RLE(logical, total, stream);
+
+            for (int i = 0; i < len; ++i) {
+                unsigned short v = (unsigned short)(Rng() & 0xFFFF);
+                da[i] = v; db[i] = v;
+            }
+            for (int i = 0; i < ZN; ++i) {
+                unsigned short zv = (unsigned short)(Rng() & 0x7FFF);
+                zva[i] = zv; zvb[i] = zv;
+            }
+            for (int i = 0; i < 512; ++i) zshape[i] = (signed char)(Rng() & 0xFF);
+
+            int zsh = (int)reinterpret_cast<intptr_t>(zshape);
+
+            fz->BufferStart = (unsigned int)zva; fz->BufferEnd = (unsigned int)(zva + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz;
+            vanilla.Blit(da, stream, len, leadskip, z_min, (int)reinterpret_cast<intptr_t>(&zva[ZOFF]), 0, 0, 0, zsh);
+
+            fz->BufferStart = (unsigned int)zvb; fz->BufferEnd = (unsigned int)(zvb + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz;
+            simd.Blit(db, stream, len, leadskip, z_min, (int)reinterpret_cast<intptr_t>(&zvb[ZOFF]), 0, 0, 0, zsh);
+
+            for (int i = 0; i < len; ++i) {
+                if (da[i] != db[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
+            }
+            if (zwrite) {
+                for (int i = 0; i < ZN; ++i) {
+                    if (zva[i] != zvb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = -i - 1; } }
+                }
+            }
+        }
+    }
+
+    DepthBuffer = saved;
+
+    if (mismatches != 0) {
+        DEBUG_WARNING("[SIMD blit] {}: {} MISMATCHES (first at len={} idx={})\n", name, mismatches, first_len, first_idx);
+    } else {
+        DEBUG_INFO("[SIMD blit] {}: ok\n", name);
+    }
+    return mismatches;
+}
+
+/**
  *  Run the full family matrix for one SIMD tier. Returns the total mismatch count.
  */
 template<SimdTier ISA>
@@ -399,6 +471,22 @@ static int Run_Tier(const char* tier_name,
     { RLEBlitTransLucent75<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent75<ISA> s(xl, qb);   total += Compare_RLE_Family("RLE Lucent75", v, s); }
     { RLEBlitTransLucent50<unsigned short> v(xl, hb);  SimdRLEBlitTransLucent50<ISA> s(xl, hb);   total += Compare_RLE_Family("RLE Lucent50", v, s); }
     { RLEBlitTransLucent25<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent25<ISA> s(xl, qb);   total += Compare_RLE_Family("RLE Lucent25", v, s); }
+
+    /* RLE Z-read. */
+    { RLEBlitTransXlatZRead<unsigned short> v(xl);          SimdRLEBlitTransXlatZRead<ISA> s(xl);          total += Compare_RLE_Family_Z("RLE TransXlatZRead", v, s, false); }
+    { RLEBlitTransZRemapXlatZRead<unsigned short> v(rm, xl);SimdRLEBlitTransZRemapXlatZRead<ISA> s(rm, xl); total += Compare_RLE_Family_Z("RLE ZRemapXlatZRead", v, s, false); }
+    { RLEBlitTransDarkenZRead<unsigned short> v(hb);        SimdRLEBlitTransDarkenZRead<ISA> s(hb);        total += Compare_RLE_Family_Z("RLE DarkenZRead", v, s, false); }
+    { RLEBlitTransLucent75ZRead<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent75ZRead<ISA> s(xl, qb);   total += Compare_RLE_Family_Z("RLE Lucent75ZRead", v, s, false); }
+    { RLEBlitTransLucent50ZRead<unsigned short> v(xl, hb);  SimdRLEBlitTransLucent50ZRead<ISA> s(xl, hb);   total += Compare_RLE_Family_Z("RLE Lucent50ZRead", v, s, false); }
+    { RLEBlitTransLucent25ZRead<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent25ZRead<ISA> s(xl, qb);   total += Compare_RLE_Family_Z("RLE Lucent25ZRead", v, s, false); }
+
+    /* RLE Z-read/write. */
+    { RLEBlitTransXlatZReadWrite<unsigned short> v(xl);          SimdRLEBlitTransXlatZReadWrite<ISA> s(xl);          total += Compare_RLE_Family_Z("RLE TransXlatZReadWrite", v, s, true); }
+    { RLEBlitTransZRemapXlatZReadWrite<unsigned short> v(rm, xl);SimdRLEBlitTransZRemapXlatZReadWrite<ISA> s(rm, xl); total += Compare_RLE_Family_Z("RLE ZRemapXlatZReadWrite", v, s, true); }
+    { RLEBlitTransDarkenZReadWrite<unsigned short> v(hb);        SimdRLEBlitTransDarkenZReadWrite<ISA> s(hb);        total += Compare_RLE_Family_Z("RLE DarkenZReadWrite", v, s, true); }
+    { RLEBlitTransLucent75ZReadWrite<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent75ZReadWrite<ISA> s(xl, qb);   total += Compare_RLE_Family_Z("RLE Lucent75ZReadWrite", v, s, true); }
+    { RLEBlitTransLucent50ZReadWrite<unsigned short> v(xl, hb);  SimdRLEBlitTransLucent50ZReadWrite<ISA> s(xl, hb);   total += Compare_RLE_Family_Z("RLE Lucent50ZReadWrite", v, s, true); }
+    { RLEBlitTransLucent25ZReadWrite<unsigned short> v(xl, qb);  SimdRLEBlitTransLucent25ZReadWrite<ISA> s(xl, qb);   total += Compare_RLE_Family_Z("RLE Lucent25ZReadWrite", v, s, true); }
 
     return total;
 }
