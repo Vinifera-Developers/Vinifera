@@ -1,0 +1,357 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *  @brief  Shared implementation of the templated blitter kernel.
+ *
+ *          Included by exactly two translation units, each compiled with its own
+ *          /arch and explicitly instantiating one tier:
+ *              blitter_simd_sse.cpp   -> /arch:SSE2  -> Blit_Row<SSE2,  ...>
+ *              blitter_simd_avx2.cpp  -> /arch:AVX2  -> Blit_Row<AVX2,  ...>
+ *          The `if constexpr (ISA == SimdTier::AVX2)` paths reference AVX2
+ *          intrinsics; in the SSE2 TU those branches are discarded before code
+ *          generation, so /arch:SSE2 never has to emit a VEX instruction.
+ *
+ *          Both TUs MUST remain strictly floating-point free.
+ *
+ *          The 8->16-bit palette translate is a gather. On SSE2 it is a tight
+ *          scalar lookup; on AVX2 it uses vpgatherdd against a cached, zero-
+ *          extended u32 shadow of the translate table (so the 16-bit gather is
+ *          fully in-bounds and safe). The transparency mask, translucency blend,
+ *          z-test and masked store are vectorised (8 wide on SSE2, 16 wide on
+ *          AVX2). All arithmetic reproduces the vanilla integer expressions
+ *          exactly (non-saturating adds), so output is bit-identical.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+#pragma once
+
+#include "blitter_simd.h"
+#include "zbuffer.h"
+
+#include <immintrin.h>  // SSE2 .. AVX2
+#include <cstdint>
+#include <cstdlib>      // malloc (AVX2 shadow table)
+
+
+extern ZBuffer*& DepthBuffer;
+
+
+namespace
+{
+
+/**
+ *  Translate one 8-bit source pixel to its 16-bit destination colour.
+ */
+template<BlitConfig CFG>
+static inline unsigned short Translate1(unsigned char c, unsigned short const* xlat,
+                                        unsigned char const* remap1, unsigned char const* const* remap2)
+{
+    unsigned idx;
+    if constexpr (CFG.xlat == XlatMode::Direct)     idx = c;
+    else if constexpr (CFG.xlat == XlatMode::Remap) idx = remap1[c];
+    else                                            idx = (*remap2)[c];
+    return xlat[idx];
+}
+
+/**
+ *  Apply the blend for one pixel given the already-translated source colour.
+ */
+template<BlitConfig CFG>
+static inline void Blend1(unsigned short* d, unsigned short s, unsigned short mask)
+{
+    if constexpr (CFG.blend == Blend::Copy) {
+        *d = s;
+    } else if constexpr (CFG.blend == Blend::Darken) {
+        *d = (unsigned short)(((*d) >> 1) & mask);
+    } else if constexpr (CFG.blend == Blend::L50) {
+        *d = (unsigned short)((((*d) >> 1) & mask) + ((s >> 1) & mask));
+    } else if constexpr (CFG.blend == Blend::L25) {
+        unsigned short qs = (unsigned short)((s >> 2) & mask);
+        unsigned short qd = (unsigned short)(((*d) >> 2) & mask);
+        *d = (unsigned short)(qd + qs + qs + qs);
+    } else { // L75
+        unsigned short qs = (unsigned short)((s >> 2) & mask);
+        unsigned short qd = (unsigned short)(((*d) >> 2) & mask);
+        *d = (unsigned short)(qd + qd + qd + qs);
+    }
+}
+
+/**
+ *  Scalar reference compose for one pixel (no z). Used for the row tail.
+ */
+template<BlitConfig CFG>
+static inline void Compose_Scalar(unsigned short* d, unsigned char c,
+                                  unsigned short const* xlat, unsigned char const* remap1,
+                                  unsigned char const* const* remap2, unsigned short mask)
+{
+    if constexpr (CFG.trans) {
+        if (c == 0) return;
+    }
+    unsigned short s = 0;
+    if constexpr (CFG.blend != Blend::Darken) {
+        s = Translate1<CFG>(c, xlat, remap1, remap2);
+    }
+    Blend1<CFG>(d, s, mask);
+}
+
+
+/* ----------------------------- SSE2 (128-bit, 8 wide) ----------------------------- */
+
+template<BlitConfig CFG>
+static inline __m128i Translate8(unsigned char const* src, unsigned short const* xlat,
+                                 unsigned char const* remap1, unsigned char const* const* remap2)
+{
+    unsigned short tmp[8];
+    for (int k = 0; k < 8; ++k) {
+        tmp[k] = Translate1<CFG>(src[k], xlat, remap1, remap2);
+    }
+    return _mm_loadu_si128(reinterpret_cast<const __m128i*>(tmp));
+}
+
+static inline __m128i Opaque8(unsigned char const* src, __m128i ones)
+{
+    __m128i vb = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(src));   // 8 source bytes
+    __m128i istrans = _mm_cmpeq_epi8(vb, _mm_setzero_si128());             // 0xFF where c == 0
+    __m128i istrans16 = _mm_unpacklo_epi8(istrans, istrans);              // expand low 8 -> 8 words
+    return _mm_xor_si128(istrans16, ones);                                // invert -> opaque
+}
+
+template<BlitConfig CFG>
+static inline __m128i Blend8(__m128i vdst, __m128i vsrc16, __m128i vmask)
+{
+    if constexpr (CFG.blend == Blend::Copy) {
+        return vsrc16;
+    } else if constexpr (CFG.blend == Blend::Darken) {
+        return _mm_and_si128(_mm_srli_epi16(vdst, 1), vmask);
+    } else if constexpr (CFG.blend == Blend::L50) {
+        return _mm_add_epi16(_mm_and_si128(_mm_srli_epi16(vdst, 1), vmask),
+                             _mm_and_si128(_mm_srli_epi16(vsrc16, 1), vmask));
+    } else if constexpr (CFG.blend == Blend::L25) {
+        __m128i qs = _mm_and_si128(_mm_srli_epi16(vsrc16, 2), vmask);
+        __m128i qd = _mm_and_si128(_mm_srli_epi16(vdst, 2), vmask);
+        return _mm_add_epi16(qd, _mm_add_epi16(qs, _mm_add_epi16(qs, qs)));   // qd + 3*qs
+    } else { // L75
+        __m128i qs = _mm_and_si128(_mm_srli_epi16(vsrc16, 2), vmask);
+        __m128i qd = _mm_and_si128(_mm_srli_epi16(vdst, 2), vmask);
+        return _mm_add_epi16(_mm_add_epi16(qd, qd), _mm_add_epi16(qd, qs));   // 3*qd + qs
+    }
+}
+
+
+/* ----------------------------- AVX2 (256-bit, 16 wide) ---------------------------- */
+
+/**
+ *  Cached zero-extended u32 shadow of a 256-entry translate table, so vpgatherdd
+ *  (which gathers 32-bit lanes) reads fully in bounds. Tables live for the
+ *  drawer's lifetime and there are only a few, so a tiny single-threaded cache
+ *  suffices (blitting is on the render thread only).
+ */
+template<SimdTier ISA>
+[[maybe_unused]] static const uint32_t* Get_U32_Shadow(unsigned short const* table)
+{
+    struct Entry { unsigned short const* key; uint32_t* data; };
+    static Entry cache[8] = {};
+    for (auto& e : cache) if (e.key == table) return e.data;
+    for (auto& e : cache) {
+        if (e.key == nullptr) {
+            e.key = table;
+            e.data = static_cast<uint32_t*>(std::malloc(256 * sizeof(uint32_t)));
+            for (int i = 0; i < 256; ++i) e.data[i] = table[i];
+            return e.data;
+        }
+    }
+    return cache[0].data; // cache exhausted (not expected); harmless fallback
+}
+
+/**
+ *  Translate 16 source pixels via vpgatherdd against the u32 shadow.
+ */
+template<BlitConfig CFG>
+[[maybe_unused]] static inline __m256i Translate16_AVX2(unsigned char const* src, uint32_t const* shadow,
+                                                        unsigned char const* remap1, unsigned char const* const* remap2)
+{
+    unsigned char const* rtable = nullptr;
+    if constexpr (CFG.xlat == XlatMode::ZRemap) rtable = *remap2;
+
+    uint32_t idx[16];
+    for (int k = 0; k < 16; ++k) {
+        unsigned char c = src[k];
+        if constexpr (CFG.xlat == XlatMode::Direct)     idx[k] = c;
+        else if constexpr (CFG.xlat == XlatMode::Remap) idx[k] = remap1[c];
+        else                                            idx[k] = rtable[c];
+    }
+    __m256i vi0 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(idx));
+    __m256i vi1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(idx + 8));
+    __m256i g0 = _mm256_i32gather_epi32(reinterpret_cast<const int*>(shadow), vi0, 4); // 8 u32
+    __m256i g1 = _mm256_i32gather_epi32(reinterpret_cast<const int*>(shadow), vi1, 4); // 8 u32
+    // Pack 16 u32 (low 16 bits valid) into 16 u16, fixing the 128-bit lane interleave.
+    __m256i packed = _mm256_packus_epi32(_mm256_and_si256(g0, _mm256_set1_epi32(0xFFFF)),
+                                         _mm256_and_si256(g1, _mm256_set1_epi32(0xFFFF)));
+    return _mm256_permute4x64_epi64(packed, 0xD8); // 11 01 10 00
+}
+
+/**
+ *  Per-lane opaque mask for 16 source bytes: 0xFFFF where != 0.
+ */
+template<SimdTier ISA>
+[[maybe_unused]] static inline __m256i Opaque16(unsigned char const* src, __m256i ones)
+{
+    __m128i vb = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src));  // 16 source bytes
+    __m128i istrans = _mm_cmpeq_epi8(vb, _mm_setzero_si128());            // 0xFF where c == 0
+    __m256i istrans16 = _mm256_cvtepi8_epi16(istrans);                   // sign-extend -> 16 words
+    return _mm256_xor_si256(istrans16, ones);
+}
+
+template<BlitConfig CFG>
+[[maybe_unused]] static inline __m256i Blend16(__m256i vdst, __m256i vsrc16, __m256i vmask)
+{
+    if constexpr (CFG.blend == Blend::Copy) {
+        return vsrc16;
+    } else if constexpr (CFG.blend == Blend::Darken) {
+        return _mm256_and_si256(_mm256_srli_epi16(vdst, 1), vmask);
+    } else if constexpr (CFG.blend == Blend::L50) {
+        return _mm256_add_epi16(_mm256_and_si256(_mm256_srli_epi16(vdst, 1), vmask),
+                                _mm256_and_si256(_mm256_srli_epi16(vsrc16, 1), vmask));
+    } else if constexpr (CFG.blend == Blend::L25) {
+        __m256i qs = _mm256_and_si256(_mm256_srli_epi16(vsrc16, 2), vmask);
+        __m256i qd = _mm256_and_si256(_mm256_srli_epi16(vdst, 2), vmask);
+        return _mm256_add_epi16(qd, _mm256_add_epi16(qs, _mm256_add_epi16(qs, qs)));
+    } else { // L75
+        __m256i qs = _mm256_and_si256(_mm256_srli_epi16(vsrc16, 2), vmask);
+        __m256i qd = _mm256_and_si256(_mm256_srli_epi16(vdst, 2), vmask);
+        return _mm256_add_epi16(_mm256_add_epi16(qd, qd), _mm256_add_epi16(qd, qs));
+    }
+}
+
+} // namespace
+
+
+template<SimdTier ISA, BlitConfig CFG>
+void Blit_Row(void* dest, void const* source, int length,
+              int z_min, void* z_buff, void* /*a_buff*/, int /*alpha_level*/, int /*warp_offset*/,
+              unsigned short const* xlat, unsigned char const* remap1,
+              unsigned char const* const* remap2, unsigned short mask)
+{
+    unsigned short* d = static_cast<unsigned short*>(dest);
+    unsigned char const* src = static_cast<unsigned char const*>(source);
+
+    const __m128i vmask = _mm_set1_epi16((short)mask);
+    const __m128i ones = _mm_set1_epi16((short)0xFFFF);
+
+    if constexpr (CFG.zread) {
+
+        /**
+         *  Depth-tested path (128-bit; valid under both SSE2 and AVX2). The z
+         *  pointer indexes the global ring z-buffer and wraps after each pixel,
+         *  so the wide path only runs over a guaranteed-contiguous span and the
+         *  scalar path reproduces the per-pixel Wrap_Overflow at the boundary.
+         */
+        const __m128i vzbias = _mm_set1_epi16((short)0x8000);
+        const bool z_in_range = (z_min >= 0 && z_min <= 0xFFFF);
+        const __m128i vzmin_b = _mm_xor_si128(_mm_set1_epi16((short)(unsigned short)z_min), vzbias);
+        const unsigned short zwrite_val =
+            CFG.zwbyte ? (unsigned short)(unsigned char)z_min : (unsigned short)z_min;
+        const __m128i vzwrite = _mm_set1_epi16((short)zwrite_val);
+
+        unsigned char* zb = static_cast<unsigned char*>(z_buff);
+        const unsigned int zend = DepthBuffer->Get_Buffer_End();
+
+        int i = 0;
+        while (i < length) {
+
+            int zpix = (int)((zend - (unsigned int)zb) / 2);
+
+            if (z_in_range && (length - i) >= 8 && zpix >= 8) {
+
+                __m128i vsrc16 = _mm_setzero_si128();
+                if constexpr (CFG.blend != Blend::Darken) {
+                    vsrc16 = Translate8<CFG>(src + i, xlat, remap1, remap2);
+                }
+                __m128i vtrans = CFG.trans ? Opaque8(src + i, ones) : ones;
+                __m128i vzb = _mm_loadu_si128(reinterpret_cast<const __m128i*>(zb));
+                __m128i vzpass = _mm_cmpgt_epi16(_mm_xor_si128(vzb, vzbias), vzmin_b);
+                __m128i vwrite = _mm_and_si128(vtrans, vzpass);
+
+                __m128i vdst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(d + i));
+                __m128i vblend = Blend8<CFG>(vdst, vsrc16, vmask);
+                __m128i result = _mm_or_si128(_mm_and_si128(vwrite, vblend), _mm_andnot_si128(vwrite, vdst));
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(d + i), result);
+
+                if constexpr (CFG.zwrite) {
+                    __m128i znew = _mm_or_si128(_mm_and_si128(vwrite, vzwrite), _mm_andnot_si128(vwrite, vzb));
+                    _mm_storeu_si128(reinterpret_cast<__m128i*>(zb), znew);
+                }
+
+                i += 8;
+                zb += 16;
+
+            } else {
+
+                unsigned short zval = *reinterpret_cast<unsigned short*>(zb);
+                unsigned char c = src[i];
+                bool draw = (z_min < (int)zval) && (!CFG.trans || c != 0);
+                if (draw) {
+                    unsigned short s = 0;
+                    if constexpr (CFG.blend != Blend::Darken) {
+                        s = Translate1<CFG>(c, xlat, remap1, remap2);
+                    }
+                    Blend1<CFG>(d + i, s, mask);
+                    if constexpr (CFG.zwrite) {
+                        *reinterpret_cast<unsigned short*>(zb) = zwrite_val;
+                    }
+                }
+                i += 1;
+                zb += 2;
+            }
+
+            zb = reinterpret_cast<unsigned char*>(DepthBuffer->Wrap_Overflow((unsigned int)zb));
+        }
+
+    } else {
+
+        int i = 0;
+
+        if constexpr (ISA == SimdTier::AVX2) {
+
+            /**
+             *  16-wide AVX2 path: vpgatherdd translate + 256-bit compose.
+             */
+            const uint32_t* shadow = (CFG.blend != Blend::Darken) ? Get_U32_Shadow<ISA>(xlat) : nullptr;
+            const __m256i vmask256 = _mm256_set1_epi16((short)mask);
+            const __m256i ones256 = _mm256_set1_epi16((short)0xFFFF);
+
+            for (; i + 16 <= length; i += 16) {
+                __m256i vsrc16 = _mm256_setzero_si256();
+                if constexpr (CFG.blend != Blend::Darken) {
+                    vsrc16 = Translate16_AVX2<CFG>(src + i, shadow, remap1, remap2);
+                }
+                __m256i vwrite = CFG.trans ? Opaque16<ISA>(src + i, ones256) : ones256;
+                __m256i vdst = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(d + i));
+                __m256i vblend = Blend16<CFG>(vdst, vsrc16, vmask256);
+                __m256i result = _mm256_or_si256(_mm256_and_si256(vwrite, vblend),
+                                                 _mm256_andnot_si256(vwrite, vdst));
+                _mm256_storeu_si256(reinterpret_cast<__m256i*>(d + i), result);
+            }
+            _mm256_zeroupper();
+        }
+
+        /**
+         *  8-wide SSE2 path (also mops up the [8,16) remainder after the AVX2 loop).
+         */
+        for (; i + 8 <= length; i += 8) {
+            __m128i vsrc16 = _mm_setzero_si128();
+            if constexpr (CFG.blend != Blend::Darken) {
+                vsrc16 = Translate8<CFG>(src + i, xlat, remap1, remap2);
+            }
+            __m128i vwrite = CFG.trans ? Opaque8(src + i, ones) : ones;
+            __m128i vdst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(d + i));
+            __m128i vblend = Blend8<CFG>(vdst, vsrc16, vmask);
+            __m128i result = _mm_or_si128(_mm_and_si128(vwrite, vblend), _mm_andnot_si128(vwrite, vdst));
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(d + i), result);
+        }
+        for (; i < length; ++i) {
+            Compose_Scalar<CFG>(d + i, src[i], xlat, remap1, remap2, mask);
+        }
+    }
+}

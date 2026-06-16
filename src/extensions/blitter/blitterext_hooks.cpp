@@ -29,11 +29,12 @@ bool Vinifera_SIMDBlitters = true;
 
 
 /**
- *  Best SIMD tier available on this CPU. (SSE4.1/AVX2 are wired in a later wave.)
+ *  Best SIMD tier available on this CPU.
  */
 static SimdTier Blitter_SIMD_Tier()
 {
     if (!Vinifera_SIMDBlitters) return SimdTier::Scalar;
+    if (CPUDetectClass::Has_AVX2_Instruction_Set()) return SimdTier::AVX2;
     if (CPUDetectClass::Has_SSE2_Instruction_Set()) return SimdTier::SSE2;
     return SimdTier::Scalar;
 }
@@ -177,11 +178,13 @@ DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
 {
     GET(ConvertClassExt*, cc, ECX);
 
+    const SimdTier tier = Blitter_SIMD_Tier();
+
     /**
      *  8-bit drawers and CPUs without SSE2 keep the vanilla blitters entirely:
      *  let the original Create_Blitters run.
      */
-    if (Blitter_SIMD_Tier() == SimdTier::Scalar || cc->Get_BBP() == 1) {
+    if (tier == SimdTier::Scalar || cc->Get_BBP() == 1) {
         return 0;
     }
 
@@ -197,7 +200,10 @@ DEFINE_HOOK(0x00464100, _ConvertClass_Create_Blitters_SIMD, 6)
     }
 #endif
 
-    cc->Install_Blitters_16bit<SimdTier::SSE2>();
+    switch (tier) {
+    case SimdTier::AVX2: cc->Install_Blitters_16bit<SimdTier::AVX2>(); break;
+    default:             cc->Install_Blitters_16bit<SimdTier::SSE2>(); break;
+    }
 
     /**
      *  Skip the original body. 0x00465958 is a bare `retn` inside Create_Blitters;

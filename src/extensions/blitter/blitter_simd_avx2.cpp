@@ -1,11 +1,13 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
- *  @brief  SSE2 instantiations of the templated blitter kernel.
+ *  @brief  AVX2 instantiations of the templated blitter kernel.
  *
- *          Compiled with /arch:SSE2 (see CMakeLists.txt). The kernel body lives
- *          in blitter_simd_impl.h; this TU just pins the SimdTier::SSE2 tier.
- *          Floating-point free.
+ *          Compiled with /arch:AVX2 (see CMakeLists.txt). MSVC may VEX-encode
+ *          everything in this TU, so it must only ever run on AVX2 CPUs -- which
+ *          is guaranteed by the creation-time CPU-tier guard (these
+ *          instantiations are only constructed when Has_AVX2 is true). The
+ *          kernel body lives in blitter_simd_impl.h. Floating-point free.
  *
  *  SPDX-License-Identifier: GPL-3.0-or-later
  *  Copyright (c) 2020-2026 Vinifera contributors
@@ -13,7 +15,7 @@
 #include "blitter_simd_impl.h"
 
 #define INSTANTIATE(cfg) \
-    template void Blit_Row<SimdTier::SSE2, cfg>(void*, void const*, int, int, void*, void*, int, int, \
+    template void Blit_Row<SimdTier::AVX2, cfg>(void*, void const*, int, int, void*, void*, int, int, \
                                                 unsigned short const*, unsigned char const*, \
                                                 unsigned char const* const*, unsigned short)
 

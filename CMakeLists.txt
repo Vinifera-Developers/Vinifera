@@ -675,6 +675,10 @@ set_source_files_properties(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/extensions/blitter/blitter_simd_sse.cpp
     PROPERTIES COMPILE_OPTIONS "/arch:SSE2"
 )
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extensions/blitter/blitter_simd_avx2.cpp
+    PROPERTIES COMPILE_OPTIONS "/arch:AVX2"
+)
 
 # Link to the TS++ static library.
 target_link_libraries(${PROJECT_NAME} TSpp)
