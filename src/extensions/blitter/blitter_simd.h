@@ -41,7 +41,7 @@ void Blitter_SIMD_SelfTest(ConvertClass* drawer);
  *  (cycles/call per family per row width, via __rdtsc). Independent of BLITTER_TESTS. Lives in
  *  blitter_simd_selftest.cpp; logs `[SIMD bench]` lines. Turn off for release.
  */
-#define BLITTER_BENCH
+//#define BLITTER_BENCH
 void Blitter_SIMD_Benchmark(ConvertClass* drawer);
 
 
@@ -84,7 +84,7 @@ struct BlitConfig {
  *  Leave BLITTER_TESTS undefined for release: those bugs are then CORRECTED and no test is built.
  *  The affected bug flags are alpha_static / rle_zs2 / rle_skip_noz.
  */
-#define BLITTER_TESTS
+//#define BLITTER_TESTS
 
 #ifdef BLITTER_TESTS
 inline constexpr bool BlitterBugCompat = true;   // reproduce vanilla's shipped blitter bugs
