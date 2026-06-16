@@ -24,11 +24,8 @@
 #include "zbuffer.h"
 #include "abuffer.h"
 #include "debughandler.h"
-#include <intrin.h>   // __rdtsc (benchmark)
-
-
-extern ZBuffer*& DepthBuffer;
-extern ABuffer*& AlphaBuffer;
+#include "tibsun_globals.h"   // ZBuffer*& DepthBuffer / ABuffer*& AlphaBuffer (bound in TSpp)
+#include <intrin.h>           // __rdtsc (benchmark)
 
 
 namespace
@@ -492,13 +489,13 @@ static int Compare_RLE_Family_Z(const char* name, const RLEBlitter& vanilla, con
             }
             for (int i = 0; i < 512; ++i) zshape[i] = (signed char)(Rng() & 0xFF);
 
-            int zsh = (int)reinterpret_cast<intptr_t>(zshape);
+            void const* zsh = zshape;
 
             fz->BufferStart = (unsigned int)zva; fz->BufferEnd = (unsigned int)(zva + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz;
-            vanilla.Blit(da, stream, len, leadskip, z_min, (int)reinterpret_cast<intptr_t>(&zva[ZOFF]), 0, 0, 0, zsh);
+            vanilla.Blit(da, stream, len, leadskip, z_min, &zva[ZOFF], nullptr, 0, 0, zsh);
 
             fz->BufferStart = (unsigned int)zvb; fz->BufferEnd = (unsigned int)(zvb + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz;
-            simd.Blit(db, stream, len, leadskip, z_min, (int)reinterpret_cast<intptr_t>(&zvb[ZOFF]), 0, 0, 0, zsh);
+            simd.Blit(db, stream, len, leadskip, z_min, &zvb[ZOFF], nullptr, 0, 0, zsh);
 
             for (int i = 0; i < len; ++i) {
                 if (da[i] != db[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
@@ -573,17 +570,17 @@ static int Compare_RLE_Family_AW(const char* name, const RLEBlitter& vanilla, co
 
             unsigned short* pda = da + SLACK;
             unsigned short* pdb = db + SLACK;
-            int zsh = (int)reinterpret_cast<intptr_t>(zshape);
+            void const* zsh = zshape;
 
             if (zread) { fz->BufferStart = (unsigned int)zva; fz->BufferEnd = (unsigned int)(zva + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz; }
             if (alpha) { fa->BufferStart = (unsigned int)apa; fa->BufferEnd = (unsigned int)(apa + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa; }
-            vanilla.Blit(pda, stream, len, leadskip, z_min, zread ? (int)reinterpret_cast<intptr_t>(&zva[ZOFF]) : 0,
-                         alpha ? (int)reinterpret_cast<intptr_t>(&apa[ZOFF]) : 0, 1000, warp_off, zread ? zsh : 0);
+            vanilla.Blit(pda, stream, len, leadskip, z_min, zread ? (void*)&zva[ZOFF] : nullptr,
+                         alpha ? (void*)&apa[ZOFF] : nullptr, 1000, warp_off, zread ? zsh : nullptr);
 
             if (zread) { fz->BufferStart = (unsigned int)zvb; fz->BufferEnd = (unsigned int)(zvb + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz; }
             if (alpha) { fa->BufferStart = (unsigned int)apb; fa->BufferEnd = (unsigned int)(apb + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa; }
-            simd.Blit(pdb, stream, len, leadskip, z_min, zread ? (int)reinterpret_cast<intptr_t>(&zvb[ZOFF]) : 0,
-                      alpha ? (int)reinterpret_cast<intptr_t>(&apb[ZOFF]) : 0, 1000, warp_off, zread ? zsh : 0);
+            simd.Blit(pdb, stream, len, leadskip, z_min, zread ? (void*)&zvb[ZOFF] : nullptr,
+                      alpha ? (void*)&apb[ZOFF] : nullptr, 1000, warp_off, zread ? zsh : nullptr);
 
             for (int i = 0; i < len; ++i) {
                 if (pda[i] != pdb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }

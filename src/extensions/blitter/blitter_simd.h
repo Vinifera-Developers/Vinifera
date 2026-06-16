@@ -336,7 +336,7 @@ public:
     using Vanilla::Vanilla;
 
     virtual void Blit(void* dest, void const* source, int length, int leadskip, int z_min,
-                      int z_buff, int a_buff, int alpha_level, int warp_offset, int zshape) const override
+                      void* z_buff, void* a_buff, int alpha_level, int warp_offset, void const* zshape) const override
     {
         unsigned short const* xlat = nullptr;
         unsigned char const* remap1 = nullptr;
@@ -355,8 +355,7 @@ public:
         if constexpr (CFG.alpha) { alut = this->AlphaLightingRemap->Get_Table(alpha_level); }
 
         RLE_Blit_Row<ISA, CFG>(dest, source, length, leadskip, z_min,
-                               reinterpret_cast<void*>(z_buff), reinterpret_cast<void*>(a_buff),
-                               alpha_level, warp_offset, reinterpret_cast<void const*>(zshape),
+                               z_buff, a_buff, alpha_level, warp_offset, zshape,
                                xlat, remap1, remap2, mask, alut);
     }
 };

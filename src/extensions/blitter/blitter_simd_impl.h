@@ -29,15 +29,12 @@
 #include "blitter_simd.h"
 #include "zbuffer.h"
 #include "abuffer.h"
-#include "dsurface.h"   // channel shift statics for the alpha-composite family
+#include "dsurface.h"        // channel shift statics for the alpha-composite family
+#include "tibsun_globals.h"  // ZBuffer*& DepthBuffer / ABuffer*& AlphaBuffer (bound in TSpp)
 
 #include <immintrin.h>  // SSE2 .. AVX2
 #include <cstdint>
 #include <cstdlib>      // malloc (AVX2 shadow table)
-
-
-extern ZBuffer*& DepthBuffer;
-extern ABuffer*& AlphaBuffer;
 
 
 namespace
