@@ -15,7 +15,8 @@
 #define INSTANTIATE(cfg) \
     template void Blit_Row<SimdTier::SSE2, cfg>(void*, void const*, int, int, void*, void*, int, int, \
                                                 unsigned short const*, unsigned char const*, \
-                                                unsigned char const* const*, unsigned short)
+                                                unsigned char const* const*, unsigned short, \
+                                                unsigned short const*)
 
 /* Non-Z families. */
 INSTANTIATE(CFG_PlainXlat);
@@ -44,5 +45,31 @@ INSTANTIATE(CFG_DarkenZReadWrite);
 INSTANTIATE(CFG_Lucent25ZReadWrite);
 INSTANTIATE(CFG_Lucent50ZReadWrite);
 INSTANTIATE(CFG_Lucent75ZReadWrite);
+
+/* Alpha families. */
+INSTANTIATE(CFG_PlainXlatAlpha);
+INSTANTIATE(CFG_TransXlatAlpha);
+INSTANTIATE(CFG_ZRemapXlatAlpha);
+INSTANTIATE(CFG_Lucent75Alpha);
+INSTANTIATE(CFG_Lucent50Alpha);
+INSTANTIATE(CFG_Lucent25Alpha);
+INSTANTIATE(CFG_TransXlatAlphaZRead);
+INSTANTIATE(CFG_ZRemapXlatAlphaZRead);
+INSTANTIATE(CFG_Lucent75AlphaZRead);
+INSTANTIATE(CFG_Lucent50AlphaZRead);
+INSTANTIATE(CFG_Lucent25AlphaZRead);
+INSTANTIATE(CFG_TransXlatAlphaZReadWrite);
+INSTANTIATE(CFG_ZRemapXlatAlphaZReadWrite);
+INSTANTIATE(CFG_Lucent75AlphaZReadWrite);
+INSTANTIATE(CFG_Lucent50AlphaZReadWrite);
+INSTANTIATE(CFG_Lucent25AlphaZReadWrite);
+INSTANTIATE(CFG_Lucent75AlphaZReadWarp);
+INSTANTIATE(CFG_Lucent50AlphaZReadWarp);
+INSTANTIATE(CFG_Lucent25AlphaZReadWarp);
+
+/* Warp (no alpha). */
+INSTANTIATE(CFG_Lucent75ZReadWarp);
+INSTANTIATE(CFG_Lucent50ZReadWarp);
+INSTANTIATE(CFG_Lucent25ZReadWarp);
 
 #undef INSTANTIATE

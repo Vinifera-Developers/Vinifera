@@ -19,10 +19,12 @@
 #include "convert.h"
 #include "cpudetect.h"
 #include "zbuffer.h"
+#include "abuffer.h"
 #include "debughandler.h"
 
 
 extern ZBuffer*& DepthBuffer;
+extern ABuffer*& AlphaBuffer;
 
 
 namespace
@@ -173,11 +175,91 @@ static int Compare_Family_Z(const char* name, const Blitter& vanilla, const Blit
 }
 
 /**
+ *  Compare an Alpha and/or Warp family. Points the (init-time null) DepthBuffer/AlphaBuffer at
+ *  fake rings so both blitters wrap identically; warp blits read the background from
+ *  dest[warp_off], so dest has slack on both sides. The alpha index uses the blitter's own
+ *  AlphaLightingRemap (Init'd in its ctor), identical for vanilla and SIMD.
+ */
+static int Compare_Family_AW(const char* name, const Blitter& vanilla, const Blitter& simd,
+                             bool zread, bool zwrite, bool alpha, int warp_off)
+{
+    static const int lengths[] = { 0, 1, 7, 8, 9, 17, 33, 64, 127, 200, 255 };
+    const int z_min = 0x4000;
+    const int ZN = 250, ZOFF = 50;
+    const int SLACK = 16;
+
+    static unsigned short da[SLACK * 2 + 256], db[SLACK * 2 + 256];
+    unsigned char src[256];
+    static unsigned short zva[512], zvb[512];
+    static unsigned short apa[512], apb[512];
+
+    alignas(8) static unsigned char fakez[sizeof(ZBuffer)];
+    alignas(8) static unsigned char fakea[sizeof(ABuffer)];
+    ZBuffer* fz = reinterpret_cast<ZBuffer*>(fakez);
+    ABuffer* fa = reinterpret_cast<ABuffer*>(fakea);
+    ZBuffer* savedz = DepthBuffer;
+    ABuffer* saveda = AlphaBuffer;
+
+    int mismatches = 0, first_len = -1, first_idx = -1;
+
+    for (int li = 0; li < (int)(sizeof(lengths) / sizeof(lengths[0])); ++li) {
+        int len = lengths[li];
+        for (int rep = 0; rep < 32; ++rep) {
+
+            for (int i = 0; i < len; ++i) {
+                src[i] = (Rng() & 3) == 0 ? 0 : (unsigned char)(Rng() & 0xFF);
+            }
+            for (int i = 0; i < SLACK * 2 + len; ++i) {     // fill incl. slack (warp reads it)
+                unsigned short v = (unsigned short)(Rng() & 0xFFFF);
+                da[i] = v; db[i] = v;
+            }
+            for (int i = 0; i < ZN; ++i) {
+                unsigned short z = (unsigned short)(Rng() & 0x7FFF);
+                zva[i] = z; zvb[i] = z;
+                unsigned short a = (unsigned short)(Rng() & 0xFF);  // alpha index 0..255
+                apa[i] = a; apb[i] = a;
+            }
+
+            unsigned short* pda = da + SLACK;
+            unsigned short* pdb = db + SLACK;
+
+            if (zread) { fz->BufferStart = (unsigned int)zva; fz->BufferEnd = (unsigned int)(zva + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz; }
+            if (alpha) { fa->BufferStart = (unsigned int)apa; fa->BufferEnd = (unsigned int)(apa + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa; }
+            vanilla.BlitForward(pda, src, len, z_min, zread ? &zva[ZOFF] : nullptr, alpha ? &apa[ZOFF] : nullptr, 1000, warp_off);
+
+            if (zread) { fz->BufferStart = (unsigned int)zvb; fz->BufferEnd = (unsigned int)(zvb + ZN); fz->BufferSize = ZN * 2; DepthBuffer = fz; }
+            if (alpha) { fa->BufferStart = (unsigned int)apb; fa->BufferEnd = (unsigned int)(apb + ZN); fa->BufferSize = ZN * 2; AlphaBuffer = fa; }
+            simd.BlitForward(pdb, src, len, z_min, zread ? &zvb[ZOFF] : nullptr, alpha ? &apb[ZOFF] : nullptr, 1000, warp_off);
+
+            for (int i = 0; i < len; ++i) {
+                if (pda[i] != pdb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = i; } }
+            }
+            if (zwrite) {
+                for (int i = 0; i < ZN; ++i) {
+                    if (zva[i] != zvb[i]) { ++mismatches; if (first_len < 0) { first_len = len; first_idx = -i - 1; } }
+                }
+            }
+        }
+    }
+
+    DepthBuffer = savedz;
+    AlphaBuffer = saveda;
+
+    if (mismatches != 0) {
+        DEBUG_WARNING("[SIMD blit] {}: {} MISMATCHES (first at len={} idx={})\n", name, mismatches, first_len, first_idx);
+    } else {
+        DEBUG_INFO("[SIMD blit] {}: ok\n", name);
+    }
+    return mismatches;
+}
+
+/**
  *  Run the full family matrix for one SIMD tier. Returns the total mismatch count.
  */
 template<SimdTier ISA>
 static int Run_Tier(const char* tier_name,
-                    unsigned short const* xl, unsigned short hb, unsigned short qb,
+                    unsigned short const* xl, unsigned short const* il, int lv,
+                    unsigned short hb, unsigned short qb,
                     unsigned char const* const* rm)
 {
     DEBUG_INFO("[SIMD blit] --- {} tier ---\n", tier_name);
@@ -207,6 +289,38 @@ static int Run_Tier(const char* tier_name,
     { BlitTransLucent50ZReadWrite<unsigned short> v(xl, hb);  SimdBlitTransLucent50ZReadWrite<ISA> s(xl, hb);   total += Compare_Family_Z("TransLucent50ZReadWrite", v, s, true); }
     { BlitTransLucent25ZReadWrite<unsigned short> v(xl, qb);  SimdBlitTransLucent25ZReadWrite<ISA> s(xl, qb);   total += Compare_Family_Z("TransLucent25ZReadWrite", v, s, true); }
 
+    /* Alpha (no z). */
+    { BlitPlainXlatAlpha<unsigned short> v(il, lv);       SimdBlitPlainXlatAlpha<ISA> s(il, lv);       total += Compare_Family_AW("PlainXlatAlpha", v, s, false, false, true, 0); }
+    { BlitTransXlatAlpha<unsigned short> v(il, lv);       SimdBlitTransXlatAlpha<ISA> s(il, lv);       total += Compare_Family_AW("TransXlatAlpha", v, s, false, false, true, 0); }
+    { BlitTransZRemapXlatAlpha<unsigned short> v(rm,il,lv);SimdBlitTransZRemapXlatAlpha<ISA> s(rm,il,lv);total += Compare_Family_AW("TransZRemapXlatAlpha", v, s, false, false, true, 0); }
+    { BlitTransLucent75Alpha<unsigned short> v(il,lv,qb); SimdBlitTransLucent75Alpha<ISA> s(il,lv,qb); total += Compare_Family_AW("TransLucent75Alpha", v, s, false, false, true, 0); }
+    { BlitTransLucent50Alpha<unsigned short> v(il,lv,hb); SimdBlitTransLucent50Alpha<ISA> s(il,lv,hb); total += Compare_Family_AW("TransLucent50Alpha", v, s, false, false, true, 0); }
+    { BlitTransLucent25Alpha<unsigned short> v(il,lv,qb); SimdBlitTransLucent25Alpha<ISA> s(il,lv,qb); total += Compare_Family_AW("TransLucent25Alpha", v, s, false, false, true, 0); }
+
+    /* Alpha + Z-read. */
+    { BlitTransXlatAlphaZRead<unsigned short> v(il,lv);        SimdBlitTransXlatAlphaZRead<ISA> s(il,lv);        total += Compare_Family_AW("TransXlatAlphaZRead", v, s, true, false, true, 0); }
+    { BlitTransZRemapXlatAlphaZRead<unsigned short> v(rm,il,lv);SimdBlitTransZRemapXlatAlphaZRead<ISA> s(rm,il,lv);total += Compare_Family_AW("TransZRemapXlatAlphaZRead", v, s, true, false, true, 0); }
+    { BlitTransLucent75AlphaZRead<unsigned short> v(il,lv,qb);  SimdBlitTransLucent75AlphaZRead<ISA> s(il,lv,qb);  total += Compare_Family_AW("TransLucent75AlphaZRead", v, s, true, false, true, 0); }
+    { BlitTransLucent50AlphaZRead<unsigned short> v(il,lv,hb);  SimdBlitTransLucent50AlphaZRead<ISA> s(il,lv,hb);  total += Compare_Family_AW("TransLucent50AlphaZRead", v, s, true, false, true, 0); }
+    { BlitTransLucent25AlphaZRead<unsigned short> v(il,lv,qb);  SimdBlitTransLucent25AlphaZRead<ISA> s(il,lv,qb);  total += Compare_Family_AW("TransLucent25AlphaZRead", v, s, true, false, true, 0); }
+
+    /* Alpha + Z-read/write. */
+    { BlitTransXlatAlphaZReadWrite<unsigned short> v(il,lv);        SimdBlitTransXlatAlphaZReadWrite<ISA> s(il,lv);        total += Compare_Family_AW("TransXlatAlphaZReadWrite", v, s, true, true, true, 0); }
+    { BlitTransZRemapXlatAlphaZReadWrite<unsigned short> v(rm,il,lv);SimdBlitTransZRemapXlatAlphaZReadWrite<ISA> s(rm,il,lv);total += Compare_Family_AW("TransZRemapXlatAlphaZReadWrite", v, s, true, true, true, 0); }
+    { BlitTransLucent75AlphaZReadWrite<unsigned short> v(il,lv,qb);  SimdBlitTransLucent75AlphaZReadWrite<ISA> s(il,lv,qb);  total += Compare_Family_AW("TransLucent75AlphaZReadWrite", v, s, true, true, true, 0); }
+    { BlitTransLucent50AlphaZReadWrite<unsigned short> v(il,lv,hb);  SimdBlitTransLucent50AlphaZReadWrite<ISA> s(il,lv,hb);  total += Compare_Family_AW("TransLucent50AlphaZReadWrite", v, s, true, true, true, 0); }
+    { BlitTransLucent25AlphaZReadWrite<unsigned short> v(il,lv,qb);  SimdBlitTransLucent25AlphaZReadWrite<ISA> s(il,lv,qb);  total += Compare_Family_AW("TransLucent25AlphaZReadWrite", v, s, true, true, true, 0); }
+
+    /* Alpha + Z-read + Warp. */
+    { BlitTransLucent75AlphaZReadWarp<unsigned short> v(il,lv,qb);  SimdBlitTransLucent75AlphaZReadWarp<ISA> s(il,lv,qb);  total += Compare_Family_AW("TransLucent75AlphaZReadWarp", v, s, true, false, true, -3); }
+    { BlitTransLucent50AlphaZReadWarp<unsigned short> v(il,lv,hb);  SimdBlitTransLucent50AlphaZReadWarp<ISA> s(il,lv,hb);  total += Compare_Family_AW("TransLucent50AlphaZReadWarp", v, s, true, false, true, -3); }
+    { BlitTransLucent25AlphaZReadWarp<unsigned short> v(il,lv,qb);  SimdBlitTransLucent25AlphaZReadWarp<ISA> s(il,lv,qb);  total += Compare_Family_AW("TransLucent25AlphaZReadWarp", v, s, true, false, true, -3); }
+
+    /* Z-read + Warp (no alpha). */
+    { BlitTransLucent75ZReadWarp<unsigned short> v(xl,qb);  SimdBlitTransLucent75ZReadWarp<ISA> s(xl,qb);  total += Compare_Family_AW("TransLucent75ZReadWarp", v, s, true, false, false, -3); }
+    { BlitTransLucent50ZReadWarp<unsigned short> v(xl,hb);  SimdBlitTransLucent50ZReadWarp<ISA> s(xl,hb);  total += Compare_Family_AW("TransLucent50ZReadWarp", v, s, true, false, false, -3); }
+    { BlitTransLucent25ZReadWarp<unsigned short> v(xl,qb);  SimdBlitTransLucent25ZReadWarp<ISA> s(xl,qb);  total += Compare_Family_AW("TransLucent25ZReadWarp", v, s, true, false, false, -3); }
+
     return total;
 }
 
@@ -221,9 +335,11 @@ void Blitter_SIMD_SelfTest(ConvertClass* drawer)
     /**
      *  The translate/remap/mask tables are public members of ConvertClass.
      */
-    struct Tables { unsigned short const* xl; unsigned short hb; unsigned short qb; };
+    struct Tables { unsigned short const* xl; unsigned short const* il; int lv; unsigned short hb; unsigned short qb; };
     Tables t;
     t.xl = (unsigned short const*)drawer->Translator;
+    t.il = (unsigned short const*)drawer->IntensityTranslator;
+    t.lv = drawer->IntensityLevels;
     t.hb = (unsigned short)drawer->HalfbrightMask;
     t.qb = (unsigned short)drawer->QuarterbrightMask;
 
@@ -240,9 +356,9 @@ void Blitter_SIMD_SelfTest(ConvertClass* drawer)
     DEBUG_INFO("[SIMD blit] Running bit-exactness self-test...\n");
     int total = 0;
 
-    total += Run_Tier<SimdTier::SSE2>("SSE2", t.xl, t.hb, t.qb, rm);
+    total += Run_Tier<SimdTier::SSE2>("SSE2", t.xl, t.il, t.lv, t.hb, t.qb, rm);
     if (CPUDetectClass::Has_AVX2_Instruction_Set()) {
-        total += Run_Tier<SimdTier::AVX2>("AVX2", t.xl, t.hb, t.qb, rm);
+        total += Run_Tier<SimdTier::AVX2>("AVX2", t.xl, t.il, t.lv, t.hb, t.qb, rm);
     }
 
     if (total == 0) {

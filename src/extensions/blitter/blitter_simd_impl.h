@@ -28,6 +28,7 @@
 
 #include "blitter_simd.h"
 #include "zbuffer.h"
+#include "abuffer.h"
 
 #include <immintrin.h>  // SSE2 .. AVX2
 #include <cstdint>
@@ -35,6 +36,7 @@
 
 
 extern ZBuffer*& DepthBuffer;
+extern ABuffer*& AlphaBuffer;
 
 
 namespace
@@ -55,26 +57,33 @@ static inline unsigned short Translate1(unsigned char c, unsigned short const* x
 }
 
 /**
- *  Apply the blend for one pixel given the already-translated source colour.
+ *  Apply the blend for one pixel given the already-translated source colour `s`
+ *  and the background `bg` (= *d normally, or dest[warp_offset] for warp blits).
  */
 template<BlitConfig CFG>
-static inline void Blend1(unsigned short* d, unsigned short s, unsigned short mask)
+static inline void Blend1_bg(unsigned short* d, unsigned short s, unsigned short bg, unsigned short mask)
 {
     if constexpr (CFG.blend == Blend::Copy) {
         *d = s;
     } else if constexpr (CFG.blend == Blend::Darken) {
-        *d = (unsigned short)(((*d) >> 1) & mask);
+        *d = (unsigned short)((bg >> 1) & mask);
     } else if constexpr (CFG.blend == Blend::L50) {
-        *d = (unsigned short)((((*d) >> 1) & mask) + ((s >> 1) & mask));
+        *d = (unsigned short)(((bg >> 1) & mask) + ((s >> 1) & mask));
     } else if constexpr (CFG.blend == Blend::L25) {
         unsigned short qs = (unsigned short)((s >> 2) & mask);
-        unsigned short qd = (unsigned short)(((*d) >> 2) & mask);
+        unsigned short qd = (unsigned short)((bg >> 2) & mask);
         *d = (unsigned short)(qd + qs + qs + qs);
     } else { // L75
         unsigned short qs = (unsigned short)((s >> 2) & mask);
-        unsigned short qd = (unsigned short)(((*d) >> 2) & mask);
+        unsigned short qd = (unsigned short)((bg >> 2) & mask);
         *d = (unsigned short)(qd + qd + qd + qs);
     }
+}
+
+template<BlitConfig CFG>
+static inline void Blend1(unsigned short* d, unsigned short s, unsigned short mask)
+{
+    Blend1_bg<CFG>(d, s, *d, mask);
 }
 
 /**
@@ -229,9 +238,10 @@ template<BlitConfig CFG>
 
 template<SimdTier ISA, BlitConfig CFG>
 void Blit_Row(void* dest, void const* source, int length,
-              int z_min, void* z_buff, void* /*a_buff*/, int /*alpha_level*/, int /*warp_offset*/,
+              int z_min, void* z_buff, void* a_buff, int /*alpha_level*/, int warp_offset,
               unsigned short const* xlat, unsigned char const* remap1,
-              unsigned char const* const* remap2, unsigned short mask)
+              unsigned char const* const* remap2, unsigned short mask,
+              unsigned short const* alut)
 {
     unsigned short* d = static_cast<unsigned short*>(dest);
     unsigned char const* src = static_cast<unsigned char const*>(source);
@@ -239,42 +249,72 @@ void Blit_Row(void* dest, void const* source, int length,
     const __m128i vmask = _mm_set1_epi16((short)mask);
     const __m128i ones = _mm_set1_epi16((short)0xFFFF);
 
-    if constexpr (CFG.zread) {
+    if constexpr (CFG.zread || CFG.alpha) {
 
         /**
-         *  Depth-tested path (128-bit; valid under both SSE2 and AVX2). The z
-         *  pointer indexes the global ring z-buffer and wraps after each pixel,
-         *  so the wide path only runs over a guaranteed-contiguous span and the
-         *  scalar path reproduces the per-pixel Wrap_Overflow at the boundary.
+         *  General per-pixel-tracked path (128-bit; valid under both SSE2 and
+         *  AVX2). Handles the z-buffer and/or alpha-buffer ring pointers (each
+         *  wraps after every pixel) and warp. The wide step only runs over a span
+         *  that is contiguous in every active ring; the scalar step reproduces the
+         *  per-pixel Wrap_Overflow at the boundaries.
          */
         const __m128i vzbias = _mm_set1_epi16((short)0x8000);
-        const bool z_in_range = (z_min >= 0 && z_min <= 0xFFFF);
+        const bool z_in_range = (!CFG.zread) || (z_min >= 0 && z_min <= 0xFFFF);
         const __m128i vzmin_b = _mm_xor_si128(_mm_set1_epi16((short)(unsigned short)z_min), vzbias);
         const unsigned short zwrite_val =
             CFG.zwbyte ? (unsigned short)(unsigned char)z_min : (unsigned short)z_min;
         const __m128i vzwrite = _mm_set1_epi16((short)zwrite_val);
 
         unsigned char* zb = static_cast<unsigned char*>(z_buff);
-        const unsigned int zend = DepthBuffer->Get_Buffer_End();
+        unsigned char* ap = static_cast<unsigned char*>(a_buff);
+        const unsigned int zend = CFG.zread ? DepthBuffer->Get_Buffer_End() : 0u;
+        const unsigned int aend = (CFG.alpha && !CFG.alpha_static) ? AlphaBuffer->Get_Buffer_End() : 0u;
 
         int i = 0;
         while (i < length) {
 
-            int zpix = (int)((zend - (unsigned int)zb) / 2);
+            /**
+             *  Warp reads dest[i + warp_offset], i.e. the *already-written* background a few
+             *  pixels back; that is an intra-row read-after-write the wide block (which loads
+             *  all 8 backgrounds before storing) cannot honour. Warp is rare, so just run the
+             *  bit-exact scalar path for it.
+             */
+            bool wide = z_in_range && (length - i) >= 8;
+            if constexpr (CFG.warp) wide = false;
+            if constexpr (CFG.zread) { if ((int)((zend - (unsigned int)zb) / 2) < 8) wide = false; }
+            if constexpr (CFG.alpha && !CFG.alpha_static) { if ((int)((aend - (unsigned int)ap) / 2) < 8) wide = false; }
 
-            if (z_in_range && (length - i) >= 8 && zpix >= 8) {
+            if (wide) {
 
                 __m128i vsrc16 = _mm_setzero_si128();
                 if constexpr (CFG.blend != Blend::Darken) {
-                    vsrc16 = Translate8<CFG>(src + i, xlat, remap1, remap2);
+                    unsigned short tmp[8];
+                    unsigned short const* apw = reinterpret_cast<unsigned short const*>(ap);
+                    for (int k = 0; k < 8; ++k) {
+                        unsigned char c = src[i + k];
+                        unsigned base;
+                        if constexpr (CFG.xlat == XlatMode::Direct)     base = c;
+                        else if constexpr (CFG.xlat == XlatMode::Remap) base = remap1[c];
+                        else                                            base = (*remap2)[c];
+                        unsigned bits = 0;
+                        if constexpr (CFG.alpha) bits = CFG.alpha_static ? alut[apw[0]] : alut[apw[k]];
+                        tmp[k] = xlat[base | bits];
+                    }
+                    vsrc16 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(tmp));
                 }
-                __m128i vtrans = CFG.trans ? Opaque8(src + i, ones) : ones;
-                __m128i vzb = _mm_loadu_si128(reinterpret_cast<const __m128i*>(zb));
-                __m128i vzpass = _mm_cmpgt_epi16(_mm_xor_si128(vzb, vzbias), vzmin_b);
-                __m128i vwrite = _mm_and_si128(vtrans, vzpass);
+
+                __m128i vwrite = CFG.trans ? Opaque8(src + i, ones) : ones;
+                __m128i vzb = _mm_setzero_si128();
+                if constexpr (CFG.zread) {
+                    vzb = _mm_loadu_si128(reinterpret_cast<const __m128i*>(zb));
+                    __m128i vzpass = _mm_cmpgt_epi16(_mm_xor_si128(vzb, vzbias), vzmin_b);
+                    vwrite = _mm_and_si128(vwrite, vzpass);
+                }
 
                 __m128i vdst = _mm_loadu_si128(reinterpret_cast<const __m128i*>(d + i));
-                __m128i vblend = Blend8<CFG>(vdst, vsrc16, vmask);
+                __m128i vbg = vdst;
+                if constexpr (CFG.warp) vbg = _mm_loadu_si128(reinterpret_cast<const __m128i*>(d + i + warp_offset));
+                __m128i vblend = Blend8<CFG>(vbg, vsrc16, vmask);
                 __m128i result = _mm_or_si128(_mm_and_si128(vwrite, vblend), _mm_andnot_si128(vwrite, vdst));
                 _mm_storeu_si128(reinterpret_cast<__m128i*>(d + i), result);
 
@@ -284,28 +324,38 @@ void Blit_Row(void* dest, void const* source, int length,
                 }
 
                 i += 8;
-                zb += 16;
+                if constexpr (CFG.zread) zb += 16;
+                if constexpr (CFG.alpha && !CFG.alpha_static) ap += 16;
 
             } else {
 
-                unsigned short zval = *reinterpret_cast<unsigned short*>(zb);
                 unsigned char c = src[i];
-                bool draw = (z_min < (int)zval) && (!CFG.trans || c != 0);
+                bool draw = (!CFG.trans || c != 0);
+                if constexpr (CFG.zread) draw = draw && (z_min < (int)*reinterpret_cast<unsigned short*>(zb));
                 if (draw) {
                     unsigned short s = 0;
                     if constexpr (CFG.blend != Blend::Darken) {
-                        s = Translate1<CFG>(c, xlat, remap1, remap2);
+                        unsigned base;
+                        if constexpr (CFG.xlat == XlatMode::Direct)     base = c;
+                        else if constexpr (CFG.xlat == XlatMode::Remap) base = remap1[c];
+                        else                                            base = (*remap2)[c];
+                        unsigned bits = 0;
+                        if constexpr (CFG.alpha) bits = alut[*reinterpret_cast<unsigned short*>(ap)];
+                        s = xlat[base | bits];
                     }
-                    Blend1<CFG>(d + i, s, mask);
+                    unsigned short bg = CFG.warp ? d[i + warp_offset] : d[i];
+                    Blend1_bg<CFG>(d + i, s, bg, mask);
                     if constexpr (CFG.zwrite) {
                         *reinterpret_cast<unsigned short*>(zb) = zwrite_val;
                     }
                 }
                 i += 1;
-                zb += 2;
+                if constexpr (CFG.zread) zb += 2;
+                if constexpr (CFG.alpha && !CFG.alpha_static) ap += 2;
             }
 
-            zb = reinterpret_cast<unsigned char*>(DepthBuffer->Wrap_Overflow((unsigned int)zb));
+            if constexpr (CFG.zread) zb = reinterpret_cast<unsigned char*>(DepthBuffer->Wrap_Overflow((unsigned int)zb));
+            if constexpr (CFG.alpha && !CFG.alpha_static) ap = reinterpret_cast<unsigned char*>(AlphaBuffer->Wrap_Overflow((unsigned int)ap));
         }
 
     } else {
