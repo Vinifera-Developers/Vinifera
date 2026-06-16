@@ -84,6 +84,15 @@ inline constexpr bool BlitterBugCompat = true;   // reproduce vanilla's shipped 
 inline constexpr bool BlitterBugCompat = false;  // correct them
 #endif
 
+/**
+ *  When NOT building for tests, the L25/L50/L75 translucency blend is upgraded from the engine's
+ *  lossy form (`(d>>1)&M + (s>>1)&M`, which truncates a low bit per channel and renders translucent
+ *  sprites progressively too dark) to exact per-channel SWAR averaging (same weights, correct
+ *  rounding). Gated to off during tests so the self-test stays bit-exact with vanilla. (Mirrors
+ *  yr-simd's `FixTransparencyBlitters`, but applied to every Lucent family via the shared blend.)
+ */
+inline constexpr bool FixTranslucentBlend = !BlitterBugCompat;
+
 
 /**
  *  The single per-scanline kernel. Defined and explicitly instantiated per

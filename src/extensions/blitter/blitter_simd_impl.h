@@ -58,6 +58,28 @@ static inline unsigned short Translate1(unsigned char c, unsigned short const* x
 }
 
 /**
+ *  Corrected-translucency (FixTranslucentBlend) primitives: exact per-channel averaging in the
+ *  surface pixel format. `M` is the blend mask with the low bit of each channel cleared
+ *  (0xF7DE for RGB565, 0x7BDE for RGB555), so the `>>1` cannot bleed across channels.
+ *      Swar_Avg(a,b)   = floor((a+b)/2) per channel
+ *      Swar_AvgUp(a,b) = ceil((a+b)/2)  per channel
+ *  L50 = avg(s,d); L75 = avgup(avg(s,d), d) = (s+3d)/4; L25 = avgup(s, avg(s,d)) = (3s+d)/4.
+ */
+static inline unsigned short Swar_Blend_Mask()
+{
+    unsigned low = (1u << DSurface::Get_Red_Right()) | (1u << DSurface::Get_Green_Right()) | (1u << DSurface::Get_Blue_Right());
+    return (unsigned short)~low;
+}
+static inline unsigned short Swar_Avg(unsigned short a, unsigned short b, unsigned short M)
+{ return (unsigned short)((a & b) + (((a ^ b) & M) >> 1)); }
+static inline unsigned short Swar_AvgUp(unsigned short a, unsigned short b, unsigned short M)
+{ return (unsigned short)((a | b) - (((a ^ b) & M) >> 1)); }
+static inline __m128i Swar_Avg8(__m128i a, __m128i b, __m128i M)
+{ return _mm_add_epi16(_mm_and_si128(a, b), _mm_srli_epi16(_mm_and_si128(_mm_xor_si128(a, b), M), 1)); }
+static inline __m128i Swar_AvgUp8(__m128i a, __m128i b, __m128i M)
+{ return _mm_sub_epi16(_mm_or_si128(a, b), _mm_srli_epi16(_mm_and_si128(_mm_xor_si128(a, b), M), 1)); }
+
+/**
  *  Apply the blend for one pixel given the already-translated source colour `s`
  *  and the background `bg` (= *d normally, or dest[warp_offset] for warp blits).
  */
@@ -69,15 +91,24 @@ static inline void Blend1_bg(unsigned short* d, unsigned short s, unsigned short
     } else if constexpr (CFG.blend == Blend::Darken) {
         *d = (unsigned short)((bg >> 1) & mask);
     } else if constexpr (CFG.blend == Blend::L50) {
-        *d = (unsigned short)(((bg >> 1) & mask) + ((s >> 1) & mask));
+        if constexpr (FixTranslucentBlend) *d = Swar_Avg(s, bg, mask);
+        else *d = (unsigned short)(((bg >> 1) & mask) + ((s >> 1) & mask));
     } else if constexpr (CFG.blend == Blend::L25) {
-        unsigned short qs = (unsigned short)((s >> 2) & mask);
-        unsigned short qd = (unsigned short)((bg >> 2) & mask);
-        *d = (unsigned short)(qd + qs + qs + qs);
+        if constexpr (FixTranslucentBlend) {
+            *d = Swar_AvgUp(s, Swar_Avg(s, bg, mask), mask);   // (3s + d)/4
+        } else {
+            unsigned short qs = (unsigned short)((s >> 2) & mask);
+            unsigned short qd = (unsigned short)((bg >> 2) & mask);
+            *d = (unsigned short)(qd + qs + qs + qs);
+        }
     } else { // L75
-        unsigned short qs = (unsigned short)((s >> 2) & mask);
-        unsigned short qd = (unsigned short)((bg >> 2) & mask);
-        *d = (unsigned short)(qd + qd + qd + qs);
+        if constexpr (FixTranslucentBlend) {
+            *d = Swar_AvgUp(Swar_Avg(s, bg, mask), bg, mask);   // (s + 3d)/4
+        } else {
+            unsigned short qs = (unsigned short)((s >> 2) & mask);
+            unsigned short qd = (unsigned short)((bg >> 2) & mask);
+            *d = (unsigned short)(qd + qd + qd + qs);
+        }
     }
 }
 
@@ -135,13 +166,16 @@ static inline __m128i Blend8(__m128i vdst, __m128i vsrc16, __m128i vmask)
     } else if constexpr (CFG.blend == Blend::Darken) {
         return _mm_and_si128(_mm_srli_epi16(vdst, 1), vmask);
     } else if constexpr (CFG.blend == Blend::L50) {
+        if constexpr (FixTranslucentBlend) return Swar_Avg8(vsrc16, vdst, vmask);
         return _mm_add_epi16(_mm_and_si128(_mm_srli_epi16(vdst, 1), vmask),
                              _mm_and_si128(_mm_srli_epi16(vsrc16, 1), vmask));
     } else if constexpr (CFG.blend == Blend::L25) {
+        if constexpr (FixTranslucentBlend) return Swar_AvgUp8(vsrc16, Swar_Avg8(vsrc16, vdst, vmask), vmask);
         __m128i qs = _mm_and_si128(_mm_srli_epi16(vsrc16, 2), vmask);
         __m128i qd = _mm_and_si128(_mm_srli_epi16(vdst, 2), vmask);
         return _mm_add_epi16(qd, _mm_add_epi16(qs, _mm_add_epi16(qs, qs)));   // qd + 3*qs
     } else { // L75
+        if constexpr (FixTranslucentBlend) return Swar_AvgUp8(Swar_Avg8(vsrc16, vdst, vmask), vdst, vmask);
         __m128i qs = _mm_and_si128(_mm_srli_epi16(vsrc16, 2), vmask);
         __m128i qd = _mm_and_si128(_mm_srli_epi16(vdst, 2), vmask);
         return _mm_add_epi16(_mm_add_epi16(qd, qd), _mm_add_epi16(qd, qs));   // 3*qd + qs
@@ -221,13 +255,29 @@ template<BlitConfig CFG>
     } else if constexpr (CFG.blend == Blend::Darken) {
         return _mm256_and_si256(_mm256_srli_epi16(vdst, 1), vmask);
     } else if constexpr (CFG.blend == Blend::L50) {
+        if constexpr (FixTranslucentBlend) {
+            __m256i x = _mm256_srli_epi16(_mm256_and_si256(_mm256_xor_si256(vsrc16, vdst), vmask), 1);
+            return _mm256_add_epi16(_mm256_and_si256(vsrc16, vdst), x);     // avg(s,d)
+        }
         return _mm256_add_epi16(_mm256_and_si256(_mm256_srli_epi16(vdst, 1), vmask),
                                 _mm256_and_si256(_mm256_srli_epi16(vsrc16, 1), vmask));
     } else if constexpr (CFG.blend == Blend::L25) {
+        if constexpr (FixTranslucentBlend) {
+            __m256i x1 = _mm256_srli_epi16(_mm256_and_si256(_mm256_xor_si256(vsrc16, vdst), vmask), 1);
+            __m256i avg = _mm256_add_epi16(_mm256_and_si256(vsrc16, vdst), x1);
+            __m256i x2 = _mm256_srli_epi16(_mm256_and_si256(_mm256_xor_si256(vsrc16, avg), vmask), 1);
+            return _mm256_sub_epi16(_mm256_or_si256(vsrc16, avg), x2);      // avgup(s, avg(s,d)) = (3s+d)/4
+        }
         __m256i qs = _mm256_and_si256(_mm256_srli_epi16(vsrc16, 2), vmask);
         __m256i qd = _mm256_and_si256(_mm256_srli_epi16(vdst, 2), vmask);
         return _mm256_add_epi16(qd, _mm256_add_epi16(qs, _mm256_add_epi16(qs, qs)));
     } else { // L75
+        if constexpr (FixTranslucentBlend) {
+            __m256i x1 = _mm256_srli_epi16(_mm256_and_si256(_mm256_xor_si256(vsrc16, vdst), vmask), 1);
+            __m256i avg = _mm256_add_epi16(_mm256_and_si256(vsrc16, vdst), x1);
+            __m256i x2 = _mm256_srli_epi16(_mm256_and_si256(_mm256_xor_si256(avg, vdst), vmask), 1);
+            return _mm256_sub_epi16(_mm256_or_si256(avg, vdst), x2);        // avgup(avg(s,d), d) = (s+3d)/4
+        }
         __m256i qs = _mm256_and_si256(_mm256_srli_epi16(vsrc16, 2), vmask);
         __m256i qd = _mm256_and_si256(_mm256_srli_epi16(vdst, 2), vmask);
         return _mm256_add_epi16(_mm256_add_epi16(qd, qd), _mm256_add_epi16(qd, qs));
@@ -340,6 +390,15 @@ void Blit_Row(void* dest, void const* source, int length,
 {
     unsigned short* d = static_cast<unsigned short*>(dest);
     unsigned char const* src = static_cast<unsigned char const*>(source);
+
+    /**
+     *  In the corrected-translucency build the L25/L50/L75 blend switches to SWAR averaging,
+     *  which needs the format's "low bit per channel cleared" mask instead of Half/Quarterbright.
+     */
+    if constexpr (FixTranslucentBlend &&
+                  (CFG.blend == Blend::L25 || CFG.blend == Blend::L50 || CFG.blend == Blend::L75)) {
+        mask = Swar_Blend_Mask();
+    }
 
     /**
      *  Alpha-buffer writers (no dest/z touch): store min(z_min + k*value, 255) for every
@@ -671,6 +730,11 @@ void RLE_Blit_Row(void* dest, void const* source, int length, int leadskip, int 
     unsigned short* zp = static_cast<unsigned short*>(z_buff);
     unsigned short* ap = static_cast<unsigned short*>(a_buff);
     signed char const* zs = static_cast<signed char const*>(zshape);
+
+    if constexpr (FixTranslucentBlend &&
+                  (CFG.blend == Blend::L25 || CFG.blend == Blend::L50 || CFG.blend == Blend::L75)) {
+        mask = Swar_Blend_Mask();   // SWAR averaging uses the low-bit-cleared format mask
+    }
 
     /**
      *  A row is "fast" (its opaque runs vectorise with no per-pixel bookkeeping) when there
