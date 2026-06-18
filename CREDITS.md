@@ -184,8 +184,8 @@ This page lists all the individual contributions to the project by their author.
   - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit.
   - Fix a bug where AI medics would fail to heal their allies.
   - Allow Free Radar to remain active when players are in low power.
-  - Allow cloaked units to trigger cell tags when using Entered By trigger events.
   - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
+  - Allow cloaked units to trigger cell tags when using Entered By trigger events.
   - Add the ability to specify sight ranges for technos when they are veteran and elite.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
