@@ -114,6 +114,7 @@ New:
 - Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
 - Fix Win32 dialog scaling with SDL (by Rampastring)
 - Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
+- Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
 
 
 Vinifera fixes:
