@@ -276,6 +276,11 @@ public:
 	 */
 	bool IsFreeRadarOnLowPower;
 
+	/**     
+	 *  Determines whether the cloaked technos can trigger cell tags when used with Entered By trigger event.
+     */
+    bool IsCellTagsIgnoreStealth;
+	
     /**
      *  Determines whether bridges should use the Bridge Health Tracking feature. 
      *  When disabled, uses the vanilla bridge destruction logic (by random chance).
@@ -285,12 +290,7 @@ public:
     /**
      * The armor type used by bridges for damage calculation. Only used when Bridge Health mechanism is enabled.
      */
-    ArmorType BridgeArmor;
-
-    /**
-	 *  Determines whether the cloaked technos can trigger cell tags when used with Entered By trigger event.
-     */
-    bool IsCellTagsIgnoreStealth;
+    ArmorType BridgeArmor;    
 
     /**
      *  When EVA has told the player "harvester under attack", prevent EVA from saying that line again for this many frames.
