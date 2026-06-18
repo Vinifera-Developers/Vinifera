@@ -14,7 +14,7 @@ jobs:
     name: Push
     strategy:
       fail-fast: false
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
         
       - name: Clone Repository
@@ -74,7 +74,7 @@ jobs:
     name: Push (TS-Client)
     strategy:
       fail-fast: false
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
         
       - name: Clone Repository

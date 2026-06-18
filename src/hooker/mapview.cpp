@@ -11,6 +11,7 @@
 
 #include "mapview.h"
 
+#include <cstring>
 #include <iterator>
 
 
@@ -61,20 +62,49 @@ MapViewOfFileClass::~MapViewOfFileClass()
 
 bool GetModuleSectionInfo(ImageSectionInfo &info)
 {
-    wchar_t fileName[MAX_PATH] = { 0 };
+    info = {};
 
-    if (GetModuleFileNameW(NULL, fileName, std::size(fileName)) != 0) {
-        MapViewOfFileClass mapView(fileName);
-        PIMAGE_OPTIONAL_HEADER OptionalHeader = mapView.GetOptionalHeader();
+    HMODULE module = GetModuleHandleW(NULL);
+    if (module != NULL) {
+        auto module_base = reinterpret_cast<uintptr_t>(module);
+        auto DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(module_base);
 
-        if (OptionalHeader != NULL) {
-            info.BaseOfCode = LPVOID(OptionalHeader->ImageBase + OptionalHeader->BaseOfCode);
-            info.BaseOfData = LPVOID(OptionalHeader->ImageBase + OptionalHeader->BaseOfData);
-            info.SizeOfCode = SIZE_T(OptionalHeader->SizeOfCode);
-            info.SizeOfData = SIZE_T(OptionalHeader->SizeOfInitializedData + OptionalHeader->SizeOfUninitializedData);
+        if (DosHeader->e_magic == IMAGE_DOS_SIGNATURE) {
+            auto NTHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(module_base + DosHeader->e_lfanew);
 
-            return true;
+            if (NTHeader->Signature == IMAGE_NT_SIGNATURE) {
+                PIMAGE_SECTION_HEADER section_headers = IMAGE_FIRST_SECTION(NTHeader);
+
+                for (WORD index = 0; index < NTHeader->FileHeader.NumberOfSections; ++index) {
+                    const IMAGE_SECTION_HEADER &section = section_headers[index];
+                    const DWORD section_size = section.Misc.VirtualSize != 0 ? section.Misc.VirtualSize : section.SizeOfRawData;
+                    const DWORD section_content_flags = IMAGE_SCN_CNT_CODE | IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_CNT_UNINITIALIZED_DATA;
+                    const DWORD section_memory_flags = IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE;
+
+                    if (section_size == 0) {
+                        continue;
+                    }
+
+                    if ((section.Characteristics & section_content_flags) == 0 || (section.Characteristics & section_memory_flags) == 0) {
+                        continue;
+                    }
+
+                    if (info.SectionCount >= MAX_MODULE_SECTIONS) {
+                        return false;
+                    }
+
+                    ImageSectionRange &range = info.Sections[info.SectionCount++];
+                    range.Base = reinterpret_cast<LPVOID>(module_base + section.VirtualAddress);
+                    range.Size = SIZE_T(section_size);
+                    range.Characteristics = section.Characteristics;
+                    std::memcpy(range.Name, section.Name, IMAGE_SIZEOF_SHORT_NAME);
+                    range.Name[IMAGE_SIZEOF_SHORT_NAME] = '\0';
+                }
+
+                return info.SectionCount > 0;
+            }
         }
     }
+
     return false;
 }

@@ -20,6 +20,12 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
 
+## SIMD Blitters
+
+Vinifera replaces the engine's software pixel blitters - the per-scanline routines that draw every sprite, unit, building, shadow and translucent effect - with hand-written SIMD implementations. The fastest variant supported by the host CPU is selected automatically at startup (AVX2 or SSE2); systems without SSE2 keep the original routines. This only affects the 16-bit (hicolor) renderer and requires no configuration.
+
+The replacements produce the same output as the originals, with one intentional improvement: the 25%/50%/75% translucency blend now uses exact per-channel rounding, removing the slight progressive darkening the original blend caused when translucent sprites were layered.
+
 ## Modern Video Playback
 
 Vinifera adds support for modern video formats as replacements for the original VQA movies. If a file with the same basename as a VQA is found with one of the supported extensions (`.MP4`, `.WMV`, `.MPG`, `.AVI`), it will be used in place of the VQA.

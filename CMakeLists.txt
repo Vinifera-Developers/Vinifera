@@ -666,6 +666,20 @@ target_compile_options(${PROJECT_NAME} PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:/MP>
 )
 
+# The SIMD blitter kernels need SSE2/AVX2 enabled, overriding the project-wide /arch:IA32.
+# The per-source /arch comes after the PUBLIC /arch:IA32 on the command line, and the last
+# /arch wins for MSVC. These TUs are kept strictly floating-point free, so the change to
+# scalar FP code generation is immaterial. The AVX2 TU may only ever run on AVX2 CPUs, which
+# is guaranteed by the creation-time CPU-tier guard.
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extensions/blitter/blitter_simd_sse.cpp
+    PROPERTIES COMPILE_OPTIONS "/arch:SSE2"
+)
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extensions/blitter/blitter_simd_avx2.cpp
+    PROPERTIES COMPILE_OPTIONS "/arch:AVX2"
+)
+
 # Link to the TS++ static library.
 target_link_libraries(${PROJECT_NAME} TSpp)
 add_dependencies(${PROJECT_NAME} TSpp)

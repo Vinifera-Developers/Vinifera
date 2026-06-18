@@ -15,7 +15,7 @@ jobs:
     name: Nightly
     strategy:
       fail-fast: false
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
    
       # Activity check
@@ -110,7 +110,7 @@ jobs:
     name: Nightly (TS-Client)
     strategy:
       fail-fast: false
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
    
       # Activity check
