@@ -880,7 +880,7 @@ UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
 
     newunit->ActLike = this_ptr->ActLike;
     newunit->LimpetSpeedFactor = this_ptr->LimpetSpeedFactor;
-    newunit->field_214 = this_ptr->field_214; // also copied at 0x00650F4E
+    newunit->LimpetType = this_ptr->LimpetType; // also copied at 0x00650F4E
     newunit->Crew.From_Integer(this_ptr->Crew.To_Integer());
     newunit->Group = this_ptr->Group;
     newunit->BarrelFacing.Set(this_ptr->BarrelFacing.Current());

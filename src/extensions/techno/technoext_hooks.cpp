@@ -113,6 +113,7 @@ public:
     int _Apparent_Brightness(int brightness) const;
     void _Flashing_AI();
     int _Anti_Air() const;
+    void _Look(bool incremental, bool dontmap);
 };
 
 /**
@@ -3382,6 +3383,53 @@ int TechnoClassExt::_Anti_Air(void) const
     return (0);
 }
 
+/*
+ *  Reimplements TechnoClass::Look based on the RE project code
+ *  Additionally, adds the Veteran and Elite Sight ranges that are used when the techno is either Veteran or Elite, respectively.
+ * 
+ *  @author: JoyfulShush
+ */
+void TechnoClassExt::_Look(bool incremental, bool dontmap)
+{    
+    assert(!IsInLimbo);
+
+    if (IsLocked && (!House->Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
+        int sight_increase = 10 * (Get_Coord().Z / Rule->LeptonsPerSightIncrease);
+        if (sight_increase > SightIncrease) {
+            incremental = false;
+        }
+        SightIncrease = sight_increase;
+
+        auto techno_class_ext = Extension::Fetch(TClass);
+
+        int sight_range = TClass->SightRange;
+        if (Crew.IsElite) {
+            if (techno_class_ext->EliteSightRange > 0) {
+                sight_range = techno_class_ext->EliteSightRange;
+            } else if (techno_class_ext->VeteranSightRange > 0) {
+                sight_range = techno_class_ext->VeteranSightRange;
+            }
+        } else if (Crew.IsVeteran) {
+            if (techno_class_ext->VeteranSightRange > 0) {
+                sight_range = techno_class_ext->VeteranSightRange;
+            }
+        }
+
+        sight_range *= (SightIncrease * 0.01 + 1.0);
+        if (Has_Ability(ABILITY_SIGHT) && Rule->VeteranSight != 0.0) {
+            sight_range *= Rule->VeteranSight + 1;
+        }
+
+        if (sight_range) {
+            HouseClass* house = House;
+            if (((1 << PlayerPtr->HeapID) & LimpetType) != 0) {
+                house = PlayerPtr;
+            }
+            Map.Sight_From(PositionCoord, sight_range, house, incremental, dontmap);
+        }
+    }
+}
+
 /**
  *  Patches Find_Docking_Bay to make aircraft search for an un-occupied dock to land on.
  *  This is achieved by changing the "only_unocciped" parameter (third argument, bool) into true when it's aircraft.
@@ -3455,4 +3503,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
     Patch_Jump(0x00639C70, &TechnoClassExt::_Apparent_Brightness);
     Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
+    Patch_Jump(0x00638310, &TechnoClassExt::_Look);
 }
