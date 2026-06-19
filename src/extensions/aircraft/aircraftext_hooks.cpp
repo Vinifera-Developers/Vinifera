@@ -972,6 +972,23 @@ DEFINE_HOOK(0x0040ABEB, _Aircraft_Class_Do_MISSION_MOVE_Carryall_Lost_Contact, 6
     return 0;
 }
 
+/*
+ *  Patches AircraftClass::Look, replacing the value of Sight to take into account all sight range modifications for this techno.
+ *  Particularly relevant to veterancy granting sight range bonuses.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0040E565, _Aircraft_Class_Look_Sight_Range_Patch, 6)
+{
+    GET(AircraftClass*, this_ptr, ESI);
+    
+    auto techno_ext = Extension::Fetch(this_ptr);
+
+    R->EDI(techno_ext->Get_Sight_Range());
+
+    return 0;
+}
+
 /**
  *  Main function for patching the hooks.
  */

@@ -2560,6 +2560,25 @@ DEFINE_HOOK(0x004288E1, _BuildingClass_Draw_Overlays_Wrench_Shape_Patch, 0)
     return 0x00428925;
 }
 
+/*
+ *  Patches BuildingClass::Limbo, inside the IsWall check that turns a wall into an overlay.
+ *  Replacing the value of Sight to take into account all sight range modifications for this techno.
+ *  Particularly relevant to veterancy granting sight range bonuses.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042A0B0, Building_Class_Unlimbo_Sight_Range_Patch, 0)
+{
+    GET(Coord*, coord, EBP);
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_class_ext = Extension::Fetch(this_ptr);    
+
+    Map.Sight_From(*coord, building_class_ext->Get_Sight_Range(), this_ptr->House);
+
+    return 0x0042A0D7;
+}
+
 /**
  *  Main function for patching the hooks.
  */
