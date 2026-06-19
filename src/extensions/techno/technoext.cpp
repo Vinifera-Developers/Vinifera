@@ -416,6 +416,12 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
     return false;
 }
 
+/**
+ *  Returns the sight range of this techno after calculations.
+ *  Takes into account veterancy bonuses as well height bonuses, if any.
+ *
+ *  @author: JoyfulShush
+ */
 int TechnoClassExtension::Get_Sight_Range() const
 {
     auto techno_class_ext = Techno_Type_Class_Ext();
