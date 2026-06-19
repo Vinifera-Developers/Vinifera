@@ -113,7 +113,9 @@ public:
     int _Apparent_Brightness(int brightness) const;
     void _Flashing_AI();
     int _Anti_Air() const;
+    void _Look(bool incremental, bool dontmap);
 };
+
 
 /**
  * A unit that has death frames will trigger its death counter upon the first death, and will live until the counter reaches its MaxDeathFrames
@@ -134,6 +136,7 @@ static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
 
     return false;
 }
+
 
 /**
  *  Draw the pips of this Techno.
@@ -3327,6 +3330,7 @@ void TechnoClassExt::_Flashing_AI()
     }
 }
 
+
 /**
  *  Makes the game redraw an object while it is flashing with the Iron Curtain effect.
  *
@@ -3340,6 +3344,7 @@ DEFINE_HOOK(0x0062ECE3, _TechnoClass_AI_Iron_Curtain_Flash_Redraw_Patch, 0)
 
     return 0x0062ED7A;
 }
+
 
 /**
  *  Fixes a bug where a unit believes it is not AA-capable when its primary weapon has no AA capability,
@@ -3381,6 +3386,37 @@ int TechnoClassExt::_Anti_Air(void) const
     }
     return (0);
 }
+
+
+/*
+ *  Reimplements TechnoClass::Look based on the RE project code
+ *  Additionally, adds the Veteran and Elite Sight ranges that are used when the techno is either Veteran or Elite, respectively.
+ * 
+ *  @author: JoyfulShush
+ */
+void TechnoClassExt::_Look(bool incremental, bool dontmap)
+{    
+    assert(!IsInLimbo);
+
+    if (IsLocked && (!House->Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
+        int sight_increase = 10 * (Get_Coord().Z / Rule->LeptonsPerSightIncrease);
+        if (sight_increase > SightIncrease) {
+            incremental = false;
+        }
+        SightIncrease = sight_increase;
+
+        int sight_range = Extension::Fetch(this)->Get_Sight_Range();
+
+        if (sight_range) {
+            HouseClass* house = House;
+            if (((1 << PlayerPtr->HeapID) & LimpetType) != 0) {
+                house = PlayerPtr;
+            }
+            Map.Sight_From(PositionCoord, sight_range, house, incremental, dontmap);
+        }
+    }
+}
+
 
 /**
  *  Patches Find_Docking_Bay to make aircraft search for an un-occupied dock to land on.
@@ -3455,4 +3491,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
     Patch_Jump(0x00639C70, &TechnoClassExt::_Apparent_Brightness);
     Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
+    Patch_Jump(0x00638310, &TechnoClassExt::_Look);
 }

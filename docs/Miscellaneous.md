@@ -265,6 +265,17 @@ AIRepairBaseNodes=no   ; boolean, can the AI can repair structures created as ba
 - Hospitals and armories can now accept multiple infantry, which will form a queue around them. Units will go in one at a time.
 - If charges (ammo) deplete while units are still waiting in the queue, remaining units will be dismissed and be ordered to go to the respective rally point instead.
 
+## Veteran and Elite Sights
+- Technos can now be given specific values to use as their sight range when they are Veteran or Elite.
+- When a key is not specified, technos will fall back to the lower level sight. For example, if `EliteSight` is not specified but `VeteranSight` is, a techno that is Elite would use `VeteranSight`. If it's also not specified, it will fall back to `Sight`.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]
+VeteranSight=-1  ; integer, the sight range to use when a techno is Veteran. Falls back to Sight when not provided.
+EliteSight=-1    ; integer, the sight range to use when a techno is Elite. Falls back to VeteranSight when not provided.
+```
+
 ## Window Title, Cursor and Icon
 
 - The game's Window title, Cursor and Icon can be overridden. These controls are loaded from a new INI file, `VINIFERA.INI`.

@@ -17,6 +17,7 @@
 #include "building.h"
 #include "bullet.h"
 #include "event.h"
+#include "extension.h"
 #include "factory.h"
 #include "foot.h"
 #include "house.h"
@@ -39,6 +40,7 @@
 #include "team.h"
 #include "teamtype.h"
 #include "techno.h"
+#include "technoext.h"
 #include "technotype.h"
 #include "terrain.h"
 #include "tibsun_globals.h"
@@ -76,6 +78,7 @@ namespace
         return PlayerPtr;
     }
 
+
     static void Format_Mission_Time(char* out, size_t out_size)
     {
         const int total_seconds = Frame / 15; // 15 logic ticks/sec
@@ -84,6 +87,7 @@ namespace
         const int seconds = total_seconds % 60;
         std::snprintf(out, out_size, "%d:%02d:%02d", hours, minutes, seconds);
     }
+
 
     /**
      *  Performance block; in dev mode adds heap / queue counts.
@@ -136,6 +140,7 @@ namespace
         ImGui::Text("DoList     : %d", DoList.Count);
     }
 
+
     static const char* Diff_To_String(DiffType d)
     {
         switch (d) {
@@ -145,6 +150,7 @@ namespace
         default:          return "?";
         }
     }
+
 
     static void Draw_Factory_Line(const char* label, FactoryClass* factory)
     {
@@ -156,6 +162,7 @@ namespace
         const char* name = obj && obj->Class_Of() ? obj->Class_Of()->Name() : "?";
         ImGui::Text("%-12s: %s", label, name);
     }
+
 
     /**
      *  State dump for the owner of the selected object (falls back to PlayerPtr).
@@ -218,6 +225,7 @@ namespace
         }
     }
 
+
     static const char* Rank_To_String(VeterancyRankType r)
     {
         switch (r) {
@@ -228,6 +236,7 @@ namespace
         }
     }
 
+
     static const char* Persistence_To_String(PersistantType p)
     {
         switch (p) {
@@ -237,6 +246,7 @@ namespace
         default:             return "?";
         }
     }
+
 
     /**
      *  Per-weapon stats. ROF is ticks between shots at 15 ticks/sec,
@@ -282,6 +292,7 @@ namespace
         ImGui::Unindent();
         ImGui::PopID();
     }
+
 
     /**
      *  Stats panel for the selected unit.
@@ -357,6 +368,10 @@ namespace
         }
 
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
+        auto techno_type_ext = Extension::Fetch(techno);
+
+        ImGui::Text("Sight   : %d", techno_type_ext->Get_Sight_Range());
+
         ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
 
         /**
@@ -446,6 +461,7 @@ namespace
         Draw_Weapon_Block("Secondary", secondary ? secondary->Weapon : nullptr, firepower_bias);
     }
 
+
     /**
      *  TS network timings are 1/60-second ticks.
      */
@@ -453,6 +469,7 @@ namespace
     {
         return ticks * 1000UL / 60UL;
     }
+
 
     /**
      *  Looks up a peer's ProcessTime by player ID (== HousesType).
@@ -467,6 +484,7 @@ namespace
         }
         return -1;
     }
+
 
     /**
      *  Sync/latency on top, per-peer rtt/process below.
