@@ -116,6 +116,7 @@ public:
     void _Look(bool incremental, bool dontmap);
 };
 
+
 /**
  * A unit that has death frames will trigger its death counter upon the first death, and will live until the counter reaches its MaxDeathFrames
  * During this time, the unit is considered "dying" - in the sense that it was already killed, but still lives for the purposes of playing its death animation.
@@ -135,6 +136,7 @@ static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
 
     return false;
 }
+
 
 /**
  *  Draw the pips of this Techno.
@@ -3328,6 +3330,7 @@ void TechnoClassExt::_Flashing_AI()
     }
 }
 
+
 /**
  *  Makes the game redraw an object while it is flashing with the Iron Curtain effect.
  *
@@ -3341,6 +3344,7 @@ DEFINE_HOOK(0x0062ECE3, _TechnoClass_AI_Iron_Curtain_Flash_Redraw_Patch, 0)
 
     return 0x0062ED7A;
 }
+
 
 /**
  *  Fixes a bug where a unit believes it is not AA-capable when its primary weapon has no AA capability,
@@ -3383,6 +3387,7 @@ int TechnoClassExt::_Anti_Air(void) const
     return (0);
 }
 
+
 /*
  *  Reimplements TechnoClass::Look based on the RE project code
  *  Additionally, adds the Veteran and Elite Sight ranges that are used when the techno is either Veteran or Elite, respectively.
@@ -3411,6 +3416,7 @@ void TechnoClassExt::_Look(bool incremental, bool dontmap)
         }
     }
 }
+
 
 /**
  *  Patches Find_Docking_Bay to make aircraft search for an un-occupied dock to land on.

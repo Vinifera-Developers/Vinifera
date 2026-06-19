@@ -416,6 +416,7 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
     return false;
 }
 
+
 /**
  *  Returns the sight range of this techno after calculations.
  *  Takes into account veterancy bonuses as well height bonuses, if any.

@@ -366,6 +366,7 @@ DEFINE_HOOK(0x0047A856, _DisplayClass_47A790_Patch, 0)
     }
 }
 
+
 /**
  *  Patches DisplayClass::Mouse_Left_Release to skip the 'Active_Click' call when the action
  *  is ACTION_TOGGLE_SELECT (adding to selection). In most cases, this was unnecessary and did nothing.
@@ -385,6 +386,7 @@ DEFINE_HOOK(0x00478BC7, _Display_Class_Mouse_Left_Release_Toggle_Select_Patch, 5
 
     return 0;
 }
+
 
 /**
  *  Reimplements DisplayClass::Constrained_Look
@@ -410,6 +412,7 @@ void DisplayClassExt::_Constrained_Look(Coord const& center, LEPTON distance)
         }
     }
 }
+
 
 /**
  *  Main function for patching the hooks.
