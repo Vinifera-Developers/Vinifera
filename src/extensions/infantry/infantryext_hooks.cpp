@@ -20,6 +20,7 @@
 #include "hooker.h"
 #include "house.h"
 #include "infantry.h"
+#include "infantryext.h"
 #include "infantryext_init.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
@@ -864,6 +865,44 @@ DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9
     }
 
     return 0;
+}
+
+/**
+ *  Patches InfantryClass::AI at the part where Jumpjets are moving to determine if they should use Look
+ *  Sight range now takes into account adjustments from veterancy.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D5011, InfantryClass_AI_Sight_Range_Jumpjet_Patch, 0)
+{
+    GET(InfantryClass*, this_ptr, ESI);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr);
+
+    if (this_ptr->Locomotion->Is_Moving() && this_ptr->Get_Height_AGL() > 0 && this_ptr->IsOwnedByPlayer && this_ptr_ext->Get_Sight_Range() > 0) {
+        return 0x004D504C;
+    }
+
+    return 0x004D509D;
+}
+
+/**
+ *  Patches InfantryClass::Unlimbo at the part where blind infantry are evaluated to check for making infantry not be considered as disocvered
+ *  Sight range now takes into account adjustments from veterancy.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D6CBD, InfantryClass_Unlimbo_Sight_Range_Patch, 0)
+{
+    GET(InfantryClass*, this_ptr, EBX);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr);
+
+    if (this_ptr_ext->Get_Sight_Range() == 0) {
+        return 0x004D6CCD;
+    }
+
+    return 0x004D6CD4;
 }
 
 /**

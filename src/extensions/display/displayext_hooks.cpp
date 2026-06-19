@@ -21,10 +21,12 @@
 #include "house.h"
 #include "iomap.h"
 #include "layer.h"
+#include "rules.h"
 #include "session.h"
 #include "sessionext.h"
 #include "syringe.h"
 #include "techno.h"
+#include "technoext.h"
 #include "technotype.h"
 #include "tibsun_globals.h"
 #include "tibsun_util.h"
@@ -44,6 +46,7 @@ class DisplayClassExt final : public DisplayClass
     public:
         ObjectClass * _Next_Object(ObjectClass * object) const;
         ObjectClass * _Prev_Object(ObjectClass * object) const;
+        void _Constrained_Look(Coord const& center, LEPTON distance);
 };
 
 
@@ -384,6 +387,31 @@ DEFINE_HOOK(0x00478BC7, _Display_Class_Mouse_Left_Release_Toggle_Select_Patch, 5
 }
 
 /**
+ *  Reimplements DisplayClass::Constrained_Look
+ *  Adds support for veterancy bonuses for sight range
+ *
+ *  @author: JoyfulShush
+ */
+void DisplayClassExt::_Constrained_Look(Coord const& center, LEPTON distance)
+{
+    for (int index = 0; index < Layer[LAYER_GROUND].Count(); index++) {
+        TechnoClass* techno = dynamic_cast<TechnoClass*>(Layer[LAYER_GROUND][index]);
+        if (techno != NULL) {
+            auto techno_ext = Extension::Fetch(techno);
+            if (techno->House->Is_Player_Control()) {
+                if (techno->IsDiscoveredByPlayer && Distance(center, techno->Center_Coord()) <= (techno_ext->Get_Sight_Range() * CELL_LEPTON_W) + distance) {
+                    techno->Look();
+                }
+            } else {
+                if (techno->RTTI == RTTI_BUILDING && Rule->IsAllyReveal && techno->House->Is_Ally(PlayerPtr) && Distance(techno->Center_Coord(), center) <= (techno_ext->Get_Sight_Range() * CELL_LEPTON_W) + distance) {
+                    techno->Look();
+                }
+            }
+        }
+    }
+}
+
+/**
  *  Main function for patching the hooks.
  */
 void DisplayClassExtension_Hooks()
@@ -411,4 +439,5 @@ void DisplayClassExtension_Hooks()
 
     Patch_Jump(0x00477390, &DisplayClassExt::_Next_Object);
     Patch_Jump(0x00477430, &DisplayClassExt::_Prev_Object);
+    Patch_Jump(0x0047AAF0, &DisplayClassExt::_Constrained_Look);
 }
