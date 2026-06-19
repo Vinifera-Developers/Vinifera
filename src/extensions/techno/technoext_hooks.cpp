@@ -3400,25 +3400,7 @@ void TechnoClassExt::_Look(bool incremental, bool dontmap)
         }
         SightIncrease = sight_increase;
 
-        auto techno_class_ext = Extension::Fetch(TClass);
-
-        int sight_range = TClass->SightRange;
-        if (Crew.IsElite) {
-            if (techno_class_ext->EliteSightRange > 0) {
-                sight_range = techno_class_ext->EliteSightRange;
-            } else if (techno_class_ext->VeteranSightRange > 0) {
-                sight_range = techno_class_ext->VeteranSightRange;
-            }
-        } else if (Crew.IsVeteran) {
-            if (techno_class_ext->VeteranSightRange > 0) {
-                sight_range = techno_class_ext->VeteranSightRange;
-            }
-        }
-
-        sight_range *= (SightIncrease * 0.01 + 1.0);
-        if (Has_Ability(ABILITY_SIGHT) && Rule->VeteranSight != 0.0) {
-            sight_range *= Rule->VeteranSight + 1;
-        }
+        int sight_range = Extension::Fetch(this)->Get_Sight_Range();
 
         if (sight_range) {
             HouseClass* house = House;

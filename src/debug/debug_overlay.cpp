@@ -40,6 +40,8 @@
 #include "teamtype.h"
 #include "techno.h"
 #include "technotype.h"
+#include "technoext.h"
+#include "extension.h"
 #include "terrain.h"
 #include "tibsun_globals.h"
 #include "trigger.h"
@@ -357,6 +359,10 @@ namespace
         }
 
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
+        auto techno_type_ext = Extension::Fetch(techno);
+
+        ImGui::Text("Sight   : %d", techno_type_ext->Get_Sight_Range());
+
         ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
 
         /**

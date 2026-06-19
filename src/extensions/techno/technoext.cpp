@@ -416,6 +416,30 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
     return false;
 }
 
+int TechnoClassExtension::Get_Sight_Range() const
+{
+    auto techno_class_ext = Techno_Type_Class_Ext();
+
+    int sight_range = This()->TClass->SightRange;
+    if (This()->Crew.IsElite) {
+        if (techno_class_ext->EliteSightRange > 0) {
+            sight_range = techno_class_ext->EliteSightRange;
+        } else if (techno_class_ext->VeteranSightRange > 0) {
+            sight_range = techno_class_ext->VeteranSightRange;
+        }
+    } else if (This()->Crew.IsVeteran) {
+        if (techno_class_ext->VeteranSightRange > 0) {
+            sight_range = techno_class_ext->VeteranSightRange;
+        }
+    }
+
+    sight_range *= (This()->SightIncrease * 0.01 + 1.0);
+    if (This()->Has_Ability(ABILITY_SIGHT) && Rule->VeteranSight != 0.0) {
+        sight_range *= Rule->VeteranSight + 1;
+    }
+
+    return sight_range;
+}
 
 
 /**
