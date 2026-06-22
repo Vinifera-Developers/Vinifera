@@ -998,7 +998,14 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
                 int delay = Options.Normalize_Delay(14) / 4;
                 delay = std::max(delay, 2);
 
-                Draw_Shape(*LogicalSurface, *MouseDrawer, WrenchShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+                int draw_frame;
+                if (Extension::Fetch(House)->IsPauseRepairs && House->Available_Money() < Class->Repair_Step()) {
+                    draw_frame = RuleExtension->PausedRepairsFrame;
+                } else {
+                    draw_frame = 6 * (Frame % delay) / (delay - 1);
+                }
+
+                Draw_Shape(*LogicalSurface, *MouseDrawer, WrenchShape, draw_frame, xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
             }
         }
 
@@ -2569,39 +2576,6 @@ DEFINE_HOOK(0x00435A38, _BuildingClass_Repair_AI_Pause_Repairs_Patch, 7)
     return 0;
 }
 
-/*
- *  Reimplements part of BuildingClass::Draw_Overlays where a building determines the wrench frame to use when drawing during repairs.
- *  When the building's repairs are paused, the game draws a specific wrench frame to signal that the repairs are paused.
- *
- *  @author: JoyfulShush
- */
-DEFINE_HOOK(0x004288E1, _BuildingClass_Draw_Overlays_Wrench_Shape_Patch, 0)
-{
-    GET(BuildingClass*, this_ptr, ESI);
-    GET(int, frame, ECX);
-    GET(Point2D*, point, EDI);
-    GET(Rect*, rect, EBP);
-
-    HouseClassExtension* houseext = Extension::Fetch(this_ptr->House);
-
-    int draw_frame;
-    if (this_ptr->House->Is_Human_Player() && houseext->IsPauseRepairs && this_ptr->House->Available_Money() < this_ptr->Class->Repair_Step()) {
-        draw_frame = RuleExtension->PausedRepairsFrame;
-    } else {
-        draw_frame = 6 * (Frame % frame) / (frame - 1);
-    }
-
-    Draw_Shape(*LogicalSurface,
-        *MouseDrawer,
-        (ShapeSet const*)BuildingClass::WrenchShape, 
-        draw_frame,
-        *point,
-        *rect,
-        ShapeFlags_Type(SHAPE_CENTER | SHAPE_WIN_REL | SHAPE_ALPHA)        
-    );
-
-    return 0x00428925;
-}
 
 /**
  *  #issue-177
