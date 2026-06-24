@@ -26,6 +26,7 @@
 #include "txtlabel.h"
 #include "vinifera_defines.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "wsproto.h"
 
 #include <filesystem>
@@ -53,7 +54,26 @@ namespace
 
         TextLabelClass* label = Session.Messages.Get_Label(SAVING_GAME_MESSAGE_ID);
         if (label != nullptr) {
-            label->Set_Text(text);
+
+            bool success = false;
+
+            // MessageList message removal code expects to find the message in its internal messages buffer
+            // - if not found, MessageList will silently accumulate messages until its buffer is full,
+            // and permanently fail to display any messages anymore.
+            // Make sure this cannot happen.
+            for (int i = 0; i < MAX_NUM_MESSAGES; i++)
+            {
+                if (Session.Messages.MessageBuffers[i] == label->Text) {
+                    strcpy(Session.Messages.MessageBuffers[i], text);
+                    success = true;
+                }
+            }
+
+            if (success) {
+                label->Set_Text(text);
+            } else {
+                Vinifera_Log_And_Show_WWMessageBox("Failed to replace game auto-save text! If you see this, please report it to the developers.");
+            }
         }
 
         Map.Flag_To_Redraw(2);
