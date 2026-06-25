@@ -19,6 +19,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Players can now click on a Service Depot with units and aircraft even if it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
 - Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
+- Aircraft speed now takes house Airspeed bias, game speed bias, and the FASTER veteran/elite ability values into account when calculating the aircraft speed.
 
 ## SIMD Blitters
 

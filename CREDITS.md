@@ -187,6 +187,7 @@ This page lists all the individual contributions to the project by their author.
   - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
   - Allow cloaked units to trigger cell tags when using Entered By trigger events.
   - Add the ability to specify sight ranges for technos when they are veteran and elite.
+  - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:

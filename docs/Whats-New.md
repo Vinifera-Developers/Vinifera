@@ -115,6 +115,7 @@ New:
 - Fix Win32 dialog scaling with SDL (by Rampastring)
 - Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
 - Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
+- Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
 
 
 Vinifera fixes:
