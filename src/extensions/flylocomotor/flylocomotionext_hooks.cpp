@@ -33,8 +33,19 @@ public:
     int STDMETHODCALLTYPE _Apparent_Speed(void);
 };
 
+
+/*
+ *  Reimplements FlyLocomotionClass::Apparent_Speed.
+ *  Extends the logic to take into account the house' airspeed bias, the generic game speed bias, and the FASTER ability speed bonus.  
+ *  
+ *  Note that aircraft with too low or too high speed may not work properly; they can fail to reach the landing position and behave weirdly.
+ *  This is due to the game's flawed flying locomotion logic.
+ * 
+ *  @author: JoyfulShush
+ */
 int STDMETHODCALLTYPE FlyLocomotionClassExt::_Apparent_Speed(void)
 {    
+    // Since this is an interface method, we cast 'this' to the actual fly locomotion class instance.
     FlyLocomotionClass* trueThis = static_cast<FlyLocomotionClass*>(reinterpret_cast<ILocomotion*>(this)); 
     FootClass* foot = trueThis->LinkedTo;
 
