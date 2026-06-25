@@ -55,24 +55,17 @@ namespace
         TextLabelClass* label = Session.Messages.Get_Label(SAVING_GAME_MESSAGE_ID);
         if (label != nullptr) {
 
-            bool success = false;
-
-            // MessageList message removal code expects to find the message in its internal messages buffer
-            // - if not found, MessageList will silently accumulate messages until its buffer is full,
-            // and permanently fail to display any messages anymore.
-            // Make sure this cannot happen.
+            // The message list has text label gadgets, and also an internal buffer for messages.
+            // The gadget's text field is a direct pointer to the internal message buffer,
+            // so for changing the message, it's enough for us to modify the text in the
+            // message list's internal buffer.
+            // The gadget's own text pointer should not be modified - message list message removal
+            // functionality relies on the gadget's text pointer pointing somewhere to the internal buffer.
             for (int i = 0; i < MAX_NUM_MESSAGES; i++)
             {
                 if (Session.Messages.MessageBuffers[i] == label->Text) {
                     strcpy(Session.Messages.MessageBuffers[i], text);
-                    success = true;
                 }
-            }
-
-            if (success) {
-                label->Set_Text(text);
-            } else {
-                Vinifera_Log_And_Show_WWMessageBox("Failed to replace game auto-save text! If you see this, please report it to the developers.");
             }
         }
 
