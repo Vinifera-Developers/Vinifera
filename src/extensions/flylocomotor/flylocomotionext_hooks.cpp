@@ -34,10 +34,8 @@ public:
 };
 
 int STDMETHODCALLTYPE FlyLocomotionClassExt::_Apparent_Speed(void)
-{
-    // 'this' is currently shifted by 4 bytes due to the engine's vtable optimization.
-    // We cast to char* to do byte-level arithmetic, subtract 4, and cast back.
-    FlyLocomotionClass* trueThis = reinterpret_cast<FlyLocomotionClass*>(reinterpret_cast<char*>(this) - 4);
+{    
+    FlyLocomotionClass* trueThis = static_cast<FlyLocomotionClass*>(reinterpret_cast<ILocomotion*>(this)); 
     FootClass* foot = trueThis->LinkedTo;
 
     int speed = foot->Get_Max_Speed() * foot->House->AirspeedBias * foot->SpeedBias;
