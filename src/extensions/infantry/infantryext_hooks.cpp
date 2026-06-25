@@ -917,6 +917,65 @@ DEFINE_HOOK(0x004D6CBD, InfantryClass_Unlimbo_Sight_Range_Patch, 0)
 }
 
 
+DEFINE_HOOK(0x004D4356, InfantryClass_Assign_Destination_Jumpjet_Move_Queue_Patch, 6)
+{
+    GET(InfantryClass*, this_ptr, EBP);
+
+    if (this_ptr->ArchiveTarget != nullptr) {
+        return 0x004D43DB;
+    }
+
+    if (this_ptr->Get_Mission() == MISSION_ENTER) {
+        this_ptr->Clear_Navigation_List();
+
+        return 0x004D43DB;
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x0042D192, TEST_ME_ARCHIVE_TARGET, 6)
+{
+    GET(FootClass*, this_ptr, EDI);
+
+    if (this_ptr->ArchiveTarget == nullptr) {
+        return 0;
+    }
+
+    if (this_ptr->RTTI == RTTI_INFANTRY) {
+        auto infantry = static_cast<InfantryClass*>(this_ptr);
+        if (infantry->Class->IsJumpJet) {
+            bool should_fly = infantry->Should_JumpJet_Fly(&infantry->Get_Coord().As_Cell(), &infantry->ArchiveTarget->Center_Coord().As_Cell());
+
+            if (should_fly) {                
+                return 0x0042D1AC;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+DEFINE_HOOK(0x0042D26B, TEST_ME_STOP_RADIO, 0)
+{
+    GET(FootClass*, this_ptr, EDI);
+
+    if (this_ptr->RTTI == RTTI_INFANTRY) {
+        auto infantry = static_cast<InfantryClass*>(this_ptr);
+        if (infantry->Class->IsJumpJet) {
+            bool should_fly = infantry->Should_JumpJet_Fly(&infantry->Get_Coord().As_Cell(), &infantry->ArchiveTarget->Center_Coord().As_Cell());
+
+            if (should_fly) {
+                infantry->Transmit_Message(RADIO_OVER_OUT);
+            }
+        }
+    }
+
+    return 0x0042CF07;
+}
+
 /**
  *  Main function for patching the hooks.
  */
