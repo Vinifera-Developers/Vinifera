@@ -115,6 +115,10 @@ New:
 - Fix Win32 dialog scaling with SDL (by Rampastring)
 - Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
 - Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination (by JoyfulShush)
 
 
 Vinifera fixes:
