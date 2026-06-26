@@ -726,4 +726,6 @@ void MainLoop_Hooks()
     Patch_Jump(0x005B10F0, &_Queue_Options);
     Patch_Jump(0x005098D0, &_Message_Input);
     Patch_Byte(0x00508A90 + 1, 0x1); // Patch Sleep(0xA) to Sleep(1) to prevent lag in multiplayer when game is not in focus
+    Patch_Jump(0x00508DBD, 0x00508DCA); // Jump over GameInFocus check in main loop to render even when game is not in focus
+                                        // to allow alt-tabbed players to see what is going on in multiplayer
 }
