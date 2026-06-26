@@ -36,6 +36,7 @@
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
+#include "infantry.h"
 #include "infantrytype.h"
 #include "jumpjetlocomotion.h"
 #include "map.h"
@@ -2584,6 +2585,74 @@ DEFINE_HOOK(0x0042A0B0, Building_Class_Unlimbo_Sight_Range_Patch, 0)
     Map.Sight_From(*coord, building_class_ext->Get_Sight_Range(), this_ptr->House);
 
     return 0x0042A0D7;
+}
+
+/*
+ *  Typically, whenever an infantry exits a Barracks, an Armory or a Hospital, they are assigned
+ *  to move into the exit cell of the building before moving towards the rally point (the ArchiveTarget).
+ *  For jumpjets, this causes issues when the rally point is far away, as they will start flying, then take a few seconds to land
+ *  on the exit coords before moving to the rally point.
+ * 
+ *  This patch makes jumpjets skip the exit coord assignment when they are going to be flying to a rally point when they exit the building,
+ *  allowing them to go straight to the designated position.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042D192, Building_Class_Exit_Object_Jumpjet_Exit_Coords_Assignment_Patch, 6)
+{
+    GET(FootClass*, this_ptr, EDI);
+
+    // If there is no archive target set for the unit, then there was no rally point set.
+    if (this_ptr->ArchiveTarget == nullptr) {
+        return 0;
+    }
+    
+    if (this_ptr->RTTI == RTTI_INFANTRY) {
+        auto infantry = static_cast<InfantryClass*>(this_ptr);
+        if (infantry->Class->IsJumpJet) {
+            bool should_fly = infantry->Should_JumpJet_Fly(infantry->Get_Coord().As_Cell(), infantry->ArchiveTarget->Center_Coord().As_Cell());
+
+            if (should_fly) {
+                return 0x0042D1AC;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+/*
+ *  When a unit is goes out of a structure such as a Barracks, an Armory or a Hospital, they are in radio contact.
+ *  This prevents other units from coming out from this structure until the unit reports that they are officially out of the building,
+ *  which is done by cutting off radio contact.
+ * 
+ *  When the rally point is far away, jumpjet infantry will decide to fly - and when they do, it can take them some time until they reach
+ *  the designated position - during which units cannot be produced and are lost.
+ *  Note that this is caused even without the "Building_Class_Exit_Object_Jumpjet_Exit_Coords_Assignment_Patch" patch,
+ *  as even landing at the exit coords takes some time.
+ * 
+ *  Instead, this patch causes jumpjet infantry that decide to fly away to the rally point immediately report that they are out of the structure,
+ *  without having to wait first to reach the exit coords or the rally points. This allows further production or units processing to resume with no issues.
+ *  
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042D26B, Building_Class_Exit_Object_Jumpjet_Radio_Contact_Patch, 0)
+{
+    GET(FootClass*, this_ptr, EDI);
+
+    if (this_ptr->RTTI == RTTI_INFANTRY && this_ptr->ArchiveTarget != nullptr) {
+        auto infantry = static_cast<InfantryClass*>(this_ptr);
+        if (infantry->Class->IsJumpJet) {
+            bool should_fly = infantry->Should_JumpJet_Fly(infantry->Get_Coord().As_Cell(), infantry->ArchiveTarget->Center_Coord().As_Cell());
+
+            if (should_fly) {
+                infantry->Transmit_Message(RADIO_OVER_OUT);
+            }
+        }
+    }
+
+    return 0x0042CF07;
 }
 
 
