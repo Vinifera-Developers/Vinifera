@@ -385,8 +385,20 @@ DEFINE_HOOK(0x005DBA8B, _Read_Scenario_Loading_Screen_Patch, 0)
     Init_Loading_Screen(filename);
 
     /**
-     *  Jump to setting broadcast addresses.
+     *  Jump to setting broadcast addresses (the code that lets the other
+     *  players receive our loading progress over the network).
+     *
+     *  That code reads EDI as the constant 1 - both as the "more than one
+     *  player" guard and as the start index of the per-player loop. The
+     *  original "mov edi, 1" lives just past our hook entry point, so we
+     *  skip over it and have to set EDI ourselves; otherwise it keeps the
+     *  stray pointer left in it by an earlier string scan, the guard fails,
+     *  and the broadcast addresses are never set up - so no one ever sees
+     *  anyone else's progress bar. (EBP, the GAME_INTERNET constant the same
+     *  code compares Session.Type against, is set before our hook and so is
+     *  still intact.)
      */
+    R->EDI(1);
     return 0x005DBD4A;
 }
 
