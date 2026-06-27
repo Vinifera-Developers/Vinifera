@@ -56,7 +56,7 @@ public:
      *  All of these are no-ops while the dialog is not open.
      */
     void Notify_Chat(const char* name, const char* text);
-    void Notify_Player_Left(int house_id);
+    void Notify_Player_Left(int house_id, const char* name);
     void Notify_Continue();
     void Notify_Heartbeat(int house_id, bool is_host);
 
@@ -120,6 +120,13 @@ private:
      *  Players that have left the game while the dialog was open, by house ID.
      */
     bool PlayerLeft[MAX_PLAYERS] = {};
+
+    /**
+     *  The names of the players that have left, captured before their houses
+     *  were turned over to the AI (which overwrites the house name with the
+     *  computer player name), so the dialog can keep showing the real name.
+     */
+    std::string PlayerLeftName[MAX_PLAYERS] = {};
 
     /**
      *  Heartbeat bookkeeping for detecting players that silently disappear.

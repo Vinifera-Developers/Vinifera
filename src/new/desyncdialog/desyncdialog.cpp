@@ -105,6 +105,7 @@ DesyncDialogOutcomeType DesyncDialogClass::Run()
     ContinueReceived = false;
     LoadCountdownActive = false;
     std::fill(std::begin(PlayerLeft), std::end(PlayerLeft), false);
+    std::fill(std::begin(PlayerLeftName), std::end(PlayerLeftName), std::string());
     std::fill(std::begin(LastHeartbeatFrom), std::end(LastHeartbeatFrom), std::chrono::steady_clock::now());
     ChatBacklog.clear();
 
@@ -396,11 +397,26 @@ void DesyncDialogClass::Update_Player_List()
     for (int i = 0; i < MAX_PLAYERS && i < Houses.Count(); i++) {
 
         HouseClass* house = Houses[i];
-        if (house == nullptr || !house->IsHuman) {
+        if (house == nullptr) {
             continue;
         }
 
-        const int row = ListBox_AddString(list, house->IniName.c_str());
+        /**
+         *  Players that have left are kept in the list (marked "Quit") even
+         *  though their house is no longer human after the AI took it over.
+         */
+        if (!house->IsHuman && !PlayerLeft[i]) {
+            continue;
+        }
+
+        /**
+         *  Use the name we captured when the player left, since the AI takeover
+         *  has by now overwritten the house's name with the computer name.
+         */
+        const char* name = (PlayerLeft[i] && !PlayerLeftName[i].empty())
+            ? PlayerLeftName[i].c_str() : house->IniName.c_str();
+
+        const int row = ListBox_AddString(list, name);
         if (row < 0) {
             continue;
         }
@@ -637,13 +653,20 @@ void DesyncDialogClass::Check_Heartbeat_Timeouts()
             DEBUG_INFO("DesyncDialog: no heartbeat from {} (house {}) for {} seconds, dropping them.\n", Session.Players[i]->Name, id, HEARTBEAT_TIMEOUT_MS / 1000);
 
             /**
+             *  Capture the player's name before Destroy_Connection removes
+             *  them from the player list and (possibly) turns their house
+             *  over to the AI, which overwrites its name.
+             */
+            std::string name = Session.Players[i]->Name;
+
+            /**
              *  A non-zero error makes Destroy_Connection remove the player
              *  via a queued EVENT_REMOVEPLAYER rather than an immediate AI
              *  takeover, and print a "connection lost" message.
              */
             Destroy_Connection(id, 1);
             SessionExtension->Update_Master_After_Player_Removal();
-            Notify_Player_Left(id);
+            Notify_Player_Left(id, name.c_str());
         }
     }
 }
@@ -798,7 +821,7 @@ void DesyncDialogClass::Notify_Chat(const char* name, const char* text)
  *
  *  @author: ZivDero
  */
-void DesyncDialogClass::Notify_Player_Left(int house_id)
+void DesyncDialogClass::Notify_Player_Left(int house_id, const char* name)
 {
     if (!Is_Active()) {
         return;
@@ -806,11 +829,14 @@ void DesyncDialogClass::Notify_Player_Left(int house_id)
 
     if (house_id >= 0 && house_id < MAX_PLAYERS) {
         PlayerLeft[house_id] = true;
+        if (name != nullptr && name[0] != '\0') {
+            PlayerLeftName[house_id] = name;
+        }
     }
 
-    if (house_id >= 0 && house_id < Houses.Count() && Houses[house_id] != nullptr) {
+    if (name != nullptr && name[0] != '\0') {
         char buf[128];
-        std::snprintf(buf, std::size(buf), "%s has left the game.", Houses[house_id]->IniName.c_str());
+        std::snprintf(buf, std::size(buf), "%s has left the game.", name);
         Append_Chat_Line(buf);
     }
 

@@ -87,9 +87,18 @@ void Vinifera_Process_Incoming_Global_Packets()
                         int id = Ipx.Connection_ID(i);
 
                         if (Session.GAddress == *Ipx.Connection_Address(id)) {
+
+                            /*
+                            **  Capture the player's name before Destroy_Connection's
+                            **  AI takeover overwrites the house's name with the
+                            **  computer player name.
+                            */
+                            std::string name = (id >= 0 && id < Houses.Count() && Houses[id] != nullptr)
+                                ? Houses[id]->IniName.c_str() : "";
+
                             Destroy_Connection(id, 0);
                             SessionExtension->Update_Master_After_Player_Removal();
-                            DesyncDialog.Notify_Player_Left(id);
+                            DesyncDialog.Notify_Player_Left(id, name.c_str());
                         }
                     }
                     break;
