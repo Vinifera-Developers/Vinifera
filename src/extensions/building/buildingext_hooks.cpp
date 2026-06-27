@@ -2603,11 +2603,7 @@ DEFINE_HOOK(0x0042D192, Building_Class_Exit_Object_Jumpjet_Exit_Coords_Assignmen
     GET(FootClass*, this_ptr, EDI);
 
     // If there is no archive target set for the unit, then there was no rally point set.
-    if (this_ptr->ArchiveTarget == nullptr) {
-        return 0;
-    }
-    
-    if (this_ptr->RTTI == RTTI_INFANTRY) {
+    if (this_ptr->ArchiveTarget != nullptr && this_ptr->RTTI == RTTI_INFANTRY) {
         auto infantry = static_cast<InfantryClass*>(this_ptr);
         if (infantry->Class->IsJumpJet) {
             bool should_fly = infantry->Should_JumpJet_Fly(infantry->Get_Coord().As_Cell(), infantry->ArchiveTarget->Center_Coord().As_Cell());
@@ -2623,7 +2619,7 @@ DEFINE_HOOK(0x0042D192, Building_Class_Exit_Object_Jumpjet_Exit_Coords_Assignmen
 
 
 /*
- *  When a unit is goes out of a structure such as a Barracks, an Armory or a Hospital, they are in radio contact.
+ *  When a unit goes out of a structure such as a Barracks, an Armory or a Hospital, they are in radio contact.
  *  This prevents other units from coming out from this structure until the unit reports that they are officially out of the building,
  *  which is done by cutting off radio contact.
  * 

@@ -929,7 +929,7 @@ DEFINE_HOOK(0x004D4356, InfantryClass_Assign_Destination_Jumpjet_Move_Queue_Patc
     GET(InfantryClass*, this_ptr, EBP);
 
     enum {
-        SKIP_QMOVE = 0x004D43DB
+        SKIP_NAVQUEUE_CHAIN = 0x004D43DB
     };
 
     // If the unit has an archive target, this typically means it was instructed to reach a position
@@ -937,7 +937,7 @@ DEFINE_HOOK(0x004D4356, InfantryClass_Assign_Destination_Jumpjet_Move_Queue_Patc
     // We should not add Q-Move to the destination when this is the case.
     // Fixes a bug where jumpjets would go back to the building they exited from after reaching the building's rally point.
     if (this_ptr->ArchiveTarget != nullptr) {
-        return SKIP_QMOVE;
+        return SKIP_NAVQUEUE_CHAIN;
     }
 
     // If the unit is about to enter a building, it shouldn't have any Q-Moves lines up.
@@ -945,7 +945,7 @@ DEFINE_HOOK(0x004D4356, InfantryClass_Assign_Destination_Jumpjet_Move_Queue_Patc
     if (this_ptr->Get_Mission() == MISSION_ENTER) {
         this_ptr->Clear_Navigation_List();
 
-        return SKIP_QMOVE;
+        return SKIP_NAVQUEUE_CHAIN;
     }
 
     return 0;
