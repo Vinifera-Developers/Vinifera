@@ -291,7 +291,7 @@ public:
     ArmorType BridgeArmor;
 
     /**
-	 *  Determines whether the cloaked technos can trigger cell tags when used with Entered By trigger event.
+     *  Determines whether the cloaked technos can trigger cell tags when used with Entered By trigger event.
      */
     bool IsCellTagsIgnoreStealth;
 

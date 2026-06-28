@@ -5,6 +5,8 @@ This page lists all the individual contributions to the project by their author.
 - **AlexB**:
   - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry.
   - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
+- **Apollo**:
+  - Correct the translucent-blend rounding so layered translucency no longer darkens.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
@@ -188,6 +190,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow Free Radar to remain active when players are in low power.
   - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
   - Allow cloaked units to trigger cell tags when using Entered By trigger events.
+  - Add the ability to specify sight ranges for technos when they are veteran and elite.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -427,4 +430,6 @@ This page lists all the individual contributions to the project by their author.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
   - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.
   - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.
+  - Reimplement the software blitters with hand-written SIMD (SSE2/AVX2) for faster rendering on modern CPUs.
+  - Correct the translucent-blend rounding so layered translucency no longer darkens.
   - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.

@@ -130,14 +130,15 @@ void MapClassExt::_Detach(AbstractClass* target, bool all)
  *
  *  @author: JoyfulShush
  */
-void MapClassExt::_Calculate_Sight_Radius_If_Needed(int sight_range) {
-    int current_max_radius = static_cast<int>(RadiusCountTable.size());    
-    
+void MapClassExt::_Calculate_Sight_Radius_If_Needed(int sight_range)
+{
+    int current_max_radius = static_cast<int>(RadiusCountTable.size());
+
     if (sight_range <= current_max_radius - 1) {
         return;
     }
-    
-    for (int current_radius = current_max_radius; current_radius <= sight_range; ++current_radius) {        
+
+    for (int current_radius = current_max_radius; current_radius <= sight_range; ++current_radius) {
         int search_bounds = current_radius + 2;
 
         for (int cell_y = -search_bounds; cell_y <= search_bounds; ++cell_y) {
@@ -145,20 +146,20 @@ void MapClassExt::_Calculate_Sight_Radius_If_Needed(int sight_range) {
 
                 int absolute_x = std::abs(cell_x);
                 int absolute_y = std::abs(cell_y);
-                
+
                 int octagonal_distance = std::max(absolute_x, absolute_y) + (std::min(absolute_x, absolute_y) / 2);
 
-                if (octagonal_distance == current_radius) {                    
+                if (octagonal_distance == current_radius) {
                     RadiusOffsets.push_back(Cell(cell_x, cell_y));
-                    
+
                     short parent_direction_x = 0;
                     short parent_direction_y = 0;
 
-                    if (absolute_x > absolute_y) {                        
+                    if (absolute_x > absolute_y) {
                         parent_direction_x = (cell_x > 0) ? -1 : 1;
-                    } else if (absolute_y > absolute_x) {                        
+                    } else if (absolute_y > absolute_x) {
                         parent_direction_y = (cell_y > 0) ? -1 : 1;
-                    } else {                        
+                    } else {
                         parent_direction_x = (cell_x > 0) ? -1 : 1;
                         parent_direction_y = (cell_y > 0) ? -1 : 1;
                     }
@@ -167,7 +168,7 @@ void MapClassExt::_Calculate_Sight_Radius_If_Needed(int sight_range) {
                 }
             }
         }
-        
+
         RadiusCountTable.push_back(static_cast<int>(RadiusOffsets.size()));
     }
 }
@@ -181,20 +182,21 @@ void MapClassExt::_Calculate_Sight_Radius_If_Needed(int sight_range) {
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6) {    
+DEFINE_HOOK(0x00510C9A, _From_Sight_Dynamic_Sight_Range_Patch, 6)
+{
     int sight_range = R->EAX();
-    
+
     MapClassExt::_Calculate_Sight_Radius_If_Needed(sight_range);
-    
+
     int cell_count = MapClassExt::RadiusCountTable[sight_range];
     Cell* radius_offsets_ptr = MapClassExt::RadiusOffsets.data();
     Cell* occlusion_offsets_ptr = MapClassExt::OcclusionOffsets.data();
-    
+
     R->ESI(cell_count);
-    
+
     R->Stack(0x10, radius_offsets_ptr);
     R->Stack(0x4C, occlusion_offsets_ptr);
-    
+
     return 0x510CFB;
 }
 

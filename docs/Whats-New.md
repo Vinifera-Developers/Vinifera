@@ -109,10 +109,12 @@ New:
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 - Allow Free Radar to be used when players are in low power (by JoyfulShush)
-- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 - Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
+- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 - Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
 - Fix Win32 dialog scaling with SDL (by Rampastring)
+- Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
+- Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
 - Implemented the multiplayer spawner (by ZivDero, Rampastring)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
@@ -203,8 +205,8 @@ Vanilla fixes:
 - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with (by Rampastring)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
+- Correct the 25%/50%/75% translucency blend so layered translucent sprites no longer progressively darken (by ZivDero, Apollo)
 - Fix a bug where the game often reported multiple synchronization errors when one player got out of sync (by Rampastring)
-
 
 :::
 

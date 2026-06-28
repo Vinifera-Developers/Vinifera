@@ -61,6 +61,7 @@ class TechnoClassExtension : public RadioClassExtension,
         bool Opportunity_Fire();
 
         bool Iron_Curtain_Me(bool forced);
+        int Get_Sight_Range() const;
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;

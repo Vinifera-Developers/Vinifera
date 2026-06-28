@@ -124,6 +124,9 @@ class CPUDetectClass
         static bool Has_MMX_Instruction_Set() { return HasMMXSupport; }
         static bool Has_SSE_Instruction_Set() { return HasSSESupport; }
         static bool Has_SSE2_Instruction_Set() { return HasSSE2Support; }
+        static bool Has_SSE41_Instruction_Set() { return HasSSE41Support; }
+        static bool Has_AVX_Instruction_Set() { return HasAVXSupport; }
+        static bool Has_AVX2_Instruction_Set() { return HasAVX2Support; }
         static bool Has_3DNow_Instruction_Set() { return Has3DNowSupport; }
         static bool Has_Extended_3DNow_Instruction_Set() { return HasExtended3DNowSupport; }
 
@@ -274,6 +277,9 @@ class CPUDetectClass
         static bool HasRDTSCInstruction;
         static bool HasSSESupport;
         static bool HasSSE2Support;
+        static bool HasSSE41Support;
+        static bool HasAVXSupport;
+        static bool HasAVX2Support;
         static bool HasCMOVSupport;
         static bool HasMMXSupport;
         static bool Has3DNowSupport;

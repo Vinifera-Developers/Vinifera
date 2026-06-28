@@ -22,7 +22,7 @@ permissions:
 jobs:
   build:
     name: Build
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: Clone Repository
         uses: actions/checkout@v4

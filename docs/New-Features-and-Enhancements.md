@@ -1680,7 +1680,7 @@ Some speeches are played by engine code in response to game events (mission acco
     | 97 | 01-I368 | EVA_CabalTaunt09 |
     | 98 | 01-I378 | EVA_CabalTaunt10 |
     | 312 | 00-I020 | EVA_IncomingTransmission |
-:::
+   :::
 
 ### Object Ambient Sounds
 

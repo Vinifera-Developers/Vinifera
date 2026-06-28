@@ -1420,6 +1420,7 @@ DEFINE_HOOK(0x00433BB5, _BuildingClass_Mission_Open_Gate_Open_Sound_Patch, 0)
     return 0x00433BC8;
 }
 
+
 DEFINE_HOOK(0x00433C6F, _BuildingClass_Mission_Open_Gate_Close_Sound_Patch, 0)
 {
     GET(Coord *, coord, EAX);
@@ -2492,6 +2493,7 @@ DEFINE_HOOK(0x0042CAB9, _BuildingClass_Exit_Object_Factory_Busy_Customized_Alter
     return 0x0042CB16;
 }
 
+
 /**
  *  Allows AI to repair Base Nodes by enabling the IsToRepair flag on those buildings.
  *  Only applies in campaign, and only if the AIRepairBaseNodes under [AI] is set to yes/true. 
@@ -2514,6 +2516,7 @@ DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
     return 0;
 }
 
+
 /*
 *  Patches a portion of BuildingClass::Captured where laser fence connections are updated (or more correctly - removed)
 *  At this point, the House of the captured building is NOT updated yet - and belongs to the original owner of this building.
@@ -2534,6 +2537,7 @@ DEFINE_HOOK(0x0042F749, _BuildingClass_Captured_Disable_Sensors, 6)
     return 0;
 }
 
+
 /*
  *  Patches a portion of BuildingClass::Captured where a building that gets captured lets players reveal shroud around it with Look().
  *  At this point, the House of the captured building is already updated - and belongs to the new owner of this building.
@@ -2553,6 +2557,7 @@ DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
 
     return 0;
 }
+
 
 /*
  *  Patches the part of BuildingClass::Repair_AI where a building can no longer be repaired due to a house having insufficient funds.
@@ -2650,6 +2655,26 @@ DEFINE_HOOK(0x0042FCA1, _BuildingClass_Captured_BuildConst_Patch3, 0)
     }
 
     return 0x0042FCF8;
+}
+
+
+/*
+ *  Patches BuildingClass::Limbo, inside the IsWall check that turns a wall into an overlay.
+ *  Replacing the value of Sight to take into account all sight range modifications for this techno.
+ *  Particularly relevant to veterancy granting sight range bonuses.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042A0B0, Building_Class_Unlimbo_Sight_Range_Patch, 0)
+{
+    GET(Coord*, coord, EBP);
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_class_ext = Extension::Fetch(this_ptr);    
+
+    Map.Sight_From(*coord, building_class_ext->Get_Sight_Range(), this_ptr->House);
+
+    return 0x0042A0D7;
 }
 
 

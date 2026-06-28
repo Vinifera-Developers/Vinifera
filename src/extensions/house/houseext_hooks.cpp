@@ -42,6 +42,7 @@
 #include "super.h"
 #include "syringe.h"
 #include "techno.h"
+#include "technoext.h"
 #include "technotype.h"
 #include "tiberium.h"
 #include "tibsun_functions.h"
@@ -2073,6 +2074,48 @@ ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
     TeamTime = 30 * HeapID + Rule->TeamDelays[Difficulty];
 
     return old;
+}
+
+
+/**
+ *  Patches HouseClass::Make_Ally to take sight range bonuses into account when revealing the area around technos we that were allied with
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004BDD4C, HouseClass_Make_Ally_Sight_Range_Patch, 0)
+{
+    GET(TechnoClass*, techno, ESI);
+    GET(HouseClass*, this_ptr, EDI);
+
+    auto techno_ext = Extension::Fetch(techno);
+
+    int sight_range = techno_ext->Get_Sight_Range();
+    Coord coord = techno->Center_Coord();
+
+    Map.Sight_From(coord, sight_range, this_ptr);
+
+    return 0x004BDD83;
+}
+
+/**
+ *  Patches HouseClass::Updated_Spied_By to take sight range bonuses into account when revealing the area
+ *  around technos that were revealed by spying a radar
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004C9937, HouseClass_Updated_Spied_By_Sight_Range_Patch, 0)
+{
+    GET(TechnoClass*, techno, ESI);
+    GET(HouseClass*, this_ptr, EDI);
+
+    auto techno_ext = Extension::Fetch(techno);
+
+    int sight_range = techno_ext->Get_Sight_Range();
+    Coord coord = techno->Center_Coord();
+
+    Map.Sight_From(coord, sight_range, this_ptr);
+
+    return 0x004C996B;
 }
 
 

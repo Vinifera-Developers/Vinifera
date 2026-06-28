@@ -108,7 +108,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IronCurtainPriorityTarget(false),
     EscortRange(-1),
     AbandonTargetEscortRange(-1),
-    ScrapExplosion()
+    ScrapExplosion(),
+    VeteranSightRange(-1),
+    EliteSightRange(-1)
 {
 }
 
@@ -289,6 +291,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IronCurtainPriorityTarget);
     crc(EscortRange);
     crc(AbandonTargetEscortRange);
+    crc(VeteranSightRange);
+    crc(EliteSightRange);
 }
 
 
@@ -449,6 +453,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     if (SessionExtension->ExtOptions.IsScrapMetal) {
         This()->Explosion = ScrapExplosion;
     }
+
+    VeteranSightRange = ini.Get_Int(ini_name, "VeteranSight", VeteranSightRange);
+    EliteSightRange = ini.Get_Int(ini_name, "EliteSight", EliteSightRange);
 
     return true;
 }
