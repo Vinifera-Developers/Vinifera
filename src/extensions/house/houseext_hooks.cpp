@@ -2033,7 +2033,7 @@ ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
      *  we'll have to limit the "actual house difficulty" to vanilla
      *  levels or it'll read out of bounds.
      */
-    Difficulty = (DiffType)(handicap >= DIFF_COUNT ? (DIFF_COUNT - 1) : handicap);
+    Difficulty = (DiffType)(handicap >= DIFF_COUNT ? 0 : handicap);
 
     DEBUG_INFO("Assigning handicap {} to house {}\n", (int)handicap, (int)HeapID);
 
@@ -2131,7 +2131,6 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004BAED0, &HouseClassExt::_Can_Make_Money);
     Patch_Jump(0x004C0A40, &HouseClassExt::_Check_Raise_Money);
-    Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
     Patch_Jump(0x004BDB50, &HouseClassExt::_Make_Ally);
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
