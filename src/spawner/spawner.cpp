@@ -144,11 +144,11 @@ int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
 {
     switch (difficulty) {
     case 0:
-        return DIFF_HARD;
+        return DIFF_EASY;
     case 1:
         return DIFF_NORMAL;
     case 2:
-        return DIFF_EASY;
+        return DIFF_HARD;
     case 3:
         return EXT_DIFF_VERY_EASY;
     case 4:
