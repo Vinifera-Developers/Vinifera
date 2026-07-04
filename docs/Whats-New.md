@@ -115,6 +115,7 @@ New:
 - Fix Win32 dialog scaling with SDL (by Rampastring)
 - Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
 - Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
+- Allow AI-controlled units to persist their tags when they deploy into a building (by JoyfulShush)
 
 
 Vinifera fixes:
