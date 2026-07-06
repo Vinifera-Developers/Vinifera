@@ -47,14 +47,14 @@ int STDMETHODCALLTYPE FlyLocomotionClassExt::_Apparent_Speed(void)
 {    
     // Since this is an interface method, we cast 'this' to the actual fly locomotion class instance.
     FlyLocomotionClass* true_this = static_cast<FlyLocomotionClass*>(reinterpret_cast<ILocomotion*>(this)); 
-    FootClass* foot = trueThis->LinkedTo;
+    FootClass* foot = true_this->LinkedTo;
 
     int speed = foot->Get_Max_Speed() * foot->House->AirspeedBias * foot->SpeedBias;
     if (foot->Has_Ability(ABILITY_FASTER)) {
         speed *= Rule->VeteranSpeed + 1.0;
     }
 
-    return speed * trueThis->CurrentSpeed;
+    return speed * true_this->CurrentSpeed;
 }
 
 
