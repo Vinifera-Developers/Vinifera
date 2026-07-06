@@ -187,7 +187,7 @@ This page lists all the individual contributions to the project by their author.
   - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
   - Allow cloaked units to trigger cell tags when using Entered By trigger events.
   - Add the ability to specify sight ranges for technos when they are veteran and elite.
-  - Allow AI-controlled units to persist their tags when they deploy into a building.
+  - Add a key to allow AI-controlled units to persist their tags when they deploy into a building.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
