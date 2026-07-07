@@ -1928,15 +1928,9 @@ static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
      */
     int deficiency = look_for - list.Count();
     if (deficiency > 0) {
-        DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
+        DEBUG_WARNING("Multiplayer start waypoint deficiency - injecting virtual start positions. Deficiency: {}\n", deficiency);
         for (int index = 0; index < deficiency; ++index) {
-            Cell trycell = Cell(Map.MapRect.X + Random_Pick(10, Map.MapRect.Width - 10), Map.MapRect.Y + Random_Pick(0, Map.MapRect.Height - 10) + 10);
-
-            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
-            if (trycell != CELL_NONE) {
-                list.Add(trycell);
-                DEBUG_INFO("Random multiplayer start waypoint added at cell {},{}.\n", trycell.X, trycell.Y);
-            }
+            list.Add(CELL_NONE);
         }
     }
 
@@ -2747,6 +2741,63 @@ static bool Is_Adjacent_Cell_Empty(Cell cell, FacingType facing, int dist)
 
 
 /**
+ *  Finds a random starting waypoint position for a specific house.
+ *
+ *  @author: Rampastring
+ */
+bool ScenarioClassExtension::Assign_Random_Starting_Position(HouseClass* house)
+{
+    DEBUG_INFO("Looking for a random starting location for house {}.\n", (int)house->HeapID);
+
+    HouseClassExtension* houseext = Extension::Fetch(house);
+
+    Cell bestcell = CELL_NONE;
+    int bestscore = INT_MIN;
+    int maxtries = 20;
+
+    /**
+     *  Check a number of potential candidate cells depending on RNG.
+     *  Calculate scores for them and pick the best one.
+     */
+    for (int tries = 0; tries < maxtries; tries++) {
+        Cell trycell = Cell(Map.MapRect.X + Random_Pick(10, Map.MapRect.Width - 10), Map.MapRect.Y + Random_Pick(0, Map.MapRect.Height - 10) + 10);
+
+        trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8), true, false, false, false);
+        if (trycell != CELL_NONE && Map[trycell].Cell_Terrain() == nullptr) {
+
+            /**
+             *  Calculate a score for this candidate cell. The farther away it is from any existing starting location, the better.
+             */
+            int lowestdistance = INT_MAX;
+
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                Cell wpcell = Scen->Waypoint_Cell((WAYPOINT)i);
+                if (wpcell != CELL_NONE) {
+                    int distance = ::Distance(trycell, wpcell);
+                    if (distance < lowestdistance) {
+                        lowestdistance = distance;
+                    }
+                }
+            }
+
+            if (lowestdistance > bestscore) {
+                bestcell = trycell;
+                bestscore = lowestdistance;
+            }
+        }
+    }
+
+    if (bestcell != CELL_NONE) {
+        Scen->Set_Waypoint(houseext->SpawnWaypoint, bestcell);
+        DEBUG_INFO("Random multiplayer start waypoint placed at cell {},{}.\n", bestcell.X, bestcell.Y);
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
  *  New implementation of Create_Units()
  *
  *  @author: CCHyper (assistance from tomsons26).
@@ -2836,6 +2887,16 @@ void ScenarioClassExtension::Create_Units(bool official)
         if (hptr->Class->IsMultiplayPassive) {
             DEV_DEBUG_INFO("House {} ({} - \"{}\") is passive, skipping.\n", (int)house, hptr->Class->Name(), hptr->IniName);
             continue;
+        }
+
+        /**
+         *  If the spawn waypoint for this house is nonexistent, look for a proper place for it.
+         */
+        if (Scen->Waypoint_Cell(houseext->SpawnWaypoint) == CELL_NONE) {
+            if (!Assign_Random_Starting_Position(hptr)) {
+                DEBUG_WARNING("Failed to find a fitting random starting location for house {}.\n", (int)house);
+                continue;
+            }
         }
 
         /**

@@ -83,6 +83,7 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         static void Init_Forced_Alliances();
 
         void Assign_Starting_Positions(bool official);
+        static bool Assign_Random_Starting_Position(HouseClass* house);
         static void Assign_Houses();
         static void Create_Units(bool official);
         bool Read_Loading_Screen_INI(const char* filename);
