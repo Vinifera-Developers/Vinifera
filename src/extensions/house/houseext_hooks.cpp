@@ -818,7 +818,7 @@ void HouseClassExt::_MPlayer_Defeated()
      *    player's IsDefeated flag
      */
     if (!Extension::Fetch(this)->IsObserver) {
-        if (num_alive == 1 || (num_humans == 0 && !SessionExtension->ExtOptions.IsContinueWithoutHumans)) {
+        if (num_alive == 1 || (num_humans == 0 && !SessionExtension->ExtOptions.IsContinueWithoutHumans && (!Session.Singleplayer_Game() || !Extension::Fetch(PlayerPtr)->IsObserver))) {
             IsToDie = false;
 
             if (PlayerPtr->IsDefeated) {
