@@ -287,6 +287,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the game often reported multiple synchronization errors when one player got out of sync.
   - Fix Win32 dialog scaling with SDL.
   - Allow customizing end-of-game text color per side.
+  - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

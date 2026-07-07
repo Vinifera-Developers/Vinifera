@@ -210,17 +210,17 @@ DesyncDialogOutcomeType DesyncDialogClass::Run()
 void DesyncDialogClass::Create_Dialog()
 {
     IsHostDialog = Session.Am_I_Master();
+    const int dialog_id = IsHostDialog ? IDD_DESYNC_HOST : IDD_DESYNC_WAIT;
 
     /**
-     *  BeginDialog finds our template via the hooked Fetch_Resource, which
+     *  WSCreateDialog finds our template via the hooked Fetch_Resource, which
      *  falls back to the Vinifera DLL for resources the game's language DLL
-     *  doesn't have, and registers the dialog with the message loop. Unlike
-     *  WSCreateDialog, it does not rescale the dialog with Resize_Dialog,
-     *  whose reference template gets replaced by external resolution patches
-     *  on some installs; this keeps our dialog a fixed size, the same way
-     *  the game's options dialogs work.
+     *  doesn't have, and registers the dialog with the message loop. It also
+     *  runs the same Resize_Dialog pass as the stock in-game dialogs, keeping
+     *  the dialog in the game's logical pixel coordinate system instead of
+     *  letting monitor DPI decide its final size.
      */
-    Window = OwnerDraw::BeginDialog(IsHostDialog ? IDD_DESYNC_HOST : IDD_DESYNC_WAIT, &Dialog_Proc);
+    Window = WSCreateDialog(ProgramInstance, dialog_id, MainWindow, &Dialog_Proc, FALSE);
     if (Window == nullptr) {
         return;
     }
@@ -318,7 +318,6 @@ void DesyncDialogClass::Create_Dialog()
     UpdateWindow(Window);
 
     /**
-     *  Unlike WSCreateDialog, BeginDialog does not give the new dialog focus.
      *  Focus the player list rather than the dialog itself: the dialog would
      *  pass focus on to its first tab stop, the chat edit box, dismissing
      *  the hint text in it right away.
@@ -336,8 +335,10 @@ void DesyncDialogClass::Create_Dialog()
 void DesyncDialogClass::Destroy_Dialog()
 {
     if (Window != nullptr) {
+        const int dialog_id = IsHostDialog ? IDD_DESYNC_HOST : IDD_DESYNC_WAIT;
         KillTimer(Window, HEARTBEAT_TIMER);
-        OwnerDraw::EndDialog(Window);
+        KillTimer(Window, QUIT_ENABLE_TIMER);
+        WSDestroyDialog(Window, dialog_id);
         Window = nullptr;
     }
 }
