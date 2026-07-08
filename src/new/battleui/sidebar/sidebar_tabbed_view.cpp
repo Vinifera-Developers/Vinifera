@@ -126,10 +126,14 @@ TabButtonClass::TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y
 /**
  *  Handles mouse input for the tab button.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 bool TabButtonClass::Action(unsigned flags, KeyNumType& key)
 {
+    if (Scen->InputLock) {
+        return true;
+    }
+
     if (!flags) {
         Flag_To_Redraw();
     }
