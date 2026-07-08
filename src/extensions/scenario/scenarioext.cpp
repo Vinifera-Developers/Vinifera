@@ -1259,6 +1259,8 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
     ScenarioActive = true;
     TacticalActive = true;
 
+    Show_Mouse();
+
     return true;
 }
 
