@@ -1153,10 +1153,6 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
 
         Restate_Mission(Scen);
 
-        if (Theme.Still_Playing()) {
-            Theme.Stop(true); // Smoothly fade out the track.
-        }
-
         MouseCursor->Hide_Mouse();
         MouseCursor->Capture_Mouse();
     }
@@ -1165,6 +1161,13 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
      *  Show the dropship loadout screen if this mission has a dropship.
      */
     if (Scen->StartingDropships > 0) {
+
+        /**
+         *  If the transit theme is still playing, smoothly fade it out.
+         */
+        if (transit_theme_played && Theme.Still_Playing()) {
+            Theme.Stop(true); // Smoothly fade out the track.
+        }
 
         /**
          *  issue-284
@@ -1204,13 +1207,12 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         Play_Movie(Scen->ActionMovie, Scen->TransitTheme);
     }
 
+    /*
+    *  This seems unnecessary as ThemeClass::AI already sets a track if none is playing.
+    *
     if (Scen->ActionMovie != VQ_NONE || Scen->TransitTheme == THEME_NONE) {
-        Theme.Queue_Song(THEME_PICK_ANOTHER);
-    }
-    
-    // This seems to get played before the first game frame, making players hear a split second of the transit theme
-    // even if a trigger starts playing another theme immediately on game start.
-    /* else { 
+         Theme.Queue_Song(THEME_PICK_ANOTHER);
+    } else {
         Theme.Queue_Song(Scen->TransitTheme);
     }*/
 
