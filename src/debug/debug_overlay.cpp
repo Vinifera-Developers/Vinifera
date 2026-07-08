@@ -24,6 +24,7 @@
 #include "housetype.h"
 #include "infantry.h"
 #include "mission.h"
+#include "mouse.h"
 #include "net/combuf.h"
 #include "net/ipxconn.h"
 #include "net/ipxmgr.h"
@@ -35,6 +36,7 @@
 #include "rules.h"
 #include "session.h"
 #include "smudge.h"
+#include "tactical.h"
 #include "tag.h"
 #include "tagtype.h"
 #include "team.h"
@@ -53,6 +55,7 @@
 #include "vinifera_globals.h"
 #include "voxelanim.h"
 #include "weapontype.h"
+#include "xmouse.h"
 
 #include <imgui.h>
 
@@ -131,6 +134,15 @@ namespace
         ImGui::SeparatorText("Heaps (state)");
         ImGui::Text("Factories  : %d", Factories.Count());
         ImGui::Text("Triggers   : %d", Triggers.Count());
+
+        Cell cursormapcoords = TacticalMap->Click_Cell_Calc(MouseCursor->Get_Mouse_Point());
+        if (cursormapcoords != CELL_NONE)
+        {
+            CellClass& cell = Map[cursormapcoords];
+            ImGui::SeparatorText("Cell");
+            ImGui::Text("Owner      : %d (%s)", (int)cell.Owner, cell.Owner == HOUSE_NONE ? "<none>" : Houses[cell.Owner]->Class->IniName.c_str());
+            ImGui::Text("Land       : %d", (int)cell.Land);
+        }
 
         /**
          *  Multiplayer sync queues. OutList = outbound events,
