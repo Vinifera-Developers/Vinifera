@@ -69,6 +69,11 @@ SideClassExtension final : public AbstractTypeClassExtension
         ColorSchemeType UIColor;
 
         /**
+         *  Color scheme to be used for hover-on effects of UI elements for this side.
+         */
+        ColorSchemeType HoverHighlightColor;
+
+        /**
          *  Color scheme to be used for the tooltips of this side.
          */
         ColorSchemeType ToolTipColor;

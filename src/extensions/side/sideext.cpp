@@ -30,6 +30,7 @@
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     UIColor(COLORSCHEME_FIRST),
+    HoverHighlightColor(COLORSCHEME_FIRST),
     ToolTipColor(COLORSCHEME_FIRST),
     Crew(nullptr),
     Engineer(nullptr),
@@ -168,6 +169,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     if (!IsInitialized) {
 
         UIColor = Fetch_Scheme_Index_By_Name("LightGold");
+        HoverHighlightColor = Fetch_Scheme_Index_By_Name("LightGold");
         ToolTipColor = Fetch_Scheme_Index_By_Name("Green");
 
         Crew = Rule->Crew;
@@ -200,6 +202,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     }
 
     UIColor = ini.Get_Scheme_Index(ini_name, "UIColor", UIColor);
+    HoverHighlightColor = ini.Get_Scheme_Index(ini_name, "HoverHighlightColor", HoverHighlightColor);
     ToolTipColor = ini.Get_Scheme_Index(ini_name, "ToolTipColor", ToolTipColor);
 
     Crew = TGet_Class(ini, ini_name, "Crew", Crew);

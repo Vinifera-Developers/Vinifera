@@ -397,6 +397,7 @@ In `RULES.INI`:
 ```ini
 [SOMESIDE]                      ; Side
 UIColor=LightGold               ; ColorScheme, the color to be used when drawing UI elements.
+HoverHighlightColor=LightGold   ; ColorScheme, the color to be used for hover-on effects when drawing UI elements.
 ToolTipColor=Green              ; ColorScheme, the color to be used when drawing tooltips.
 OptionsMenuTextColor=112,255,0  ; RGB Color, the color to be used by the options menu.
 ScreenTextColor=255,255,255     ; RGB Color, the color to be used by end-of-game text.
