@@ -34,6 +34,7 @@
 #include "winutil.h"
 
 #include <atomic>
+#include <cstring>
 #include <dbghelp.h>
 #include <eh.h>
 #include <exception>
@@ -92,7 +93,7 @@ std::atomic<int> RecursionCount{-1};
  */
 static std::atomic<DWORD> DumpingThreadId{0};
 
-FixedString<65536> ExceptionBuffer;
+FixedString<131072> ExceptionBuffer;
 
 static TextFileClass ExceptionFile;
 
@@ -471,6 +472,79 @@ static void __cdecl Exception_Stack_Dump_Handler(const char *buffer)
 
 
 /**
+ *  Snapshot of the loaded-module list, captured once per dump into a static
+ *  fixed-size table so the exception path performs no allocation. Toolhelp
+ *  reads the module list from a kernel snapshot rather than walking the live
+ *  loader data under the loader lock, which a suspended sibling thread may
+ *  be holding.
+ */
+struct ExceptionModuleEntry
+{
+    uintptr_t Base;
+    uintptr_t Size;
+    char Path[MAX_PATH];
+};
+
+#define EXCEPTION_MODULE_TABLE_MAX 256
+static ExceptionModuleEntry ExceptionModuleTable[EXCEPTION_MODULE_TABLE_MAX];
+static int ExceptionModuleCount = 0;
+
+
+static void Capture_Module_Table()
+{
+    __try {
+        ExceptionModuleCount = 0;
+
+        HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, 0);
+        if (snap == INVALID_HANDLE_VALUE) {
+            return;
+        }
+
+        MODULEENTRY32 me;
+        ZeroMemory(&me, sizeof(me));
+        me.dwSize = sizeof(me);
+
+        if (Module32First(snap, &me)) {
+            do {
+                ExceptionModuleEntry &entry = ExceptionModuleTable[ExceptionModuleCount++];
+                entry.Base = reinterpret_cast<uintptr_t>(me.modBaseAddr);
+                entry.Size = me.modBaseSize;
+                std::snprintf(entry.Path, sizeof(entry.Path), "%s", me.szExePath);
+            } while (ExceptionModuleCount < EXCEPTION_MODULE_TABLE_MAX && Module32Next(snap, &me));
+        }
+
+        CloseHandle(snap);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        ExceptionModuleCount = 0;
+    }
+}
+
+
+static const ExceptionModuleEntry *Find_Module_For_Address(uintptr_t address)
+{
+    for (int i = 0; i < ExceptionModuleCount; ++i) {
+        const ExceptionModuleEntry &entry = ExceptionModuleTable[i];
+        if (address >= entry.Base && address - entry.Base < entry.Size) {
+            return &entry;
+        }
+    }
+
+    return nullptr;
+}
+
+
+/**
+ *  Returns the basename of a module path (the table stores full paths so the
+ *  report can expose codec packs and injected DLLs by install location).
+ */
+static const char *Module_Basename(const ExceptionModuleEntry *entry)
+{
+    const char *basename = std::strrchr(entry->Path, '\\');
+    return basename != nullptr ? basename + 1 : entry->Path;
+}
+
+
+/**
  *  Each dbghelp-touching section of the dump runs in its own lock-free __try
  *  helper, so a fault in one is contained and the rest still writes. (These
  *  only catch off-filter, on the dumper thread; inline, a fault hits the
@@ -498,6 +572,12 @@ static void Guarded_Crash_Site(CONTEXT *context)
         }
 
         Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " (%s +0x%" PRIXPTR ") [%s:%d]\r\n", context->Eip, funcname, addr, filename, line);
+
+        const ExceptionModuleEntry *module = Find_Module_For_Address(context->Eip);
+        if (module != nullptr) {
+            Exception_Printf("Faulting module: %s (%s+0x%" PRIXPTR ")\r\n",
+                module->Path, Module_Basename(module), context->Eip - module->Base);
+        }
 
         if (SyringeData::LastHookOrigin != nullptr) {
             Exception_Printf("Last entered hook at address: 0x%" PRIPTRSIZE PRIXPTR "\r\n", reinterpret_cast<register_t>(SyringeData::LastHookOrigin));
@@ -534,7 +614,13 @@ static void Guarded_Manual_Backtrace(CONTEXT *context)
                 break;
             }
 
-            Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR "\r\n", frame[1]);
+            const ExceptionModuleEntry *module = Find_Module_For_Address(frame[1]);
+            if (module != nullptr) {
+                Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR " (%s+0x%" PRIXPTR ")\r\n",
+                    frame[1], Module_Basename(module), frame[1] - module->Base);
+            } else {
+                Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR "\r\n", frame[1]);
+            }
 
             prev = reinterpret_cast<uintptr_t>(frame);
             frame = reinterpret_cast<uintptr_t *>(frame[0]);
@@ -543,6 +629,34 @@ static void Guarded_Manual_Backtrace(CONTEXT *context)
         Exception_Printf("\r\n");
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         Exception_Printf("  <manual backtrace faulted>\r\n");
+    }
+}
+
+
+/**
+ *  Print the loaded-module table captured by Capture_Module_Table. Base and
+ *  end addresses let any raw stack/backtrace address in the report be mapped
+ *  to its owning module by hand; full paths expose codec packs and injected
+ *  overlay DLLs by install location.
+ */
+static void Guarded_Module_List()
+{
+    __try {
+        Exception_Printf("Loaded modules:\r\n");
+
+        for (int i = 0; i < ExceptionModuleCount; ++i) {
+            const ExceptionModuleEntry &entry = ExceptionModuleTable[i];
+            Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR " - 0x%" PRIPTRSIZE PRIXPTR "  %s\r\n",
+                entry.Base, entry.Base + entry.Size, entry.Path);
+        }
+
+        if (ExceptionModuleCount == 0) {
+            Exception_Printf("  <module list unavailable>\r\n");
+        }
+
+        Exception_Printf("\r\n");
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        Exception_Printf("  <module list faulted; truncated>\r\n");
     }
 }
 
@@ -677,6 +791,12 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
     Init_Symbol_Info();
 
+    /**
+     *  Capture the loaded-module table first: the crash-site line and the
+     *  EBP-chain backtrace both annotate addresses with module+offset.
+     */
+    Capture_Module_Table();
+
     EXCEPTION_RECORD *record = e_info->ExceptionRecord;
     CONTEXT *context = e_info->ContextRecord;
 
@@ -779,6 +899,13 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     Guarded_Call_Stack(context);
 
     Exception_Printf("\r\n");
+
+    /**
+     *  The full module list makes every raw address in this report mappable
+     *  to a DLL, and exposes third-party codec/overlay DLLs loaded into the
+     *  process on the user's system.
+     */
+    Guarded_Module_List();
 
     Exception_Printf("Time Stamp : %s\r\n", Get_Date_Time_String());
     Exception_Printf("Module Name : %s\r\n", Get_Module_File_Name_Ext());
