@@ -41,3 +41,4 @@ MoviePlaybackIngameAdvanceResult MoviePlayback_Advance_Ingame(VQHandle *handle, 
 bool MoviePlayback_Destroy_Ingame(VQHandle *handle);
 bool MoviePlayback_Pause_Ingame(VQHandle *handle);
 bool MoviePlayback_Resume_Ingame(VQHandle *handle);
+void MoviePlayback_Update_Networking();

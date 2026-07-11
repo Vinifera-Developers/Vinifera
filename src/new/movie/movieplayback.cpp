@@ -322,13 +322,17 @@ bool MoviePlayer::Update_Playback_State()
         return false;
     }
 
-    if (!GameInFocus && !Clock.Paused) {
+    bool resume = !Session.Singleplayer_Game() || GameInFocus;
+
+    if (!resume && !Clock.Paused) {
         Pause();
-    } else if (GameInFocus && Clock.Paused) {
+    } else if (resume && Clock.Paused) {
         Resume();
     }
 
-    if (Keyboard->Check()) {
+    MoviePlayback_Update_Networking();
+
+    if (Session.Singleplayer_Game() && Keyboard->Check()) {
         if (Keyboard->Get() == (KN_RLSE_BIT | KN_ESC)) {
             DEBUG_INFO("{}: Breakout.\n", Backend->Get_Name());
             Stop();
@@ -961,4 +965,27 @@ bool MoviePlayback_Resume_Ingame(VQHandle *handle)
     }
 
     return true;
+}
+
+
+/**
+ *  Periodically sends a message to other players in multiplayer during movie playback
+ *  so they and the CnCNet tunnel server don't forget about us.
+ */
+void MoviePlayback_Update_Networking()
+{
+    if (!Session.Singleplayer_Game()) {
+
+        // Static initializer is run when this block is first executed
+        static DWORD LastNetworkRefreshTime = timeGetTime() + 1000;
+        const DWORD now = timeGetTime();
+
+        // timeGetTime wraps around every 49.7 days of runtime,
+        // using subtraction prevents the wrap-around from causing issues
+        if (now - LastNetworkRefreshTime >= 1000) {
+            Session.Loading_Callback(100);
+            Call_Back(); // Call_Back handles incoming network messages
+            LastNetworkRefreshTime = now;
+        }
+    }
 }

@@ -14,6 +14,7 @@
 #include "hooker.h"
 #include "house.h"
 #include "housetype.h"
+#include "movieplayback.h"
 #include "observer_hooks.h"
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
@@ -107,16 +108,7 @@ DEFINE_HOOK(0x0066BB57, _Play_VQA_Forbid_Skipping_In_MP_Patch, 0)
  */
 DEFINE_HOOK(0x0066BA56, _Play_VQA_Network_Callback_Patch, 7)
 {
-    if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
-        static unsigned NextNetworkRefreshTime = UINT_MAX;
-
-        if (timeGetTime() >= NextNetworkRefreshTime) {
-            Session.Loading_Callback(100);
-            Call_Back();
-        }
-
-        NextNetworkRefreshTime = timeGetTime() + 1000;
-    }
+    MoviePlayback_Update_Networking();
 
     return 0;
 }
