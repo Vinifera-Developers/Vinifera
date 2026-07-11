@@ -128,3 +128,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug that would make healer units unselect themselves when adding other units to current selection.
 - Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage.
+- Fix a bug where `RadarInvisible=yes` did not make a building be radar invisible.
