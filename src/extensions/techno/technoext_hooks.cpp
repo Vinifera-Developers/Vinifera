@@ -122,6 +122,7 @@ public:
     int _Anti_Air() const;
     bool _Revealed(HouseClass* house);
     void _Look(bool incremental, bool dontmap);
+    int _Value(void) const;
 };
 
 
@@ -3666,6 +3667,34 @@ DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
 
 
 /**
+ *  TechnoClass::Value replacement to use our extended difficulty data.
+ *
+ *  @author: tomsons26, ZivDero, Rampastring
+ */
+int TechnoClassExt::_Value(void) const
+{
+    int value = 0;
+
+    /*
+    **  In early missions, contents of transports are not figured
+    **  into the total value.
+    */
+    if (RuleExtension->Diff[House->Difficulty].IsContentScan || House->IQ >= Rule->IQContentScan) {
+        if (Cargo.Is_Something_Attached()) {
+            FootClass* object = Cargo.Attached_Object();
+
+            while (object != NULL) {
+                value += object->Value();
+                object = (FootClass*)(ObjectClass*)object->Next;
+            }
+        }
+    }
+
+    return Risk() + TClass->Reward + value;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -3701,4 +3730,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
     Patch_Jump(0x0062AAD0, &TechnoClassExt::_Revealed);
     Patch_Jump(0x00638310, &TechnoClassExt::_Look);
+    Patch_Jump(0x00636520, &TechnoClassExt::_Value);
 }
