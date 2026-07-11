@@ -35,6 +35,7 @@
 #include "language.h"
 #include "mouse.h"
 #include "options.h"
+#include "overlaytype.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "session.h"
@@ -114,6 +115,7 @@ public:
     bool _Can_Deploy_Now() const;
     int _Refund_Amount() const;
     bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
+    int _Evaluate_Just_Cell(Cell const& cell) const;
     bool _Should_Self_Heal_Now() const;
     int _Apparent_Brightness(int brightness) const;
     void _Flashing_AI();
@@ -3391,6 +3393,84 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
 
 
 /**
+ *  Evaluate_Just_Cell replacement to read our extended difficulty instead of
+ *  original game difficulty information.
+ *
+ *  @author: tomsons26, ZivDero, Rampastring
+ */
+int TechnoClassExt::_Evaluate_Just_Cell(Cell const& cell) const
+{
+    /*
+     **    First, only computer objects are allowed to automatically scan for walls.
+     */
+    if (House->Is_Human_Player()) {
+        return 0;
+    }
+
+    /*
+    **    Even then, if the difficulty indicates that it shouldn't search for wall
+    **    targets, then don't allow it to do so.
+    */
+    if (!RuleExtension->Diff[House->Difficulty].IsWallDestroyer) {
+        return 0;
+    }
+
+    /*
+    **    Determine if, in fact, a wall is located at this cell location.
+    */
+    CellClass const* cellptr = &Map[cell];
+    if (cellptr->Overlay == OVERLAY_NONE || !OverlayTypes[cellptr->Overlay]->IsWall) {
+        return 0;
+    }
+
+    /*
+    **    As a convenience to the target scanning logic, don't consider any wall to be
+    **    a target if it isn't in range of the primary weapon.
+    */
+    WeaponSlotType primary = What_Weapon_Should_I_Use(&Map[cell]);
+    if (!In_Range(cellptr->Center_Coord(), primary)) {
+        return 0;
+    }
+
+    /*
+    **    See if the object has a weapon that can damage walls.
+    */
+    if (PrimaryWeapon == NULL || PrimaryWeapon->WarheadPtr == NULL) {
+        return 0;
+    }
+
+    /*
+    **    If the weapon cannot deal with ground based targets, then don't consider
+    **    this a valid cell target.
+    */
+    if (PrimaryWeapon->Bullet != NULL && !PrimaryWeapon->Bullet->IsAntiGround) {
+        return 0;
+    }
+
+    /*
+    **    If the primary weapon cannot destroy a wall, then don't give the cell any
+    **    value as a target.
+    */
+    if (!PrimaryWeapon->WarheadPtr->IsWallDestroyer) {
+        return 0;
+    }
+
+    /*
+    **    If this is a friendly wall, then don't attack it.
+    */
+    if (cellptr->Owner == HOUSE_NONE || House->Is_Ally(Houses[cellptr->Owner])) {
+        return 0;
+    }
+
+    /*
+    **    Since a wall was found, then return a value adjusted according to the range the wall
+    **    is from the object. The greater the range, the lesser the value returned.
+    */
+    return Weapon_Range(WEAPON_SLOT_PRIMARY) - ::Distance(this->Center_Coord(), cellptr->Center_Coord());
+}
+
+
+/**
  *  Fixes a bug where placed buildings are not revealed for allies.
  *
  *  Author: Rampastring
@@ -3615,6 +3695,7 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
     Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
     Patch_Jump(0x0062D0F0, &TechnoClassExt::_Evaluate_Object);
+    Patch_Jump(0x0062DA70, &TechnoClassExt::_Evaluate_Just_Cell);
     Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
     Patch_Jump(0x00639C70, &TechnoClassExt::_Apparent_Brightness);
     Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
