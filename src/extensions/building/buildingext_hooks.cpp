@@ -2587,6 +2587,25 @@ DEFINE_HOOK(0x0042A0B0, Building_Class_Unlimbo_Sight_Range_Patch, 0)
 }
 
 
+/*
+ *  Patches BuildingClass::Is_Radar_Visible after checking the 'IsRadarVisible' property.
+ *  Checks if the Building Class of this building has the 'RadarInvisible' (which is translated to IsStealthy in code) set to true.
+ *  In such a case, we should not draw the building in the minimap.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0043AC9F, _BuildingClass_Is_Radar_Visible_Stealthy_Patch, 6)
+{
+    GET(BuildingTypeClass*, building_class, EAX);
+
+    if (building_class->IsStealthy) {
+        return 0x0043ADCA; // return false - do not draw
+    }
+
+    return 0;
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
