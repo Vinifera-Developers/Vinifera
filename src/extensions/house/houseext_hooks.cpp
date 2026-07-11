@@ -838,6 +838,8 @@ void HouseClassExt::_MPlayer_Defeated()
  *
  *  @author: 05/08/1995 JLB - Created
  *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ *           11/07/2026 Rampastring - Use Shush's extended sight range logic when revealing allied objects,
+ *                                    don't reveal MultiplayPassive house objects in multiplayer
  */
 void HouseClassExt::_Make_Ally(HouseClass* house)
 {
@@ -908,7 +910,11 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
                 for (int index = 0; index < Technos.Count(); index++) {
                     TechnoClass const* t = Technos[index];
 
-                    if (!t->IsInLimbo && t->House == this) {
+                    /**
+                     *  If in multiplayer, don't reveal objects owned by MultiplayPassive houses.
+                     *  This matches the behaviour of TechnoClass::Look.
+                     */
+                    if (!t->IsInLimbo && t->House == this && (!Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
                         int sight_range = Extension::Fetch(t)->Get_Sight_Range();
 
                         Map.Sight_From(t->Center_Coord(), sight_range, PlayerPtr);
