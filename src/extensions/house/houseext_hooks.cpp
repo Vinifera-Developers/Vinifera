@@ -909,7 +909,9 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
                     TechnoClass const* t = Technos[index];
 
                     if (!t->IsInLimbo && t->House == this) {
-                        Map.Sight_From(t->Center_Coord(), t->TClass->SightRange, PlayerPtr);
+                        int sight_range = Extension::Fetch(t)->Get_Sight_Range();
+
+                        Map.Sight_From(t->Center_Coord(), sight_range, PlayerPtr);
                     }
                 }
             }
@@ -2076,26 +2078,6 @@ ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
     return old;
 }
 
-
-/**
- *  Patches HouseClass::Make_Ally to take sight range bonuses into account when revealing the area around technos we that were allied with
- *
- *  @author: JoyfulShush
- */
-DEFINE_HOOK(0x004BDD4C, HouseClass_Make_Ally_Sight_Range_Patch, 0)
-{
-    GET(TechnoClass*, techno, ESI);
-    GET(HouseClass*, this_ptr, EDI);
-
-    auto techno_ext = Extension::Fetch(techno);
-
-    int sight_range = techno_ext->Get_Sight_Range();
-    Coord coord = techno->Center_Coord();
-
-    Map.Sight_From(coord, sight_range, this_ptr);
-
-    return 0x004BDD83;
-}
 
 /**
  *  Patches HouseClass::Updated_Spied_By to take sight range bonuses into account when revealing the area
