@@ -266,7 +266,7 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 | 139      | Detach Sound             |
 |          | Detaches any ambient sound from all objects associated with the trigger. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 | 140      | Modify Team Delays             |
-|          | Changes the map's TeamDelay to a new value. Affects how often AITriggers execute. Note: Affects all AI houses on the map. | Other (0) | *unused*           | Delay Amount        | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Changes the map's TeamDelay to a new value. Affects how often AITriggers execute. Note: Affects all AI houses on the map. | Other (0) | *unused*           | Delay Time (Hard)        | Delay Time (Medium)   | Delay Time (Easy)   | *unused*   | *unused*   |
 
 ### [135] Adjust House Modifier — Modifier Types
 
