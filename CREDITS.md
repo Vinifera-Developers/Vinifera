@@ -189,6 +189,8 @@ This page lists all the individual contributions to the project by their author.
   - Add the ability to specify sight ranges for technos when they are veteran and elite.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **Krnyoshi**:
+  - Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached.
 - **Noble Fish**:
   - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
