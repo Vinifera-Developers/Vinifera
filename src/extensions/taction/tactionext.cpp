@@ -1825,16 +1825,25 @@ bool TActionClassExtension::Do_DETACH_SOUND(HouseClass* house, ObjectClass* obje
  */
 bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    int newTeamDelay = This()->TriggerRect.X;
+    int delayHard = This()->TriggerRect.X;
+    int delayMedium = This()->TriggerRect.Y;
+    int delayEasy = This()->TriggerRect.Width;
 
     /* Defaults to zero if a negative number is given */
-    if (newTeamDelay < 0) {
-        newTeamDelay = 0;
+    if (delayHard < 0) {
+        delayHard = 0;
     }
 
-    for (int index = 0; index < Rule->TeamDelays.Count(); index++) {
-        Rule->TeamDelays[index] = newTeamDelay;
+    if (delayMedium < 0) {
+        delayMedium = 0;
     }
+
+    if (delayEasy < 0) {
+        delayEasy = 0;
+    }
+
+{
+        Rule->TeamDelays = {delayHard, delayMedium, delayEasy};
 
     return true;
 }
