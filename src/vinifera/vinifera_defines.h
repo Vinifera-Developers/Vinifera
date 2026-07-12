@@ -214,6 +214,7 @@ typedef enum ExtTActionType
     EXT_TACTION_STOP_SOUNDS_AT,
     EXT_TACTION_ATTACH_SOUND,
     EXT_TACTION_DETACH_SOUND,
+    EXT_TACTION_MODIFY_TEAM_DELAY,
 
     /**
      *  The new total ExtTActionType count.

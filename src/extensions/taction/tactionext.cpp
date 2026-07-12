@@ -76,6 +76,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Stop Sounds At", "Stops sounds at the waypoint that were started by Play Sound At, and detaches any ambient previously attached to a building or terrain there."},
     { "Attach sound", "Attaches an ambient sound to all objects associated with the trigger. The VocType should have Control=LOOP for a continuous attachment; non-looping vocs play once and then go silent." },
     { "Detach sound", "Detaches any ambient sound from all objects associated with the trigger." },
+    { "Modify TeamDelays", "Changes the map's TeamDelay to a new value. Affects how often AITriggers execute. Note: Affects all AI houses on the map." },
 };
 
 
@@ -306,6 +307,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(STOP_SOUNDS_AT);
         EXT_DISPATCH(ATTACH_SOUND);
         EXT_DISPATCH(DETACH_SOUND);
+        EXT_DISPATCH(MODIFY_TEAM_DELAY);
 
         /**
          *  Unexpected TActionType.
@@ -1813,4 +1815,26 @@ bool TActionClassExtension::Do_DETACH_SOUND(HouseClass* house, ObjectClass* obje
         }
     }
     return success;
+}
+
+
+/**
+ *  Modifies the map's TeamDelay to a new amount.
+ * 
+ *  @author: Krnyoshi
+ */
+bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    int newTeamDelay = This()->TriggerRect.X;
+
+    /* Defaults to zero if a negative number is given */
+    if (newTeamDelay < 0) {
+        newTeamDelay = 0;
+    }
+
+    for (int index = 0; index < Rule->TeamDelays.Count(); index++) {
+        Rule->TeamDelays[index] = newTeamDelay;
+    }
+
+    return true;
 }
