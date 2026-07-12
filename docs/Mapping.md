@@ -265,6 +265,8 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 |          | Attaches an ambient sound to all objects associated with the trigger. The VocType should have `Control=LOOP` for a continuous attachment; non-looping vocs play once and then go silent. | Sound (6) | VocType (name)           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 | 139      | Detach Sound             |
 |          | Detaches any ambient sound from all objects associated with the trigger. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
+| 140      | Modify Team Delays             |
+|          | Changes the map's TeamDelay to a new value. Affects how often AITriggers execute. Note: Affects all AI houses on the map. | Other (0) | *unused*           | Delay Amount        | *unused*   | *unused*   | *unused*   | *unused*   |
 
 ### [135] Adjust House Modifier — Modifier Types
 
@@ -277,6 +279,13 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 | 4 | Rate of Fire |
 | 5 | Cost |
 | 6 | Build Time |
+
+### [140] Modify Team Delays
+AI aggression via AITriggers can now be modified by setting a new delay value.
+
+NOTE:
+- All AI houses with AITriggers will be affected.
+- Negative numbers will default to 0.
 
 ## Trigger Events
 

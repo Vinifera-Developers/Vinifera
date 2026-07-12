@@ -189,6 +189,8 @@ This page lists all the individual contributions to the project by their author.
   - Add the ability to specify sight ranges for technos when they are veteran and elite.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **Krnyoshi**:
+  - Add a new TAction "Modify Team Delays" where you can increase or decrease the delay for AITrigger execution.
 - **Noble Fish**:
   - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
