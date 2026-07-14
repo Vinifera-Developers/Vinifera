@@ -1819,31 +1819,74 @@ bool TActionClassExtension::Do_DETACH_SOUND(HouseClass* house, ObjectClass* obje
 
 
 /**
- *  Modifies the map's TeamDelay to a new amount.
+ *  Modifies the trigger house's TeamDelay to a new amount.
  * 
  *  @author: Krnyoshi
  */
 bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    int delayHard = This()->TriggerRect.X;
-    int delayMedium = This()->TriggerRect.Y;
-    int delayEasy = This()->TriggerRect.Width;
+    if (house == nullptr) return false;
 
-    /* Defaults to zero if a negative number is given */
-    if (delayHard < 0) {
-        delayHard = 0;
+    long teamDelay = -1;
+    const int oldDelay = house->TeamTime;
+
+    DEBUG_INFO("oldDelay: {} \n", oldDelay);
+
+    HouseClassExtension* house_ext = Extension::Fetch(house);
+
+    if (house_ext == nullptr) return false;
+
+    switch (Scen->CDifficulty) {
+    case DIFF_HARD:
+        teamDelay = This()->TriggerRect.X;
+        break;
+    case DIFF_NORMAL:
+        teamDelay = This()->TriggerRect.Y;
+        break;
+    case DIFF_EASY:
+        teamDelay = This()->TriggerRect.Width;
+        break;
+    default:
+        return false;
     }
 
-    if (delayMedium < 0) {
-        delayMedium = 0;
+    /*
+    *  A negative number disables the house's override and restores the original rules.ini/map-ini TeamDelay values.
+    *  Although 3 arguments are required, the TAction will automatically determine which value to reset based on Scenario
+    *  difficulty.
+    */
+    if (teamDelay < 0) {
+        house_ext->TeamDelayOverride = -1;
+
+        switch (Scen->CDifficulty) {
+        case DIFF_HARD:
+            teamDelay = Rule->TeamDelays[0];
+            break;
+        case DIFF_NORMAL:
+            teamDelay = Rule->TeamDelays[1];
+            break;
+        case DIFF_EASY:
+            teamDelay = Rule->TeamDelays[2];
+            break;
+        default:
+            return false;
+        }
+
+        DEBUG_INFO("Restored {} TeamDelay to Rules.ini/Map-INI value {} \n", house->Class->Name(), teamDelay);
+
+    } else {
+
+        /*
+        *  Stores the persistent trigger house's value used by the HouseClass::AI hook whenever the
+        *  game reloads TeamTime.
+        */
+        house_ext->TeamDelayOverride = static_cast<int>(teamDelay);
+
+        DEBUG_INFO("Set {} TeamDelay override to {} \n", house->Class->Name(), teamDelay);
     }
 
-    if (delayEasy < 0) {
-        delayEasy = 0;
-    }
-
-{
-        Rule->TeamDelays = {delayHard, delayMedium, delayEasy};
+    house->TeamTime = teamDelay;
 
     return true;
+
 }
