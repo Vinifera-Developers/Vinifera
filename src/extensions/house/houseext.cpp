@@ -57,7 +57,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     BuildNavalUnit(UNIT_NONE),
     SpawnWaypoint(WAYPOINT_NONE),
     IronCurtainAvailabilityTimer(),
-    IsPauseRepairs(false)
+    IsPauseRepairs(false),
+    TeamDelayOverride(-1)
 {
     for (int i = 0; i < Tiberiums.Count(); i++)
     {

@@ -123,4 +123,10 @@ public:
      *  Determines whether repairs are paused instead of stopped when this house has insufficient funds.
      */
     bool IsPauseRepairs;
+
+    /*
+    *  Per house TeamTime delay override.
+    *  Note: A negative value resets back to the Rule->TeamDelays or map-INI TeamDelays value.
+    */
+    int TeamDelayOverride;
 };
