@@ -304,12 +304,10 @@ PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of 
 
 in `RULES.INI`:
 ```ini
-[General]
-UseBridgeHealth=no 	; boolean, should bridge health trackers
-
 [CombatDamage]
+UseBridgeHealth=no   	; boolean, should bridges track their health instead of having random chance to break
 BridgeStrength=1000 	; integer, the health each bridge tile can sustain before breaking. Existing key from vanilla.
-BridgeArmor= 			; Armor Type, the armor type of associated with the bridge for damage calculations. Requires UseBridgeHealth=yes under [General] for this to take effect.
+BridgeArmor= 			; Armor Type, the armor type of associated with the bridge for damage calculations. Requires UseBridgeHealth=yes for this to take effect.
 ```
 
 ## Prerequisites
