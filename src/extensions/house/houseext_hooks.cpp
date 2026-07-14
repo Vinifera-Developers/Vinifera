@@ -1133,7 +1133,7 @@ void HouseClassExt::_Production_Check()
 * 
 *  @author: Krnyoshi
 */
-DEFINE_HOOK(0x004BCA87, _HouseClass_AI_PerHouseTeamDelay_Patch, 6)
+DEFINE_HOOK(0x004BCA87, _HouseClass_AI_PerHouse_TeamDelay_Patch, 6)
 {
     GET(HouseClass*, house, ESI);
 
