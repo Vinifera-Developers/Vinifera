@@ -3490,6 +3490,7 @@ DEFINE_HOOK(0x0062E9F2, TechnoClass_AI_Self_Heal_Repair_Step, 0)
     return 0x0062E9F8;
 }
 
+
 /**
  *  Main function for patching the hooks.
  */
