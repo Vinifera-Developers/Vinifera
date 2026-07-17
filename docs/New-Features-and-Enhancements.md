@@ -1749,7 +1749,7 @@ WeedPipIndex=1  ; integer, the pip index used for Weeds.
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]      ; Tiberium
-MinSpreadStage=0    ; integer, the minimum growth stage at which this Tiberium can spread to a nearby cell. Defaults to ((Tiberium Index in list) / 2 + 1).
+MinSpreadStage=5    ; integer, the minimum growth stage at which this Tiberium can spread to a nearby cell.
 SpreadSpawnStage=5  ; integer, newly spread Tiberium spawns grown to this stage.
 ```
 
