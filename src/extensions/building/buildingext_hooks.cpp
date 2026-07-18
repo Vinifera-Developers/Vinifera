@@ -56,6 +56,7 @@
 #include "unit.h"
 #include "unitext.h"
 #include "unittype.h"
+#include "unittypeext.h"
 #include "vinifera_saveload.h"
 #include "voc.h"
 #include "vox.h"
@@ -91,6 +92,7 @@ public:
     SuperWeaponType _Fetch_Super_Weapon2() const;
     void _Swizzle_Light_Source();
     RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);
+    MoveType _Can_Enter_Cell(CellClass const* cell, FacingType dir, int cell_height, CellClass const*, bool) const;
 };
 
 
@@ -2652,6 +2654,38 @@ DEFINE_HOOK(0x0042D26B, Building_Class_Exit_Object_Jumpjet_Radio_Contact_Patch, 
 }
 
 
+/*
+ *  Reimplements BuildingClass::Can_Enter_Cell, which is used for undeploy logic as well as building unlimbo logic
+ *  Improved the undeploy logic to check for the cell being hovered on with the cursor
+ *  rather than using building placement logic.
+ *  This fixes the cursor showing "NO MOVE" when hovering over tiberium, bridges, or invisible units or structures
+ *  Naval buildings checks water passage while making sure the cursor is not on a bridge,
+ *  while regular buildings checks land passage as well as bridges.
+ */
+MoveType BuildingClassExt::_Can_Enter_Cell(CellClass const* cell, FacingType dir, int cell_height, CellClass const*, bool) const
+{    
+    if (Class->UndeploysInto && IsDown && !IsInLimbo) {
+        auto class_ext = Extension::Fetch(Class);
+        auto passability = cell->Passability;        
+        
+        if (class_ext->IsNaval) {
+            if (passability != PASSABLE_WATER || cell->Is_Bridge_Here()) {
+                return MOVE_NO;
+            }
+        } else {
+            if (passability != PASSABLE_LAND && !cell->Is_Bridge_Here()) {
+                return MOVE_NO;
+            }
+        }
+
+        return MOVE_OK;
+    }
+
+    Cell cell_id = cell->CellID;
+    return Class->Legal_Placement(cell_id, House) ? MOVE_OK : MOVE_NO;
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -2681,4 +2715,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0043AF60, &BuildingClassExt::_Fetch_Super_Weapon);
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
     Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
+    Patch_Jump(0x0042FE70, &BuildingClassExt::_Can_Enter_Cell);
 }
