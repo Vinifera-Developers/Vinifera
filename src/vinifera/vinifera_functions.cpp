@@ -206,7 +206,8 @@ static bool Vinifera_Load_Exception_Database(const char *filename)
         
         tok = std::strtok(nullptr, ",");
         ASSERT(tok != nullptr);
-        std::strncpy(einfo.Description, tok, std::strlen(tok));
+        std::strncpy(einfo.Description, tok, sizeof(einfo.Description) - 1);
+        einfo.Description[sizeof(einfo.Description) - 1] = '\0';
 
         ExceptionInfoDatabase.Add(einfo);
     }
