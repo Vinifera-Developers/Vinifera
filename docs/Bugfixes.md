@@ -133,3 +133,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point
 - Fix a bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination
 - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building.
+- Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
