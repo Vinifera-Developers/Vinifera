@@ -905,6 +905,7 @@ AttachType _Attaches_To(TEventType event)
     case TEVENT_CREDITS_BELOW:
     case TEVENT_THIEVED:
     case TEVENT_ANY:
+    case EXT_TEVENT_BUILDING_DOES_NOT_EXIST:
         attach |= ATTACH_HOUSE;
         break;
 
