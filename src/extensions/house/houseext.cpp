@@ -11,6 +11,7 @@
 
 #include "houseext.h"
 
+#include "battleui.h"
 #include "building.h"
 #include "ccini.h"
 #include "debughandler.h"
@@ -25,7 +26,6 @@
 #include "rulesext.h"
 #include "saveload.h"
 #include "session.h"
-#include "battleui.h"
 #include "storageext.h"
 #include "team.h"
 #include "teamtype.h"
@@ -35,6 +35,7 @@
 #include "utracker.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
+#include "vinifera_util.h"
 #include "voc.h"
 #include "vox.h"
 
@@ -826,8 +827,20 @@ int HouseClassExtension::AI_Unit()
 {
     if (This()->BuildUnit != UNIT_NONE) return TICKS_PER_SECOND;
 
-    int harv = This()->ActiveUQuantity.Value(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
-    int ref = This()->ActiveBQuantity.Value(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
+    UnitTypeClass const* harvester = This()->Get_First_ActLike(Rule->HarvesterUnit);
+    if (harvester == nullptr) {
+        Vinifera_Log_And_Show_WWMessageBox("House %s has no valid harvester unit defined.", This()->Class->IniName.c_str());
+        ASSERT_FATAL_PRINT(harvester != nullptr, "House %s has no valid harvester unit defined.", This()->Class->IniName);
+    }
+
+    BuildingTypeClass const* refinery = This()->Get_First_ActLike(Rule->BuildRefinery);
+    if (refinery == nullptr) {
+        Vinifera_Log_And_Show_WWMessageBox("House %s has no valid refinery building defined.", This()->Class->IniName.c_str());
+        ASSERT_FATAL_PRINT(refinery != nullptr, "House %s has no valid refinery building defined.", This()->Class->IniName);
+    }
+
+    int harv = This()->ActiveUQuantity.Value(harvester->HeapID);
+    int ref = This()->ActiveBQuantity.Value(refinery->HeapID);
     int mult = RuleExtension->AIHarvestersPerRefinery[This()->Difficulty];
 
     if (Session.Type == GAME_NORMAL && RuleExtension->IsAIOneHarvesterInSingleplayer) {
@@ -839,8 +852,8 @@ int HouseClassExtension::AI_Unit()
     **  harvester if possible.
     */
     if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
-        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->Level <= This()->Control.TechLevel) {
-            This()->BuildUnit = This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID;
+        if (harvester->Level <= This()->Control.TechLevel) {
+            This()->BuildUnit = harvester->HeapID;
             return TICKS_PER_SECOND;
         }
     }
