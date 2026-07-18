@@ -190,6 +190,8 @@ This page lists all the individual contributions to the project by their author.
   - Allow customizing the amount of strength technos recover in each self-heal instance per techno and globally.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **Krnyoshi**:
+  - Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached.
 - **Noble Fish**:
   - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
