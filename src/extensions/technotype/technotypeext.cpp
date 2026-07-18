@@ -93,7 +93,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsHideWakeWhenCloaked(false),
     SelfHealingCap(-1),
     SelfHealingRate(-1),
-    SelfHealRepairStep(-1),
+    SelfHealingStep(-1),
     IsDetectDisguise(false),
     IronCurtainPriorityTarget(false),
     EscortRange(-1),
@@ -271,7 +271,7 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsHideWakeWhenCloaked);
     crc(SelfHealingCap);
     crc(SelfHealingRate);
-    crc(SelfHealRepairStep);
+    crc(SelfHealingStep);
     crc(IsDetectDisguise);
     crc(IronCurtainPriorityTarget);
     crc(EscortRange);
@@ -422,7 +422,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     SelfHealingCap = ini.Get_Float(ini_name, "SelfHealingCap", SelfHealingCap);
     SelfHealingRate = ini.Get_Float(ini_name, "SelfHealingRate", SelfHealingRate);
-    SelfHealRepairStep = ini.Get_Int(ini_name, "UnitSelfHealRepairStep", SelfHealRepairStep);
+    SelfHealingStep = ini.Get_Int(ini_name, "SelfHealingStep", SelfHealingStep);
 
     IsDetectDisguise = ini.Get_Bool(ini_name, "DetectDisguise", IsDetectDisguise);
 

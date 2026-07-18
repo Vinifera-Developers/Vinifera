@@ -265,7 +265,7 @@ public:
     /**
      *  Define the amount of strength regenerated whenever this techno self-heals
      */
-    int SelfHealRepairStep;
+    int SelfHealingStep;
 
     /**
      *  Does this object need to decloak before firing?
