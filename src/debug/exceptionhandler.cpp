@@ -34,6 +34,7 @@
 #include "winutil.h"
 
 #include <atomic>
+#include <cmath>
 #include <dbghelp.h>
 #include <eh.h>
 #include <exception>
@@ -471,6 +472,31 @@ static void __cdecl Exception_Stack_Dump_Handler(const char *buffer)
 
 
 /**
+ *  Interpret an 80-bit x87 register (10 bytes, little-endian) as a double.
+ *  FloatSave.RegisterArea holds 80-bit extended-precision values (64-bit
+ *  mantissa, 15-bit exponent, sign - no implicit bit), so they must be
+ *  decoded rather than reinterpreted as a 64-bit IEEE-754 double.
+ */
+static double Read_x87_Register(const uint8_t *bytes)
+{
+    const uint64_t mantissa = *reinterpret_cast<const uint64_t *>(bytes);
+    const uint16_t sign_exp = *reinterpret_cast<const uint16_t *>(bytes + 8);
+    const double sign = (sign_exp & 0x8000) ? -1.0 : 1.0;
+    const int exponent = sign_exp & 0x7FFF;
+
+    if (exponent == 0 && mantissa == 0) {
+        return 0.0;
+    }
+
+    if (exponent == 0x7FFF) {
+        return sign * HUGE_VAL; // Infinity or NaN.
+    }
+
+    return sign * std::ldexp(static_cast<double>(mantissa), exponent - 16383 - 63);
+}
+
+
+/**
  *  Each dbghelp-touching section of the dump runs in its own lock-free __try
  *  helper, so a fault in one is contained and the rest still writes. (These
  *  only catch off-filter, on the dumper thread; inline, a fault hits the
@@ -742,7 +768,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was written to.\r\n", record->ExceptionInformation[1]);
                 break;
             case 2: // Execute violation
-                Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was written to.\r\n", record->ExceptionInformation[1]);
+                Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was executed.\r\n", record->ExceptionInformation[1]);
                 break;
             case 8: // User-mode data execution prevention (DEP).
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " DEP violation.\r\n", record->ExceptionInformation[1]);
@@ -880,15 +906,27 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
             Exception_Printf("%02X", context->FloatSave.RegisterArea[i * 10 + j]);
         }
 
-        Exception_Printf("   %+#.17e\r\n", *reinterpret_cast<double *>(&context->FloatSave.RegisterArea[i * 10]));
+        Exception_Printf("   %+#.17e\r\n", Read_x87_Register(&context->FloatSave.RegisterArea[i * 10]));
     }
 
     /**
      *  MMX Registers.
      */
-    if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE)) {
-        Exception_Printf("MMX0:%016llX\tMMX1:%016llX\tMMX2:%016llX\tMMX3:%016llX\r\n", context->ExtendedRegisters[0], context->ExtendedRegisters[1], context->ExtendedRegisters[2], context->ExtendedRegisters[3]);
-        Exception_Printf("MMX4:%016llX\tMMX5:%016llX\tMMX6:%016llX\tMMX7:%016llX\r\n", context->ExtendedRegisters[4], context->ExtendedRegisters[5], context->ExtendedRegisters[6], context->ExtendedRegisters[7]);
+    if ((context->ContextFlags & CONTEXT_EXTENDED_REGISTERS) == CONTEXT_EXTENDED_REGISTERS
+        && IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE)) {
+
+        /**
+         *  MM0-MM7 alias the ST register mantissas and live in the FXSAVE area
+         *  (ExtendedRegisters) at offset 32, 16 bytes apart - not in the first
+         *  bytes of the area, which hold the control/status words.
+         */
+        const uint8_t *mmx = &context->ExtendedRegisters[32];
+        Exception_Printf("MMX0:%016llX\tMMX1:%016llX\tMMX2:%016llX\tMMX3:%016llX\r\n",
+            *reinterpret_cast<const uint64_t *>(mmx + 0 * 16), *reinterpret_cast<const uint64_t *>(mmx + 1 * 16),
+            *reinterpret_cast<const uint64_t *>(mmx + 2 * 16), *reinterpret_cast<const uint64_t *>(mmx + 3 * 16));
+        Exception_Printf("MMX4:%016llX\tMMX5:%016llX\tMMX6:%016llX\tMMX7:%016llX\r\n",
+            *reinterpret_cast<const uint64_t *>(mmx + 4 * 16), *reinterpret_cast<const uint64_t *>(mmx + 5 * 16),
+            *reinterpret_cast<const uint64_t *>(mmx + 6 * 16), *reinterpret_cast<const uint64_t *>(mmx + 7 * 16));
     }
 
     /**

@@ -3494,6 +3494,39 @@ DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
 
 
 /**
+ *  Patches TechnoClass::AI to allow customizing the amount of health regenerated whenever a unit self-heals.
+ *  Can be configured on both the techno level and globally.
+ *  Defaults to 1 when the key is omitted.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0062E9EF, TechnoClass_AI_Self_Heal_Repair_Step, 0)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr->TClass);
+
+    int strength_to_recover = this_ptr_ext->SelfHealingStep > 0 
+        ? this_ptr_ext->SelfHealingStep
+        : RuleExtension->SelfHealingStep;
+    
+    int max_strength = this_ptr->TClass->MaxStrength;
+
+    // Don't allow to self-heal 0 health or negative values
+    if (strength_to_recover > 0) {
+        // Don't allow unit to recover strength beyond its max strength
+        this_ptr->Strength = std::min(this_ptr->Strength + strength_to_recover, max_strength);
+    }
+
+    // Stolen bytes
+    R->EAX(this_ptr->Strength);
+    R->ECX(this_ptr);
+
+    return 0x0062E9F8;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
