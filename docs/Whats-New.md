@@ -122,6 +122,7 @@ New:
 - Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination (by JoyfulShush)
 - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building (by JoyfulShush)
 - Fix a bug where cloaked units sensed by nearby enemy units can cloak again immediately (by JoyfulShush)
+- Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
