@@ -698,9 +698,9 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
     IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
-    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
-    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
-    SelfHealingStep = ini.Get_Int(GENERAL, "SelfHealingStep", SelfHealingStep);
+    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealCap", SelfHealingCap);
+    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealRate", SelfHealingRate);
+    SelfHealingStep = ini.Get_Int(GENERAL, "SelfHealStep", SelfHealingStep);
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
     EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
