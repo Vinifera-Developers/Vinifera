@@ -1827,8 +1827,8 @@ bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass*
 {
     if (house == nullptr) return false;
 
-    long teamDelay = -1;
-    const int oldDelay = house->TeamTime;
+    long team_delay = -1;
+    const int old_delay = house->TeamTime;
 
     DEBUG_INFO("oldDelay: {} \n", oldDelay);
 

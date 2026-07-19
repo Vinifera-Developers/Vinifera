@@ -1124,13 +1124,6 @@ void HouseClassExt::_Production_Check()
 *  This hook intercepts the reload of TeamTime.DelayTime with a custom value. However, if the
 *  the TeamDelayOverride < 0, it reverts back to the rules.ini or map-ini edited TeamDelays.
 * 
-*  Original instruction:
-*    mov dword ptr [esi+590h], ecx
-* 
-*  At this point:
-*    ESI = HouseClass*
-*    ECX = TeamDelay value
-* 
 *  @author: Krnyoshi
 */
 DEFINE_HOOK(0x004BCA87, _HouseClass_AI_PerHouse_TeamDelay_Patch, 6)
@@ -1139,12 +1132,11 @@ DEFINE_HOOK(0x004BCA87, _HouseClass_AI_PerHouse_TeamDelay_Patch, 6)
 
     HouseClassExtension* house_ext = Extension::Fetch(house);
 
-
     /*
     *  Replaces the TeamDelay value to the house - specific override
     *  Returning 0 allows the original instruction to execute using the modified ECX register.
     */
-    if (house_ext != nullptr && house_ext->TeamDelayOverride >= 0) {
+    if (house_ext->TeamDelayOverride >= 0) {
 
         R->ECX(static_cast<long>(house_ext->TeamDelayOverride));
     }

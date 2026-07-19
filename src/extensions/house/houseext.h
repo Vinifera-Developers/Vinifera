@@ -126,7 +126,6 @@ public:
 
     /*
     *  Per house TeamTime delay override.
-    *  Note: A negative value resets back to the Rule->TeamDelays or map-INI TeamDelays value.
     */
     int TeamDelayOverride;
 };
