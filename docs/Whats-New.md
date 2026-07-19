@@ -134,6 +134,8 @@ New:
 - Make it possible to load multiplayer saves (by Rampastring)
 - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat (by ZivDero, Rampastring)
 - Allow customizing end-of-game text color per side (by Rampastring)
+- Make it possible to play videos in multiplayer (by Rampastring)
+- Make it possible to vote-skip videos in multiplayer (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

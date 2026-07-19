@@ -171,6 +171,7 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
     crc(ExtOptions.IsContinueWithoutHumans);
     crc(ExtOptions.IsScrapMetal);
     crc(ExtOptions.IsAINamesByDifficulty);
+    crc(ExtOptions.IsPlayMoviesInMultiplayer);
     crc(AutoSave.IsToSave);
     crc(AutoSave.NextAutoSaveFrame);
     crc(AutoSave.IsMultiplayerSaveSuppressed);

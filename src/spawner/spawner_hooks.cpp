@@ -91,7 +91,7 @@ DEFINE_HOOK(0x0066BB57, _Play_VQA_Forbid_Skipping_In_MP_Patch, 0)
         return 0x0066BA30;
     }
 
-    if (!Session.Singleplayer_Game()) {
+    if (!Session.Singleplayer_Game() && !MovieSkip::Is_Local_Skip_Allowed()) {
         MovieSkip::Update_Input();
 
         if (!MovieSkip::Should_Skip()) {

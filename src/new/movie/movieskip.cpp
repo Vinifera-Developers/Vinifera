@@ -61,6 +61,7 @@ namespace
     MovieSkipState State;
     std::uint32_t SequenceContext = 0;
     std::uint32_t NextMovieInstance = 0;
+    int LocalSkipScopeDepth = 0;
 
 
     void Hash_Bytes(std::uint32_t &hash, const void *data, std::size_t size)
@@ -221,11 +222,29 @@ namespace
 }
 
 
+MovieSkip::LocalSkipScope::LocalSkipScope()
+{
+    ++LocalSkipScopeDepth;
+}
+
+
+MovieSkip::LocalSkipScope::~LocalSkipScope()
+{
+    --LocalSkipScopeDepth;
+}
+
+
+bool MovieSkip::Is_Local_Skip_Allowed()
+{
+    return LocalSkipScopeDepth > 0;
+}
+
+
 void MovieSkip::Begin(const char *movie_name)
 {
     State = MovieSkipState {};
 
-    if (Session.Singleplayer_Game()) {
+    if (Session.Singleplayer_Game() || Is_Local_Skip_Allowed()) {
         return;
     }
 

@@ -17,6 +17,25 @@ struct ExtGlobalPacketType;
 namespace MovieSkip
 {
     /**
+     *  Temporarily makes multiplayer movie ESC handling local. End-game
+     *  movies use this after gameplay and score synchronization have ended.
+     */
+    class LocalSkipScope
+    {
+    public:
+        LocalSkipScope();
+        ~LocalSkipScope();
+
+        LocalSkipScope(const LocalSkipScope &) = delete;
+        LocalSkipScope &operator=(const LocalSkipScope &) = delete;
+    };
+
+    /**
+     *  Returns whether the active movie may be skipped locally in multiplayer.
+     */
+    bool Is_Local_Skip_Allowed();
+
+    /**
      *  Starts a new fullscreen movie vote context. Single-player movies are
      *  ignored so their normal immediate ESC handling remains unchanged.
      */

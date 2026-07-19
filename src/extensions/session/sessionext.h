@@ -130,6 +130,11 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
              */
             bool IsAINamesByDifficulty = false;
 
+            /**
+             *  Should scenario movies be played in multiplayer?
+             */
+            bool IsPlayMoviesInMultiplayer = false;
+
         };
 
         ExtGameOptionsType ExtOptions;

@@ -229,6 +229,7 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->ExtOptions.IsContinueWithoutHumans = Config->ContinueWithoutHumans;
     SessionExtension->ExtOptions.IsScrapMetal = Config->ScrapMetal;
     SessionExtension->ExtOptions.IsAINamesByDifficulty = Config->AINamesByDifficulty;
+    SessionExtension->ExtOptions.IsPlayMoviesInMultiplayer = Config->PlayMoviesInMultiplayer;
     SessionExtension->MultiplayerSavesInitializedForThisSession = Config->LoadSaveGame;
     SessionExtension->IsOriginalHost = Config->IsHost;
 
@@ -336,7 +337,7 @@ bool Spawner::Start_Scenario(char* scenario_name)
 
     const bool load_save_game = Config->LoadSaveGame;
     const CampaignType campaign_id = Config->CampaignID;
-    const bool play_movies_in_multiplayer = Config->PlayMoviesInMultiplayer;
+    const bool play_movies_in_multiplayer = SessionExtension->ExtOptions.IsPlayMoviesInMultiplayer;
 
     char save_game_name[decltype(Config->SaveGameName)::capacity()];
     std::snprintf(save_game_name, sizeof(save_game_name), "%s", Config->SaveGameName.c_str());

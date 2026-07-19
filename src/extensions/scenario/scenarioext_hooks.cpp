@@ -29,7 +29,9 @@
 #include "kamikazetracker.h"
 #include "language.h"
 #include "mouse.h"
+#include "movieskip.h"
 #include "multiscore.h"
+#include "playmovie.h"
 #include "progressscreen.h"
 #include "reinf.h"
 #include "rules.h"
@@ -46,6 +48,7 @@
 #include "tibsun_globals.h"
 #include "unit.h"
 #include "vinifera_globals.h"
+#include "wwmouse.h"
 #include "wsproto.h"
 
 
@@ -437,6 +440,57 @@ DEFINE_HOOK(0x005DCD92, _Do_Lose_Skip_MPlayer_Score_Screen_Patch, 0)
     }
 
     return 0x005DCD9D;
+}
+
+
+/**
+ *  Plays win movies in multiplayer.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x005DC9F9, _Do_Win_Play_Movie_In_Multiplayer_Patch, 0)
+{
+    if (SessionExtension->ExtOptions.IsPlayMoviesInMultiplayer) {
+
+        /**
+         *  This is game end movie - allow skipping it without confirmation from other players.
+         */
+        MovieSkip::LocalSkipScope local_skip_scope;
+        Play_Movie(Scen->WinMovie, THEME_NONE, true, true);
+    }
+
+    /**
+     *  Stolen bytes/code. The original function turns GameActive off and
+     *  shows the mouse before returning from the multiplayer path.
+     */
+    GameActive = false;
+    MouseCursor->Show_Mouse();
+    return 0x005DCA0B;
+}
+
+
+/**
+ *  Plays loss movies in multiplayer.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x005DCDB7, _Do_Lose_Play_Movie_In_Multiplayer_Patch, 0)
+{
+    if (SessionExtension->ExtOptions.IsPlayMoviesInMultiplayer) {
+
+        /**
+         *  This is game end movie - allow skipping it without confirmation from other players.
+         */
+        MovieSkip::LocalSkipScope local_skip_scope;
+        Play_Movie(Scen->LoseMovie, THEME_NONE, true, true);
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    GameActive = false;
+    MouseCursor->Show_Mouse();
+    return 0x005DCDC8;
 }
 
 

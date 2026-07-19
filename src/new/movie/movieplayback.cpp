@@ -333,7 +333,7 @@ bool MoviePlayer::Update_Playback_State()
 
     MoviePlayback_Update_Networking();
 
-    if (Session.Singleplayer_Game()) {
+    if (Session.Singleplayer_Game() || MovieSkip::Is_Local_Skip_Allowed()) {
         if (Keyboard->Check() && Keyboard->Get() == (KN_RLSE_BIT | KN_ESC)) {
             DEBUG_INFO("{}: Breakout.\n", Backend->Get_Name());
             Stop();
@@ -984,7 +984,7 @@ bool MoviePlayback_Resume_Ingame(VQHandle *handle)
  */
 void MoviePlayback_Update_Networking()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (!Session.Singleplayer_Game() && !MovieSkip::Is_Local_Skip_Allowed()) {
 
         // Static initializer is run when this block is first executed
         static DWORD LastNetworkRefreshTime = timeGetTime() + 1000;
