@@ -35,6 +35,7 @@
 namespace
 {
     constexpr DWORD LEGACY_OVERLAY_ACTIVITY_WINDOW = 250;
+    constexpr float MOVIE_SKIP_OVERLAY_FONT_SCALE = 1.5f;
 
     struct MovieVoteToken
     {
@@ -415,6 +416,7 @@ void MovieSkip::Draw_Overlay()
     ImGui::SetNextWindowPos(ImVec2(12.0f, 12.0f), ImGuiCond_Always);
     ImGui::SetNextWindowBgAlpha(0.72f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 8.0f));
+    ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * MOVIE_SKIP_OVERLAY_FONT_SCALE);
 
     constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
         | ImGuiWindowFlags_AlwaysAutoResize
@@ -428,5 +430,6 @@ void MovieSkip::Draw_Overlay()
         ImGui::TextUnformatted(prompt);
     }
     ImGui::End();
+    ImGui::PopFont();
     ImGui::PopStyleVar();
 }
