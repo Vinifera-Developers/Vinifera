@@ -302,6 +302,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the sidebar accepted mouse input while input was locked through a trigger action.
   - Make it possible to play videos in multiplayer.
   - Make it possible to vote-skip videos in multiplayer.
+  - Options menu is no longer opened with network input delay in multiplayer.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

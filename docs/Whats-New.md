@@ -217,6 +217,7 @@ Vanilla fixes:
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
 - Correct the 25%/50%/75% translucency blend so layered translucent sprites no longer progressively darken (by ZivDero, Apollo)
 - Fix a bug where the game often reported multiple synchronization errors when one player got out of sync (by Rampastring)
+- Options menu is no longer opened with network input delay in multiplayer (by Rampastring)
 
 :::
 

@@ -54,9 +54,9 @@
 
 
 /**
- *  This patch stops EVENT_OPTIONS from being created when frame step
- *  mode is enabled. This is because we need to handle it differently
- *  due to us not processing any event while in frame step mode.
+ *  This patch handles options locally so opening the dialog does not wait
+ *  for the event queue. It also stops EVENT_OPTIONS from being created when
+ *  frame step mode is enabled, because no events are processed in that mode.
  *
  *  @author: CCHyper
  */
@@ -70,12 +70,16 @@ bool _Queue_Options()
         return false;
     }
 
-    if (!OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_OPTIONS))) {
+    if (SpecialDialog != SDLG_NONE) {
         return false;
-    } else {
-        return true;
     }
 
+    /**
+     *  OPTIONS only sets the local SpecialDialog flag when it executes. Do it
+     *  immediately instead of sending a no-op event through the event system.
+     */
+    EventClass(PlayerPtr->HeapID, EVENT_OPTIONS).Execute();
+    return true;
 }
 
 

@@ -1118,8 +1118,10 @@ static int _Execute_DoList(int max_houses, HousesType base_house, ConnManClass* 
                 /**
                  *  Error if it's too late to execute this packet!
                  *  (Hack: disable this check for solo or skirmish mode.)
+                 *  OPTIONS is also safe because it only changes local UI state
+                 *  and events from remote players are ignored below.
                  */
-                if (Frame > event.Frame && event.Type != EVENT_FRAMEINFO && Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
+                if (Frame > event.Frame && event.Type != EVENT_FRAMEINFO && event.Type != EVENT_OPTIONS && !Session.Singleplayer_Game()) {
                     _Dump_Packet_Too_Late_Stuff(&event);
                     Session.Suspended++;
                     WWMessageBox().Process(TXT_PACKET_TOO_LATE, TXT_OK);
