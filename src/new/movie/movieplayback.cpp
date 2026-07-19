@@ -708,6 +708,7 @@ bool MoviePlayback_Play(const char *basename, ThemeType theme, bool clear_before
 {
     const std::string filename = Resolve_Movie_Filename(basename);
     if (filename.empty()) {
+        DEBUG_WARNING("Failed to resolve modern movie filename for \"{}\".\n", basename);
         return false;
     }
 
