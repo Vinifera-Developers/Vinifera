@@ -21,6 +21,7 @@
 #include "ipxmgr.h"
 #include "loadoptions.h"
 #include "mouse.h"
+#include "movieskip.h"
 #include "msgloop.h"
 #include "netdlg.h"
 #include "netdlg2.h"
@@ -237,6 +238,10 @@ void Vinifera_Process_Incoming_Global_Packets()
 
                 case EXT_NET_DESYNC_CONTINUE:
                     DesyncDialog.Notify_Continue();
+                    break;
+
+                case EXT_NET_MOVIE_SKIP_VOTE:
+                    MovieSkip::Receive_Vote(reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket), Session.GAddress);
                     break;
 
                 default: {

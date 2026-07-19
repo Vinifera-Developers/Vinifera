@@ -342,6 +342,7 @@ enum ExtNetCommandType {
     EXT_NET_HOST_ANNOUNCE,      // Sent by the game host to let the other players know who the host is.
     EXT_NET_DESYNC_HEARTBEAT,   // Sent periodically while the desync dialog is open; keeps connections alive and detects departures.
     EXT_NET_DESYNC_CONTINUE,    // The host's decision to continue the game without the desynced players.
+    EXT_NET_MOVIE_SKIP_VOTE,    // A player's request to skip the currently playing fullscreen movie.
 };
 
 /**
@@ -380,6 +381,11 @@ struct ExtGlobalPacketType {
             char HouseID;
             char IsHost;
         } Heartbeat;
+        struct {
+            unsigned long Context;
+            unsigned long Movie;
+            unsigned long Instance;
+        } MovieSkipVote;
         char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
     };
 };

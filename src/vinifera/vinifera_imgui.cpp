@@ -14,6 +14,7 @@
 #include "audio_manager.h"
 #include "debug_overlay.h"
 #include "debughandler.h"
+#include "movieskip.h"
 #include "scenario_overlay.h"
 #include "vinifera_globals.h"
 #include "zbuffer_window.h"
@@ -212,6 +213,38 @@ bool ViniferaImGui::Process_Window_Message(HWND hwnd, UINT msg, WPARAM wparam, L
     return false;
 }
 
+namespace
+{
+    static void Render_Frame(bool include_game_overlays)
+    {
+        if (!IsInitialized || SDLWindowRenderer == nullptr) {
+            return;
+        }
+
+        ImGui_ImplSDLRenderer3_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+
+#ifndef NDEBUG
+        if (include_game_overlays && Vinifera_AudioDebug) {
+            AudioManager.Draw_Debug_UI();
+        }
+        //ZBufferDebugWindow::Draw();
+#endif
+
+        if (include_game_overlays) {
+            DebugOverlay::Draw();
+            ScenarioOverlay::Draw();
+        }
+
+        MovieSkip::Draw_Overlay();
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), SDLWindowRenderer);
+    }
+}
+
+
 /**
  *  Renders the main-window ImGui frame through the active SDL renderer.
  *
@@ -219,26 +252,16 @@ bool ViniferaImGui::Process_Window_Message(HWND hwnd, UINT msg, WPARAM wparam, L
  */
 void ViniferaImGui::Render()
 {
-    if (!IsInitialized || SDLWindowRenderer == nullptr) {
-        return;
-    }
+    Render_Frame(true);
+}
 
-    ImGui_ImplSDLRenderer3_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
 
-#ifndef NDEBUG
-    if (Vinifera_AudioDebug) {
-        AudioManager.Draw_Debug_UI();
-    }
-    //ZBufferDebugWindow::Draw();
-#endif
-
-    DebugOverlay::Draw();
-    ScenarioOverlay::Draw();
-
-    ImGui::Render();
-    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), SDLWindowRenderer);
+/**
+ *  Renders only overlays intended for fullscreen modern movie playback.
+ */
+void ViniferaImGui::Render_Movie_Overlay()
+{
+    Render_Frame(false);
 }
 
 /**

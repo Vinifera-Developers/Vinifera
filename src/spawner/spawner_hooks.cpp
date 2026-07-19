@@ -15,6 +15,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "movieplayback.h"
+#include "movieskip.h"
 #include "observer_hooks.h"
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
@@ -77,8 +78,8 @@ DEFINE_HOOK(0x004C06EF, _HouseClass_Expert_AI_Check_Allies, 0)
 
 
 /**
- *  Players skipping movies in multiplayer leads to disconnects.
- *  Prevent players from skipping movies in MP.
+ *  In multiplayer, convert ESC into a skip vote and only let the original
+ *  VQA breakout path run once every connected player has voted.
  *
  *  @author: ZivDero, Rampastring
  */
@@ -86,15 +87,22 @@ DEFINE_HOOK(0x0066BB57, _Play_VQA_Forbid_Skipping_In_MP_Patch, 0)
 {
     GET_STACK(bool, cant_break_out, 0x40);
 
-    /**
-     *  Don't skip the movie.
-     */
-    if (cant_break_out || (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH)) {
+    if (cant_break_out) {
         return 0x0066BA30;
     }
 
+    if (!Session.Singleplayer_Game()) {
+        MovieSkip::Update_Input();
+
+        if (!MovieSkip::Should_Skip()) {
+            return 0x0066BA30;
+        }
+
+        MovieSkip::Prepare_Legacy_Breakout();
+    }
+
     /**
-     *  Check if we want to skip the movie.
+     *  Let the original VQA code consume ESC and perform its normal cleanup.
      */
     return 0x0066BB61;
 }

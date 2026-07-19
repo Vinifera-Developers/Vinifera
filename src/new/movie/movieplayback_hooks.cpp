@@ -14,6 +14,7 @@
 #include "hooker.h"
 #include "movie.h"
 #include "movieplayback.h"
+#include "movieskip.h"
 #include "syringe.h"
 #include "tspp.h"
 
@@ -26,7 +27,10 @@ DEFINE_HOOK(0x00563677, _Play_Movie_Intercept_Patch, 5)
     GET_STACK(bool, stretch_allowed, 0x84);
     GET_STACK(bool, clear_before, 0x88);
 
+    MovieSkip::Begin(name);
+
     if (MoviePlayback_Play(name, theme, clear_before, stretch_allowed, clear_after)) {
+        MovieSkip::End();
         return 0x00563891;
     }
 
