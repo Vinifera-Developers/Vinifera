@@ -19,6 +19,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Players can now click on a Service Depot with units and aircraft even if it is occupied or about to be occupied by other units. Doing so will add these units to the list of units waiting to be repaired.
 - Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
+- Aircraft speed now takes house Airspeed bias, game speed bias, and the FASTER veteran/elite ability values into account when calculating the aircraft speed.
 
 ## SIMD Blitters
 
@@ -182,12 +183,10 @@ PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of 
 
 in `RULES.INI`:
 ```ini
-[General]
-UseBridgeHealth=no 	; boolean, should bridge health trackers
-
 [CombatDamage]
+UseBridgeHealth=no   	; boolean, should bridges track their health instead of having random chance to break
 BridgeStrength=1000 	; integer, the health each bridge tile can sustain before breaking. Existing key from vanilla.
-BridgeArmor= 			; Armor Type, the armor type of associated with the bridge for damage calculations. Requires UseBridgeHealth=yes under [General] for this to take effect.
+BridgeArmor= 			; Armor Type, the armor type of associated with the bridge for damage calculations. Requires UseBridgeHealth=yes for this to take effect.
 ```
 
 ## Prerequisites
@@ -261,11 +260,13 @@ AIRepairBaseNodes=no   ; boolean, can the AI can repair structures created as ba
 ```
 
 ## Armory and Hospital Improvements
+
 - Hospitals and armories can now set rally points, similarly to production buildings and service depots.
 - Hospitals and armories can now accept multiple infantry, which will form a queue around them. Units will go in one at a time.
 - If charges (ammo) deplete while units are still waiting in the queue, remaining units will be dismissed and be ordered to go to the respective rally point instead.
 
 ## Veteran and Elite Sights
+
 - Technos can now be given specific values to use as their sight range when they are Veteran or Elite.
 - When a key is not specified, technos will fall back to the lower level sight. For example, if `EliteSight` is not specified but `VeteranSight` is, a techno that is Elite would use `VeteranSight`. If it's also not specified, it will fall back to `Sight`.
 

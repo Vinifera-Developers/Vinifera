@@ -506,11 +506,17 @@ bool AudioVocClass::Can_Play() const
  *  uses AudioEventSystem::Start directly via AudioVocHandle. Always
  *  return -1.
  *
+ *  The legacy variation argument is ignored, matching vanilla: the original
+ *  VocClass::Play never read it and every call site passes the default 0.
+ *  Honoring it as a forced Sounds index would pin multi-sound events to
+ *  their first entry and override Control=RANDOM/SEQUENTIAL/ALL. Code that
+ *  needs a fixed variation uses AudioEventSystem::Start directly.
+ *
  *  @author: CCHyper
  */
-int AudioVocClass::Play(float volume, int variation)
+int AudioVocClass::Play(float volume, int)
 {
-    AudioEventSystem::Start(*this, COORD_NONE, variation, volume, 0.0f);
+    AudioEventSystem::Start(*this, COORD_NONE, -1, volume, 0.0f);
     return -1;
 }
 
@@ -522,10 +528,10 @@ int AudioVocClass::Play(float volume)
 }
 
 
-int AudioVocClass::Play(VocType voc, float volume, int variation)
+int AudioVocClass::Play(VocType voc, float volume, int)
 {
     if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
-        AudioEventSystem::Start(*AudioVocs[voc], COORD_NONE, variation, volume, 0.0f);
+        AudioEventSystem::Start(*AudioVocs[voc], COORD_NONE, -1, volume, 0.0f);
     }
     return -1;
 }

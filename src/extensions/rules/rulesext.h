@@ -192,6 +192,11 @@ public:
     double SelfHealingRate;
 
     /**
+     *  The amount of strength this techno should regenerate whenever it self-heals.
+     */
+    int SelfHealingStep;
+
+    /**
      *  Is LandType Beach considered as "requires crushing" for passability purposes, as opposed to water?
      */
     bool IsBeachIsCrush;

@@ -1235,27 +1235,33 @@ Vanilla prerequisite groups always exist by default. If you re-define them in `[
 ```
 
 ### Self Healing
+
 - Vinifera adds the ability to control the Self Healing mechanism for all technos, allowing to control both the maximum healing capacity and healing rate, both game-wide and per techno.
 - Techno-specific values apply first.
 - If not specified, then game-wide values apply.
 - If both are not specified, then Vinifera falls back to the original values used by the game, which depends on the attribute:
   - Self Healing Cap: based on `ConditionYellow`.
   - Self Healing Rate: based on `RepairRate`.
+  - Self Healing Step: defaults to 1.
+
+Game-wide keys use the `SelfHeal` prefix, while techno-specific keys retain the original game's `SelfHealing` prefix.
 
 Game-wide definition:
 In `RULES.INI`:
 ```ini
 [General]
-SelfHealingCap=50% ; % or float, determines the maximum amount of strength technos can automatically regenerate. Caps at 100%. Only used for technos that do not have this key defined for them.
-SelfHealingRate=.016 ; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. Only used for technos that do not have this key defined for them. The lower the value, the faster technos will heal.
+SelfHealCap=50% 		; % or float, determines the maximum amount of strength technos can automatically regenerate. Caps at 100%. Only used for technos that do not have this key defined for them.
+SelfHealRate=.016 		; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. Only used for technos that do not have this key defined for them. The lower the value, the faster technos will heal.
+SelfHealStep=1 			; integer, the amount of strength to recover in each regeneration tick. Minimum 1.
 ```
 
 Techno-specific definition:
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]
-SelfHealingCap=50% ; % or float, determines the maximum amount of strength this techno can automatically regenerate. Caps at 100%.
-SelfHealingRate=.016 ; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. The lower the value, the faster this techno will heal.
+SelfHealingCap=50% 			; % or float, determines the maximum amount of strength this techno can automatically regenerate. Caps at 100%.
+SelfHealingRate=.016 		; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. The lower the value, the faster this techno will heal.
+SelfHealingStep=1 			; integer, the amount of strength to recover in each regeneration tick. Minimum 1.
 ```
 
 ## Terrain
@@ -1749,7 +1755,7 @@ WeedPipIndex=1  ; integer, the pip index used for Weeds.
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]      ; Tiberium
-MinSpreadStage=0    ; integer, the minimum growth stage at which this Tiberium can spread to a nearby cell. Defaults to ((Tiberium Index in list) / 2 + 1).
+MinSpreadStage=5    ; integer, the minimum growth stage at which this Tiberium can spread to a nearby cell.
 SpreadSpawnStage=5  ; integer, newly spread Tiberium spawns grown to this stage.
 ```
 
