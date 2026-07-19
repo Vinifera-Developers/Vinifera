@@ -91,6 +91,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     DetectBeaconVoice(VOX_NONE),
     SelfHealingCap(-1),
     SelfHealingRate(-1),
+    SelfHealingStep(1),
     IsBeachIsCrush(false),
     BuildingFlameSpawnBlockFrames(0),
     IronCurtainDuration(675),
@@ -277,6 +278,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsUseBridgeHealth);
     crc(BridgeArmor);
     crc(IsCellTagsIgnoreStealth);
+    crc(SelfHealingStep);
     crc(BaseUnit.Count());
 }
 
@@ -705,8 +707,9 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
     IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
-    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
-    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
+    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealCap", SelfHealingCap);
+    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealRate", SelfHealingRate);
+    SelfHealingStep = ini.Get_Int(GENERAL, "SelfHealStep", SelfHealingStep);
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
     EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);

@@ -115,6 +115,14 @@ New:
 - Fix Win32 dialog scaling with SDL (by Rampastring)
 - Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
 - Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
+- Allow customizing the amount of strength technos recover in each self-heal instance per techno and globally (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination (by JoyfulShush)
+- Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building (by JoyfulShush)
+- Fix a bug where cloaked units sensed by nearby enemy units can cloak again immediately (by JoyfulShush)
+- Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
 - Implemented the multiplayer spawner (by ZivDero, Rampastring)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
@@ -126,7 +134,6 @@ New:
 - Make it possible to load multiplayer saves (by Rampastring)
 - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat (by ZivDero, Rampastring)
 - Allow customizing end-of-game text color per side (by Rampastring)
-
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -153,6 +160,7 @@ Vinifera fixes:
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 - Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
 - Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no` (by Rampastring)
+- Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached. (by Krnyoshi)
 
 
 Vanilla fixes:

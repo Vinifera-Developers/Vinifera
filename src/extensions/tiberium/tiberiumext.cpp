@@ -29,7 +29,7 @@
  */
 TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
-    MinSpreadStage(0),
+    MinSpreadStage(5),
     SpreadSpawnStage(5)
 {
     if (this_ptr)
@@ -163,7 +163,6 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
         This()->FrameCount = 12;
         This()->Variety = 12;
         DamageToInfantry = std::max(1, This()->Power / 10);
-        MinSpreadStage = This()->HeapID / 2 + 1; // default from CellClass::Can_Tiberium_Spread
     }
 
     if (!AbstractTypeClassExtension::Read_INI(ini)) {

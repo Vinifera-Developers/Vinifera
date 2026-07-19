@@ -124,7 +124,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
 - Fix a bug where the map would accept input while the user was in a dialog window.
 - Fix a bug where the sidebar could only contain up to 75 items on a strip.
-- Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
+- Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree).
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
 - Fix a bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
 - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with.
@@ -132,4 +132,10 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug that would make healer units unselect themselves when adding other units to current selection.
 - Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage.
+- Fix a bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards.
+- Fix a bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it.
+- Fix a bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point.
+- Fix a bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination.
+- Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building.
+- Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
 - Fix a bug where the game often reported multiple synchronization errors when one player got out of sync.

@@ -122,6 +122,7 @@ public:
     int _Anti_Air() const;
     bool _Revealed(HouseClass* house);
     void _Look(bool incremental, bool dontmap);
+    bool _Is_Allowed_To_Recloak();
     int _Value(void) const;
 };
 
@@ -3597,6 +3598,40 @@ int TechnoClassExt::_Anti_Air(void) const
 
 
 /*
+ *  Reimplements TechnoClass::Is_Allowed_To_Recloak.
+ *  Adds a check for nearby enemy technos around it preventing it from cloaking by having sensors capabilities.
+ *  Uses the same logic as when cloaked units move to new cells, which has the same check forcing them to uncloak.
+ */
+bool TechnoClassExt::_Is_Allowed_To_Recloak()
+{
+    if (!IsCloakable) {
+        return false;
+    }
+
+    Cell cell = Center_Coord().As_Cell();    
+
+    // Get all adjacent cells and check if there are units with Sensors or sensing ability.
+    for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
+        Cell adjacent_cell = Adjacent_Cell(cell, dir);
+        CellClass* adjacent_cellptr = &Map[adjacent_cell];
+
+        if (!Map.In_Local_Radar(adjacent_cell)) {
+            continue;
+        }
+
+        TechnoClass* cell_techno = adjacent_cellptr->Cell_Techno();
+        if (cell_techno != nullptr) {
+            if (!cell_techno->House->Is_Ally(this) && (cell_techno->TClass->IsScanner || cell_techno->Has_Ability(ABILITY_SENSORS))) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/*
  *  Reimplements TechnoClass::Look based on the RE project code
  *  Additionally, adds the Veteran and Elite Sight ranges that are used when the techno is either Veteran or Elite, respectively.
  * 
@@ -3667,6 +3702,39 @@ DEFINE_HOOK(0x0062E799, _TechnoClass_AI_Medics_Lose_Targets_AI_Houses, 0)
 
 
 /**
+ *  Patches TechnoClass::AI to allow customizing the amount of health regenerated whenever a unit self-heals.
+ *  Can be configured on both the techno level and globally.
+ *  Defaults to 1 when the key is omitted.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0062E9EF, TechnoClass_AI_Self_Heal_Repair_Step, 0)
+{
+    GET(TechnoClass*, this_ptr, ESI);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr->TClass);
+
+    int strength_to_recover = this_ptr_ext->SelfHealingStep > 0 
+        ? this_ptr_ext->SelfHealingStep
+        : RuleExtension->SelfHealingStep;
+    
+    int max_strength = this_ptr->TClass->MaxStrength;
+
+    // Don't allow to self-heal 0 health or negative values
+    if (strength_to_recover > 0) {
+        // Don't allow unit to recover strength beyond its max strength
+        this_ptr->Strength = std::min(this_ptr->Strength + strength_to_recover, max_strength);
+    }
+
+    // Stolen bytes
+    R->EAX(this_ptr->Strength);
+    R->ECX(this_ptr);
+
+    return 0x0062E9F8;
+}
+
+
+/**
  *  TechnoClass::Value replacement to use our extended difficulty data.
  *
  *  @author: tomsons26, ZivDero, Rampastring
@@ -3730,5 +3798,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
     Patch_Jump(0x0062AAD0, &TechnoClassExt::_Revealed);
     Patch_Jump(0x00638310, &TechnoClassExt::_Look);
+    Patch_Jump(0x00639120, &TechnoClassExt::_Is_Allowed_To_Recloak);
     Patch_Jump(0x00636520, &TechnoClassExt::_Value);
 }

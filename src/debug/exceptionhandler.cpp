@@ -34,7 +34,7 @@
 #include "winutil.h"
 
 #include <atomic>
-#include <cstring>
+#include <cmath>
 #include <dbghelp.h>
 #include <eh.h>
 #include <exception>
@@ -93,7 +93,7 @@ std::atomic<int> RecursionCount{-1};
  */
 static std::atomic<DWORD> DumpingThreadId{0};
 
-FixedString<131072> ExceptionBuffer;
+FixedString<65536> ExceptionBuffer;
 
 static TextFileClass ExceptionFile;
 
@@ -472,75 +472,27 @@ static void __cdecl Exception_Stack_Dump_Handler(const char *buffer)
 
 
 /**
- *  Snapshot of the loaded-module list, captured once per dump into a static
- *  fixed-size table so the exception path performs no allocation. Toolhelp
- *  reads the module list from a kernel snapshot rather than walking the live
- *  loader data under the loader lock, which a suspended sibling thread may
- *  be holding.
+ *  Interpret an 80-bit x87 register (10 bytes, little-endian) as a double.
+ *  FloatSave.RegisterArea holds 80-bit extended-precision values (64-bit
+ *  mantissa, 15-bit exponent, sign - no implicit bit), so they must be
+ *  decoded rather than reinterpreted as a 64-bit IEEE-754 double.
  */
-struct ExceptionModuleEntry
+static double Read_x87_Register(const uint8_t *bytes)
 {
-    uintptr_t Base;
-    uintptr_t Size;
-    char Path[MAX_PATH];
-};
+    const uint64_t mantissa = *reinterpret_cast<const uint64_t *>(bytes);
+    const uint16_t sign_exp = *reinterpret_cast<const uint16_t *>(bytes + 8);
+    const double sign = (sign_exp & 0x8000) ? -1.0 : 1.0;
+    const int exponent = sign_exp & 0x7FFF;
 
-#define EXCEPTION_MODULE_TABLE_MAX 256
-static ExceptionModuleEntry ExceptionModuleTable[EXCEPTION_MODULE_TABLE_MAX];
-static int ExceptionModuleCount = 0;
-
-
-static void Capture_Module_Table()
-{
-    __try {
-        ExceptionModuleCount = 0;
-
-        HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, 0);
-        if (snap == INVALID_HANDLE_VALUE) {
-            return;
-        }
-
-        MODULEENTRY32 me;
-        ZeroMemory(&me, sizeof(me));
-        me.dwSize = sizeof(me);
-
-        if (Module32First(snap, &me)) {
-            do {
-                ExceptionModuleEntry &entry = ExceptionModuleTable[ExceptionModuleCount++];
-                entry.Base = reinterpret_cast<uintptr_t>(me.modBaseAddr);
-                entry.Size = me.modBaseSize;
-                std::snprintf(entry.Path, sizeof(entry.Path), "%s", me.szExePath);
-            } while (ExceptionModuleCount < EXCEPTION_MODULE_TABLE_MAX && Module32Next(snap, &me));
-        }
-
-        CloseHandle(snap);
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
-        ExceptionModuleCount = 0;
-    }
-}
-
-
-static const ExceptionModuleEntry *Find_Module_For_Address(uintptr_t address)
-{
-    for (int i = 0; i < ExceptionModuleCount; ++i) {
-        const ExceptionModuleEntry &entry = ExceptionModuleTable[i];
-        if (address >= entry.Base && address - entry.Base < entry.Size) {
-            return &entry;
-        }
+    if (exponent == 0 && mantissa == 0) {
+        return 0.0;
     }
 
-    return nullptr;
-}
+    if (exponent == 0x7FFF) {
+        return sign * HUGE_VAL; // Infinity or NaN.
+    }
 
-
-/**
- *  Returns the basename of a module path (the table stores full paths so the
- *  report can expose codec packs and injected DLLs by install location).
- */
-static const char *Module_Basename(const ExceptionModuleEntry *entry)
-{
-    const char *basename = std::strrchr(entry->Path, '\\');
-    return basename != nullptr ? basename + 1 : entry->Path;
+    return sign * std::ldexp(static_cast<double>(mantissa), exponent - 16383 - 63);
 }
 
 
@@ -572,12 +524,6 @@ static void Guarded_Crash_Site(CONTEXT *context)
         }
 
         Exception_Printf("Exception occurred at 0x%" PRIPTRSIZE PRIXPTR " (%s +0x%" PRIXPTR ") [%s:%d]\r\n", context->Eip, funcname, addr, filename, line);
-
-        const ExceptionModuleEntry *module = Find_Module_For_Address(context->Eip);
-        if (module != nullptr) {
-            Exception_Printf("Faulting module: %s (%s+0x%" PRIXPTR ")\r\n",
-                module->Path, Module_Basename(module), context->Eip - module->Base);
-        }
 
         if (SyringeData::LastHookOrigin != nullptr) {
             Exception_Printf("Last entered hook at address: 0x%" PRIPTRSIZE PRIXPTR "\r\n", reinterpret_cast<register_t>(SyringeData::LastHookOrigin));
@@ -614,13 +560,7 @@ static void Guarded_Manual_Backtrace(CONTEXT *context)
                 break;
             }
 
-            const ExceptionModuleEntry *module = Find_Module_For_Address(frame[1]);
-            if (module != nullptr) {
-                Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR " (%s+0x%" PRIXPTR ")\r\n",
-                    frame[1], Module_Basename(module), frame[1] - module->Base);
-            } else {
-                Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR "\r\n", frame[1]);
-            }
+            Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR "\r\n", frame[1]);
 
             prev = reinterpret_cast<uintptr_t>(frame);
             frame = reinterpret_cast<uintptr_t *>(frame[0]);
@@ -629,34 +569,6 @@ static void Guarded_Manual_Backtrace(CONTEXT *context)
         Exception_Printf("\r\n");
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         Exception_Printf("  <manual backtrace faulted>\r\n");
-    }
-}
-
-
-/**
- *  Print the loaded-module table captured by Capture_Module_Table. Base and
- *  end addresses let any raw stack/backtrace address in the report be mapped
- *  to its owning module by hand; full paths expose codec packs and injected
- *  overlay DLLs by install location.
- */
-static void Guarded_Module_List()
-{
-    __try {
-        Exception_Printf("Loaded modules:\r\n");
-
-        for (int i = 0; i < ExceptionModuleCount; ++i) {
-            const ExceptionModuleEntry &entry = ExceptionModuleTable[i];
-            Exception_Printf("  0x%" PRIPTRSIZE PRIXPTR " - 0x%" PRIPTRSIZE PRIXPTR "  %s\r\n",
-                entry.Base, entry.Base + entry.Size, entry.Path);
-        }
-
-        if (ExceptionModuleCount == 0) {
-            Exception_Printf("  <module list unavailable>\r\n");
-        }
-
-        Exception_Printf("\r\n");
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
-        Exception_Printf("  <module list faulted; truncated>\r\n");
     }
 }
 
@@ -791,12 +703,6 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
     Init_Symbol_Info();
 
-    /**
-     *  Capture the loaded-module table first: the crash-site line and the
-     *  EBP-chain backtrace both annotate addresses with module+offset.
-     */
-    Capture_Module_Table();
-
     EXCEPTION_RECORD *record = e_info->ExceptionRecord;
     CONTEXT *context = e_info->ContextRecord;
 
@@ -862,7 +768,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was written to.\r\n", record->ExceptionInformation[1]);
                 break;
             case 2: // Execute violation
-                Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was written to.\r\n", record->ExceptionInformation[1]);
+                Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was executed.\r\n", record->ExceptionInformation[1]);
                 break;
             case 8: // User-mode data execution prevention (DEP).
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " DEP violation.\r\n", record->ExceptionInformation[1]);
@@ -900,22 +806,15 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
     Exception_Printf("\r\n");
 
-    /**
-     *  The full module list makes every raw address in this report mappable
-     *  to a DLL, and exposes third-party codec/overlay DLLs loaded into the
-     *  process on the user's system.
-     */
-    Guarded_Module_List();
-
     Exception_Printf("Time Stamp : %s\r\n", Get_Date_Time_String());
     Exception_Printf("Module Name : %s\r\n", Get_Module_File_Name_Ext());
     
     Exception_Printf("\r\n");
 
     Exception_Printf("Project information:\r\n");
-    if (!Vinifera_ProjectName.empty()) {
-        Exception_Printf("Title: %s\r\n", Vinifera_ProjectName.c_str());
-        Exception_Printf("Version: %s\r\n", Vinifera_ProjectVersion.c_str());
+    if (Vinifera_ProjectName[0] != '\0') {
+        Exception_Printf("Title: %s\r\n", Vinifera_ProjectName);
+        Exception_Printf("Version: %s\r\n", Vinifera_ProjectVersion);
         Exception_Printf("\r\n");
     }
 
@@ -1007,15 +906,27 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
             Exception_Printf("%02X", context->FloatSave.RegisterArea[i * 10 + j]);
         }
 
-        Exception_Printf("   %+#.17e\r\n", *reinterpret_cast<double *>(&context->FloatSave.RegisterArea[i * 10]));
+        Exception_Printf("   %+#.17e\r\n", Read_x87_Register(&context->FloatSave.RegisterArea[i * 10]));
     }
 
     /**
      *  MMX Registers.
      */
-    if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE)) {
-        Exception_Printf("MMX0:%016llX\tMMX1:%016llX\tMMX2:%016llX\tMMX3:%016llX\r\n", context->ExtendedRegisters[0], context->ExtendedRegisters[1], context->ExtendedRegisters[2], context->ExtendedRegisters[3]);
-        Exception_Printf("MMX4:%016llX\tMMX5:%016llX\tMMX6:%016llX\tMMX7:%016llX\r\n", context->ExtendedRegisters[4], context->ExtendedRegisters[5], context->ExtendedRegisters[6], context->ExtendedRegisters[7]);
+    if ((context->ContextFlags & CONTEXT_EXTENDED_REGISTERS) == CONTEXT_EXTENDED_REGISTERS
+        && IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE)) {
+
+        /**
+         *  MM0-MM7 alias the ST register mantissas and live in the FXSAVE area
+         *  (ExtendedRegisters) at offset 32, 16 bytes apart - not in the first
+         *  bytes of the area, which hold the control/status words.
+         */
+        const uint8_t *mmx = &context->ExtendedRegisters[32];
+        Exception_Printf("MMX0:%016llX\tMMX1:%016llX\tMMX2:%016llX\tMMX3:%016llX\r\n",
+            *reinterpret_cast<const uint64_t *>(mmx + 0 * 16), *reinterpret_cast<const uint64_t *>(mmx + 1 * 16),
+            *reinterpret_cast<const uint64_t *>(mmx + 2 * 16), *reinterpret_cast<const uint64_t *>(mmx + 3 * 16));
+        Exception_Printf("MMX4:%016llX\tMMX5:%016llX\tMMX6:%016llX\tMMX7:%016llX\r\n",
+            *reinterpret_cast<const uint64_t *>(mmx + 4 * 16), *reinterpret_cast<const uint64_t *>(mmx + 5 * 16),
+            *reinterpret_cast<const uint64_t *>(mmx + 6 * 16), *reinterpret_cast<const uint64_t *>(mmx + 7 * 16));
     }
 
     /**
@@ -1083,7 +994,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     CurrentExceptionCRC = CRC32_Memory(ExceptionBuffer.data(), ExceptionBuffer.size());
 
-    DEBUG_WARNING("****************************** END EXCEPTION DUMP ******************************!\n");
+    DEBUG_WARNING("****************************** END EXEPTION DUMP ******************************!\n");
 }
 
 
@@ -1280,7 +1191,7 @@ static void Write_Crash_Artifacts(struct _EXCEPTION_POINTERS *ptrs, unsigned int
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
-        Vinifera_DebugDirectory.c_str(),
+        Vinifera_DebugDirectory,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
     ExceptionFile.Set_Name(filename_buffer);

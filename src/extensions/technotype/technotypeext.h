@@ -263,6 +263,11 @@ public:
     float SelfHealingRate;
 
     /**
+     *  Define the amount of strength regenerated whenever this techno self-heals
+     */
+    int SelfHealingStep;
+
+    /**
      *  Does this object need to decloak before firing?
      */
     bool IsDecloakToFire;
