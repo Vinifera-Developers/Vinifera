@@ -283,8 +283,9 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 ### [140] Modify Team Delays
 The trigger house's AI aggression via AITriggers can now be modified by setting a new delay value. Requires 3 arguments in the order of Hard, Normal, Easy, but the TAction will automatically select the applicable value based on current scenario difficulty.
 
-NOTE:
-- Negative numbers will default to the rules.ini or map-ini edit of [General] -> TeamDelays.
+```{note}
+Negative numbers will default to [General] -> TeamDelays.
+```
 
 ## Trigger Events
 
