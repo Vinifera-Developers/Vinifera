@@ -637,6 +637,7 @@ UrgencyType HouseClassExt::_Check_Raise_Money()
  *
  *  @author: 05/25/1995 BRR - Created
  *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ *           19/07/2026 Rampastring - Correct local/team win and loss flagging
  */
 void HouseClassExt::_MPlayer_Defeated()
 {
@@ -813,20 +814,38 @@ void HouseClassExt::_MPlayer_Defeated()
     }
 
     /**
-     *  If there's only one human player left or no humans left, the game is over:
-     *  - Determine whether this player wins or loses, based on the state of the
-     *    player's IsDefeated flag
+     *  If there's only one human player left or no humans left, the game is over.
      */
     if (!Extension::Fetch(this)->IsObserver) {
         if (num_alive == 1 || (num_humans == 0 && !SessionExtension->ExtOptions.IsContinueWithoutHumans && (!Session.Singleplayer_Game() || !Extension::Fetch(PlayerPtr)->IsObserver))) {
             IsToDie = false;
 
-            if (PlayerPtr->IsDefeated) {
-                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Lose\n");
-                Flag_To_Lose(false);
+            /**
+             *  Consider the local player victorious if they are still alive, or if
+             *  they have a surviving human ally in a multiplayer team game.
+             */
+            bool localplayerwon = !PlayerPtr->IsDefeated;
+
+            if (!localplayerwon && Session.Type != GAME_SKIRMISH) {
+                DEBUG_INFO("MPlayer_Defeated: Local player is defeated, looking for allies.\n");
+
+                for (int i = 0; i < Houses.Count(); i++) {
+                    HouseClass* hptr = Houses[i];
+                    if (!hptr || hptr->IsDefeated || !hptr->IsHuman || hptr->Class->IsMultiplayPassive) continue;
+
+                    if (PlayerPtr->Is_Ally(hptr)) {
+                        localplayerwon = true;
+                        break;
+                    }
+                }
+            }
+
+            if (localplayerwon) {
+                DEBUG_INFO("MPlayer_Defeated: Flagging local player as victorious.\n");
+                PlayerPtr->Flag_To_Win(false);
             } else {
-                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Win\n");
-                Flag_To_Win(false);
+                DEBUG_INFO("MPlayer_Defeated: Flagging local player as lost.\n");
+                PlayerPtr->Flag_To_Lose(false);
             }
         }
     }
@@ -1636,53 +1655,6 @@ bool HouseClassExt::_AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVe
     }
 
     return true;
-}
-
-
-/**
- *  Fixes a bug where the local player could be considered "lost" (Do_Lose was called)
- *  when a multiplayer match ended with the last enemy getting defeated.
- *
- *  Author: Rampastring
- */
-DEFINE_HOOK(0x004BF8BD, _HouseClass_MPlayer_Defeated_Flag_Win_Or_Lose, 0)
-{
-    // The match has ended due to player defeat because there is only one team left.
-    // Consider the player as having won if they are not defeated, OR in case of multiplayer,
-    // if they have any human allies left alive.
-    // This allows the player to be considered a winner if their team wins in a team game,
-    // even if the player itself is defeated.
-
-    bool localplayerwon = !PlayerPtr->IsDefeated;
-
-    if (!localplayerwon && Session.Type != GAME_SKIRMISH) {
-
-        DEBUG_INFO("MPlayer_Defeated: Local player is defeated, looking for allies.\n");
-
-        for (int i = 0; i < Houses.Count(); i++) {
-
-            /*
-            **	Get a pointer to this house
-            */
-            HouseClass* hptr = Houses[i];
-            if (!hptr || hptr->IsDefeated || !hptr->IsHuman || hptr->Class->IsMultiplayPassive) continue;
-
-            if (PlayerPtr->Is_Ally(hptr)) {
-                localplayerwon = true;
-                break;
-            }
-        }
-    }
-
-    if (localplayerwon) {
-        DEBUG_INFO("MPlayer_Defeated: Flagging local player as victorious.\n");
-        PlayerPtr->Flag_To_Win(false);
-    } else {
-        DEBUG_INFO("MPlayer_Defeated: Flagging local player as lost.\n");
-        PlayerPtr->Flag_To_Lose(false);
-    }
-
-    return 0x004BF8E3;
 }
 
 
