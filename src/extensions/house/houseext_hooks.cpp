@@ -1138,7 +1138,7 @@ DEFINE_HOOK(0x004BCA87, _HouseClass_AI_PerHouse_TeamDelay_Patch, 6)
     */
     if (house_ext->TeamDelayOverride >= 0) {
 
-        R->ECX(static_cast<long>(house_ext->TeamDelayOverride));
+        R->ECX(house_ext->TeamDelayOverride);
     }
 
     /* Execute the original instruction using the possibly modified ECX value, and continue normal execution */
