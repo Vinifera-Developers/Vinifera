@@ -76,7 +76,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Stop Sounds At", "Stops sounds at the waypoint that were started by Play Sound At, and detaches any ambient previously attached to a building or terrain there."},
     { "Attach sound", "Attaches an ambient sound to all objects associated with the trigger. The VocType should have Control=LOOP for a continuous attachment; non-looping vocs play once and then go silent." },
     { "Detach sound", "Detaches any ambient sound from all objects associated with the trigger." },
-    { "Modify TeamDelays", "Changes the map's TeamDelay to a new value. Affects how often AITriggers execute. Note: Affects all AI houses on the map." },
+    { "Modify TeamDelays", "Changes the trigger house's TeamDelay to a new value. Affects how often their AITriggers execute. A negative number will revert to [General] -> TeamDelays." },
 };
 
 
@@ -1827,10 +1827,8 @@ bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass*
 {
     if (house == nullptr) return false;
 
-    long team_delay = -1;
+    long teamDelay = -1;
     const int old_delay = house->TeamTime;
-
-    DEBUG_INFO("oldDelay: {} \n", oldDelay);
 
     HouseClassExtension* house_ext = Extension::Fetch(house);
 
@@ -1872,15 +1870,13 @@ bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass*
             return false;
         }
 
-        DEBUG_INFO("Restored {} TeamDelay to Rules.ini/Map-INI value {} \n", house->Class->Name(), teamDelay);
-
     } else {
 
         /*
         *  Stores the persistent trigger house's value used by the HouseClass::AI hook whenever the
         *  game reloads TeamTime.
         */
-        house_ext->TeamDelayOverride = static_cast<int>(teamDelay);
+        house_ext->TeamDelayOverride = teamDelay;
 
         DEBUG_INFO("Set {} TeamDelay override to {} \n", house->Class->Name(), teamDelay);
     }

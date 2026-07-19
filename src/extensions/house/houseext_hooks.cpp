@@ -1121,8 +1121,7 @@ void HouseClassExt::_Production_Check()
 
 /*
 *  Applies a per-house TeamDelay override whenever HouseClass::AI resets its TeamTime timer.
-*  This hook intercepts the reload of TeamTime.DelayTime with a custom value. However, if the
-*  the TeamDelayOverride < 0, it reverts back to the rules.ini or map-ini edited TeamDelays.
+*  This hook intercepts the reload of TeamTime.DelayTime with a custom value.
 * 
 *  @author: Krnyoshi
 */
@@ -1134,7 +1133,6 @@ DEFINE_HOOK(0x004BCA87, _HouseClass_AI_PerHouse_TeamDelay_Patch, 6)
 
     /*
     *  Replaces the TeamDelay value to the house - specific override
-    *  Returning 0 allows the original instruction to execute using the modified ECX register.
     */
     if (house_ext->TeamDelayOverride >= 0) {
 
