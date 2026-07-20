@@ -72,6 +72,18 @@ namespace
         Map.Flag_To_Redraw(2);
         Map.Render();
     }
+
+    void Print_Saving_Game_Failed_Message()
+    {
+        const int message_delay = Rule->MessageDelay * TICKS_PER_MINUTE;
+
+        const char* text = "Saving game failed!";
+
+        Session.Messages.Add_Message(nullptr, 0, text, Fetch_Scheme_Index_By_Name("Red"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
+
+        Map.Flag_To_Redraw(2);
+        Map.Render();
+    }
 }
 
 
@@ -337,8 +349,13 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         }
 
         // Actually save the game.
-        Save_Game(filename.c_str(), description.c_str());
-        Print_Game_Saved_Message(true);
+        bool success = Save_Game(filename.c_str(), description.c_str());
+
+        if (success) {
+            Print_Game_Saved_Message(true);
+        } else {
+            Print_Saving_Game_Failed_Message();
+        }
 
         return;
     }
