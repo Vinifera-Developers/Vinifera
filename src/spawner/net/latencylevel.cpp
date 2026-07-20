@@ -56,13 +56,13 @@ unsigned int LatencyLevel::Get_Max_Ahead(LatencyLevelEnum latency_level)
     static const int maxAhead[] = {/* 0 */ 1,
                                    /* 1 */ 4,
                                    /* 2 */ 6,
-                                   /* 3 */ 12,
-                                   /* 4 */ 16,
-                                   /* 5 */ 20,
-                                   /* 6 */ 24,
-                                   /* 7 */ 28,
-                                   /* 8 */ 32,
-                                   /* 9 */ 36};
+                                   /* 3 */ 9,
+                                   /* 4 */ 12,
+                                   /* 5 */ 15,
+                                   /* 6 */ 18,
+                                   /* 7 */ 21,
+                                   /* 8 */ 24,
+                                   /* 9 */ 27};
 
     return maxAhead[latency_level];
 }
@@ -82,10 +82,10 @@ const char* LatencyLevel::Get_Latency_Message(LatencyLevelEnum latency_level)
         /* 3 */ "CnCNet: Latency mode set to: 3 - Excellent",
         /* 4 */ "CnCNet: Latency mode set to: 4 - Very Good",
         /* 5 */ "CnCNet: Latency mode set to: 5 - Good",
-        /* 6 */ "CnCNet: Latency mode set to: 6 - Good",
-        /* 7 */ "CnCNet: Latency mode set to: 7 - Default",
-        /* 8 */ "CnCNet: Latency mode set to: 8 - Default",
-        /* 9 */ "CnCNet: Latency mode set to: 9 - Default",
+        /* 6 */ "CnCNet: Latency mode set to: 6 - Decent",
+        /* 7 */ "CnCNet: Latency mode set to: 7 - Mediocre",
+        /* 8 */ "CnCNet: Latency mode set to: 8 - Bad",
+        /* 9 */ "CnCNet: Latency mode set to: 9 - Worst",
     };
 
     return message[latency_level];
