@@ -133,6 +133,15 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
 
     new (this) ScenarioClassExtension(NoInitClass());
 
+    /**
+     *  NewINIFormat is normally only set when a scenario INI is parsed, which
+     *  does not happen when loading a saved game, so restore it from the save.
+     */
+    hr = pStm->Read(&NewINIFormat, sizeof(NewINIFormat), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
     return hr;
 }
 
@@ -145,6 +154,11 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
 HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    hr = pStm->Write(&NewINIFormat, sizeof(NewINIFormat), nullptr);
     if (FAILED(hr)) {
         return hr;
     }
