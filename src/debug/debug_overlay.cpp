@@ -410,7 +410,7 @@ namespace
         const bool is_foot = obj->RTTI == RTTI_UNIT || obj->RTTI == RTTI_INFANTRY || obj->RTTI == RTTI_AIRCRAFT;
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
-            ImGui::Text("Speed   : %.2f (bias x%.2f)", foot->Speed, foot->SpeedBias);
+            ImGui::Text("Speed   : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
         }
 
         /**

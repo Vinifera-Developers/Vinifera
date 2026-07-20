@@ -537,7 +537,9 @@ int TechnoClassExtension::Time_To_Build() const
          *  @author: CCHyper
          */
         if (RuleExtension->MultipleFactoryCap > 0) {
-            divisor = RuleExtension->MultipleFactoryCap - 1;
+            if (divisor > RuleExtension->MultipleFactoryCap - 1) {
+                divisor = RuleExtension->MultipleFactoryCap - 1;
+            }
         }
 
         while (divisor) {

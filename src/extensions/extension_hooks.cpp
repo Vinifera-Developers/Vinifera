@@ -44,6 +44,7 @@
 #include "factoryext_hooks.h"
 #include "fetchres_hooks.h"
 #include "filepcx_hooks.h"
+#include "flylocomotionext_hooks.h"
 #include "footext_hooks.h"
 #include "gadgetext_hooks.h"
 #include "houseext_hooks.h"
@@ -212,6 +213,7 @@ void Extension_Hooks()
      *  Locomotors.
      */
     DriveLocomotionClassExtension_Hooks();
+    FlyLocomotionClassExtension_Hooks();
 
     /**
      *  All global class extensions here.
