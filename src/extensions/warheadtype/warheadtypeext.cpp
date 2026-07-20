@@ -261,22 +261,22 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         const char* armor_name = ArmorTypeClass::Name_From(armor);
 
         std::snprintf(key_name, sizeof(key_name), "Modifier.%s", armor_name);
-        if (ini.Is_Present(ini_name, key_name)) {
+        if (ini.Get_String(ini_name, key_name, nullptr, buffer, sizeof(buffer)) > 0) {
             Verses::Set_Modifier(armor, warheadtype, ini.Get_Float(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
         }
 
         std::snprintf(key_name, sizeof(key_name), "ForceFire.%s", armor_name);
-        if (ini.Is_Present(ini_name, key_name)) {
+        if (ini.Get_String(ini_name, key_name, nullptr, buffer, sizeof(buffer)) > 0) {
             Verses::Set_ForceFire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_ForceFire(armor, warheadtype)));
         }
 
         std::snprintf(key_name, sizeof(key_name), "PassiveAcquire.%s", armor_name);
-        if (ini.Is_Present(ini_name, key_name)) {
+        if (ini.Get_String(ini_name, key_name, nullptr, buffer, sizeof(buffer)) > 0) {
             Verses::Set_PassiveAcquire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_PassiveAcquire(armor, warheadtype)));
         }
 
         std::snprintf(key_name, sizeof(key_name), "Retaliate.%s", armor_name);
-        if (ini.Is_Present(ini_name, key_name)) {
+        if (ini.Get_String(ini_name, key_name, nullptr, buffer, sizeof(buffer)) > 0) {
             Verses::Set_Retaliate(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, warheadtype)));
         }
     }

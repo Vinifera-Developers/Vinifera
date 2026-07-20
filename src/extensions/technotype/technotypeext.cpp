@@ -93,10 +93,13 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsHideWakeWhenCloaked(false),
     SelfHealingCap(-1),
     SelfHealingRate(-1),
+    SelfHealingStep(-1),
     IsDetectDisguise(false),
     IronCurtainPriorityTarget(false),
     EscortRange(-1),
-    AbandonTargetEscortRange(-1)
+    AbandonTargetEscortRange(-1),
+    VeteranSightRange(-1),
+    EliteSightRange(-1)
 {
 }
 
@@ -268,10 +271,13 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsHideWakeWhenCloaked);
     crc(SelfHealingCap);
     crc(SelfHealingRate);
+    crc(SelfHealingStep);
     crc(IsDetectDisguise);
     crc(IronCurtainPriorityTarget);
     crc(EscortRange);
     crc(AbandonTargetEscortRange);
+    crc(VeteranSightRange);
+    crc(EliteSightRange);
 }
 
 
@@ -416,6 +422,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     SelfHealingCap = ini.Get_Float(ini_name, "SelfHealingCap", SelfHealingCap);
     SelfHealingRate = ini.Get_Float(ini_name, "SelfHealingRate", SelfHealingRate);
+    SelfHealingStep = ini.Get_Int(ini_name, "SelfHealingStep", SelfHealingStep);
 
     IsDetectDisguise = ini.Get_Bool(ini_name, "DetectDisguise", IsDetectDisguise);
 
@@ -423,6 +430,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     EscortRange = ini.Get_Lepton(ini_name, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(ini_name, "AbandonTargetEscortRange", AbandonTargetEscortRange);
+
+    VeteranSightRange = ini.Get_Int(ini_name, "VeteranSight", VeteranSightRange);
+    EliteSightRange = ini.Get_Int(ini_name, "EliteSight", EliteSightRange);
 
     return true;
 }

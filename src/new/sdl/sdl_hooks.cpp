@@ -124,7 +124,18 @@ DEFINE_IMPLEMENTATION(LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARA
 
 LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
-    LRESULT result = CtrlProc(window, message, wparam, lparam);
+    SDL_Record_Control_State_Message(window, message, wparam, lparam);
+
+    LPARAM translated_lparam = lparam;
+    if (SDL_Redirect_Mouse_Message(window, message, wparam, lparam, &translated_lparam)) {
+        return 0;
+    }
+
+    LRESULT result = CtrlProc(window, message, wparam, translated_lparam);
+    if (message == CB_SHOWDROPDOWN && wparam != 0) {
+        SDL_Subclass_Combo_Dropdown_Windows(GetParent(window));
+    }
+
     if (message == WM_PAINT) {
         SDL_Update_Screen(VisibleSurface);
     }

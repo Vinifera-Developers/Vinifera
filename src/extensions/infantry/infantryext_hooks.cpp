@@ -20,6 +20,7 @@
 #include "hooker.h"
 #include "house.h"
 #include "infantry.h"
+#include "infantryext.h"
 #include "infantryext_init.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
@@ -634,6 +635,7 @@ DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehi
     return 0x004D7277;
 }
 
+
 /**
  *  Patches InfantryClass::What_Action when the target object is an armory.
  *  No longer transmits a message to the armory requesting it to establish radio connection (which only allows one unit at a time).
@@ -662,6 +664,7 @@ DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
     return 0x004D738E;
 }
 
+
 /**
  *  Patches InfantryClass::What_Action when the target object is a hospital.
  *  No longer transmits a message to the hospital requesting it to establish radio connection (which only allows one unit at a time).
@@ -689,6 +692,7 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
 
     return 0x004D731A;
 }
+
 
 /**
  *  Clears the current cell from bridge damage trackers, if any.
@@ -748,6 +752,7 @@ void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_
     }
 }
 
+
 /**
  *  Scans for a bridge attached to a bridge hut that was just entered by an Engineer.
  *  Checks for all types of bridges: Low Bridges (via overlay), High Bridges and High Train Bridges.
@@ -774,6 +779,8 @@ void Scan_Around_Bridge_Hut_For_Bridge(Cell const& bridge_hut_cell)
 
     return;
 }
+
+
 /**
  *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
  *  that is adjacent to either a Low Bridge or a High (non-train) Bridge.
@@ -792,6 +799,7 @@ DEFINE_HOOK(0x004D356B, _InfantryClass_Process_Per_Cell_Engineer_Bridge_Patch, 6
     return 0;
 }
 
+
 /**
  *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
  *  that is adjacent to a Train High Bridge.
@@ -809,6 +817,7 @@ DEFINE_HOOK(0x004D3551, _InfantryClass_Process_Per_Cell_Engineer_Train_Bridge_Pa
 
     return 0;
 }
+
 
 /**
  *  Patches InfantryClass::Assign_Destination at the part that identifies infantry units with mission "MISSION_ENTER",
@@ -844,6 +853,7 @@ DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
     return 0x004D425A;
 }
 
+
 /**
  *  Patches InfantryClass::What_Action at the part where medics/mechanics (AKA infantry with negative combat damage)
  *  are evaluated whether they should commit to their action or switch to ACTION_SELECT.
@@ -859,12 +869,88 @@ DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9
 {
     GET(ActionType, action, EBX);
 
-    if (action == ACTION_TOGGLE_SELECT) {
+    if (action == ACTION_TOGGLE_SELECT || action == ACTION_GUARD_AREA || action == ACTION_MOVE) {
         return 0x004D76F9;
     }
 
     return 0;
 }
+
+
+/**
+ *  Patches InfantryClass::AI at the part where Jumpjets are moving to determine if they should use Look
+ *  Sight range now takes into account adjustments from veterancy.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D5011, InfantryClass_AI_Sight_Range_Jumpjet_Patch, 0)
+{
+    GET(InfantryClass*, this_ptr, ESI);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr);
+
+    if (this_ptr->Locomotion->Is_Moving() && this_ptr->Get_Height_AGL() > 0 && this_ptr->IsOwnedByPlayer && this_ptr_ext->Get_Sight_Range() > 0) {
+        return 0x004D504C;
+    }
+
+    return 0x004D509D;
+}
+
+
+/**
+ *  Patches InfantryClass::Unlimbo at the part where blind infantry are evaluated to check for making infantry not be considered as disocvered
+ *  Sight range now takes into account adjustments from veterancy.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D6CBD, InfantryClass_Unlimbo_Sight_Range_Patch, 0)
+{
+    GET(InfantryClass*, this_ptr, EBX);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr);
+
+    if (this_ptr_ext->Get_Sight_Range() == 0) {
+        return 0x004D6CCD;
+    }
+
+    return 0x004D6CD4;
+}
+
+/**
+ *  Patches InfantryClass::Assign_Destination at the part where jumpjets determine whether to add a Q-Move.
+ *  This occurs when jumpjets are assigned a new destination while using the Walk Locomotion to move.
+ *  The Q-Move is used to make the jumpjets effectively stop near their position in order to reconsider swapping locomotions to fly
+ *  to the newly ordered position. However, in some cases, this behavior is not desired and causes issues, which this patch fixes.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D4356, InfantryClass_Assign_Destination_Jumpjet_Move_Queue_Patch, 6)
+{
+    GET(InfantryClass*, this_ptr, EBP);
+
+    enum {
+        SKIP_NAVQUEUE_CHAIN = 0x004D43DB
+    };
+
+    // If the unit has an archive target, this typically means it was instructed to reach a position
+    // as soon as it finishes what it's currently doing, such as when being rallied out of a Barracks, Hospital or Armory.
+    // We should not add Q-Move to the destination when this is the case.
+    // Fixes a bug where jumpjets would go back to the building they exited from after reaching the building's rally point.
+    if (this_ptr->ArchiveTarget != nullptr) {
+        return SKIP_NAVQUEUE_CHAIN;
+    }
+
+    // If the unit is about to enter a building, it shouldn't have any Q-Moves lines up.
+    // Fixes a bug where jumpjets behave very erratically when trying to enter a hospital or an armory.
+    if (this_ptr->Get_Mission() == MISSION_ENTER) {
+        this_ptr->Clear_Navigation_List();
+
+        return SKIP_NAVQUEUE_CHAIN;
+    }
+
+    return 0;
+}
+
 
 /**
  *  Main function for patching the hooks.

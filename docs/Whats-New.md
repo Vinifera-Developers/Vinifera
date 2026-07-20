@@ -104,13 +104,25 @@ New:
 - Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
 - Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
 - Allows aircraft to use Q-Move (by JoyfulShush)
-- Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
+- Add an in-game ImGui "Game Info" overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
 - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
 - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
 - Allow Free Radar to be used when players are in low power (by JoyfulShush)
-- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
 - Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
+- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
+- Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
+- Fix Win32 dialog scaling with SDL (by Rampastring)
+- Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
+- Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
+- Allow customizing the amount of strength technos recover in each self-heal instance per techno and globally (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination (by JoyfulShush)
+- Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building (by JoyfulShush)
+- Fix a bug where cloaked units sensed by nearby enemy units can cloak again immediately (by JoyfulShush)
+- Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
@@ -136,6 +148,8 @@ Vinifera fixes:
 - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
 - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
 - Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
+- Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no` (by Rampastring)
+- Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached. (by Krnyoshi)
 
 
 Vanilla fixes:
@@ -186,6 +200,8 @@ Vanilla fixes:
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
+- EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
+- Correct the 25%/50%/75% translucency blend so layered translucent sprites no longer progressively darken (by ZivDero, Apollo)
 - Add new trigger event that only triggers when the attached object is destroyed, and does not trigger under other means (by JoyfulShush)
 
 :::

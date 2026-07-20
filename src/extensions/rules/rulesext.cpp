@@ -91,6 +91,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     DetectBeaconVoice(VOX_NONE),
     SelfHealingCap(-1),
     SelfHealingRate(-1),
+    SelfHealingStep(1),
     IsBeachIsCrush(false),
     BuildingFlameSpawnBlockFrames(0),
     IronCurtainDuration(675),
@@ -104,10 +105,11 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     PausedRepairsFrame(6),
     EscortRange(-1),
     AbandonTargetEscortRange(-1),
-	IsFreeRadarOnLowPower(false),
+    IsFreeRadarOnLowPower(false),
     IsUseBridgeHealth(false),
-	BridgeArmor(ARMOR_NULL),
-	IsCellTagsIgnoreStealth(true)
+    BridgeArmor(ARMOR_NULL),
+    IsCellTagsIgnoreStealth(true),
+    HarvesterUnderAttackThrottleTime(-1)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -268,6 +270,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsUseBridgeHealth);
     crc(BridgeArmor);
     crc(IsCellTagsIgnoreStealth);
+    crc(SelfHealingStep);
 }
 
 
@@ -695,13 +698,13 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
     IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
-    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealingCap", SelfHealingCap);    
-    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealingRate", SelfHealingRate);
+    SelfHealingCap = ini.Get_Float(GENERAL, "SelfHealCap", SelfHealingCap);
+    SelfHealingRate = ini.Get_Float(GENERAL, "SelfHealRate", SelfHealingRate);
+    SelfHealingStep = ini.Get_Int(GENERAL, "SelfHealStep", SelfHealingStep);
     PausedRepairsFrame = ini.Get_Int(GENERAL, "PausedRepairsFrame", PausedRepairsFrame);
     EscortRange = ini.Get_Lepton(GENERAL, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
-    IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);
-    IsUseBridgeHealth = ini.Get_Bool(GENERAL, "UseBridgeHealth", IsUseBridgeHealth);
+    IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);    
     IsCellTagsIgnoreStealth = ini.Get_Bool(GENERAL, "CellTagsIgnoreStealth", IsCellTagsIgnoreStealth);
 
     /**
@@ -765,6 +768,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     IronCurtainPulseTable = ini.Get_IntList(AUDIOVISUAL, "IronCurtainPulseTable", IronCurtainPulseTable);
     IronCurtainSound = ini.Get_VocType(AUDIOVISUAL, "IronCurtainSound", IronCurtainSound);
 
+    float harvthrottle = ini.Get_Float(AUDIOVISUAL, "HarvesterUnderAttackThrottleTime");
+    if (harvthrottle != 0.0) {
+        HarvesterUnderAttackThrottleTime = harvthrottle * 900.0f;
+    }
+
     return true;
 }
 
@@ -784,6 +792,7 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
     BuildingFlameSpawnBlockFrames = ini.Get_Int(COMBATDAMAGE, "BuildingFlameSpawnBlockFrames", BuildingFlameSpawnBlockFrames);
+    IsUseBridgeHealth = ini.Get_Bool(COMBATDAMAGE, "UseBridgeHealth", IsUseBridgeHealth);
     BridgeArmor = ini.Get_ArmorType(COMBATDAMAGE, "BridgeArmor", BridgeArmor);
 
     return true;

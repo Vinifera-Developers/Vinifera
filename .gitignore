@@ -54,6 +54,9 @@ CMakeCache.txt
 CMakeUserPresets.json
 *.dir
 
+# clangd background index (machine-local cache)
+.cache/
+
 # Windows
 thumbs.db
 desktop.ini

@@ -34,6 +34,7 @@
 #include "winutil.h"
 
 #include <atomic>
+#include <cmath>
 #include <dbghelp.h>
 #include <eh.h>
 #include <exception>
@@ -146,6 +147,29 @@ static HANDLE DumperDoneEvent = nullptr;
 static std::atomic<bool> DumperStarted{false};
 
 #define DUMPER_TIMEOUT_MS 60000
+
+
+/**
+ *  Stack reserved by SetThreadStackGuarantee so the SEH filter has room to run
+ *  after EXCEPTION_STACK_OVERFLOW (which fires with only ~1 page of stack left).
+ *  64 KB comfortably covers the gate + Suspend_Other_Threads + dumper handoff on
+ *  the crashing thread; the heavy dump itself runs on the dumper's full stack.
+ *  Costs nothing unless used; trims ~64 KB off a 1 MB stack, which is negligible.
+ */
+static constexpr ULONG VINIFERA_EXCEPTION_STACK_GUARANTEE = 64 * 1024;
+
+
+/**
+ *  Reserve a guaranteed stack region for exception handling on the calling
+ *  thread. Must be called per-thread (the guarantee only ever increases). Call
+ *  as early as possible on every thread so a stack overflow can
+ *  still reach the crash dumper instead of instantly killing the process.
+ */
+void Vinifera_Reserve_Exception_Stack()
+{
+    ULONG guarantee = VINIFERA_EXCEPTION_STACK_GUARANTEE;
+    SetThreadStackGuarantee(&guarantee); // Ignore failure - best effort.
+}
 
 
 bool Any_Surface_Locked()
@@ -385,7 +409,7 @@ static const char *ExceptionText[] = {
 #if defined(EXCEPTION_POSSIBLE_DEADLOCK) && defined(STATUS_POSSIBLE_DEADLOCK) // This type seems to be non-existent in practice.
     "Error code: EXCEPTION_POSSIBLE_DEADLOCK\r\r\nDescription: The wait operation on the critical section timed out.",
 #endif
-    "Error code: CONTROL_C_EXIT\r\r\nDescription: The application terminated as a result of a CTRL+C."
+    "Error code: CONTROL_C_EXIT\r\r\nDescription: The application terminated as a result of a CTRL+C.",
     "Error code: " UNKNOWN_MEMORY_AREA "\r\r\nDescription: Unknown exception."
 };
 
@@ -444,6 +468,31 @@ static void Exception_Printf(const char *buffer, ...)
 static void __cdecl Exception_Stack_Dump_Handler(const char *buffer)
 {
     Exception_Printf(buffer);
+}
+
+
+/**
+ *  Interpret an 80-bit x87 register (10 bytes, little-endian) as a double.
+ *  FloatSave.RegisterArea holds 80-bit extended-precision values (64-bit
+ *  mantissa, 15-bit exponent, sign - no implicit bit), so they must be
+ *  decoded rather than reinterpreted as a 64-bit IEEE-754 double.
+ */
+static double Read_x87_Register(const uint8_t *bytes)
+{
+    const uint64_t mantissa = *reinterpret_cast<const uint64_t *>(bytes);
+    const uint16_t sign_exp = *reinterpret_cast<const uint16_t *>(bytes + 8);
+    const double sign = (sign_exp & 0x8000) ? -1.0 : 1.0;
+    const int exponent = sign_exp & 0x7FFF;
+
+    if (exponent == 0 && mantissa == 0) {
+        return 0.0;
+    }
+
+    if (exponent == 0x7FFF) {
+        return sign * HUGE_VAL; // Infinity or NaN.
+    }
+
+    return sign * std::ldexp(static_cast<double>(mantissa), exponent - 16383 - 63);
 }
 
 
@@ -719,7 +768,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was written to.\r\n", record->ExceptionInformation[1]);
                 break;
             case 2: // Execute violation
-                Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was written to.\r\n", record->ExceptionInformation[1]);
+                Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " was executed.\r\n", record->ExceptionInformation[1]);
                 break;
             case 8: // User-mode data execution prevention (DEP).
                 Exception_Printf("Access address: 0x%" PRIPTRSIZE PRIXPTR " DEP violation.\r\n", record->ExceptionInformation[1]);
@@ -857,15 +906,27 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
             Exception_Printf("%02X", context->FloatSave.RegisterArea[i * 10 + j]);
         }
 
-        Exception_Printf("   %+#.17e\r\n", *reinterpret_cast<double *>(&context->FloatSave.RegisterArea[i * 10]));
+        Exception_Printf("   %+#.17e\r\n", Read_x87_Register(&context->FloatSave.RegisterArea[i * 10]));
     }
 
     /**
      *  MMX Registers.
      */
-    if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE)) {
-        Exception_Printf("MMX0:%016llX\tMMX1:%016llX\tMMX2:%016llX\tMMX3:%016llX\r\n", context->ExtendedRegisters[0], context->ExtendedRegisters[1], context->ExtendedRegisters[2], context->ExtendedRegisters[3]);
-        Exception_Printf("MMX4:%016llX\tMMX5:%016llX\tMMX6:%016llX\tMMX7:%016llX\r\n", context->ExtendedRegisters[4], context->ExtendedRegisters[5], context->ExtendedRegisters[6], context->ExtendedRegisters[7]);
+    if ((context->ContextFlags & CONTEXT_EXTENDED_REGISTERS) == CONTEXT_EXTENDED_REGISTERS
+        && IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE)) {
+
+        /**
+         *  MM0-MM7 alias the ST register mantissas and live in the FXSAVE area
+         *  (ExtendedRegisters) at offset 32, 16 bytes apart - not in the first
+         *  bytes of the area, which hold the control/status words.
+         */
+        const uint8_t *mmx = &context->ExtendedRegisters[32];
+        Exception_Printf("MMX0:%016llX\tMMX1:%016llX\tMMX2:%016llX\tMMX3:%016llX\r\n",
+            *reinterpret_cast<const uint64_t *>(mmx + 0 * 16), *reinterpret_cast<const uint64_t *>(mmx + 1 * 16),
+            *reinterpret_cast<const uint64_t *>(mmx + 2 * 16), *reinterpret_cast<const uint64_t *>(mmx + 3 * 16));
+        Exception_Printf("MMX4:%016llX\tMMX5:%016llX\tMMX6:%016llX\tMMX7:%016llX\r\n",
+            *reinterpret_cast<const uint64_t *>(mmx + 4 * 16), *reinterpret_cast<const uint64_t *>(mmx + 5 * 16),
+            *reinterpret_cast<const uint64_t *>(mmx + 6 * 16), *reinterpret_cast<const uint64_t *>(mmx + 7 * 16));
     }
 
     /**
@@ -1159,6 +1220,12 @@ static void Dumper_Thread_Proc()
      *  Suspend_Other_Threads must exclude us.
      */
     DumperThreadId.store(GetCurrentThreadId());
+
+    /**
+     *  Give the dumper's own __try/__except fault catcher guaranteed stack
+     *  headroom too, in case the heavy dump path overflows.
+     */
+    Vinifera_Reserve_Exception_Stack();
 
     /**
      *  The __except below is the catch-all for a dump fault - and must never

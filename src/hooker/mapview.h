@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <windows.h>
+
 
 class MapViewOfFileClass
 {
@@ -34,12 +36,20 @@ class MapViewOfFileClass
 };
 
 
+constexpr int MAX_MODULE_SECTIONS = 96;
+
+struct ImageSectionRange
+{
+    LPVOID Base;
+    SIZE_T Size;
+    DWORD Characteristics;
+    char Name[IMAGE_SIZEOF_SHORT_NAME + 1];
+};
+
 struct ImageSectionInfo
 {
-    LPVOID BaseOfCode;
-    LPVOID BaseOfData;
-    SIZE_T SizeOfCode;
-    SIZE_T SizeOfData;
+    ImageSectionRange Sections[MAX_MODULE_SECTIONS];
+    int SectionCount;
 };
 
 bool GetModuleSectionInfo(ImageSectionInfo &info);

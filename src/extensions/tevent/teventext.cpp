@@ -17,7 +17,7 @@
 #include "wwcrc.h"
 
 
-TEventClass::EventDescriptionStruct TEventClassExtension::ExtActionDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST] = {
+TEventClass::EventDescriptionStruct TEventClassExtension::ExtEventDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST] = {
     { "Compare Global with Constant", "Compares a global variable with a constant using a selected operation." },
     { "Compare Global with Global", "Compares two global variables using a selected operation." },
     { "Compare Global with Local", "Compares a global variable with a local variable using a selected operation." },
@@ -171,7 +171,7 @@ const char* TEventClassExtension::Event_Name(int event)
     }
 
     if (event < EXT_TEVENT_COUNT) {
-        return ExtActionDescriptions[event - EXT_TEVENT_FIRST].Name;
+        return ExtEventDescriptions[event - EXT_TEVENT_FIRST].Name;
     }
 
     return "<invalid>";
@@ -190,7 +190,7 @@ const char* TEventClassExtension::Event_Description(int event)
     }
 
     if (event < EXT_TEVENT_COUNT) {
-        return ExtActionDescriptions[event - EXT_TEVENT_FIRST].Description;
+        return ExtEventDescriptions[event - EXT_TEVENT_FIRST].Description;
     }
 
     return "<invalid>";

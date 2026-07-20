@@ -73,7 +73,8 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     SubtitleCategoryCur(SUBTITLE_CATEGORY_SYSTEM),
     SubtitleFont(nullptr),
     SubtitleFontCacheHeight(0),
-    SubtitleFontCacheWeight(0)
+    SubtitleFontCacheWeight(0),
+    LastHarvesterUnderAttackFrame(0)
 {
     std::memset(CellRedraw, 0, sizeof(CellRedraw));
 }

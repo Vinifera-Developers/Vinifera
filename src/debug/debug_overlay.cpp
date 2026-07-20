@@ -17,6 +17,7 @@
 #include "building.h"
 #include "bullet.h"
 #include "event.h"
+#include "extension.h"
 #include "factory.h"
 #include "foot.h"
 #include "house.h"
@@ -31,6 +32,7 @@
 #include "overlay.h"
 #include "particle.h"
 #include "queue.h"
+#include "rules.h"
 #include "session.h"
 #include "smudge.h"
 #include "tag.h"
@@ -38,6 +40,7 @@
 #include "team.h"
 #include "teamtype.h"
 #include "techno.h"
+#include "technoext.h"
 #include "technotype.h"
 #include "terrain.h"
 #include "tibsun_globals.h"
@@ -52,6 +55,7 @@
 
 #include <imgui.h>
 
+#include <cmath>
 #include <cstdio>
 
 
@@ -74,6 +78,7 @@ namespace
         return PlayerPtr;
     }
 
+
     static void Format_Mission_Time(char* out, size_t out_size)
     {
         const int total_seconds = Frame / 15; // 15 logic ticks/sec
@@ -82,6 +87,7 @@ namespace
         const int seconds = total_seconds % 60;
         std::snprintf(out, out_size, "%d:%02d:%02d", hours, minutes, seconds);
     }
+
 
     /**
      *  Performance block; in dev mode adds heap / queue counts.
@@ -93,14 +99,13 @@ namespace
         char timebuf[16];
         Format_Mission_Time(timebuf, sizeof(timebuf));
 
-        ImGui::Text("Time : %s", timebuf);
-        ImGui::Text("FPS  : %u", FramesPerSecond);
+        ImGui::Text("Time  : %s", timebuf);
+        ImGui::Text("FPS   : %u", FramesPerSecond);
+        ImGui::Text("Frame : %ld", Frame);
 
         if (!Vinifera_DeveloperMode) {
             return;
         }
-
-        ImGui::Text("Frame      : %ld", Frame);
 
         /**
          *  Live instance heaps; static type heaps (TeamTypes etc.) are omitted.
@@ -135,6 +140,7 @@ namespace
         ImGui::Text("DoList     : %d", DoList.Count);
     }
 
+
     static const char* Diff_To_String(DiffType d)
     {
         switch (d) {
@@ -144,6 +150,7 @@ namespace
         default:          return "?";
         }
     }
+
 
     static void Draw_Factory_Line(const char* label, FactoryClass* factory)
     {
@@ -155,6 +162,7 @@ namespace
         const char* name = obj && obj->Class_Of() ? obj->Class_Of()->Name() : "?";
         ImGui::Text("%-12s: %s", label, name);
     }
+
 
     /**
      *  State dump for the owner of the selected object (falls back to PlayerPtr).
@@ -217,6 +225,7 @@ namespace
         }
     }
 
+
     static const char* Rank_To_String(VeterancyRankType r)
     {
         switch (r) {
@@ -227,6 +236,7 @@ namespace
         }
     }
 
+
     static const char* Persistence_To_String(PersistantType p)
     {
         switch (p) {
@@ -236,6 +246,7 @@ namespace
         default:             return "?";
         }
     }
+
 
     /**
      *  Per-weapon stats. ROF is ticks between shots at 15 ticks/sec,
@@ -282,6 +293,7 @@ namespace
         ImGui::PopID();
     }
 
+
     /**
      *  Stats panel for the selected unit.
      */
@@ -310,18 +322,36 @@ namespace
             return;
         }
 
-        ImGui::Text("Unit    : %s", type->Name());
+        ImGui::Text("Unit    : %s (%s)", type->Full_Name(), type->Name());
 
+        /**
+         *  Owner is shown as "<house type> (<who controls it>)". The control tag
+         *  distinguishes the local player, other humans (by nickname in MP), and the AI
+         *  (by alliance in SP). HouseClass::IniName is the player's nickname only in MP;
+         *  in SP it stays the bogus "Computer" default, so it is only used for humans.
+         */
         char owner_buf[64];
         if (owner == nullptr) {
             std::snprintf(owner_buf, sizeof(owner_buf), "(none)");
-        } else if (owner->Class != nullptr) {
-            std::snprintf(owner_buf, sizeof(owner_buf), "%s (%s)",
-                owner->IniName.c_str(), owner->Class->Name());
         } else {
-            std::snprintf(owner_buf, sizeof(owner_buf), "%s", owner->IniName.c_str());
+            const char* house_name = owner->Class != nullptr
+                ? (owner->Class->Full_Name()[0] ? owner->Class->Full_Name() : owner->Class->Name())
+                : "?";
+
+            const char* tag;
+            if (owner->Is_Player_Control()) {
+                tag = "You";
+            } else if (owner->Is_Human_Player()) {
+                tag = owner->IniName.c_str();
+            } else if (Session.Singleplayer_Game()) {
+                tag = (PlayerPtr != nullptr && PlayerPtr->Is_Ally(owner)) ? "Ally" : "Enemy";
+            } else {
+                tag = "Computer";
+            }
+
+            std::snprintf(owner_buf, sizeof(owner_buf), "%s (%s)", house_name, tag);
         }
-        ImGui::Text("Owner   : %s%s", owner_buf, is_enemy ? "  [enemy]" : "");
+        ImGui::Text("Owner   : %s", owner_buf);
 
         ImGui::Text("HP      : %d / %d", obj->Strength, type->MaxStrength);
 
@@ -338,6 +368,10 @@ namespace
         }
 
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
+        auto techno_type_ext = Extension::Fetch(techno);
+
+        ImGui::Text("Sight   : %d", techno_type_ext->Get_Sight_Range());
+
         ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
 
         /**
@@ -350,7 +384,25 @@ namespace
             ImGui::Text("Group   : (none)");
         }
 
-        ImGui::Text("Rank    : %s (xp=%.2f)", Rank_To_String(techno->Crew.Get_Rank()), techno->Crew.Get_Experience());
+        /**
+         *  Experience is normalized: [0,1) Rookie, [1,2) Veteran, >=2 Elite. One rank is
+         *  worth Cost_Of(owner) * VeteranRatio of destroyed value, so the fractional part
+         *  scaled by that gives a credits-style "XP toward next rank".
+         */
+        const double exp = techno->Crew.Get_Experience();
+        const VeterancyRankType rank = techno->Crew.Get_Rank();
+        ImGui::Text("Rank    : %s", Rank_To_String(rank));
+
+        const TechnoTypeClass* ttype = techno->Techno_Type_Class();
+        const double per_level = ttype != nullptr ? ttype->Cost_Of(owner) * Rule->VeteranRatio : 0.0;
+        if (rank == RANK_ELITE || per_level <= 0.0) {
+            ImGui::Text("XP      : (max rank)  (exp %.2f)", exp);
+        } else {
+            const double frac = exp - std::floor(exp);
+            ImGui::Text("XP      : %d / %d  (exp %.2f)",
+                static_cast<int>(frac * per_level + 0.5),
+                static_cast<int>(per_level + 0.5), exp);
+        }
 
         /**
          *  FootClass speed bias stacks on top of the house ground bias.
@@ -358,7 +410,7 @@ namespace
         const bool is_foot = obj->RTTI == RTTI_UNIT || obj->RTTI == RTTI_INFANTRY || obj->RTTI == RTTI_AIRCRAFT;
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
-            ImGui::Text("Speed   : %.2f (bias x%.2f)", foot->Speed, foot->SpeedBias);
+            ImGui::Text("Speed   : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
         }
 
         /**
@@ -409,6 +461,7 @@ namespace
         Draw_Weapon_Block("Secondary", secondary ? secondary->Weapon : nullptr, firepower_bias);
     }
 
+
     /**
      *  TS network timings are 1/60-second ticks.
      */
@@ -416,6 +469,7 @@ namespace
     {
         return ticks * 1000UL / 60UL;
     }
+
 
     /**
      *  Looks up a peer's ProcessTime by player ID (== HousesType).
@@ -430,6 +484,7 @@ namespace
         }
         return -1;
     }
+
 
     /**
      *  Sync/latency on top, per-peer rtt/process below.
@@ -532,7 +587,7 @@ void DebugOverlay::Draw()
         return;
     }
 
-    if (!ImGui::Begin("Vinifera Debug", &IsVisible, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (!ImGui::Begin("Game Info", &IsVisible, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
     }
@@ -562,9 +617,14 @@ void DebugOverlay::Draw()
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Network")) {
-            Draw_Network_Tab();
-            ImGui::EndTabItem();
+        /**
+         *  The Network tab only carries meaningful data in a networked game.
+         */
+        if (!Session.Singleplayer_Game()) {
+            if (ImGui::BeginTabItem("Network")) {
+                Draw_Network_Tab();
+                ImGui::EndTabItem();
+            }
         }
 
         ImGui::EndTabBar();

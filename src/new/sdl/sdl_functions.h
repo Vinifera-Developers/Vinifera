@@ -18,12 +18,14 @@ class Surface;
 bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, const Rect& tile_rect, const Rect& sidebar_rect, bool hidden_first);
 bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel);
 void SDL_Reset_Video_Mode();
-void SDL_Update_Visible_Surface(bool flip_mouse, Surface* surface, Rect* rect);
 bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height);
 void SDL_Destroy_Main_Window();
 bool SDL_Update_Screen(Surface* surface);
-bool SDL_Should_Scale();
 bool SDL_Change_Display_Mode(int width, int height);
+bool SDL_Redirect_Mouse_Message(HWND window, UINT message, WPARAM wparam, LPARAM lparam, LPARAM* translated_lparam);
+void SDL_Subclass_Combo_Dropdown_Windows(HWND parent);
+void SDL_Record_Control_State_Message(HWND window, UINT message, WPARAM, LPARAM lparam);
+
 
 /**
  *  Returns the current X-axis scaling factor.

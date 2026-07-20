@@ -73,6 +73,12 @@ if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type default to RelWithDebInfo")
 endif()
 
+# Emit compile_commands.json so editor tooling (clangd) can resolve includes,
+# defines and the C++ standard. Only the Ninja/Makefile generators honour this;
+# the Visual Studio generator ignores it, so configure once with Ninja (e.g. a
+# CLion build dir) to produce the database. See .clangd for how it is consumed.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 ################################################################################
 # Configure C++ standard
@@ -170,6 +176,18 @@ if(WIN32)
 	add_compile_definitions(_USE_32BIT_TIME_T) # This is for ABI compatibility with a few functions.
 	add_compile_definitions(WIN32_LEAN_AND_MEAN) # Go lean and mean on windows.
 	add_compile_definitions(NOMINMAX) # Windows min/max clashes with std::min/max
+
+	# VS 2022 17.10 gave std::mutex (and the other standard mutexes / condition
+	# variables) a constexpr constructor, so a global like DbgHelpMutex becomes
+	# constant-initialized (zeroed) with no runtime constructor; first-lock init
+	# then happens inside msvcp140.dll. We link the CRT dynamically (/MD), so on
+	# machines with an older VC++ redistributable (msvcp140.dll < 14.40) that
+	# lazy-init path doesn't exist and the very first std::mutex lock faults
+	# (typically Init_Symbol_Info's lock on DbgHelpMutex). This define is the
+	# Microsoft-sanctioned escape hatch: it reverts to the old run-at-construction
+	# init, which is compatible with older redistributables. Must be defined for
+	# the whole program, hence here (directory-wide, before any add_subdirectory).
+	add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 endif()
 
 
@@ -645,7 +663,21 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 
 # Build with multiple processes.
 target_compile_options(${PROJECT_NAME} PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:/MP2>
+    $<$<COMPILE_LANGUAGE:CXX>:/MP>
+)
+
+# The SIMD blitter kernels need SSE2/AVX2 enabled, overriding the project-wide /arch:IA32.
+# The per-source /arch comes after the PUBLIC /arch:IA32 on the command line, and the last
+# /arch wins for MSVC. These TUs are kept strictly floating-point free, so the change to
+# scalar FP code generation is immaterial. The AVX2 TU may only ever run on AVX2 CPUs, which
+# is guaranteed by the creation-time CPU-tier guard.
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extensions/blitter/blitter_simd_sse.cpp
+    PROPERTIES COMPILE_OPTIONS "/arch:SSE2"
+)
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extensions/blitter/blitter_simd_avx2.cpp
+    PROPERTIES COMPILE_OPTIONS "/arch:AVX2"
 )
 
 # Link to the TS++ static library.

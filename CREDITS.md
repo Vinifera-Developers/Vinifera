@@ -5,6 +5,8 @@ This page lists all the individual contributions to the project by their author.
 - **AlexB**:
   - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry.
   - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
+- **Apollo**:
+  - Correct the translucent-blend rounding so layered translucency no longer darkens.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
@@ -183,10 +185,21 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where AI medics would fail to heal their allies.
   - Allow Free Radar to remain active when players are in low power.
   - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
-  - Allow cloaked units to trigger cell tags when using Entered By trigger events.
+  - Allow cloaked units to trigger cell tags when using Entered By trigger events.  
+  - Add the ability to specify sight ranges for technos when they are veteran and elite.
+  - Allow customizing the amount of strength technos recover in each self-heal instance per techno and globally.
+  - Fix a vanilla bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards.
+  - Fix a vanilla bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it.
+  - Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point.
+  - Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination.
+  - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building.
+  - Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
+  - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values.
   - Add new trigger event for an object being specifically destroyed.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **Krnyoshi**:
+  - Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached.
 - **Noble Fish**:
   - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
@@ -268,6 +281,10 @@ This page lists all the individual contributions to the project by their author.
   - Vinifera's Developer mode now prints information on executed trigger actions.
   - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
   - Allow repairs to be paused instead of stopped when a house has insufficient funds.
+  - Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no`.
+  - EVA no longer says "Harvester under attack" when harvesters receive environmental damage.
+  - Allow throttling the frequency of the "Harvester under attack" EVA event.
+  - Fix Win32 dialog scaling with SDL.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -398,3 +415,5 @@ This page lists all the individual contributions to the project by their author.
   - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
   - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.
   - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.
+  - Reimplement the software blitters with hand-written SIMD (SSE2/AVX2) for faster rendering on modern CPUs.
+  - Correct the translucent-blend rounding so layered translucency no longer darkens.

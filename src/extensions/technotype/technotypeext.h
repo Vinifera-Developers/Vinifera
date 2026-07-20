@@ -263,6 +263,11 @@ public:
     float SelfHealingRate;
 
     /**
+     *  Define the amount of strength regenerated whenever this techno self-heals
+     */
+    int SelfHealingStep;
+
+    /**
      *  Does this object need to decloak before firing?
      */
     bool IsDecloakToFire;
@@ -397,4 +402,17 @@ public:
      *  Specifies whether the AI should use the Iron Curtain to protect this object.
      */
     bool IronCurtainPriorityTarget;
+
+    /*
+     *  Specifies the sight range that should be used when the techno is veteran.
+     *  Falls back to vanilla SightRange when not provided.
+     *  Used as a fall back if EliteSightRange is not provided.
+     */
+    int VeteranSightRange;
+
+    /*
+     *  Specifies the sight range that should be used when the techno is elite.
+     *  Falls back to VeteranSightRange when not provided.
+     */
+    int EliteSightRange;
 };
