@@ -1877,11 +1877,11 @@ bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass*
         *  game reloads TeamTime.
         */
         house_ext->TeamDelayOverride = teamDelay;
-
-        DEBUG_INFO("Set {} TeamDelay override to {} \n", house->Class->Name(), teamDelay);
     }
 
     house->TeamTime = teamDelay;
+
+    DEBUG_INFO("Set {} TeamDelay override to {} \n", house->Class->Name(), teamDelay);
 
     return true;
 
