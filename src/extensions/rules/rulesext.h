@@ -301,4 +301,9 @@ public:
      *  When EVA has told the player "harvester under attack", prevent EVA from saying that line again for this many frames.
      */
     int HarvesterUnderAttackThrottleTime;
+
+    /**
+     *  Whether AI units that deploy should persist their tags, if any, on the building that the unit deployed into
+     */
+    bool PersistTagsOnAIDeploy;
 };

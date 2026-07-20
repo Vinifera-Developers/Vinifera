@@ -195,6 +195,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building.
   - Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
   - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values.
+  - Add a key to allow AI-controlled units to persist their tags when they deploy into a building.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Krnyoshi**:
