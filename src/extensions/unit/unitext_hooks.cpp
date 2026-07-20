@@ -1360,6 +1360,40 @@ DEFINE_HOOK(0x006563FD, _UnitClass_What_Action_MRV_Toggle_Select_Patch, 7)
 
 
 /**
+ *  Patches UnitClass::Try_To_Deploy at the very end of the process, after the new building to be deployed into has been created.
+ *  Typically, the unit is first stunned, which removes all associations it has with the game. If the unit belongs to an AI house,
+ *  then this includes the unit's tag; otherwise, the tag persists. Then, the unit is checked for a tag to be assigned to the new building.
+ *  This behavior causes AI units to lose the tag before they can attach it to the building.
+ * 
+ *  This swaps the order of operations: first, check the tag and assign it to the new building, and only then stun the unit,
+ *  removing the tag from it. Once done, jump to the next statement.
+ * 
+ *  Only applies if the new PersistTagsOnAIDeploy key is set, for backwards compatibility.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x00651122, Unit_Class_Try_To_Deploy_AI_Persist_Tag_Patch, 10)
+{
+    GET(UnitClass*, this_ptr, ESI);
+    GET(ObjectClass*, new_building, EDI);
+
+    if (!RuleExtension->PersistTagsOnAIDeploy) {
+        return 0;
+    }
+
+    if (this_ptr->Tag != nullptr) {
+        new_building->Attach_Tag(this_ptr->Tag);
+        this_ptr->Tag->AttachCount--;
+        this_ptr->Tag = nullptr;
+    }
+
+    this_ptr->Stun();
+
+    return 0x0065114C;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void UnitClassExtension_Hooks()
