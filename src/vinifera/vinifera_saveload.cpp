@@ -334,6 +334,16 @@ static HRESULT Load_Unordered_Map(IStream* pStm, std::unordered_map<TKey, TValue
 bool Vinifera_Put_All(IStream *pStm, bool save_net)
 {
     /**
+     *  Multiplayer move flashes are local-only cosmetic anims that live outside
+     *  the Anims heap, so they are never written to the save stream, but they
+     *  still sit in the map layers, whose pointers cannot be unswizzled on load.
+     *  Delete any that are alive before any state is saved.
+     */
+    while (MoveFlashes.Count() > 0) {
+        delete MoveFlashes[MoveFlashes.Count() - 1];
+    }
+
+    /**
      *  Save the scenario global information.
      */
     DEBUG_INFO("Saving Scenario...\n");
