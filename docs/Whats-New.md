@@ -136,6 +136,7 @@ New:
 - Allow customizing end-of-game text color per side (by Rampastring)
 - Make it possible to play videos in multiplayer (by Rampastring)
 - Make it possible to vote-skip videos in multiplayer (by Rampastring)
+- Add a key to allow AI-controlled units to persist their tags when they deploy into a building (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

@@ -31,6 +31,7 @@
 DEFINE_HOOK(0x00413C79, _AnimClass_Constructor_Patch, 7)
 {
     GET(AnimClass *, this_ptr, ESI); // Current "this" pointer.
+    AnimClassExtension *ext_ptr = nullptr;
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -60,11 +61,22 @@ DEFINE_HOOK(0x00413C79, _AnimClass_Constructor_Patch, 7)
     /**
      *  Create an extended class instance.
      */
-    Extension::Make<AnimClassExtension>(this_ptr);
+    ext_ptr = Extension::Make<AnimClassExtension>(this_ptr);
+
+    /**
+     *  In multiplayer, the move flash anim is transferred out of the Anims heap
+     *  into the local-only MoveFlashes list right after construction (see
+     *  FootClass::Active_Click_With), identified by an ID of -2. Keep the
+     *  extension attached to the anim (hooks fetch it through the object), but
+     *  keep it out of AnimExtensions so the list always mirrors the Anims heap.
+     */
+    if (ext_ptr != nullptr && this_ptr->Fetch_ID() == -2) {
+        AnimExtensions.Delete(ext_ptr);
+    }
 
     /**
      *  #issue-561
-     * 
+     *
      *  Implements ZAdjust override for Anims. This will only have an effect
      *  if the anim is created with a z-adjustment value of "0" (default value).
      * 

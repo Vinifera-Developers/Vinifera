@@ -461,6 +461,15 @@ bool Rename_File(const char *filename, const char *new_filename)
 }
 
 
+/**
+ *  Moves a file to a new name, replacing the destination file if it exists.
+ */
+bool Replace_File(const char *filename, const char *new_filename)
+{
+    return MoveFileExA(filename, new_filename, MOVEFILE_REPLACE_EXISTING) != 0;
+}
+
+
 bool File_Exists(const char *filename)
 {
     return RawFileClass(filename).Is_Available();

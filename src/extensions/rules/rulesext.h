@@ -326,4 +326,9 @@ public:
     **	Is the "PlayerNormal" difficulty level available?
     */
     bool IsHasPlayerNormal;
+
+    /**
+     *  Whether AI units that deploy should persist their tags, if any, on the building that the unit deployed into
+     */
+    bool PersistTagsOnAIDeploy;
 };
