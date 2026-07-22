@@ -31,6 +31,9 @@
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
 #include "vinifera_globals.h"
+#include "tag.h"
+#include "syringe.h"
+#include "vinifera_defines.h"
 
 
 /**
@@ -128,6 +131,24 @@ bool ObjectClassExt::_Paradrop(Coord const& coord)
 
 
     return false;
+}
+
+/*
+* Triggers when any object is destroyed via Take Damage.
+* This springs a custom trigger event for units that were specifically destroyed by taking damage if they had an attached tag.
+* Changing houses, capturing it, and selling it doesn't count for this event.
+* Destruction trigger event persists even when captured - very useful for "Capture and Keep Safe" missions.
+* Works well with Entered By by linking triggers together - if you want to react to the structure being captured.
+* Also works well with the Building Exists trigger.
+*/
+DEFINE_HOOK(0x0058634A, _Take_Damage_Unit_Destroyed_Trigger_Event_Patch, 6) {    
+    GET(ObjectClass*, obj, ESI);
+
+    if (obj->Tag) {        
+        obj->Tag->Spring(static_cast<TEventType>(EXT_TEVENT_DESTROYED_ONLY), obj);
+    }
+
+    return 0;
 }
 
 

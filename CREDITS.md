@@ -185,7 +185,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where AI medics would fail to heal their allies.
   - Allow Free Radar to remain active when players are in low power.
   - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
-  - Allow cloaked units to trigger cell tags when using Entered By trigger events.
+  - Allow cloaked units to trigger cell tags when using Entered By trigger events.  
   - Add the ability to specify sight ranges for technos when they are veteran and elite.
   - Allow customizing the amount of strength technos recover in each self-heal instance per techno and globally.
   - Fix a vanilla bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards.
@@ -196,6 +196,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
   - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values.
   - Add a key to allow AI-controlled units to persist their tags when they deploy into a building.
+  - Add new trigger event for an object being specifically destroyed.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Krnyoshi**:

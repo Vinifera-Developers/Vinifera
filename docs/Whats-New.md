@@ -203,6 +203,7 @@ Vanilla fixes:
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
 - Correct the 25%/50%/75% translucency blend so layered translucent sprites no longer progressively darken (by ZivDero, Apollo)
+- Add new trigger event that only triggers when the attached object is destroyed, and does not trigger under other means (by JoyfulShush)
 
 :::
 

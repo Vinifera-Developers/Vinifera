@@ -375,6 +375,10 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
 
         return Compare_With_Variable(left_index, false, right_index, false, COMP_LESS);
     }
+
+    case EXT_TEVENT_DESTROYED_ONLY: {
+        if (event != Event) return false;        
+    }
     }
 
     /*
@@ -869,6 +873,7 @@ AttachType _Attaches_To(TEventType event)
     case TEVENT_PARALYZED:
     case TEVENT_ENEMY_IN_SPOTLIGHT_REPEATING:
     case TEVENT_LIMPED:
+    case EXT_TEVENT_DESTROYED_ONLY:        
         attach |= ATTACH_OBJECT;
         break;
 

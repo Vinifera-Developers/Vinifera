@@ -43,6 +43,7 @@ TEventClass::EventDescriptionStruct TEventClassExtension::ExtEventDescriptions[E
     { "Local less than Global", "Checks if a local variable is less than a global variable." },
     { "Local less than Local", "Checks if one local variable is less than another." },
     { "Building does not exist", "Triggers when the building specified (owned by the house of this trigger) does not exist." },
+    { "Destroyed Only", "Triggers when the attached object is destroyed by damage." },
 };
 
 
