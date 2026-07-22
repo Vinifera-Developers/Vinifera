@@ -365,8 +365,16 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
         Init_Multiplayer_Saves_For_Session();
-        Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
-        Print_Game_Saved_Message(!AutoSave.IsNextMultiplayerSaveManual);
+
+        // Actually save the game.
+        bool success = Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
+
+        if (success) {
+            Print_Game_Saved_Message(!AutoSave.IsNextMultiplayerSaveManual);
+        } else {
+            Print_Saving_Game_Failed_Message();
+        }
+
         AutoSave.IsNextMultiplayerSaveManual = false;
         return;
     }
