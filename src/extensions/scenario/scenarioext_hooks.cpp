@@ -594,7 +594,7 @@ public:
 /**
  *  A wrapper for CCINIClass::Get_HousesType to read SpawnX houses.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 HousesType CCINIClassExt::_Get_HousesType(const char* section, const char* entry, const HousesType defvalue)
 {
@@ -610,9 +610,9 @@ HousesType CCINIClassExt::_Get_HousesType(const char* section, const char* entry
     Get_String(section, entry, "", buffer, sizeof(buffer));
 
     /**
-     *  Try to fetch the spawn houses's index.
+     *  Try to fetch the spawn house's index.
      */
-    return HouseTypeClass::From_Name(buffer);
+    return HouseTypeClassExtension::House_From_Name(buffer);
 }
 
 
@@ -709,11 +709,6 @@ void ScenarioClassExtension_Hooks()
     Patch_Call(0x0040E806, &HouseTypeClassExtension::House_From_Name);  // AircraftClass
     // InfantryClass doesn't use House_From_HousesType
     Patch_Call(0x00628600, &CCINIClassExt::_Get_HousesType);            // TeamTypeClass
-
-
-    /**
-     *  Units have the follower mechanic, so we need to fix that up to account for potentially missing units.
-     */
 
     /**
      *  Jump past check in BuildingClass::Read_INI() preventing multiplayer building spawning for players.
