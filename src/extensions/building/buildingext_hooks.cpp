@@ -2752,10 +2752,18 @@ DEFINE_HOOK(0x0042D26B, Building_Class_Exit_Object_Jumpjet_Radio_Contact_Patch, 
  *  This fixes the cursor showing "NO MOVE" when hovering over tiberium, bridges, or invisible units or structures
  *  Naval buildings checks water passage while making sure the cursor is not on a bridge,
  *  while regular buildings checks land passage as well as bridges.
+ *
+ *  @author: JoyfulShush, Rampastring
  */
 MoveType BuildingClassExt::_Can_Enter_Cell(CellClass const* cell, FacingType dir, int cell_height, CellClass const*, bool) const
 {    
     if (Class->UndeploysInto && IsDown && !IsInLimbo) {
+
+        // If the scenario is being initialized, all cells are considered passable.
+        if (ScenarioInit) {
+            return MOVE_OK;
+        }
+
         auto class_ext = Extension::Fetch(Class);
         auto passability = cell->Passability;        
         
