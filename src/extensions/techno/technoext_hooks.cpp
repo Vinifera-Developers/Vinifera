@@ -3639,9 +3639,8 @@ bool TechnoClassExt::_Is_Allowed_To_Recloak()
  */
 void TechnoClassExt::_Look(bool incremental, bool dontmap)
 {    
-    assert(!IsInLimbo);
-
-    if (IsLocked && (!House->Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
+    // The techno can be in limbo when this is called if a building was destroyed by a trigger when it was entered by an engineer
+    if (!IsInLimbo && IsLocked && (!House->Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
         int sight_increase = 10 * (Get_Coord().Z / Rule->LeptonsPerSightIncrease);
         if (sight_increase > SightIncrease) {
             incremental = false;
