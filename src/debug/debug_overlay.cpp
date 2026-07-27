@@ -45,6 +45,7 @@
 #include "technoext.h"
 #include "technotype.h"
 #include "terrain.h"
+#include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -412,6 +413,26 @@ namespace
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
             ImGui::Text("Speed   : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
+
+            if (foot->NavCom == nullptr)
+            {
+                ImGui::Text("NavCom  : <none>");
+            }
+            else
+            {
+                Cell navcomcell = foot->NavCom->Center_Coord().As_Cell();
+                ImGui::Text("NavCom  : %s (%d, %d)", Name_From_RTTI(foot->NavCom->RTTI), navcomcell.X, navcomcell.Y);
+            }
+        }
+
+        if (techno->TarCom == nullptr)
+        {
+            ImGui::Text("TarCom  : <none>");
+        }
+        else
+        {
+            Cell tarcomcell = techno->TarCom->Center_Coord().As_Cell();
+            ImGui::Text("TarCom  : %s (%d, %d)", Name_From_RTTI(techno->TarCom->RTTI), tarcomcell.X, tarcomcell.Y);
         }
 
         /**
