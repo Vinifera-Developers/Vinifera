@@ -109,7 +109,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     IsUseBridgeHealth(false),
     BridgeArmor(ARMOR_NULL),
     IsCellTagsIgnoreStealth(true),
-    HarvesterUnderAttackThrottleTime(-1)
+    HarvesterUnderAttackThrottleTime(-1),
+    PersistTagsOnAIDeploy(false)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -271,6 +272,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(BridgeArmor);
     crc(IsCellTagsIgnoreStealth);
     crc(SelfHealingStep);
+    crc(PersistTagsOnAIDeploy);
 }
 
 
@@ -706,6 +708,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     AbandonTargetEscortRange = ini.Get_Lepton(GENERAL, "AbandonTargetEscortRange", AbandonTargetEscortRange);
     IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);    
     IsCellTagsIgnoreStealth = ini.Get_Bool(GENERAL, "CellTagsIgnoreStealth", IsCellTagsIgnoreStealth);
+    PersistTagsOnAIDeploy = ini.Get_Bool(GENERAL, "PersistTagsOnAIDeploy", PersistTagsOnAIDeploy);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

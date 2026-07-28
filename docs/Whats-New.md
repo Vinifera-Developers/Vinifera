@@ -124,6 +124,7 @@ New:
 - Fix a bug where cloaked units sensed by nearby enemy units can cloak again immediately (by JoyfulShush)
 - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
 - Add a new TAction "Modify Team Delays" where you can increase or decrease the delay for the trigger house's AITrigger execution (by Krnyoshi)
+- Add a key to allow AI-controlled units to persist their tags when they deploy into a building (by JoyfulShush)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

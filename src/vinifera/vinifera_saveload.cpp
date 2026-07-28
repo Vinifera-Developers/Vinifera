@@ -334,6 +334,16 @@ static HRESULT Load_Unordered_Map(IStream* pStm, std::unordered_map<TKey, TValue
 bool Vinifera_Put_All(IStream *pStm, bool save_net)
 {
     /**
+     *  Multiplayer move flashes are local-only cosmetic anims that live outside
+     *  the Anims heap, so they are never written to the save stream, but they
+     *  still sit in the map layers, whose pointers cannot be unswizzled on load.
+     *  Delete any that are alive before any state is saved.
+     */
+    while (MoveFlashes.Count() > 0) {
+        delete MoveFlashes[MoveFlashes.Count() - 1];
+    }
+
+    /**
      *  Save the scenario global information.
      */
     DEBUG_INFO("Saving Scenario...\n");
@@ -824,48 +834,17 @@ void Vinifera_Post_Load_Game()
 
 
 /**
- *  Saves the game to a file on the disk.
+ *  Writes the game state to a save file on the disk.
  *
  *  @author: ZivDero
  */
-bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
+static bool Vinifera_Write_Save_File(const WCHAR* wide_file_name, const char* descr)
 {
-    WCHAR wide_file_name[PATH_MAX];
-    char formatted_file_name[PATH_MAX];
-
-    /**
-     *  Format the save game path here just in case to make sure it contains the subdirectory.
-     *  In the future, it should be the call sites of Save_Game that are patched so that we can still
-     *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
-     */
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
-
-    DEBUG_INFO("SAVING GAME [{} - {}]\n", formatted_file_name, descr);
-
-    /**
-     *  This is required for compatibility with TS Client's sidebar hack.
-     */
-#if defined(TS_CLIENT)
-    Scen->IsGDI = Session.IsGDI;
-#endif
-
-    /**
-     *  Make sure our saved games folder exists.
-     */
-    if (!Directory_Exists(Vinifera_SavedGamesDirectory)) {
-        Create_Directory(Vinifera_SavedGamesDirectory);
-    }
-
-    /**
-     *  Convert the file name to a wide string.
-     */
-    MultiByteToWideChar(CP_ACP, 0, formatted_file_name, -1, wide_file_name, std::size(wide_file_name));
-
     DEBUG_INFO("Creating DocFile\n");
     CComPtr<IStorage> storage;
     HRESULT hr = StgCreateDocfile(wide_file_name, STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE, 0, &storage);
     if (FAILED(hr)) {
-        DEBUG_FATAL("Failed to create storage.\n");
+        DEBUG_ERROR("Failed to create storage.\n");
         return false;
     }
 
@@ -896,7 +875,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 
     DEBUG_INFO("Saving version information\n");
     if (FAILED(versioninfo.Save(storage))) {
-        DEBUG_FATAL("Failed to write version information.\n");
+        DEBUG_ERROR("Failed to write version information.\n");
         return false;
     }
 
@@ -904,7 +883,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     CComPtr<IStream> docfile;
     hr = storage->CreateStream(L"CONTENTS", STGM_CREATE | STGM_WRITE | STGM_SHARE_EXCLUSIVE, 0, 0, &docfile);
     if (FAILED(hr)) {
-        DEBUG_FATAL("Failed to create content stream.\n");
+        DEBUG_ERROR("Failed to create content stream.\n");
         return false;
     }
 
@@ -920,9 +899,14 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         pUnknown->Release();
     }
 
+    if (linkstream == nullptr) {
+        DEBUG_ERROR("Failed to create the stream compressor.\n");
+        return false;
+    }
+
     hr = linkstream->Link_Stream(docfile);
     if (FAILED(hr)) {
-        DEBUG_FATAL("Failed to link stream to compressor.\n");
+        DEBUG_ERROR("Failed to link stream to compressor.\n");
         return false;
     }
 
@@ -935,7 +919,16 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     DEBUG_INFO("Unlinking content stream from compressor.\n");
     hr = linkstream->Unlink_Stream(nullptr);
     if (FAILED(hr)) {
-        DEBUG_FATAL("Failed to link unstream from compressor.\n");
+        DEBUG_ERROR("Failed to unlink stream from compressor.\n");
+        return false;
+    }
+
+    /**
+     *  If writing the game state failed, don't commit the storage - the file
+     *  is going to be discarded.
+     */
+    if (!result) {
+        DEBUG_ERROR("Failed to write the game state.\n");
         return false;
     }
 
@@ -945,13 +938,76 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     DEBUG_INFO("Closing DocFile.\n");
     hr = storage->Commit(STGC_DEFAULT);
     if (FAILED(hr)) {
-        DEBUG_FATAL("Failed to commit storage.\n");
+        DEBUG_ERROR("Failed to commit storage.\n");
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Saves the game to a file on the disk.
+ *
+ *  The game state is first written to a temporary file, which replaces the
+ *  target file only if the save was successful, so that a failed save can
+ *  never destroy an existing save file.
+ *
+ *  @author: ZivDero
+ */
+bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
+{
+    WCHAR wide_temp_file_name[PATH_MAX];
+    char formatted_file_name[PATH_MAX];
+    char temp_file_name[PATH_MAX];
+
+    /**
+     *  Format the save game path here just in case to make sure it contains the subdirectory.
+     *  In the future, it should be the call sites of Save_Game that are patched so that we can still
+     *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
+     */
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
+
+    DEBUG_INFO("SAVING GAME [{} - {}]\n", formatted_file_name, descr);
+
+    /**
+     *  This is required for compatibility with TS Client's sidebar hack.
+     */
+#if defined(TS_CLIENT)
+    Scen->IsGDI = Session.IsGDI;
+#endif
+
+    /**
+     *  Make sure our saved games folder exists.
+     */
+    if (!Directory_Exists(Vinifera_SavedGamesDirectory)) {
+        Create_Directory(Vinifera_SavedGamesDirectory);
+    }
+
+    /**
+     *  Write the save to a temporary file next to the target file.
+     */
+    std::snprintf(temp_file_name, sizeof(temp_file_name), "%s.tmp", formatted_file_name);
+    MultiByteToWideChar(CP_ACP, 0, temp_file_name, -1, wide_temp_file_name, std::size(wide_temp_file_name));
+
+    if (!Vinifera_Write_Save_File(wide_temp_file_name, descr)) {
+        Delete_File(temp_file_name);
+        DEBUG_ERROR("SAVING GAME [{}] - FAILED!\n", formatted_file_name);
+        return false;
+    }
+
+    /**
+     *  The save was written out successfully, let it replace the target file.
+     */
+    if (!Replace_File(temp_file_name, formatted_file_name)) {
+        Delete_File(temp_file_name);
+        DEBUG_ERROR("SAVING GAME [{}] - FAILED! Could not replace the save file.\n", formatted_file_name);
         return false;
     }
 
     DEBUG_INFO("SAVING GAME [{}] - Complete.\n", formatted_file_name);
-    
-    return result;
+
+    return true;
 }
 
 

@@ -88,6 +88,16 @@ In `RULES.INI` or a scenario file:
 FreeRadarOnLowPower=no ; boolean, can free radar stay active when player is in low power?
 ```
 
+### Tag Persistence on AI-controlled units
+- AI-controlled units can now be set to persist their tags when they deploy into a building. This allows them to keep the tag with their original team members.
+- Note that Human-controlled units always persist their tags, regardless of this setting.
+
+In `RULES.INI`:
+```ini
+[General]
+PersistTagsOnAIDeploy=no  ; boolean, do tags persist on AI units that deploy?
+```
+
 ## Pre-placed units
 
 - Pre-placed units could not have missions in multiplayer maps, regardless of who they belonged to. Vinifera lifts this limitation.
