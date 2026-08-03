@@ -76,7 +76,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Stop Sounds At", "Stops sounds at the waypoint that were started by Play Sound At, and detaches any ambient previously attached to a building or terrain there."},
     { "Attach sound", "Attaches an ambient sound to all objects associated with the trigger. The VocType should have Control=LOOP for a continuous attachment; non-looping vocs play once and then go silent." },
     { "Detach sound", "Detaches any ambient sound from all objects associated with the trigger." },
-    { "Modify TeamDelays", "Changes the trigger house's TeamDelay to a new value. Affects how often their AITriggers execute. A negative number will revert to [General] -> TeamDelays." },
+    { "Modify TeamDelays", "Assigns, modifies, or resets the trigger house's TeamDelay values. Affects how often their AITriggers execute." },
 };
 
 
@@ -1820,69 +1820,76 @@ bool TActionClassExtension::Do_DETACH_SOUND(HouseClass* house, ObjectClass* obje
 
 /**
  *  Modifies the trigger house's TeamDelay to a new amount.
+ *  The mapper can assign, modify, or reset to default values for TeamDelays.
  * 
  *  @author: Krnyoshi
  */
 bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    if (house == nullptr) return false;
-
-    long teamDelay = -1;
-    const int old_delay = house->TeamTime;
-
     HouseClassExtension* house_ext = Extension::Fetch(house);
-
-    if (house_ext == nullptr) return false;
+    
+    int current_delay = 0;
+    int team_delay = 0;
+    int team_delay_index = 0;
 
     switch (Scen->CDifficulty) {
     case DIFF_HARD:
-        teamDelay = This()->TriggerRect.X;
+        team_delay_index = 0;
+        team_delay = This()->TriggerRect.Y;
         break;
     case DIFF_NORMAL:
-        teamDelay = This()->TriggerRect.Y;
+        team_delay_index = 1;
+        team_delay = This()->TriggerRect.Width;
         break;
     case DIFF_EASY:
-        teamDelay = This()->TriggerRect.Width;
+        team_delay_index = 2;
+        team_delay = This()->TriggerRect.Height;
         break;
     default:
         return false;
     }
 
-    /*
-    *  A negative number disables the house's override and restores the original rules.ini/map-ini TeamDelay values.
-    *  Although 3 arguments are required, the TAction will automatically determine which value to reset based on Scenario
-    *  difficulty.
-    */
-    if (teamDelay < 0) {
-        house_ext->TeamDelayOverride = -1;
-
-        switch (Scen->CDifficulty) {
-        case DIFF_HARD:
-            teamDelay = Rule->TeamDelays[0];
-            break;
-        case DIFF_NORMAL:
-            teamDelay = Rule->TeamDelays[1];
-            break;
-        case DIFF_EASY:
-            teamDelay = Rule->TeamDelays[2];
-            break;
-        default:
-            return false;
-        }
-
+    if (house_ext->TeamDelayOverride >= 0) {
+        current_delay = house_ext->TeamDelayOverride;
     } else {
-
-        /*
-        *  Stores the persistent trigger house's value used by the HouseClass::AI hook whenever the
-        *  game reloads TeamTime.
-        */
-        house_ext->TeamDelayOverride = teamDelay;
+        current_delay = Rule->TeamDelays[team_delay_index];
     }
 
-    house->TeamTime = teamDelay;
+    /*
+     * 0 = Set TeamDelays to a value
+     * 1 = Increase or decrease TeamDelays by a value (whether positive or negative values are given)
+     * 2 = Reset TeamDelays to Default Rules.ini/Map-ini values
+     */
+    int team_delay_operation = This()->TriggerRect.X;
 
-    DEBUG_INFO("Set {} TeamDelay override to {} \n", house->Class->Name(), teamDelay);
+    switch (team_delay_operation) {
+    case 0:
+        if (team_delay < 0) {
+            team_delay = 0;
+        }
+
+        house_ext->TeamDelayOverride = team_delay;
+        break;
+    case 1:
+        team_delay += current_delay;
+
+        if (team_delay < 0) {
+            team_delay = 0;
+        }
+
+        house_ext->TeamDelayOverride = team_delay;
+        break;
+    case 2:
+        team_delay = Rule->TeamDelays[team_delay_index];
+
+        house_ext->TeamDelayOverride = -1;
+        break;
+    default:
+        return false;
+    }
+
+    house->TeamTime = team_delay;
+    DEBUG_INFO("Set {} TeamDelay override to {} \n", house->Class->Name(), team_delay);
 
     return true;
-
 }
