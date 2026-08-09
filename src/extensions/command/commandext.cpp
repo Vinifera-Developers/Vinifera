@@ -83,6 +83,7 @@
 #include "wwcrc.h"
 #include "wwmouse.h"
 
+#include "mapext_hooks.h"
 #include <algorithm>
 #include <map>
 
@@ -409,9 +410,19 @@ const char* SelectSameTypeImprovedCommandClass::Get_Description() const
     return "Selects all units of the same type as currently selected.";
 }
 
+/*
+ *  Improves the Select Same Type command in the following ways:
+ *  1. No longer deselects units that are out of the screen when running the command.
+ *  2. Rather than calling 'TacticalMap->Select_These' for each type, runs it once for all types.
+ *  3. When processed twice in a small amount of time, selects the units of those types in the entire map rather than just the current tactical view.
+ */
 bool SelectSameTypeImprovedCommandClass::Process()
-{    
+{   
     SelectionTypes.clear();
+    DWORD current_time = timeGetTime();
+    DWORD previous_execution_time = LastExecutionTime;
+
+    LastExecutionTime = current_time;
     
     for (int i = 0; i < CurrentObjects.Count(); i++) {
         auto current_object = CurrentObjects[i];
@@ -421,8 +432,12 @@ bool SelectSameTypeImprovedCommandClass::Process()
             SelectionTypes.insert(technoClass);
         }
     }
-    
-    TacticalMap->Select_These(TacticalRect, Process_Callback);
+
+    if (previous_execution_time != 0 && current_time - previous_execution_time < 500) {
+        Map_Select_These(Process_Callback);
+    } else {
+        TacticalMap->Select_These(TacticalRect, Process_Callback);
+    }
 
     return true;
 }

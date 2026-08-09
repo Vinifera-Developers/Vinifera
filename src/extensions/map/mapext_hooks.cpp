@@ -16,10 +16,12 @@
 #include "extension.h"
 #include "hooker.h"
 #include "map.h"
+#include "mouse.h"
 #include "object.h"
 #include "objecttype.h"
 #include "rules.h"
 #include "syringe.h"
+#include "techno.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
 
@@ -172,6 +174,36 @@ void MapClassExt::_Calculate_Sight_Radius_If_Needed(int sight_range)
         RadiusCountTable.push_back(static_cast<int>(RadiusOffsets.size()));
     }
 }
+
+
+/*
+ *  Similar implementation to Tactical::Select_These, however instead of being specific to the tactical view,
+ *  applies the selection callback on all technos in the map.
+ *  Used to conditionally select technos based on the callback logic.
+ * 
+ *  @author: JoyfulShush
+ */
+void Map_Select_These(void (*select_callback)(ObjectClass*))
+{
+    if (select_callback == nullptr) {
+        return;
+    }
+
+    for (int index = 0; index < Technos.Count(); ++index) {
+        TechnoClass* techno = Technos[index];
+
+        if (techno == nullptr || !techno->IsActive || !techno->IsDown) {
+            continue;
+        }
+
+        if (!Map.In_Radar(techno->Center_Coord())) {
+            continue;
+        }
+
+        select_callback(techno);
+    }
+}
+
 
 /*
  *  Patches MapClass::From_Sight to no longer clamp the sight range to 10.

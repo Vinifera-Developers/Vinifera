@@ -1478,4 +1478,5 @@ public:
     virtual bool Process() override;
     static void Process_Callback(ObjectClass* object);
     inline static std::unordered_set<const TechnoTypeClass*> SelectionTypes;
+    inline static DWORD LastExecutionTime = 0;
 };
