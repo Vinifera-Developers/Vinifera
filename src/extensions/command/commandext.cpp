@@ -415,6 +415,7 @@ const char* SelectSameTypeImprovedCommandClass::Get_Description() const
  *  1. No longer deselects units that are out of the screen when running the command.
  *  2. Rather than calling 'TacticalMap->Select_These' for each type, runs it once for all types.
  *  3. When processed twice in a small amount of time, selects the units of those types in the entire map rather than just the current tactical view.
+ *  4. Ignores selected technos that do not belong to the player.
  */
 bool SelectSameTypeImprovedCommandClass::Process()
 {   
