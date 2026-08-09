@@ -385,6 +385,66 @@ bool DeleteCommandClass::Process()
 
 
 /**
+ *  Replacement for SelectSameTypeCommandClass.
+ *
+ *  @author: JoyfulShush
+ */
+const char* SelectSameTypeImprovedCommandClass::Get_Name() const
+{
+    return "SelectType";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_UI_Name() const
+{
+    return "Select Same Type";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Description() const
+{
+    return "Selects all units of the same type as currently selected.";
+}
+
+bool SelectSameTypeImprovedCommandClass::Process()
+{    
+    SelectionTypes.clear();
+    
+    for (int i = 0; i < CurrentObjects.Count(); i++) {
+        auto current_object = CurrentObjects[i];
+        auto technoClass = current_object->Techno_Type_Class();
+
+        if (!SelectionTypes.contains(technoClass))  {
+            SelectionTypes.insert(technoClass);
+        }
+    }
+    
+    TacticalMap->Select_These(TacticalRect, Process_Callback);
+
+    return true;
+}
+
+
+void SelectSameTypeImprovedCommandClass::Process_Callback(ObjectClass* object_ptr) 
+{
+    if (object_ptr == nullptr) return;
+    if (!object_ptr->Is_Techno()) return;
+    if (!object_ptr->IsDown) return;
+    
+    auto techno = object_ptr->As_Techno();
+
+    if (techno->IsSelected) return;
+    if (!SelectionTypes.contains(techno->Techno_Type_Class())) return;
+    if (!techno->House->Is_Player_Control()) return;
+
+    techno->Select();
+}
+
+
+/**
  *  #issue-112
  * 
  *  Enter the manual placement mode when a building is complete

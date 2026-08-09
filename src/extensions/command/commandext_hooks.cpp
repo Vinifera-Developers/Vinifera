@@ -338,4 +338,13 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAF00, DeleteCommandClass::Get_Category);
     Hook_Virtual(0x004EAF10, DeleteCommandClass::Get_Description);
     Hook_Virtual(0x004EAF20, DeleteCommandClass::Process);
+
+    /**
+     *  Replace SelectSameTypeCommandClass with SelectSameTypeImprovedCommandClass.
+     */
+    Hook_Virtual(0x004EAD80, SelectSameTypeImprovedCommandClass::Get_Name);
+    Hook_Virtual(0x004EADA0, SelectSameTypeImprovedCommandClass::Get_UI_Name);
+    Hook_Virtual(0x004EAD90, SelectSameTypeImprovedCommandClass::Get_Category);
+    Hook_Virtual(0x004EADB0, SelectSameTypeImprovedCommandClass::Get_Description);
+    Hook_Virtual(0x004EADC0, SelectSameTypeImprovedCommandClass::Process);
 }
