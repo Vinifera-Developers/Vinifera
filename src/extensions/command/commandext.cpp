@@ -428,15 +428,21 @@ bool SelectSameTypeImprovedCommandClass::Process()
         auto current_object = CurrentObjects[i];
         auto technoClass = current_object->Techno_Type_Class();
 
+        if (current_object->Is_Techno() && current_object->As_Techno()->House != PlayerPtr) {
+            continue;
+        }
+
         if (!SelectionTypes.contains(technoClass))  {
             SelectionTypes.insert(technoClass);
         }
     }
 
-    if (previous_execution_time != 0 && current_time - previous_execution_time < 500) {
-        Map_Select_These(Process_Callback);
-    } else {
-        TacticalMap->Select_These(TacticalRect, Process_Callback);
+    if (SelectionTypes.size() > 0) {
+        if (previous_execution_time != 0 && current_time - previous_execution_time < 500) {
+            Map_Select_These(Process_Callback);
+        } else {
+            TacticalMap->Select_These(TacticalRect, Process_Callback);
+        }
     }
 
     return true;
