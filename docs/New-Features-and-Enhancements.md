@@ -2069,3 +2069,10 @@ In `RULES.INI`:
 [AudioVisual]
 HarvesterUnderAttackThrottleTime=0.0  ; float, minutes that EVA is forbidden from alerting about a harvester being under attack after last alerting about it. Automatically scaled by game speed (iow. it's real-life minutes)
 ```
+
+### Same-Type Select Command
+
+- The Same-Type Select command (default hotkey: `T`) is used by players to select all units and structures across the screen that are of the same types of the currently selected units and structures. The command has been improved in the following ways:
+	- No longer deselects units that are outside of the screen.
+	- Command is now ignored when non-player controlled units or structures are selected.
+	- Players can now press the Same-Type Select command twice in quick succession to select units and structures across the map.
