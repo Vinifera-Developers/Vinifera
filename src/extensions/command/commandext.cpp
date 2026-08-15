@@ -416,6 +416,8 @@ const char* SelectSameTypeImprovedCommandClass::Get_Description() const
  *  2. Rather than calling 'TacticalMap->Select_These' for each type, runs it once for all types.
  *  3. When processed twice in a small amount of time, selects the units of those types in the entire map rather than just the current tactical view.
  *  4. Ignores selected technos that do not belong to the player.
+ * 
+ *  @author: JoyfulShush
  */
 bool SelectSameTypeImprovedCommandClass::Process()
 {   
@@ -450,6 +452,11 @@ bool SelectSameTypeImprovedCommandClass::Process()
 }
 
 
+/*
+ *  For each object being checked by the game, decide if the techno should be selected when running the Select Same Type command.
+ *
+ *  @author: JoyfulShush
+ */
 void SelectSameTypeImprovedCommandClass::Process_Callback(ObjectClass* object_ptr) 
 {
     if (object_ptr == nullptr) return;
@@ -457,9 +464,10 @@ void SelectSameTypeImprovedCommandClass::Process_Callback(ObjectClass* object_pt
     if (!object_ptr->IsDown) return;
     
     auto techno = object_ptr->As_Techno();
+    auto techno_class = techno->Techno_Type_Class();
 
     if (techno->IsSelected) return;
-    if (!SelectionTypes.contains(techno->Techno_Type_Class())) return;
+    if (!SelectionTypes.contains(techno_class)) return;
     if (!techno->House->Is_Player_Control()) return;
 
     techno->Select();
