@@ -1271,7 +1271,6 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         return DefWindowProc(hwnd, message, wParam, lParam);
 
     case WM_CLOSE:
-        CDControl.Unlock_All_CD_Trays();
         break;
 
         /*
@@ -1282,7 +1281,6 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             delete ToolTips;
             ToolTips = nullptr;
         }
-        CDControl.Unlock_All_CD_Trays();
         MainWindow = nullptr;
 
         /*
@@ -1359,8 +1357,6 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         switch (wParam) {
 
         case SC_CLOSE:
-            CDControl.Unlock_All_CD_Trays();
-
             /*
             **  TS Client users are used to Alt+F4 aborting the game, which in turn closes the game
             **  because there is no main menu in the TS Client.
