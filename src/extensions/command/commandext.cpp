@@ -431,7 +431,7 @@ bool SelectSameTypeImprovedCommandClass::Process()
         auto current_object = CurrentObjects[i];
         auto technoClass = current_object->Techno_Type_Class();
 
-        if (current_object->Is_Techno() && current_object->As_Techno()->House != PlayerPtr) {
+        if (current_object->Is_Techno() && current_object->As_Techno()->House->Is_Player_Control()) {
             continue;
         }
 
