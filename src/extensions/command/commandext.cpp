@@ -83,6 +83,7 @@
 #include "wwcrc.h"
 #include "wwmouse.h"
 
+#include "mapext_hooks.h"
 #include <algorithm>
 #include <map>
 
@@ -381,6 +382,95 @@ bool DeleteCommandClass::Process()
     BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
 
     return true;
+}
+
+
+/**
+ *  Replacement for SelectSameTypeCommandClass.
+ *
+ *  @author: JoyfulShush
+ */
+const char* SelectSameTypeImprovedCommandClass::Get_Name() const
+{
+    return "SelectType";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_UI_Name() const
+{
+    return "Select Same Type";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Description() const
+{
+    return "Selects all units of the same type as currently selected.";
+}
+
+/*
+ *  Improves the Select Same Type command in the following ways:
+ *  1. No longer deselects units that are out of the screen when running the command.
+ *  2. Rather than calling 'TacticalMap->Select_These' for each type, runs it once for all types.
+ *  3. When processed twice in a small amount of time, selects the units of those types in the entire map rather than just the current tactical view.
+ *  4. Ignores selected technos that do not belong to the player.
+ * 
+ *  @author: JoyfulShush
+ */
+bool SelectSameTypeImprovedCommandClass::Process()
+{   
+    SelectionTypes.clear();
+    DWORD current_time = timeGetTime();
+    DWORD previous_execution_time = LastExecutionTime;
+
+    LastExecutionTime = current_time;
+    
+    for (int i = 0; i < CurrentObjects.Count(); i++) {
+        auto current_object = CurrentObjects[i];
+        auto techno_class = current_object->Techno_Type_Class();
+
+        if (current_object->Is_Techno() && !current_object->As_Techno()->House->Is_Player_Control()) {
+            continue;
+        }
+
+        if (!SelectionTypes.contains(techno_class))  {
+            SelectionTypes.insert(techno_class);
+        }
+    }
+
+    if (SelectionTypes.size() > 0) {
+        if (previous_execution_time != 0 && current_time - previous_execution_time < 500) {
+            Map_Select_These(Process_Callback);
+        } else {
+            TacticalMap->Select_These(TacticalRect, Process_Callback);
+        }
+    }
+
+    return true;
+}
+
+
+/*
+ *  For each object being checked by the game, decide if the techno should be selected when running the Select Same Type command.
+ *
+ *  @author: JoyfulShush
+ */
+void SelectSameTypeImprovedCommandClass::Process_Callback(ObjectClass* object_ptr) 
+{
+    if (object_ptr == nullptr) return;
+    if (!object_ptr->Is_Techno()) return;
+    if (!object_ptr->IsDown) return;
+    
+    auto techno = object_ptr->As_Techno();
+    auto techno_class = techno->Techno_Type_Class();
+
+    if (techno->IsSelected) return;
+    if (!SelectionTypes.contains(techno_class)) return;
+    if (!techno->House->Is_Player_Control()) return;
+
+    techno->Select();
 }
 
 
