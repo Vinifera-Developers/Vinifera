@@ -276,7 +276,7 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 | 139      | Detach Sound             |
 |          | Detaches any ambient sound from all objects associated with the trigger. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | Waypoint   |
 | 140      | Modify Team Delays             |
-|          | Assigns, modifies, or resets the trigger house's TeamDelay values. Affects how often their AITriggers execute. | Other (0) | *unused*           | Operation Type (#)        | Delay Time (Easy)   | Delay Time (Medium)   | Delay Time (Hard)   | *unused*   |
+|          | Assigns, modifies, or resets the trigger house's TeamDelay values. Affects how often their AITriggers execute. | Other (0) | *unused*           | Operation Type (#)        | Delay Time (Hard)   | Delay Time (Medium)   | Delay Time (Easy)   | *unused*   |
 
 ### [135] Adjust House Modifier — Modifier Types
 
@@ -291,7 +291,7 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 | 6 | Build Time |
 
 ### [140] Modify Team Delays
-The trigger house's AI aggression via AITriggers can now be modified by setting a new delay value, a delay value to increase or decrease by (using a negative number), or reverting back to rules.ini/map-ini `TeamDelays=` value. Requires 4 arguments in the order of Operation Type, Easy, Normal, Hard, but the TAction will automatically select the applicable value based on current scenario difficulty.
+The trigger house's AI aggression via AITriggers can now be modified by setting a new delay value, a delay value to increase or decrease by (using a negative number), or reverting back to rules.ini/map-ini `TeamDelays=` value. Requires 4 arguments in the order of Operation Type, Hard, Normal, Easy, but the TAction will automatically select the applicable value based on current scenario difficulty.
 
 | Number | Operation |
 |---|--------|
