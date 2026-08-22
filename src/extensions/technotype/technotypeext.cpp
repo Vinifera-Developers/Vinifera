@@ -15,9 +15,20 @@
 #include "animtype.h"
 #include "bsurface.h"
 #include "ccini.h"
+#include "filepng.h"
+#include "sessionext.h"
+#include "swizzle.h"
+#include "bsurface.h"
+#include "tibsun_globals.h"
+#include "vinifera_util.h"
+#include "spritecollection.h"
+#include "vinifera_saveload.h"
+#include "asserthandler.h"
+#include "animtype.h"
 #include "debughandler.h"
 #include "findmake.h"
 #include "rules.h"
+#include "spawner.h"
 #include "technotype.h"
 #include "tibsun_globals.h"
 #include "unittype.h"
@@ -98,6 +109,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IronCurtainPriorityTarget(false),
     EscortRange(-1),
     AbandonTargetEscortRange(-1),
+    ScrapExplosion(),
     VeteranSightRange(-1),
     EliteSightRange(-1)
 {
@@ -115,7 +127,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
     VoiceEnter(noinit),
     VoiceDeploy(noinit),
     VoiceHarvest(noinit),
-    BuiltAt(noinit)
+    BuiltAt(noinit),
+    ScrapExplosion(noinit)
 {
 }
 
@@ -144,6 +157,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     VoiceDeploy.Clear();
     VoiceHarvest.Clear();
     BuiltAt.Clear();
+    ScrapExplosion.Clear();
 
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
@@ -155,6 +169,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     VoiceDeploy.Load_Self(pStm);
     VoiceHarvest.Load_Self(pStm);
     BuiltAt.Load_Self(pStm);
+    ScrapExplosion.Load_Self(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
@@ -162,6 +177,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(IdleWakeAnim, "IdleWakeAnim");
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BuiltAt, "BuiltAt");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(ScrapExplosion, "ScrapExplosion");
 
     /**
      *  We need to reload the "Cameo" key because TechnoTypeClass does
@@ -207,6 +223,7 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     VoiceDeploy.Save_Self(pStm);
     VoiceHarvest.Save_Self(pStm);
     BuiltAt.Save_Self(pStm);
+    ScrapExplosion.Save_Self(pStm);
 
     return hr;
 }
@@ -430,6 +447,15 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     EscortRange = ini.Get_Lepton(ini_name, "EscortRange", EscortRange);
     AbandonTargetEscortRange = ini.Get_Lepton(ini_name, "AbandonTargetEscortRange", AbandonTargetEscortRange);
+
+    ScrapExplosion = TGet_TypeList(ini, ini_name, "ScrapExplosion", ScrapExplosion);
+
+    /**
+     *  If the spawner requested scrap explosions, replace the game's explosion vector with ours.
+     */
+    if (SessionExtension->ExtOptions.IsScrapMetal) {
+        This()->Explosion = ScrapExplosion;
+    }
 
     VeteranSightRange = ini.Get_Int(ini_name, "VeteranSight", VeteranSightRange);
     EliteSightRange = ini.Get_Int(ini_name, "EliteSight", EliteSightRange);

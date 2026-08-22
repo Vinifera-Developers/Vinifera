@@ -15,6 +15,7 @@
 #include "aircraftext_hooks.h"
 #include "aircrafttracker_hooks.h"
 #include "aircrafttypeext_hooks.h"
+#include "aitriggertypeext_hooks.h"
 #include "animext_hooks.h"
 #include "animtypeext_hooks.h"
 #include "astarext_hooks.h"
@@ -202,7 +203,7 @@ void Extension_Hooks()
     TacticalExtension_Hooks();
     SuperClassExtension_Hooks();
     //AITriggerClassExtension_Hooks();                      // Not yet implemented
-    //AITriggerTypeClassExtension_Hooks();                  // Not yet implemented
+    AITriggerTypeClassExtension_Hooks();
     //NeuronClassExtension_Hooks();                         // Not yet implemented
     //FoggedObjectClassExtension_Hooks();                   // Not yet implemented
     //AlphaShapeClassExtension_Hooks();                     // Not yet implemented

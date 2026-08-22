@@ -192,7 +192,6 @@ void RulesClassExtension_Hooks()
 
     Patch_Jump(0x005C6710, &RulesClassExt::_Process);
     Patch_Call(0x0053E408, &RulesClassExt::_Initialize);
-    Patch_Call(0x005DD7D0, &RulesClassExt::_Initialize);
 
     /**
      *  Patch the dialog init to use out rules dialog resource.

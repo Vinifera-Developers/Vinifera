@@ -520,6 +520,23 @@ public:
 
 
 /**
+ *  Forces the current multiplayer game to go out of sync (for testing).
+ */
+class ForceDesyncCommandClass : public ViniferaCommandClass
+{
+public:
+    ForceDesyncCommandClass() : ViniferaCommandClass() {}
+    virtual ~ForceDesyncCommandClass() {}
+
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
  *  Forces the player to lose the current game session.
  */
 class ForceLoseCommandClass : public ViniferaCommandClass

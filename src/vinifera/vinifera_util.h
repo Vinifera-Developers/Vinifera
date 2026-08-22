@@ -38,6 +38,8 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid);
 bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> &filelist, const char *path = nullptr);
 bool Vinifera_Collect_Debug_Files();
 
+void Vinifera_Generate_PlaythroughID();
+
 /**
  *  Functions for fetching windows resources.
  */

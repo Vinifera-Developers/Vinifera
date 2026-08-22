@@ -11,6 +11,7 @@ This page lists all the individual contributions to the project by their author.
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
   - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
+  - Port the YR MP spawner from C to C++ and YR++, used as a base for the Vinifera spawner.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features.
   - Implement `CurleyShuffle` for AircraftTypes.
@@ -143,6 +144,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement 'OmniFire' for WeaponTypes.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
+  - Extend `BaseUnit` to accept a list of vehicles.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Add customizable wake animations.
   - Replace DirectDraw with SDL.
@@ -153,6 +155,8 @@ This page lists all the individual contributions to the project by their author.
   - Reimplement the sound-effect (`VocType`) system from `SOUND.INI` with configurable type, control, priority, limit, range, delay, volume and pitch shift.
   - Reimplement the EVA/VOX speech system from `EVA.INI` with category, priority, control, and per-side speech file support.
   - Groundwork for implementing modern movie playback.
+- **CnCNet Contributors**:
+  - Tiberian Sun TS-patches spawner, Yuri's Revenge CnCNet spawner that served as a base for Vinifera spawner.
 - **CrimRecya**:
   - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
 - **Crimsonum**:
@@ -247,6 +251,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a buffer overflow crash in `MapClass::Place_Down`.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
+  - Add support for more than two houses for loading screens and more than two sides for sidebars and speech.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Fix an edge case crash when AI raises money.
   - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages.
@@ -285,7 +290,20 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no`.
   - EVA no longer says "Harvester under attack" when harvesters receive environmental damage.
   - Allow throttling the frequency of the "Harvester under attack" EVA event.
+  - Implement the multiplayer spawner.
+  - Allow defining Options menu text colors per side.
+  - Add support for additional multiplayer difficulty levels.
+  - Allow separating human players' and AI players' normal-difficulty settings.
+  - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with.
+  - Make it possible to load multiplayer saves.
+  - Fix a bug where the game often reported multiple synchronization errors when one player got out of sync.
   - Fix Win32 dialog scaling with SDL.
+  - Allow customizing end-of-game text color per side.
+  - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.
+  - Fix a bug where the sidebar accepted mouse input while input was locked through a trigger action.
+  - Make it possible to play videos in multiplayer.
+  - Make it possible to vote-skip videos in multiplayer.
+  - Options menu is no longer opened with network input delay in multiplayer.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -372,6 +390,19 @@ This page lists all the individual contributions to the project by their author.
   - Add unit promotion sounds, EVA and flashing.
   - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player.
   - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets.
+  - Implement the multiplayer spawner.
+  - Extend `BaseUnit` to accept a list of vehicles.
+  - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries.
+  - Port Rampastring's trigger actions from TS-Patches.
+  - Allow manually aiming AA buildings.
+  - Add support for more than two houses for loading screens and more than two sides for sidebars and speech.
+  - Disallow loading campaign saves from other playthroughs, as well as from skirmish.
+  - Allow customizing the options color per side.
+  - Fix a bug where units could gain veterancy by killing allies.
+  - Fix a bug where a trigger could delete itself, leading to a crash.
+  - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
+  - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
+  - Fix a bug where mission `Ambush` wouldn't work correctly.
   - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.
   - Fix a bug where `Totable=no` did not work.
   - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
@@ -418,3 +449,4 @@ This page lists all the individual contributions to the project by their author.
   - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.
   - Reimplement the software blitters with hand-written SIMD (SSE2/AVX2) for faster rendering on modern CPUs.
   - Correct the translucent-blend rounding so layered translucency no longer darkens.
+  - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.

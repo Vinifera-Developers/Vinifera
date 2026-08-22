@@ -30,12 +30,15 @@
 #include "loadoptions.h"
 #include "prerequisitegroup.h"
 #include "rockettype.h"
+#include "spawner.h"
 #include "spawnmanager.h"
 #include "syringe.h"
 #include "theme.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "tracker.h"
+#include "scenarioext.h"
+#include "sessionext.h"
 #include "vinifera_functions.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
@@ -113,28 +116,6 @@ static void _Free_Heaps_Intercept()
     BeaconManager.Reset();
 
     --ScenarioInit;
-}
-
-
-/**
- *  This patch calls the Print_CRCs function from extension interface.
- *
- *  @author: CCHyper
- */
-static void _Print_CRCs_Intercept(EventClass *ev)
-{
-    /**
-     *  Call the original function to print the object CRCs.
-     */
-    DEBUG_INFO("About to call Print_CRCs...\n");
-    Print_CRCs(ev);
-
-    /**
-     *  Calls a reimplementation of Print_CRCs that prints both the original
-     *  information and the new class extension CRCs.
-     */
-    DEBUG_INFO("About to call Extension::Print_CRCs...\n");
-    Extension::Print_CRCs(ev);
 }
 
 
@@ -390,7 +371,9 @@ DEFINE_HOOK(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0)
      *  Reset any globals.
      */
     Vinifera_ShowSuperWeaponTimers = true;
-    Vinifera_TotalPlayTime = 0;
+    if (SessionExtension) {
+        SessionExtension->Init_Clear();
+    }
 
     /**
      *  Stolen bytes/code.
@@ -613,20 +596,6 @@ void Vinifera_Hooks()
     Patch_Byte(0x0070EEAB, num);
     Patch_Byte(0x0070EF0F, num);
 
-#if defined(TS_CLIENT)
-    /**
-     *  Remove calls to SessionClass::Read_Scenario_Descriptions() in TS Client
-     *  compatable builds. This will speed up the initialisation and loading
-     *  process, as the reason of PKT and MPR files are not required when using
-     *  the Client.
-     */
-    Patch_Byte_Range(0x004E8901, 0x90, 5); // NewMenu::Process
-    Patch_Byte_Range(0x004E8910, 0x90, 5); // ^
-    Patch_Byte_Range(0x00564BA9, 0x90, 10); // Select_MPlayer_Game
-    Patch_Byte_Range(0x0057FE2A, 0x90, 10); // NewMenuClass::Process_Game_Select
-    Patch_Byte_Range(0x00580377, 0x90, 10); // NewMenuClass::Process_Game_Select
-#endif
-
     /**
      *  Various patches to intercept the games object tracking and heap processing.
      */
@@ -732,8 +701,13 @@ void Vinifera_Hooks()
     Patch_Call(0x00680C54, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
     Patch_Call(0x006818F4, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
 
-    Patch_Call(0x005B1363, &_Print_CRCs_Intercept);
-    Patch_Call(0x005B5340, &_Print_CRCs_Intercept);
+    /**
+     *  Replace the vanilla Print_CRCs with Extension::Print_CRCs, which writes
+     *  the unified Vinifera desync log instead of SYNC#.TXT. Patching the
+     *  function itself ensures every caller (the game itself, as well as any
+     *  external patch sets) produces a single log.
+     */
+    Patch_Jump(0x005B58F0, static_cast<void (*)(EventClass *)>(&Extension::Print_CRCs)); // Disambiguate the overload set for template deduction.
 
     //Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
 

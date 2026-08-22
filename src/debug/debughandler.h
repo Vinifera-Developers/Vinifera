@@ -141,6 +141,6 @@ void __cdecl Vinifera_Debug_Handler_Shutdown();
 void Vinifera_Output_Debug_String(const char *string);
 
 
-extern char CrashdumpFilename[PATH_MAX];
+extern char CrashdumpFilename[/*PATH_MAX*/260];
 
 extern bool DisableDebuggerOutput;

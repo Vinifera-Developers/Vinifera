@@ -127,4 +127,19 @@ public:
      *  Should building repairs be paused instead of stopped when the player has insufficient funds?
      */
     bool IsPauseRepairs;
+
+    /**
+     *  Number of autosaves to make in singleplayer.
+     */
+    int AutoSaveCount;
+
+    /**
+     *  The delay between autosaves in singleplayer in frames.
+     */
+    int AutoSaveInterval;
+
+    /**
+     *  Should skirmish games be auto-saved?
+     */
+    bool IsAutoSaveInSkirmish;
 };

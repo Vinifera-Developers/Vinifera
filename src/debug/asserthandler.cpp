@@ -241,7 +241,7 @@ void Vinifera_Assert_StackDump()
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\STACK_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
-        Vinifera_DebugDirectory,
+        Vinifera_DebugDirectory.c_str(),
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
         
     StackFile.Set_Name(filename_buffer);

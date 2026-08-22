@@ -37,6 +37,7 @@
 #include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
+#include "vinifera_defines.h"
 
 #include <imgui.h>
 
@@ -228,16 +229,6 @@ namespace
     ***************************************************************************/
 
 
-    static const char* Diff_To_String(DiffType d)
-    {
-        switch (d) {
-        case DIFF_EASY:   return "Easy";
-        case DIFF_NORMAL: return "Normal";
-        case DIFF_HARD:   return "Hard";
-        default:          return "?";
-        }
-    }
-
     static const char* Persistence_To_String(PersistantType p)
     {
         switch (p) {
@@ -386,7 +377,7 @@ namespace
         ImGui::Text("%-13s : %s", "Description",   Scen->Description);
         ImGui::Text("%-13s : %s", "Theater",       TheaterTypeClass::Name_From(Scen->Theater));
         ImGui::Text("%-13s : %s (computer: %s)", "Difficulty",
-            Diff_To_String(Scen->Difficulty), Diff_To_String(Scen->CDifficulty));
+            Difficulty_Name(Scen->Difficulty), Difficulty_Name(Scen->CDifficulty));
         ImGui::Text("%-13s : %s", "Player house",  HouseType_Name(Scen->PlayerHouse));
         ImGui::Text("%-13s : %ld frames", "Mission timer", static_cast<long>(Scen->MissionTimer));
 

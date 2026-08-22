@@ -14,11 +14,20 @@
 #include "asserthandler.h"
 #include "ccfile.h"
 #include "ccini.h"
+#include "debughandler.h"
+#include "tibsun_inline.h"
 
 #include <algorithm>
 
 
 UIControlsClass *UIControls = nullptr;
+
+
+const UIControlsClass::LoadingScreenSize UIControlsClass::DefaultLoadingScreenSizes[] = {
+    {{640, 400}, {436, 155}, {566, 152}},
+    {{640, 480}, {436, 186}, {566, 177}},
+    {{800, 600}, {546, 233}, {711, 227}},
+};
 
 
 /***************************************************************************
@@ -385,5 +394,193 @@ bool UIControlsClass::Read_INI(CCINIClass const& ini)
     SubtitleMarginX = ini.Get_Int(INGAME, "SubtitleMarginX", SubtitleMarginX);
     SubtitleMarginBottom = ini.Get_Int(INGAME, "SubtitleMarginBottom", SubtitleMarginBottom);
 
+    static char const* const LOADING_SCREENS = "LoadingScreens";
+    for (int i = 0; i < ini.Entry_Count(LOADING_SCREENS); i++) {
+        const char* key = ini.Get_Entry(LOADING_SCREENS, i);
+        const std::string entry = ini.Get_String(LOADING_SCREENS, key, {});
+        LoadingScreen screen(entry.c_str());
+        if (screen.IsValid) {
+            LoadingScreens.emplace_back(screen);
+        }
+    }
+
     return true;
+}
+
+
+UIControlsClass::LoadingScreen::LoadingScreen(char const* entry)
+{
+    if (entry == nullptr || entry[0] == '\0') {
+        DEBUG_ERROR("Invalid empty loading screen entry!\n");
+        return;
+    }
+
+    char buffer[1024];
+    std::snprintf(buffer, sizeof(buffer), "%s", entry);
+
+    auto parse_number = [](char const* s) -> int {
+        if (s == nullptr) {
+            return -1;
+        }
+
+        char* end = nullptr;
+        long val = std::strtol(s, &end, 10);
+
+        if (end == s || *end != '\0') {
+            return -1;
+        }
+
+        return static_cast<int>(val);
+    };
+
+    char* token = std::strtok(buffer, ",");
+    House = static_cast<HousesType>(parse_number(token));
+    if (House < HOUSE_FIRST) {
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
+        return;
+    }
+
+    token = std::strtok(nullptr, ",");
+    if (token == nullptr) {
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
+        return;
+    }
+
+    Filename = token;
+    if (Filename.empty()) {
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
+        return;
+    }
+
+    token = std::strtok(nullptr, ",");
+    int width = parse_number(token);
+    if (width <= 0) {
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
+        return;
+    }
+
+    int height = 0;
+    token = std::strtok(nullptr, ",");
+    height = parse_number(token);
+    if (height <= 0) {
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
+        return;
+    }
+
+    token = std::strtok(nullptr, ",");
+    int sp_xoff = parse_number(token);
+
+    token = std::strtok(nullptr, ",");
+    int sp_yoff = parse_number(token);
+
+    token = std::strtok(nullptr, ",");
+    int mp_xoff = parse_number(token);
+
+    token = std::strtok(nullptr, ",");
+    int mp_yoff = parse_number(token);
+
+    auto get_size = [](int width, int height) -> const LoadingScreenSize& {
+        for (auto& cfg : DefaultLoadingScreenSizes) {
+            if (cfg.Size.X == width && cfg.Size.Y == height) {
+                return cfg;
+            }
+        }
+        return DefaultLoadingScreenSizes[0];
+    };
+
+    if (sp_xoff <= 0 || sp_yoff <= 0) {
+        auto& size = get_size(width, height);
+        sp_xoff = size.SPPosition.X;
+        sp_yoff = size.SPPosition.Y;
+    }
+
+    if (mp_xoff <= 0 || mp_yoff <= 0) {
+        auto& size = get_size(width, height);
+        mp_xoff = size.MPPosition.X;
+        mp_yoff = size.MPPosition.Y;
+    }
+
+    Size = {{width, height}, {sp_xoff, sp_yoff}, {mp_xoff, mp_yoff}};
+    IsValid = true;
+}
+
+
+UIControlsClass::LoadingScreenSize const& UIControlsClass::Pick_Default_Loading_Screen_Size()
+{
+    int largest_size = 0;
+    int largest_index = 0;
+
+    for (int i = 0; i < std::size(DefaultLoadingScreenSizes); i++) {
+        if (VisibleRect.Width >= DefaultLoadingScreenSizes[i].Size.X && VisibleRect.Height >= DefaultLoadingScreenSizes[i].Size.Y) {
+            int size = DefaultLoadingScreenSizes[i].Size.X * DefaultLoadingScreenSizes[i].Size.Y;
+            if (size > largest_size) {
+                largest_size = size;
+                largest_index = i;
+            }
+        }
+    }
+
+    return DefaultLoadingScreenSizes[largest_index];
+}
+
+
+static char Pick_House_Letter(HousesType house)
+{
+    // Special handling: GDI = C/D, house 1 = A/B
+    int base;
+    if (house == HOUSE_GDI) {
+        base = 'C';
+    } else if (house == HOUSE_NOD) {
+        base = 'A';
+    } else {
+        // Houses 2+ start at E/F, G/H, I/J, ...
+        base = 'E' + (house - 2) * 2;
+        if (base > 'Z') {
+            // wrap around alphabet if past 'Z'
+            base = 'A' + ((base - 'A') % 26);
+        }
+    }
+
+    // Randomly pick first or second letter of the pair
+    return static_cast<char>(base + Sim_Random_Pick(0, 1));
+}
+
+
+UIControlsClass::LoadingScreen UIControlsClass::Pick_Loading_Screen(HousesType house) const
+{
+    std::vector<LoadingScreen const*> screens;
+
+    int largest_size = 0;
+    for (auto& screen : LoadingScreens) {
+        if (screen.House == house && VisibleRect.Width >= screen.Size.Size.X && VisibleRect.Height >= screen.Size.Size.Y) {
+            int size = screen.Size.Size.X * screen.Size.Size.Y;
+            if (size > largest_size) {
+                screens.clear();
+                screens.emplace_back(&screen);
+                largest_size = size;
+            } else if (size == largest_size) {
+                screens.emplace_back(&screen);
+            }
+        }
+    }
+
+    if (!screens.empty()) {
+        return *screens[Sim_Random_Pick(0u, screens.size() - 1)];
+    }
+
+    LoadingScreenSize size = Pick_Default_Loading_Screen_Size();
+
+    /**
+     *  Nod has the text shifted.
+     */
+    if (house == HOUSE_NOD) {
+        size.SPPosition.Y += 7;
+        size.MPPosition.Y += 7;
+    }
+
+    char name[32];
+    char letter = Pick_House_Letter(house);
+    std::snprintf(name, sizeof(name), "LOAD%03d%c", size.Size.Y, letter);
+
+    return LoadingScreen {house, name, size};
 }

@@ -29,6 +29,7 @@
 #include "buildinglight.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "buildnum.h"
 #include "bullet.h"
 #include "bullettype.h"
 #include "bullettypeext.h"
@@ -88,6 +89,7 @@
 #include "superext.h"
 #include "supertype.h"
 #include "supertypeext.h"
+#include "syncrecorder.h"
 #include "tacticalext.h"
 #include "taction.h"
 #include "tactionext.h"
@@ -118,6 +120,7 @@
 #include "unittypeext.h"
 #include "vector.h"
 #include "veinholemonster.h"
+#include "version.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_saveload.h"
 #include "vinifera_util.h"
@@ -133,6 +136,7 @@
 #include "weapontypeext.h"
 #include "wsproto.h"
 
+#include <float.h>
 #include <iostream>
 
 
@@ -1132,30 +1136,52 @@ void Extension::Free_Heaps()
 
 
 /**
- *  Prints all the events from the queue list.
+ *  Prints the most recent events from an event queue's ring buffer, newest
+ *  first. The entire backing array is walked (not just the pending events),
+ *  so the history of already executed events is printed as well.
  *
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
-template<class T, int I>
-static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
+template<class T, int SIZE>
+static void Print_Event_History(FILE *fp, QueueClass<T, SIZE> &list, int max)
 {
-    for (int index = 0; index < list.Count; ++index) {
-        EventClass *ev = &list[index];
-        if (ev) {
-            char ev_byte_format[4];
-            std::string ev_data_buffer;
-            int ev_size = EventClassExt::Event_Length(ev->Type);
-            const char* ev_name = EventClassExt::Event_Name(ev->Type);
-            for (int i = 0; i < ev_size; ++i) {
-                std::snprintf(ev_byte_format, sizeof(ev_byte_format), "%02X", (unsigned char)ev->Data.Array.Byte[i]); // We use this union member so we can do array access.
-                ev_data_buffer += ev_byte_format;
-                if (i < ev_size-1) ev_data_buffer += " ";
-            }
+    static_assert((SIZE & (SIZE - 1)) == 0, "Event queue size must be a power of two.");
 
-            std::fprintf(fp, "%04d  %s  Frame: %d  ID: %d  Data: %s\n", index, EventClass::Event_Name(ev->Type), ev->Frame, ev->ID, ev_data_buffer);
+    T *events = list.Get_Array();
+    int idx = (list.Get_Tail() - 1) & (SIZE - 1);
+
+    for (int n = 0; n < max && n < SIZE; ++n, idx = (idx - 1) & (SIZE - 1)) {
+        EventClass *ev = &events[idx];
+
+        /**
+         *  Stale slots can contain garbage, so validate the type before
+         *  using it for any name/length table lookups.
+         */
+        if (ev->Type <= EVENT_EMPTY || ev->Type >= EXT_EVENT_COUNT) {
+            continue;
         }
+
+        /**
+         *  Skip the housekeeping events that are sent constantly and would
+         *  drown out the interesting ones.
+         */
+        if (ev->Type == EVENT_FRAMEINFO
+            || ev->Type == EVENT_FRAMESYNC
+            || ev->Type == EVENT_PROCESS_TIME
+            || ev->Type == EVENT_RESPONSE_TIME
+            || ev->Type == EXT_EVENT_RESPONSE_TIME2) {
+            continue;
+        }
+
+        std::fprintf(fp, "Event: %-18s  Frame: %-8u  IsExecuted: %d  ID: %-4d  Data:",
+            EventClassExt::Event_Name(ev->Type), ev->Frame, ev->IsExecuted, ev->ID);
+
+        int ev_size = EventClassExt::Event_Length(ev->Type);
+        for (int i = 0; i < ev_size; ++i) {
+            std::fprintf(fp, " %02X", (unsigned char)ev->Data.Array.Byte[i]); // We use this union member so we can do array access.
+        }
+        std::fprintf(fp, "\n");
     }
-    return true;
 }
 
 
@@ -1195,7 +1221,7 @@ void Extension::Print_CRCs(EventClass *ev)
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u-%d.LOG",
-        Vinifera_DebugDirectory,
+        Vinifera_DebugDirectory.c_str(),
         PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec, Frame);
@@ -1274,10 +1300,19 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "--------------------------------------------------------------------------------\n");
     std::fprintf(fp, "\n");
 
+    std::fprintf(fp, "Version %s\n", Version_Name());
+    std::fprintf(fp, "Internal Version %s\n", VerNum.Version_Name());
+    std::fprintf(fp, "Release Build: %s by %s - %s\n",
+        BuildInfoClass::Get_Build_Number_String(),
+        BuildInfoClass::Get_Builder_Name_String(),
+        BuildInfoClass::Get_Build_Date_String());
+    std::fprintf(fp, "\n");
+
     std::fprintf(fp, "Frames: %d\n", Frame);
     std::fprintf(fp, "Player ID: %02d\n", PlayerPtr->HeapID);
     std::fprintf(fp, "Player Name: %s\n", PlayerPtr->IniName.c_str());
-    //std::fprintf(fp, "Average FPS: %d\n", total_cycles_or_iterations_ > 0 ? total_fps_ / total_cycles_or_iterations_ : 0);
+    std::fprintf(fp, "Average FPS: %u\n", SecondsPassed != 0 ? TotalFrames / SecondsPassed : 0);
+    std::fprintf(fp, "FPU State: %x\n", _controlfp(0, 0));
     std::fprintf(fp, "Max MaxAhead: %d\n", Session.MaxMaxAhead);
     std::fprintf(fp, "FrameSendRate: %d\n", Session.FrameSendRate);
     std::fprintf(fp, "Latency setting: %d\n", Session.LatencyFudge);
@@ -1824,17 +1859,24 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
     /**
      *  Event queues.
-     *  Rampastring: printing these causes a crash atm
      */
-#if 0
     std::fprintf(fp, "-------------------- DoList Events -------------------\n");
-    Print_Event_List(fp, DoList);
+    Print_Event_History(fp, DoList, 4096);
     std::fprintf(fp, "\n");
 
     std::fprintf(fp, "-------------------- OutList Events -------------------\n");
-    Print_Event_List(fp, OutList);
+    Print_Event_History(fp, OutList, 64);
     std::fprintf(fp, "\n");
-#endif
+
+    /**
+     *  Recent gameplay state change histories (random number draws, facing
+     *  changes, target assignments, mission overrides, animation creations).
+     *
+     *  Note that writing this log itself draws from the scenario random
+     *  number generator (Scen->RandomNumber() above), so the newest entries
+     *  in the RNG section are self-inflicted by the logging.
+     */
+    SyncRecorder::Print_All(fp);
 
     /**
      *  Print heap CRC's.

@@ -24,7 +24,8 @@
 CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     IsDebugOnly(false),
-    IntroMovie()
+    IntroMovie(),
+    _House(HOUSE_NONE)
 {
     CampaignExtensions.Add(this);
 }
@@ -152,5 +153,40 @@ bool CampaignClassExtension::Read_INI(CCINIClass &ini)
     
     ini.Get_String(ini_name, "IntroMovie", "", IntroMovie, sizeof(IntroMovie));
 
+    _House = static_cast<HousesType>(ini.Get_Int(ini_name, "Side", _House));
+
+    IsInitialized = true;
+
     return true;
+}
+
+
+/**
+ *  Fetches this campaign's house.
+ *
+ *  @author: ZivDero
+ */
+HousesType CampaignClassExtension::Get_House() const
+{
+    if (_House == HOUSE_NONE) {
+        if (std::strstr(This()->Scenario, "GDI")) {
+            return HOUSE_GDI;
+        } else if (std::strstr(This()->Scenario, "NOD")) {
+            return HOUSE_NOD;
+        }
+        return HOUSE_GDI;
+    }
+
+    return _House;
+}
+
+
+/**
+ *  Sets this campaign's house.
+ *
+ *  @author: ZivDero
+ */
+void CampaignClassExtension::Set_House(HousesType house)
+{
+    _House = house;
 }

@@ -55,47 +55,6 @@ original_code:
     return 0;
 }
 
-
-/**
- *  Patch for reading the extended class members from the ini instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 8)
-{
-    /**
-     *  Load ini.
-     */
-    //DEBUG_INFO("Reading extended session settings\n");
-    SessionExtension->Read_MultiPlayer_Settings();
-
-original_code:
-    return 0;
-}
-
-
-/**
- *  Patch for saving the extended class members from the ini instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 9)
-{
-    /**
-     *  Save ini.
-     */
-    //DEBUG_INFO("Writing extended session settings\n");
-    SessionExtension->Write_MultiPlayer_Settings();
-
-original_code:
-    return 0;
-}
-
-
 /**
  *  Main function for patching the hooks.
  */

@@ -13,4 +13,4 @@ So far the development is at the stage when only nightly builds are produced.
 
 ## Compatibility
 
-Vinifera is designed to be used alongside [CnCNet TS patches and spawner](https://github.com/CnCNet/ts-patches) and eventually it's supposed to supersede them.
+Vinifera includes its own multiplayer spawner and supersedes the external ts-patches spawner. A ts-patches-compatible executable can still be used where a client installation requires its remaining integration patches.

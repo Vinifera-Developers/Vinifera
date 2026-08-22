@@ -39,6 +39,54 @@ BEGIN
 END
 
 
+IDD_DESYNC_HOST DIALOG DISCARDABLE  0, 0, 360, 264
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Synchronization Error",IDC_DESYNC_HEADER,30,10,280,10,NOT WS_GROUP
+    LTEXT           "Players:",-1,30,23,100,10,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_PLAYER_LIST,30,35,120,105,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    LTEXT           "The game has gone out of sync.\r\n\r\nPress ""Load Game"" to load a saved game from this session, re-syncing the game for all players.\r\n\r\nPress ""Continue"" to continue playing without the desynced players. They will continue in a separate game session.",-1,160,25,180,82,NOT WS_GROUP
+    LTEXT           "Press ""Quit"" to exit the game.",-1,160,127,180,22,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_CHAT_LIST,30,145,300,60,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    EDITTEXT        IDC_DESYNC_CHAT_EDIT,30,207,299,12,ES_AUTOHSCROLL | NOT WS_BORDER
+    LTEXT           "Loading the saved game in 5 seconds...",IDC_DESYNC_COUNTDOWN_TEXT,30,223,140,10,NOT WS_GROUP | NOT WS_VISIBLE
+    GROUPBOX        "",IDC_DESYNC_COUNTDOWN_BAR,180,222,149,12,NOT WS_VISIBLE
+    CONTROL         "Load Game",IDC_DESYNC_LOAD,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,30,239,70,12
+    CONTROL         "Continue",IDC_DESYNC_CONTINUE,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,145,239,70,12
+    CONTROL         "Quit",IDC_DESYNC_QUIT,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,260,239,70,12
+END
+
+
+IDD_DESYNC_WAIT DIALOG DISCARDABLE  0, 0, 360, 264
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Synchronization Error",IDC_DESYNC_HEADER,30,10,280,10,NOT WS_GROUP
+    LTEXT           "Players:",-1,30,23,100,10,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_PLAYER_LIST,30,35,120,105,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    LTEXT           "The game has gone out of sync.\r\n\r\nIf there are saves available from this session, the game host can attempt to load a save to re-sync the game.\r\n\r\nAlternatively, the host can choose for the desynced players to continue playing in separate game sessions.",-1,160,25,180,82,NOT WS_GROUP
+    LTEXT           "Please wait while the host is making a decision.",-1,160,127,180,22,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_CHAT_LIST,30,145,300,60,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    EDITTEXT        IDC_DESYNC_CHAT_EDIT,30,207,299,12,ES_AUTOHSCROLL | NOT WS_BORDER
+    LTEXT           "Loading the saved game in 5 seconds...",IDC_DESYNC_COUNTDOWN_TEXT,30,223,140,10,NOT WS_GROUP | NOT WS_VISIBLE
+    GROUPBOX        "",IDC_DESYNC_COUNTDOWN_BAR,180,222,149,12,NOT WS_VISIBLE
+    CONTROL         "Quit",IDC_DESYNC_QUIT,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP | WS_DISABLED,145,239,70,12
+END
+
+
 IDD_EXCEPTION DIALOGEX 0, 0, 350, 320
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Exception!"

@@ -126,10 +126,14 @@ TabButtonClass::TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y
 /**
  *  Handles mouse input for the tab button.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 bool TabButtonClass::Action(unsigned flags, KeyNumType& key)
 {
+    if (Scen->InputLock) {
+        return true;
+    }
+
     if (!flags) {
         Flag_To_Redraw();
     }
@@ -223,7 +227,7 @@ bool TabButtonClass::Draw_Me(bool forced)
 
     if (IsMousedOver && !Scen->InputLock && !IsDisabled && !IsSelected) {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
-        const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
+        const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->HoverHighlightColor;
         SidebarSurface->Draw_Rect(hover_rect,
                                   DSurface::Build_Hicolor_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
     }

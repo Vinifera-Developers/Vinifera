@@ -183,7 +183,7 @@ read_scenario:
 
 /**
  *  #issue-95
- * 
+ *
  *  Patch for handling the campaign intro movies for "The First Decade"
  *  and "Freeware TS" installations when selecting "Intro / Sneak Peak" on
  *  the main menu.
@@ -267,6 +267,7 @@ DEFINE_HOOK(0x004E2796, _Select_Game_Intro_SneakPeak_Movies_Patch, 0)
  */
 void PlayMovieExtension_Hooks()
 {
+
     /**
      *  #issue-287
      * 

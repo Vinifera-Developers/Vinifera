@@ -14,10 +14,12 @@
 #include "tibsun_globals.h"
 
 #include <optional>
+#include <string_view>
 #include <vector>
 
 
 struct IStream;
+class ViniferaSaveVersionInfo;
 
 
 /**
@@ -59,6 +61,7 @@ bool Vinifera_Remap_Extension_Pointers();
 void Vinifera_Post_Load_Game();
 bool Vinifera_Save_Game(const char* file_name, const char* descr, bool);
 bool Vinifera_Load_Game(const char* file_name);
+bool Vinifera_Is_Save_Loadable(std::string_view path, ViniferaSaveVersionInfo* info_out = nullptr);
 void SaveGame_Hooks();
 
 

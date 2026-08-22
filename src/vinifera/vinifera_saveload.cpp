@@ -44,6 +44,7 @@
 #include "infantry.h"
 #include "infantrytype.h"
 #include "iomap.h"
+#include "ipxmgr.h"
 #include "isotiletypeext.h"
 #include "kamikazetracker.h"
 #include "language.h"
@@ -61,9 +62,12 @@
 #include "rockettype.h"
 #include "rules.h"
 #include "saveload.h"
+#include "spawner.h"
 #include "savever.h"
 #include "scenario.h"
 #include "scenarioext.h"
+#include "desyncdialog.h"
+#include "sessionext.h"
 #include "script.h"
 #include "scripttype.h"
 #include "session.h"
@@ -72,6 +76,7 @@
 #include "spawnmanager.h"
 #include "super.h"
 #include "supertype.h"
+#include "syringe.h"
 #include "tactical.h"
 #include "taction.h"
 #include "tag.h"
@@ -103,8 +108,16 @@
 #include "waypointpath.h"
 #include "weapontype.h"
 #include "windialog.h"
+#include "fetchres.h"
+#include "optionsext.h"
+#include "spawner.h"
+#include "technoext.h"
+#include "verses.h"
+#include "scenarioext.h"
 
 #include <atlbase.h>
+#include <charconv>
+#include <filesystem>
 
 
 /**
@@ -378,9 +391,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Logic.Save(pStm))) { return false; }
 
     DEBUG_INFO("Saving TacticalMap...\n");
-    {
-        if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
-    }
+    if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
 
     /**
      *  Save all game objects. This code saves every object that's stored in a DynamicVector class.
@@ -522,6 +533,9 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  was reimplemented.
      */
     Vinifera_PerformingLoad = true;
+    struct PerformingLoadGuard {
+        ~PerformingLoadGuard() { Vinifera_PerformingLoad = false; }
+    } performing_load_guard;
 
     /**
      *  Load the scenario global information.
@@ -566,17 +580,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     Enable_Addon(Scen->RequiredAddOn);
 
-    SideType side = Scen->IsGDI ? SIDE_GDI : SIDE_NOD;
-#if defined(TS_CLIENT)
-    side = static_cast<SideType>(Scen->IsGDI);
-#endif
-
-    DEBUG_INFO("About to call Prep_For_Side()...\n");
-    if (!Prep_For_Side(side)) {
-        DEBUG_ERROR("Prep_For_Side() failed!\n");
-        return false;
-    }
-
     {
     Rect tactical_rect = Get_Tactical_Rect();
     Rect composite_rect(0, 0, tactical_rect.Width, VisibleRect.Height);
@@ -604,12 +607,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     DEBUG_INFO("Loading Rule...\n");
     Rule->Load(pStm);
-
-    DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
-    if (!Prep_Speech_For_Side(side)) {
-        DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
-        return false;
-    }
 
     if (FAILED(Vinifera_Load_Vector(pStm, AnimTypes, "AnimTypes"))) { return false; }
 
@@ -745,13 +742,60 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         DEBUG_ERROR("\t***** FAILED!\n");
         return false;
     }
+    
+    /**
+     *  #issue-218
+     *
+     *  We now abuse ScenarioClass::IsGDI to store the player house so it can be used to
+     *  fetch the SideType from it for loading the assets. This also means this
+     *  bugfix works without extending any of the games classes, but this does mean we
+     *  are limited to 255 unique houses!
+     */
+    const HousesType house = ScenExtension->House;
+    ASSERT_FATAL(house != HOUSE_NONE & house < HouseTypes.Count());
+    const HouseTypeClass* housetype = HouseTypes[house];
+    ASSERT_FATAL(housetype != nullptr);
+
+    /**
+     *  Fetch the houses side type and use this to decide which assets to load.
+     */
+    DEBUG_INFO("About to call Prep_For_Side()...\n");
+    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
+        DEBUG_WARNING("Prep_For_Side({}) failed! Trying with side 0...\n", (int)housetype->Side);
+
+        /**
+         *  Try once again but with the Side 0 (GDI) assets.
+         */
+        if (!Prep_For_Side(SIDE_GDI)) {
+            DEBUG_ERROR("Prep_For_Side() failed!\n");
+            return false;
+        }
+    }
+
+    /**
+     *  Fetch the houses side type and use this to decide which speech assets to load.
+     */
+    DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
+    if (!Prep_Speech_For_Side(housetype->Side)) {
+        DEBUG_WARNING("Prep_Speech_For_Side({}) failed! Trying with side 0...\n", (int)housetype->Side);
+
+        /**
+         *  Try once again but with the Side 0 (GDI) assets.
+         */
+        if (!Prep_Speech_For_Side(SIDE_GDI)) {
+            DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
+            return false;
+        }
+    }
 
     /**
      *  Load the battle UI state.
      */
     DEBUG_INFO("Loading BattleUI...\n");
     SpeechEnabled = false;
-    if (FAILED(BattleUI.Load(pStm))) { return false; }
+    if (FAILED(BattleUI.Load(pStm))) {
+        return false;
+    }
     SpeechEnabled = true;
 
     Map.Flag_To_Redraw(GS_REDRAW_ALL);
@@ -765,11 +809,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (FAILED(Load_Unordered_Map(pStm, BridgeHealths, "BridgeHealths"))) {
         return false;
     }
-
-    /**
-     *  We have finished loading the game data, reset the load flag.
-     */
-    Vinifera_PerformingLoad = false;
 
     return true;
 }
@@ -840,7 +879,7 @@ void Vinifera_Post_Load_Game()
  */
 static bool Vinifera_Write_Save_File(const WCHAR* wide_file_name, const char* descr)
 {
-    DEBUG_INFO("Creating DocFile\n");
+    //DEBUG_INFO("Creating DocFile\n");
     CComPtr<IStorage> storage;
     HRESULT hr = StgCreateDocfile(wide_file_name, STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE, 0, &storage);
     if (FAILED(hr)) {
@@ -854,32 +893,24 @@ static bool Vinifera_Write_Save_File(const WCHAR* wide_file_name, const char* de
     ViniferaSaveVersionInfo versioninfo;
     versioninfo.Set_Internal_Version(GameVersion);
     versioninfo.Set_Scenario_Description(descr);
-    versioninfo.Set_Version(1);
     versioninfo.Set_Player_House(PlayerPtr->Class->Full_Name());
     versioninfo.Set_Campaign_Number(Scen->Campaign);
     versioninfo.Set_Scenario_Number(Scen->Scenario);
-    versioninfo.Set_Executable_Name(VINIFERA_DLL);
     versioninfo.Set_Game_Type(Session.Type);
-
-    FILETIME filetime;
-    CoFileTimeNow(&filetime);
-    versioninfo.Set_Last_Time(filetime);
-    versioninfo.Set_Start_Time(filetime);
-    versioninfo.Set_Play_Time(filetime);
 
     versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
     versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
-    versioninfo.Set_Session_ID(Session.UniqueID);
-    versioninfo.Set_Difficulty(Scen->Difficulty);
-    versioninfo.Set_Total_Play_Time(Vinifera_TotalPlayTime + Scen->ElapsedTimer.Value());
+    versioninfo.Set_Playthrough_ID(Vinifera_PlaythroughID);
+    versioninfo.Set_Difficulty(Scen->CDifficulty);
+    versioninfo.Set_Elapsed_Time(Scen->ElapsedTimer.Value());
 
-    DEBUG_INFO("Saving version information\n");
+    //DEBUG_INFO("Saving version information\n");
     if (FAILED(versioninfo.Save(storage))) {
         DEBUG_ERROR("Failed to write version information.\n");
         return false;
     }
 
-    DEBUG_INFO("Creating content stream.\n");
+    //DEBUG_INFO("Creating content stream.\n");
     CComPtr<IStream> docfile;
     hr = storage->CreateStream(L"CONTENTS", STGM_CREATE | STGM_WRITE | STGM_SHARE_EXCLUSIVE, 0, 0, &docfile);
     if (FAILED(hr)) {
@@ -887,18 +918,9 @@ static bool Vinifera_Write_Save_File(const WCHAR* wide_file_name, const char* de
         return false;
     }
 
-    DEBUG_INFO("Linking content stream to compressor.\n");
-    IUnknown* pUnknown = nullptr;
+    //DEBUG_INFO("Linking content stream to compressor.\n");
     CComPtr<ILinkStream> linkstream;
-    hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-    if (SUCCEEDED(hr)) {
-        hr = OleRun(pUnknown);
-        if (SUCCEEDED(hr)) {
-            pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-        }
-        pUnknown->Release();
-    }
-
+    linkstream.CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC | CLSCTX_LOCAL_SERVER);
     if (linkstream == nullptr) {
         DEBUG_ERROR("Failed to create the stream compressor.\n");
         return false;
@@ -916,7 +938,7 @@ static bool Vinifera_Write_Save_File(const WCHAR* wide_file_name, const char* de
     DEBUG_INFO("Calling Vinifera_Put_All().\n");
     bool result = Vinifera_Put_All(stream, false);
 
-    DEBUG_INFO("Unlinking content stream from compressor.\n");
+    //DEBUG_INFO("Unlinking content stream from compressor.\n");
     hr = linkstream->Unlink_Stream(nullptr);
     if (FAILED(hr)) {
         DEBUG_ERROR("Failed to unlink stream from compressor.\n");
@@ -932,10 +954,10 @@ static bool Vinifera_Write_Save_File(const WCHAR* wide_file_name, const char* de
         return false;
     }
 
-    DEBUG_INFO("Releasing content stream.\n");
+    //DEBUG_INFO("Releasing content stream.\n");
     docfile.Release();
 
-    DEBUG_INFO("Closing DocFile.\n");
+    //DEBUG_INFO("Closing DocFile.\n");
     hr = storage->Commit(STGC_DEFAULT);
     if (FAILED(hr)) {
         DEBUG_ERROR("Failed to commit storage.\n");
@@ -966,22 +988,15 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
      *  In the future, it should be the call sites of Save_Game that are patched so that we can still
      *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
      */
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(file_name), nullptr);
 
     DEBUG_INFO("SAVING GAME [{} - {}]\n", formatted_file_name, descr);
 
     /**
-     *  This is required for compatibility with TS Client's sidebar hack.
-     */
-#if defined(TS_CLIENT)
-    Scen->IsGDI = Session.IsGDI;
-#endif
-
-    /**
      *  Make sure our saved games folder exists.
      */
-    if (!Directory_Exists(Vinifera_SavedGamesDirectory)) {
-        Create_Directory(Vinifera_SavedGamesDirectory);
+    if (!Directory_Exists(Vinifera_SavedGamesDirectory.c_str())) {
+        Create_Directory(Vinifera_SavedGamesDirectory.c_str());
     }
 
     /**
@@ -1026,16 +1041,21 @@ bool Vinifera_Load_Game(const char* file_name)
      *  In the future, it should be the call sites of Load_Game that are patched so that we can still
      *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
      */
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(file_name), nullptr);
 
     DEBUG_INFO("LOADING GAME [{}]\n", formatted_file_name);
+
+    if (!Vinifera_Is_Save_Loadable(formatted_file_name)) {
+        DEBUG_ERROR("LOAD GAME [{}] - incompatible or invalid save file.\n", formatted_file_name);
+        return false;
+    }
 
     /**
      *  Convert the file name to a wide string.
      */
     MultiByteToWideChar(CP_ACP, 0, formatted_file_name, -1, wide_file_name, std::size(wide_file_name));
 
-    DEBUG_INFO("Opening DocFile\n");
+    //DEBUG_INFO("Opening DocFile\n");
     CComPtr<IStorage> storage;
     HRESULT hr = StgOpenStorage(wide_file_name, nullptr, STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
     if (FAILED(hr)) {
@@ -1055,17 +1075,17 @@ bool Vinifera_Load_Game(const char* file_name)
 
     storage.Release();
     Session.Type = static_cast<GameEnum>(saveversion.Get_Game_Type());
-    Vinifera_TotalPlayTime = saveversion.Get_Total_Play_Time();
+    Vinifera_PlaythroughID = saveversion.Get_Playthrough_ID();
     SwizzleManager.Reset();
 
-    DEBUG_INFO("Opening DocFile\n");
+    //DEBUG_INFO("Opening DocFile\n");
     hr = StgOpenStorage(wide_file_name, nullptr, STGM_SHARE_DENY_WRITE, nullptr, 0, &storage);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to open storage.\n");
         return false;
     }
 
-    DEBUG_INFO("Opening content stream.\n");
+    //DEBUG_INFO("Opening content stream.\n");
     CComPtr<IStream> docfile;
     hr = storage->OpenStream(L"CONTENTS", nullptr, STGM_READ | STGM_SHARE_EXCLUSIVE, 0, &docfile);
     if (FAILED(hr)) {
@@ -1073,18 +1093,9 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    DEBUG_INFO("Linking content stream to decompressor.\n");
-    IUnknown* pUnknown = nullptr;
+    //DEBUG_INFO("Linking content stream to decompressor.\n");
     CComPtr<ILinkStream> linkstream;
-    hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-    if (SUCCEEDED(hr)) {
-        hr = OleRun(pUnknown);
-        if (SUCCEEDED(hr)) {
-            pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-        }
-        pUnknown->Release();
-    }
-
+    linkstream.CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC | CLSCTX_LOCAL_SERVER);
     hr = linkstream->Link_Stream(docfile);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to link stream to decompressor.\n");
@@ -1100,7 +1111,7 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    DEBUG_INFO("Unlinking content stream from decompressor.\n");
+    //DEBUG_INFO("Unlinking content stream from decompressor.\n");
     linkstream->Unlink_Stream(nullptr);
 
     SwizzleManager.Reset();
@@ -1120,6 +1131,11 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Total_Radar_Refresh();
     ScenarioActive = true;
     TacticalActive = true;
+
+    /**
+     *  Restore the loaded autosave state.
+     */
+    SessionExtension->Restore_Autosave_After_Load();
 
     DEBUG_INFO("LOADING GAME [{}] - Complete\n", formatted_file_name);
 
@@ -1155,6 +1171,11 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
 {
     char formatted_file_name[PATH_MAX];
 
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
+    if (!Vinifera_Is_Save_Loadable(formatted_file_name)) {
+        return false;
+    }
+
     HWND handle = WinDialogClass::Do_Message_Box(Fetch_String(TXT_LOADING), nullptr, nullptr);
     if (handle) {
         WinDialogClass::Display_Dialog(handle);
@@ -1163,7 +1184,6 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
     ScenarioActive = false;
     TacticalActive = false;
 
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);
 
     if (handle) {
@@ -1190,7 +1210,7 @@ bool LoadOptionsClassExt::_Save_File(const char* filename, const char* descripti
         WinDialogClass::Display_Dialog(handle);
     }
 
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
     const bool result = Save_Game(formatted_file_name, description, false);
 
     if (handle) {
@@ -1210,8 +1230,61 @@ bool LoadOptionsClassExt::_Delete_File(const char* filename)
 {
     char formatted_file_name[PATH_MAX];
 
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
     return DeleteFileA(formatted_file_name);
+}
+
+
+/**
+ *  Checks whether the given save file can be loaded by the current game:
+ *  the game and Vinifera versions must match, and, when in-game, the save
+ *  must belong to the current playthrough and not be a campaign save while
+ *  we're not in campaign (to facilitate the client's playthrough tracking).
+ *
+ *  This is the single place that decides whether a save is loadable; the
+ *  load dialog and the desync dialog both rely on it. Optionally returns
+ *  the save's header info.
+ *
+ *  @author: ZivDero
+ */
+bool Vinifera_Is_Save_Loadable(std::string_view path, ViniferaSaveVersionInfo* info_out)
+{
+    ViniferaSaveVersionInfo saveversion;
+    if (!Vinifera_Get_Savefile_Info(path, saveversion)) {
+        DEBUG_WARNING("Failed to read save file \"{}\"!\n", path);
+        return false;
+    }
+
+    const unsigned game_version = saveversion.Get_Internal_Version();
+    if (game_version != GameVersion) {
+        DEBUG_WARNING("Save file \"{}\" is incompatible! Tiberian Sun: File version 0x{:X}, Expected version 0x{:X}.\n", path, game_version, GameVersion);
+        return false;
+    }
+
+    const unsigned vinifera_version = saveversion.Get_Vinifera_Version();
+    if (vinifera_version != ViniferaGameVersion) {
+        DEBUG_WARNING("Save file \"{}\" is incompatible! Vinifera: File version 0x{:X}, Expected version 0x{:X}.\n", path, vinifera_version, ViniferaGameVersion);
+        return false;
+    }
+
+    if (ScenarioActive) {
+
+        if (saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
+            DEBUG_INFO("Save file \"{}\" belongs to a different playthrough, skipping.\n", path);
+            return false;
+        }
+
+        if (Session.Type != GAME_NORMAL && saveversion.Get_Game_Type() == GAME_NORMAL) {
+            DEBUG_INFO("Save file \"{}\" is a campaign save and the player is currently not in campaign, skipping.\n", path);
+            return false;
+        }
+    }
+
+    if (info_out != nullptr) {
+        *info_out = saveversion;
+    }
+
+    return true;
 }
 
 
@@ -1222,51 +1295,34 @@ bool LoadOptionsClassExt::_Delete_File(const char* filename)
  */
 bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* filename)
 {
-    char formatted_file_name[PATH_MAX];
-
-    if (!file && !filename)
+    if (!file || !filename)
         return false;
 
-    if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) != 0) {
-
-        _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename->cFileName), nullptr);
-
-        ViniferaSaveVersionInfo saveversion;
-        if (Vinifera_Get_Savefile_Info(formatted_file_name, saveversion)) {
-
-            unsigned game_version = saveversion.Get_Internal_Version();
-            if (game_version != GameVersion) {
-                DEBUG_WARNING("Save file \"{}\" is incompatible! Tiberian Sun: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, game_version, GameVersion);
-                return false;
-            }
-
-            unsigned vinifera_version = saveversion.Get_Vinifera_Version();
-            if (vinifera_version != ViniferaGameVersion) {
-                DEBUG_WARNING("Save file \"{}\" is incompatible! Vinifera: File version 0x{:X}, Expected version 0x{:X}.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
-                return false;
-            }
-
-            wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description());
-            file->Old = false;
-            file->Valid = true;
-            file->Scenario = saveversion.Get_Scenario_Number();
-            file->Campaign = saveversion.Get_Campaign_Number();
-            file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
-            std::strncpy(file->Filename, formatted_file_name, std::size(file->Filename));
-            std::strncpy(file->Handle, saveversion.Get_Player_House(), std::size(file->Handle));
-            if (std::strlen(file->Filename) == 0) {
-                std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
-            }
-            file->DateTime = filename->ftLastWriteTime;
-
-            return true;
-        }
-        else {
-            DEBUG_WARNING("Failed to read save file \"{}\"!\n", formatted_file_name);
-        }
+    if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) == 0) {
+        return false;
     }
 
-    return false;
+    const std::string formatted_file_name = (std::filesystem::path(Vinifera_SavedGamesDirectory) / Filename_From_Path(filename->cFileName)).string();
+
+    ViniferaSaveVersionInfo saveversion;
+    if (!Vinifera_Is_Save_Loadable(formatted_file_name, &saveversion)) {
+        return false;
+    }
+
+    std::snprintf(file->Descr, sizeof(file->Descr), "%s", saveversion.Get_Scenario_Description().c_str());
+    file->Old = false;
+    file->Valid = true;
+    file->Scenario = saveversion.Get_Scenario_Number();
+    file->Campaign = saveversion.Get_Campaign_Number();
+    file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
+    std::snprintf(file->Filename, sizeof(file->Filename), "%s", formatted_file_name.c_str());
+    std::snprintf(file->Handle, sizeof(file->Handle), "%s", saveversion.Get_Player_House().c_str());
+    if (std::strlen(file->Filename) == 0) {
+        std::snprintf(file->Filename, sizeof(file->Filename), "%s", filename->cAlternateFileName);
+    }
+    file->DateTime = filename->ftLastWriteTime;
+
+    return true;
 }
 
 
@@ -1281,7 +1337,7 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper1(char* buffer, const char*, int num
     char formatted_file_name[PATH_MAX];
 
     // First create the format string itself, using our custom folder, e. g. "Saved Games\SAVE%04lX.%3s"
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, "SAVE%04lX.%3s", nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), "SAVE%04lX.%3s", nullptr);
 
     // Now actually format the path
     return std::sprintf(buffer, formatted_file_name, number, str);
@@ -1299,10 +1355,106 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* s
     char formatted_file_name[PATH_MAX];
 
     // First create the format string itself, using our custom folder, e. g. "Saved Games\*.%3s"
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, "*.%3s", nullptr);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), "*.%3s", nullptr);
 
     // Now actually format the path
     return std::sprintf(buffer, formatted_file_name, str);
+}
+
+
+/**
+ *  Patches LoadOptionsClass constructor to define the save file extension
+ *  based on whether we are currently playing singleplayer or multiplayer.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x005047E6, _LoadOptionsClass_CTOR_Set_Extension_Patch, 0)
+{
+    GET(LoadOptionsClass*, this_ptr, ESI);
+
+    if (GameActive && !Session.Singleplayer_Game())
+    {
+        this_ptr->Extension = "NET";
+    }
+    else
+    {
+        this_ptr->Extension = "SAV";
+    }
+
+    return 0x005047ED;
+}
+
+
+/**
+ *  Patches LoadOptionsClass::Dialog to schedule loading and
+ *  send a network message in multiplayer instead of loading right away.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x0050520E, LoadOptionsClass_Dialog_Multiplayer_Load_Patch, 0x6)
+{
+    // In singleplayer, just execute the original code.
+    if (Session.Singleplayer_Game()) {
+        return 0;
+    }
+
+    // If we are not the game host, bail.
+    if (!Session.Am_I_Master()) {
+        return 0x005050C3;
+    }
+
+    // If we are already loading a multiplayer game, do nothing - just close the dialog.
+    if (PendingMultiplayerSaveLoadTime) {
+        DEBUG_INFO("Save load already scheduled - ignoring request.\n");
+        return 0x005050C3;
+    }
+
+    GET(FileEntryClass*, entry, ESI);
+
+    // Parse the save file number from the save file path.
+    std::string_view filename(entry->Filename);
+
+    // Strip saved games directory from the file path.
+    if (filename.starts_with(Vinifera_SavedGamesDirectory)) {
+        filename.remove_prefix(Vinifera_SavedGamesDirectory.length() + 1);
+    }
+
+    int save_number = -1;
+
+    if (filename.starts_with("SAVEGAME_") && filename.size() >= 12) {
+
+        const char* begin = filename.data() + 9;
+        const char* end = begin + 3;
+
+        const auto result = std::from_chars(begin, end, save_number);
+        if (result.ec != std::errc() || result.ptr != end) {
+            save_number = -1;
+        }
+    }
+
+    if (save_number < 0 || save_number > 999) {
+        DEBUG_ERROR("Failed to parse saved number from saved game name {}!\n", entry->Filename);
+        return 0x005050C3;
+    }
+
+    // Schedule the load.
+    PendingMultiplayerSaveLoadSlot = save_number;
+    PendingMultiplayerSaveLoadTime = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+
+    // Show a message to ourselves.
+    Session.Messages.Add_Message(nullptr, 0, "The game host wants to load a saved game. Loading in 5 seconds...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+
+    // Broadcast load to other players.
+    ExtGlobalPacketType packet {};
+    packet.Command = EXT_NET_LOAD_GAME;
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
+    packet.SaveInfo.ID = save_number;
+    for (int i = 1; i < Session.Players.Count(); i++) {
+        Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
+    }
+
+    // Exit the function.
+    return 0x005050C3;
 }
 
 

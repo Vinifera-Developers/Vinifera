@@ -13,34 +13,45 @@
 
 #include "asserthandler.h"
 #include "building.h"
+#include "buildingext.h"
 #include "buildingtypeext.h"
 #include "ccini.h"
 #include "debughandler.h"
 #include "extension_globals.h"
 #include "factory.h"
 #include "fatal.h"
+#include "fetchres.h"
 #include "hooker.h"
+#include "hooker_macros.h"
 #include "house.h"
 #include "houseext.h"
 #include "houseext_init.h"
 #include "housetype.h"
+#include "language.h"
+#include "logic.h"
 #include "mouse.h"
 #include "msgbox.h"
 #include "prerequisitegroup.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "scenarioext.h"
 #include "session.h"
+#include "sessionext.h"
 #include "sideext.h"
+#include "spawner.h"
 #include "super.h"
 #include "syringe.h"
 #include "techno.h"
 #include "technoext.h"
 #include "technotype.h"
 #include "tiberium.h"
+#include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
 #include "vinifera_globals.h"
+#include "vox.h"
 
 
 /**
@@ -56,13 +67,16 @@ public:
     int _AI_Building();
     int _AI_Unit();
     int _Expert_AI();
-    bool _Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type);
     void _Active_Remove(TechnoClass const* techno);
     void _Active_Add(TechnoClass const* techno);
     Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
     void _Production_Check();
     bool _AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVectorClass<const BuildingTypeClass*>& owned, int ownedcount) const;
     void _Harvested(int tiberium, TiberiumType slot);
+    bool _Can_Make_Money();
+    UrgencyType _Check_Raise_Money();
+    void _MPlayer_Defeated();
+    void _Make_Ally(HouseClass* house);
 
     // stubs
     FactoryClass* _Fetch_Factory(RTTIType rtti);
@@ -75,6 +89,7 @@ public:
     bool _Place_Object(RTTIType type, Cell const& cell);
     void _Update_Factories(RTTIType rtti);
     TechnoTypeClass const* _Suggest_New_Object(RTTIType objecttype, bool kennel) const;
+    ExtDiffType _Assign_Handicap(ExtDiffType handicap);
 };
 
 
@@ -91,28 +106,6 @@ int HouseClassExt::_AI_Building()
         BASE_UNKNOWN = -2,
         BASE_DEFENSE = -1
     };
-
-    /**
-     *  Unfortunately, ts-patches spawner has a hack here.
-     *  Until we reimplement the spawner in Vinifera, this will have to do.
-     */
-    static bool spawner_hack_init = false;
-    static bool spawner_hack_mpnodes = false;
-
-    if (!spawner_hack_init)
-    {
-        RawFileClass file("SPAWN.INI");
-        CCINIClass spawn_ini;
-
-        if (file.Is_Available()) {
-
-            spawn_ini.Load(file, false);
-            spawner_hack_mpnodes = spawn_ini.Get_Bool("Settings", "UseMPAIBaseNodes", spawner_hack_mpnodes);
-        }
-
-        spawner_hack_init = true;
-    }
-
 
     if (BuildStructure != STRUCT_NONE) return TICKS_PER_SECOND;
 
@@ -165,7 +158,7 @@ int HouseClassExt::_AI_Building()
      */
     BuildingTypeClass* b = BuildingTypes[node->Type];
 
-    if (Session.Type != GAME_NORMAL && !spawner_hack_mpnodes && b->Drain + Drain > Power - PowerSurplus && b != Rule->BuildConst[0] && b->Drain > 0) {
+    if (Session.Type != GAME_NORMAL && !ScenExtension->IsUseMPAIBaseNodes && b->Drain + Drain > Power - PowerSurplus && b != Rule->BuildConst[0] && b->Drain > 0) {
 
         /**
          *  In skirmish, try to build a power plant if there is insufficient power.
@@ -227,7 +220,6 @@ int HouseClassExt::_AI_Building()
         Base.Nodes.Insert(id, BaseNodeClass(choice->HeapID, Cell(0, 0)));
 
         return 1;
-
     }
 
     /**
@@ -272,39 +264,17 @@ int HouseClassExt::_AI_Unit()
 int HouseClassExt::_Expert_AI()
 {
     /**
-     *  Unfortunately, ts-patches spawner has a hack here.
-     *  Until we reimplement the spawner in Vinifera, this will have to do.
-     */
-    static bool spawner_hack_init = false;
-    static bool spawner_hack_mpnodes = false;
-
-    if (!spawner_hack_init)
-    {
-        RawFileClass file("SPAWN.INI");
-        CCINIClass spawn_ini;
-
-        if (file.Is_Available()) {
-
-            spawn_ini.Load(file, false);
-            spawner_hack_mpnodes = spawn_ini.Get_Bool("Settings", "UseMPAIBaseNodes", spawner_hack_mpnodes);
-        }
-
-        spawner_hack_init = true;
-    }
-
-    /**
      *  If there is no enemy assigned to this house, then assign one now. The
      *  enemy that is closest is picked. However, don't pick an enemy if the
      *  base has not been established yet.
      */
-    if (ExpertAITimer.Expired()) {
+    if (ExpertAITimer == 0) {
         if (Enemy == HOUSE_NONE && Session.Type != GAME_NORMAL && !Class->IsMultiplayPassive && Center != COORD_NONE) {
             int close = INT_MAX;
             HouseClass* enemy = nullptr;
 
             for (int i = 0; i < Houses.Count(); i++) {
                 HouseClass* house = Houses[i];
-
                 if (house != this && !house->Class->IsMultiplayPassive && !house->IsDefeated && !Is_Ally(house)) {
 
                     /**
@@ -365,8 +335,7 @@ int HouseClassExt::_Expert_AI()
     if (State == STATE_ENDGAME) {
         Fire_Sale();
         All_To_Hunt();
-    }
-    else {
+    } else {
         if (State == STATE_BUILDUP) {
             if (Available_Money() < 25) {
                 State = STATE_BROKE;
@@ -385,7 +354,7 @@ int HouseClassExt::_Expert_AI()
         }
     }
 
-    if (Session.Type != GAME_NORMAL && !spawner_hack_mpnodes) {
+    if (Session.Type != GAME_NORMAL && !ScenExtension->IsUseMPAIBaseNodes) {
 
         /**
          *  Records the urgency of all actions possible.
@@ -477,6 +446,534 @@ void HouseClassExt::_Harvested(int tiberium, TiberiumType slot)
 
         Silo_Redraw_Check(oldtib, oldcap);
     }
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Checks if the AI house has the capability to make money. Adjusted to
+ *  use the entire Build* and HarvesterUnit lists.
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExt::_Can_Make_Money()
+{
+    const int credits = Available_Money();
+    const int ref_cost = Get_First_Ownable(Rule->BuildRefinery)->Cost_Of(this);
+    const int harv_cost = Get_First_Ownable(Rule->HarvesterUnit)->Cost_Of(this);
+
+    const int ref_count = Count_Owned(Rule->BuildRefinery);
+    const int harv_count = Count_Owned(Rule->HarvesterUnit);
+
+    /**
+     *  If we don't have any refineries, building one is a priority.
+     */
+    if (ref_count == 0)
+        return credits > ref_cost;
+
+    /**
+     *  If we have a refinery and a harvester, all's well.
+     */
+    if (harv_count)
+        return true;
+
+    const bool has_factory = Count_Owned(Rule->BuildWeapons) > 0;
+    const int factory_cost = Get_First_Ownable(Rule->BuildWeapons)->Cost_Of(this);
+
+    /**
+     *  If we have a refinery, but not a harvester, see if
+     *  we can build one if we have a factory.
+     */
+    if (has_factory && credits >= harv_cost)
+        return true;
+
+    /**
+     *  And if we don't have a factory, see if we can build one.
+     */
+    if (credits >= harv_cost + factory_cost)
+        return true;
+
+    /**
+     *  Worst case, see if we can build a new refinery to get a free harvester.
+     */
+    if (credits >= ref_cost)
+        return true;
+
+    return false;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Checks if the AI needs to urgently raise more money.
+ *  Adjusted to use the entire Build* and HarvesterUnit lists.
+ *
+ *  @author: ZivDero
+ */
+UrgencyType HouseClassExt::_Check_Raise_Money()
+{
+    UrgencyType urgency = URGENCY_NONE;
+
+    /**
+     *  Human players don't need AI to raise money for them.
+     */
+    const bool human = Session.Type == GAME_NORMAL ? Is_Player_Control() : IsHuman;
+    if (human)
+        return urgency;
+
+    /**
+     *  If we can afford to have a harvester and a refinery, all is well.
+     */
+    if (Can_Make_Money())
+        return urgency;
+
+    /**
+     *  See if we have a refinery.
+     */
+    if (Count_Owned(Rule->BuildRefinery))
+    {
+        /**
+         *  Iterate all the buildings and check if we have a refinery under construction.
+         *  If so, we don't need raise money, since we'll get a free harvester.
+         */
+        for (int i = 0; i < Buildings.Count(); i++)
+        {
+            BuildingClass* building = Buildings[i];
+            if (building->House == this)
+            {
+                if (Rule->BuildRefinery.Is_Present(building->Class) && building->Get_Mission() == MISSION_CONSTRUCTION)
+                    return urgency;
+
+                urgency = URGENCY_NONE;
+            }
+        }
+
+        /**
+         *  Check if what we're currently building is a harvester.
+         *  If it's not and we don't have enough money to build one,
+         *  we've got minor issues.
+         */
+        const UnitTypeClass* harvester = Get_First_Ownable(Rule->HarvesterUnit);
+        if (BuildUnit != harvester->HeapID)
+        {
+            if (Available_Money() < harvester->Cost_Of(this))
+                urgency++;
+
+            return urgency;
+        }
+
+        /**
+         *  Check all the factories and find which is building our harvester.
+         *  If we haven't got enough money to complete contruction, we've got issues.
+         */
+        for (int i = 0; i < Factories.Count(); i++)
+        {
+            const FactoryClass* factory = Factories[i];
+            if (factory && factory->House == this)
+            {
+                ObjectClass* obj = factory->Get_Object();
+                if (obj && obj->What_Am_I() == RTTI_UNIT
+                    && Rule->HarvesterUnit.Is_Present((UnitTypeClass*)(obj->TClass)))
+                {
+                    if (Available_Money() < factory->Balance)
+                        urgency++;
+
+                    return urgency;
+
+                }
+            }
+        }
+    }
+    else
+    {
+        /**
+         *  Check if what we're currently building is a refinery.
+         *  If it's not and we don't have enough money to build one,
+         *  we've got minor issues.
+         */
+        const BuildingTypeClass* refinery = Get_First_Ownable(Rule->BuildRefinery);
+        if (BuildStructure != refinery->HeapID)
+        {
+            if (Available_Money() < refinery->Cost_Of(this))
+                urgency++;
+
+            return urgency;
+        }
+
+        /**
+         *  Check all the factories and find which is building our refinery.
+         *  If we haven't got enough money to complete contruction, we've got issues.
+         */
+        for (int i = 0; i < Factories.Count(); i++)
+        {
+            const FactoryClass* factory = Factories[i];
+            if (factory && factory->House == this)
+            {
+                ObjectClass* obj = factory->Get_Object();
+                if (obj && obj->What_Am_I() == RTTI_BUILDING
+                    && Rule->BuildRefinery.Is_Present((BuildingTypeClass*)(obj->TClass)))
+                {
+                    if (Available_Money() < factory->Balance)
+                        urgency++;
+
+                    return urgency;
+                }
+            }
+        }
+    }
+
+    /**
+     *  Something weird has happened, it's surely not good.
+     */
+    urgency++;
+    return urgency;
+}
+
+
+/**
+ *  A house is defeated in multiplayer.
+ *
+ *  @author: 05/25/1995 BRR - Created
+ *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ *           19/07/2026 Rampastring - Correct local/team win and loss flagging
+ */
+void HouseClassExt::_MPlayer_Defeated()
+{
+    char txt[80];
+
+    /**
+     *  Set the defeat flag for this house
+     */
+    IsDefeated = true;
+
+    /**
+     *  If this is a computer controlled house, then all computer controlled
+     *  houses become paranoid.
+     */
+    if (IQ == Rule->MaxIQ && !Is_Human_Player() && Rule->IsComputerParanoid) {
+        Computer_Paranoid();
+    }
+
+    /**
+     *  Remove this house's flag & flag home cell
+     */
+    if (Special.IsCaptureTheFlag) {
+        if (FlagLocation) {
+            Flag_Remove(FlagLocation, true);
+        } else {
+            if (FlagHome != CELL_NONE) {
+                Flag_Remove(&Map[FlagHome], true);
+            }
+        }
+    }
+
+    /**
+     *  If harvester truce is on, remove all of this player's harvesters.
+     */
+    if (Session.Type != GAME_NORMAL && Scen->Special.IsHarvesterImmune) {
+        for (int i = 0; i < Units.Count(); i++) {
+            if (Units[i]->House == this && Units[i]->IsActive) {
+                Units[i]->Delete_Me();
+            }
+        }
+    }
+
+    /**
+     *  If this is me:
+     *  - Add my defeat message
+     */
+    if (PlayerPtr == this) {
+        if (!Extension::Fetch(PlayerPtr)->IsObserver) {
+
+            /**
+             *  Pop up a message showing that I was defeated
+             */
+            std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName.c_str());
+            Session.Messages.Add_Message(nullptr, 0, txt, static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+            Speak(VOX_YOU_HAVE_LOST);
+        }
+
+        Map.Flag_To_Redraw();
+        DEBUG_INFO("MPlayer_Defeated() - Player {} has been defeated\n", IniName);
+
+    } else {
+
+        /**
+         *  If it wasn't me, find out who was defeated
+         */
+        if (!Class->IsMultiplayPassive) {
+            if (!Extension::Fetch(PlayerPtr)->IsObserver) {
+                std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName.c_str());
+                Session.Messages.Add_Message(nullptr, 0, txt, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+                Speak(VOX_PLAYER_DEFEATED);
+            }
+
+            Map.Flag_To_Redraw();
+            DEBUG_INFO("MPlayer_Defeated() - Opponent {} has been defeated\n", IniName);
+        }
+    }
+
+    /**
+     *  If the local player is been defeated, check if they should be given OBIWAN mode.
+     */
+    if (PlayerPtr->IsDefeated && !Extension::Fetch(PlayerPtr)->IsObserver && !Session.ObiWan) {
+
+        /**
+         *  With the spawner active, if Coach mode is enabled, players don't get vision.
+         */
+        bool obiwan = true;
+        if (SessionExtension->ExtOptions.IsCoachMode) {
+            obiwan = false;
+        }
+
+        /**
+         *  Now check if the player has any player allies remaining.
+         */
+        for (int i = 0; i < Houses.Count(); i++) {
+            HouseClass* hptr = Houses[i];
+            if (!hptr->IsDefeated && !hptr->Class->IsMultiplayPassive && (hptr->Is_Ally(PlayerPtr) || PlayerPtr->Is_Ally(hptr))) {
+                obiwan = false;
+                break;
+            }
+        }
+
+        /**
+         *  - Set MPlayerObiWan, so I can only send messages to all players, and
+         *    not just one (so I can't be obnoxiously omnipotent)
+         *  - Reveal the map
+         */
+        if (obiwan) {
+            Session.ObiWan = true;
+            Map.Reveal_The_Map();
+            PlayerPtr->RecalcRadar = true;
+            HiddenSurface->Fill(0);
+            Map.Flag_To_Redraw();
+            DEBUG_INFO("MPlayer_Defeated() - Player {} has no allies left (OBIWAN MODE)\n", IniName);
+        }
+    }
+
+    /**
+     *  Find out how many players are left alive.
+     */
+    int num_alive = 0;
+    int num_humans = 0;
+    for (int i = 0; i < Houses.Count(); i++) {
+        HouseClass* hptr = Houses[i];
+        if (hptr && !hptr->IsDefeated && !hptr->Class->IsMultiplayPassive) {
+            if (hptr->Is_Human_Player()) {
+                num_humans++;
+            }
+            num_alive++;
+        }
+    }
+    DEBUG_INFO("MPlayer_Defeated() - Alive = {}, Humans = {}\n", num_alive, num_humans);
+
+    /**
+     *  If all the houses left alive are allied with each other, then in reality
+     *  there's only one player left:
+     */
+    bool all_allies = true;
+    for (int i = 0; i < Houses.Count(); i++) {
+
+        /**
+         *  Get a pointer to this house
+         */
+        HouseClass* hptr = Houses[i];
+        if (!hptr || hptr->IsDefeated || hptr->Class->IsMultiplayPassive) continue;
+
+        /**
+         *  Loop through all houses; if there's one left alive that this house
+         *  isn't allied with, then all_allies will be false
+         */
+        for (int j = 0; j < Houses.Count(); j++) {
+            HouseClass* hptr2 = Houses[j];
+            if (!hptr2) {
+                continue;
+            }
+
+            if (!hptr2->IsDefeated && !hptr2->Class->IsMultiplayPassive && (!hptr->Is_Ally(hptr2) || !hptr2->Is_Ally(hptr))) {
+                all_allies = false;
+                break;
+            }
+        }
+        if (!all_allies) {
+            break;
+        }
+    }
+
+    /**
+     *  If all houses left are allies, set 'num_alive' to 1; game over.
+     */
+    if (all_allies) {
+        Session.SawCompletion = true;
+        DEBUG_INFO("Saw game completion due to player defeat\n");
+        DEBUG_INFO("MPlayer_Defeated() - All remaining players are allied\n");
+        num_alive = 1;
+    }
+
+    /**
+     *  If there's only one human player left or no humans left, the game is over.
+     */
+    if (!Extension::Fetch(this)->IsObserver) {
+        if (num_alive == 1 || (num_humans == 0 && !SessionExtension->ExtOptions.IsContinueWithoutHumans && (!Session.Singleplayer_Game() || !Extension::Fetch(PlayerPtr)->IsObserver))) {
+            IsToDie = false;
+
+            /**
+             *  Consider the local player victorious if they are still alive, or if
+             *  they have a surviving human ally in a multiplayer team game.
+             */
+            bool localplayerwon = !PlayerPtr->IsDefeated;
+
+            if (!localplayerwon && Session.Type != GAME_SKIRMISH) {
+                DEBUG_INFO("MPlayer_Defeated: Local player is defeated, looking for allies.\n");
+
+                for (int i = 0; i < Houses.Count(); i++) {
+                    HouseClass* hptr = Houses[i];
+                    if (!hptr || hptr->IsDefeated || !hptr->IsHuman || hptr->Class->IsMultiplayPassive) continue;
+
+                    if (PlayerPtr->Is_Ally(hptr)) {
+                        localplayerwon = true;
+                        break;
+                    }
+                }
+            }
+
+            if (localplayerwon) {
+                DEBUG_INFO("MPlayer_Defeated: Flagging local player as victorious.\n");
+                PlayerPtr->Flag_To_Win(false);
+            } else {
+                DEBUG_INFO("MPlayer_Defeated: Flagging local player as lost.\n");
+                PlayerPtr->Flag_To_Lose(false);
+            }
+        }
+    }
+}
+
+
+/**
+ *  Make the specified house an ally.
+ *
+ *  @author: 05/08/1995 JLB - Created
+ *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ *           11/07/2026 Rampastring - Use Shush's extended sight range logic when revealing allied objects,
+ *                                    don't reveal MultiplayPassive house objects in multiplayer
+ */
+void HouseClassExt::_Make_Ally(HouseClass* house)
+{
+    if (Is_Allowed_To_Ally(house)) {
+
+        Allies |= (1L << house->HeapID);
+
+        /**
+         *  Don't consider the newfound ally to be an enemy -- of course.
+         */
+        Recalc_Threat_Regions();
+        Clear_Anger(house);
+
+        if (Enemy == house->HeapID) {
+            Enemy = HOUSE_NONE;
+        }
+
+        if (ScenarioInit) {
+            Control.Allies |= (1L << house->HeapID);
+        }
+
+        if (Session.Type != GAME_NORMAL || !ScenarioInit) {
+
+            if (!ScenarioInit) {
+
+                /**
+                 *  An alliance with another human player will cause the computer
+                 *  players (if present) to become paranoid.
+                 */
+                if (Is_Human_Player() && Rule->IsComputerParanoid && !house->Class->IsMultiplayPassive) {
+                    Computer_Paranoid();
+                }
+
+                /**
+                 *  Sweep through all techno objects and perform a cheeseball tarcom clear to ensure
+                 *  that fighting will most likely stop when the cease fire begins.
+                 */
+                for (int index = 0; index < Logic.Count(); index++) {
+                    ObjectClass* object = Logic[index];
+
+                    if (object != nullptr && object->Is_Techno() && !object->IsInLimbo && object->Owner() == HeapID) {
+                        TargetClass target = static_cast<TechnoClass*>(object)->TarCom;
+                        if (target.Is_Valid() && target.As_Techno() != nullptr) {
+                            if (Is_Ally(target.As_Techno())) {
+                                static_cast<TechnoClass*>(object)->Assign_Target(nullptr);
+                            }
+                        }
+                    }
+                }
+
+                if (Is_Human_Player() && Session.Type != GAME_NORMAL && !house->Class->IsMultiplayPassive) {
+
+                    char buffer[80];
+                    std::snprintf(buffer, std::size(buffer), Fetch_String(TXT_HAS_ALLIED), IniName, house->IniName);
+                    Session.Messages.Add_Message(nullptr, 0, buffer, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, TICKS_PER_MINUTE * Rule->MessageDelay);
+
+                    if (Is_Player_Control()) {
+                        Speak(VOX_ALLIANCE_FORMED);
+                    }
+                }
+            }
+
+            /**
+             *  Cause all technos to be revealed to the house that has been
+             *  allied with.
+             */
+            if (Rule->IsAllyReveal && house == PlayerPtr) {
+                for (int index = 0; index < Technos.Count(); index++) {
+                    TechnoClass const* t = Technos[index];
+
+                    /**
+                     *  If in multiplayer, don't reveal objects owned by MultiplayPassive houses.
+                     *  This matches the behaviour of TechnoClass::Look.
+                     */
+                    if (!t->IsInLimbo && t->House == this && (!Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
+                        int sight_range = Extension::Fetch(t)->Get_Sight_Range();
+
+                        Map.Sight_From(t->Center_Coord(), sight_range, PlayerPtr);
+                    }
+                }
+            }
+
+            Map.Flag_To_Redraw();
+        }
+    }
+}
+
+
+/**
+ *  #issue-177
+ * 
+ *  Allow the game to check BaseUnit for all pertinent entries for "Short Game".
+ * 
+ *  #NOTE: The code before this patch already checks if the house has
+ *         any buildings first.
+ * 
+ *  @author: CCHyper, ZivDero
+ */
+DEFINE_HOOK(0x004BCEE7, _HouseClass_AI_Short_Game_BaseUnit_Patch, 0)
+{
+    GET(HouseClass *, this_ptr, ESI);
+
+    /**
+     *  Count all MCVs we own to see if the player should explode.
+     */
+    const int count = this_ptr->Count_Owned(RuleExtension->BaseUnit);
+
+    if (count) {
+        return 0x004BCF6E;
+    }
+
+    /**
+     *  Blows up the house, marking the house as defeated.
+     */
+    return 0x004BCF60;
 }
 
 
@@ -727,31 +1224,6 @@ DEFINE_HOOK(0x004CB6C1, _HouseClass_Enable_SWs_Check_For_Building_Power, 6)
 
 
 /**
- *  Checks if the TechnoType can be built by this house based on RequiredHouses and ForbiddenHouses, if set.
- *
- *  Author: ZivDero, Rampastring
- */
-bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type)
-{
-    const auto technotypeext = Extension::Fetch(techno_type);
-
-    if (technotypeext->RequiredHouses != -1 &&
-        (technotypeext->RequiredHouses & 1 << ActLike) == 0)
-    {
-        return false;
-    }
-
-    if (technotypeext->ForbiddenHouses != -1 &&
-        (technotypeext->ForbiddenHouses & 1 << ActLike) != 0)
-    {
-        return false;
-    }
-
-    return true;
-}
-
-
-/**
  *  Reimplementation of HouseClass::Active_Remove.
  *
  *  @author: ZivDero
@@ -874,7 +1346,8 @@ DEFINE_HOOK(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 9)
     GET(TechnoTypeClass*, techno_type, EDI);
     GET(HouseClassExt*, this_ptr, EBP);
 
-    bool can_build = this_ptr->_Can_Build_Required_Forbidden_Houses(techno_type);
+    bool can_build = Extension::Fetch(this_ptr)->Required_Forbidden_Houses_Check(techno_type);
+
     if (!can_build) {
         // return false;
         return 0x004BBC9A;
@@ -1186,53 +1659,6 @@ bool HouseClassExt::_AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVe
 
 
 /**
- *  Fixes a bug where the local player could be considered "lost" (Do_Lose was called)
- *  when a multiplayer match ended with the last enemy getting defeated.
- *
- *  Author: Rampastring
- */
-DEFINE_HOOK(0x004BF8BD, _HouseClass_MPlayer_Defeated_Flag_Win_Or_Lose, 0)
-{
-    // The match has ended due to player defeat because there is only one team left.
-    // Consider the player as having won if they are not defeated, OR in case of multiplayer,
-    // if they have any human allies left alive.
-    // This allows the player to be considered a winner if their team wins in a team game,
-    // even if the player itself is defeated.
-
-    bool localplayerwon = !PlayerPtr->IsDefeated;
-
-    if (!localplayerwon && Session.Type != GAME_SKIRMISH) {
-
-        DEBUG_INFO("MPlayer_Defeated: Local player is defeated, looking for allies.\n");
-
-        for (int i = 0; i < Houses.Count(); i++) {
-
-            /*
-            **	Get a pointer to this house
-            */
-            HouseClass* hptr = Houses[i];
-            if (!hptr || hptr->IsDefeated || !hptr->IsHuman || hptr->Class->IsMultiplayPassive) continue;
-
-            if (PlayerPtr->Is_Ally(hptr)) {
-                localplayerwon = true;
-                break;
-            }
-        }
-    }
-
-    if (localplayerwon) {
-        DEBUG_INFO("MPlayer_Defeated: Flagging local player as victorious.\n");
-        PlayerPtr->Flag_To_Win(false);
-    } else {
-        DEBUG_INFO("MPlayer_Defeated: Flagging local player as lost.\n");
-        PlayerPtr->Flag_To_Lose(false);
-    }
-
-    return 0x004BF8E3;
-}
-
-
-/**
  *  Fixes an edge case bug where HouseClass::AI_Raise_Money can corrupt
  *  the house's Base Node vector by writing to the vector at index -1.
  *
@@ -1281,24 +1707,355 @@ DEFINE_HOOK(0x004C958D, _HouseClass_Recalc_Radar_Availability_Free_Radar_Low_Pow
 }
 
 /**
- *  Patches HouseClass::Make_Ally to take sight range bonuses into account when revealing the area around technos we that were allied with 
+ *  #issue-177
  *
- *  @author: JoyfulShush
+ *  Patches the check for if a house owns a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
  */
-DEFINE_HOOK(0x004BDD4C, HouseClass_Make_Ally_Sight_Range_Patch, 0)
+DEFINE_HOOK(0x004BCD5D, _HouseClass_AI_BuildConst_Patch, 0)
 {
-    GET(TechnoClass*, techno, ESI);
-    GET(HouseClass*, this_ptr, EDI);
+    GET(HouseClass*, this_ptr, ESI);
 
-    auto techno_ext = Extension::Fetch(techno);
+    if (this_ptr->Count_Owned(Rule->BuildConst) > 0) {
+        return 0x004BCD85;
+    }
 
-    int sight_range = techno_ext->Get_Sight_Range();
-    Coord coord = techno->Center_Coord();
-
-    Map.Sight_From(coord, sight_range, this_ptr);
-
-    return 0x004BDD83;
+    return 0x004BCE0B;
 }
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a house owns a harvester to check the entire HarvesterUnit list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004BCF3A, _HouseClass_AI_Count_HarvesterUnit_Patch, 0)
+{
+    GET(HouseClass*, this_ptr, ESI);
+    const int harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
+
+    R->EAX(harv_count);
+    return 0x004BCF5A;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a house is building a harvester to check the entire HarvesterUnit list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004BD0BC, _HouseClass_AI_Is_Building_Harvester_Unit_Patch, 0)
+{
+    GET(HouseClass*, this_ptr, ESI);
+
+    if (this_ptr->BuildUnit != UNIT_NONE && Rule->HarvesterUnit.Is_Present(UnitTypes[this_ptr->BuildUnit])) {
+        return 0x004BD0E5;
+    }
+
+    return 0x004BD0D7;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all refineries, weapons factories and harvesters.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C0D0C, _HouseClass_AI_Raise_Money_HarvRef1, 0)
+{
+    GET(HouseClass*, this_ptr, ESI);
+
+    bool build_harv;
+    int object_cost;
+
+    /**
+     *  If we have a refinery and a weapons factory, build a harvester, otherwise - a refinery.
+     */
+    if (this_ptr->Count_Owned(Rule->BuildRefinery) > 0 && this_ptr->Count_Owned(Rule->BuildWeapons) > 0) {
+        build_harv = true;
+        object_cost = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->Cost_Of(this_ptr);
+    } else {
+        build_harv = false;
+        object_cost = this_ptr->Get_First_Ownable(Rule->BuildRefinery)->Cost_Of(this_ptr);
+    }
+
+    R->Stack8(0x13, build_harv);
+    R->EAX(object_cost);
+    return 0x004C0D94;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly construct its own faction's harvester.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C0F5F, _HouseClass_AI_Raise_Money_HarvRef2, 0)
+{
+    GET(HouseClass*, this_ptr, ESI);
+
+    UnitType harv = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->HeapID;
+
+    R->EAX(harv);
+    return 0x004C0F72;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly construct its own faction's refinery.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C0FAB, _HouseClass_AI_Raise_Money_HarvRef3, 0)
+{
+    GET(HouseClass*, this_ptr, ESI);
+
+    static BuildingTypeClass* refinery_ptr;
+    refinery_ptr = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
+
+    // The instructions here are messy, so we hijack when the game
+    // is accessing the vector and substitute our pointer
+    R->EDX(&refinery_ptr);
+    return 0x004C0FBB;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly construct its own faction's refinery.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C1051, _HouseClass_AI_Raise_Money_HarvRef4, 0)
+{
+    GET(HouseClass*, this_ptr, ESI);
+
+    BuildingTypeClass* refinery = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
+
+    R->EAX(refinery);
+    return 0x004C105E;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly count all harvesters and refineries.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C166D, _HouseClass_AI_Unit_HarvRef1, 0)
+{
+    GET(HouseClass*, this_ptr, EBP);
+    const int harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
+    const int ref_count = this_ptr->Count_Owned(Rule->BuildRefinery);
+
+    R->ESI(harv_count);
+    R->EAX(ref_count);
+    return 0x004C16AE;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly building its own faction's harvester.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C1710, _HouseClass_AI_Unit_HarvRef2, 0)
+{
+    GET(HouseClass*, this_ptr, EBP);
+    UnitTypeClass* harvester = this_ptr->Get_First_Ownable(Rule->HarvesterUnit);
+
+    R->EAX(harvester);
+    return 0x004C1718;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list in prerequisite checks.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C5977, _HouseClass_Has_Prerequisites_BuildConst, 0)
+{
+    GET(BuildingTypeClass*, building, ECX);
+
+    if (!Rule->BuildConst.Is_Present(building)) {
+        return 0x004C5985;
+    }
+
+    return 0x004C5B62;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004C5E20, _HouseClass_GenerateAIBuildList_4C5BB0_BuildConst, 0)
+{
+    GET_STACK(HouseClass*, this_ptr, 0x14);
+    BuildingTypeClass* conyard = this_ptr->Get_First_Ownable(Rule->BuildConst);
+
+    R->ESI(conyard);
+    return 0x004C5E28;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list as targets for the Ion Cannon.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004CA222, _HouseClass_AI_Use_Super_Ion_Cannon_BuildConst, 0)
+{
+    GET(UnitTypeClass*, unittype, ECX);
+
+    if (Rule->BuildConst.Is_Present(unittype->DeploysInto)) {
+        return 0x004CA232;
+    }
+
+    return 0x004CA240;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list when the AI takes over a player's house.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004CA9A1, _HouseClass_AI_Takeover_BuildConst, 0)
+{
+    GET(BuildingTypeClass*, buildingtype, ECX);
+
+    if (Rule->BuildConst.Is_Present(buildingtype)) {
+        return 0x004CA9A9;
+    }
+
+    return 0x004CA9B7;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Fix a vanilla bug where vehicles thieves were able to target harvesters even when HarvesterTruce was on.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004D7284, _InfantryClass_What_Action_Harvester_Thief, 0)
+{
+    GET(UnitClass*, target, ESI);
+
+    if (target->RTTI == RTTI_UNIT && Rule->HarvesterUnit.Is_Present(target->Class)) {
+        return 0x004D7258;
+    }
+
+    return 0x004D72A8;
+}
+
+
+/**
+ *  Patch to enable base nodes for the AI when UseMPAIBaseNodes=yes is set in the scenario.
+ *
+ *  @author: ZivDero, Rampastring
+ */
+DEFINE_HOOK(0x004CB9DE, _HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch, 5)
+{
+    /**
+     *  Also ignore AIBaseSpacing if it was requested by the client.
+     */
+    if (ScenExtension->IsUseMPAIBaseNodes) {
+        return 0x004CB9D2;
+    }
+
+    /**
+     *  Continue with AIBaseSpacing.
+     */
+    return 0;
+}
+
+
+/**
+ *  Replacement to Assign_Handicap to read from our new difficulty settings.
+ *
+ *  @author: Rampastring
+ */
+ExtDiffType HouseClassExt::_Assign_Handicap(ExtDiffType handicap)
+{
+    ExtDiffType old = (ExtDiffType)Difficulty;
+
+    /**
+     *  We have not fully replaced the original difficulty logic yet, so
+     *  we'll have to limit the "actual house difficulty" to vanilla
+     *  levels or it'll read out of bounds.
+     */
+    Difficulty = (DiffType)(handicap >= DIFF_COUNT ? 0 : handicap);
+
+    DEBUG_INFO("Assigning handicap {} to house {}\n", (int)handicap, (int)HeapID);
+
+    if (handicap >= EXT_DIFF_COUNT) {
+        DEBUG_ERROR("Invalid value supplied to HouseClassExt::_Assign_Handicap! {}", (int)handicap);
+        Emergency_Exit(0);
+        return old;
+    }
+
+    DifficultyClass* diff = &RuleExtension->Diff[handicap];
+    if (handicap == DIFF_NORMAL && Is_Human_Player() && RuleExtension->IsHasPlayerNormal) {
+        diff = &RuleExtension->PlayerNormal;
+    }
+
+    if (Session.Type != GAME_NORMAL) {
+        HouseTypeClass const* hptr = Class;
+        FirepowerBias = hptr->FirepowerBias * diff->FirepowerBias;
+        GroundspeedBias = hptr->GroundspeedBias * diff->GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = hptr->AirspeedBias * diff->AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = hptr->ArmorBias * diff->ArmorBias;
+        ROFBias = hptr->ROFBias * diff->ROFBias;
+        CostBias = hptr->CostBias * diff->CostBias;
+        RepairDelay = diff->RepairDelay;
+        BuildDelay = diff->BuildDelay;
+        BuildSpeedBias = hptr->BuildSpeedBias * diff->BuildSpeedBias * Rule->GameSpeedBias;
+    } else {
+        FirepowerBias = diff->FirepowerBias;
+        GroundspeedBias = diff->GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = diff->AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = diff->ArmorBias;
+        ROFBias = diff->ROFBias;
+        CostBias = diff->CostBias;
+        RepairDelay = diff->RepairDelay;
+        BuildDelay = diff->BuildDelay;
+        BuildSpeedBias = diff->BuildSpeedBias * Rule->GameSpeedBias;
+    }
+
+    TeamTime = 30 * HeapID + Rule->TeamDelays[Difficulty];
+
+    return old;
+}
+
 
 /**
  *  Patches HouseClass::Updated_Spied_By to take sight range bonuses into account when revealing the area
@@ -1321,6 +2078,7 @@ DEFINE_HOOK(0x004C9937, HouseClass_Updated_Spied_By_Sight_Range_Patch, 0)
     return 0x004C996B;
 }
 
+
 /**
  *  Main function for patching the hooks.
  */
@@ -1330,6 +2088,10 @@ void HouseClassExtension_Hooks()
      *  Initialises the extended class.
      */
     HouseClassExtension_Init();
+
+    Patch_Jump(0x004BAED0, &HouseClassExt::_Can_Make_Money);
+    Patch_Jump(0x004C0A40, &HouseClassExt::_Check_Raise_Money);
+    Patch_Jump(0x004BDB50, &HouseClassExt::_Make_Ally);
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
     Patch_Jump(0x004C1650, &HouseClassExt::_AI_Unit);
@@ -1356,4 +2118,19 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BEA10, &HouseClassExt::_Place_Object);
     Patch_Jump(0x004BF180, &HouseClassExt::_Suggest_New_Object);
     Patch_Jump(0x004BD590, &HouseClassExt::_Harvested);
+
+    Patch_Jump(0x004BC077, 0x004BC082); // HouseClass::Can_Build, always check for ConYard of required Owner
+
+    Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
+    Patch_Jump(0x004C4730, &HouseClassExtension::House_From_HousesType);
+
+    /**
+     *  Patch away a few checks for GAME_INTERNET to enable statistics collection.
+     */
+    Patch_Jump(0x004C220B, 0x004C2218); // HouseClass::Add_Tracking
+    Patch_Jump(0x004C2255, 0x004C2262); // HouseClass::Add_Tracking
+    Patch_Jump(0x004C229F, 0x004C22A8); // HouseClass::Add_Tracking
+    Patch_Jump(0x004C22E5, 0x004C22EE); // HouseClass::Add_Tracking
+
+    Patch_Jump(0x004BB460, &HouseClassExt::_Assign_Handicap);
 }

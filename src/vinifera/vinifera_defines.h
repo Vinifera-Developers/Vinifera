@@ -285,6 +285,7 @@ enum ExtEventType {
      *  Add new ExtEventTypes from here.
      */
     EXT_EVENT_PLAYER_OPTIONS,
+    EXT_EVENT_RESPONSE_TIME2,
 
     /**
      *  The new total ExtEventTypes count.
@@ -336,7 +337,12 @@ DEFINE_ENUMERATION_OPERATORS(ExtActionType);
 enum ExtNetCommandType {
     EXT_NET_BEACON_PLACE = NET_PROPOSE_KICK + 1,
     EXT_NET_BEACON_DELETE,
-    EXT_NET_BEACON_TEXT
+    EXT_NET_BEACON_TEXT,
+    EXT_NET_LOAD_GAME,
+    EXT_NET_HOST_ANNOUNCE,      // Sent by the game host to let the other players know who the host is.
+    EXT_NET_DESYNC_HEARTBEAT,   // Sent periodically while the desync dialog is open; keeps connections alive and detects departures.
+    EXT_NET_DESYNC_CONTINUE,    // The host's decision to continue the game without the desynced players.
+    EXT_NET_MOVIE_SKIP_VOTE,    // A player's request to skip the currently playing fullscreen movie.
 };
 
 /**
@@ -368,6 +374,18 @@ struct ExtGlobalPacketType {
             PlayerColorType Color;
             unsigned long NameCRC;
         } Message;
+        struct {
+            int ID;
+        } SaveInfo;
+        struct {
+            char HouseID;
+            char IsHost;
+        } Heartbeat;
+        struct {
+            unsigned long Context;
+            unsigned long Movie;
+            unsigned long Instance;
+        } MovieSkipVote;
         char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
     };
 };
@@ -403,3 +421,94 @@ enum ExtQuarryType {
     EXT_QUARRY_FIRST = 0
 };
 DEFINE_ENUMERATION_OPERATORS(ExtQuarryType);
+
+/**
+ *  Extension of the Difficulty enum.
+ */
+enum ExtDiffType {
+    EXT_DIFF_PAD = DIFF_HARD, // The last DiffType
+
+    /**
+     *  Add new ExtDiffTypes from here.
+     */
+    EXT_DIFF_ULTIMATELY_EASY,
+    EXT_DIFF_EXTREMELY_EASY,
+    EXT_DIFF_BRUTALLY_EASY,
+    EXT_DIFF_VERY_EASY,
+
+    /**
+     *  The new total ExtDiffType count.
+     */
+    EXT_DIFF_COUNT,
+
+    /**
+     *  The first ExtDiffType.
+     */
+    EXT_DIFF_FIRST = EXT_DIFF_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtDiffType);
+
+/**
+ *  Returns the name for a DiffType value. Reflects how the bonuses affect *this* house.
+ *  For viewing CDifficulty or showing how "tough" an AI is, use CDifficulty_Name instead.
+ */
+inline const char *Difficulty_Name(DiffType d)
+{
+    switch (static_cast<int>(d)) {
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimately Easy";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extremely Easy";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutally Easy";
+    case EXT_DIFF_VERY_EASY:        return "Very Easy";
+    case DIFF_EASY:                 return "Easy";
+    case DIFF_NORMAL:               return "Medium";
+    case DIFF_HARD:                 return "Hard";
+    default:                        return "?";
+    }
+}
+
+/**
+ *  Returns a short "AI Difficulty" name for a DiffType value.
+ *  Reflects how "tough" an AI is, so the bonuses are reversed compared to Difficulty_Name.
+ */
+inline const char *CDifficulty_Name(DiffType d)
+{
+    switch (static_cast<int>(d)) {
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimate";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extreme";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutal";
+    case EXT_DIFF_VERY_EASY:        return "Very Hard";
+    case DIFF_EASY:                 return "Hard";
+    case DIFF_NORMAL:               return "Medium";
+    case DIFF_HARD:                 return "Easy";
+    default:                        return "?";
+    }
+}
+
+
+/**
+ *  Extension of the HousesType enum.
+ */
+enum ExtHousesType {
+    EXT_HOUSE_SPAWN1 = 50,
+    EXT_HOUSE_SPAWN2,
+    EXT_HOUSE_SPAWN3,
+    EXT_HOUSE_SPAWN4,
+    EXT_HOUSE_SPAWN5,
+    EXT_HOUSE_SPAWN6,
+    EXT_HOUSE_SPAWN7,
+    EXT_HOUSE_SPAWN8
+};
+DEFINE_ENUMERATION_OPERATORS(ExtHousesType);
+
+
+/**
+ *  Extension of the SpecialDialogType enum.
+ */
+typedef enum ExtSpecialDialogType {
+    EXT_SDLG_PAD = SDLG_SPECIAL,
+
+    /**
+     *  Add new ExtSpecialDialogTypes from here.
+     */
+    EXT_SDLG_LOAD
+} ExtSpecialDialogType;

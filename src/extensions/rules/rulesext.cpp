@@ -110,6 +110,10 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     BridgeArmor(ARMOR_NULL),
     IsCellTagsIgnoreStealth(true),
     HarvesterUnderAttackThrottleTime(-1),
+    BaseUnit(),
+    Diff(),
+    PlayerNormal(),
+    IsHasPlayerNormal(false),
     PersistTagsOnAIDeploy(false)
 {
     /**
@@ -160,7 +164,8 @@ RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     MaxPips(noinit),
     IronCurtains(noinit),
     IronCurtainPulseTable(noinit),
-    AIHarvestersPerRefinery(noinit)
+    AIHarvestersPerRefinery(noinit),
+    BaseUnit(noinit)
 {
 }
 
@@ -186,6 +191,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     IronCurtains.Clear();
     IronCurtainPulseTable.Clear();
     AIHarvestersPerRefinery.Clear();
+    BaseUnit.Clear();
 
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
@@ -198,6 +204,9 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     IronCurtains.Load_Self(pStm);
     IronCurtainPulseTable.Load_Self(pStm);
     AIHarvestersPerRefinery.Load_Self(pStm);
+    BaseUnit.Load_Self(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BaseUnit, "BaseUnit");
     
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(IronCurtains, "IronCurtains");
 
@@ -221,6 +230,7 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     IronCurtains.Save_Self(pStm);
     IronCurtainPulseTable.Save_Self(pStm);
     AIHarvestersPerRefinery.Save_Self(pStm);
+    BaseUnit.Save_Self(pStm);
 
     return hr;
 }
@@ -235,8 +245,6 @@ int RulesClassExtension::Get_Object_Size() const
 {
     return sizeof(*this);
 }
-
-
 
 
 /**
@@ -272,6 +280,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(BridgeArmor);
     crc(IsCellTagsIgnoreStealth);
     crc(SelfHealingStep);
+    crc(BaseUnit.Count());
     crc(PersistTagsOnAIDeploy);
 }
 
@@ -378,7 +387,6 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     Objects(ini);
 
-    This()->Difficulty(ini);
     This()->CrateRules(ini);
     This()->CombatDamage(ini);
     This()->AudioVisual(ini);
@@ -405,6 +413,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
      *  #NOTE: These must be performed last!
      */
     General(ini);
+    Difficulty(ini);
     MPlayer(ini);
     AudioVisual(ini);
     CombatDamage(ini);
@@ -730,6 +739,15 @@ bool RulesClassExtension::General(CCINIClass &ini)
         IronCurtainRechargeTime = icrecharge * 900.0f;
     }
 
+    /**
+     *  Reload the BaseUnit entry and store the value in the new class extension.
+     *  This allows us to expand the original BaseUnit logic without impacting
+     *  the original behaviour of BaseUnit.
+     */
+    BaseUnit = TGet_TypeList(ini, GENERAL, "BaseUnit", BaseUnit);
+
+    IsHasPlayerNormal = ini.Get_Bool(GENERAL, "HasPlayerNormal", IsHasPlayerNormal);
+
     return true;
 }
 
@@ -1037,6 +1055,26 @@ bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
 
 
 /**
+ *  Fetch the various difficulty group settings.
+ *
+ *  @author: Rampastring
+ */
+bool RulesClassExtension::Difficulty(CCINIClass& ini)
+{
+    Difficulty_Get(ini, Diff[EXT_DIFF_ULTIMATELY_EASY], "UltimatelyEasy");
+    Difficulty_Get(ini, Diff[EXT_DIFF_EXTREMELY_EASY], "ExtremelyEasy");
+    Difficulty_Get(ini, Diff[EXT_DIFF_BRUTALLY_EASY], "BrutallyEasy");
+    Difficulty_Get(ini, Diff[EXT_DIFF_VERY_EASY], "VeryEasy");
+    Difficulty_Get(ini, Diff[DIFF_EASY], "Easy");
+    Difficulty_Get(ini, Diff[DIFF_NORMAL], "Normal");
+    Difficulty_Get(ini, PlayerNormal, "PlayerNormal");
+    Difficulty_Get(ini, Diff[DIFF_HARD], "Difficult");
+
+    return true;
+}
+
+
+/**
  *  Performs checks on rules data to ensure values are as expected.
  *  
  *  @author: CCHyper
@@ -1162,9 +1200,9 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
      *  Workaround because NOD has Side=GDI and Prefix=B in unmodded Tiberian Sun.
      *
      *  Match criteria;
-     *   - Are we currently processing RuleINI?
+     *   - Are we currently processing one of the unmodified rule INI's?
      */
-    if (is_ruleini) {
+    if (rule_unmodified || fsrule_unmodified) {
 
         /**
          *  Ensure at least two HouseTypes are defined before performing this fixup case.

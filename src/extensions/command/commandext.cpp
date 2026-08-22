@@ -317,7 +317,7 @@ bool PNGScreenCaptureCommandClass::Process()
      *  @author: CCHyper
      */
     char fullpath_buffer[PATH_MAX];
-    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory, buffer);
+    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory.c_str(), buffer);
 
     /**
      *  We found a free filename, now write the buffer to a PNG file.
@@ -1764,8 +1764,53 @@ bool ForceWinCommandClass::Process()
 
 
 /**
+ *  Forces the current multiplayer game to go out of sync, for testing the
+ *  desync dialog. Advancing the synchronized random number generator on a
+ *  single machine makes its game-state CRC diverge from everyone else's,
+ *  which all players detect as a desync within a frame or two.
+ *
+ *  @author: ZivDero
+ */
+const char *ForceDesyncCommandClass::Get_Name() const
+{
+    return "ForceDesync";
+}
+
+const char *ForceDesyncCommandClass::Get_UI_Name() const
+{
+    return "Force Desync";
+}
+
+const char *ForceDesyncCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ForceDesyncCommandClass::Get_Description() const
+{
+    return "Forces the current multiplayer game to go out of sync (for testing).";
+}
+
+bool ForceDesyncCommandClass::Process()
+{
+    if (Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Advance the synchronized RNG only on this machine, desyncing it from
+     *  the other players.
+     */
+    Scen->RandomNumber();
+
+    DEBUG_INFO("ForceDesync: advanced the synchronized RNG to force a desync.\n");
+    return true;
+}
+
+
+/**
  *  Forces the player to lose the current game session.
- * 
+ *
  *  @author: CCHyper
  */
 const char *ForceLoseCommandClass::Get_Name() const
@@ -4612,7 +4657,7 @@ bool DumpNetworkCRCCommandClass::Process()
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
-        Vinifera_DebugDirectory,
+        Vinifera_DebugDirectory.c_str(),
         PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         day, month, year, hour, min, sec);

@@ -14,7 +14,10 @@
 #include "hooker.h"
 #include "movie.h"
 #include "movieplayback.h"
+#include "movieskip.h"
+#include "sessionext.h"
 #include "syringe.h"
+#include "tibsun_globals.h"
 #include "tspp.h"
 
 
@@ -26,11 +29,31 @@ DEFINE_HOOK(0x00563677, _Play_Movie_Intercept_Patch, 5)
     GET_STACK(bool, stretch_allowed, 0x84);
     GET_STACK(bool, clear_before, 0x88);
 
+    MovieSkip::Begin(name);
+
     if (MoviePlayback_Play(name, theme, clear_before, stretch_allowed, clear_after)) {
+        MovieSkip::End();
         return 0x00563891;
     }
 
     return 0;
+}
+
+
+/**
+ *  The original VQA playback path exits early for every session type except
+ *  campaign. Allow it to continue in multiplayer when movie playback was
+ *  enabled by the spawner.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x005636C6, _Play_Movie_Allow_Legacy_In_Multiplayer_Patch, 0)
+{
+    if (Session.Type == GAME_NORMAL || SessionExtension->ExtOptions.IsPlayMoviesInMultiplayer) {
+        return 0x005636D2;
+    }
+
+    return 0x00563891;
 }
 
 

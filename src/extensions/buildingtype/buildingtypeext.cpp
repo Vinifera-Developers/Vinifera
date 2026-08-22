@@ -154,7 +154,7 @@ void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
 bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     if (!IsInitialized) {
-        IsEligibleForAllyBuilding = This()->IsConstructionYard;
+        IsEligibleForAllyBuilding = IsEligibleForAllyBuilding || This()->IsConstructionYard;
         EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE ? 25 : 0;
     }
 

@@ -15,6 +15,8 @@
 #include "side.h"
 #include "tibsun_globals.h"
 
+#define OPTIONS_MENU_TEXT_DEFAULT_COLOR RGBClass(112, 255, 0)
+#define SCREEN_TEXT_DEFAULT_COLOR       RGBClass(255, 255, 255)
 
 class InfantryTypeClass;
 
@@ -67,6 +69,11 @@ SideClassExtension final : public AbstractTypeClassExtension
         ColorSchemeType UIColor;
 
         /**
+         *  Color scheme to be used for hover-on effects of UI elements for this side.
+         */
+        ColorSchemeType HoverHighlightColor;
+
+        /**
          *  Color scheme to be used for the tooltips of this side.
          */
         ColorSchemeType ToolTipColor;
@@ -115,4 +122,14 @@ SideClassExtension final : public AbstractTypeClassExtension
          *  UnitType used as this Side's Hunter-Seeker.
          */
         const UnitTypeClass* HunterSeeker;
+
+        /**
+         *  Color to be used for options menu text for this side.
+         */
+        RGBClass OptionsMenuTextColor;
+
+        /**
+         *  Color to be used for screen text for this side.
+         */
+        RGBClass ScreenTextColor;
 };

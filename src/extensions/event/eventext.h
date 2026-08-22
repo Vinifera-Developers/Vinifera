@@ -11,6 +11,7 @@
 
 #include "event.h"
 #include "footext.h"
+#include "latencylevel.h"
 
 
 /**
@@ -26,6 +27,7 @@ public:
     EventClassExt() { Type = EVENT_EMPTY; }
     EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags);
     EventClassExt(int index, EventType type, RTTIType object, Cell const& cell, ProductionFlags flags);
+    EventClassExt(int id, unsigned char max_ahead, LatencyLevelEnum latency_level);
     EventClassExt(int index, EventType type, bool pausedRepairs);
 
     int operator==(const EventClassExt& q) const { return std::memcmp(this, &q, sizeof(q)) == 0; }
@@ -39,17 +41,40 @@ public:
 
     void Execute();
 
+    void Do_IDLE();
+    void Do_TIMING();
+    void Do_REMOVEPLAYER();
+
     static const char* Event_Name(EventType event) { return event >= EVENT_EMPTY && event < EXT_EVENT_COUNT ? EventNames[event] : ""; }
     static unsigned char Event_Length(EventType event) { return event >= EVENT_EMPTY && event < EXT_EVENT_COUNT ? EventLength[event] : 0; }
 
 #pragma pack(1) // We need this so bools/bits are not aligned.
 public:
     EventType Type;
-    unsigned Frame;
+    long Frame;
     bool IsExecuted;
-    int ID;
+    unsigned ID;
 
     union {
+        struct {
+            int Value;
+        } General;
+
+        struct {
+            xTargetClass Whom;
+        } Target;
+
+        struct {
+            xTargetClass Whom;
+            xTargetClass Where;
+        } NavCom;
+
+        struct {
+            unsigned short DesiredFrameRate;
+            unsigned short MaxAhead;
+            unsigned char FrameSendRate;
+        } Timing;
+
         struct {
             RTTIType        Type;
             int             ID;
@@ -65,6 +90,11 @@ public:
         struct {
             bool            IsPauseRepairs;
         } PlayerOptions;
+
+        struct ResponseTime2 {
+            unsigned char MaxAhead;
+            LatencyLevelEnum LatencyLevel;
+        } ResponseTime2;
 
         char Padding[sizeof(EventClass::Data)];
     } Data;

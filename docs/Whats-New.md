@@ -123,6 +123,19 @@ New:
 - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building (by JoyfulShush)
 - Fix a bug where cloaked units sensed by nearby enemy units can cloak again immediately (by JoyfulShush)
 - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
+- Implement the multiplayer spawner (by ZivDero, Rampastring)
+- Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
+- Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
+- Add support for more than two houses for loading screens and more than two sides for sidebars and speech (by CCHyper/tomsons26, ZivDero)
+- Disallow loading campaign saves from other playthroughs, as well as from skirmish (by ZivDero)
+- Allow defining Options menu text colors per side (by Rampastring)
+- Add support for additional multiplayer difficulty levels (by Rampastring)
+- Allow separating human players' and AI players' normal-difficulty settings (by Rampastring)
+- Make it possible to load multiplayer saves (by Rampastring)
+- Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat (by ZivDero, Rampastring)
+- Allow customizing end-of-game text color per side (by Rampastring)
+- Make it possible to play videos in multiplayer (by Rampastring)
+- Make it possible to vote-skip videos in multiplayer (by Rampastring)
 - Add a key to allow AI-controlled units to persist their tags when they deploy into a building (by JoyfulShush)
 - Improve same-type select command logic, and allow map-wide select when pressing twice in succession (by JoyfulShush)
 
@@ -201,9 +214,12 @@ Vanilla fixes:
 - Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
 - Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
+- Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with (by Rampastring)
 - Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
 - EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
 - Correct the 25%/50%/75% translucency blend so layered translucent sprites no longer progressively darken (by ZivDero, Apollo)
+- Fix a bug where the game often reported multiple synchronization errors when one player got out of sync (by Rampastring)
+- Options menu is no longer opened with network input delay in multiplayer (by Rampastring)
 
 :::
 
@@ -357,6 +373,7 @@ New:
 - Allow customizing which Smudges can appear on a tile (by ZivDero)
 - Allow customizing if Veins can grow on a tile (by ZivDero)
 
+
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
 - Fix a bug where VQA files could not be loaded from the root directory or local search paths (by CCHyper/tomsons26)
@@ -442,5 +459,8 @@ Vanilla fixes:
 - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use (by JoyfulShush)
 - Fix a bug that would make healer units unselect themselves when adding other units to current selection (by JoyfulShush)
 - Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection (by JoyfulShush)
+- Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses (by ZivDero)
+- Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes` (by ZivDero)
+- Fix a bug where mission `Ambush` wouldn't work correctly (by ZivDero)
 
 :::

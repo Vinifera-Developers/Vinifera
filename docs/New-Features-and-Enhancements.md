@@ -230,6 +230,30 @@ In `RULES.INI`:
 MaxFreeRefineryDistanceBias=16
 ```
 
+## Houses
+
+- Loading screens can be customized per house and resolution in `UI.INI`. Each entry has the format `<HouseType index>,<filename without .PCX>,<layout width>,<layout height>[,<singleplayer X>,<singleplayer Y>,<multiplayer X>,<multiplayer Y>]`. The layout dimensions are the image-fit threshold and the reference canvas used to center it.
+- Vinifera selects the greatest-area layout that fits the current resolution, then randomly chooses between matching entries for the active house.
+
+In `UI.INI`:
+```ini
+[LoadingScreens]
+0=0,LOAD400C,640,400
+1=0,LOAD400D,640,400
+2=0,LOAD600C,800,600,546,233,711,227
+3=1,LOAD400A,640,400
+4=1,LOAD400B,640,400
+```
+
+- The numeric keys only establish list order and must be unique.
+- Position fields are optional. Omitting them uses the built-in singleplayer and multiplayer positions for the standard 640x400, 640x480, and 800x600 layouts. Specify all four position values for non-standard dimensions. Both coordinates for a mode must be positive; if either is zero or negative, that mode uses the built-in position.
+- Campaign scenario files can include their own `[LoadingScreens]` section. A matching scenario entry takes precedence over `UI.INI`; the spawner's `CustomLoadScreen` setting takes final precedence.
+- If no configured entry matches, Vinifera generates the traditional name from the selected layout and house: GDI uses `C`/`D`, Nod uses `A`/`B`, and later houses use successive letter pairs, wrapping after `Z`.
+
+```{note}
+Loading-screen names in `[LoadingScreens]` must not contain the `.PCX` extension. The spawner's `CustomLoadScreen` value, by contrast, must include its extension.
+```
+
 ## Ice
 
 - Ice strength can now be customized.
@@ -370,9 +394,12 @@ SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to [General]
 
 In `RULES.INI`:
 ```ini
-[SOMESIDE]          ; Side
-UIColor=LightGold   ; ColorScheme, the color to be used when drawing UI elements.
-ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
+[SOMESIDE]                      ; Side
+UIColor=LightGold               ; ColorScheme, the color to be used when drawing UI elements.
+HoverHighlightColor=LightGold   ; ColorScheme, the color to be used for hover-on effects when drawing UI elements.
+ToolTipColor=Green              ; ColorScheme, the color to be used when drawing tooltips.
+OptionsMenuTextColor=112,255,0  ; RGB Color, the color to be used by the options menu.
+ScreenTextColor=255,255,255     ; RGB Color, the color to be used by end-of-game text.
 ```
 
 ![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)
@@ -2058,6 +2085,31 @@ In `RULES.INI`:
 [AI]
 HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the AI builds per refinery by difficulty level, from hardest to easiest
 AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
+```
+
+## Difficulty
+
+- Vinifera adds more multiplayer difficulty options for clients launching the game through its built-in spawner. These are parsed from `RULES.INI` sections `[VeryEasy]`, `[BrutallyEasy]`, `[ExtremelyEasy]` and `[UltimatelyEasy]`, and have the same keys as the original game's difficulty sections (`[Easy]`, `[Normal]`, `[Difficult]`).
+
+- In the original game, human players and AI players playing on Normal/Medium difficulty share their difficulty settings through the `[Normal]` section. Vinifera allows splitting these settings by introducing a new difficulty section for Normal-difficulty human players.
+
+In `RULES.INI`:
+```ini
+[General]
+HasPlayerNormal=no    ; boolean, whether PlayerNormal difficulty level is to be used for human players on Normal difficulty
+
+[PlayerNormal]
+Groundspeed=1.0
+Airspeed=1.0
+BuildTime=1.0
+Armor=1.0
+ROF=1.0
+Cost=1.0
+RepairDelay=.02
+BuildDelay=.03
+BuildSlowdown=yes
+DestroyWalls=yes
+ContentScan=yes
 ```
 
 ### Harvester Under Attack Event

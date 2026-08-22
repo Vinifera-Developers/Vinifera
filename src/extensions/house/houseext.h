@@ -69,6 +69,8 @@ public:
     bool Has_Prerequisite(PrerequisiteGroupType group);
     bool Has_Prerequisite(StructType building);
 
+    bool Required_Forbidden_Houses_Check(TechnoTypeClass const* ttype);
+
     void Put_Storage_Pointers();
     static void Load_Unit_Trackers(HouseClass* house, IStream* pStm);
     static void Save_Unit_Trackers(HouseClass* house, IStream* pStm);
@@ -123,4 +125,9 @@ public:
      *  Determines whether repairs are paused instead of stopped when this house has insufficient funds.
      */
     bool IsPauseRepairs;
+
+    /**
+     *  Is this house an observer?
+     */
+    bool IsObserver;
 };
