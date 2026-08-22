@@ -232,27 +232,26 @@ MaxFreeRefineryDistanceBias=16
 
 ## Houses
 
-- Loading screens can now be customized per house.
+- Loading screens can be customized per house and resolution in `UI.INI`. Each entry has the format `<HouseType index>,<filename without .PCX>,<layout width>,<layout height>[,<singleplayer X>,<singleplayer Y>,<multiplayer X>,<multiplayer Y>]`. The layout dimensions are the image-fit threshold and the reference canvas used to center it.
+- Vinifera selects the greatest-area layout that fits the current resolution, then randomly chooses between matching entries for the active house.
 
-In `RULES.INI`:
+In `UI.INI`:
 ```ini
-[SOMEHOUSE]         ; HouseType
-LoadingScreens400=  ; list of strings, loading screens to be used by this house with a screen resolution of at least 400x600.
-LoadingScreens480=  ; list of strings, loading screens to be used by this house with a screen resolution of at least 480x600.
-LoadingScreens600=  ; list of strings, loading screens to be used by this house with a screen resolution of at least 600x800.
+[LoadingScreens]
+0=0,LOAD400C,640,400
+1=0,LOAD400D,640,400
+2=0,LOAD600C,800,600,546,233,711,227
+3=1,LOAD400A,640,400
+4=1,LOAD400B,640,400
 ```
 
-- The defaults for loading screens are as follows:
-```ini
-LoadingScreens000=LOAD000C,LOAD000D ; House 0 - GDI
-LoadingScreens000=LOAD000A,LOAD000B ; House 1 - Nod
-LoadingScreens000=LOAD000E,LOAD000F ; House 2
-```
-
-- `000` is replaced with the loading screen's height, starting from house 2 letters are incremented (so house 2 uses `E` and `F`, house 3 uses letters `G` and `H`, etc.). After house 12 the letters loop around to `A` and `B`.
+- The numeric keys only establish list order and must be unique.
+- Position fields are optional. Omitting them uses the built-in singleplayer and multiplayer positions for the standard 640x400, 640x480, and 800x600 layouts. Specify all four position values for non-standard dimensions. Both coordinates for a mode must be positive; if either is zero or negative, that mode uses the built-in position.
+- Campaign scenario files can include their own `[LoadingScreens]` section. A matching scenario entry takes precedence over `UI.INI`; the spawner's `CustomLoadScreen` setting takes final precedence.
+- If no configured entry matches, Vinifera generates the traditional name from the selected layout and house: GDI uses `C`/`D`, Nod uses `A`/`B`, and later houses use successive letter pairs, wrapping after `Z`.
 
 ```{note}
-Loading screen names should not contain the `.PCX` extension.
+Loading-screen names in `[LoadingScreens]` must not contain the `.PCX` extension. The spawner's `CustomLoadScreen` value, by contrast, must include its extension.
 ```
 
 ## Ice
@@ -2088,19 +2087,9 @@ HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the A
 AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
 ```
 
-### Harvester Under Attack Event
-
-- In the original game, EVA can alert you needlessly often when a harvester is being attacked. Vinifera allows you to throttle the frequency of the alert.
-
-In `RULES.INI`:
-```ini
-[AudioVisual]
-HarvesterUnderAttackThrottleTime=0.0  ; float, minutes that EVA is forbidden from alerting about a harvester being under attack after last alerting about it. Automatically scaled by game speed (iow. it's real-life minutes)
-```
-
 ## Difficulty
 
-- Vinifera adds more multiplayer difficulty options available to CnCNet clients calling the spawner. These are parsed from `RULES.INI` sections `[VeryEasy]`, `[BrutallyEasy]`, `[ExtremelyEasy]` and `[UltimatelyEasy]`, and have the same keys as the original game's difficulty sections (`[Easy]`, `[Normal]`, `[Difficult]`).
+- Vinifera adds more multiplayer difficulty options for clients launching the game through its built-in spawner. These are parsed from `RULES.INI` sections `[VeryEasy]`, `[BrutallyEasy]`, `[ExtremelyEasy]` and `[UltimatelyEasy]`, and have the same keys as the original game's difficulty sections (`[Easy]`, `[Normal]`, `[Difficult]`).
 
 - In the original game, human players and AI players playing on Normal/Medium difficulty share their difficulty settings through the `[Normal]` section. Vinifera allows splitting these settings by introducing a new difficulty section for Normal-difficulty human players.
 
@@ -2121,4 +2110,14 @@ BuildDelay=.03
 BuildSlowdown=yes
 DestroyWalls=yes
 ContentScan=yes
+```
+
+### Harvester Under Attack Event
+
+- In the original game, EVA can alert you needlessly often when a harvester is being attacked. Vinifera allows you to throttle the frequency of the alert.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+HarvesterUnderAttackThrottleTime=0.0  ; float, minutes that EVA is forbidden from alerting about a harvester being under attack after last alerting about it. Automatically scaled by game speed (iow. it's real-life minutes)
 ```

@@ -11,7 +11,7 @@ This page lists all the individual contributions to the project by their author.
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
   - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
-  - Porting the YR MP spawner from C to C++ and YR++, used as a base for the Vinifera spawner.
+  - Port the YR MP spawner from C to C++ and YR++, used as a base for the Vinifera spawner.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features.
   - Implement `CurleyShuffle` for AircraftTypes.
@@ -250,7 +250,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a buffer overflow crash in `MapClass::Place_Down`.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
-  - Add support for more than 2 sides' loading screens, sidebars and speeches.
+  - Add support for more than two houses for loading screens and more than two sides for sidebars and speech.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
   - Fix an edge case crash when AI raises money.
   - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages.
@@ -394,8 +394,8 @@ This page lists all the individual contributions to the project by their author.
   - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries.
   - Port Rampastring's trigger actions from TS-Patches.
   - Allow manually aiming AA buildings.
-  - Add support for more than 2 sides' loading screens, sidebars and speeches.
-  - Disallow loading campaign saves from other playthoughs, as well as from skirmish.
+  - Add support for more than two houses for loading screens and more than two sides for sidebars and speech.
+  - Disallow loading campaign saves from other playthroughs, as well as from skirmish.
   - Allow customizing the options color per side.
   - Fix a bug where units could gain veterancy by killing allies.
   - Fix a bug where a trigger could delete itself, leading to a crash.

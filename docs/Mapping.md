@@ -24,7 +24,7 @@ Maps using this feature cannot be loaded by the vanilla game.
 Not all tools properly support this feature yet, and may crash or corrupt the map. We recommend using the [World-Altering Editor](https://github.com/CnCNet/WorldAlteringEditor) map editor when using this feature.
 ```
 
-## Local/Global Variabes
+## Local/Global Variables
 
 - The game now supports up to 500 local and global variables each.
 
@@ -85,18 +85,19 @@ UseMPAIBaseNodes=no         ; boolean, should the AI use base nodes for base con
 
 ### Custom Loading Screen
 
-- The scenario file can now specify which loading screen to use.
+- A campaign scenario can provide house-specific loading-screen overrides using the same list format as `UI.INI`.
+- Each value has the format `<HouseType index>,<filename without .PCX>,<layout width>,<layout height>[,<singleplayer X>,<singleplayer Y>,<multiplayer X>,<multiplayer Y>]`. The layout dimensions are the image-fit threshold and the reference canvas used to center it.
+- For the active house, Vinifera chooses randomly among entries with the greatest pixel area that fit the current resolution.
 
 In a scenario file:
 ```ini
-[Basic]
-LoadingScreen400=         ; string, the name of the loading screen to use with this resolution.
-LoadingScreen480=         ; string, the name of the loading screen to use with this resolution.
-LoadingScreen600=         ; string, the name of the loading screen to use with this resolution.
-LoadingScreen400TextPos=  ; Point2D, a custom offset for the loading screen text and bars. 
-LoadingScreen480TextPos=  ; Point2D, a custom offset for the loading screen text and bars. 
-LoadingScreen600TextPos=  ; Point2D, a custom offset for the loading screen text and bars. 
+[LoadingScreens]
+0=0,MYGDI400,640,400
+1=0,MYGDI600,800,600,546,233,711,227
+2=1,MYNOD400,640,400
 ```
+
+The numeric keys only establish list order and must be unique. Position fields are optional; omitting them uses the built-in positions for 640x400, 640x480, or 800x600. Both coordinates for a mode must be positive; if either is zero or negative, that mode uses the built-in position. Loading-screen names in this section must not include the `.PCX` extension.
 
 ### Ice Destruction
 
@@ -201,9 +202,9 @@ Any action that takes a `VocType` (sound), `VoxType` (speech/EVA), or `ThemeType
 | 9        | Bitwise NOT        | x = ~x         |
 | 10       | Bitwise XOR        | x ^= y         |
 | 11       | Bitwise OR         | x \|= y        |
-| 13       | Bitwise AND        | x &= y         |
-| 14       | Maximum            | x = max(x, y)  |
-| 15       | Minimum            | x = min(x, y)  |
+| 12       | Bitwise AND        | x &= y         |
+| 13       | Maximum            | x = max(x, y)  |
+| 14       | Minimum            | x = min(x, y)  |
 
 ### Enhanced Trigger Actions
 
@@ -267,7 +268,7 @@ Center Camera at Waypoint action now supports the -1 for the camera scroll rate,
 | 113      | Disable Ally Reveal      |
 |          | Disables Ally Reveal, stopping allied players from seeing each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 114      | Create Autosave          |
-|          | Schedules an autosave to be created on the next game frame. (Currently not implemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Schedules an autosave to be created on the next game frame. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 115      | Delete Attached Objects  |
 |          | Deletes all units and structures on the map that are linked to this trigger silently. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 116      | All Assign Mission       |
