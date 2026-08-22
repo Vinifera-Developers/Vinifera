@@ -9,5 +9,7 @@
 
 #pragma once
 
+class ObjectClass;
 
+void Map_Select_These(void (*select_callback)(ObjectClass*));
 void MapClassExtension_Hooks();

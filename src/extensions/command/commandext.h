@@ -14,6 +14,7 @@
 #include "vinifera_globals.h"
 
 #include <map>
+#include <unordered_set>
 
 
 /**
@@ -1475,4 +1476,24 @@ public:
     virtual const char *Get_Category() const override;
     virtual const char *Get_Description() const override;
     virtual bool Process() override;
+};
+
+
+/**
+ *  Replacement for SelectSameTypeCommandClass.
+ */
+class SelectSameTypeImprovedCommandClass : public ViniferaCommandClass
+{
+public:
+    SelectSameTypeImprovedCommandClass() : ViniferaCommandClass() {}
+    virtual ~SelectSameTypeImprovedCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+    static void Process_Callback(ObjectClass* object);
+    inline static std::unordered_set<const TechnoTypeClass*> SelectionTypes;
+    inline static DWORD LastExecutionTime = 0;
 };
