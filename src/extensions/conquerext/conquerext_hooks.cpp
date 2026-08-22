@@ -248,7 +248,11 @@ void Vinifera_Process_Incoming_Global_Packets()
                 }
 
                 case EXT_NET_LOAD_GAME:
-                    if (sender_id != Session.MasterPlayerID) {
+                    /*
+                    **  A MasterPlayerID of -1 means the host announcement has not
+                    **  reached us (yet), so there is no master to check against.
+                    */
+                    if (Session.MasterPlayerID != -1 && sender_id != Session.MasterPlayerID) {
                         DEBUG_WARNING("Ignoring EXT_NET_LOAD_GAME from non-master house {}.\n", sender_id);
                         break;
                     }
@@ -302,7 +306,14 @@ void Vinifera_Process_Incoming_Global_Packets()
 
                 case EXT_NET_DESYNC_HEARTBEAT: {
                     auto& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
-                    if (packet.Heartbeat.HouseID != sender_id || (packet.Heartbeat.IsHost != 0) != (sender_id == Session.MasterPlayerID)) {
+
+                    /*
+                    **  Only enforce the host flag once the master is known. While
+                    **  MasterPlayerID is still -1, a host heartbeat must get through
+                    **  so that Notify_Heartbeat can adopt the sender as the master.
+                    */
+                    const bool host_flag_invalid = Session.MasterPlayerID != -1 && (packet.Heartbeat.IsHost != 0) != (sender_id == Session.MasterPlayerID);
+                    if (packet.Heartbeat.HouseID != sender_id || host_flag_invalid) {
                         DEBUG_WARNING("Ignoring invalid desync heartbeat from house {}.\n", sender_id);
                         break;
                     }
@@ -311,7 +322,11 @@ void Vinifera_Process_Incoming_Global_Packets()
                 }
 
                 case EXT_NET_DESYNC_CONTINUE:
-                    if (sender_id != Session.MasterPlayerID) {
+                    /*
+                    **  A MasterPlayerID of -1 means the host announcement has not
+                    **  reached us (yet), so there is no master to check against.
+                    */
+                    if (Session.MasterPlayerID != -1 && sender_id != Session.MasterPlayerID) {
                         DEBUG_WARNING("Ignoring EXT_NET_DESYNC_CONTINUE from non-master house {}.\n", sender_id);
                         break;
                     }
