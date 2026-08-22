@@ -13,6 +13,7 @@
 
 #include "battleui.h"
 #include "sidebar_strip_view.h"
+#include "scenario.h"
 
 
 /**
@@ -48,10 +49,14 @@ CameoButtonClass::CameoButtonClass(const NoInitClass& x) :
  *  Handles button input for cameo clicks: left-click to produce/place,
  *  right-click to suspend/cancel.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 bool CameoButtonClass::Action(unsigned flags, KeyNumType& key)
 {
+    if (Scen->InputLock) {
+        return true;
+    }
+
     if (!Strip) {
         return true;
     }

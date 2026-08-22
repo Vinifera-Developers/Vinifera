@@ -35,6 +35,11 @@ namespace ViniferaImGui
     void Render();
 
     /**
+     *  Renders only overlays intended for fullscreen modern movie playback.
+     */
+    void Render_Movie_Overlay();
+
+    /**
      *  Returns whether the main-window ImGui context is initialized.
      */
     bool Is_Initialized();

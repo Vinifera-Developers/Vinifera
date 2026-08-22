@@ -688,6 +688,7 @@ void AudioThemeClass::Scan()
 
         if (!AudioManager.Get_File_Info(name, tctrl->FileType, tctrl->FileName, true)) {
             AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_THEME, "Theme::Scan - File \"%s\" was not found in any supported formats!\n", name.c_str());
+            DEBUG_WARNING("Theme::Scan - File {} was not found in any supported formats!\n", name.c_str());
             continue;
         }
 

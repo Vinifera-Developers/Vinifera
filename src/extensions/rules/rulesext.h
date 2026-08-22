@@ -10,8 +10,10 @@
 #pragma once
 
 #include "extension.h"
+#include "point.h"
 #include "rules.h"
 #include "tibsun_defines.h"
+#include "typelist.h"
 
 
 class CCINIClass;
@@ -49,12 +51,13 @@ public:
     bool Rockets(CCINIClass& ini);
     bool Tiberiums(CCINIClass& ini);
     bool PrerequisiteGroups(CCINIClass& ini);
+    bool Difficulty(CCINIClass& ini);
 
     static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
 
 private:
-    void Check();
     void Fixups(CCINIClass& ini);
+    void Check();
 
 public:
     /**
@@ -263,7 +266,7 @@ public:
      *  Determines the wrench shape frame that should be used while repairs are paused.
      */
     int PausedRepairsFrame;
-
+    
     /**
      *  Determines the distance, in leptons, that an escorting unit (Area Guarding unit assigned to another unit) can be separated from its guard target
      *  before it moves again to its guard target's position.
@@ -301,6 +304,28 @@ public:
      *  When EVA has told the player "harvester under attack", prevent EVA from saying that line again for this many frames.
      */
     int HarvesterUnderAttackThrottleTime;
+
+    /**
+     *  List of units to consider "home".
+     */
+    TypeList<UnitTypeClass *> BaseUnit;
+
+    /*
+    **	This array controls the difficulty effects on the game. There is one
+    **	difficulty class object for each difficulty level.
+    */
+    DifficultyClass Diff[EXT_DIFF_COUNT];
+
+    /*
+    **  Controls the difficulty effects of the "Normal" difficulty on human players.
+    **  Allows splitting the Normal difficulty effects for human players and AI players.
+    */
+    DifficultyClass PlayerNormal;
+
+    /*
+    **	Is the "PlayerNormal" difficulty level available?
+    */
+    bool IsHasPlayerNormal;
 
     /**
      *  Whether AI units that deploy should persist their tags, if any, on the building that the unit deployed into

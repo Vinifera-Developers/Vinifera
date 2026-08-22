@@ -24,6 +24,7 @@
 #include "housetype.h"
 #include "infantry.h"
 #include "mission.h"
+#include "mouse.h"
 #include "net/combuf.h"
 #include "net/ipxconn.h"
 #include "net/ipxmgr.h"
@@ -35,6 +36,7 @@
 #include "rules.h"
 #include "session.h"
 #include "smudge.h"
+#include "tactical.h"
 #include "tag.h"
 #include "tagtype.h"
 #include "team.h"
@@ -43,15 +45,18 @@
 #include "technoext.h"
 #include "technotype.h"
 #include "terrain.h"
+#include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
 #include "unit.h"
 #include "verses.h"
 #include "veterancy.h"
+#include "vinifera_defines.h"
 #include "vinifera_globals.h"
 #include "voxelanim.h"
 #include "weapontype.h"
+#include "xmouse.h"
 
 #include <imgui.h>
 
@@ -131,6 +136,15 @@ namespace
         ImGui::Text("Factories  : %d", Factories.Count());
         ImGui::Text("Triggers   : %d", Triggers.Count());
 
+        Cell cursormapcoords = TacticalMap->Click_Cell_Calc(MouseCursor->Get_Mouse_Point());
+        if (cursormapcoords != CELL_NONE)
+        {
+            CellClass& cell = Map[cursormapcoords];
+            ImGui::SeparatorText("Cell");
+            ImGui::Text("Owner      : %d (%s)", (int)cell.Owner, cell.Owner == HOUSE_NONE ? "<none>" : Houses[cell.Owner]->Class->IniName.c_str());
+            ImGui::Text("Land       : %d", (int)cell.Land);
+        }
+
         /**
          *  Multiplayer sync queues. OutList = outbound events,
          *  DoList = events to apply this frame.
@@ -139,18 +153,6 @@ namespace
         ImGui::Text("OutList    : %d", OutList.Count);
         ImGui::Text("DoList     : %d", DoList.Count);
     }
-
-
-    static const char* Diff_To_String(DiffType d)
-    {
-        switch (d) {
-        case DIFF_EASY:   return "Easy";
-        case DIFF_NORMAL: return "Normal";
-        case DIFF_HARD:   return "Hard";
-        default:          return "?";
-        }
-    }
-
 
     static void Draw_Factory_Line(const char* label, FactoryClass* factory)
     {
@@ -199,7 +201,7 @@ namespace
         ImGui::SeparatorText("Profile");
         ImGui::Text("TechLevel  : %d", h->Control.TechLevel);
         ImGui::Text("IQ         : %d", h->IQ);
-        ImGui::Text("Difficulty : %s", Diff_To_String(h->Difficulty));
+        ImGui::Text("Difficulty : %s", Difficulty_Name(h->Difficulty));
 
         ImGui::SeparatorText("Biases");
         ImGui::Text("Firepower : x%.2f", h->FirepowerBias);
@@ -411,6 +413,26 @@ namespace
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
             ImGui::Text("Speed   : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
+
+            if (foot->NavCom == nullptr)
+            {
+                ImGui::Text("NavCom  : <none>");
+            }
+            else
+            {
+                Cell navcomcell = foot->NavCom->Center_Coord().As_Cell();
+                ImGui::Text("NavCom  : %s (%d, %d)", Name_From_RTTI(foot->NavCom->RTTI), navcomcell.X, navcomcell.Y);
+            }
+        }
+
+        if (techno->TarCom == nullptr)
+        {
+            ImGui::Text("TarCom  : <none>");
+        }
+        else
+        {
+            Cell tarcomcell = techno->TarCom->Center_Coord().As_Cell();
+            ImGui::Text("TarCom  : %s (%d, %d)", Name_From_RTTI(techno->TarCom->RTTI), tarcomcell.X, tarcomcell.Y);
         }
 
         /**

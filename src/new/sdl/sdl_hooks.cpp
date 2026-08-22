@@ -413,7 +413,6 @@ void SDL_Hooks()
     /**
      *  Disable DirectDraw.
      */
-    Change_Virtual_Address(0x006EC110, (uintptr_t)&"NQXZJYVPRKMTLUGHSBDCFIEWOAQRMZNPLXTYVJHKSQGBFUACEL.DLL"); // replace DDRAW.DLL by a very unlikely library in the import table
     Patch_Jump(0x00472AD3, 0x00472B16); // skip Prep_Direct_Draw
     Patch_Jump(0x00473400, &_EnumDisplayModes); // relies on DirectDraw to enumerate display modes
 }

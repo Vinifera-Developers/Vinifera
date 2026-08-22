@@ -759,9 +759,9 @@ void BeaconManagerClass::Input(KeyNumType input, bool finalize)
  */
 void BeaconManagerClass::Send_Beacon_Place(Coord const& coord, HousesType house, int beacon_id)
 {
-    ExtGlobalPacketType packet;
+    ExtGlobalPacketType packet {};
     packet.Command = EXT_NET_BEACON_PLACE;
-    strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
     packet.PlaceBeacon.Number = beacon_id;
     packet.PlaceBeacon.Position = coord;
     packet.PlaceBeacon.House = house;
@@ -779,9 +779,9 @@ void BeaconManagerClass::Send_Beacon_Place(Coord const& coord, HousesType house,
  */
 void BeaconManagerClass::Send_Beacon_Delete(HousesType house, int beacon_id)
 {
-    ExtGlobalPacketType packet;
+    ExtGlobalPacketType packet {};
     packet.Command = EXT_NET_BEACON_DELETE;
-    strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
     packet.DeleteBeacon.House = house;
     packet.DeleteBeacon.Number = beacon_id;
     for (int i = 1; i < Session.Players.Count(); i++) {
@@ -798,13 +798,11 @@ void BeaconManagerClass::Send_Beacon_Delete(HousesType house, int beacon_id)
  */
 void BeaconManagerClass::Send_Set_Beacon_Text(char const * text, HousesType house, int beacon_id)
 {
-    ExtGlobalPacketType packet;
+    ExtGlobalPacketType packet {};
     packet.Command = EXT_NET_BEACON_TEXT;
-    strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
     if (text != nullptr) {
-        std::strncpy(packet.BeaconText.Text, text, std::size(packet.BeaconText.Text));
-    } else {
-        memset(packet.BeaconText.Text, '\0', sizeof(packet.BeaconText.Text));
+        std::strncpy(packet.BeaconText.Text, text, std::size(packet.BeaconText.Text) - 1);
     }
 
     packet.BeaconText.Number = beacon_id;

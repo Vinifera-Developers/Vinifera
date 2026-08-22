@@ -13,6 +13,8 @@
 #include "rgb.h"
 #include "tibsun_defines.h"
 #include "typelist.h"
+#include <string>
+#include <vector>
 
 #include <climits>
 #include <string>
@@ -131,10 +133,34 @@ class UIControlsClass
             return view_type == SIDEBAR_TABBED ? static_cast<const BattleSidebarLayoutBase&>(TabbedSidebarLayoutConfig)
                                                : static_cast<const BattleSidebarLayoutBase&>(ClassicSidebarLayoutConfig);
         }
+        
+        struct LoadingScreenSize {
+            Point2D Size;
+            Point2D SPPosition;
+            Point2D MPPosition;
+        };
 
+        struct LoadingScreen {
+            LoadingScreen() = default;
+            LoadingScreen(char const* entry);
+            LoadingScreen(HousesType house, std::string const& filename, LoadingScreenSize const& size) : IsValid(true), House(house), Filename(filename), Size(size) {};
+
+            bool IsValid = false;
+            HousesType House = HOUSE_NONE;
+            std::string Filename;
+            LoadingScreenSize Size {};
+        };
+
+    private:
+        static const LoadingScreenSize DefaultLoadingScreenSizes[];
+        static LoadingScreenSize const& Pick_Default_Loading_Screen_Size();
+
+    public:
         TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const;
         TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const;
         TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const;
+
+        LoadingScreen Pick_Loading_Screen(HousesType house) const;
 
     public:
         /**
@@ -361,6 +387,8 @@ class UIControlsClass
         int SubtitleOutlineWidth = 2;
         int SubtitleMarginX = 40;
         int SubtitleMarginBottom = 24;
+
+        std::vector<LoadingScreen> LoadingScreens;
 };
 
-extern UIControlsClass *UIControls;
+extern UIControlsClass* UIControls;

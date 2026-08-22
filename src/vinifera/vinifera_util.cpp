@@ -12,7 +12,6 @@
 #include "vinifera_util.h"
 
 #include "bsurface.h"
-#include "cncnet4_globals.h"
 #include "colorscheme.h"
 #include "debughandler.h"
 #include "dsurface.h"
@@ -47,32 +46,16 @@ const char *Vinifera_Name_String()
 
     if (_buffer[0] == '\0') {
 
-        /**
-         *  Append the CnCNet version if enabled.
-         */
-        char const* cncnet_mode = nullptr;
-        if (CnCNet4::IsEnabled) {
-            cncnet_mode = " (CnCNet4)";
-        }
-
         char const* dev_mode = nullptr;
         if (Vinifera_DeveloperMode) {
             dev_mode = " (Dev)";
         }
 
-        if (!dev_mode && !cncnet_mode) {
+        if (!dev_mode) {
             std::snprintf(_buffer, sizeof(_buffer), "Vinifera");
-
         } else {
-            std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s",
-                cncnet_mode != nullptr ? cncnet_mode : "",
-                dev_mode != nullptr ? dev_mode : "");
+            std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s", dev_mode != nullptr ? dev_mode : "");
         }
-
-#if defined(TS_CLIENT)
-        std::strcat(_buffer, " (TS-Client)");
-#endif
-        
     }
 
     return _buffer;
@@ -101,10 +84,6 @@ const char * Vinifera_Build_Type_String()
         const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
     #endif
     #endif
-    #if defined(TS_CLIENT)
-        std::snprintf(_buffer, sizeof(_buffer), "%s [TS-Client]", build_type);
-    #endif
-
     }
 
     return _buffer;
@@ -151,23 +130,13 @@ const char *Vinifera_Version_String()
 
     if (_buffer[0] == '\0') {
 
-        /**
-         *  Append the CnCNet version if enabled.
-         */
-        char const* cncnet_mode = nullptr;
-        if (CnCNet4::IsEnabled) {
-            cncnet_mode = " (CnCNet4)";
-        }
-        
 #ifndef RELEASE
-        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s - %s %s %s%s %s",
-            cncnet_mode != nullptr ? cncnet_mode : "",
+        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s - %s %s %s%s %s",
             Vinifera_DeveloperMode ? " (Dev)" : "",
             Vinifera_Git_Branch(), Vinifera_Git_Author(),
             Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
 #else
-        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s - %s%s %s",
-            cncnet_mode != nullptr ? cncnet_mode : "",
+        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s - %s%s %s",
             Vinifera_DeveloperMode ? " (Dev)" : "",
             Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
 #endif
@@ -453,8 +422,8 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
     }
 
     char title_buff[32];
-    if (Vinifera_ProjectName[0] != '\0') {
-        std::strncpy(title_buff, Vinifera_ProjectName, sizeof(title_buff));
+    if (!Vinifera_ProjectName.empty()) {
+        std::strncpy(title_buff, Vinifera_ProjectName.c_str(), sizeof(title_buff));
     } else {
         std::strncpy(title_buff, Text_String(TXT_SHORT_TITLE), sizeof(title_buff));
     }
@@ -473,11 +442,6 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
     if (Vinifera_DeveloperMode) {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s (PID:%d) (Developer Mode)", title_buff, dwPid);
-
-#if defined(TS_CLIENT)
-        std::strcat(_window_name, " (TS-Client)");
-#endif
-
     } else {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s", title_buff);
@@ -606,6 +570,12 @@ bool Vinifera_Collect_Debug_Files()
     return result;
 #endif
     return true;
+}
+
+
+void Vinifera_Generate_PlaythroughID()
+{
+    Vinifera_PlaythroughID = std::time(nullptr);
 }
 
 

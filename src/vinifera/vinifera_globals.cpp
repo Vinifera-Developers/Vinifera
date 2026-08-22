@@ -14,6 +14,8 @@
 #include "aircrafttracker.h"
 #include "prerequisitegroup.h"
 
+#include <chrono>
+#include <optional>
 
 bool Vinifera_DeveloperMode = false;
 
@@ -25,15 +27,15 @@ bool Vinifera_PrintFileErrors = true;
 bool Vinifera_FatalFileErrors = false;
 bool Vinifera_AssertFileErrors = false;
 
-char Vinifera_ExceptionDatabaseFilename[PATH_MAX] = { "GAME.EDB" };
-char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
-char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
-char Vinifera_SavedGamesDirectory[PATH_MAX] = { "Saved Games" };
+std::string Vinifera_ExceptionDatabaseFilename { "GAME.EDB" };
+std::string Vinifera_DebugDirectory { "Debug" };
+std::string Vinifera_ScreenshotDirectory { "Screenshots" };
+std::string Vinifera_SavedGamesDirectory { "Saved Games" };
 
-char Vinifera_ProjectName[64] = { '\0' };
-char Vinifera_ProjectVersion[64] = { '\0' };
-char Vinifera_IconName[64] = { '\0' };
-char Vinifera_CursorName[64] = { '\0' };
+std::string Vinifera_ProjectName;
+std::string Vinifera_ProjectVersion;
+std::string Vinifera_IconName;
+std::string Vinifera_CursorName;
 
 DWORD Vinifera_MainThreadId = 0;
 
@@ -63,14 +65,13 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
-
-/**
- *  The total play time from all previous sessions of the current game.
- */
-unsigned Vinifera_TotalPlayTime = 0;
-
 DynamicVectorClass<MFCD *> ViniferaMapsMixes;
-DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
+DynamicVectorClass<MFCD*> ViniferaMoviesMixes;
+
+unsigned Vinifera_PlaythroughID = 0;
+
+int PendingMultiplayerSaveLoadSlot = -1;
+std::optional<std::chrono::steady_clock::time_point> PendingMultiplayerSaveLoadTime;
 
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
@@ -84,7 +85,7 @@ DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;
 
-int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
+int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/MAX_ENVIRONMENT_GLOBALS];
 
 bool Vinifera_PlayerOptionsSent = false;
 

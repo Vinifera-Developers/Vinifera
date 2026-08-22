@@ -30,6 +30,7 @@
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     UIColor(COLORSCHEME_FIRST),
+    HoverHighlightColor(COLORSCHEME_FIRST),
     ToolTipColor(COLORSCHEME_FIRST),
     Crew(nullptr),
     Engineer(nullptr),
@@ -39,7 +40,9 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     RegularPowerPlant(nullptr),
     AdvancedPowerPlant(nullptr),
     PowerTurbine(nullptr),
-    HunterSeeker(nullptr)
+    HunterSeeker(nullptr),
+    OptionsMenuTextColor(OPTIONS_MENU_TEXT_DEFAULT_COLOR),
+    ScreenTextColor(SCREEN_TEXT_DEFAULT_COLOR)
 {
     SideExtensions.Add(this);
 }
@@ -51,7 +54,9 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
  *  @author: CCHyper
  */
 SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    OptionsMenuTextColor(noinit),
+    ScreenTextColor(noinit)
 {
 }
 
@@ -164,6 +169,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     if (!IsInitialized) {
 
         UIColor = Fetch_Scheme_Index_By_Name("LightGold");
+        HoverHighlightColor = Fetch_Scheme_Index_By_Name("LightGold");
         ToolTipColor = Fetch_Scheme_Index_By_Name("Green");
 
         Crew = Rule->Crew;
@@ -196,6 +202,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     }
 
     UIColor = ini.Get_Scheme_Index(ini_name, "UIColor", UIColor);
+    HoverHighlightColor = ini.Get_Scheme_Index(ini_name, "HoverHighlightColor", HoverHighlightColor);
     ToolTipColor = ini.Get_Scheme_Index(ini_name, "ToolTipColor", ToolTipColor);
 
     Crew = TGet_Class(ini, ini_name, "Crew", Crew);
@@ -209,6 +216,9 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     PowerTurbine = TGet_Class(ini, ini_name, "PowerTurbine", PowerTurbine);
 
     HunterSeeker = TGet_Class(ini, ini_name, "HunterSeeker", HunterSeeker);
+
+    OptionsMenuTextColor = ini.Get_RGBColor(ini_name, "OptionsMenuTextColor", OptionsMenuTextColor);
+    ScreenTextColor = ini.Get_RGBColor(ini_name, "ScreenTextColor", ScreenTextColor);
 
     IsInitialized = true;
 

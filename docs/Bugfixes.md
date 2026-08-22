@@ -80,6 +80,9 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft.
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances.
 - Fix a buffer overflow crash in `MapClass::Place_Down`.
+- Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
+- Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
+- Fix a bug where mission `Ambush` wouldn't work correctly.
 - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
 - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
@@ -124,6 +127,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree).
 - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
 - Fix a bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
+- Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with.
 - Fix a bug where AI medics would fail to heal their allies.
 - Fix a bug that would make healer units unselect themselves when adding other units to current selection.
 - Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.
@@ -134,3 +138,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination.
 - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building.
 - Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
+- Fix a bug where the game often reported multiple synchronization errors when one player got out of sync.

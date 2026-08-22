@@ -18,14 +18,20 @@
 #include "ccfile.h"
 #include "ccini.h"
 #include "command.h"
+#include "conquerext_hooks.h"
 #include "debughandler.h"
+#include "desyncdialog.h"
 #include "event.h"
 #include "eventext.h"
 #include "fatal.h"
+#include "extension_globals.h"
+#include "session.h"
+
 #include "hooker.h"
 #include "house.h"
 #include "iomap.h"
 #include "ipxmgr.h"
+#include "msgbox.h"
 #include "netdlg.h"
 #include "nullmgr.h"
 #include "optionsext.h"
@@ -40,12 +46,17 @@
 #include "tibsun_globals.h"
 #include "uicontrol.h"
 #include "vinifera_globals.h"
+#include "voxelinit.h"
+#include "optionsext.h"
+#include "saveload.h"
+#include "spawner.h"
+#include "textprint.h"
 
 
 /**
- *  This patch stops EVENT_OPTIONS from being created when frame step
- *  mode is enabled. This is because we need to handle it differently
- *  due to us not processing any event while in frame step mode.
+ *  This patch handles options locally so opening the dialog does not wait
+ *  for the event queue. It also stops EVENT_OPTIONS from being created when
+ *  frame step mode is enabled, because no events are processed in that mode.
  *
  *  @author: CCHyper
  */
@@ -59,12 +70,16 @@ bool _Queue_Options()
         return false;
     }
 
-    if (!OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_OPTIONS))) {
+    if (SpecialDialog != SDLG_NONE) {
         return false;
-    } else {
-        return true;
     }
 
+    /**
+     *  OPTIONS only sets the local SpecialDialog flag when it executes. Do it
+     *  immediately instead of sending a no-op event through the event system.
+     */
+    EventClass(PlayerPtr->HeapID, EVENT_OPTIONS).Execute();
+    return true;
 }
 
 
@@ -179,6 +194,23 @@ static void After_Main_Loop()
          *  All done!
          */
         Vinifera_Developer_IsToReloadRules = false;
+    }
+
+    SessionExtension->Service_Autosave_After_Main_Loop();
+
+    if (PendingMultiplayerSaveLoadTime && std::chrono::steady_clock::now() >= *PendingMultiplayerSaveLoadTime)
+    {
+        int slot = PendingMultiplayerSaveLoadSlot;
+        PendingMultiplayerSaveLoadSlot = -1;
+        PendingMultiplayerSaveLoadTime.reset();
+
+        DEBUG_INFO("Loading multiplayer game while mid-session.\n");
+
+        if (!SessionExtension->Load_Multiplayer_Save(slot)) {
+            WWMessageBox().Process("Failed to load saved game! The game will now exit.", 0);
+            Emergency_Exit(0);
+            return;
+        }
     }
 }
 
@@ -579,77 +611,18 @@ void _Message_Input(KeyNumType& input)
             strcpy(Session.LastMessage, serial_packet->Message.Message);
         } else if (Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) {
 
-            /*
-            **  Network game: fill in a GlobalPacketType & send it.
-            */
-            ExtGlobalPacketType& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
-            packet.Command = static_cast<ExtNetCommandType>(NET_MESSAGE);
-            strcpy(packet.Name, Session.Players[0]->Name);
-            packet.Message.Color = Session.ColorIdx;
-            packet.Message.NameCRC = Compute_Name_CRC(Session.GameName);
-
-            /*
-            **  Add a scope marker.
-            */
-            if (Session.MessageAddress.Is_Broadcast()) {
-                if (SessionExtension->IsChatToAllies) {
-                    strcpy(packet.Message.Scope, "to team");
-                } else {
-                    strcpy(packet.Message.Scope, "to all");
-                }
+            const char* text;
+            if (rc == 3) {
+                text = Session.Messages.Get_Edit_Buf();
             } else {
-                std::snprintf(packet.Message.Scope, std::size(packet.Message.Scope), "to %s", SessionExtension->MessageRecipientName);
+                text = Session.Messages.Get_Overflow_Buf();
             }
 
-            if (rc == 3) {
-                std::strncpy(packet.Message.Buf, Session.Messages.Get_Edit_Buf(), std::size(packet.Message.Buf) - 1);
-            } else {
-                std::strncpy(packet.Message.Buf, Session.Messages.Get_Overflow_Buf(), std::size(packet.Message.Buf) - 1);
+            Vinifera_Send_Network_Chat(text);
+
+            if (rc == 4) {
                 Session.Messages.Clear_Overflow_Buf();
             }
-
-            /*
-            **  If the chat to all key was hit, MessageAddress will be a broadcast address; send
-            **  the message to every player we have a connection with.
-            */
-            if (Session.MessageAddress.Is_Broadcast()) {
-                for (int i = 0; i < Ipx.Num_Connections(); i++) {
-
-                    /*
-                    **  If this is a "to allies" message, check if the player is allied to the target house.
-                    */
-                    if (!SessionExtension->IsChatToAllies || PlayerPtr->Is_Ally(Session.Players[i + 1]->Player.ID)) {
-                        Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, Ipx.Connection_Address(Ipx.Connection_ID(i)));
-                        Ipx.Service();
-                    }
-                }
-            } else {
-
-                /*
-                **  Otherwise, MessageAddress contains the exact address to send to.
-                **  Send to that address only.
-                */
-                Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, &Session.MessageAddress);
-                Ipx.Service();
-            }
-
-            /*
-            **  Print the message for the sender player as well.
-            */
-            char name[32];
-            std::snprintf(name, std::size(name), "%s [%s]" , packet.Name, packet.Message.Scope);
-            Session.Messages.Add_Message(name, packet.Message.Color, packet.Message.Buf, Session.Scheme_From_Color_ID(packet.Message.Color), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE));
-
-            /*
-            **  Tell the map to do an update.
-            */
-            Map.Flag_To_Redraw(GS_REDRAW_ALL);
-
-            /*
-            **  Store this message in our LastMessage buffer; the computer may send
-            **  us a version of it later.
-            */
-            strcpy(Session.LastMessage, Session.GPacket.Message.Buf);
         }
 
         /*
@@ -657,6 +630,94 @@ void _Message_Input(KeyNumType& input)
         */
         Map.Flag_To_Redraw(GS_REDRAW_ALL);
     }
+}
+
+
+/**
+ *  Sends a network chat message to the other players, using the current
+ *  Session.MessageAddress and SessionExtension->IsChatToAllies settings,
+ *  and echoes it into our own message list.
+ *
+ *  Extracted from _Message_Input so the desync dialog can reuse it.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+void Vinifera_Send_Network_Chat(const char* text)
+{
+    /*
+    **  Network game: fill in a GlobalPacketType & send it.
+    */
+    std::memset(&Session.GPacket, 0, sizeof(Session.GPacket));
+    ExtGlobalPacketType& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+    packet.Command = static_cast<ExtNetCommandType>(NET_MESSAGE);
+    const char* sender_name = SessionExtension->ExtOptions.IsQuickMatch ? "Player" : Session.Players[0]->Name;
+    std::snprintf(packet.Name, sizeof(packet.Name), "%s", sender_name);
+    packet.Message.Color = Session.ColorIdx;
+    packet.Message.NameCRC = Compute_Name_CRC(Session.GameName);
+
+    /*
+    **  Add a scope marker.
+    */
+    if (Session.MessageAddress.Is_Broadcast()) {
+        if (SessionExtension->IsChatToAllies) {
+            strcpy(packet.Message.Scope, "to team");
+        } else {
+            strcpy(packet.Message.Scope, "to all");
+        }
+    } else {
+        std::snprintf(packet.Message.Scope, std::size(packet.Message.Scope), "to %s", SessionExtension->MessageRecipientName);
+    }
+
+    std::strncpy(packet.Message.Buf, text, std::size(packet.Message.Buf) - 1);
+    packet.Message.Buf[std::size(packet.Message.Buf) - 1] = '\0';
+
+    /*
+    **  If the chat to all key was hit, MessageAddress will be a broadcast address; send
+    **  the message to every player we have a connection with.
+    */
+    if (Session.MessageAddress.Is_Broadcast()) {
+        for (int i = 0; i < Ipx.Num_Connections(); i++) {
+
+            /*
+            **  If this is a "to allies" message, check if the player is allied to the target house.
+            */
+            if (!SessionExtension->IsChatToAllies || PlayerPtr->Is_Ally(Session.Players[i + 1]->Player.ID)) {
+                Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, Ipx.Connection_Address(Ipx.Connection_ID(i)));
+                Ipx.Service();
+            }
+        }
+    } else {
+
+        /*
+        **  Otherwise, MessageAddress contains the exact address to send to.
+        **  Send to that address only.
+        */
+        Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, &Session.MessageAddress);
+        Ipx.Service();
+    }
+
+    /*
+    **  Print the message for the sender player as well.
+    */
+    char name[32];
+    std::snprintf(name, std::size(name), "%s [%s]" , packet.Name, packet.Message.Scope);
+    Session.Messages.Add_Message(name, packet.Message.Color, packet.Message.Buf, Session.Scheme_From_Color_ID(packet.Message.Color), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE));
+
+    /*
+    **  Echo our own message into the desync dialog's chat box, if it is open.
+    */
+    DesyncDialog.Notify_Chat(packet.Name, packet.Message.Buf);
+
+    /*
+    **  Tell the map to do an update.
+    */
+    Map.Flag_To_Redraw(GS_REDRAW_ALL);
+
+    /*
+    **  Store this message in our LastMessage buffer; the computer may send
+    **  us a version of it later.
+    */
+    strcpy(Session.LastMessage, Session.GPacket.Message.Buf);
 }
 
 
@@ -670,4 +731,7 @@ void MainLoop_Hooks()
     Patch_Call(0x005A0B85, &Main_Loop_Intercept);
     Patch_Jump(0x005B10F0, &_Queue_Options);
     Patch_Jump(0x005098D0, &_Message_Input);
+    Patch_Byte(0x00508A90 + 1, 0x1); // Patch Sleep(0xA) to Sleep(1) to prevent lag in multiplayer when game is not in focus
+    Patch_Jump(0x00508DBD, 0x00508DCA); // Jump over GameInFocus check in main loop to render even when game is not in focus
+                                        // to allow alt-tabbed players to see what is going on in multiplayer
 }

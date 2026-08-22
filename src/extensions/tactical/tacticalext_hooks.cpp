@@ -21,6 +21,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "house.h"
+#include "housetype.h"
 #include "laserdraw.h"
 #include "mouse.h"
 #include "object.h"
@@ -28,6 +29,8 @@
 #include "rulesext.h"
 #include "scenario.h"
 #include "sdlsurface.h"
+#include "side.h"
+#include "sideext.h"
 #include "syringe.h"
 #include "tactical.h"
 #include "tacticalext.h"
@@ -914,7 +917,7 @@ CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender8_Patch, ebp, eax, 0x00610FB7)
  *  Tactical::Draw_Screen_Text re-implementation to fix direct DDraw surface
  *  access that is invalid because of SDL.
  *
- *  @author: ZivDero, tomsons26
+ *  @author: ZivDero, tomsons26, Rampastring
  */
 void TacticalExt::_Draw_Screen_Text(char const* text)
 {
@@ -938,8 +941,13 @@ void TacticalExt::_Draw_Screen_Text(char const* text)
             SetTextColor(hdc, RGB(0, 0, 0));
             TextOut(hdc, rect.X + point.X + 3, rect.Y + point.Y + 3, text, strlen(text));
 
+            RGBClass rgb = SCREEN_TEXT_DEFAULT_COLOR;
+            if (PlayerPtr != nullptr && PlayerPtr->Class->Side != SIDE_NONE) {
+                rgb = Extension::Fetch(Sides[PlayerPtr->Class->Side])->ScreenTextColor;
+            }
+
             // Draw the main text
-            SetTextColor(hdc, RGB(255, 255, 255));
+            SetTextColor(hdc, RGB(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue()));
             TextOut(hdc, rect.X + point.X, rect.Y + point.Y, text, strlen(text));
 
             // Cleanup

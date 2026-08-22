@@ -22,6 +22,7 @@
 #include "ionstorm.h"
 #include "levitatelocomotion.h"
 #include "radarevent.h"
+#include "rules.h"
 #include "rulesext.h";
 #include "session.h"
 #include "syringe.h"
@@ -884,6 +885,7 @@ DEFINE_HOOK(0x004A2C25, _FootClass_Do_MISSION_GUARD_AREA_Approach_Target_Patch, 
     return 0;
 }
 
+
 /**
  *  Patches FootClass::Per_Cell_Process inside the cloak check.
  *  Trigger cell tags via the TEVENT_PLAYER_ENTERED trigger event.
@@ -906,6 +908,24 @@ DEFINE_HOOK(0x004A3E25, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
 
     return 0;
 }
+
+/**
+ *  #issue-177
+ *
+ *  Patches the harvester counting to count all units listed under HarvesterUnit.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004A7A3F, _FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch, 0)
+{
+    GET(FootClass *, this_ptr, EDI);
+
+    int count = this_ptr->House->Count_Owned(Rule->HarvesterUnit);
+    R->EAX(count);
+
+    return 0x004A7A65;
+}
+
 
 /**
  *  Main function for patching the hooks.

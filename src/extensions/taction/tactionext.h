@@ -68,14 +68,26 @@ private:
     bool Do_PLAY_SPEECH(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell const& cell);
     bool Do_WIN(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_LOSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_BEGIN_PRODUCTION(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_ALL_HUNT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_REINFORCEMENTS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_FIRE_SALE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_TEXT_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DESTROY_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_AUTOCREATE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_CHANGE_HOUSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_ALL_CHANGE_HOUSE(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_MAKE_ALLY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_MAKE_ENEMY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ENABLE_TRIGGER(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DESTROY_TAG(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_BEGIN_AI_TRIGGERS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_STOP_AI_TRIGGERS(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_CENTER_VIEWPOINT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_REVEAL_SOME(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_PLAY_SOUND_AT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_REINFORCEMENTS_SPECIAL(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
     /**
      *  New TActions.

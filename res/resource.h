@@ -35,6 +35,8 @@
 
 #define IDD_RULES                         4000
 #define IDD_EXCEPTION                     4001
+#define IDD_DESYNC_HOST                   4002
+#define IDD_DESYNC_WAIT                   4003
 
 
 /**
@@ -53,6 +55,16 @@
 #define IDC_EXCEPTION_FILENAME            1151
 #define IDC_EXCEPTION_QUIT                1153
 #define IDC_EXCEPTION_LOG                 1156
+
+#define IDC_DESYNC_HEADER                 1200
+#define IDC_DESYNC_CHAT_LIST              1210
+#define IDC_DESYNC_CHAT_EDIT              1211
+#define IDC_DESYNC_PLAYER_LIST            1212
+#define IDC_DESYNC_LOAD                   1220
+#define IDC_DESYNC_CONTINUE               1221
+#define IDC_DESYNC_QUIT                   1222
+#define IDC_DESYNC_COUNTDOWN_BAR          1230
+#define IDC_DESYNC_COUNTDOWN_TEXT         1231
 
 
 /**

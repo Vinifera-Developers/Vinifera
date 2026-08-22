@@ -93,6 +93,7 @@ public:
     void _Swizzle_Light_Source();
     RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);
     MoveType _Can_Enter_Cell(CellClass const* cell, FacingType dir, int cell_height, CellClass const*, bool) const;
+    void _Draw_Overlays(const Point2D & coord, const Rect & rect);
 };
 
 
@@ -981,6 +982,110 @@ DEFINE_HOOK(0x00433F1D, _BuildingClass_Detach_Detach_Anim_Patch, 0)
 
 
 /**
+ *  Reimplements the BuildingClass::Draw_Overlays function.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
+{
+    if (BState != BSTATE_CONSTRUCTION) {
+
+        /**
+         *  Draw the repair animation.
+         */
+        if (IsRepairing) {
+            if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->Special.IsFogOfWar || IsFogged) && Visual_Character() != VISUAL_HIDDEN) {
+                Point2D xy = coord;
+                if (!IsOn) xy -= Point2D(5, 5);
+
+                int delay = Options.Normalize_Delay(14) / 4;
+                delay = std::max(delay, 2);
+
+                int draw_frame;
+                if (Extension::Fetch(House)->IsPauseRepairs && House->Available_Money() < Class->Repair_Step()) {
+                    draw_frame = RuleExtension->PausedRepairsFrame;
+                } else {
+                    draw_frame = 6 * (Frame % delay) / (delay - 1);
+                }
+
+                Draw_Shape(*LogicalSurface, *MouseDrawer, WrenchShape, draw_frame, xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+            }
+        }
+
+        /**
+         *  Draw the power off animation.
+         */
+        if (!IsOn && House->Is_Player_Control()) {
+            if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->Special.IsFogOfWar || IsFogged)) {
+                Point2D xy = coord;
+                if (IsRepairing) xy += Point2D(10, 10);
+
+                int delay = Options.Normalize_Delay(14) / 4;
+                delay = std::max(delay, 2);
+
+                Draw_Shape(*LogicalSurface, *MouseDrawer, PowerOffShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+            }
+        }
+
+        if (IsSelected) {
+
+            /**
+             *  Draw the primary factory pip.
+             */
+            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || Session.ObiWan) {
+                Point2D xy(coord.X - 10, coord.Y + 10);
+                Draw_Text_Overlay(xy, coord, rect);
+            }
+
+            /**
+             *  If this is a factory, and the player has spied its owner, draw the cameo of what it's currently producing.
+             */
+            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || Session.ObiWan) {
+                FactoryClass* factory = House->Is_Human_Player() ? House->Fetch_Factory(Class->ToBuild) : Factory;
+                if (factory != nullptr) {
+                    ObjectClass* obj = factory->Get_Object();
+                    if (obj != nullptr) {
+
+                        /**
+                         *  #issue-487
+                         *
+                         *  Adds support for PCX/PNG cameo icons.
+                         *
+                         *  @author: CCHyper
+                         */
+                        const auto technotypeext = Extension::Fetch(obj->Techno_Type_Class());
+                        if (technotypeext->CameoImageSurface) {
+
+                            /**
+                             *  Draw the cameo pcx image.
+                             */
+                            Rect pcxrect;
+                            pcxrect.X = rect.X + coord.X;
+                            pcxrect.Y = rect.Y + coord.Y;
+                            pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
+                            pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
+
+                            SpriteCollection.Draw(pcxrect, *LogicalSurface, *technotypeext->CameoImageSurface);
+                        } else {
+                            const ShapeSet* shape = obj->TClass->Get_Cameo_Data();
+
+                            /**
+                             *  Draw the cameo shape.
+                             *
+                             *  Original code used NormalDrawer, which is the old Red Alert shape
+                             *  drawer, so we need to use CameoDrawer here for the correct palette.
+                             */
+                            Draw_Shape(*LogicalSurface, *CameoDrawer, shape, 0, coord, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/**
  *  #issue-204
  * 
  *  Implements ReloadRate for AircraftTypes, allowing each aircraft to have
@@ -1449,61 +1554,6 @@ continue_function:
 
     return 0x0042B27F;
 }
-
-
-/**
- *  #issue-72
- * 
- *  Fixes the bug where the wrong palette used to draw the cameo of the object
- *  being produced above a enemy spied factory building.
- * 
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x00428AD3, _BuildingClass_Draw_Spied_Cameo_Palette_Patch, 0)
-{
-    GET(TechnoClass *, factory_obj, EAX);
-    GET(Point2D *, pos_xy, EDI);
-    GET(Rect *, window_rect, EBP);
-
-    const TechnoTypeClass* technotype = factory_obj->TClass;
-
-    /**
-     *  #issue-487
-     * 
-     *  Adds support for PCX/PNG cameo icons.
-     * 
-     *  @author: CCHyper
-     */
-    TechnoTypeClassExtension* technotypeext = Extension::Fetch(technotype);
-    if (technotypeext->CameoImageSurface) {
-
-        /**
-         *  Draw the cameo pcx image.
-         */
-        Rect pcxrect;
-        pcxrect.X = window_rect->X + pos_xy->X;
-        pcxrect.Y = window_rect->Y + pos_xy->Y;
-        pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
-        pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
-
-        SpriteCollection.Draw(pcxrect, *LogicalSurface, *technotypeext->CameoImageSurface);
-
-    } else {
-
-        const ShapeSet* cameo_shape = technotype->Get_Cameo_Data();
-
-        /**
-         *  Draw the cameo shape.
-         * 
-         *  Original code used NormalDrawer, which is the old Red Alert shape
-         *  drawer, so we need to use CameoDrawer here for the correct palette.
-         */
-        Draw_Shape(*LogicalSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
-    }
-
-    return 0x00428B13;
-}
-
 
 /**
  *  #issue-1049
@@ -2535,38 +2585,79 @@ DEFINE_HOOK(0x00435A38, _BuildingClass_Repair_AI_Pause_Repairs_Patch, 7)
 }
 
 
-/*
- *  Reimplements part of BuildingClass::Draw_Overlays where a building determines the wrench frame to use when drawing during repairs.
- *  When the building's repairs are paused, the game draws a specific wrench frame to signal that the repairs are paused.
+/**
+ *  #issue-177
  *
- *  @author: JoyfulShush
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
  */
-DEFINE_HOOK(0x004288E1, _BuildingClass_Draw_Overlays_Wrench_Shape_Patch, 0)
+DEFINE_HOOK(0x0042AA76, _BuildingClass_Unlimbo_BuildConst_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
-    GET(int, frame, ECX);
-    GET(Point2D*, point, EDI);
-    GET(Rect*, rect, EBP);
 
-    HouseClassExtension* houseext = Extension::Fetch(this_ptr->House);
-
-    int draw_frame;
-    if (this_ptr->House->Is_Human_Player() && houseext->IsPauseRepairs && this_ptr->House->Available_Money() < this_ptr->Class->Repair_Step()) {
-        draw_frame = RuleExtension->PausedRepairsFrame;
-    } else {
-        draw_frame = 6 * (Frame % frame) / (frame - 1);
+    if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
+        return 0x0042AA8B;
     }
 
-    Draw_Shape(*LogicalSurface,
-        *MouseDrawer,
-        (ShapeSet const*)BuildingClass::WrenchShape, 
-        draw_frame,
-        *point,
-        *rect,
-        ShapeFlags_Type(SHAPE_CENTER | SHAPE_WIN_REL | SHAPE_ALPHA)        
-    );
+    return 0x0042AACF;
+}
 
-    return 0x00428925;
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0042F958, _BuildingClass_Captured_BuildConst_Patch1, 0)
+{
+    GET(BuildingTypeClass*, buildingtype, ECX);
+
+    if (Rule->BuildConst.Is_Present(buildingtype)) {
+        return 0x0042F968;
+    }
+
+    return 0x0042F9A2;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if you have a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0042FACC, _BuildingClass_Captured_BuildConst_Patch2, 0)
+{
+    GET(HouseClass*, house, EBX);
+
+    if (house->Count_Owned(Rule->BuildConst)) {
+        return 0x0042FAEF;
+    }
+
+    return 0x0042FB10;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0042FCA1, _BuildingClass_Captured_BuildConst_Patch3, 0)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
+        return 0x0042FCB6;
+    }
+
+    return 0x0042FCF8;
 }
 
 
@@ -2661,10 +2752,18 @@ DEFINE_HOOK(0x0042D26B, Building_Class_Exit_Object_Jumpjet_Radio_Contact_Patch, 
  *  This fixes the cursor showing "NO MOVE" when hovering over tiberium, bridges, or invisible units or structures
  *  Naval buildings checks water passage while making sure the cursor is not on a bridge,
  *  while regular buildings checks land passage as well as bridges.
+ *
+ *  @author: JoyfulShush, Rampastring
  */
 MoveType BuildingClassExt::_Can_Enter_Cell(CellClass const* cell, FacingType dir, int cell_height, CellClass const*, bool) const
 {    
     if (Class->UndeploysInto && IsDown && !IsInLimbo) {
+
+        // If the scenario is being initialized, all cells are considered passable.
+        if (ScenarioInit) {
+            return MOVE_OK;
+        }
+
         auto class_ext = Extension::Fetch(Class);
         auto passability = cell->Passability;        
         
@@ -2716,4 +2815,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
     Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
     Patch_Jump(0x0042FE70, &BuildingClassExt::_Can_Enter_Cell);
+    Patch_Jump(0x00428810, &BuildingClassExt::_Draw_Overlays);
 }

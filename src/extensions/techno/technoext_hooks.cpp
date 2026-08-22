@@ -35,11 +35,14 @@
 #include "language.h"
 #include "mouse.h"
 #include "options.h"
+#include "overlaytype.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "session.h"
+#include "sessionext.h"
 #include "sideext.h"
 #include "spawnmanager.h"
+#include "syncrecorder.h"
 #include "syringe.h"
 #include "tactical.h"
 #include "tag.h"
@@ -67,7 +70,10 @@
 #include "weapontype.h"
 #include "weapontypeext.h"
 #include "wwkeyboard.h"
+#include "spawner.h"
+#include "vox.h"
 
+#include <intrin.h>
 #include <vector>
 
 
@@ -109,12 +115,15 @@ public:
     bool _Can_Deploy_Now() const;
     int _Refund_Amount() const;
     bool _Evaluate_Object(ThreatType method, int mask, int range, TechnoClass const* object, int& value, int zone, Coord const& coord) const;
+    int _Evaluate_Just_Cell(Cell const& cell) const;
     bool _Should_Self_Heal_Now() const;
     int _Apparent_Brightness(int brightness) const;
     void _Flashing_AI();
     int _Anti_Air() const;
+    bool _Revealed(HouseClass* house);
     void _Look(bool incremental, bool dontmap);
     bool _Is_Allowed_To_Recloak();
+    int _Value(void) const;
 };
 
 
@@ -369,7 +378,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         if (Crew.IsElite)
             veterancy_shape = 8;
 
-        if (Crew.Is_Dumbass())
+        if (Crew.IsDumbass)
             veterancy_shape = 12;
 
         if (veterancy_shape != -1)
@@ -1375,8 +1384,8 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
                 House->BuildingsLost++;
             }
 
-            if (source != NULL) {
-                if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+            if (source != nullptr) {
+                if (!typeext->IsDontScore) {
                     source->House->DestroyedBuildings->Increment_Unit_Total(reinterpret_cast<BuildingClass*>(this)->Class->HeapID);
                 }
                 source->House->BuildingsKilled[Owner()]++;
@@ -1395,19 +1404,19 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     break;
 
     case RTTI_AIRCRAFT:
-        if (source && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !typeext->IsDontScore) {
             source->House->DestroyedAircraft->Increment_Unit_Total(reinterpret_cast<AircraftClass*>(this)->Class->HeapID);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_INFANTRY:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !total_recorded && !typeext->IsDontScore) {
             source->House->DestroyedInfantry->Increment_Unit_Total(reinterpret_cast<InfantryClass*>(this)->Class->HeapID);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_UNIT:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !total_recorded && !typeext->IsDontScore) {
             source->House->DestroyedUnits->Increment_Unit_Total(reinterpret_cast<UnitClass*>(this)->Class->HeapID);
         }
 
@@ -1441,12 +1450,97 @@ int TechnoClassExt::_Time_To_Build() const
 
 
 /**
+ *  Handles revealing an object to the house specified.
+ *
+ *  @author:  06/02/1994 JLB - Created.
+ *            ZivDero - Adjustments for Tiberian Sun.
+ */
+bool TechnoClassExt::_Revealed(HouseClass* house)
+{
+    if (house == PlayerPtr && IsDiscoveredByPlayer) {
+        return false;
+    }
+
+    if (house != PlayerPtr) {
+        if (IsDiscoveredByComputer) return false;
+        IsDiscoveredByComputer = true;
+    }
+
+    if (house == nullptr) {
+        return false;
+    }
+
+    if (RadioClass::Revealed(house)) {
+
+        /*
+         *  An enemy object that is discovered will go into hunt mode if
+         *  its current mission is to ambush.
+         */
+        if (!House->Is_Human_Player() && Mission == MISSION_AMBUSH) {
+            Assign_Mission(MISSION_HUNT);
+        }
+
+        if (house == PlayerPtr) {
+            IsDiscoveredByPlayer = true;
+            House->RecalcPower = true;
+            House->RecalcRadar = true;
+
+            if (!IsOwnedByPlayer) {
+
+                /**
+                 *  If there is a trigger event associated with this object, then process
+                 *  it for discovery purposes.
+                 */
+                if (!ScenarioInit && Tag != nullptr) {
+                    Tag->Spring(TEVENT_DISCOVERED, this);
+                }
+
+                /**
+                 *  Alert the enemy house to presence of the friendly side.
+                 */
+                House->IsDiscovered = true;
+            } else {
+
+                /**
+                 *  A newly revealed object will always perform a look operation.
+                 */
+                Look();
+            }
+
+            /**
+             *  Outside of campaign, reveal newly built allied objects with AllyReveal on.
+             */
+            if (Session.Type != GAME_NORMAL && Rule->IsAllyReveal && House->Is_Ally(house)) {
+                Look();
+            }
+        } else {
+            IsDiscoveredByComputer = true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
  *  Reimplementation of TechnoClass::Assign_Target.
  *
  *  @author: ZivDero
  */
 void TechnoClassExt::_Assign_Target(AbstractClass* target)
 {
+    /*
+    **  Record the targeting change for desync debugging. Infantry are recorded
+    **  in InfantryClass::Assign_Target (which calls into this function) and
+    **  buildings are deliberately not recorded.
+    */
+    RTTIType rtti = Fetch_RTTI();
+    if (rtti != RTTI_INFANTRY && rtti != RTTI_BUILDING) {
+        SyncRecorder::Record_TarCom_Change(this, target, reinterpret_cast<unsigned>(_ReturnAddress()));
+    }
+
     auto extension = Extension::Fetch(this);
 
     /*
@@ -1918,6 +2012,42 @@ continue_checks:
 
 return_false:
     return 0x0062D8C0;
+}
+
+
+/**
+ *  Wrapper for the patch below because doing this messes with the stack.
+ */
+static bool Can_Attack_Neutrals(TechnoClass* target)
+{
+    bool attack_neutrals = SessionExtension->ExtOptions.IsAttackNeutralUnits;
+    bool unarmed_building = target->RTTI == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
+
+    return attack_neutrals && !unarmed_building;
+};
+
+
+/**
+ *  Patch to allow units to target neutral units if the spawner requests it.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0062D49A, _TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch, 0)
+{
+    GET(TechnoClass*, target, ESI);
+
+    if (Session.Type != GAME_NORMAL && target->Owner_HouseClass()->Class->IsMultiplayPassive) {
+
+        /**
+         *  Allow attacking neutrals, but if it's a building, it must be armed.
+         */
+        if (!Can_Attack_Neutrals(target)) {
+            return 0x0062D8C0;
+        }
+    }
+
+    // Continue normally.
+    return 0x0062D4BA;
 }
 
 
@@ -3265,6 +3395,84 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
 
 
 /**
+ *  Evaluate_Just_Cell replacement to read our extended difficulty instead of
+ *  original game difficulty information.
+ *
+ *  @author: tomsons26, ZivDero, Rampastring
+ */
+int TechnoClassExt::_Evaluate_Just_Cell(Cell const& cell) const
+{
+    /*
+     **    First, only computer objects are allowed to automatically scan for walls.
+     */
+    if (House->Is_Human_Player()) {
+        return 0;
+    }
+
+    /*
+    **    Even then, if the difficulty indicates that it shouldn't search for wall
+    **    targets, then don't allow it to do so.
+    */
+    if (!RuleExtension->Diff[House->Difficulty].IsWallDestroyer) {
+        return 0;
+    }
+
+    /*
+    **    Determine if, in fact, a wall is located at this cell location.
+    */
+    CellClass const* cellptr = &Map[cell];
+    if (cellptr->Overlay == OVERLAY_NONE || !OverlayTypes[cellptr->Overlay]->IsWall) {
+        return 0;
+    }
+
+    /*
+    **    As a convenience to the target scanning logic, don't consider any wall to be
+    **    a target if it isn't in range of the primary weapon.
+    */
+    WeaponSlotType primary = What_Weapon_Should_I_Use(&Map[cell]);
+    if (!In_Range(cellptr->Center_Coord(), primary)) {
+        return 0;
+    }
+
+    /*
+    **    See if the object has a weapon that can damage walls.
+    */
+    if (PrimaryWeapon == NULL || PrimaryWeapon->WarheadPtr == NULL) {
+        return 0;
+    }
+
+    /*
+    **    If the weapon cannot deal with ground based targets, then don't consider
+    **    this a valid cell target.
+    */
+    if (PrimaryWeapon->Bullet != NULL && !PrimaryWeapon->Bullet->IsAntiGround) {
+        return 0;
+    }
+
+    /*
+    **    If the primary weapon cannot destroy a wall, then don't give the cell any
+    **    value as a target.
+    */
+    if (!PrimaryWeapon->WarheadPtr->IsWallDestroyer) {
+        return 0;
+    }
+
+    /*
+    **    If this is a friendly wall, then don't attack it.
+    */
+    if (cellptr->Owner == HOUSE_NONE || House->Is_Ally(Houses[cellptr->Owner])) {
+        return 0;
+    }
+
+    /*
+    **    Since a wall was found, then return a value adjusted according to the range the wall
+    **    is from the object. The greater the range, the lesser the value returned.
+    */
+    return Weapon_Range(WEAPON_SLOT_PRIMARY) - ::Distance(this->Center_Coord(), cellptr->Center_Coord());
+}
+
+
+/**
  *  Fixes a bug where placed buildings are not revealed for allies.
  *
  *  Author: Rampastring
@@ -3431,9 +3639,8 @@ bool TechnoClassExt::_Is_Allowed_To_Recloak()
  */
 void TechnoClassExt::_Look(bool incremental, bool dontmap)
 {    
-    assert(!IsInLimbo);
-
-    if (IsLocked && (!House->Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
+    // The techno can be in limbo when this is called if a building was destroyed by a trigger when it was entered by an engineer
+    if (!IsInLimbo && IsLocked && (!House->Class->IsMultiplayPassive || Session.Type == GAME_NORMAL)) {
         int sight_increase = 10 * (Get_Coord().Z / Rule->LeptonsPerSightIncrease);
         if (sight_increase > SightIncrease) {
             incremental = false;
@@ -3527,6 +3734,34 @@ DEFINE_HOOK(0x0062E9EF, TechnoClass_AI_Self_Heal_Repair_Step, 0)
 
 
 /**
+ *  TechnoClass::Value replacement to use our extended difficulty data.
+ *
+ *  @author: tomsons26, ZivDero, Rampastring
+ */
+int TechnoClassExt::_Value(void) const
+{
+    int value = 0;
+
+    /*
+    **  In early missions, contents of transports are not figured
+    **  into the total value.
+    */
+    if (RuleExtension->Diff[House->Difficulty].IsContentScan || House->IQ >= Rule->IQContentScan) {
+        if (Cargo.Is_Something_Attached()) {
+            FootClass* object = Cargo.Attached_Object();
+
+            while (object != NULL) {
+                value += object->Value();
+                object = (FootClass*)(ObjectClass*)object->Next;
+            }
+        }
+    }
+
+    return Risk() + TClass->Reward + value;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -3556,9 +3791,12 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
     Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
     Patch_Jump(0x0062D0F0, &TechnoClassExt::_Evaluate_Object);
+    Patch_Jump(0x0062DA70, &TechnoClassExt::_Evaluate_Just_Cell);
     Patch_Jump(0x00638CA0, &TechnoClassExt::_Should_Self_Heal_Now);
     Patch_Jump(0x00639C70, &TechnoClassExt::_Apparent_Brightness);
     Patch_Jump(0x006380F0, &TechnoClassExt::_Anti_Air);
+    Patch_Jump(0x0062AAD0, &TechnoClassExt::_Revealed);
     Patch_Jump(0x00638310, &TechnoClassExt::_Look);
     Patch_Jump(0x00639120, &TechnoClassExt::_Is_Allowed_To_Recloak);
+    Patch_Jump(0x00636520, &TechnoClassExt::_Value);
 }

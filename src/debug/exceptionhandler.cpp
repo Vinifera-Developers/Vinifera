@@ -93,7 +93,7 @@ std::atomic<int> RecursionCount{-1};
  */
 static std::atomic<DWORD> DumpingThreadId{0};
 
-FixedString<65536> ExceptionBuffer;
+FixedString<131072> ExceptionBuffer;
 
 static TextFileClass ExceptionFile;
 
@@ -467,7 +467,7 @@ static void Exception_Printf(const char *buffer, ...)
  */
 static void __cdecl Exception_Stack_Dump_Handler(const char *buffer)
 {
-    Exception_Printf(buffer);
+    Exception_Printf("%s", buffer);
 }
 
 
@@ -812,9 +812,9 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     Exception_Printf("\r\n");
 
     Exception_Printf("Project information:\r\n");
-    if (Vinifera_ProjectName[0] != '\0') {
-        Exception_Printf("Title: %s\r\n", Vinifera_ProjectName);
-        Exception_Printf("Version: %s\r\n", Vinifera_ProjectVersion);
+    if (!Vinifera_ProjectName.empty()) {
+        Exception_Printf("Title: %s\r\n", Vinifera_ProjectName.c_str());
+        Exception_Printf("Version: %s\r\n", Vinifera_ProjectVersion.c_str());
         Exception_Printf("\r\n");
     }
 
@@ -846,7 +846,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
      *  Log System information.
      */   
     Exception_Printf("System information:\r\n");
-    Exception_Printf(CPUDetectClass::Get_Processor_Log());
+    Exception_Printf("%s", CPUDetectClass::Get_Processor_Log());
     //Exception_Printf("\r\n"); // Get_Processor_Log writes a new line for us.
 
     DEBUG_WARNING("Register dump...\n");
@@ -932,7 +932,8 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     /**
      *  Debug Registers.
      */
-    Exception_Printf("Dr0:%016llX\tDr1:%016llX\tDr2:%016llX\tDr3:%016llX\r\n", context->Dr0, context->Dr1, context->Dr2, context->Dr3);
+    Exception_Printf("Dr0:%" PRIPTRSIZE PRIXPTR "\tDr1:%" PRIPTRSIZE PRIXPTR "\tDr2:%" PRIPTRSIZE PRIXPTR "\tDr3:%" PRIPTRSIZE PRIXPTR "\r\n",
+        static_cast<uintptr_t>(context->Dr0), static_cast<uintptr_t>(context->Dr1), static_cast<uintptr_t>(context->Dr2), static_cast<uintptr_t>(context->Dr3));
 
     /**
      *  DR4 and DR5 are reserved and are obsolete synonyms for DR6 and DR7, see
@@ -1190,8 +1191,7 @@ static void Write_Crash_Artifacts(struct _EXCEPTION_POINTERS *ptrs, unsigned int
      *  Create a unique filename for the crash dump based on the time of execution.
      */
     char filename_buffer[512];
-    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
-        Vinifera_DebugDirectory,
+    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT", Vinifera_DebugDirectory.c_str(),
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
     ExceptionFile.Set_Name(filename_buffer);

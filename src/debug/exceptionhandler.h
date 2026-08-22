@@ -74,4 +74,4 @@ extern std::atomic<int> RecursionCount;
 /**
  *  The buffer which holds the exception log info.
  */
-extern FixedString<65536> ExceptionBuffer;
+extern FixedString<131072> ExceptionBuffer;

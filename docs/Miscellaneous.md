@@ -20,6 +20,10 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera allows aircraft to use Q-Move, similarly to other types of units in the game. Q-Moving aircraft will stay in the air as they move on to their next destination. Unlike ground units, aircraft cannot target enemies while Q-Moving. Ordering queue-moves to an aircraft currently targetting an enemy will remove the attack order. Carryalls get extended handling while Q-Moving, allowing it to pick up units along the way and carry them until the end of their path.
 - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
 - Aircraft speed now takes house Airspeed bias, game speed bias, and the FASTER veteran/elite ability values into account when calculating the aircraft speed.
+- Make `SOUND01.INI` load additively with `SOUND.INI`, reload sounds after loading side `MIX` files.
+- Allow pre-placed units to have missions in multiplayer.
+- `BaseUnit` now accepts a list of units. Players will be granted the first unit in the list that has their house listed under `Owners=`.
+- The AI now correctly considers all entries of `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit`.
 
 ## SIMD Blitters
 
@@ -116,6 +120,184 @@ There are no internal guards against recursive inheritance. If Section A inherit
 Section-level does not work in certain cases that *iterate* a section. Notably, it may not be used with type lists, `[Tutorial]`, map briefings, as well as with map object lists.
 ```
 
+## Spawner
+
+- Vinifera implements its own spawner, capable of starting a new singleplayer, skirmish or multiplayer game, as well as loading saved games.
+- To start the game in spawner mode, the `-SPAWN` command line argument must be specified.
+- The spawner's options are configured in `SPAWN.INI`.
+- `[Settings]` also describes the local human player. Additional human players use `[Other1]` through `[Other7]`.
+
+In `SPAWN.INI`:
+```ini
+[Settings]
+; Local player
+Name=                       ; string, player name; must be unique and at most 19 characters.
+Color=-1                    ; integer, player color index.
+Side=-1                     ; integer, HouseType index.
+Ip=0.0.0.0                  ; string, local IP address metadata.
+Port=1234                   ; integer 1-65535; required for multiplayer (1234 is an example).
+
+; Game Mode Options
+Bases=yes                   ; boolean, do players start with MCVs/Construction Yards?
+Credits=10000               ; integer, starting amount of credits for the players.
+BridgeDestroy=yes           ; boolean, can bridges be destroyed?
+Crates=no                   ; boolean, are crates enabled?
+ShortGame=no                ; boolean, is short game enabled?
+BuildOffAlly=no             ; boolean, is building off ally bases allowed?
+GameSpeed=0                 ; integer 0-7, starting game speed.
+MultiEngineer=no            ; boolean, is multi-engineer enabled?
+UnitCount=0                 ; integer, starting unit count.
+AIPlayers=0                 ; integer, number of AI players.
+AIDifficulty=1              ; integer, fallback AI difficulty: 0 = Easy, 1 = Medium, 2 = Hard.
+AlliesAllowed=no            ; boolean, can players form and break alliances in-game?
+HarvesterTruce=no           ; boolean, are harvesters invulnerable?
+FogOfWar=no                 ; boolean, is fog of war enabled?
+MCVRedeploy=yes             ; boolean, can MCVs be redeployed?
+
+; Savegame Options
+LoadSaveGame=no             ; boolean, should the spawner load a saved game, as opposed to starting a new scenario?
+SaveGameName=               ; string, name of the saved game to load.
+AutoSaveGame=10800          ; integer, interval in frames between multiplayer auto-saves; 0 disables them.
+NextSPAutoSaveId=1          ; positive integer, next rotating campaign auto-save slot.
+NextSkirmishAutoSaveId=1    ; positive integer, next rotating skirmish auto-save slot.
+
+; Scenario Options
+Seed=0                      ; integer, random seed.
+TechLevel=10                ; integer, maximum tech level.
+IsSinglePlayer=no           ; boolean, start a campaign rather than skirmish/multiplayer.
+CampaignID=-1               ; integer, campaign index from BATTLE.INI; -1 means none.
+DifficultyModeHuman=1       ; integer 0-6, campaign difficulty for the human player; see below.
+DifficultyModeComputer=1    ; integer 0-6, campaign difficulty for AI players; see below.
+Tournament=0                ; integer, WOL tournament type.
+GameID=$DEADBEEF            ; 32-bit WOL game ID; the $ prefix denotes hexadecimal.
+Scenario=spawnmap.ini       ; string, name of the scenario (map) to load.
+MapHash=                    ; string, map hash, only used in statistics collection.
+UIMapName=                  ; string, displayed map name and statistics map identifier.
+PlayMoviesInMultiplayer=no  ; boolean, should movies be played in multiplayer.
+Host=no                     ; boolean, is this client the original multiplayer host?
+
+; Network Options
+Protocol=2                  ; integer, 0 = adaptive Protocol Zero, 2 = fixed protocol.
+FrameSendRate=4             ; integer 1-255, fixed-protocol frame send rate.
+ReconnectTimeout=2400       ; integer, player reconnection timeout.
+ConnTimeout=3600            ; integer, player connection timeout.
+MaxAhead=-1                 ; integer, starting MaxAhead; -1 means FrameSendRate * 6.
+PreCalcMaxAhead=0           ; integer, starting Protocol Zero PreCalcMaxAhead.
+MaxLatencyLevel=255         ; integer, maximum Protocol Zero latency level; clamped to 1-9.
+
+; Extra Options
+Firestorm=yes               ; boolean, should the game start with Firestorm enabled?
+QuickMatch=no               ; boolean, hide player identities and disable multiplayer debug.
+SkipScoreScreen=no          ; boolean, skip the score screen once the game is over; does not disable a map's SkipScore=yes.
+WriteStatistics=no          ; boolean, write the match statistics packet to stats.dmp.
+DifficultyBasedAINames=no   ; boolean, should AI players have their difficulty in their name?
+CoachMode=no                ; boolean, prevent defeated non-observers from gaining full-map observer vision.
+AutoSurrender=yes           ; boolean, should players surrender on disconnection, as opposed to turning their base over to the AI?
+AttackNeutralUnits=no       ; boolean, should neutral units be targeted by the player's army automatically?
+ScrapMetal=no               ; boolean, should explosions use alternative animations from the `ScrapExplosion=` list?
+CustomLoadScreen=           ; string, loading-screen filename including its extension; overrides scenario and UI selection.
+CustomLoadScreenPos=0,0     ; Point2D, progress position used only with CustomLoadScreen; both values must be positive.
+ContinueWithoutHumans=no    ; boolean, should the game continue if the only living players are AI?
+DifficultyName=             ; string, custom campaign difficulty name shown in-game.
+
+[Tunnel]
+Ip=0.0.0.0                  ; string, tunnel server IP address.
+Port=0                      ; integer, tunnel server port; 0 disables tunnel mode.
+```
+
+- If `IsSinglePlayer=yes`, the spawner starts a campaign. Otherwise, one human player starts skirmish and multiple humans start network multiplayer.
+- The total number of human and AI players must not exceed 8. Human players are sorted by ascending color; house-indexed sections use this final human order followed by the AI players.
+- Additional human sections start at `[Other1]`. A section's presence makes that slot human; there is no `IsHuman` key.
+- Player colors must be within the loaded color-scheme range (normally 0-7) and unique for human players (AI houses may share a color), and `Side`/`HouseCountries` must be valid loaded HouseType indices.
+- `[Settings] Port` is both the local UDP listening port and, in tunnel mode, the local tunnel client ID. In direct multiplayer each remote human needs a reachable IP and port; in tunnel mode each player's unique `Port` is used as its tunnel client ID.
+- Fixed-protocol `FrameSendRate` must be 1-255.
+
+Campaign difficulty values use the engine's house-oriented scale. Consequently, the same numeric value has a reversed display meaning for computer opponents:
+
+| Value | `DifficultyModeHuman` | `DifficultyModeComputer` |
+|---:|---|---|
+| 0 | Easy | Hard |
+| 1 | Medium | Medium |
+| 2 | Hard | Easy |
+| 3 | Ultimately Easy | Ultimate |
+| 4 | Extremely Easy | Extreme |
+| 5 | Brutally Easy | Brutal |
+| 6 | Very Easy | Very Hard |
+
+`CustomLoadScreenPos` has no effect unless `CustomLoadScreen` names a file. If either coordinate is zero or negative, the selected layout's built-in position is used instead.
+
+In `SPAWN.INI`:
+```ini
+[Other1]
+Name=                       ; string, player name; must be unique and at most 19 characters.
+Color=-1                    ; integer, player color index.
+Side=-1                     ; integer, HouseType index.
+Ip=0.0.0.0                  ; string, direct-connect IP address; ignored by tunnel routing.
+Port=-1                     ; integer, direct-connect UDP port or tunnel client ID.
+; Repeat through [Other7].
+```
+
+- AI slot color, house, and optional per-slot difficulty are read from indexed sections. `Multi1` through `Multi8` refer to the final house order; entries belonging to human slots are ignored here.
+
+In `SPAWN.INI`:
+```ini
+[HouseColors]
+Multi1=-1                   ; integer, player color index.
+
+[HouseCountries]
+Multi1=-1                   ; integer, HouseType index.
+
+[HouseHandicaps]
+Multi1=-1                   ; integer, optional per-AI difficulty; -1 uses AIDifficulty.
+; Repeat each key through Multi8.
+```
+
+Per-AI `HouseHandicaps` values use the following scale:
+
+| Value | AI difficulty | Rules section |
+|---:|---|---|
+| 0 | Hard | `[Easy]` |
+| 1 | Medium | `[Normal]` |
+| 2 | Easy | `[Difficult]` |
+| 3 | Very Hard | `[VeryEasy]` |
+| 4 | Brutal | `[BrutallyEasy]` |
+| 5 | Extreme | `[ExtremelyEasy]` |
+| 6 | Ultimate | `[UltimatelyEasy]` |
+
+- Observer status, spawn locations, and alliances are also keyed by the final house order.
+- `SpawnLocations` accepts fixed waypoint IDs 0-7. Any other value is normalized to random placement. Observer status is controlled only by `IsSpectator`.
+- Alliance targets are zero-based final house indices (`0` through `total_slots - 1`) or `-1` for none; unlike the one-based `Multi1` section name, `Multi1` is house index `0`. Define reciprocal entries when a mutual alliance is desired.
+
+In `SPAWN.INI`:
+```ini
+[IsSpectator]
+Multi1=no                   ; boolean, is this house an observer?
+
+[SpawnLocations]
+Multi1=-1                   ; integer, fixed waypoint 0-7; any other value means random.
+; Repeat each key through Multi8.
+
+[Multi1_Alliances]
+HouseAllyOne=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyTwo=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyThree=-1           ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyFour=-1            ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyFive=-1            ; integer, index of the house this house is allied to, -1 means none.
+HouseAllySix=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllySeven=-1           ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyEight=-1           ; integer, index of the house this house is allied to, -1 means none.
+; Repeat through [Multi8_Alliances].
+```
+
+- The spawner can initialize all 500 environment globals for the first scenario.
+
+In `SPAWN.INI`:
+```ini
+[GlobalFlags]
+GlobalFlag0=0
+; Repeat through GlobalFlag499.
+```
+
 ## Quality of Life
 
 - Harvesters are now considered when executing the "Guard" command. They have a special case when assigned with the Guard mission that tells them to find the nearest Tiberium patch and begin harvesting.
@@ -210,6 +392,20 @@ In `RULES.INI`:
 [General]
 RecheckPrerequisites=no  ; boolean, should prerequisites be rechecked, and unavailable items removed from the sidebar, when buildings are lost?
 ```
+
+## Auto-Saves
+
+- Vinifera can make rotating auto-saves at equal intervals in campaigns and, optionally, skirmish. The number of auto-saves to keep and the interval can be customized.
+
+In `SUN.INI`:
+```ini
+[Options]
+AutoSaveCount=5        ; integer, the number of auto-saves to keep simultaneously. Setting to 0 will disable auto-saves.
+AutoSaveInterval=7200  ; integer, the interval between auto-saves, in frames.
+AutoSaveInSkirmish=no  ; boolean, should periodic auto-saves also be made in skirmish games?
+```
+
+Spawner multiplayer sessions use `AutoSaveGame` from `SPAWN.INI` instead.
 
 ## Multi-Engineer
 
@@ -465,7 +661,10 @@ Due to the nature of its use, this feature is only available when Vinifera is ru
 
 ### Command Line Options
 
-- Vinifera adds a number of command-line arguments allowing the user to skip the startup movies, or skip directly to a specific game mode and/or dialog.
+- Vinifera adds a number of command-line arguments.
+
+- `-SPAWN`
+Launch the game in spawner mode.
 
 - `-NO_STARTUP_VIDEO`
 Skips all startup movies.

@@ -69,6 +69,8 @@ public:
     bool Has_Prerequisite(PrerequisiteGroupType group);
     bool Has_Prerequisite(StructType building);
 
+    bool Required_Forbidden_Houses_Check(TechnoTypeClass const* ttype);
+
     void Put_Storage_Pointers();
     static void Load_Unit_Trackers(HouseClass* house, IStream* pStm);
     static void Save_Unit_Trackers(HouseClass* house, IStream* pStm);
@@ -128,4 +130,9 @@ public:
     *  Per house TeamTime delay override.
     */
     int TeamDelayOverride;
+    
+    /**
+     *  Is this house an observer?
+     */
+    bool IsObserver;
 };

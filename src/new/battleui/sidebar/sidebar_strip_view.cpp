@@ -989,7 +989,7 @@ void SidebarStripView::Draw_Queue_Count(Surface& surface, const Rect& rect, cons
  */
 void SidebarStripView::Draw_Hover_Highlight(Surface& surface, const Rect& cameo_rect)
 {
-    const ColorSchemeType colorscheme = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
+    const ColorSchemeType colorscheme = Extension::Fetch(Sides[PlayerPtr->Class->Side])->HoverHighlightColor;
     surface.Draw_Rect(cameo_rect, DSurface::Build_Hicolor_Pixel(ColorSchemes[colorscheme]->HSV.operator RGBClass()));
 }
 

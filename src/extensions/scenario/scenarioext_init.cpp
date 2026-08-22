@@ -83,26 +83,6 @@ original_code:
 
 
 /**
- *  Patch for reading the extended class members from the ini instance.
- *
- *  @warning: Do not touch this unless you know what you are doing!
- *
- *  @author: CCHyper
- */
-DEFINE_HOOK(0x005DD93B, _ScenarioClass_Read_INI_Patch, 6)
-{
-    GET(CCINIClass *, ini, EBP);
-
-    bool retval = false;
-    retval |= Scen->Read_INI(*ini);
-    retval |= ScenExtension->Read_INI(*ini);
-
-    R->AL(retval);
-    return 0x005DD947;
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void ScenarioClassExtension_Init()

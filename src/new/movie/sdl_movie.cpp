@@ -19,6 +19,7 @@
 #include "optionsext.h"
 #include "sdl_functions.h"
 #include "vinifera_globals.h"
+#include "vinifera_imgui.h"
 
 
 static SDL_Texture *MovieTexture = nullptr;
@@ -124,6 +125,7 @@ bool SDL_Movie_Present_Frame(const MovieVideoFrame &frame, const Rect &destinati
 
     MovieDestinationRect = destination_rect;
     MovieHasFrame = true;
+    ViniferaImGui::Render_Movie_Overlay();
     SDL_RenderPresent(SDLWindowRenderer);
     return true;
 }
@@ -156,6 +158,7 @@ bool SDL_Movie_Repaint()
         }
     }
 
+    ViniferaImGui::Render_Movie_Overlay();
     SDL_RenderPresent(SDLWindowRenderer);
     return true;
 }

@@ -403,6 +403,11 @@ public:
      */
     bool IronCurtainPriorityTarget;
 
+    /**
+     *  List of animations to be used as the explosion when scrap explosions are turned on.
+     */
+    TypeList<AnimTypeClass*> ScrapExplosion;
+
     /*
      *  Specifies the sight range that should be used when the techno is veteran.
      *  Falls back to vanilla SightRange when not provided.

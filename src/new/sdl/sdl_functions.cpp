@@ -23,6 +23,7 @@
 #include "debughandler.h"
 #include "mouse.h"
 #include "optionsext.h"
+#include "ownrdraw.h"
 #include "playmovie.h"
 #include "rect.h"
 #include "sdl_movie.h"
@@ -54,12 +55,6 @@ namespace
     thread_local bool SDLCallingTranslatedMouseProc = false;
 
     std::unordered_map<HWND, WNDPROC> SDLChildWindowProcedures;
-
-    /**
-     *  Custom OwnerDraw control messages (mirrors vanilla ownrdraw.h).
-     */
-    constexpr UINT OD_SETTRACKSTEP = WM_USER + 171;
-    constexpr UINT OD_TRACKNUMBERS = WM_USER + 172;
 
     /**
      *  The border thickness used by OwnerDraw controls, fixed at 1 by
@@ -1276,7 +1271,6 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         return DefWindowProc(hwnd, message, wParam, lParam);
 
     case WM_CLOSE:
-        CDControl.Unlock_All_CD_Trays();
         break;
 
         /*
@@ -1287,7 +1281,6 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             delete ToolTips;
             ToolTips = nullptr;
         }
-        CDControl.Unlock_All_CD_Trays();
         MainWindow = nullptr;
 
         /*
@@ -1364,9 +1357,6 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         switch (wParam) {
 
         case SC_CLOSE:
-            CDControl.Unlock_All_CD_Trays();
-
-#ifdef TS_CLIENT
             /*
             **  TS Client users are used to Alt+F4 aborting the game, which in turn closes the game
             **  because there is no main menu in the TS Client.
@@ -1374,7 +1364,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             if (GameActive) {
                 Queue_Exit();
             }
-#endif
+
             /*
             **  Windows sent us a close message. Probably in response to Alt-F4. Ignore it by
             **  pretending to handle the message and returning true;

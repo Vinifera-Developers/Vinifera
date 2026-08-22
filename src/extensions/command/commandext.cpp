@@ -83,6 +83,7 @@
 #include "wwcrc.h"
 #include "wwmouse.h"
 
+#include "mapext_hooks.h"
 #include <algorithm>
 #include <map>
 
@@ -316,7 +317,7 @@ bool PNGScreenCaptureCommandClass::Process()
      *  @author: CCHyper
      */
     char fullpath_buffer[PATH_MAX];
-    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory, buffer);
+    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory.c_str(), buffer);
 
     /**
      *  We found a free filename, now write the buffer to a PNG file.
@@ -381,6 +382,95 @@ bool DeleteCommandClass::Process()
     BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
 
     return true;
+}
+
+
+/**
+ *  Replacement for SelectSameTypeCommandClass.
+ *
+ *  @author: JoyfulShush
+ */
+const char* SelectSameTypeImprovedCommandClass::Get_Name() const
+{
+    return "SelectType";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_UI_Name() const
+{
+    return "Select Same Type";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Description() const
+{
+    return "Selects all units of the same type as currently selected.";
+}
+
+/*
+ *  Improves the Select Same Type command in the following ways:
+ *  1. No longer deselects units that are out of the screen when running the command.
+ *  2. Rather than calling 'TacticalMap->Select_These' for each type, runs it once for all types.
+ *  3. When processed twice in a small amount of time, selects the units of those types in the entire map rather than just the current tactical view.
+ *  4. Ignores selected technos that do not belong to the player.
+ * 
+ *  @author: JoyfulShush
+ */
+bool SelectSameTypeImprovedCommandClass::Process()
+{   
+    SelectionTypes.clear();
+    DWORD current_time = timeGetTime();
+    DWORD previous_execution_time = LastExecutionTime;
+
+    LastExecutionTime = current_time;
+    
+    for (int i = 0; i < CurrentObjects.Count(); i++) {
+        auto current_object = CurrentObjects[i];
+        auto techno_class = current_object->Techno_Type_Class();
+
+        if (current_object->Is_Techno() && !current_object->As_Techno()->House->Is_Player_Control()) {
+            continue;
+        }
+
+        if (!SelectionTypes.contains(techno_class))  {
+            SelectionTypes.insert(techno_class);
+        }
+    }
+
+    if (SelectionTypes.size() > 0) {
+        if (previous_execution_time != 0 && current_time - previous_execution_time < 500) {
+            Map_Select_These(Process_Callback);
+        } else {
+            TacticalMap->Select_These(TacticalRect, Process_Callback);
+        }
+    }
+
+    return true;
+}
+
+
+/*
+ *  For each object being checked by the game, decide if the techno should be selected when running the Select Same Type command.
+ *
+ *  @author: JoyfulShush
+ */
+void SelectSameTypeImprovedCommandClass::Process_Callback(ObjectClass* object_ptr) 
+{
+    if (object_ptr == nullptr) return;
+    if (!object_ptr->Is_Techno()) return;
+    if (!object_ptr->IsDown) return;
+    
+    auto techno = object_ptr->As_Techno();
+    auto techno_class = techno->Techno_Type_Class();
+
+    if (techno->IsSelected) return;
+    if (!SelectionTypes.contains(techno_class)) return;
+    if (!techno->House->Is_Player_Control()) return;
+
+    techno->Select();
 }
 
 
@@ -1674,8 +1764,53 @@ bool ForceWinCommandClass::Process()
 
 
 /**
+ *  Forces the current multiplayer game to go out of sync, for testing the
+ *  desync dialog. Advancing the synchronized random number generator on a
+ *  single machine makes its game-state CRC diverge from everyone else's,
+ *  which all players detect as a desync within a frame or two.
+ *
+ *  @author: ZivDero
+ */
+const char *ForceDesyncCommandClass::Get_Name() const
+{
+    return "ForceDesync";
+}
+
+const char *ForceDesyncCommandClass::Get_UI_Name() const
+{
+    return "Force Desync";
+}
+
+const char *ForceDesyncCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ForceDesyncCommandClass::Get_Description() const
+{
+    return "Forces the current multiplayer game to go out of sync (for testing).";
+}
+
+bool ForceDesyncCommandClass::Process()
+{
+    if (Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Advance the synchronized RNG only on this machine, desyncing it from
+     *  the other players.
+     */
+    Scen->RandomNumber();
+
+    DEBUG_INFO("ForceDesync: advanced the synchronized RNG to force a desync.\n");
+    return true;
+}
+
+
+/**
  *  Forces the player to lose the current game session.
- * 
+ *
  *  @author: CCHyper
  */
 const char *ForceLoseCommandClass::Get_Name() const
@@ -4522,7 +4657,7 @@ bool DumpNetworkCRCCommandClass::Process()
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
-        Vinifera_DebugDirectory,
+        Vinifera_DebugDirectory.c_str(),
         PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         day, month, year, hour, min, sec);

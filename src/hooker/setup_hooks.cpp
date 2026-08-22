@@ -30,9 +30,5 @@ void Setup_Hooks()
     Vinifera_Hooks();
     NewSwizzle_Hooks();
     Extension_Hooks();
-
-    //CnCNet4_Hooks();
-    //CnCNet5_Hooks();
-
     MoviePlayback_Hooks();
 }

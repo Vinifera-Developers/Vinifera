@@ -40,7 +40,10 @@ CampaignClassExtension final : public AbstractTypeClassExtension
         virtual const CampaignClass *This_Const() const override { return reinterpret_cast<const CampaignClass *>(AbstractTypeClassExtension::This_Const()); }
         virtual RTTIType Fetch_RTTI() const override { return RTTI_CAMPAIGN; }
 
-        virtual bool Read_INI(CCINIClass &ini) override;
+        virtual bool Read_INI(CCINIClass& ini) override;
+
+        HousesType Get_House() const;
+        void Set_House(HousesType house);
 
     public:
         /**
@@ -52,4 +55,10 @@ CampaignClassExtension final : public AbstractTypeClassExtension
          *  The movie to play at start of this campaign.
          */
         char IntroMovie[64];
+
+        /**
+         *  The HOUSE (not side!) this campaign is played as.
+         */
+        HousesType _House;
+        __declspec(property(get = Get_House, put = Set_House)) HousesType House;
 };

@@ -33,34 +33,28 @@ You can discuss the development and progress of this project on the **C&C Moddin
 
 
 # Downloading Vinifera
+### Releases
+
+Releases are the stable, recommended builds, and are the ones mods should ship against.  
+All official release builds are made from the `master` branch.  
+You can find all currently released versions of Vinifera [here](https://github.com/Vinifera-Developers/Vinifera/releases).
+
 ### Nightly Builds
 
 An automated build of the `develop` branch is uploaded daily.  
 These Nightly builds include the latest merged features and updates, but they are **not considered stable** and may contain unfinished or experimental functionality.  
 They are intended for active playtesting and for previewing upcoming changes — use them at your own risk.
 
-There are two versions of the Nightly builds available: **Standard** and **Compatibility**.
-
-- The **Standard** build is provided _as-is_, with no modifications for third-party integration.
-- The **Compatibility** build includes changes to improve compatibility (where possible) with existing community patches. This version is also used for integration into the **TS Client**.
-
-If you're unsure which version is right for you, feel free to ask a developer on the **Discord** server.
-
 You can find the latest Nightly builds [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/nightly.yml).  
 Alternatively, the latest build from the most recent commit can be found [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/push.yml).
-
-### Releases
-
-All official release builds are made from the `master` branch.  
-You can find all currently released versions of Vinifera [here](https://github.com/Vinifera-Developers/Vinifera/releases).
 
 ### Installing Vinifera
 
 #### With Freeware TS
 
-1. **Download the latest Vinifera nightly build**  
-   Make sure to get the one **_not postfixed with `ts_client`_**  
-   → https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop
+1. **Download the latest Vinifera release**  
+   → https://github.com/Vinifera-Developers/Vinifera/releases/latest  
+   (or a [nightly build](https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop) if you want the latest unstable changes)
 
 2. **Extract all files** from the archive into the **root directory of your Tiberian Sun installation** (where `Game.exe` is located).
 
@@ -73,8 +67,9 @@ You can use the `Vinifera Beta` version of the TS Client. To switch to it, go to
 After saving your settings and restarting the client, **force an update** to download the Vinifera build.
 
 Alternatively, if you wish to install it manually, you can follow these steps:
-1. **Download the Vinifera nightly build _postfixed with `ts_client`_**  
-   → https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop
+1. **Download the latest Vinifera release**  
+   → https://github.com/Vinifera-Developers/Vinifera/releases/latest  
+   (or a [nightly build](https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop) if you want the latest unstable changes)
 
 2. **Extract the files** into the **TS Client directory**.
 
