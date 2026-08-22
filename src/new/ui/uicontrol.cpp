@@ -396,7 +396,9 @@ bool UIControlsClass::Read_INI(CCINIClass const& ini)
 
     static char const* const LOADING_SCREENS = "LoadingScreens";
     for (int i = 0; i < ini.Entry_Count(LOADING_SCREENS); i++) {
-        LoadingScreen screen(ini.Get_Entry(LOADING_SCREENS, i));
+        const char* key = ini.Get_Entry(LOADING_SCREENS, i);
+        const std::string entry = ini.Get_String(LOADING_SCREENS, key, {});
+        LoadingScreen screen(entry.c_str());
         if (screen.IsValid) {
             LoadingScreens.emplace_back(screen);
         }
@@ -408,8 +410,13 @@ bool UIControlsClass::Read_INI(CCINIClass const& ini)
 
 UIControlsClass::LoadingScreen::LoadingScreen(char const* entry)
 {
-    static char buffer[1024];
-    std::strncpy(buffer, entry, sizeof(buffer));
+    if (entry == nullptr || entry[0] == '\0') {
+        DEBUG_ERROR("Invalid empty loading screen entry!\n");
+        return;
+    }
+
+    char buffer[1024];
+    std::snprintf(buffer, sizeof(buffer), "%s", entry);
 
     auto parse_number = [](char const* s) -> int {
         if (s == nullptr) {
@@ -428,22 +435,27 @@ UIControlsClass::LoadingScreen::LoadingScreen(char const* entry)
 
     char* token = std::strtok(buffer, ",");
     House = static_cast<HousesType>(parse_number(token));
-    if (House <= HOUSE_FIRST) {
-        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!", buffer);
+    if (House < HOUSE_FIRST) {
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
         return;
     }
 
     token = std::strtok(nullptr, ",");
+    if (token == nullptr) {
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
+        return;
+    }
+
     Filename = token;
     if (Filename.empty()) {
-        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!", buffer);
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
         return;
     }
 
     token = std::strtok(nullptr, ",");
     int width = parse_number(token);
     if (width <= 0) {
-        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!", buffer);
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
         return;
     }
 
@@ -451,7 +463,7 @@ UIControlsClass::LoadingScreen::LoadingScreen(char const* entry)
     token = std::strtok(nullptr, ",");
     height = parse_number(token);
     if (height <= 0) {
-        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!", buffer);
+        DEBUG_ERROR("Invalid loading screen entry: \"{}\"!\n", entry);
         return;
     }
 
@@ -568,7 +580,7 @@ UIControlsClass::LoadingScreen UIControlsClass::Pick_Loading_Screen(HousesType h
 
     char name[32];
     char letter = Pick_House_Letter(house);
-    std::snprintf(name, sizeof(name), "LOAD%03d%c.PCX", size.Size.Y, letter);
+    std::snprintf(name, sizeof(name), "LOAD%03d%c", size.Size.Y, letter);
 
     return LoadingScreen {house, name, size};
 }

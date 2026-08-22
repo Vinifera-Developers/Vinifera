@@ -122,12 +122,6 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         SideType SidebarSide;
 
         /**
-         *  Scenarios can override the loading screen with a custom variant, these
-         *  define the filename to load and position overrides.
-         */
-        std::vector<UIControlsClass::LoadingScreen> LoadingScreens;
-
-        /**
          *  Should the AI use base nodes outside of campaign, instead of skirmish AI base building logic.
          */
         bool IsUseMPAIBaseNodes;

@@ -57,7 +57,7 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 
     private:
         static std::string Multiplayer_Save_File_Name_From_Index(int index);
-        void Init_Multiplayer_Saves_For_Session();
+        bool Init_Multiplayer_Saves_For_Session();
         std::string Multiplayer_Save_File_Name() const;
         std::string Autosave_File_Name() const;
         std::string Autosave_Description() const;
@@ -99,6 +99,11 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
              *  Should statistics be written for the current match?
              */
             bool IsWriteStatistics = false;
+
+            /**
+             *  Should the multiplayer score screen be skipped when the game ends?
+             */
+            bool IsSkipScoreScreen = false;
 
             /**
              *  Should disconnected players be eliminated instead of handed to the AI?

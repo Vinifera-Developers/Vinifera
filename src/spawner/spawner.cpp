@@ -11,6 +11,7 @@
 
 #include "WinUser.h"
 #include "addon.h"
+#include "campaign.h"
 #include "ccini.h"
 #include "cncnet5_wspudp.h"
 #include "debughandler.h"
@@ -25,9 +26,11 @@
 #include "latencylevel.h"
 #include "loadoptions.h"
 #include "mouse.h"
+#include "miscutil.h"
 #include "netdlg.h"
 #include "options.h"
 #include "ownrdraw.h"
+#include "protocolzero.h"
 #include "rules.h"
 #include "saveload.h"
 #include "scenario.h"
@@ -36,11 +39,14 @@
 #include "tab.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+#include "vinifera_savever.h"
 #include "vinifera_util.h"
 #include "wspudp.h"
 #include "wwmouse.h"
 
 #include <algorithm>
+#include <climits>
 #include <ctime>
 
 
@@ -159,11 +165,185 @@ int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
         return EXT_DIFF_ULTIMATELY_EASY;
     }
 
-    // Could also be described with this formula, given the difficulty setup.
-    // return (DIFF_HARD + EXT_DIFF_COUNT - difficulty) % EXT_DIFF_COUNT;
-
     DEBUG_FATAL("Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty: Unknown difficulty level {}", difficulty);
     return -1;
+}
+
+
+/**
+ *  Validates config values that are later used as array and heap indices.
+ *
+ *  @author: ZivDero
+ */
+bool Spawner::Validate_Config()
+{
+    if (Config == nullptr || Config->HumanPlayers < 1 || Config->HumanPlayers > MAX_PLAYERS) {
+        DEBUG_ERROR("[Spawner] Invalid human player count {}.\n", Config ? Config->HumanPlayers : -1);
+        return false;
+    }
+
+    if (Config->LocalPlayerIndex < 0 || Config->LocalPlayerIndex >= Config->HumanPlayers) {
+        DEBUG_ERROR("[Spawner] Invalid local player index {}.\n", Config->LocalPlayerIndex);
+        return false;
+    }
+
+    if (!Config->HumanPlayerSectionsContiguous) {
+        DEBUG_ERROR("[Spawner] Human player sections must be contiguous from [Settings] through [Other7].\n");
+        return false;
+    }
+
+    if (Config->AIPlayers < 0 || Config->AIPlayers > MAX_PLAYERS - Config->HumanPlayers) {
+        DEBUG_ERROR("[Spawner] Invalid AI player count {} for {} human players.\n", Config->AIPlayers, Config->HumanPlayers);
+        return false;
+    }
+
+    if (Config->GameSpeed < 0 || Config->GameSpeed > 7) {
+        DEBUG_ERROR("[Spawner] Invalid game speed {}. Expected a value from 0 through 7.\n", Config->GameSpeed);
+        return false;
+    }
+
+    if (Config->ListenPort < 0 || Config->ListenPort > 0xFFFF || Config->TunnelId < 0 || Config->TunnelId > 0xFFFF || Config->TunnelPort < 0 || Config->TunnelPort > 0xFFFF) {
+        DEBUG_ERROR("[Spawner] A configured network port or tunnel ID is outside the 0-65535 range.\n");
+        return false;
+    }
+
+    if (Config->Protocol != 0 && Config->Protocol != 2) {
+        DEBUG_ERROR("[Spawner] Unsupported network protocol {}.\n", Config->Protocol);
+        return false;
+    }
+
+    if ((Config->Protocol != 0 && (Config->FrameSendRate < 1 || Config->FrameSendRate > UCHAR_MAX)) || Config->MaxAhead < -1 || Config->MaxAhead > USHRT_MAX || Config->PreCalcMaxAhead < 0 || Config->PreCalcMaxAhead > USHRT_MAX || Config->ReconnectTimeout < 0 || Config->ConnTimeout < 0) {
+        DEBUG_ERROR("[Spawner] One or more network timing values are outside their supported range.\n");
+        return false;
+    }
+
+    /**
+     *  Campaign scenarios create their houses from the map rather than the
+     *  multiplayer slot configuration.
+     */
+    if (Config->IsCampaign) {
+        const int human_difficulty = static_cast<int>(Config->CampaignDifficulty);
+        const int computer_difficulty = static_cast<int>(Config->CampaignCDifficulty);
+        if (human_difficulty < DIFF_FIRST || human_difficulty >= EXT_DIFF_COUNT || computer_difficulty < DIFF_FIRST || computer_difficulty >= EXT_DIFF_COUNT) {
+            DEBUG_ERROR("[Spawner] Invalid campaign difficulty values {}, {}.\n", human_difficulty, computer_difficulty);
+            return false;
+        }
+
+        if (Config->CampaignID != CAMPAIGN_NONE && (Config->CampaignID < CAMPAIGN_FIRST || Config->CampaignID >= Campaigns.Count())) {
+            DEBUG_ERROR("[Spawner] Invalid campaign ID {}.\n", static_cast<int>(Config->CampaignID));
+            return false;
+        }
+
+        return true;
+    }
+
+    if (Config->AIDifficulty < DIFF_FIRST || Config->AIDifficulty >= DIFF_COUNT) {
+        DEBUG_ERROR("[Spawner] Invalid global AI difficulty {}.\n", Config->AIDifficulty);
+        return false;
+    }
+
+    const int total_slots = Config->HumanPlayers + Config->AIPlayers;
+    std::vector<bool> colors_used(ColorSchemes.Count());
+    const bool tunnel_enabled = Config->TunnelPort != 0;
+
+    if (Config->HumanPlayers > 1) {
+        if (tunnel_enabled) {
+            const unsigned long tunnel_ip = inet_addr(Config->TunnelIp.c_str());
+            if (Config->TunnelId == 0 || tunnel_ip == INADDR_ANY || tunnel_ip == INADDR_NONE) {
+                DEBUG_ERROR("[Spawner] Invalid tunnel endpoint or client ID.\n");
+                return false;
+            }
+        } else if (Config->ListenPort == 0) {
+            DEBUG_ERROR("[Spawner] Direct multiplayer requires a non-zero listen port.\n");
+            return false;
+        }
+    }
+
+    for (int slot = 0; slot < total_slots; ++slot) {
+        const auto& player = Config->Players[slot];
+        const int color = static_cast<int>(player.Color);
+        const int house = static_cast<int>(player.House);
+
+        if (color < 0 || color >= static_cast<int>(colors_used.size())) {
+            DEBUG_ERROR("[Spawner] Slot {} has invalid color index {}.\n", slot, color);
+            return false;
+        }
+
+        if (colors_used[color]) {
+            DEBUG_ERROR("[Spawner] Slot {} reuses color index {}.\n", slot, color);
+            return false;
+        }
+        colors_used[color] = true;
+
+        if (house < 0 || house >= HouseTypes.Count()) {
+            DEBUG_ERROR("[Spawner] Slot {} has invalid house index {}.\n", slot, house);
+            return false;
+        }
+
+        if (player.IsHuman) {
+            if (player.Name.empty()) {
+                DEBUG_ERROR("[Spawner] Human slot {} has an empty name.\n", slot);
+                return false;
+            }
+
+            if (player.Name.size() >= MPLAYER_NAME_MAX) {
+                DEBUG_ERROR("[Spawner] Human slot {} has a name longer than {} characters.\n", slot, MPLAYER_NAME_MAX - 1);
+                return false;
+            }
+
+            for (int other_slot = 0; other_slot < slot; ++other_slot) {
+                const auto& other = Config->Players[other_slot];
+                if (other.IsHuman && !_stricmp(player.Name.c_str(), other.Name.c_str())) {
+                    DEBUG_ERROR("[Spawner] Human slots {} and {} use the same name.\n", other_slot, slot);
+                    return false;
+                }
+            }
+
+            if (Config->HumanPlayers > 1 && (player.Port < 0 || player.Port > 0xFFFF)) {
+                DEBUG_ERROR("[Spawner] Human slot {} has invalid port {}.\n", slot, player.Port);
+                return false;
+            }
+
+            if (Config->HumanPlayers > 1 && tunnel_enabled) {
+                for (int other_slot = 0; other_slot < slot; ++other_slot) {
+                    const auto& other = Config->Players[other_slot];
+                    if (other.IsHuman && other.Port == player.Port) {
+                        DEBUG_ERROR("[Spawner] Human slots {} and {} reuse tunnel client ID {}.\n", other_slot, slot, player.Port);
+                        return false;
+                    }
+                }
+            }
+
+            if (Config->HumanPlayers > 1 && slot != Config->LocalPlayerIndex) {
+                if (player.Port == 0) {
+                    DEBUG_ERROR("[Spawner] Remote human slot {} has a zero port.\n", slot);
+                    return false;
+                }
+
+                if (!tunnel_enabled) {
+                    const unsigned long player_ip = inet_addr(player.Ip.c_str());
+                    if (player_ip == INADDR_ANY || player_ip == INADDR_NONE) {
+                        DEBUG_ERROR("[Spawner] Remote human slot {} has invalid IP address \"{}\".\n", slot, player.Ip);
+                        return false;
+                    }
+                }
+            }
+        } else {
+            if (player.Difficulty < -1 || player.Difficulty > 6) {
+                DEBUG_ERROR("[Spawner] AI slot {} has invalid difficulty {}.\n", slot, player.Difficulty);
+                return false;
+            }
+        }
+
+        for (int ally : player.Alliances) {
+            if (ally < -1 || ally >= total_slots) {
+                DEBUG_ERROR("[Spawner] Slot {} has invalid alliance target {}.\n", slot, ally);
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -173,6 +353,10 @@ int Spawner::Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty)
  */
 bool Spawner::Init_Session(char* scenario_name)
 {
+    if (!Validate_Config()) {
+        return false;
+    }
+
     const auto& local_player = Config->Players[Config->LocalPlayerIndex];
 
     strcpy_s(Session.ScenarioFileName, 0x200, scenario_name);
@@ -192,7 +376,7 @@ bool Spawner::Init_Session(char* scenario_name)
     Session.Options.HarvesterTruce = Config->HarvesterTruce;
     Session.Options.FogOfWar = Config->FogOfWar;
     Session.Options.RedeployMCV = Config->MCVRedeploy;
-    std::strcpy(Session.Options.ScenarioDescription, Config->MapName.c_str());
+    std::snprintf(Session.Options.ScenarioDescription, sizeof(Session.Options.ScenarioDescription), "%s", Config->MapName.c_str());
     Session.ColorIdx = local_player.Color;
     Session.NumPlayers = Config->HumanPlayers;
 
@@ -203,10 +387,10 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->Set_Next_Campaign_Autosave_Slot(Config->NextCampaignAutoSaveNumber);
     SessionExtension->Set_Next_Skirmish_Autosave_Slot(Config->NextSkirmishAutoSaveNumber);
 
-    const auto nodename = new NodeNameType;
+    const auto nodename = new NodeNameType();
     Session.Players.Add(nodename);
 
-    std::strcpy(nodename->Name, local_player.Name.c_str());
+    std::snprintf(nodename->Name, sizeof(nodename->Name), "%s", local_player.Name.c_str());
     nodename->Player.House = local_player.House;
     nodename->Player.Color = local_player.Color;
     nodename->Player.ProcessTime = -1;
@@ -223,6 +407,7 @@ bool Spawner::Init_Session(char* scenario_name)
     SessionExtension->ExtOptions.MultiplayerAutoSaveInterval = Config->AutoSaveInterval;
     SessionExtension->ExtOptions.IsQuickMatch = Config->QuickMatch;
     SessionExtension->ExtOptions.IsWriteStatistics = Config->WriteStatistics;
+    SessionExtension->ExtOptions.IsSkipScoreScreen = Config->SkipScoreScreen;
     SessionExtension->ExtOptions.IsAutoSurrender = Config->AutoSurrender;
     SessionExtension->ExtOptions.IsAttackNeutralUnits = Config->AttackNeutralUnits;
     SessionExtension->ExtOptions.IsCoachMode = Config->CoachMode;
@@ -246,7 +431,7 @@ bool Spawner::Init_Session(char* scenario_name)
     if (!Config->CustomLoadScreen.empty()) {
         SessionExtension->SpawnerInfo.CustomLoadScreen = Config->CustomLoadScreen.c_str();
     }
-    if (Config->CustomLoadScreenPos != Point2D(0, 0)) {
+    if (Config->CustomLoadScreenPos.X > 0 && Config->CustomLoadScreenPos.Y > 0) {
         SessionExtension->SpawnerInfo.CustomLoadScreenPos = Config->CustomLoadScreenPos;
     }
 
@@ -269,7 +454,7 @@ bool Spawner::Init_Session(char* scenario_name)
         slot_info.Color = player_config.Color;
         slot_info.House = player_config.House;
 
-        if (!slot_info.IsHuman) {
+        if (!slot_info.IsHuman && player_config.Difficulty >= 0) {
             slot_info.Difficulty = Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(player_config.Difficulty);
 
             if (slot_info.Difficulty < 0) {
@@ -339,7 +524,7 @@ bool Spawner::Start_Scenario(char* scenario_name)
     const CampaignType campaign_id = Config->CampaignID;
     const bool play_movies_in_multiplayer = SessionExtension->ExtOptions.IsPlayMoviesInMultiplayer;
 
-    char save_game_name[decltype(Config->SaveGameName)::capacity()];
+    char save_game_name[decltype(Config->SaveGameName)::capacity() + 1];
     std::snprintf(save_game_name, sizeof(save_game_name), "%s", Config->SaveGameName.c_str());
 
     Init_Random();
@@ -368,7 +553,9 @@ bool Spawner::Start_Scenario(char* scenario_name)
             return ::Start_Scenario(scenario_name, true, CAMPAIGN_NONE);
         }
     } else {
-        Init_Network();
+        if (!Init_Network()) {
+            return false;
+        }
         bool result = load_save_game ? Load_Game(save_game_name) : ::Start_Scenario(scenario_name, play_movies_in_multiplayer, CAMPAIGN_NONE);
         if (!result) {
             return false;
@@ -404,13 +591,40 @@ bool Spawner::Start_Scenario(char* scenario_name)
  */
 bool Spawner::Load_Game(const char* file_name)
 {
-//    if (strlen(file_name) == 0 || !::Load_Game(file_name)) {
-    if (strlen(file_name) == 0 || !LoadOptionsClass().Load_File(file_name)) { // using LoadOptionsClass().Load_File here gives us a "Mission is loading. Please wait..." box.
+    char formatted_file_name[PATH_MAX];
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(file_name), nullptr);
+
+    ViniferaSaveVersionInfo save_info;
+    if (strlen(file_name) == 0 || !Vinifera_Is_Save_Loadable(formatted_file_name, &save_info)) {
+        DEBUG_INFO("[Spawner] Failed to validate savegame [{}]\n", file_name);
+        MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
+        return false;
+    }
+
+    const GameEnum saved_type = static_cast<GameEnum>(save_info.Get_Game_Type());
+    const bool expected_campaign = Session.Type == GAME_NORMAL && saved_type == GAME_NORMAL;
+    const bool expected_skirmish = Session.Type == GAME_SKIRMISH && saved_type == GAME_SKIRMISH;
+    const bool expected_multiplayer = (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && (saved_type == GAME_INTERNET || saved_type == GAME_IPX);
+
+    if (!expected_campaign && !expected_skirmish && !expected_multiplayer) {
+        DEBUG_ERROR("[Spawner] Savegame [{}] has incompatible game type {}.\n", file_name, static_cast<int>(saved_type));
+        MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
+        return false;
+    }
+
+    // Using LoadOptionsClass().Load_File gives us a "Mission is loading. Please wait..." box.
+    if (!LoadOptionsClass().Load_File(file_name)) {
         DEBUG_INFO("[Spawner] Failed to load savegame [{}]\n", file_name);
         MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
 
         return false;
     }
+
+    if (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) {
+        ProtocolZero::Reset();
+    }
+
+    Scen->IsSkipScore |= Config->SkipScoreScreen;
 
     return true;
 }
@@ -421,8 +635,9 @@ bool Spawner::Load_Game(const char* file_name)
  *
  *  @author: ZivDero
  */
-void Spawner::Init_Network()
+bool Spawner::Init_Network()
 {
+    ProtocolZero::Reset();
     SessionExtension->ProtocolZeroEnabled = Config->Protocol == 0;
     SessionExtension->ProtocolZeroMaxLatencyLevel = static_cast<unsigned char>(std::clamp(Config->MaxLatencyLevel, LATENCY_LEVEL_1, LATENCY_LEVEL_MAX));
     SessionExtension->ConnTimeout = Config->ConnTimeout;
@@ -453,7 +668,7 @@ void Spawner::Init_Network()
         const auto nodename = new NodeNameType();
         Session.Players.Add(nodename);
 
-        std::strcpy(nodename->Name, player.Name.c_str());
+        std::snprintf(nodename->Name, sizeof(nodename->Name), "%s", player.Name.c_str());
         nodename->Player.House = player.House;
         nodename->Player.Color = player.Color;
         nodename->Player.ProcessTime = -1;
@@ -463,11 +678,11 @@ void Spawner::Init_Network()
         std::memcpy(&nodename->Address.NetworkNumber, &remote_index, sizeof(remote_index));
         std::memcpy(&nodename->Address.NodeAddress, &remote_index, sizeof(remote_index));
 
-        const auto ip = inet_addr(player.Ip.c_str());
+        const auto ip = Config->TunnelPort != 0 ? INADDR_ANY : inet_addr(player.Ip.c_str());
         const auto port = htons(player.Port);
         udp_interface->AddressList[remote_index - 1].IP = ip;
         udp_interface->AddressList[remote_index - 1].Port = port;
-        if (player.Port != Config->ListenPort) { // TODO: This used to compare the post-htons port in ts-patches, may be a bug?
+        if (player.Port != Config->ListenPort) {
             udp_interface->PortHack = false;
         }
 
@@ -477,9 +692,28 @@ void Spawner::Init_Network()
     /**
      *  Now set up the rest of the network stuff.
      */
-    PacketTransport->Init();
-    PacketTransport->Open_Socket(0);
-    PacketTransport->Start_Listening();
+    if (!PacketTransport->Init()) {
+        DEBUG_ERROR("[Spawner] Failed to initialize the UDP packet transport.\n");
+        delete PacketTransport;
+        PacketTransport = nullptr;
+        return false;
+    }
+
+    if (!PacketTransport->Open_Socket(0)) {
+        DEBUG_ERROR("[Spawner] Failed to open the UDP socket.\n");
+        PacketTransport->Close();
+        delete PacketTransport;
+        PacketTransport = nullptr;
+        return false;
+    }
+
+    if (!PacketTransport->Start_Listening()) {
+        DEBUG_ERROR("[Spawner] Failed to start listening on the UDP socket.\n");
+        PacketTransport->Close();
+        delete PacketTransport;
+        PacketTransport = nullptr;
+        return false;
+    }
     PacketTransport->Discard_In_Buffers();
     PacketTransport->Discard_Out_Buffers();
     Ipx.Set_Timing(60, -1, 600, true);
@@ -521,4 +755,5 @@ void Spawner::Init_Network()
     }
 
     ::Init_Network();
+    return true;
 }

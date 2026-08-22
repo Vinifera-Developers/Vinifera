@@ -17,6 +17,7 @@
 #include "loadoptions.h"
 #include "mouse.h"
 #include "optionsext.h"
+#include "protocolzero.h"
 #include "rules.h"
 #include "saveload.h"
 #include "scenario.h"
@@ -26,6 +27,8 @@
 #include "txtlabel.h"
 #include "vinifera_defines.h"
 #include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+#include "vinifera_savever.h"
 #include "vinifera_util.h"
 #include "wsproto.h"
 
@@ -177,6 +180,7 @@ void SessionClassExtension::Object_CRC(CRCEngine &crc) const
     crc(ExtOptions.MultiplayerAutoSaveInterval);
     crc(ExtOptions.IsQuickMatch);
     crc(ExtOptions.IsWriteStatistics);
+    crc(ExtOptions.IsSkipScoreScreen);
     crc(ExtOptions.IsAutoSurrender);
     crc(ExtOptions.IsAttackNeutralUnits);
     crc(ExtOptions.IsCoachMode);
@@ -200,10 +204,16 @@ void SessionClassExtension::Init_Clear()
     ExtOptions = ExtGameOptionsType();
     AutoSave = AutoSaveStateType();
     IsSpawnerSession = false;
+    MultiplayerSavesInitializedForThisSession = false;
     SpawnerInfo = SpawnerSessionInfoType();
     ProtocolZeroEnabled = false;
     ProtocolZeroMaxLatencyLevel = 0xFF;
     ConnTimeout = 0;
+    IsOriginalHost = false;
+
+    PendingMultiplayerSaveLoadSlot = -1;
+    PendingMultiplayerSaveLoadTime.reset();
+    ProtocolZero::Reset();
 
     for (auto& slot_info : SlotInfo) {
         slot_info = SpawnerSlotInfoType();
@@ -364,10 +374,9 @@ void SessionClassExtension::Service_Autosave_After_Main_Loop()
         Print_Saving_Game_Message(!AutoSave.IsNextMultiplayerSaveManual);
         AutoSave.IsToSave = false;
         Schedule_Next_Autosave();
-        Init_Multiplayer_Saves_For_Session();
 
-        // Actually save the game.
-        bool success = Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
+        // Initialize the save directory, then actually save the game.
+        bool success = Init_Multiplayer_Saves_For_Session() && Save_Game(Autosave_File_Name().c_str(), Autosave_Description().c_str());
 
         if (success) {
             Print_Game_Saved_Message(!AutoSave.IsNextMultiplayerSaveManual);
@@ -416,6 +425,18 @@ bool SessionClassExtension::Load_Multiplayer_Save(int slot)
         return false;
     }
 
+    ViniferaSaveVersionInfo save_info;
+    if (!Vinifera_Is_Save_Loadable(fullpath.string(), &save_info)) {
+        DEBUG_ERROR("SessionClassExtension::Load_Multiplayer_Save: Save slot {} is invalid or incompatible.\n", slot);
+        return false;
+    }
+
+    const GameEnum saved_type = static_cast<GameEnum>(save_info.Get_Game_Type());
+    if (saved_type != GAME_IPX && saved_type != GAME_INTERNET) {
+        DEBUG_ERROR("SessionClassExtension::Load_Multiplayer_Save: Save slot {} is not a multiplayer save.\n", slot);
+        return false;
+    }
+
     // Discard old networking data to prevent pre-load packets from interfering with state after load.
     PacketTransport->Discard_In_Buffers();
     PacketTransport->Discard_Out_Buffers();
@@ -428,6 +449,7 @@ bool SessionClassExtension::Load_Multiplayer_Save(int slot)
     }
 
     DEBUG_INFO("SessionClassExtension::Load_Multiplayer_Save: Save loaded. Restarting networking. Frame: {}\n", Frame);
+    ProtocolZero::Reset();
 
     // Set the load game flag. It allows the event queue logic to re-perform the
     // post-scenario-load "handshake" and set initial networking delay properly.
@@ -479,10 +501,10 @@ bool SessionClassExtension::Load_Multiplayer_Save(int slot)
  *
  *  @author: Rampastring
  */
-void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
+bool SessionClassExtension::Init_Multiplayer_Saves_For_Session()
 {
     if (MultiplayerSavesInitializedForThisSession) {
-        return;
+        return true;
     }
 
     // Delete any potential saves from previous multiplayer sessions.
@@ -491,6 +513,8 @@ void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
     fs::path saved_games_directory(Vinifera_SavedGamesDirectory);
 
     try {
+        fs::create_directories(saved_games_directory);
+
         for (int i = 0; i < 1000; ++i) {
 
             std::string filename = Multiplayer_Save_File_Name_From_Index(i);
@@ -499,14 +523,20 @@ void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
 
             std::error_code ec;
             fs::remove(fullpath, ec);
-
-            // Optional:
-            // log ec if desired
+            if (ec) {
+                DEBUG_ERROR("Failed to remove old multiplayer save \"{}\": {}\n", fullpath.string(), ec.message());
+                return false;
+            }
         }
 
         // Copy spawn.ini from main game directory and place it as spawnSG.ini to the saved games subdirectory.
-        // It is read by the CnCNet Client when loading saved multiplayer games.
+        // It is read by the client when loading saved multiplayer games.
         fs::path spawn_ini = "spawn.ini";
+
+        if (IsSpawnerSession && !fs::exists(spawn_ini)) {
+            DEBUG_ERROR("Failed to initialize multiplayer saves: spawn.ini does not exist.\n");
+            return false;
+        }
 
         if (fs::exists(spawn_ini)) {
             fs::path spawn_sg_ini = saved_games_directory / fs::path("spawnSG.ini");
@@ -514,9 +544,11 @@ void SessionClassExtension::Init_Multiplayer_Saves_For_Session()
         }
     } catch (const std::exception& e) {
         DEBUG_ERROR("Failed to copy spawn.ini and clear previous multiplayer saves! Reason: {}\n", e.what());
+        return false;
     }
 
     MultiplayerSavesInitializedForThisSession = true;
+    return true;
 }
 
 
@@ -589,41 +621,50 @@ std::string SessionClassExtension::Autosave_Description() const
  */
 bool SessionClassExtension::Reconcile_Players()
 {
-    int i;
-    bool found;
-    int house;
-    HouseClass* housep;
-
     /**
      *  If there are no players, there's nothing to do.
      */
     if (This()->Players.Count() == 0) return true;
 
     /**
-     *  Make sure every name we're connected to can be found in a House.
+     *  Resolve every connected player to exactly one saved human house before
+     *  mutating either the house ownership or player IDs.
      */
-    for (i = 0; i < This()->Players.Count(); i++) {
-        found = false;
-        for (house = 0; house < This()->Players.Count(); house++) {
-            housep = Houses[house];
-            if (!housep) {
+    std::vector<int> player_houses(This()->Players.Count(), -1);
+    std::vector<bool> claimed_houses(Houses.Count(), false);
+
+    for (int i = 0; i < This()->Players.Count(); ++i) {
+        int match = -1;
+        for (int house = 0; house < Houses.Count(); ++house) {
+            HouseClass* housep = Houses[house];
+            if (housep == nullptr || !housep->IsHuman) {
                 continue;
             }
 
             if (!stricmp(This()->Players[i]->Name, housep->IniName.c_str())) {
-                found = true;
-                break;
+                if (match != -1) {
+                    DEBUG_ERROR("Reconcile_Players: Multiple saved human houses use the name \"{}\".\n", This()->Players[i]->Name);
+                    return false;
+                }
+                match = house;
             }
         }
-        if (!found) return false;
+
+        if (match < 0 || claimed_houses[match]) {
+            DEBUG_ERROR("Reconcile_Players: Could not uniquely match connected player \"{}\".\n", This()->Players[i]->Name);
+            return false;
+        }
+
+        claimed_houses[match] = true;
+        player_houses[i] = match;
     }
 
     /**
      *  Loop through all Houses; if we find a human-owned house that we're
      *  not connected to, turn it over to the computer.
      */
-    for (house = 0; house < This()->Players.Count(); house++) {
-        housep = Houses[house];
+    for (int house = 0; house < Houses.Count(); ++house) {
+        HouseClass* housep = Houses[house];
         if (!housep) {
             continue;
         }
@@ -639,10 +680,10 @@ bool SessionClassExtension::Reconcile_Players()
          *  Try to find this name in the Players vector; if it's found, set
          *  its ID to this house.
          */
-        found = false;
-        for (i = 0; i < This()->Players.Count(); i++) {
-            if (!stricmp(This()->Players[i]->Name, housep->IniName.c_str())) {
-                found = true;
+        int player_index = -1;
+        for (int i = 0; i < This()->Players.Count(); ++i) {
+            if (player_houses[i] == house) {
+                player_index = i;
                 This()->Players[i]->Player.ID = static_cast<HousesType>(house);
                 break;
             }
@@ -651,7 +692,7 @@ bool SessionClassExtension::Reconcile_Players()
         /**
          *  If this name wasn't found, remove it
          */
-        if (!found) {
+        if (player_index < 0) {
 
             /**
              *  Turn the player's house over to the computer's AI
@@ -733,7 +774,7 @@ void SessionClassExtension::Announce_Master()
 
     ExtGlobalPacketType packet {};
     packet.Command = EXT_NET_HOST_ANNOUNCE;
-    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
     packet.Heartbeat.HouseID = static_cast<char>(PlayerPtr->HeapID);
     packet.Heartbeat.IsHost = 1;
 

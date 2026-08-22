@@ -260,8 +260,21 @@ bool EventClassExt::Is_Vinifera_Event() const
 void EventClassExt::Execute()
 {
     TechnoClass* techno;
-    HouseClass* house = Houses[ID];
-    HouseClassExtension* house_ext = Extension::Fetch(house);
+    HouseClassExtension* house_ext = nullptr;
+
+    switch (Type) {
+    case EVENT_PLACE:
+    case EVENT_PRODUCE:
+    case EVENT_SUSPEND:
+    case EVENT_ABANDON:
+    case EXT_EVENT_PLAYER_OPTIONS:
+        if (ID >= static_cast<unsigned int>(Houses.Count()) || Houses[ID] == nullptr) {
+            DEBUG_WARNING("Ignoring event {} with invalid house ID {}.\n", Event_Name(Type), ID);
+            return;
+        }
+        house_ext = Extension::Fetch(Houses[ID]);
+        break;
+    }
 
     switch (Type) {
 
@@ -411,6 +424,11 @@ void EventClassExt::Do_IDLE()
  */
 void EventClassExt::Do_TIMING()
 {
+    if (Data.Timing.FrameSendRate == 0) {
+        DEBUG_WARNING("Ignoring TIMING event with a zero frame-send rate.\n");
+        return;
+    }
+
     if (!SessionExtension->ProtocolZeroEnabled) {
         if (Scen->Special.IsFogOfWar) {
             Data.Timing.MaxAhead -= 10;
@@ -447,7 +465,13 @@ void EventClassExt::Do_TIMING()
 void EventClassExt::Do_REMOVEPLAYER()
 {
     DEBUG_INFO("Executing REMOVEPLAYER event. Frame is {}\n", Frame);
-    HouseClass* house = Houses[Data.General.Value];
+    const int house_id = Data.General.Value;
+    if (house_id < 0 || house_id >= Houses.Count() || Houses[house_id] == nullptr) {
+        DEBUG_WARNING("Ignoring REMOVEPLAYER event with invalid house ID {}.\n", house_id);
+        return;
+    }
+
+    HouseClass* house = Houses[house_id];
 
     if ((Session.Type == GAME_INTERNET && WestwoodOnline_Tournament) || (Session.Type == GAME_IPX && SessionExtension->ExtOptions.IsAutoSurrender)) {
         house->Flag_To_Die();

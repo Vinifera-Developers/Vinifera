@@ -111,15 +111,15 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
         }
 
         static char field_player_allies[] = "ALY?";
-        field_player_allies[3] = id;
+        field_player_allies[3] = static_cast<char>('0' + id);
         PacketClass::Add_Field(new FieldClass(field_player_allies, static_cast<unsigned long>(house->Allies)));
 
         static char field_player_spawn[] = "BSP?";
-        field_player_spawn[3] = id;
+        field_player_spawn[3] = static_cast<char>('0' + id);
         PacketClass::Add_Field(new FieldClass(field_player_spawn, static_cast<unsigned long>(house_ext->SpawnWaypoint)));
 
         static char field_player_observer[] = "SPC?";
-        field_player_observer[3] = id;
+        field_player_observer[3] = static_cast<char>('0' + id);
         PacketClass::Add_Field(new FieldClass(field_player_observer, static_cast<unsigned long>(house_ext->IsObserver)));
     }
 

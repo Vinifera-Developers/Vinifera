@@ -79,6 +79,17 @@
 #include <regex>
 
 
+namespace
+{
+    /**
+     *  Scenario loading-screen overrides are only needed while setting up a
+     *  scenario. Keep this non-trivial state outside the raw-serialized global
+     *  extension object.
+     */
+    std::vector<UIControlsClass::LoadingScreen> ScenarioLoadingScreens;
+}
+
+
 /**
  *  Class constructor.
  *
@@ -88,8 +99,7 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     IsIceDestruction(true),
     SidebarSide(SIDE_NONE),
-    IsUseMPAIBaseNodes(false),
-    LoadingScreens()
+    IsUseMPAIBaseNodes(false)
 {
     /**
      *  This copies the behavior of the games ScenarioClass.
@@ -202,7 +212,7 @@ void ScenarioClassExtension::Init_Clear()
     ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
     ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
 
-    LoadingScreens.clear();
+    ScenarioLoadingScreens.clear();
 
     {
         /**
@@ -276,8 +286,6 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
  */
 bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
 {
-    static const char * const BASIC = "Basic";
-
     CCFileClass file(filename);
     CCINIClass ini;
     ini.Load(file, false);
@@ -289,9 +297,11 @@ bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
     if (Session.Type == GAME_NORMAL) {
         static char const* const LOADING_SCREENS = "LoadingScreens";
         for (int i = 0; i < ini.Entry_Count(LOADING_SCREENS); i++) {
-            UIControlsClass::LoadingScreen screen(ini.Get_Entry(LOADING_SCREENS, i));
+            const char* key = ini.Get_Entry(LOADING_SCREENS, i);
+            const std::string entry = ini.Get_String(LOADING_SCREENS, key, {});
+            UIControlsClass::LoadingScreen screen(entry.c_str());
             if (screen.IsValid) {
-                LoadingScreens.emplace_back(screen);
+                ScenarioLoadingScreens.emplace_back(screen);
             }
         }
     }
@@ -305,7 +315,7 @@ UIControlsClass::LoadingScreen const* ScenarioClassExtension::Pick_Loading_Scree
     std::vector<UIControlsClass::LoadingScreen const*> screens;
 
     int largest_size = 0;
-    for (auto& screen : LoadingScreens) {
+    for (auto& screen : ScenarioLoadingScreens) {
         if (screen.House == house && VisibleRect.Width >= screen.Size.Size.X && VisibleRect.Height >= screen.Size.Size.Y) {
             int size = screen.Size.Size.X * screen.Size.Size.Y;
             if (size > largest_size) {
@@ -1359,6 +1369,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
         Scen->RequiredAddOn = static_cast<AddonType>(ini.Get_Bool(BASIC, "RequiredAddOn", ADDON_BASE_GAME));
         Set_Required_Addon(Scen->RequiredAddOn);
         if (!Addon_Installed(Scen->RequiredAddOn)) {
+            ScenarioInit--;
             return false;
         }
         Enable_Addon(Scen->RequiredAddOn);
@@ -1857,6 +1868,14 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
     SessionExtension->Schedule_Next_Autosave();
 
     /**
+     *  Apply the spawner's score-screen override after the scenario has been
+     *  read, because Clear_Scenario resets ScenarioClass state.
+     */
+    if (SessionExtension->IsSpawnerSession) {
+        Scen->IsSkipScore |= SessionExtension->ExtOptions.IsSkipScoreScreen;
+    }
+
+    /**
      *  Return with flag saying that the scenario file was read.
      */
     return true;
@@ -1933,23 +1952,23 @@ static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
         }
     }
 
+    int missing_waypoints = 0;
     for (int waycount = 0; waycount < look_for; ++waycount) {
         if (Scen->Is_Waypoint_Valid(waycount)) {
             list.Add(Scen->Waypoint_Cell(waycount));
             DEBUG_INFO("Multiplayer start waypoint found at cell {},{}.\n", Scen->Waypoint_Cell(waycount).X, Scen->Waypoint_Cell(waycount).Y);
+        } else {
+            /**
+             *  Preserve the waypoint ID as the vector index. Create_Units will
+             *  replace this virtual location with a valid random cell.
+             */
+            list.Add(CELL_NONE);
+            missing_waypoints++;
         }
     }
 
-    /**
-     *  If there are insufficient waypoints to account for all players, then randomly
-     *  assign starting points until there is enough.
-     */
-    int deficiency = look_for - list.Count();
-    if (deficiency > 0) {
-        DEBUG_WARNING("Multiplayer start waypoint deficiency - injecting virtual start positions. Deficiency: {}\n", deficiency);
-        for (int index = 0; index < deficiency; ++index) {
-            list.Add(CELL_NONE);
-        }
+    if (missing_waypoints > 0) {
+        DEBUG_WARNING("Multiplayer start waypoint deficiency - injected {} virtual start positions.\n", missing_waypoints);
     }
 
     return list;
@@ -2011,13 +2030,20 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
              */
             const auto houseext = Extension::Fetch(hptr);
             if (houseext->IsObserver) {
+                houseext->SpawnWaypoint = WAYPOINT_NONE;
                 continue;
             }
 
             const int chosen_spawn = houseext->SpawnWaypoint;
-            if (chosen_spawn >= 0 && chosen_spawn < MAX_PLAYERS && !taken[chosen_spawn]) {
+            if (chosen_spawn >= 0 && chosen_spawn < starting_points.Count() && !taken[chosen_spawn]) {
                 taken[chosen_spawn] = true;
                 numtaken++;
+            } else {
+                /**
+                 *  Invalid and duplicate client choices are assigned normally
+                 *  in the second pass.
+                 */
+                houseext->SpawnWaypoint = WAYPOINT_NONE;
             }
         }
     }
@@ -2102,13 +2128,19 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
              *  Now find the waypoint with the largest score. This waypoint is the one
              *  that is furthest from all other taken waypoints.
              */
-            int best = 0;
-            int bestvalue = 0;
+            int best = -1;
+            int bestvalue = INT_MIN;
             for (int searchindex = 0; searchindex < starting_points.Count(); searchindex++) {
-                if (score[searchindex] > bestvalue || bestvalue == 0) {
+                if (!taken[searchindex] && score[searchindex] > bestvalue) {
                     bestvalue = score[searchindex];
                     best = searchindex;
                 }
+            }
+
+            if (best < 0) {
+                DEBUG_ERROR("Unable to assign a unique multiplayer start waypoint to house {}.\n", house);
+                houseext->SpawnWaypoint = WAYPOINT_NONE;
+                continue;
             }
 
             /**
@@ -2158,12 +2190,19 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
              *  Pick a random house to observe.
              */
             else {
-                int player_count = Session.Players.Count() + Session.Options.AIPlayers;
-                int pick = Random_Pick(0, player_count - 1);
-                while (!taken[pick]) {
-                    pick = Random_Pick(0, player_count - 1);
+                std::vector<int> valid_taken_waypoints;
+                for (int waypoint = 0; waypoint < starting_points.Count(); ++waypoint) {
+                    if (taken[waypoint] && starting_points[waypoint] != CELL_NONE) {
+                        valid_taken_waypoints.push_back(waypoint);
+                    }
                 }
-                centroid = starting_points[pick];
+
+                if (valid_taken_waypoints.empty()) {
+                    centroid = Cell(Map.MapRect.X + Map.MapRect.Width / 2, Map.MapRect.Y + Map.MapRect.Height / 2);
+                } else {
+                    const int pick = valid_taken_waypoints[Random_Pick(0u, static_cast<unsigned int>(valid_taken_waypoints.size() - 1))];
+                    centroid = starting_points[pick];
+                }
             }
 
             /**
@@ -2176,7 +2215,11 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
             /**
              *  For normal players, the centroid is their starting waypoint.
              */
-            centroid = starting_points[houseext->SpawnWaypoint];
+            if (houseext->SpawnWaypoint >= 0 && houseext->SpawnWaypoint < starting_points.Count() && starting_points[houseext->SpawnWaypoint] != CELL_NONE) {
+                centroid = starting_points[houseext->SpawnWaypoint];
+            } else {
+                centroid = Cell(Map.MapRect.X + Map.MapRect.Width / 2, Map.MapRect.Y + Map.MapRect.Height / 2);
+            }
         }
 
         /**

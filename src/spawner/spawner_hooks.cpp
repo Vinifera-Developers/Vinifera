@@ -51,7 +51,7 @@ public:
  */
 void SessionClassExt::_Read_Scenario_Descriptions()
 {
-    if (SessionExtension->IsSpawnerSession) {
+    if (Spawner::Is_Active()) {
         return;
     }
 

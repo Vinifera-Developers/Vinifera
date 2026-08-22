@@ -56,6 +56,130 @@ DEFINE_HOOK(0x00494294, _EventClass_Execute_New_Events, 5)
  */
 static int CurrentPacketPlayerId;
 
+
+static bool Is_Valid_Event_Type(EventType type)
+{
+    return type < EXT_EVENT_COUNT;
+}
+
+
+/**
+ *  Validates an uncompressed event packet before queue or timing state is
+ *  mutated. ADDPLAYER payloads immediately follow their EventClass record.
+ */
+static bool Validate_Uncompressed_Events(const void* buf, int bufsize)
+{
+    if (buf == nullptr || bufsize <= 0 || bufsize > MAX_IPX_PACKET_SIZE) {
+        return false;
+    }
+
+    int pos = 0;
+    while (pos < bufsize) {
+        const int remaining = bufsize - pos;
+        if (remaining < static_cast<int>(sizeof(EventClass))) {
+            return false;
+        }
+
+        const auto event = reinterpret_cast<const EventClass*>(static_cast<const char*>(buf) + pos);
+        if (!Is_Valid_Event_Type(event->Type) || event->ID != CurrentPacketPlayerId) {
+            return false;
+        }
+
+        if (pos == 0 && event->Type != EVENT_FRAMEINFO && event->Type != EVENT_FRAMESYNC) {
+            return false;
+        }
+
+        if (event->Type == EVENT_FRAMESYNC && (pos != 0 || bufsize != sizeof(EventClass))) {
+            return false;
+        }
+
+        pos += sizeof(EventClass);
+        if (event->Type == EVENT_ADDPLAYER) {
+            const unsigned long payload_size = event->Data.Variable.Size;
+            if (payload_size > MAX_IPX_PACKET_SIZE || payload_size > static_cast<unsigned long>(bufsize - pos)) {
+                return false;
+            }
+            pos += static_cast<int>(payload_size);
+        }
+    }
+
+    return pos == bufsize;
+}
+
+
+/**
+ *  Validates a compressed event packet before extraction. The first record
+ *  carries the common FRAMEINFO header; later records contain a type byte and
+ *  only that event's payload.
+ */
+static bool Validate_Compressed_Events(const void* buf, int bufsize)
+{
+    if (buf == nullptr || bufsize <= 0 || bufsize > MAX_IPX_PACKET_SIZE) {
+        return false;
+    }
+
+    const int first_record_size = offsetof(EventClass, Data) + sizeof(EventClass::Data.FrameInfo);
+    if (bufsize < first_record_size) {
+        return false;
+    }
+
+    const auto first_event = reinterpret_cast<const EventClass*>(buf);
+    if ((first_event->Type != EVENT_FRAMEINFO && first_event->Type != EVENT_FRAMESYNC) || first_event->ID != CurrentPacketPlayerId) {
+        return false;
+    }
+
+    if (first_event->Type == EVENT_FRAMESYNC) {
+        return bufsize == first_record_size;
+    }
+
+    int pos = first_record_size;
+    while (pos < bufsize) {
+        const EventType type = static_cast<EventType>(*(static_cast<const unsigned char*>(buf) + pos));
+        if (!Is_Valid_Event_Type(type) || type == EVENT_FRAMEINFO || type == EVENT_FRAMESYNC) {
+            return false;
+        }
+        pos += sizeof(EventClass::Type);
+
+        if (type == EVENT_MEGAMISSION) {
+            if (bufsize - pos < static_cast<int>(sizeof(unsigned char))) {
+                return false;
+            }
+
+            const unsigned int repetitions = *(static_cast<const unsigned char*>(buf) + pos);
+            pos += sizeof(unsigned char);
+            if (repetitions == 0) {
+                return false;
+            }
+
+            const int payload_size = EventClassExt::Event_Length(type);
+            const int repeated_size = static_cast<int>((repetitions - 1) * sizeof(EventClass::Data.MegaMission.Whom));
+            if (payload_size > bufsize - pos || repeated_size > bufsize - pos - payload_size) {
+                return false;
+            }
+            pos += payload_size + repeated_size;
+            continue;
+        }
+
+        const int payload_size = EventClassExt::Event_Length(type);
+        if (payload_size > bufsize - pos) {
+            return false;
+        }
+
+        if (type == EVENT_ADDPLAYER) {
+            unsigned long variable_size = 0;
+            std::memcpy(&variable_size, static_cast<const char*>(buf) + pos, sizeof(variable_size));
+            if (variable_size > MAX_IPX_PACKET_SIZE || variable_size > static_cast<unsigned long>(bufsize - pos - payload_size)) {
+                return false;
+            }
+            pos += payload_size + static_cast<int>(variable_size);
+        } else {
+            pos += payload_size;
+        }
+    }
+
+    return pos == bufsize;
+}
+
 /**
  *  Reimplementation of Extract_Uncompressed_Events because the compiler
  *  decided to inline and omit it from the original game binary.
@@ -89,7 +213,7 @@ static int Extract_Uncompressed_Events(void* buf, int bufsize)
              */
             if (event->Type == EVENT_ADDPLAYER) {
                 event->Data.Variable.Pointer = new char[event->Data.Variable.Size];
-                memcpy(event->Data.Variable.Pointer, ((char*)buf) + sizeof(EventClass), event->Data.Variable.Size);
+                memcpy(event->Data.Variable.Pointer, static_cast<char*>(buf) + pos + sizeof(EventClass), event->Data.Variable.Size);
 
                 pos += event->Data.Variable.Size;
                 leftover -= event->Data.Variable.Size;
@@ -163,10 +287,20 @@ static RetcodeType _Process_Receive_Packet(ConnManClass* net, char* multi_packet
     int i;
     int frame;
 
-    /**
-     *  Record who we received this packet from so we can compare their ID against the events they have sent.
-     */
+    if (net == nullptr || multi_packet_buf == nullptr || their == nullptr || timer == nullptr || id < 0 || id >= MAX_PLAYERS || packetlen <= 0 || packetlen > MAX_IPX_PACKET_SIZE) {
+        DEBUG_WARNING("Process_Receive_Packet: Dropping packet with invalid arguments.\n");
+        return RC_NORMAL;
+    }
+
     CurrentPacketPlayerId = id;
+
+    const bool packet_is_valid = Session.CommProtocol == COMM_PROTOCOL_SINGLE_NO_COMP
+        ? Validate_Uncompressed_Events(multi_packet_buf, packetlen)
+        : Validate_Compressed_Events(multi_packet_buf, packetlen);
+    if (!packet_is_valid) {
+        DEBUG_WARNING("Process_Receive_Packet: Dropping malformed or forged packet from house {}.\n", id);
+        return RC_NORMAL;
+    }
 
     /**
      *  Get an event ptr to the incoming message
@@ -177,6 +311,10 @@ static RetcodeType _Process_Receive_Packet(ConnManClass* net, char* multi_packet
      *  Get the index of the sender
      */
     index = net->Connection_Index(id);
+    if (index < 0 || index >= net->Num_Connections()) {
+        DEBUG_WARNING("Process_Receive_Packet: Invalid connection index for house {}.\n", id);
+        return RC_NORMAL;
+    }
 
     /**
      *  Compute the other player's frame # (at the time this packet was sent)
@@ -577,7 +715,7 @@ static int _Extract_Compressed_Events(void* buf, int bufsize)
              *  this is a forged packet. No need to continue - just bail.
              */
             if (eventdata.ID != CurrentPacketPlayerId) {
-                DEBUG_ERROR("Extract_Compressed_Events: Forged house ID detected. Expected: {}, actual: {}\n", CurrentPacketPlayerId, event->ID);
+                DEBUG_ERROR("Extract_Compressed_Events: Forged house ID detected. Expected: {}, actual: {}\n", CurrentPacketPlayerId, eventdata.ID);
                 return count;
             }
 

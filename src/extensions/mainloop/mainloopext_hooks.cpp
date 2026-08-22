@@ -647,9 +647,11 @@ void Vinifera_Send_Network_Chat(const char* text)
     /*
     **  Network game: fill in a GlobalPacketType & send it.
     */
+    std::memset(&Session.GPacket, 0, sizeof(Session.GPacket));
     ExtGlobalPacketType& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
     packet.Command = static_cast<ExtNetCommandType>(NET_MESSAGE);
-    strcpy(packet.Name, Session.Players[0]->Name);
+    const char* sender_name = SessionExtension->ExtOptions.IsQuickMatch ? "Player" : Session.Players[0]->Name;
+    std::snprintf(packet.Name, sizeof(packet.Name), "%s", sender_name);
     packet.Message.Color = Session.ColorIdx;
     packet.Message.NameCRC = Compute_Name_CRC(Session.GameName);
 

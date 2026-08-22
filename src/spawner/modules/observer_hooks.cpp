@@ -58,8 +58,8 @@ void HouseClassExt::_Recalc_Radar_Availability()
     if (this == PlayerPtr && Extension::Fetch(PlayerPtr)->IsObserver) {
         if (!Map.Is_Radar_Existing()) {
             Map.Toggle_Radar(true);
-            Map.Reveal_The_Map();
         }
+        Map.Reveal_The_Map();
     } else {
         Recalc_Radar_Availability();
     }

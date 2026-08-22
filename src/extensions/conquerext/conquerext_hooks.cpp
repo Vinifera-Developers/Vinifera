@@ -38,6 +38,22 @@
 
 #include <chrono>
 
+
+namespace
+{
+    int Player_ID_From_Address(IPXAddressClass& address)
+    {
+        for (int i = 0; i < Session.Players.Count(); ++i) {
+            if (Session.Players[i]->Address == address) {
+                return static_cast<int>(Session.Players[i]->Player.ID);
+            }
+        }
+
+        return -1;
+    }
+}
+
+
 /**
  *  Replacement for Unselect_All.
  *
@@ -66,9 +82,33 @@ void Vinifera_Process_Incoming_Global_Packets()
     ** messages from the connection dialogs.
     */
     if (!Session.NetOpen) {
-        while (Ipx.Get_Global_Message(&Session.GPacket, &Session.GPacketlen, &Session.GAddress, &Session.GProductID)) {
+        for (;;) {
+            Session.GPacketlen = sizeof(Session.GPacket);
+            std::memset(&Session.GPacket, 0, sizeof(Session.GPacket));
+            if (!Ipx.Get_Global_Message(&Session.GPacket, &Session.GPacketlen, &Session.GAddress, &Session.GProductID)) {
+                break;
+            }
+
+            if (Session.GPacketlen < static_cast<int>(sizeof(Session.GPacket.Command)) || Session.GPacketlen > static_cast<int>(sizeof(Session.GPacket))) {
+                DEBUG_WARNING("Dropping global packet with invalid length {}.\n", Session.GPacketlen);
+                continue;
+            }
 
             if (Session.GProductID == IPXGlobalConnClass::COMMAND_AND_CONQUER2) {
+
+                const int command = static_cast<int>(Session.GPacket.Command);
+                const bool is_extended_packet = command >= EXT_NET_BEACON_PLACE && command <= EXT_NET_MOVIE_SKIP_VOTE;
+                const int sender_id = is_extended_packet ? Player_ID_From_Address(Session.GAddress) : -1;
+
+                if (is_extended_packet && Session.GPacketlen != sizeof(ExtGlobalPacketType)) {
+                    DEBUG_WARNING("Dropping extended global packet {} with invalid length {}.\n", command, Session.GPacketlen);
+                    continue;
+                }
+
+                if (is_extended_packet && sender_id < 0) {
+                    DEBUG_WARNING("Dropping extended global packet {} from an unknown sender.\n", command);
+                    continue;
+                }
 
                 switch (Session.GPacket.Command) {
 
@@ -111,6 +151,9 @@ void Vinifera_Process_Incoming_Global_Packets()
                 case NET_MESSAGE: {
                     bool msg_ok = false;
                     ExtGlobalPacketType& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+                    packet.Name[std::size(packet.Name) - 1] = '\0';
+                    packet.Message.Scope[std::size(packet.Message.Scope) - 1] = '\0';
+                    packet.Message.Buf[std::size(packet.Message.Buf) - 1] = '\0';
 
                     /*
                     ** If NetProtect is set, make sure this message came from within
@@ -127,8 +170,9 @@ void Vinifera_Process_Incoming_Global_Packets()
                     }
 
                     if (msg_ok) {
+                        const char* sender_name = SessionExtension->ExtOptions.IsQuickMatch ? "Player" : packet.Name;
                         char name[32];
-                        std::snprintf(name, std::size(name), "%s [%s]", packet.Name, packet.Message.Scope);
+                        std::snprintf(name, std::size(name), "%s [%s]", sender_name, packet.Message.Scope);
                         if (!Session.Messages.Concat_Message(name, packet.Message.Color, packet.Message.Buf, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE))) {
                             Session.Messages.Add_Message(name, packet.Message.Color, packet.Message.Buf, Session.Scheme_From_Color_ID(packet.Message.Color), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE));
 
@@ -150,7 +194,7 @@ void Vinifera_Process_Incoming_Global_Packets()
                         **  Also echo the message into the desync dialog's chat box,
                         **  if it is open.
                         */
-                        DesyncDialog.Notify_Chat(packet.Name, packet.Message.Buf);
+                        DesyncDialog.Notify_Chat(sender_name, packet.Message.Buf);
                     }
                     break;
                 }
@@ -172,27 +216,42 @@ void Vinifera_Process_Incoming_Global_Packets()
                 case NET_READY_TO_GO:
                     break;
 
-                case EXT_NET_BEACON_PLACE:
-                    BeaconManager.Place_Beacon(static_cast<HousesType>(reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).PlaceBeacon.House), reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).PlaceBeacon.Position, reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).PlaceBeacon.Number);
+                case EXT_NET_BEACON_PLACE: {
+                    auto& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+                    if (packet.PlaceBeacon.House != sender_id) {
+                        DEBUG_WARNING("Ignoring beacon placement with mismatched sender house.\n");
+                        break;
+                    }
+                    BeaconManager.Place_Beacon(static_cast<HousesType>(packet.PlaceBeacon.House), packet.PlaceBeacon.Position, packet.PlaceBeacon.Number);
                     break;
+                }
 
-                case EXT_NET_BEACON_DELETE:
-                    BeaconManager.Delete_Beacon(static_cast<HousesType>(reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).DeleteBeacon.House), reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).DeleteBeacon.Number);
+                case EXT_NET_BEACON_DELETE: {
+                    auto& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+                    if (packet.DeleteBeacon.House != sender_id) {
+                        DEBUG_WARNING("Ignoring beacon deletion with mismatched sender house.\n");
+                        break;
+                    }
+                    BeaconManager.Delete_Beacon(static_cast<HousesType>(packet.DeleteBeacon.House), packet.DeleteBeacon.Number);
                     break;
+                }
 
-                case EXT_NET_BEACON_TEXT:
-                    BeaconManager.Set_Beacon_Text(reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).BeaconText.Text, static_cast<HousesType>(reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).BeaconText.House), reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).BeaconText.Number);
+                case EXT_NET_BEACON_TEXT: {
+                    auto& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+                    if (packet.BeaconText.House != sender_id) {
+                        DEBUG_WARNING("Ignoring beacon text with mismatched sender house.\n");
+                        break;
+                    }
+                    packet.BeaconText.Text[std::size(packet.BeaconText.Text) - 1] = '\0';
+                    BeaconManager.Set_Beacon_Text(packet.BeaconText.Text, static_cast<HousesType>(packet.BeaconText.House), packet.BeaconText.Number);
                     break;
+                }
 
                 case EXT_NET_LOAD_GAME:
-                    // Only accept this message from the game host.
-                    // TODO IpxAddressClass comparison is somehow broken
-                    // if (Session.HostAddress != Session.GAddress) {
-                    //     const char* expected = Session.HostAddress.As_String();
-                    //     const char* actual = Session.GAddress.As_String();
-                    //     DEBUG_INFO("EXT_NET_LOAD_GAME received from someone else than the game host! Expected: {}, actual: {}\n", expected, actual);
-                    //     break;
-                    // }
+                    if (sender_id != Session.MasterPlayerID) {
+                        DEBUG_WARNING("Ignoring EXT_NET_LOAD_GAME from non-master house {}.\n", sender_id);
+                        break;
+                    }
 
                     // Only allow loading in spawner sessions.
                     if (!SessionExtension->IsSpawnerSession) {
@@ -218,25 +277,44 @@ void Vinifera_Process_Incoming_Global_Packets()
 
                     {
                         int saveid = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).SaveInfo.ID;
+                        if (saveid < 0 || saveid > 999) {
+                            DEBUG_WARNING("Ignoring EXT_NET_LOAD_GAME with invalid slot {}.\n", saveid);
+                            break;
+                        }
                         PendingMultiplayerSaveLoadSlot = saveid;
                         PendingMultiplayerSaveLoadTime = std::chrono::steady_clock::now() + std::chrono::seconds(5);
                     }
                     break;
 
                 case EXT_NET_HOST_ANNOUNCE: {
-                    int house_id = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket).Heartbeat.HouseID;
+                    auto& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+                    int house_id = packet.Heartbeat.HouseID;
+                    if (!packet.Heartbeat.IsHost || house_id != sender_id || (Session.MasterPlayerID != -1 && Session.MasterPlayerID != sender_id)) {
+                        DEBUG_WARNING("Ignoring invalid host announcement from house {} for house {}.\n", sender_id, house_id);
+                        break;
+                    }
+
                     DEBUG_INFO("EXT_NET_HOST_ANNOUNCE received: house {} is the game master.\n", house_id);
+                    Session.HostAddress = Session.GAddress;
                     SessionExtension->Set_Master(house_id);
                     break;
                 }
 
                 case EXT_NET_DESYNC_HEARTBEAT: {
                     auto& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+                    if (packet.Heartbeat.HouseID != sender_id || (packet.Heartbeat.IsHost != 0) != (sender_id == Session.MasterPlayerID)) {
+                        DEBUG_WARNING("Ignoring invalid desync heartbeat from house {}.\n", sender_id);
+                        break;
+                    }
                     DesyncDialog.Notify_Heartbeat(packet.Heartbeat.HouseID, packet.Heartbeat.IsHost != 0);
                     break;
                 }
 
                 case EXT_NET_DESYNC_CONTINUE:
+                    if (sender_id != Session.MasterPlayerID) {
+                        DEBUG_WARNING("Ignoring EXT_NET_DESYNC_CONTINUE from non-master house {}.\n", sender_id);
+                        break;
+                    }
                     DesyncDialog.Notify_Continue();
                     break;
 

@@ -593,7 +593,7 @@ void DesyncDialogClass::Send_Heartbeat()
 
     ExtGlobalPacketType packet {};
     packet.Command = EXT_NET_DESYNC_HEARTBEAT;
-    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
     packet.Heartbeat.HouseID = static_cast<char>(PlayerPtr->HeapID);
     packet.Heartbeat.IsHost = Session.Am_I_Master();
 
@@ -615,7 +615,7 @@ void DesyncDialogClass::Send_Continue()
 
     ExtGlobalPacketType packet {};
     packet.Command = EXT_NET_DESYNC_CONTINUE;
-    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
 
     for (int i = 1; i < Session.Players.Count(); i++) {
         Ipx.Send_Global_Message(&packet, sizeof(packet), 1, &Session.Players[i]->Address);

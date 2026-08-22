@@ -533,6 +533,9 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  was reimplemented.
      */
     Vinifera_PerformingLoad = true;
+    struct PerformingLoadGuard {
+        ~PerformingLoadGuard() { Vinifera_PerformingLoad = false; }
+    } performing_load_guard;
 
     /**
      *  Load the scenario global information.
@@ -807,11 +810,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         return false;
     }
 
-    /**
-     *  We have finished loading the game data, reset the load flag.
-     */
-    Vinifera_PerformingLoad = false;
-
     return true;
 }
 
@@ -1047,6 +1045,11 @@ bool Vinifera_Load_Game(const char* file_name)
 
     DEBUG_INFO("LOADING GAME [{}]\n", formatted_file_name);
 
+    if (!Vinifera_Is_Save_Loadable(formatted_file_name)) {
+        DEBUG_ERROR("LOAD GAME [{}] - incompatible or invalid save file.\n", formatted_file_name);
+        return false;
+    }
+
     /**
      *  Convert the file name to a wide string.
      */
@@ -1168,6 +1171,11 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
 {
     char formatted_file_name[PATH_MAX];
 
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
+    if (!Vinifera_Is_Save_Loadable(formatted_file_name)) {
+        return false;
+    }
+
     HWND handle = WinDialogClass::Do_Message_Box(Fetch_String(TXT_LOADING), nullptr, nullptr);
     if (handle) {
         WinDialogClass::Display_Dialog(handle);
@@ -1176,7 +1184,6 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
     ScenarioActive = false;
     TacticalActive = false;
 
-    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory.c_str(), Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);
 
     if (handle) {
@@ -1260,10 +1267,10 @@ bool Vinifera_Is_Save_Loadable(std::string_view path, ViniferaSaveVersionInfo* i
         return false;
     }
 
-    if (GameActive) {
+    if (ScenarioActive) {
 
         if (saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
-            DEBUG_INFO("Save file \"{}\" belongs to a different playthough, skipping.\n", path);
+            DEBUG_INFO("Save file \"{}\" belongs to a different playthrough, skipping.\n", path);
             return false;
         }
 
@@ -1288,7 +1295,7 @@ bool Vinifera_Is_Save_Loadable(std::string_view path, ViniferaSaveVersionInfo* i
  */
 bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* filename)
 {
-    if (!file && !filename)
+    if (!file || !filename)
         return false;
 
     if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) == 0) {
@@ -1302,16 +1309,16 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
         return false;
     }
 
-    wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description().c_str());
+    std::snprintf(file->Descr, sizeof(file->Descr), "%s", saveversion.Get_Scenario_Description().c_str());
     file->Old = false;
     file->Valid = true;
     file->Scenario = saveversion.Get_Scenario_Number();
     file->Campaign = saveversion.Get_Campaign_Number();
     file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
-    std::strncpy(file->Filename, formatted_file_name.c_str(), std::size(file->Filename));
-    std::strncpy(file->Handle, saveversion.Get_Player_House().c_str(), std::size(file->Handle));
+    std::snprintf(file->Filename, sizeof(file->Filename), "%s", formatted_file_name.c_str());
+    std::snprintf(file->Handle, sizeof(file->Handle), "%s", saveversion.Get_Player_House().c_str());
     if (std::strlen(file->Filename) == 0) {
-        std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
+        std::snprintf(file->Filename, sizeof(file->Filename), "%s", filename->cAlternateFileName);
     }
     file->DateTime = filename->ftLastWriteTime;
 
@@ -1391,15 +1398,6 @@ DEFINE_HOOK(0x0050520E, LoadOptionsClass_Dialog_Multiplayer_Load_Patch, 0x6)
         return 0;
     }
 
-    // Normally a load with only one player left can just load right away. But when
-    // the desync dialog is open we must always schedule the load instead: loading
-    // synchronously from inside the dialog's pump loop would rebuild the player list
-    // and the world underneath us. Scheduling lets the dialog run its countdown and
-    // exit cleanly, after which After_Main_Loop performs the load at a safe point.
-    if (Session.Players.Count() <= 1 && !DesyncDialog.Is_Active()) {
-        return 0;
-    }
-
     // If we are not the game host, bail.
     if (!Session.Am_I_Master()) {
         return 0x005050C3;
@@ -1423,15 +1421,18 @@ DEFINE_HOOK(0x0050520E, LoadOptionsClass_Dialog_Multiplayer_Load_Patch, 0x6)
 
     int save_number = -1;
 
-    if (filename.starts_with("SAVEGAME_")) {
+    if (filename.starts_with("SAVEGAME_") && filename.size() >= 12) {
 
         const char* begin = filename.data() + 9;
         const char* end = begin + 3;
 
-        std::from_chars(begin, end, save_number);
+        const auto result = std::from_chars(begin, end, save_number);
+        if (result.ec != std::errc() || result.ptr != end) {
+            save_number = -1;
+        }
     }
 
-    if (save_number == -1) {
+    if (save_number < 0 || save_number > 999) {
         DEBUG_ERROR("Failed to parse saved number from saved game name {}!\n", entry->Filename);
         return 0x005050C3;
     }
@@ -1444,9 +1445,9 @@ DEFINE_HOOK(0x0050520E, LoadOptionsClass_Dialog_Multiplayer_Load_Patch, 0x6)
     Session.Messages.Add_Message(nullptr, 0, "The game host wants to load a saved game. Loading in 5 seconds...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
 
     // Broadcast load to other players.
-    ExtGlobalPacketType packet;
+    ExtGlobalPacketType packet {};
     packet.Command = EXT_NET_LOAD_GAME;
-    strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name));
+    std::strncpy(packet.Name, Session.Players[0]->Name, sizeof(packet.Name) - 1);
     packet.SaveInfo.ID = save_number;
     for (int i = 1; i < Session.Players.Count(); i++) {
         Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);

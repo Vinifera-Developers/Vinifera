@@ -40,6 +40,7 @@ public:
     static LatencyLevelEnum CurentLatencyLevel;
     static unsigned char NewFrameSendRate;
 
+    static void Reset();
     static void Apply(LatencyLevelEnum new_latency_level);
     static void Apply(unsigned char new_latency_level) { Apply(static_cast<LatencyLevelEnum>(new_latency_level)); }
     static unsigned int Get_Max_Ahead(LatencyLevelEnum latency_level);

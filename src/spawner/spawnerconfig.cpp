@@ -100,6 +100,15 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
         }
     }
 
+    bool found_missing_human_section = false;
+    for (int i = 0; i < std::size(temp); ++i) {
+        if (!temp[i].IsHuman) {
+            found_missing_human_section = true;
+        } else if (found_missing_human_section) {
+            HumanPlayerSectionsContiguous = false;
+        }
+    }
+
     bool claimed[std::size(Players)] = {};
     int slot = 0;
 

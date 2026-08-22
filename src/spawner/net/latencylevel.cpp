@@ -23,6 +23,16 @@ unsigned char LatencyLevel::NewFrameSendRate = 3;
 
 
 /**
+ *  Resets Protocol Zero latency state for a new or reloaded session.
+ */
+void LatencyLevel::Reset()
+{
+    CurentLatencyLevel = LATENCY_LEVEL_INITIAL;
+    NewFrameSendRate = 3;
+}
+
+
+/**
  *  Sets the desired latency level.
  *
  *  @author: Belonit
@@ -76,16 +86,16 @@ unsigned int LatencyLevel::Get_Max_Ahead(LatencyLevelEnum latency_level)
 const char* LatencyLevel::Get_Latency_Message(LatencyLevelEnum latency_level)
 {
     const char* message[] = {
-        /* 0 */ "CnCNet: Latency mode set to: 0 - Initial", // Players should never see this, if they do, then it's a bug
-        /* 1 */ "CnCNet: Latency mode set to: 1 - Best",
-        /* 2 */ "CnCNet: Latency mode set to: 2 - Super",
-        /* 3 */ "CnCNet: Latency mode set to: 3 - Excellent",
-        /* 4 */ "CnCNet: Latency mode set to: 4 - Very Good",
-        /* 5 */ "CnCNet: Latency mode set to: 5 - Good",
-        /* 6 */ "CnCNet: Latency mode set to: 6 - Decent",
-        /* 7 */ "CnCNet: Latency mode set to: 7 - Mediocre",
-        /* 8 */ "CnCNet: Latency mode set to: 8 - Bad",
-        /* 9 */ "CnCNet: Latency mode set to: 9 - Worst",
+        /* 0 */ "Network: Latency mode set to: 0 - Initial", // Players should never see this, if they do, then it's a bug
+        /* 1 */ "Network: Latency mode set to: 1 - Best",
+        /* 2 */ "Network: Latency mode set to: 2 - Super",
+        /* 3 */ "Network: Latency mode set to: 3 - Excellent",
+        /* 4 */ "Network: Latency mode set to: 4 - Very Good",
+        /* 5 */ "Network: Latency mode set to: 5 - Good",
+        /* 6 */ "Network: Latency mode set to: 6 - Decent",
+        /* 7 */ "Network: Latency mode set to: 7 - Mediocre",
+        /* 8 */ "Network: Latency mode set to: 8 - Bad",
+        /* 9 */ "Network: Latency mode set to: 9 - Worst",
     };
 
     return message[latency_level];

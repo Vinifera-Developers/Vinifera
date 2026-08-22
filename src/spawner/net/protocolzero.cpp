@@ -24,6 +24,25 @@
 
 bool ProtocolZero::GetRealMaxAhead = false;
 unsigned int ProtocolZero::WorstMaxAhead = 24;
+int ProtocolZero::NextSendFrame = 0;
+unsigned int ProtocolZero::PlayerMaxAheads[MAX_PLAYERS] = {};
+unsigned char ProtocolZero::PlayerLatencyModes[MAX_PLAYERS] = {};
+int ProtocolZero::PlayerLastTimingFrames[MAX_PLAYERS] = {};
+
+
+/**
+ *  Resets all Protocol Zero state for a new or reloaded session.
+ */
+void ProtocolZero::Reset()
+{
+    GetRealMaxAhead = false;
+    WorstMaxAhead = 24;
+    NextSendFrame = Frame + 6 * SendResponseTimeInterval;
+    std::fill(std::begin(PlayerMaxAheads), std::end(PlayerMaxAheads), 0);
+    std::fill(std::begin(PlayerLatencyModes), std::end(PlayerLatencyModes), 0);
+    std::fill(std::begin(PlayerLastTimingFrames), std::end(PlayerLastTimingFrames), 0);
+    LatencyLevel::Reset();
+}
 
 
 /**
@@ -36,8 +55,6 @@ void ProtocolZero::Send_Response_Time()
     if (!SessionExtension->ProtocolZeroEnabled || Session.Singleplayer_Game()) {
         return;
     }
-
-    static int NextSendFrame = 6 * SendResponseTimeInterval;
 
     /**
      *  It is not yet time to send a Response Time event.
@@ -57,7 +74,8 @@ void ProtocolZero::Send_Response_Time()
     /**
      *  Create the event.
      */
-    EventClassExt event(PlayerPtr->HeapID, static_cast<unsigned char>(ipxResponseTime + 1), LatencyLevel::From_Response_Time(ipxResponseTime));
+    const unsigned char max_ahead = static_cast<unsigned char>(std::min(ipxResponseTime, 254u) + 1);
+    EventClassExt event(PlayerPtr->HeapID, max_ahead, LatencyLevel::From_Response_Time(ipxResponseTime));
 
     /**
      *  Send it!
@@ -88,16 +106,17 @@ void ProtocolZero::Handle_Response_Time(EventClassExt& event)
         return;
     }
 
-    static unsigned int PlayerMaxAheads[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    static unsigned char PlayerLatencyMode[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    static unsigned int PlayerLastTimingFrame[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    if (event.ID >= std::size(PlayerMaxAheads)) {
+        DEBUG_WARNING("[Spawner] Ignoring response-time event with invalid player ID {}.\n", event.ID);
+        return;
+    }
 
     /**
      *  Save the info we got from the event.
      */
     PlayerMaxAheads[event.ID] = event.Data.ResponseTime2.MaxAhead;
-    PlayerLatencyMode[event.ID] = event.Data.ResponseTime2.LatencyLevel;
-    PlayerLastTimingFrame[event.ID] = event.Frame;
+    PlayerLatencyModes[event.ID] = event.Data.ResponseTime2.LatencyLevel;
+    PlayerLastTimingFrames[event.ID] = Frame;
 
     /**
      *  Now loop all the players and find the worst one latency-wise.
@@ -106,12 +125,12 @@ void ProtocolZero::Handle_Response_Time(EventClassExt& event)
     unsigned int max_ahead = 0;
 
     for (size_t i = 0; i < std::size(PlayerMaxAheads); i++) {
-        if (PlayerLastTimingFrame[i] + SendResponseTimeInterval * 4 < Frame) {
+        if (PlayerLastTimingFrames[i] + SendResponseTimeInterval * 4 < Frame) {
             PlayerMaxAheads[i] = 0;
-            PlayerLatencyMode[i] = 0;
+            PlayerLatencyModes[i] = 0;
         } else {
             max_ahead = PlayerMaxAheads[i] > max_ahead ? PlayerMaxAheads[i] : max_ahead;
-            latency_mode = std::max(PlayerLatencyMode[i], latency_mode);
+            latency_mode = std::max(PlayerLatencyModes[i], latency_mode);
         }
     }
 

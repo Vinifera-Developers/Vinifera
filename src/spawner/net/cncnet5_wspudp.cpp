@@ -39,6 +39,7 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
     sockaddr_in addr;
     int rc;
     int addr_len;
+    bool address_mapped;
     WinsockBufferType* packet;
 
     /**
@@ -75,9 +76,15 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
             return 0;
         }
 
+        if (rc < static_cast<int>(sizeof(unsigned int)) || rc > static_cast<int>(sizeof(WinsockPacketType))) {
+            DEBUG_WARNING("CnCNet5: Throwing away packet with invalid length {}!\n", rc);
+            return 0;
+        }
+
         /**
          *  (CnCNet) Now, we need to map addr ip/port to index by reversing the search!
          */
+        address_mapped = false;
         for (int i = 0; i < std::size(AddressList); i++) {
 
             /**
@@ -97,8 +104,14 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
                  */
                 addr.sin_addr.s_addr = i + 1;
                 addr.sin_port = 0;
+                address_mapped = true;
                 break;
             }
+        }
+
+        if (!address_mapped) {
+            DEBUG_WARNING("CnCNet5: Throwing away packet from an unknown endpoint.\n");
+            return 0;
         }
 
         /**
@@ -166,7 +179,10 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
          *  (CnCNet) validate index.
          */
         if (i >= std::size(AddressList) || i < 0) {
-            return -1;
+            DEBUG_WARNING("CnCNet5: Dropping outgoing packet with invalid destination index {}.\n", i);
+            OutBuffers.Delete(packetnum);
+            Delete_Out_Buffer(packet);
+            return 0;
         }
 
         /**
@@ -184,10 +200,15 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
          */
         rc = Send_To(Socket, reinterpret_cast<const char*>(&packet->PacketData), packet->BufferLen + sizeof(packet->PacketData.CRC), 0, &addr, sizeof(addr));
         if (rc == SOCKET_ERROR) {
-            if (WSAGetLastError() != WSAEWOULDBLOCK) {
-                Clear_Socket_Error(Socket);
+            if (WSAGetLastError() == WSAEWOULDBLOCK) {
                 return 0;
             }
+
+            DEBUG_WARNING("CnCNet5: Dropping outgoing packet after Send_To failed with error {}.\n", WSAGetLastError());
+            Clear_Socket_Error(Socket);
+            OutBuffers.Delete(packetnum);
+            Delete_Out_Buffer(packet);
+            return 0;
         }
 
         /**

@@ -23,15 +23,17 @@ public:
 
     static bool Init();
     static bool Start_Game();
+    static bool Is_Active() { return Config != nullptr; }
 
 private:
     static bool Start_Scenario(char* scenario_name);
     static bool Load_Game(const char* file_name);
 
     static int Spawner_Config_AI_Difficulty_To_Game_AI_Difficulty(int difficulty);
+    static bool Validate_Config();
 
     static bool Init_Session(char* scenario_name);
-    static void Init_Network();
+    static bool Init_Network();
 
 private:
     static bool HasSpawned;

@@ -145,10 +145,10 @@ class UIControlsClass
             LoadingScreen(char const* entry);
             LoadingScreen(HousesType house, std::string const& filename, LoadingScreenSize const& size) : IsValid(true), House(house), Filename(filename), Size(size) {};
 
-            bool IsValid;
-            HousesType House;
+            bool IsValid = false;
+            HousesType House = HOUSE_NONE;
             std::string Filename;
-            LoadingScreenSize Size;
+            LoadingScreenSize Size {};
         };
 
     private:
