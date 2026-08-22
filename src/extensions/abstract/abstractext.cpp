@@ -1,51 +1,30 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Base extension class for all game world objects.
  *
- *  @project       Vinifera
- *
- *  @file          ABSTRACTEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Base extension class for all game world objects.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "abstractext.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "swizzle.h"
-#include "vinifera_saveload.h"
-#include "extension.h"
+
 #include "debughandler.h"
-#include "asserthandler.h"
+#include "extension.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor
- * 
+ *
  *  @author: CCHyper
  */
 AbstractClassExtension::AbstractClassExtension(const AbstractClass *this_ptr) :
     ThisPtr(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AbstractClassExtension::AbstractClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
     //ASSERT(ThisPtr != nullptr);      // NULL ThisPtr is valid when performing a Load state operation.
 }
 
@@ -57,7 +36,6 @@ AbstractClassExtension::AbstractClassExtension(const AbstractClass *this_ptr) :
  */
 AbstractClassExtension::AbstractClassExtension(const NoInitClass &noinit)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::AbstractClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -68,8 +46,6 @@ AbstractClassExtension::AbstractClassExtension(const NoInitClass &noinit)
  */
 AbstractClassExtension::~AbstractClassExtension()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::~AbstractClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     ThisPtr = nullptr;
 }
 
@@ -121,8 +97,6 @@ LONG AbstractClassExtension::QueryInterface(REFIID riid, LPVOID *ppv)
  */
 ULONG AbstractClassExtension::AddRef()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::AddRef - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     return 1;
 }
 
@@ -134,8 +108,6 @@ ULONG AbstractClassExtension::AddRef()
  */
 ULONG AbstractClassExtension::Release()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::Release - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     return 1;
 }
 
@@ -147,8 +119,6 @@ ULONG AbstractClassExtension::Release()
  */
 HRESULT AbstractClassExtension::IsDirty()
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::IsDirty - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     return S_OK;
 }
 
@@ -161,8 +131,6 @@ HRESULT AbstractClassExtension::IsDirty()
  */
 HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::Internal_Load - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -176,12 +144,12 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
         return hr;
     }
 
-    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + "::" + Wstring("ThisPtr");
+    std::string this_name = Extension::Utility::Get_TypeID_Name(this) + "::" + "ThisPtr";
 
     /**
      *  Register this instance to be available for remapping references to.
      */
-    VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, this_name.Peek_Buffer());
+    VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, this_name.c_str());
 
     /**
      *  Read this class's binary blob data directly into this instance.
@@ -191,7 +159,7 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
         return hr;
     }
     
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ThisPtr, this_name.Peek_Buffer());
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ThisPtr, this_name.c_str());
 
     return hr;
 }
@@ -204,21 +172,19 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
  */
 HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::Internal_Save - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }
 
-    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + "::" + Wstring("ThisPtr");
+    std::string this_name = Extension::Utility::Get_TypeID_Name(this) + "::" + "ThisPtr";
 
     /**
      *  Fetch the save id for this instance.
      */
     LONG id;
-    VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(this, id, this_name.Peek_Buffer());
+    VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(this, id, this_name.c_str());
 
-    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
 
     HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
@@ -244,8 +210,6 @@ HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
  */
 LONG AbstractClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
 {
-    //EXT_DEBUG_TRACE("AbstractClassExtension::GetSizeMax - 0x%08X\n", (uintptr_t)(ThisPtr));
-
     if (!pcbSize) {
         return E_POINTER;
     }

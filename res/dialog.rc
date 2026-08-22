@@ -39,22 +39,64 @@ BEGIN
 END
 
 
-IDD_EXCEPTION DIALOGEX 0, 0, 350, 225
+IDD_DESYNC_HOST DIALOG DISCARDABLE  0, 0, 360, 264
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Synchronization Error",IDC_DESYNC_HEADER,30,10,280,10,NOT WS_GROUP
+    LTEXT           "Players:",-1,30,23,100,10,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_PLAYER_LIST,30,35,120,105,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    LTEXT           "The game has gone out of sync.\r\n\r\nPress ""Load Game"" to load a saved game from this session, re-syncing the game for all players.\r\n\r\nPress ""Continue"" to continue playing without the desynced players. They will continue in a separate game session.",-1,160,25,180,82,NOT WS_GROUP
+    LTEXT           "Press ""Quit"" to exit the game.",-1,160,127,180,22,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_CHAT_LIST,30,145,300,60,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    EDITTEXT        IDC_DESYNC_CHAT_EDIT,30,207,299,12,ES_AUTOHSCROLL | NOT WS_BORDER
+    LTEXT           "Loading the saved game in 5 seconds...",IDC_DESYNC_COUNTDOWN_TEXT,30,223,140,10,NOT WS_GROUP | NOT WS_VISIBLE
+    GROUPBOX        "",IDC_DESYNC_COUNTDOWN_BAR,180,222,149,12,NOT WS_VISIBLE
+    CONTROL         "Load Game",IDC_DESYNC_LOAD,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,30,239,70,12
+    CONTROL         "Continue",IDC_DESYNC_CONTINUE,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,145,239,70,12
+    CONTROL         "Quit",IDC_DESYNC_QUIT,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP,260,239,70,12
+END
+
+
+IDD_DESYNC_WAIT DIALOG DISCARDABLE  0, 0, 360, 264
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Synchronization Error",IDC_DESYNC_HEADER,30,10,280,10,NOT WS_GROUP
+    LTEXT           "Players:",-1,30,23,100,10,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_PLAYER_LIST,30,35,120,105,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    LTEXT           "The game has gone out of sync.\r\n\r\nIf there are saves available from this session, the game host can attempt to load a save to re-sync the game.\r\n\r\nAlternatively, the host can choose for the desynced players to continue playing in separate game sessions.",-1,160,25,180,82,NOT WS_GROUP
+    LTEXT           "Please wait while the host is making a decision.",-1,160,127,180,22,NOT WS_GROUP
+    LISTBOX         IDC_DESYNC_CHAT_LIST,30,145,300,60,NOT LBS_NOTIFY |
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                    LBS_NOINTEGRALHEIGHT | LBS_NOSEL | NOT WS_BORDER
+    EDITTEXT        IDC_DESYNC_CHAT_EDIT,30,207,299,12,ES_AUTOHSCROLL | NOT WS_BORDER
+    LTEXT           "Loading the saved game in 5 seconds...",IDC_DESYNC_COUNTDOWN_TEXT,30,223,140,10,NOT WS_GROUP | NOT WS_VISIBLE
+    GROUPBOX        "",IDC_DESYNC_COUNTDOWN_BAR,180,222,149,12,NOT WS_VISIBLE
+    CONTROL         "Quit",IDC_DESYNC_QUIT,"Button",BS_OWNERDRAW |
+                    WS_TABSTOP | WS_DISABLED,145,239,70,12
+END
+
+
+IDD_EXCEPTION DIALOGEX 0, 0, 350, 320
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Exception!"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
+FONT 9, "Segoe UI", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Quit",IDC_EXCEPTION_QUIT,19,202,60,14
-    PUSHBUTTON      "Debug",IDC_EXCEPTION_DEBUG,81,202,60,14,BS_CENTER
-    PUSHBUTTON      "Main Menu",IDC_EXCEPTION_MAINMENU,270,202,60,14
-    PUSHBUTTON      "Save",IDC_EXCEPTION_SAVE,144,202,60,14
-    PUSHBUTTON      "Continue",IDC_EXCEPTION_CONTINUE,207,202,60,14
     CTEXT           "The game has encountered an error and is unable to continue normally.\nPlease see the DEBUG.LOG for details.",-1,7,7,335,19,NOT WS_GROUP
-    LTEXT           "Press Quit to close the application immediately.",-1,17,27,325,41,NOT WS_GROUP
-    LTEXT           "Press Debug to debug the application (JIT must be enabled).",-1,17,35,325,41,NOT WS_GROUP
-    LTEXT           "Press Save to attempt an emergency save of the scenario (map editor only).",-1,17,43,325,41,NOT WS_GROUP
-    LTEXT           "Press Continue to ignore this exception and attempt to continue the process.",-1,17,51,325,41,NOT WS_GROUP
-    LTEXT           "Press Main Menu to ignore this exception and attempt to return to the main menu.\n",-1,17,59,325,41,NOT WS_GROUP
-    LTEXT           "EXCEPT.TXT Details:",IDC_EXCEPTION_FILENAME,19,72,141,8
-    EDITTEXT        IDC_EXCEPTION_LOG,17,82,315,116,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    LTEXT           "Press Quit to close the application immediately.",-1,17,29,325,8,NOT WS_GROUP
+    LTEXT           "Press Debug to break into the debugger (attached or JIT).",-1,17,39,325,8,NOT WS_GROUP
+    GROUPBOX        "EXCEPT.TXT details",IDC_EXCEPTION_FILENAME,12,50,326,247
+    EDITTEXT        IDC_EXCEPTION_LOG,17,63,316,229,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    PUSHBUTTON      "Debug",IDC_EXCEPTION_DEBUG,216,302,60,14,BS_CENTER
+    DEFPUSHBUTTON   "Quit",IDC_EXCEPTION_QUIT,283,302,60,14
 END

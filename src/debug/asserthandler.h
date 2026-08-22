@@ -1,36 +1,19 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Basic debug assertion implementation.
  *
- *  @project       Vinifera
- *
- *  @file          ASSERTHANDLER.H
- *
- *  @author        CCHyper
- *
- *  @brief         Basic debug assertion implementation.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "fatal.h"
-#include <intrinsics.h>
 #include <cstdlib>
+#include <format>
+#include <intrinsics.h>
+#include <string>
+#include <string_view>
 
 
 extern bool IgnoreAllAsserts;
@@ -48,7 +31,14 @@ enum AssertType {
     ASSERT_FATAL,
 };
 
-void Vinifera_Assert(AssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...);
+/**
+ *  Non-variadic assertion entry point. The std::format-based ASSERT_*_PRINT
+ *  macros format their message at the call site and then call this with the
+ *  result. The variadic Vinifera_Assert_Handler in debug_hooks.cpp (installed
+ *  as the TSpp assertion callback) also lands here after running vsnprintf
+ *  locally on the printf-style format strings that TSpp expects.
+ */
+void Vinifera_Assert(AssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, std::string_view msg);
 
 #define ASSERT(exp) \
     do { \
@@ -58,7 +48,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, std::string_view{}); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -70,7 +60,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         } \
     } while (false)
 
-#define ASSERT_PRINT(exp, msg, ...) \
+#define ASSERT_PRINT(exp, fmt, ...) \
     do { \
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
@@ -78,7 +68,8 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    std::string _assert_msg = std::format(fmt __VA_OPT__(,) __VA_ARGS__); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, _assert_msg); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -90,7 +81,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         } \
     } while (false)
 
-#define ASSERT_FATAL(exp, ...) \
+#define ASSERT_FATAL(exp) \
     do { \
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
@@ -98,7 +89,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr, ##__VA_ARGS__); \
+                    ::Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, std::string_view{}); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -108,7 +99,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         } \
     } while (false)
 
-#define ASSERT_FATAL_PRINT(exp, msg, ...) \
+#define ASSERT_FATAL_PRINT(exp, fmt, ...) \
     do { \
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
@@ -116,7 +107,8 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    std::string _assert_msg = std::format(fmt __VA_OPT__(,) __VA_ARGS__); \
+                    ::Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, _assert_msg); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -135,7 +127,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
             if (!_ignore_assert) { \
                 if (!(exp)) { \
                     Vinifera_Assert_StackDump(); \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, std::string_view{}); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -147,7 +139,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         } \
     } while (false)
 
-#define ASSERT_STACKDUMP_PRINT(exp, msg, ...) \
+#define ASSERT_STACKDUMP_PRINT(exp, fmt, ...) \
     do { \
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
@@ -156,7 +148,8 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
             if (!_ignore_assert) { \
                 if (!(exp)) { \
                     Vinifera_Assert_StackDump(); \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    std::string _assert_msg = std::format(fmt __VA_OPT__(,) __VA_ARGS__); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, _assert_msg); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -180,7 +173,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, nullptr); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, std::string_view{}); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -200,7 +193,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, nullptr); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, std::string_view{}); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -212,7 +205,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         } \
     } while (false)
 
-#define ASSERT_CUSTOM_PRINT(exp, file, line, func, msg, ...) \
+#define ASSERT_CUSTOM_PRINT(exp, file, line, func, fmt, ...) \
     do { \
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
@@ -220,7 +213,8 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    std::string _assert_msg = std::format(fmt __VA_OPT__(,) __VA_ARGS__); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, _assert_msg); \
                     if (_break) { \
                         __debugbreak(); \
                     } \
@@ -232,7 +226,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         } \
     } while (false)
 
-#define ASSERT_CUSTOM_PRINT_FATAL(exp, file, line, func, msg, ...) \
+#define ASSERT_CUSTOM_PRINT_FATAL(exp, file, line, func, fmt, ...) \
     do { \
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
@@ -240,7 +234,8 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         if (!IgnoreAllAsserts) { \
             if (!_ignore_assert) { \
                 if (!(exp)) { \
-                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    std::string _assert_msg = std::format(fmt __VA_OPT__(,) __VA_ARGS__); \
+                    ::Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, _assert_msg); \
                     if (_break) { \
                         __debugbreak(); \
                     } \

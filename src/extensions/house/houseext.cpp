@@ -1,75 +1,65 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended HouseClass class.
  *
- *  @project       Vinifera
- *
- *  @file          HOUSEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended HouseClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "houseext.h"
 
-#include <algorithm>
-#include "house.h"
-#include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "factory.h"
-#include "mouse.h"
-#include "saveload.h"
-#include "sidebarext.h"
-#include "vinifera_saveload.h"
-#include "storageext.h"
-#include "tibsun_functions.h"
-#include "utracker.h"
+#include "battleui.h"
 #include "building.h"
+#include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "factory.h"
 #include "factoryext.h"
+#include "house.h"
+#include "mouse.h"
 #include "overlaytype.h"
 #include "prerequisitegroup.h"
 #include "rules.h"
+#include "rulesext.h"
+#include "saveload.h"
 #include "session.h"
+#include "storageext.h"
 #include "team.h"
 #include "teamtype.h"
+#include "tibsun_functions.h"
 #include "unit.h"
 #include "unittypeext.h"
+#include "utracker.h"
+#include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+#include "vinifera_util.h"
 #include "voc.h"
 #include "vox.h"
+
+#include <algorithm>
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     AbstractClassExtension(this_ptr),
+    Vinifera::Detach::Listener<FactoryClass>(),
     TiberiumStorage(Tiberiums.Count()),
     WeedStorage(Tiberiums.Count()),
     NavalFactories(0),
     NavalFactory(nullptr),
-    BuildNavalUnit(UNIT_NONE)
+    BuildNavalUnit(UNIT_NONE),
+    SpawnWaypoint(WAYPOINT_NONE),
+    IronCurtainAvailabilityTimer(),
+    IsPauseRepairs(false),
+    IsObserver(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     for (int i = 0; i < Tiberiums.Count(); i++)
     {
         TiberiumStorage[i] = 0;
@@ -80,6 +70,17 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     {
         new ((StorageClassExt*)&this_ptr->Tiberium) StorageClassExt(&TiberiumStorage);
         new ((StorageClassExt*)&this_ptr->Weed) StorageClassExt(&WeedStorage);
+
+        /**
+         *  Vanilla hardcoded the ActLike default, unhardcode that.
+         *  Uuuhh... the fact that this is const is annoying, but for now while
+         *  this is not a massive issue, just const_cast it.
+         */
+        if (this_ptr->IniName != "Neutral" && this_ptr->IniName != "Special") {
+            const_cast<HouseClass*>(this_ptr)->ActLike = this_ptr->Class->House;
+        } else {
+            const_cast<HouseClass*>(this_ptr)->ActLike = HOUSE_NONE;
+        }
     }
 
     HouseExtensions.Add(this);
@@ -93,10 +94,10 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
  */
 HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
     AbstractClassExtension(noinit),
+    Vinifera::Detach::Listener<FactoryClass>(noinit),
     TiberiumStorage(noinit),
     WeedStorage(noinit)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -107,8 +108,6 @@ HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
  */
 HouseClassExtension::~HouseClassExtension()
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::~HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     HouseExtensions.Delete(this);
 }
 
@@ -120,8 +119,6 @@ HouseClassExtension::~HouseClassExtension()
  */
 HRESULT HouseClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -139,15 +136,13 @@ HRESULT HouseClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT HouseClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    Load_Primitive_Vector(pStm, TiberiumStorage, "TiberiumStorage");
-    Load_Primitive_Vector(pStm, WeedStorage, "WeedStorage");
+    Load_Primitive_Vector(pStm, TiberiumStorage);
+    Load_Primitive_Vector(pStm, WeedStorage);
 
     new (this) HouseClassExtension(NoInitClass());
 
@@ -164,15 +159,13 @@ HRESULT HouseClassExtension::Load(IStream *pStm)
  */
 HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
 
-    Save_Primitive_Vector(pStm, TiberiumStorage, "TiberiumStorage");
-    Save_Primitive_Vector(pStm, WeedStorage, "WeedStorage");
+    Save_Primitive_Vector(pStm, TiberiumStorage);
+    Save_Primitive_Vector(pStm, WeedStorage);
 
     return hr;
 }
@@ -185,21 +178,15 @@ HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int HouseClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
 /**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
+ *  Clears NavalFactory if it pointed at the destroyed factory.
  */
-void HouseClassExtension::Detach(AbstractClass * target, bool all)
+void HouseClassExtension::On_Detach(FactoryClass *target, bool all)
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
-
     if (NavalFactory == target) {
         NavalFactory = nullptr;
     }
@@ -211,9 +198,13 @@ void HouseClassExtension::Detach(AbstractClass * target, bool all)
  *  
  *  @author: CCHyper
  */
-void HouseClassExtension::Object_CRC(CRCEngine &crc) const
+void HouseClassExtension::Object_CRC(CRCEngine& crc) const
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
+    crc(NavalFactories);
+    crc(BuildNavalUnit);
+    crc(SpawnWaypoint);
+    crc(IronCurtainAvailabilityTimer);
+    crc(IsPauseRepairs);
 }
 
 
@@ -364,31 +355,71 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     */
     fptr->Suspend();
 
-    /*
-    **  Tell the sidebar that it needs to be redrawn because of this.
-    */
-    if (PlayerPtr == This()) {
-        Map.SidebarClass::IsToRedraw = true;
-        RedrawSidebar = true;
-        Map.Flag_To_Redraw();
-        Map.Column[0].Flag_To_Redraw();
-        Map.Column[1].Flag_To_Redraw();
-    }
-
     return PROD_OK;
+}
+
+/**
+ *  Replacement of Fetch_Techno_Type that performs bounds checking.
+ *
+ *  @author: Rampastring
+ */
+TechnoTypeClass const* _Fetch_Techno_Type(RTTIType type, int id)
+{
+    switch (type) {
+    case RTTI_UNITTYPE:
+    case RTTI_UNIT:
+        if (id < UnitTypes.Count())
+            return (TechnoTypeClass*)(UnitTypes[id]);
+        return nullptr;
+
+    case RTTI_BUILDINGTYPE:
+    case RTTI_BUILDING:
+        if (id < BuildingTypes.Count())
+            return (TechnoTypeClass*)(BuildingTypes[id]);
+        return nullptr;
+
+    case RTTI_INFANTRYTYPE:
+    case RTTI_INFANTRY:
+        if (id < InfantryTypes.Count())
+            return (TechnoTypeClass*)(InfantryTypes[id]);
+        return nullptr;
+
+    case RTTI_AIRCRAFTTYPE:
+    case RTTI_AIRCRAFT:
+        if (id < AircraftTypes.Count())
+            return (TechnoTypeClass*)(AircraftTypes[id]);
+        return nullptr;
+
+    default:
+        break;
+    }
+    return nullptr;
 }
 
 
 /**
  *  Extended replacement of HouseClass::Begin_Production.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool resume, ProductionFlags flags)
 {
     int result = true;
     FactoryClass* fptr;
-    const TechnoTypeClass* tech = Fetch_Techno_Type(type, id);
+    const TechnoTypeClass* tech = _Fetch_Techno_Type(type, id);
+
+    /*
+    **  The event layer does not validate the validity of the production event,
+    **  which allows players to build normally unbuildable objects through crafted events.
+    **  Validate the request here.
+    */
+    if (tech == nullptr) {
+        return PROD_ILLEGAL;
+    }
+
+    if (This()->Is_Human_Player() && tech->Level > This()->Control.TechLevel) {
+        return PROD_ILLEGAL;
+    }
 
     BuildingClass* who = tech->Who_Can_Build_Me(false, true, true, This());
     bool onhold = false;
@@ -400,7 +431,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         if (who != nullptr) {
             onhold = true;
         } else {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. No-one can build.\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '{}' was rejected. No-one can build.\n", tech->GivenName);
             return PROD_CANT;
         }
     }
@@ -411,7 +442,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         fptr = new FactoryClass;
 
         if (fptr == nullptr) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Unable to create factory\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '{}' was rejected. Unable to create factory\n", tech->GivenName);
             return PROD_CANT;
         }
     }
@@ -422,7 +453,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     */
     if (fptr != nullptr) {
         if (fptr->Is_Building() && type == RTTI_BUILDINGTYPE) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '{}' was rejected. Cannot queue buildings.\n", tech->GivenName);
             return PROD_CANT;
         }
     }
@@ -447,9 +478,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     }
 
     if (result) {
-        if (fptr->QueuedObjects.Count() && !resume && !skipset) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, flags);
-        } else {
+        if (fptr->QueuedObjects.Count() == 0 || resume || skipset) {
             fptr->Start(onhold);
 
             /*
@@ -464,18 +493,18 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         return PROD_OK;
     }
 
-    DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->FullName);
+    DEBUG_INFO("Request to Begin_Production of '{}' was rejected. Factory was unable to create the requested object\n", tech->GivenName);
 
     /*
     **  Output debug information if production failed.
     */
     if (fptr->QueuedObjects.Count() == 0 && fptr->Object == nullptr) {
-        DEBUG_INFO("type=%d\n", type);
-        DEBUG_INFO("Frame == %d\n", Frame);
-        DEBUG_INFO("fptr->QueuedObjects.Count() == %d\n", fptr->QueuedObjects.Count());
-        DEBUG_INFO("Object->RTTI == %d\n", fptr->Object != nullptr ? fptr->Object->Fetch_RTTI() : -1);
-        DEBUG_INFO("Object->HeapID == %d\n", fptr->Object != nullptr ? fptr->Object->Fetch_Heap_ID() : -1);
-        DEBUG_INFO("IsSuspended\t= %d\n", fptr->IsSuspended);
+        DEBUG_INFO("type={}\n", (int)type);
+        DEBUG_INFO("Frame == {}\n", Frame);
+        DEBUG_INFO("fptr->QueuedObjects.Count() == {}\n", fptr->QueuedObjects.Count());
+        DEBUG_INFO("Object->RTTI == {}\n", fptr->Object != nullptr ? (int)fptr->Object->Fetch_RTTI() : -1);
+        DEBUG_INFO("Object->HeapID == {}\n", fptr->Object != nullptr ? fptr->Object->Fetch_Heap_ID() : -1);
+        DEBUG_INFO("IsSuspended\t= {}\n", fptr->IsSuspended);
 
         delete fptr;
         Set_Factory(type, nullptr, flags);
@@ -507,7 +536,6 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     if (fptr->Queued_Object_Count() > 0 && id >= 0) {
         const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
         if (fptr->Remove_From_Queue(*technotype)) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, flags);
             return PROD_OK;
         }
     }
@@ -520,10 +548,10 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     }
 
     /*
-    **  Tell the sidebar that it needs to be redrawn because of this.
+    **  Drop any active building placement.
     */
     if (PlayerPtr == This()) {
-        SidebarExtension->Abandon_Production(type, fptr, flags);
+        BattleUI.Get_Sidebar().Detach(fptr);
 
         if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING) {
             Map.PendingObjectPtr = nullptr;
@@ -579,8 +607,6 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
             if (!factory_ext->HasSpoken && factory->House == PlayerPtr) {
                 if (tech->Is_Foot()) {
                     Speak(VOX_UNIT_READY);
-                } else if (tech->RTTI == RTTI_BUILDING) {
-                    Speak(VOX_CONSTRUCTION);
                 }
                 factory_ext->HasSpoken = true;
             }
@@ -613,7 +639,9 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                         **  the production manager tied to this slot in the sidebar. Its job
                         **  has been completed.
                         */
-                        LastRadarEventCell = builder->Center_Coord().As_Cell();
+
+                        // Do not assign last radar event cell, it's an annoyance - Rampastring
+                        // LastRadarEventCell = builder->Center_Coord().As_Cell();
                         factory->Completed();
                         Abandon_Production(type, -1, flags);
                         placed = true;
@@ -729,13 +757,6 @@ void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
             } else {
                 if (factory->Object->TClass->Who_Can_Build_Me(true, true, true, This()) == nullptr) {
                     factory->Suspend(false);
-                    if (PlayerPtr == This()) {
-                        Map.SidebarClass::IsToRedraw = true;
-                        RedrawSidebar = true;
-                        Map.Flag_To_Redraw();
-                        Map.Column[0].Flag_To_Redraw();
-                        Map.Column[1].Flag_To_Redraw();
-                    }
                 } else {
                     if (factory->IsSuspended && !factory->IsOnHold) {
                         factory->Start(false);
@@ -818,13 +839,24 @@ int HouseClassExtension::AI_Unit()
 {
     if (This()->BuildUnit != UNIT_NONE) return TICKS_PER_SECOND;
 
-    int harv = This()->ActiveUQuantity.Count_Of(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
-    int ref = This()->ActiveBQuantity.Count_Of(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
-    int mult;
-    if (Session.Type == GAME_NORMAL || This()->Difficulty == DIFF_HARD) {
+    UnitTypeClass const* harvester = This()->Get_First_ActLike(Rule->HarvesterUnit);
+    if (harvester == nullptr) {
+        Vinifera_Log_And_Show_WWMessageBox("House %s has no valid harvester unit defined.", This()->Class->IniName.c_str());
+        ASSERT_FATAL_PRINT(harvester != nullptr, "House %s has no valid harvester unit defined.", This()->Class->IniName);
+    }
+
+    BuildingTypeClass const* refinery = This()->Get_First_ActLike(Rule->BuildRefinery);
+    if (refinery == nullptr) {
+        Vinifera_Log_And_Show_WWMessageBox("House %s has no valid refinery building defined.", This()->Class->IniName.c_str());
+        ASSERT_FATAL_PRINT(refinery != nullptr, "House %s has no valid refinery building defined.", This()->Class->IniName);
+    }
+
+    int harv = This()->ActiveUQuantity.Value(harvester->HeapID);
+    int ref = This()->ActiveBQuantity.Value(refinery->HeapID);
+    int mult = RuleExtension->AIHarvestersPerRefinery[This()->Difficulty];
+
+    if (Session.Type == GAME_NORMAL && RuleExtension->IsAIOneHarvesterInSingleplayer) {
         mult = 1;
-    } else {
-        mult = 2;
     }
 
     /*
@@ -832,8 +864,8 @@ int HouseClassExtension::AI_Unit()
     **  harvester if possible.
     */
     if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
-        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
-            This()->BuildUnit = This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID;
+        if (harvester->Level <= This()->Control.TechLevel) {
+            This()->BuildUnit = harvester->HeapID;
             return TICKS_PER_SECOND;
         }
     }
@@ -1072,8 +1104,8 @@ bool HouseClassExtension::Has_Prerequisite(StructType building)
     /*
     **  If this isn't an upgrade, just check the counter.
     */
-    if (btype->PowersUpBuilding[0] == '\0') {
-        return This()->ActiveBQuantity.Count_Of(building) > 0;
+    if (btype->PowersUpBuilding.empty()) {
+        return This()->ActiveBQuantity.Value(building) > 0;
     }
 
     /*
@@ -1081,7 +1113,7 @@ bool HouseClassExtension::Has_Prerequisite(StructType building)
     */
     for (int i = 0; i < Buildings.Count(); i++) {
         BuildingClass* bptr = Buildings[i];
-        if (!bptr->IsInLimbo && bptr->House == This() && bptr->IsPowerOn) {
+        if (!bptr->IsInLimbo && bptr->House == This() && bptr->IsOn) {
             if (bptr->Mission != MISSION_DECONSTRUCTION && bptr->MissionQueue != MISSION_DECONSTRUCTION) {
                 for (int j = 0; j < std::size(bptr->Upgrades); j++) {
 
@@ -1167,7 +1199,7 @@ HRESULT UnitTrackerClassExt::_Save(IStream* pStm)
     }
 
     for (int i = 0; i < UnitCount; i++) {
-        HRESULT hr = pStm->Write(&UnitTotals[i], sizeof(UnitTotals[i]), nullptr);
+        hr = pStm->Write(&UnitTotals[i], sizeof(UnitTotals[i]), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -1232,4 +1264,128 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
     reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedBuildings)->_Save(pStm);
     reinterpret_cast<UnitTrackerClassExt*>(house->CapturedBuildings)->_Save(pStm);
     reinterpret_cast<UnitTrackerClassExt*>(house->TotalCrates)->_Save(pStm);
+}
+
+
+/**
+ *  Sets this house's spawn point from its coordinate.
+ *
+ *  @author: ZivDero
+ */
+void HouseClassExtension::Set_Spawn_Point(const Cell& cell)
+{
+    for (WAYPOINT i = 0; i < MAX_PLAYERS; i++) {
+        if (Scen->Is_Waypoint_Valid(i) && Scen->Waypoint_Cell(i) == cell) {
+            SpawnWaypoint = i;
+            return;
+        }
+    }
+
+    SpawnWaypoint = WAYPOINT_NONE;
+}
+
+
+/**
+ *  Tries to fetch a house spawned at this waypoint
+ *
+ *  @author: ZivDero
+ */
+HouseClass* HouseClassExtension::House_At_Spawn_Point(WAYPOINT waypoint)
+{
+    for (auto& house_ext : HouseExtensions) {
+        if (house_ext->SpawnWaypoint != WAYPOINT_NONE && house_ext->SpawnWaypoint == waypoint) {
+            return house_ext->This();
+        }
+    }
+
+    return nullptr;
+}
+
+
+/**
+ *  Fetches a house by its houses type.
+ *  Also takes care of ts-patches spawn houses.
+ *
+ *  @author: ZivDero
+ */
+HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
+{
+    /**
+     *  Houses between 50 and 57 are "spawn houses".
+     *  Try to fetch the house at this waypoint.
+     */
+    if (Session.Type != GAME_NORMAL) {
+        if (house >= 50 && house <= 57) {
+            return House_At_Spawn_Point(house - 50);
+        }
+    }
+
+    /**
+     *  Otherwise, just perform the normal logic to fetch the house.
+     */
+    for (int index = 0; index < Houses.Count(); index++) {
+        HouseClass* housep = Houses[index];
+        if (housep->Class->House == house) {
+            return housep;
+        }
+    }
+    return nullptr;
+}
+
+
+/**
+ *  Checks whether this house is able to use the Iron Curtain.
+ *
+ *  @author: Rampastring
+ */
+bool HouseClassExtension::Can_Use_Iron_Curtain() const
+{
+    if (!IronCurtainAvailabilityTimer.Expired()) {
+        return false;
+    }
+
+    if (!This()->Is_Powered()) {
+        return false;
+    }
+
+    for (int i = 0; i < RuleExtension->IronCurtains.Count(); i++) {
+        if (This()->ActiveBQuantity.Value(RuleExtension->IronCurtains[i]->HeapID) > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  Marks the house's Iron Curtain as used, making it recharge.
+ *
+ *  @author: Rampastring
+ */
+void HouseClassExtension::Expend_Iron_Curtain()
+{
+    IronCurtainAvailabilityTimer = RuleExtension->IronCurtainRechargeTime;
+}
+
+
+/**
+ *  Checks if this house can build this object based on RequiredHouses
+ *  and ForbiddenHouses.
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExtension::Required_Forbidden_Houses_Check(TechnoTypeClass const* ttype)
+{
+    const auto technotypeext = Extension::Fetch(ttype);
+
+    if (technotypeext->RequiredHouses != -1 && (technotypeext->RequiredHouses & 1 << This()->ActLike) == 0) {
+        return false;
+    }
+
+    if (technotypeext->ForbiddenHouses != -1 && (technotypeext->ForbiddenHouses & 1 << This()->ActLike) != 0) {
+        return false;
+    }
+
+    return true;
 }

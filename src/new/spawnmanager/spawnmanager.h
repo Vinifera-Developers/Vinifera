@@ -1,35 +1,18 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  SpawnManagerClass reimplementation from YR.
  *
- *  @project       Vinifera
- *
- *  @file          SPAWNMANAGER.H
- *
- *  @authors       ZivDero
- *
- *  @brief         SpawnManagerClass reimplementation from YR.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "vinifera_defines.h"
+#include "detach_listener.h"
 #include "foot.h"
 #include "ttimer.h"
+#include "vinifera_defines.h"
 
 class SpawnManagerClass;
 class AircraftTypeClass;
@@ -56,7 +39,9 @@ enum class SpawnControlStatus {
 
 
 class DECLSPEC_UUID(UUID_SPAWN_MANAGER)
-    SpawnManagerClass : public AbstractClass
+    SpawnManagerClass : public AbstractClass,
+                        public Vinifera::Detach::Listener<TechnoClass>,
+                        public Vinifera::Detach::Listener<AbstractClass>
 {
 public:
     struct SpawnControl
@@ -81,7 +66,12 @@ public:
 public:
     SpawnManagerClass();
     SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate, int spawn_rate, int logic_rate);
-    SpawnManagerClass(const NoInitClass& noinit) : SpawnControls(noinit), LogicTimer(noinit), SpawnTimer(noinit) {}
+    SpawnManagerClass(const NoInitClass& noinit) :
+        Vinifera::Detach::Listener<TechnoClass>(noinit),
+        Vinifera::Detach::Listener<AbstractClass>(noinit),
+        SpawnControls(noinit),
+        LogicTimer(noinit),
+        SpawnTimer(noinit) {}
     virtual ~SpawnManagerClass() override;
 
     /**
@@ -96,10 +86,22 @@ public:
     void Queue_Target(AbstractClass * target);
     void Abandon_Target();
     bool Next_Target();
-    void Detach(AbstractClass * target);
+
+    /**
+     *  Detach listener callbacks. On_Detach(TechnoClass*) covers Owner and
+     *  Spawnee references; On_Detach(AbstractClass*) covers Target/QueuedTarget.
+     */
+    void On_Detach(TechnoClass *target, bool all) override;
+    void On_Detach(AbstractClass *target, bool all) override;
+
     int Active_Count();
     int Docked_Count();
     int Preparing_Count();
+
+private:
+    void Detach_Spawnee(AircraftClass *spawnee);
+
+public:
 
     SpawnManagerClass(const SpawnManagerClass&) = delete;
     SpawnManagerClass& operator= (const SpawnManagerClass&) = delete;

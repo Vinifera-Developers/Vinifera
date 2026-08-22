@@ -1,36 +1,21 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Determine platform and operating system information.
  *
- *  @project       Vinifera
- *
- *  @file          CPUDETECT.CPP
- *
- *  @author        OmniBlade
- *
- *  @contributors  CCHyper
- *
- *  @brief         Determine platform and operating system information.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cpudetect.h"
-#include "systimer.h"
+
 #include "strtrim.h"
-#include <Windows.h>
+#include "systimer.h"
+
+#include <windows.h>
+#include <immintrin.h> // _xgetbv
 #include <cstdio>
 #include <cstring>
 
@@ -316,6 +301,9 @@ bool CPUDetectClass::HasCPUIDInstruction = false;
 bool CPUDetectClass::HasRDTSCInstruction = false;
 bool CPUDetectClass::HasSSESupport = false;
 bool CPUDetectClass::HasSSE2Support = false;
+bool CPUDetectClass::HasSSE41Support = false;
+bool CPUDetectClass::HasAVXSupport = false;
+bool CPUDetectClass::HasAVX2Support = false;
 bool CPUDetectClass::HasCMOVSupport = false;
 bool CPUDetectClass::HasMMXSupport = false;
 bool CPUDetectClass::Has3DNowSupport = false;
@@ -1274,6 +1262,24 @@ void CPUDetectClass::Init_Processor_Features()
     HasMMXSupport = (!!(FeatureBits & (1 << 23)));
     HasSSESupport = !!(FeatureBits & (1 << 25));
     HasSSE2Support = !!(FeatureBits & (1 << 26));
+    HasSSE41Support = !!(id.ecx & (1 << 19));
+
+    /**
+     *  AVX/AVX2 require both the CPU feature bits and OS support for saving the YMM register
+     *  state. The OS advertises this via OSXSAVE (leaf 1 ECX bit 27); we then confirm XCR0
+     *  bits 1 (SSE) and 2 (AVX) are set via XGETBV before trusting AVX. AVX2 is leaf 7 EBX bit 5.
+     */
+    HasAVXSupport = false;
+    HasAVX2Support = false;
+    if ((id.ecx & (1 << 27)) && (id.ecx & (1 << 28))) {
+        unsigned __int64 xcr0 = _xgetbv(0 /*_XCR_XFEATURE_ENABLED_MASK*/);
+        if ((xcr0 & 0x6) == 0x6) {
+            HasAVXSupport = true;
+            CPUIDCountStruct id7(7, 0);
+            HasAVX2Support = !!(id7.ebx & (1 << 5));
+        }
+    }
+
     Has3DNowSupport = false;
     ExtendedFeatureBits = 0;
 

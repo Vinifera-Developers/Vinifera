@@ -1,61 +1,50 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended ObjectTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          OBJECTTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended ObjectTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "objecttypeext.h"
-#include "objecttype.h"
-#include "ccini.h"
-#include "asserthandler.h"
+
+#include "audio_sample.h"
 #include "building.h"
 #include "buildingtypeext.h"
-#include "ccfile.h"
-#include "debughandler.h"
+#include "ccini.h"
 #include "extension_globals.h"
 #include "house.h"
-#include "voxellib.h"
-#include "motionlib.h"
 #include "miscutil.h"
+#include "motionlib.h"
+#include "objecttype.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "technotypeext.h"
 #include "unittypeext.h"
-
+#include "vinifera_globals.h"
+#include "voc.h"
+#include "voxellib.h"
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     GraphicName(),
     AlphaGraphicName(),
-    NoSpawnAlt(false)
+    NoSpawnAlt(false),
+    NoSpawnVoxel(),
+    NoSpawnVoxelIndex(),
+    WaterAlt(false),
+    WaterVoxel(),
+    WaterVoxelIndex(),
+    AmbientSound(VOC_NONE)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -65,9 +54,12 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    GraphicName(noinit),
+    AlphaGraphicName(noinit),
+    NoSpawnVoxel(noinit),
+    WaterVoxel(noinit)
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -78,7 +70,6 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
  */
 ObjectTypeClassExtension::~ObjectTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::~ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -95,8 +86,6 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
     NoSpawnVoxel.~VoxelObject();
     WaterVoxel.~VoxelObject();
 
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -105,10 +94,13 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
     new (&NoSpawnVoxelIndex) VoxelIndexClass;
     new (&WaterVoxelIndex) VoxelIndexClass;
 
-    NoSpawnVoxel.Clear();
-    WaterVoxel.Clear();
+    NoSpawnVoxel.MotionLibrary = nullptr;
+    NoSpawnVoxel.VoxelLibrary = nullptr;
 
-    Fetch_Voxel_Image(GraphicName);
+    WaterVoxel.MotionLibrary = nullptr;
+    WaterVoxel.VoxelLibrary = nullptr;
+
+    Fetch_Voxel_Image(GraphicName.c_str());
     
     return hr;
 }
@@ -121,13 +113,11 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     /**
-     *  Store the graphic name strings as raw data, these are used by the load operation.
+     *  Store the graphic name strings, these are used by the load operation.
      */
-    std::strncpy(GraphicName, Graphic_Name(), sizeof(GraphicName));
-    std::strncpy(AlphaGraphicName, Alpha_Graphic_Name(), sizeof(AlphaGraphicName));
+    GraphicName = Graphic_Name();
+    AlphaGraphicName = Alpha_Graphic_Name();
 
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -138,15 +128,6 @@ HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void ObjectTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -156,7 +137,6 @@ void ObjectTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void ObjectTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -167,12 +147,10 @@ void ObjectTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const char* ini_name = Name();
 
     if (!IsInitialized) {
-        WaterAlt = strcmpi(This()->IniName, "APC") == 0;
+        WaterAlt = strcmpi(This()->IniName.c_str(), "APC") == 0;
     }
 
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
@@ -186,11 +164,12 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
     NoSpawnAlt = ini.Get_Bool(ini_name, "NoSpawnAlt", NoSpawnAlt);
     WaterAlt = ini.Get_Bool(ini_name, "WaterAlt", WaterAlt);
 
-    if (This()->IsVoxel)
-    {
+    if (This()->IsVoxel) {
         Fetch_Voxel_Image(Graphic_Name());
     }
     
+    AmbientSound = ini.Get_VocType(ini_name, "AmbientSound", AmbientSound);
+
     return true;
 }
 
@@ -204,14 +183,12 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
 {
     char buffer[260];
 
-    if (NoSpawnAlt)
-    {
+    if (NoSpawnAlt) {
         std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
         NoSpawnVoxel.Load(NoSpawnVoxelIndex, buffer);
     }
 
-    if (WaterAlt)
-    {
+    if (WaterAlt) {
         std::snprintf(buffer, sizeof(buffer), "%sW", graphic_name);
         WaterVoxel.Load(WaterVoxelIndex, buffer);
     }
@@ -235,7 +212,7 @@ BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool ne
         if (!building->IsInLimbo &&
             building->House == house &&
             building->Class->ToBuild == This()->RTTI &&
-            (!needsnopower || building->IsPowerOn) &&
+            (!needsnopower || building->IsOn) &&
             building->Mission != MISSION_DECONSTRUCTION && building->MissionQueue != MISSION_DECONSTRUCTION &&
             (!legal || building->House->Can_Build(This(), true, true) > 0) &&
             building->Class->Get_Ownable() & ownable &&
@@ -293,4 +270,3 @@ BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool ne
 
     return anybuilding;
 }
-

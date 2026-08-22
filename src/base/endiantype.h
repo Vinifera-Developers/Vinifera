@@ -1,30 +1,12 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Macros for handling different platform endian formats.
  *
- *  @project       Vinifera
- *
- *  @file          ENDIANTYPE.H
- *
- *  @authors       CCHyper, OmniBlade
- *
- *  @brief         Macros for handling different platform endian formats.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
 #include <stdint.h>
@@ -39,12 +21,12 @@
 #define htole16(x) OSSwapHostToLittleInt16(x)
 #define be16toh(x) OSSwapBigToHostInt16(x)
 #define le16toh(x) OSSwapLittleToHostInt16(x)
- 
+
 #define htobe32(x) OSSwapHostToBigInt32(x)
 #define htole32(x) OSSwapHostToLittleInt32(x)
 #define be32toh(x) OSSwapBigToHostInt32(x)
 #define le32toh(x) OSSwapLittleToHostInt32(x)
- 
+
 #define htobe64(x) OSSwapHostToBigInt64(x)
 #define htole64(x) OSSwapHostToLittleInt64(x)
 #define be64toh(x) OSSwapBigToHostInt64(x)
@@ -70,20 +52,20 @@
 //
 #elif defined(_WIN32)
 #include <stdlib.h>
-    #define htobe16(x) _byteswap_ushort(x)
-    #define htole16(x) (x)
-    #define be16toh(x) _byteswap_ushort(x)
-    #define le16toh(x) (x)
- 
-    #define htobe32(x) _byteswap_ulong(x)
-    #define htole32(x) (x)
-    #define be32toh(x) _byteswap_ulong(x)
-    #define le32toh(x) (x)
- 
-    #define htobe64(x) _byteswap_uint64(x)
-    #define htole64(x) (x)
-    #define be64toh(x) _byteswap_uint64(x)
-    #define le64toh(x) (x)
+#define htobe16(x) _byteswap_ushort(x)
+#define htole16(x) (x)
+#define be16toh(x) _byteswap_ushort(x)
+#define le16toh(x) (x)
+
+#define htobe32(x) _byteswap_ulong(x)
+#define htole32(x) (x)
+#define be32toh(x) _byteswap_ulong(x)
+#define le32toh(x) (x)
+
+#define htobe64(x) _byteswap_uint64(x)
+#define htole64(x) (x)
+#define be64toh(x) _byteswap_uint64(x)
+#define le64toh(x) (x)
 // Unsupported platform, report this to the compiler.
 #else
 #error platform not supported

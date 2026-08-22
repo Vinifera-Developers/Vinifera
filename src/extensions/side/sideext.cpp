@@ -1,51 +1,37 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended SideClass class.
  *
- *  @project       Vinifera
- *
- *  @file          SIDETYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended SideClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sideext.h"
-#include "side.h"
+
 #include "ccini.h"
-#include "extension.h"
-#include "asserthandler.h"
 #include "colorscheme.h"
-#include "rules.h"
 #include "debughandler.h"
+#include "extension.h"
+#include "findmake.h"
+#include "rules.h"
+#include "side.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
-    UIColor(COLORSCHEME_NONE),
-    ToolTipColor(COLORSCHEME_NONE),
+    UIColor(COLORSCHEME_FIRST),
+    HoverHighlightColor(COLORSCHEME_FIRST),
+    ToolTipColor(COLORSCHEME_FIRST),
     Crew(nullptr),
     Engineer(nullptr),
     Technician(nullptr),
@@ -54,10 +40,10 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     RegularPowerPlant(nullptr),
     AdvancedPowerPlant(nullptr),
     PowerTurbine(nullptr),
-    HunterSeeker(nullptr)
+    HunterSeeker(nullptr),
+    OptionsMenuTextColor(OPTIONS_MENU_TEXT_DEFAULT_COLOR),
+    ScreenTextColor(SCREEN_TEXT_DEFAULT_COLOR)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SideExtensions.Add(this);
 }
 
@@ -68,9 +54,10 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
  *  @author: CCHyper
  */
 SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    OptionsMenuTextColor(noinit),
+    ScreenTextColor(noinit)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -81,8 +68,6 @@ SideClassExtension::SideClassExtension(const NoInitClass &noinit) :
  */
 SideClassExtension::~SideClassExtension()
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::~SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     SideExtensions.Delete(this);
 }
 
@@ -94,8 +79,6 @@ SideClassExtension::~SideClassExtension()
  */
 HRESULT SideClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -113,8 +96,6 @@ HRESULT SideClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT SideClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -142,8 +123,6 @@ HRESULT SideClassExtension::Load(IStream *pStm)
  */
 HRESULT SideClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -160,21 +139,10 @@ HRESULT SideClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SideClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void SideClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("SideClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -184,7 +152,6 @@ void SideClassExtension::Detach(AbstractClass * target, bool all)
  */
 void SideClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SideClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -195,14 +162,15 @@ void SideClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool SideClassExtension::Read_INI(CCINIClass &ini)
 {
-    DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: {} (0x{:08X})\n", Name(), (uintptr_t)(This()));
 
     const char* ini_name = Name();
 
     if (!IsInitialized) {
 
-        UIColor = ColorScheme::From_Name("LightGold");
-        ToolTipColor = ColorScheme::From_Name("Green");
+        UIColor = Fetch_Scheme_Index_By_Name("LightGold");
+        HoverHighlightColor = Fetch_Scheme_Index_By_Name("LightGold");
+        ToolTipColor = Fetch_Scheme_Index_By_Name("Green");
 
         Crew = Rule->Crew;
         Engineer = Rule->Engineer;
@@ -233,20 +201,24 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
-    UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
-    ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+    UIColor = ini.Get_Scheme_Index(ini_name, "UIColor", UIColor);
+    HoverHighlightColor = ini.Get_Scheme_Index(ini_name, "HoverHighlightColor", HoverHighlightColor);
+    ToolTipColor = ini.Get_Scheme_Index(ini_name, "ToolTipColor", ToolTipColor);
 
-    Crew = ini.Get_Infantry(ini_name, "Crew", Crew);
-    Engineer = ini.Get_Infantry(ini_name, "Engineer", Engineer);
-    Technician = ini.Get_Infantry(ini_name, "Technician", Technician);
-    Disguise = ini.Get_Infantry(ini_name, "Disguise", Disguise);
+    Crew = TGet_Class(ini, ini_name, "Crew", Crew);
+    Engineer = TGet_Class(ini, ini_name, "Engineer", Engineer);
+    Technician = TGet_Class(ini, ini_name, "Technician", Technician);
+    Disguise = TGet_Class(ini, ini_name, "Disguise", Disguise);
     SurvivorDivisor = ini.Get_Int(ini_name, "SurvivorDivisor", SurvivorDivisor);
 
-    RegularPowerPlant = ini.Get_Building(ini_name, "RegularPowerPlant", RegularPowerPlant);
-    AdvancedPowerPlant = ini.Get_Building(ini_name, "AdvancedPowerPlant", AdvancedPowerPlant);
-    PowerTurbine = ini.Get_Building(ini_name, "PowerTurbine", PowerTurbine);
+    RegularPowerPlant = TGet_Class(ini, ini_name, "RegularPowerPlant", RegularPowerPlant);
+    AdvancedPowerPlant = TGet_Class(ini, ini_name, "AdvancedPowerPlant", AdvancedPowerPlant);
+    PowerTurbine = TGet_Class(ini, ini_name, "PowerTurbine", PowerTurbine);
 
-    HunterSeeker = ini.Get_Unit(ini_name, "HunterSeeker", HunterSeeker);
+    HunterSeeker = TGet_Class(ini, ini_name, "HunterSeeker", HunterSeeker);
+
+    OptionsMenuTextColor = ini.Get_RGBColor(ini_name, "OptionsMenuTextColor", OptionsMenuTextColor);
+    ScreenTextColor = ini.Get_RGBColor(ini_name, "ScreenTextColor", ScreenTextColor);
 
     IsInitialized = true;
 

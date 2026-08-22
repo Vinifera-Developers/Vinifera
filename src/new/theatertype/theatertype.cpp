@@ -1,37 +1,21 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Map theater type class.
  *
- *  @project       Vinifera
- *
- *  @file          THEATERTYPE.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Map theater type class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "theatertype.h"
-#include "vinifera_globals.h"
+
+#include "asserthandler.h"
 #include "ccini.h"
 #include "colorscheme.h"
 #include "debughandler.h"
-#include "asserthandler.h"
-#include <string>
+#include "vinifera_globals.h"
 
 
 /**
@@ -187,7 +171,7 @@ bool TheaterTypeClass::Read_INI(CCINIClass &ini)
     ini.Get_String(Name, "MMSuffix", MMSuffix, MMSuffix, sizeof(MMSuffix));
 
     char chr[2] = { '\0' };
-    ini.Get_String(Name, "ImageLetter", chr, sizeof(chr));
+    ini.Get_String(Name, "ImageLetter", "", chr, sizeof(chr));
     if (isascii(chr[0])) {
         ImageLetter = std::toupper(chr[0]);
     }
@@ -288,14 +272,14 @@ bool TheaterTypeClass::Read_Theaters_INI(CCINIClass &ini)
         /**
          *  Get a theater entry.
          */
-        if (ini.Get_String(THEATERS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(THEATERS, entry, "", buf, sizeof(buf))) {
 
             /**
              *  Find or create a theater type of the name specified.
              */
             theatertype = (TheaterTypeClass *)TheaterTypeClass::Find_Or_Make(buf);
             if (theatertype) {
-                DEV_DEBUG_INFO("Reading TheaterType \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Reading TheaterType \"{}\".\n", buf);
 
                 /**
                  *  
@@ -303,7 +287,7 @@ bool TheaterTypeClass::Read_Theaters_INI(CCINIClass &ini)
                 theatertype->Read_INI(ini);
 
             } else {
-                DEV_DEBUG_WARNING("Error reading TheaterType \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Error reading TheaterType \"{}\"!\n", buf);
             }
 
         }
@@ -334,18 +318,6 @@ const TheaterTypeClass &TheaterTypeClass::As_Reference(TheaterType type)
 
 
 /**
- *  Converts a theater number into a theater object pointer.
- * 
- *  @author: CCHyper
- */
-const TheaterTypeClass *TheaterTypeClass::As_Pointer(TheaterType type)
-{
-    //ASSERT(type != THEATER_NONE && type < TheaterTypes.Count());
-    return type != THEATER_NONE && type < TheaterTypes.Count() ? TheaterTypes[type] : nullptr;
-}
-
-
-/**
  *  Fetches a reference to the theater specified.
  * 
  *  @author: CCHyper
@@ -353,17 +325,6 @@ const TheaterTypeClass *TheaterTypeClass::As_Pointer(TheaterType type)
 const TheaterTypeClass &TheaterTypeClass::As_Reference(const char *name)
 {
     return As_Reference(From_Name(name));
-}
-
-
-/**
- *  Converts a theater name into a theater object pointer.
- * 
- *  @author: CCHyper
- */
-const TheaterTypeClass *TheaterTypeClass::As_Pointer(const char *name)
-{
-    return As_Pointer(From_Name(name));
 }
 
 

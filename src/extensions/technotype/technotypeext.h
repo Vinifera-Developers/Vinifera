@@ -1,39 +1,21 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TechnoTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TECHNOTYPEEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TechnoTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
 #include "extension.h"
 #include "objecttypeext.h"
 #include "techno.h"
 #include "technotype.h"
-#include "typelist.h"
 #include "tibsun_defines.h"
 #include "tibsun_functions.h"
+#include "typelist.h"
 
 
 class AircraftTypeClass;
@@ -55,7 +37,6 @@ public:
     TechnoTypeClassExtension(const NoInitClass &noinit);
     virtual ~TechnoTypeClassExtension();
 
-    virtual void Detach(AbstractClass * target, bool all = true) override;
     virtual void Object_CRC(CRCEngine &crc) const override;
 
     virtual TechnoTypeClass *This() const override { return reinterpret_cast<TechnoTypeClass *>(ObjectTypeClassExtension::This()); }
@@ -64,7 +45,7 @@ public:
     virtual bool Read_INI(CCINIClass &ini) override;
 
     static ProductionFlags Get_Production_Flags(RTTIType type, int id);
-    static ProductionFlags Get_Production_Flags(const TechnoClass* techno) { return Get_Production_Flags(techno->Techno_Type_Class()); }
+    static ProductionFlags Get_Production_Flags(const TechnoClass* techno) { return Get_Production_Flags(techno->TClass); }
     static ProductionFlags Get_Production_Flags(const TechnoTypeClass* ttype) { return Get_Production_Flags(Extension::Fetch(ttype)); }
     static ProductionFlags Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext);
 
@@ -121,12 +102,12 @@ public:
     /**
      *  The graphic class to switch to when this unit is unloading (e.g., at a refinery).
      */
-    const TechnoTypeClass *UnloadingClass;
+    const UnitTypeClass *UnloadingClass;
 
     /**
      *  The refund value for the unit when it is sold at a Service Depot.
      */
-    unsigned SoylentValue;
+    int SoylentValue;
 
     /**
      *  This is the sound effect to play when a passenger enters this unit.
@@ -272,9 +253,35 @@ public:
     TargetZoneScanType TargetZoneScan;
 
     /**
+     *  Defines the health cap (in precentages) that this techno can self-heal up to
+     */
+    float SelfHealingCap;
+
+    /**
+     *  Defines the rate (in minutes) that this techno will self-heal
+     */
+    float SelfHealingRate;
+
+    /**
+     *  Define the amount of strength regenerated whenever this techno self-heals
+     */
+    int SelfHealingStep;
+
+    /**
      *  Does this object need to decloak before firing?
      */
     bool IsDecloakToFire;
+
+    /**
+     *  Determines how far away, in leptons, an Area Guarding unit wait to its guard target before moving towards it again.
+     */
+    int EscortRange;
+
+    /**
+     *  Determines how far away, in leptons, an Area Guarding unit will keep engaging its target unit before abandoning it
+     *  and going back to escort its guard target.
+     */
+    int AbandonTargetEscortRange;
 
 private:
 
@@ -365,4 +372,52 @@ public:
      *  Can this object pick up targets within its range automatically (opportunity fire)?
      */
     bool IsOpportunityFire;
+
+    /**
+     *  The wake graphic to show as the object moves across water.
+     */
+    const AnimTypeClass* WakeAnim;
+
+    /**
+     *  The rate at which this object creates the wake animation while moving.
+     */
+    int WakeAnimRate;
+
+    /**
+     *  The wake graphic to show when the object is staying still on water.
+     */
+    const AnimTypeClass* IdleWakeAnim;
+
+    /**
+     *  Should this unit not spawn wakes when it's cloaked? Usually useful for submarines.
+     */
+    bool IsHideWakeWhenCloaked;
+
+    /**
+     *  Specifies whether this unit can see through the disguise of disguised enemy units.
+     */
+    bool IsDetectDisguise;
+
+    /**
+     *  Specifies whether the AI should use the Iron Curtain to protect this object.
+     */
+    bool IronCurtainPriorityTarget;
+
+    /**
+     *  List of animations to be used as the explosion when scrap explosions are turned on.
+     */
+    TypeList<AnimTypeClass*> ScrapExplosion;
+
+    /*
+     *  Specifies the sight range that should be used when the techno is veteran.
+     *  Falls back to vanilla SightRange when not provided.
+     *  Used as a fall back if EliteSightRange is not provided.
+     */
+    int VeteranSightRange;
+
+    /*
+     *  Specifies the sight range that should be used when the techno is elite.
+     *  Falls back to VeteranSightRange when not provided.
+     */
+    int EliteSightRange;
 };

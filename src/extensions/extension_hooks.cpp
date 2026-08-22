@@ -1,164 +1,125 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for implementing all the extended classes.
  *
- *  @project       Vinifera
- *
- *  @file          EXTENSION_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for implementing all the extended classes.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "extension_hooks.h"
 
 #include "abstractext_hooks.h"
-#include "missionext_hooks.h"
-#include "radioext_hooks.h"
-#include "technoext_hooks.h"
-#include "footext_hooks.h"
-
-#include "objecttypeext_hooks.h"
-#include "technotypeext_hooks.h"
-
-#include "unitext_hooks.h"
 #include "aircraftext_hooks.h"
+#include "aircrafttracker_hooks.h"
 #include "aircrafttypeext_hooks.h"
+#include "aitriggertypeext_hooks.h"
 #include "animext_hooks.h"
 #include "animtypeext_hooks.h"
+#include "astarext_hooks.h"
+#include "audio_hooks.h"
+#include "audio_ui_hooks.h"
+#include "beacon_hooks.h"
 #include "buildingext_hooks.h"
 #include "buildingtypeext_hooks.h"
 #include "bulletext_hooks.h"
 #include "bullettypeext_hooks.h"
 #include "campaignext_hooks.h"
 #include "cargoext_hooks.h"
+#include "ccfileext_hooks.h"
+#include "cciniext_hooks.h"
+#include "cdext_hooks.h"
 #include "cellext_hooks.h"
+#include "combatext_hooks.h"
+#include "commandext_hooks.h"
+#include "conquerext_hooks.h"
 #include "creditext_hooks.h"
+#include "displayext_hooks.h"
+#include "drivelocomotionext_hooks.h"
+#include "dropshipext_hooks.h"
+#include "empulseext_hooks.h"
+#include "environmentext_hooks.h"
+#include "eventext_hooks.h"
 #include "factoryext_hooks.h"
+#include "fetchres_hooks.h"
+#include "filepcx_hooks.h"
+#include "flylocomotionext_hooks.h"
+#include "footext_hooks.h"
+#include "gadgetext_hooks.h"
 #include "houseext_hooks.h"
 #include "housetypeext_hooks.h"
 #include "infantryext_hooks.h"
 #include "infantrytypeext_hooks.h"
-//#include "isotileext_hooks.h"
+#include "iniext_hooks.h"
+#include "initext_hooks.h"
 #include "isotiletypeext_hooks.h"
-//#include "buildinglightext_hooks.h"
+#include "mainloopext_hooks.h"
+#include "mapext_hooks.h"
+#include "mapseedext_hooks.h"
+#include "missionext_hooks.h"
+#include "mouseext_hooks.h"
+#include "msglistext_hooks.h"
+#include "multimissionext_hooks.h"
+#include "multiscoreext_hooks.h"
+#include "newmenuext_hooks.h"
+#include "objectext_hooks.h"
+#include "objecttypeext_hooks.h"
+#include "optionsext_hooks.h"
 #include "overlayext_hooks.h"
 #include "overlaytypeext_hooks.h"
-//#include "particleext_hooks.h"
 #include "particleext_hooks.h"
-#include "particletypeext_hooks.h"
 #include "particlesysext_hooks.h"
 #include "particlesystypeext_hooks.h"
-//#include "scriptext_hooks.h"
-//#include "scripttypeext_hooks.h"
-#include "sideext_hooks.h"
-#include "smudgeext_hooks.h"
-#include "smudgetypeext_hooks.h"
-#include "supertypeext_hooks.h"
-//#include "taskforceext_hooks.h"
-#include "teamext_hooks.h"
-//#include "teamtypeext_hooks.h"
-#include "terrainext_hooks.h"
-#include "terraintypeext_hooks.h"
-#include "triggerext_hooks.h"
-#include "triggertypeext_hooks.h"
-#include "unittypeext_hooks.h"
-//#include "voxelanimext_hooks.h"
-#include "voxelanimtypeext_hooks.h"
-#include "waveext_hooks.h"
-//#include "tagext_hooks.h"
-//#include "tagtypeext_hooks.h"
-#include "tiberiumext_hooks.h"
-#include "tactionext_hooks.h"
-//#include "teventext_hooks.h"
-#include "weapontypeext_hooks.h"
-#include "warheadtypeext_hooks.h"
-//#include "waypointeext_hooks.h"
-//#include "tubeext_hooks.h"
-//#include "lightsourceext_hooks.h"
-#include "empulseext_hooks.h"
-#include "tacticalext_hooks.h"
-#include "superext_hooks.h"
-//#include "aitriggerext_hooks.h"
-//#include "aitriggertypeext_hooks.h"
-//#include "neuronext_hooks.h"
-//#include "foggedobjectext_hooks.h"
-//#include "alphashapeext_hooks.h"
-//#include "veinholemonsterext_hooks.h"
-
-#include "aircrafttracker_hooks.h"
+#include "particletypeext_hooks.h"
+#include "playmovie_hooks.h"
+#include "prerequisitegroup_hooks.h"
+#include "radioext_hooks.h"
+#include "rawfileext_hooks.h"
 #include "rulesext_hooks.h"
 #include "scenarioext_hooks.h"
-#include "sessionext_hooks.h"
-#include "optionsext_hooks.h"
-
-#include "themeext_hooks.h"
-
-#include "displayext_hooks.h"
-#include "scrollext_hooks.h"
-#include "sidebarext_hooks.h"
-#include "mouseext_hooks.h"
-
-#include "initext_hooks.h"
-#include "mainloopext_hooks.h"
-#include "newmenuext_hooks.h"
-#include "commandext_hooks.h"
-#include "cdext_hooks.h"
-#include "playmovie_hooks.h"
-#include "vqaext_hooks.h"
-#include "cciniext_hooks.h"
-#include "rawfileext_hooks.h"
-#include "ccfileext_hooks.h"
-
-#include "msglistext_hooks.h"
-#include "txtlabelext_hooks.h"
-#include "tooltipext_hooks.h"
-#include "textprintext_hooks.h"
-
-#include "combatext_hooks.h"
-#include "dropshipext_hooks.h"
-#include "endgameext_hooks.h"
-#include "eventext_hooks.h"
-#include "mapseedext_hooks.h"
-#include "multiscoreext_hooks.h"
-#include "multimissionext_hooks.h"
 #include "scoreclassext_hooks.h"
-
+#include "scrollext_hooks.h"
+#include "sdl_hooks.h"
+#include "sdlmouse_hooks.h"
+#include "sdlsurface_hooks.h"
+#include "sessionext_hooks.h"
+#include "sidebarext_hooks.h"
+#include "sideext_hooks.h"
 #include "skirmishdlg_hooks.h"
-
-#include "filepcx_hooks.h"
-#include "fetchres_hooks.h"
-
-#include "theatertype_hooks.h"
-#include "storageext_hooks.h"
-
-#include "vinifera_globals.h"
-#include "tibsun_functions.h"
-#include "iomap.h"
-
-#include "extension.h"
-#include "swizzle.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-#include "prerequisitegroup_hooks.h"
+#include "smudgeext_hooks.h"
+#include "smudgetypeext_hooks.h"
 #include "spawnmanager_hooks.h"
+#include "storageext_hooks.h"
+#include "superext_hooks.h"
+#include "supertypeext_hooks.h"
+#include "tacticalext_hooks.h"
+#include "tactionext_hooks.h"
+#include "teamext_hooks.h"
+#include "teamtypeext_hooks.h"
+#include "technoext_hooks.h"
+#include "technotypeext_hooks.h"
+#include "terrainext_hooks.h"
+#include "terraintypeext_hooks.h"
+#include "teventext_hooks.h"
+#include "textprintext_hooks.h"
+#include "theatertype_hooks.h"
+#include "themeext_hooks.h"
+#include "tiberiumext_hooks.h"
+#include "tooltipext_hooks.h"
+#include "triggerext_hooks.h"
+#include "triggertypeext_hooks.h"
+#include "txtlabelext_hooks.h"
+#include "unitext_hooks.h"
+#include "unittypeext_hooks.h"
 #include "voxelanimext_hooks.h"
+#include "voxelanimtypeext_hooks.h"
+#include "vqaext_hooks.h"
+#include "warheadtypeext_hooks.h"
+#include "waveext_hooks.h"
+#include "weapontypeext_hooks.h"
+#include "xsurfaceext_hooks.h"
 
 
 void Extension_Hooks()
@@ -202,7 +163,9 @@ void Extension_Hooks()
     InfantryTypeClassExtension_Hooks();
     //IsometricTileClassExtension_Hooks();                  // Not yet implemented
     IsometricTileTypeClassExtension_Hooks();
+    MapClassExtension_Hooks();
     //BuildingLightExtension_Hooks();                       // Not yet implemented
+    ObjectClassExtension_Hooks();
     OverlayClassExtension_Hooks();
     OverlayTypeClassExtension_Hooks();
     ParticleClassExtension_Hooks();
@@ -215,10 +178,9 @@ void Extension_Hooks()
     SmudgeClassExtension_Hooks();
     SmudgeTypeClassExtension_Hooks();
     SuperWeaponTypeClassExtension_Hooks();
-    TActionClassExtension_Hooks();
     //TaskForceClassExtension_Hooks();                      // Not yet implemented
     TeamClassExtension_Hooks();
-    //TeamTypeClassExtension_Hooks();                       // Not yet implemented
+    TeamTypeClassExtension_Hooks();
     TerrainClassExtension_Hooks();
     TerrainTypeClassExtension_Hooks();
     TriggerClassExtension_Hooks();
@@ -231,7 +193,7 @@ void Extension_Hooks()
     //TagTypeClassExtension_Hooks();                        // Not yet implemented
     TiberiumClassExtension_Hooks();
     TActionClassExtension_Hooks();
-    //TEventClassExtension_Hooks();                         // Not yet implemented
+    TEventClassExtension_Hooks();
     WeaponTypeClassExtension_Hooks();
     WarheadTypeClassExtension_Hooks();
     //WaypointClassExtension_Hooks();                       // Not yet implemented
@@ -241,12 +203,18 @@ void Extension_Hooks()
     TacticalExtension_Hooks();
     SuperClassExtension_Hooks();
     //AITriggerClassExtension_Hooks();                      // Not yet implemented
-    //AITriggerTypeClassExtension_Hooks();                  // Not yet implemented
+    AITriggerTypeClassExtension_Hooks();
     //NeuronClassExtension_Hooks();                         // Not yet implemented
     //FoggedObjectClassExtension_Hooks();                   // Not yet implemented
     //AlphaShapeClassExtension_Hooks();                     // Not yet implemented
     //VeinholeMonsterClassExtension_Hooks();                // Not yet implemented
     StorageClassExtension_Hooks();
+
+    /**
+     *  Locomotors.
+     */
+    DriveLocomotionClassExtension_Hooks();
+    FlyLocomotionClassExtension_Hooks();
 
     /**
      *  All global class extensions here.
@@ -262,6 +230,7 @@ void Extension_Hooks()
     ScrollClassExtension_Hooks();
     SidebarClassExtension_Hooks();
     MouseClassExtension_Hooks();
+    GadgetClassExtension_Hooks();
 
     /**
      *  Various modules and functions.
@@ -273,6 +242,7 @@ void Extension_Hooks()
     CDExtension_Hooks();
     PlayMovieExtension_Hooks();
     VQAExtension_Hooks();
+    INIClassExtension_Hooks();
     CCINIClassExtension_Hooks();
     RawFileClassExtension_Hooks();
     CCFileClassExtension_Hooks();
@@ -284,11 +254,16 @@ void Extension_Hooks()
 
     CombatExtension_Hooks();
     DropshipExtension_Hooks();
-    EndGameExtension_Hooks();
+    EnvironmentExtension_Hooks();
     MapSeedClassExtension_Hooks();
     MultiScoreExtension_Hooks();
     ScoreClassExtension_Hooks();
     MultiMissionExtension_Hooks();
+    ConquerExtension_Hooks();
+
+    SDLSurface_Hooks();
+    SDLMouse_Hooks();
+    SDL_Hooks();
 
     /**
      *  Dialogs and associated code.
@@ -298,8 +273,10 @@ void Extension_Hooks()
     /**
      *  Miscellaneous hooks
      */
+    AStarClassExtension_Hooks();
     FilePCXExtension_Hooks();
     FetchRes_Hooks();
+    XSurfaceExtension_Hooks();
 
     /**
      *  New classes and interfaces.
@@ -308,4 +285,8 @@ void Extension_Hooks()
     SpawnManager_Hooks();
     AircraftTracker_Hooks();
     PrerequisiteGroup_Hooks();
+    Beacon_Hooks();
+
+    Audio_Hooks();
+    Audio_UI_Hooks();
 }

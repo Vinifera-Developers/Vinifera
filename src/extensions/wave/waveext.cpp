@@ -1,48 +1,29 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended WaveClass class.
  *
- *  @project       Vinifera
- *
- *  @file          WAVEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended WaveClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "waveext.h"
+
+#include "extension.h"
 #include "wave.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 WaveClassExtension::WaveClassExtension(const WaveClass *this_ptr) :
     ObjectClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("WaveClassExtension::WaveClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     WaveExtensions.Add(this);
 }
 
@@ -55,7 +36,6 @@ WaveClassExtension::WaveClassExtension(const WaveClass *this_ptr) :
 WaveClassExtension::WaveClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::WaveClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -66,8 +46,6 @@ WaveClassExtension::WaveClassExtension(const NoInitClass &noinit) :
  */
 WaveClassExtension::~WaveClassExtension()
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::~WaveClassExtension - 0x%08X\n", (uintptr_t)(This()));
-
     WaveExtensions.Delete(this);
 }
 
@@ -79,8 +57,6 @@ WaveClassExtension::~WaveClassExtension()
  */
 HRESULT WaveClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -98,8 +74,6 @@ HRESULT WaveClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT WaveClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -118,8 +92,6 @@ HRESULT WaveClassExtension::Load(IStream *pStm)
  */
 HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -136,23 +108,10 @@ HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WaveClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void WaveClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("WaveClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
-
-    ObjectClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -162,5 +121,4 @@ void WaveClassExtension::Detach(AbstractClass * target, bool all)
  */
 void WaveClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }

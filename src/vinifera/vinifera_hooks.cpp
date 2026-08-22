@@ -1,75 +1,58 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains various hooks that do not fit elsewhere.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains various hooks that do not fit elsewhere.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_hooks.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_functions.h"
-#include "vinifera_saveload.h"
-#include "vinifera_gitinfo.h"
-#include "dsurface.h"
-#include "wwmouse.h"
+
+#include "armortype.h"
+#include "asserthandler.h"
+#include "beacon.h"
 #include "blowfish.h"
-#include "blowstraw.h"
 #include "blowpipe.h"
-#include "iomap.h"
-#include "theme.h"
-#include "tracker.h"
-#include "loadoptions.h"
-#include "language.h"
+#include "blowstraw.h"
+#include "debughandler.h"
+#include "detach_listener.h"
+#include "dsurface.h"
+#include "ebolt.h"
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "ebolt.h"
+#include "iomap.h"
 #include "kamikazetracker.h"
-#include "spawnmanager.h"
-#include "armortype.h"
+#include "language.h"
 #include "layer.h"
+#include "loadoptions.h"
 #include "prerequisitegroup.h"
 #include "rockettype.h"
+#include "spawner.h"
+#include "spawnmanager.h"
+#include "syringe.h"
+#include "theme.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tracker.h"
+#include "scenarioext.h"
+#include "sessionext.h"
+#include "vinifera_functions.h"
+#include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+#include "vinifera_util.h"
 
 
 /**
- *  This function is for intercepting the calls to Detach_This_From_All to also
- *  process the object through the extension interface.
- * 
- *  @author: CCHyper
+ *  Intercepts calls to the vanilla Detach_This_From_All so we can also notify
+ *  Vinifera's type-indexed detach registry. Only listeners that opted in for
+ *  the target's concrete type (and AbstractClass-wide listeners) are visited.
  */
 static void _Detach_This_From_All_Intercept(AbstractClass * target, bool all)
 {
-    Extension::Detach_This_From_All(target, all);
-
-    if (target->RTTI == RTTI_AIRCRAFT)
-        KamikazeTracker->Detach(reinterpret_cast<AircraftClass const*>(target));
-
+    Vinifera::Detach::Notify_Abstract(target, all);
     Detach_This_From_All(target, all);
 }
 
@@ -93,12 +76,12 @@ static void _Free_Heaps_Intercept()
     while (RocketTypes.Count()) {
         delete RocketTypes[0];
     }
-    Remove_All_Inactive();
+    Delete_Marked();
 
     //while (SpawnManagers.Count()) { // spawn managers are destroyed by their owners
     //    delete SpawnManagers[0];
     //}
-    //Remove_All_Inactive();
+    //Delete_Marked();
 
     EBoltClass::Clear_All();
 
@@ -119,7 +102,7 @@ static void _Free_Heaps_Intercept()
     while (ArmorTypes.Count()) {
         delete ArmorTypes[0];
     }
-    Remove_All_Inactive();
+    Delete_Marked();
 
     /**
      *  Finally, clear armors. We do this at the very end because
@@ -128,31 +111,11 @@ static void _Free_Heaps_Intercept()
     while (PrerequisiteGroups.Count()) {
         delete PrerequisiteGroups[0];
     }
-    Remove_All_Inactive();
+    Delete_Marked();
+
+    BeaconManager.Reset();
 
     --ScenarioInit;
-}
-
-
-/**
- *  This patch calls the Print_CRCs function from extension interface.
- *
- *  @author: CCHyper
- */
-static void _Print_CRCs_Intercept(EventClass *ev)
-{
-    /**
-     *  Call the original function to print the object CRCs.
-     */
-    DEBUG_INFO("About to call Print_CRCs...\n");
-    Print_CRCs(ev);
-
-    /**
-     *  Calls a reimplementation of Print_CRCs that prints both the original
-     *  information and the new class extension CRCs.
-     */
-    DEBUG_INFO("About to call Extension::Print_CRCs...\n");
-    Extension::Print_CRCs(ev);
 }
 
 
@@ -183,13 +146,9 @@ static void _On_Load_Clear_Scenario_Intercept()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Version_Text_Draw_Patch)
+void _ShowVersionText(Surface* surface)
 {
-    GET_REGISTER_STATIC(XSurface *, surface, ecx);
-
     Vinifera_Draw_Version_Text(surface);
-
-    _asm { ret }
 }
 
 
@@ -198,18 +157,11 @@ DECLARE_PATCH(_Version_Text_Draw_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ProgressClass_Load_Screen_Version_Text_Patch)
+DEFINE_HOOK(0x005ADFBE, _ProgressClass_Load_Screen_Version_Text_Patch, 6)
 {
     Vinifera_Draw_Version_Text(HiddenSurface);
 
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-    _asm { mov eax, [HiddenSurface] }
-    _asm { mov edx, [eax] } // Second dereference required due to the global reference in TS++.
-
-    JMP(0x005ADFC4);
+    return 0;
 }
 
 
@@ -221,12 +173,12 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_Game_Loading_Screen_Version_Text_Patch)
+DEFINE_HOOK(0x004E084D, _Init_Game_Loading_Screen_Version_Text_Patch, 0)
 {
     /**
      *  Flag as pre-init, as we need to draw this differently.
      */
-    Vinifera_Draw_Version_Text(PrimarySurface, true);
+    Vinifera_Draw_Version_Text(VisibleSurface, true);
 
     /**
      *  Stolen bytes/code.
@@ -234,7 +186,7 @@ DECLARE_PATCH(_Init_Game_Loading_Screen_Version_Text_Patch)
 original_code:
     Call_Back();
 
-    JMP(0x004E0852);
+    return 0x004E0852;
 }
 
 
@@ -243,32 +195,11 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Load_Title_Page_Version_Text_Patch)
+DEFINE_HOOK(0x004E3B7A, _Load_Title_Page_Version_Text_Patch, 1)
 {
     Vinifera_Draw_Version_Text(HiddenSurface, true);
 
-    _asm { ret }
-}
-
-
-/**
- *  Patch in the Vinifera command line parser.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WinMain_Parse_Command_Line)
-{
-    GET_REGISTER_STATIC(int, argc, edi);
-    static char **argv; _asm { lea eax, [ebp-0x178] } _asm { mov argv, eax }
-
-    /**
-     *  Parse_Command_Line could return 
-     */
-    if (!Parse_Command_Line(argc, argv) || !Vinifera_Parse_Command_Line(argc, argv)) {
-        JMP(0x00601A3B); // Failure.
-    } else {
-        JMP(0x00601085);
-    }
+    return 0;
 }
 
 
@@ -277,20 +208,19 @@ DECLARE_PATCH(_WinMain_Parse_Command_Line)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WinMain_Vinifera_Startup)
+DEFINE_HOOK(0x005FF81C, _WinMain_Vinifera_Startup, 0)
 {
     if (Vinifera_Startup()) {
-        JMP(0x005FFC41);
+        return 0x005FFC41;
     }
 
     /**
      *  Something went wrong!
      */
-
     DEBUG_ERROR("Failed to initialise Vinifera systems!\n");
 
-    _asm { mov esi, EXIT_FAILURE }
-    JMP(0x00601A6B);
+    R->ESI(EXIT_FAILURE);
+    return 0x00601A6B;
 }
 
 
@@ -299,11 +229,11 @@ DECLARE_PATCH(_WinMain_Vinifera_Startup)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WinMain_Register_Com_Objects)
+DEFINE_HOOK(0x00600F6E, _WinMain_Register_Com_Objects, 0)
 {
     Vinifera_Register_Com_Objects();
 
-    JMP(0x00600FA3);
+    return 0x00600FA3;
 }
 
 
@@ -312,7 +242,8 @@ DECLARE_PATCH(_WinMain_Register_Com_Objects)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
+//DEFINE_HOOK(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 3) // TS-Patches places a call here
+DEFINE_HOOK(0x0060246E, _Game_Shutdown_Vinifera_Shutdown, 6)
 {
     if (!Vinifera_Shutdown()) {
 
@@ -323,9 +254,7 @@ DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
         DEBUG_ERROR("Failed to shutdown Vinifera systems!\n");
     }
 
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -334,13 +263,12 @@ DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Main_Game_Vinifera_Init_Game)
+DEFINE_HOOK(0x00462927, _Main_Game_Vinifera_Init_Game, 0)
 {
-    GET_REGISTER_STATIC(int, argc, ecx);
-    GET_REGISTER_STATIC(char **, argv, edx);
-    static int retval;
+    GET(int, argc, ECX);
+    GET(char **, argv, EDX);
 
-    retval = Vinifera_Pre_Init_Game(argc, argv);
+    int retval = Vinifera_Pre_Init_Game(argc, argv);
     if (retval) {
         if (retval < 0) {
             goto show_error;
@@ -368,13 +296,13 @@ DECLARE_PATCH(_Main_Game_Vinifera_Init_Game)
     DEV_DEBUG_INFO("Vinifera_Post_Init_Game returned OK.\n");
 
 success:
-    JMP(0x00462990);
+    return 0x00462990;
 
 failure:
-    JMP(0x00462932);
+    return 0x00462932;
 
 show_error:
-    JMP(0x00462938);
+    return 0x00462938;
 }
 
 
@@ -424,7 +352,7 @@ static void _Remove_External_Blowfish_Dependency_Patch()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
+DEFINE_HOOK(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0)
 {
     /**
      *  Clear any developer mode globals.
@@ -443,89 +371,17 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
      *  Reset any globals.
      */
     Vinifera_ShowSuperWeaponTimers = true;
-    Vinifera_TotalPlayTime = 0;
+    if (SessionExtension) {
+        SessionExtension->Init_Clear();
+    }
 
     /**
      *  Stolen bytes/code.
      */
     Map.Set_Default_Mouse(MOUSE_NORMAL);
 
-    JMP(0x004E1F30);
+    return 0x004E1F30;
 }
-
-
-/**
- *  Replaces the division-by-zero crash in SwizzleManagerClass::Process_Tables() with
- *  a readable error, produces a crash dump and then exit.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_SwizzleManagerClass_Process_Tables_Remap_Failed_Error)
-{
-    static int old_ptr;
-
-    _asm { mov eax, [edi+0x4] }
-    _asm { mov old_ptr, eax }
-    //GET_REGISTER_STATIC(int, old_ptr, edi);
-
-    DEBUG_ERROR("Swizzle Manager - Failed to remap pointer! (old_ptr = 0x%08X)!\n", old_ptr);
-
-    ShowCursor(TRUE);
-
-    MessageBoxA(MainWindow, "Failed to process save game file!", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-
-#if 0
-    if (!IsDebuggerPresent()) {
-        Vinifera_Generate_Mini_Dump();
-    }
-#endif
-
-    Fatal("Swizzle Manager - Failed to remap pointer! (old_ptr = 0x%08X)!\n", old_ptr);
-
-    /**
-     *  We won't ever get here, but its here just for clean analysis.
-     */
-    JMP(0x0060DC15);
-}
-
-
-#ifndef RELEASE
-/**
- *  Disables the Load, Save and Delete buttons in the options menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_SaveLoad_Disable_Buttons)
-{
-    GET_REGISTER_STATIC(HWND, hDlg, ebp);
-
-    EnableWindow(GetDlgItem(hDlg, 1310), FALSE); // Load button
-    EnableWindow(GetDlgItem(hDlg, 1311), FALSE); // Save button
-    EnableWindow(GetDlgItem(hDlg, 1312), FALSE); // Delete button
-
-    JMP(0x004B6DF5);
-}
-
-/**
- *  Disables the Load button on the Firestorm main menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_Firestorm)
-{
-    JMP(0x0057FFAC);
-}
-
-/**
- *  Disables the Load button on the Tiberian Sun main menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_TiberianSun)
-{
-    JMP(0x00580075);
-}
-#endif
 
 
 /**
@@ -535,67 +391,50 @@ DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_TiberianSun)
  * 
  *  @author: CCHyper
  */
-static bool _Save_Games_Available()
+DEFINE_HOOK(0x005DCDFD, _Do_Lose_Create_Lose_WWMessageBox, 0)
 {
-    return LoadOptionsClass().Read_Save_Files();
-}
+    while (true) {
 
-static bool _Do_Load_Dialog()
-{
-    return LoadOptionsClass().Load_Dialog();
-}
+        /**
+         *  Show the message box.
+         */
+        int ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
 
-
-DECLARE_PATCH(_Do_Lose_Create_Lose_WWMessageBox)
-{
-    static int ret;
-
-    /**
-     *  Show the message box.
-     */
-retry_dialog:
-    ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
-    switch (ret) {
+        switch (ret) {
         default:
         case 0: // User pressed "Yes"
-            JMP(0x005DCE1A);
+            return 0x005DCE1A;
 
         case 1: // User pressed "No"
-            JMP(0x005DCE56);
+            return 0x005DCE56;
 
         case 2: // User pressed "Load Game"
         {
-#if 0 //!defined(RELEASE) && defined(NDEBUG)
-            /**
-             *  We disable loading in non-release.
-             */
-            Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
-#else
             /**
              *  If no save games are available, notify the user and return back
              *  and reissue the main dialog.
              */
-            if (!_Save_Games_Available()) {
+            if (!LoadOptionsClass().Read_Save_Files()) {
                 Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
-                goto retry_dialog;
+                continue;
             }
 
             /**
              *  Show the load game dialog.
              */
-            ret = _Do_Load_Dialog();
+            ret = LoadOptionsClass().Load_Dialog();
             if (ret) {
                 Theme.Stop();
-                JMP(0x005DCE48);
+                return 0x005DCE48;
             }
-#endif
 
             /**
              *  Reissue the dialog if the user pressed cancel on the load dialog.
              */
-            goto retry_dialog;
+            continue;
         }
-    };
+        }
+    }
 }
 
 
@@ -672,9 +511,9 @@ bool LayerClassExt::_Submit(const ObjectClass* object, bool sort)
     **  appropriately sorted position.
     */
     if (sort) {
-        return((Sorted_Add(object)) != false);
+        return Sorted_Add(object) != false;
     }
-    return(Add((ObjectClass*)object) != false);
+    return Add((ObjectClass*)object) != false;
 }
 
 
@@ -689,24 +528,12 @@ void Vinifera_Hooks()
     /**
      *  Draw the build version info on the bottom on the screen.
      */
-    Patch_Jump(0x004E53C0, &_Version_Text_Draw_Patch);
-    Patch_Jump(0x005ADFBE, &_ProgressClass_Load_Screen_Version_Text_Patch);
-    Patch_Jump(0x004E084D, &_Init_Game_Loading_Screen_Version_Text_Patch);
-    Patch_Jump(0x004E3B7A, &_Load_Title_Page_Version_Text_Patch);
+    Patch_Jump(0x004E53C0, &_ShowVersionText);
 
     /**
      *  Add in Vinifera startup/shutdown hooks.
      */
-    Patch_Jump(0x00601070, &_WinMain_Parse_Command_Line);
-    Patch_Jump(0x005FF81C, &_WinMain_Vinifera_Startup);
-    Patch_Jump(0x00600F6E, &_WinMain_Register_Com_Objects);
-    Patch_Jump(0x00602474, &_Game_Shutdown_Vinifera_Shutdown);
-    Patch_Jump(0x00462927, &_Main_Game_Vinifera_Init_Game);
-
-    /**
-     *  Clear any game session and global variables before next game.
-     */
-    Patch_Jump(0x004E1F24, &_Select_Game_Clear_Globals_Patch);
+    Patch_Call(0x00601078, &Vinifera_Parse_Command_Line);
 
 #ifndef NDEBUG
     /**
@@ -735,11 +562,6 @@ void Vinifera_Hooks()
     Patch_Dword(0x00423D4D + 4, reinterpret_cast<uint32_t>(&RLEBlitBuffer[0]));
 
     /**
-     *  Fire an assert on save/load fail, rather than hard crash.
-     */
-    Patch_Jump(0x0060DBFF, &_SwizzleManagerClass_Process_Tables_Remap_Failed_Error);
-
-    /**
      *  Patch in the new save and load system functions.
      */
     Patch_Jump(0x005D4FE0, &Vinifera_Save_Game);
@@ -754,9 +576,7 @@ void Vinifera_Hooks()
      *  Set the save game version.
      */
     ViniferaGameVersion = Extension::Get_Save_Version_Number();
-    DEBUG_INFO("Save game version number: 0x%X\n", ViniferaGameVersion);
-
-    Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
+    DEBUG_INFO("Save game version number: 0x{:X}\n", ViniferaGameVersion);
 
     /**
      *  This patch randomises the serial number for this client.
@@ -775,20 +595,6 @@ void Vinifera_Hooks()
     unsigned char num = (std::rand() % 10)+48;
     Patch_Byte(0x0070EEAB, num);
     Patch_Byte(0x0070EF0F, num);
-
-#if defined(TS_CLIENT)
-    /**
-     *  Remove calls to SessionClass::Read_Scenario_Descriptions() in TS Client
-     *  compatable builds. This will speed up the initialisation and loading
-     *  process, as the reason of PKT and MPR files are not required when using
-     *  the Client.
-     */
-    Patch_Byte_Range(0x004E8901, 0x90, 5); // NewMenu::Process
-    Patch_Byte_Range(0x004E8910, 0x90, 5); // ^
-    Patch_Byte_Range(0x00564BA9, 0x90, 10); // Select_MPlayer_Game
-    Patch_Byte_Range(0x0057FE2A, 0x90, 10); // NewMenuClass::Process_Game_Select
-    Patch_Byte_Range(0x00580377, 0x90, 10); // NewMenuClass::Process_Game_Select
-#endif
 
     /**
      *  Various patches to intercept the games object tracking and heap processing.
@@ -895,8 +701,13 @@ void Vinifera_Hooks()
     Patch_Call(0x00680C54, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
     Patch_Call(0x006818F4, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
 
-    Patch_Call(0x005B1363, &_Print_CRCs_Intercept);
-    Patch_Call(0x005B5340, &_Print_CRCs_Intercept);
+    /**
+     *  Replace the vanilla Print_CRCs with Extension::Print_CRCs, which writes
+     *  the unified Vinifera desync log instead of SYNC#.TXT. Patching the
+     *  function itself ensures every caller (the game itself, as well as any
+     *  external patch sets) produces a single log.
+     */
+    Patch_Jump(0x005B58F0, static_cast<void (*)(EventClass *)>(&Extension::Print_CRCs)); // Disambiguate the overload set for template deduction.
 
     //Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
 

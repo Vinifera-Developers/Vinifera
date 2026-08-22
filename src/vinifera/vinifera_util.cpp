@@ -1,49 +1,34 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Various utility functions.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_UTIL.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Various utility functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_util.h"
-#include "vinifera_gitinfo.h"
+
+#include "bsurface.h"
+#include "colorscheme.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "filepng.h"
+#include "minidump.h"
+#include "msgbox.h"
+#include "spritecollection.h"
+#include "textprint.h"
+#include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_const.h"
+#include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "colorscheme.h"
-#include "textprint.h"
-#include "dsurface.h"
-#include "bsurface.h"
-#include "spritecollection.h"
-#include "filepng.h"
-#include "filepcx.h"
-#include "cncnet4_globals.h"
-#include "wwfont.h"
-#include "msgbox.h"
-#include "minidump.h"
 #include "winutil.h"
+#include "wwfont.h"
 #include "xzip.h"
+
 #include <cstdio>
 
 
@@ -61,32 +46,16 @@ const char *Vinifera_Name_String()
 
     if (_buffer[0] == '\0') {
 
-        /**
-         *  Append the CnCNet version if enabled.
-         */
-        char *cncnet_mode = nullptr;
-        if (CnCNet4::IsEnabled) {
-            cncnet_mode = " (CnCNet4)";
-        }
-
-        char *dev_mode = nullptr;
+        char const* dev_mode = nullptr;
         if (Vinifera_DeveloperMode) {
             dev_mode = " (Dev)";
         }
 
-        if (!dev_mode && !cncnet_mode) {
+        if (!dev_mode) {
             std::snprintf(_buffer, sizeof(_buffer), "Vinifera");
-
         } else {
-            std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s",
-                cncnet_mode != nullptr ? cncnet_mode : "",
-                dev_mode != nullptr ? dev_mode : "");
+            std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s", dev_mode != nullptr ? dev_mode : "");
         }
-
-#if defined(TS_CLIENT)
-        std::strcat(_buffer, " (TS-Client)");
-#endif
-        
     }
 
     return _buffer;
@@ -115,10 +84,6 @@ const char * Vinifera_Build_Type_String()
         const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
     #endif
     #endif
-    #if defined(TS_CLIENT)
-        std::snprintf(_buffer, sizeof(_buffer), "%s [TS-Client]", build_type);
-    #endif
-
     }
 
     return _buffer;
@@ -165,23 +130,13 @@ const char *Vinifera_Version_String()
 
     if (_buffer[0] == '\0') {
 
-        /**
-         *  Append the CnCNet version if enabled.
-         */
-        char *cncnet_mode = nullptr;
-        if (CnCNet4::IsEnabled) {
-            cncnet_mode = " (CnCNet4)";
-        }
-        
 #ifndef RELEASE
-        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s - %s %s %s%s %s",
-            cncnet_mode != nullptr ? cncnet_mode : "",
+        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s - %s %s %s%s %s",
             Vinifera_DeveloperMode ? " (Dev)" : "",
             Vinifera_Git_Branch(), Vinifera_Git_Author(),
             Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
 #else
-        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s - %s%s %s",
-            cncnet_mode != nullptr ? cncnet_mode : "",
+        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s - %s%s %s",
             Vinifera_DeveloperMode ? " (Dev)" : "",
             Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
 #endif
@@ -219,13 +174,9 @@ const char *TSpp_Version_String()
  * 
  *  @author: CCHyper
  */
-void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
+void Vinifera_Draw_Version_Text(Surface *surface, bool pre_init)
 {
     if (!surface) {
-        return;
-    }
-
-    if (Vinifera_NoVersionString) {
         return;
     }
     
@@ -238,8 +189,8 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
     Rect surfrect = surface->Get_Rect();
 
     TextPrintType style = (TPF_RIGHT|TPF_NOSHADOW|TPF_8POINT);
-    ColorScheme *color_white = ColorScheme::As_Pointer("White");
-    ColorScheme *color_yellow = ColorScheme::As_Pointer("Yellow");
+    ColorScheme *color_white = Fetch_Scheme_By_Name("White");
+    ColorScheme *color_yellow = Fetch_Scheme_By_Name("Yellow");
 
 #ifndef RELEASE
 #if defined(NIGHTLY)
@@ -260,11 +211,11 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
      *  This is just to retrieve the font height, we don't need to know
      *  the width as we print with right alignment.
      */
-    WWFontClass *font = Font_Ptr(style);
-    font->Set_X_Spacing(2);
+    FontClass *font = Font_Ptr(style);
+    font->Set_XSpacing(2);
 
     Rect print_rect;
-    font->String_Pixel_Rect("X", &print_rect);
+    font->String_Pixel_Bounds("X", print_rect);
 
     int offset = 3; // Pixels from edge
         
@@ -292,30 +243,30 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         /**
          *  Draw the version string.
          */
-        Simple_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Version_Git_String(), *surface, surfrect, version_pos, *NormalDrawer, version_color, back_color, style);
 
         /**
          *  Draw the warning string.
          */
     #if defined(NIGHTLY)
-        Simple_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, nightly_color, nightly_back_color, style);
+        Simple_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, *surface, surfrect, warning_pos, *NormalDrawer, nightly_color, nightly_back_color, style);
     #elif defined(PREVIEW)
-        Simple_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, preview_color, preview_back_color, style);
+        Simple_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, *surface, surfrect, warning_pos, *NormalDrawer, preview_color, preview_back_color, style);
     #else
         Simple_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
-            surface, &surfrect, &warning_pos, NormalDrawer, warning_color, warning_back_color, style);
+            *surface, surfrect, warning_pos, *NormalDrawer, warning_color, warning_back_color, style);
     #endif
 
         /**
          *  Draw the vinifera name string.
          */
-        Simple_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Name_String(), *surface, surfrect, vinifera_pos, *NormalDrawer, version_color, back_color, style);
 #else
 
         /**
          *  Draw the vinifera name string.
          */
-        Simple_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Version_String(), *surface, surfrect, version_pos, *NormalDrawer, version_color, back_color, style);
 #endif
 
     } else {
@@ -325,30 +276,30 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         /**
          *  Draw the version string.
          */
-        Fancy_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Version_Git_String(), *surface, surfrect, version_pos, color_white, back_color, style);
 
         /**
          *  Draw the warning string.
          */
     #if defined(NIGHTLY)
-        Fancy_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, color_white, nightly_back_color, style);
+        Fancy_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, *surface, surfrect, warning_pos, color_white, nightly_back_color, style);
     #elif defined(PREVIEW)
-        Fancy_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, color_white, preview_back_color, style);
+        Fancy_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, *surface, surfrect, warning_pos, color_white, preview_back_color, style);
     #else
         Fancy_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
-            surface, &surfrect, &warning_pos, color_yellow, warning_back_color, style);
+            *surface, surfrect, warning_pos, color_yellow, warning_back_color, style);
     #endif
 
         /**
          *  Draw the vinifera name string.
          */
-        Fancy_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Name_String(), *surface, surfrect, vinifera_pos, color_white, back_color, style);
 #else
 
         /**
          *  Draw the version string.
          */
-        Fancy_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Version_String(), *surface, surfrect, version_pos, color_white, back_color, style);
 #endif
 
     }
@@ -405,6 +356,32 @@ int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2
 
 
 /**
+ *  Shows a in-game warning message box and logs the message.
+ *
+ *  @author: Rampastring
+ */
+void Vinifera_Log_And_Show_WWMessageBox(const char* msg, ...)
+{
+    char buffer[510]; // Working staging buffer.
+    va_list arg;      // Argument list var.
+
+    va_start(arg, msg);
+    vsnprintf(buffer, sizeof(buffer), msg, arg);
+    va_end(arg);
+
+    // For the log file, append a line-terminator at the end of the message.
+    char log_buffer[512];
+    int message_length = strlen(buffer);
+    memcpy(log_buffer, buffer, message_length);
+    log_buffer[message_length] = '\n';
+    log_buffer[message_length + 1] = '\0';
+
+    DEBUG_WARNING("{}", log_buffer);
+    WWMessageBox().Process(buffer, 0, "OK");
+}
+
+
+/**
  *  Shows a in-game warning message box only if developer mode is active.
  * 
  *  This has been made its own function because we can not allocate on the stack with
@@ -438,15 +415,15 @@ void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...)
  */
 const char *Vinifera_Get_Window_Title(DWORD dwPid)
 {
-    static char _window_name[512];
+    static char _window_name[512] = {};
 
     if (_window_name[0] != '\0') {
         return _window_name;
     }
 
     char title_buff[32];
-    if (Vinifera_ProjectName[0] != '\0') {
-        std::strncpy(title_buff, Vinifera_ProjectName, sizeof(title_buff));
+    if (!Vinifera_ProjectName.empty()) {
+        std::strncpy(title_buff, Vinifera_ProjectName.c_str(), sizeof(title_buff));
     } else {
         std::strncpy(title_buff, Text_String(TXT_SHORT_TITLE), sizeof(title_buff));
     }
@@ -465,11 +442,6 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
     if (Vinifera_DeveloperMode) {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s (PID:%d) (Developer Mode)", title_buff, dwPid);
-
-#if defined(TS_CLIENT)
-        std::strcat(_window_name, " (TS-Client)");
-#endif
-
     } else {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s", title_buff);
@@ -499,7 +471,7 @@ bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> 
 
     HZIP hZip = CreateZip((void *)buffer, 0, ZIP_FILENAME);
     if (!hZip) {
-        DEBUG_ERROR("Failed to create zip archive \"%s\"!\n", filename);
+        DEBUG_ERROR("Failed to create zip archive \"{}\"!\n", filename);
         return false;
     }
 
@@ -514,12 +486,12 @@ bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> 
         }
         ZRESULT zresult = ZipAdd(hZip, filelist[i], buffer, 0, ZIP_FILENAME);
         if (zresult != ZR_OK) {
-            DEBUG_ERROR("Failed to add file \"%s\" to zip archive \"%s\"!\n", buffer, filename);
+            DEBUG_ERROR("Failed to add file \"{}\" to zip archive \"{}\"!\n", buffer, filename);
             return false;
         }
     }
     
-    DEBUG_INFO("Zip archive \"%s\" created sucessfully.\n", filename);
+    DEBUG_INFO("Zip archive \"{}\" created sucessfully.\n", filename);
 
     return CloseZip(hZip) == ZR_OK;
 }
@@ -601,6 +573,12 @@ bool Vinifera_Collect_Debug_Files()
 }
 
 
+void Vinifera_Generate_PlaythroughID()
+{
+    Vinifera_PlaythroughID = std::time(nullptr);
+}
+
+
 /**
  *  Fetch string from the program resources.
  */
@@ -667,7 +645,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
     DWORD rc = LoadString(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer));
     //DWORD rc = Load_String_Ex(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer), ResourceLang);
     if (!rc) {
-        DEBUG_ERROR("Fetch_String() - LoadString failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_String() - LoadString failed. Error! {}.\n", Last_System_Error_As_String());
         return _null;
     }
 
@@ -675,7 +653,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
     //_buffer[sizeof(_buffer)-1] = '\0';
     free_entry.Buffer[sizeof(free_entry.Buffer)-1] = '\0';
 
-    //DEBUG_INFO("Fetch_String() - Returning '%s'.\n", free_entry.Buffer);
+    //DEBUG_INFO("Fetch_String() - Returning '{}'.\n", free_entry.Buffer);
 
     return free_entry.Buffer;
 }
@@ -695,13 +673,13 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
     //HRSRC res = FindResourceEx(handle, id, type, ResourceLang);
     HRSRC res = FindResource(handle, id, type);
     if (res == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
     HGLOBAL res_handle = LoadResource(handle, res);
     if (res_handle == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - LoadResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - LoadResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
@@ -714,7 +692,7 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
      */
     void *res_data = LockResource(res_handle);
     if (res_data == nullptr) {
-        DEBUG_ERROR("Fetch_Resource() - LockResource failed. Error! %s.\n", Last_System_Error_As_String());
+        DEBUG_ERROR("Fetch_Resource() - LockResource failed. Error! {}.\n", Last_System_Error_As_String());
         return nullptr;
     }
 
@@ -738,28 +716,83 @@ BSurface *Vinifera_Get_Image_Surface(const char *filename)
     BSurface *surface = nullptr;
     CCFileClass file;
 
-    Wstring fname = filename;
-    fname.To_Upper();
+    std::string fname = filename;
+    std::transform(fname.begin(), fname.end(), fname.begin(), ::toupper);
 
-    Wstring png_fname = fname;
+    std::string png_fname = fname;
     png_fname += ".PNG";
 
-    file.Set_Name(png_fname.Peek_Buffer());
+    file.Set_Name(png_fname.c_str());
 
     surface = Read_PNG_File(&file);
     if (surface) {
         return surface;
     }
 
-    surface = Get_BMP_Image_Surface(fname.Peek_Buffer());
+    surface = Get_BMP_Image_Surface(fname.c_str());
     if (surface) {
         return surface;
     }
 
-    surface = Get_PCX_Image_Surface(fname.Peek_Buffer());
+    surface = Get_PCX_Image_Surface(fname.c_str());
     if (surface) {
         return surface;
     }
 
     return nullptr;
+}
+
+
+/**
+ *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
+ * 
+ *  @author: CCHyper
+ */
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio)
+{
+    if (maintain_ratio) {
+
+        double dSurfaceWidth = area_width;
+        double dSurfaceHeight = area_height;
+        double dSurfaceAspectRatio = dSurfaceWidth / dSurfaceHeight;
+
+        double dVideoWidth = rect.Width;
+        double dVideoHeight = rect.Height;
+        double dVideoAspectRatio = dVideoWidth / dVideoHeight;
+    
+        /**
+         *  If the aspect ratios are the same then the screen rectangle
+         *  will do, otherwise we need to calculate the new rectangle.
+         */
+        if (dVideoAspectRatio > dSurfaceAspectRatio) {
+            int nNewHeight = (int)(area_width/dVideoWidth*dVideoHeight);
+            int nCenteringFactor = (area_height - nNewHeight) / 2;
+            rect.X = 0;
+            rect.Y = nCenteringFactor;
+            rect.Width = area_width;
+            rect.Height = nNewHeight;
+
+        } else if (dVideoAspectRatio < dSurfaceAspectRatio) {
+            int nNewWidth = (int)(area_height/dVideoHeight*dVideoWidth);
+            int nCenteringFactor = (area_width - nNewWidth) / 2;
+            rect.X = nCenteringFactor;
+            rect.Y = 0;
+            rect.Width = nNewWidth;
+            rect.Height = area_height;
+
+        } else {
+            rect.X = 0;
+            rect.Y = 0;
+            rect.Width = area_width;
+            rect.Height = area_height;
+        }
+
+    } else {
+        rect.X = 0;
+        rect.Y = 0;
+        rect.Width = area_width;
+        rect.Height = area_height;
+    }
+
+    return true;
 }

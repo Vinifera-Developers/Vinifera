@@ -1,90 +1,41 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for implementing the new swizzle manager.
  *
- *  @project       Vinifera
- *
- *  @file          NEWSWIZZLE_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for implementing the new swizzle manager.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "tibsun_globals.h"
-#include "vinifera_saveload.h"
-#include "saveload.h"
-#include "vinifera_util.h"
+
+#include "always.h"
+
 #include "debughandler.h"
-#include "asserthandler.h"
-#include "fatal.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
-
-#include "aircraft.h"
-#include "aitrigtype.h"
-#include "alphashape.h"
-#include "anim.h"
-#include "animtype.h"
-#include "base.h"
-#include "building.h"
-#include "buildinglight.h"
-#include "brain.h"
-#include "bullet.h"
-#include "bullettype.h"
-#include "cell.h"
-#include "factory.h"
-#include "foot.h"
 #include "house.h"
-#include "rules.h"
-#include "script.h"
-#include "techno.h"
-#include "technotype.h"
-#include "team.h"
-#include "voxelanim.h"
-#include "voxelanimtype.h"
+#include "swizzle.h"
+#include "vinifera_saveload.h"
 
-#include "wstring.h"
-
-
-#ifdef VINIFERA_USE_NEW_SWIZZLE_MANAGER
 
 /**
  *  The swizzle database contains return addresses for all annoucement and remap
  *  request calls, allowing us to detect this address and attach debug information
  *  which is used by the new Swizzle manager.
  */
-static struct SwizzleInfoDatabaseEntry
-{
+static struct SwizzleInfoDatabaseEntry {
     SwizzleInfoDatabaseEntry() :
         ReturnAddress(0x00000000),
-        Line(0),
-        File(),
+        Variable(),
         Function(),
-        Variable()
+        File(),
+        Line(0)
     {
         std::memset(File, 0, sizeof(File));
         std::memset(Function, 0, sizeof(Function));
         std::memset(Variable, 0, sizeof(Variable));
     }
 
-    bool operator==(const SwizzleInfoDatabaseEntry &src) const { return false; }
-    bool operator!=(const SwizzleInfoDatabaseEntry &src) const { return true; }
+    bool operator==(const SwizzleInfoDatabaseEntry& src) const { return false; }
+    bool operator!=(const SwizzleInfoDatabaseEntry& src) const { return true; }
 
     uint32_t ReturnAddress;
     char Variable[512];
@@ -98,10 +49,10 @@ static DynamicVectorClass<SwizzleInfoDatabaseEntry> SwizzleInfoDatabase;
 
 /**
  *  Adds a database entry to the global list.
- * 
+ *
  *  @author: tomsons26
  */
-static void Add_Swizzle_Database_Entry(uint32_t retaddr, char *function,  char *variable, char *file, int line = -1)
+static void Add_Swizzle_Database_Entry(uint32_t retaddr, const char* function, const char* variable, const char* file, int line = -1)
 {
     SwizzleInfoDatabaseEntry info;
 
@@ -112,13 +63,13 @@ static void Add_Swizzle_Database_Entry(uint32_t retaddr, char *function,  char *
     /**
      *  The original Tiberian Sun source tree path.
      */
-    static const char *TIBSUN_SOURCE_PATH = "D:\\Projects\\Sun\\CodeFS\\";
+    static const char* TIBSUN_SOURCE_PATH = "D:\\Projects\\Sun\\CodeFS\\";
 
     // Add the Tiberian Sun source path (as we know it) to the source name.
-    Wstring filepath = TIBSUN_SOURCE_PATH;
+    std::string filepath = TIBSUN_SOURCE_PATH;
     filepath += file;
 
-    std::strncpy(info.File, filepath.Peek_Buffer(), sizeof(info.File));
+    std::strncpy(info.File, filepath.c_str(), sizeof(info.File));
 
     info.Line = line;
 
@@ -128,7 +79,7 @@ static void Add_Swizzle_Database_Entry(uint32_t retaddr, char *function,  char *
 
 /**
  *  Populate the database with debug information for all known callsites.
- * 
+ *
  *  @author: tomsons26
  */
 static void Build_Swizzle_Address_Database()
@@ -207,8 +158,8 @@ static void Build_Swizzle_Address_Database()
     Add_Swizzle_Database_Entry(0x004C4E20, STRINGIZE(HouseClass::Load()), STRINGIZE(HouseClass::AngerNodes), "House.cpp");
     Add_Swizzle_Database_Entry(0x004C4EFE, STRINGIZE(HouseClass::Load()), STRINGIZE(HouseClass::ScoutNodes), "House.cpp");
     Add_Swizzle_Database_Entry(0x004C4FBD, STRINGIZE(HouseClass::Load()), STRINGIZE(HouseClass::SuperWeapon), "House.cpp");
-    Add_Swizzle_Database_Entry(0x004C4FE2, STRINGIZE(HouseClass::Load()),  STRINGIZE(HouseClass::field_28), "House.cpp");
-    Add_Swizzle_Database_Entry(0x004C5004, STRINGIZE(HouseClass::Load()),  STRINGIZE(HouseClass::field_40), "House.cpp");
+    Add_Swizzle_Database_Entry(0x004C4FE2, STRINGIZE(HouseClass::Load()), STRINGIZE(HouseClass::field_28), "House.cpp");
+    Add_Swizzle_Database_Entry(0x004C5004, STRINGIZE(HouseClass::Load()), STRINGIZE(HouseClass::field_40), "House.cpp");
     Add_Swizzle_Database_Entry(0x004D94B8, STRINGIZE(InfantryClass::Load()), STRINGIZE(InfantryClass::Class), "Infantry.cpp");
     Add_Swizzle_Database_Entry(0x004F22A2, STRINGIZE(IsometricTileClass::Load()), STRINGIZE(Class), "IsoTile.cpp");
     Add_Swizzle_Database_Entry(0x004F8651, STRINGIZE(IsometricTileTypeClass::Load()), STRINGIZE(IsometricTileTypeClass::NextTileTypeInSet), "IsoTileType.cpp");
@@ -281,7 +232,7 @@ static void Build_Swizzle_Address_Database()
     Add_Swizzle_Database_Entry(0x005D050C, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::NodAdvancedPower), "Rules.cpp");
     Add_Swizzle_Database_Entry(0x005D051D, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::GDIFirestormGenerator), "Rules.cpp");
     Add_Swizzle_Database_Entry(0x005D052E, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::GDIHunterSeeker), "Rules.cpp");
-    Add_Swizzle_Database_Entry(0x005D053F, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::NodHunterSeeker), "Rules.cpp"); 
+    Add_Swizzle_Database_Entry(0x005D053F, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::NodHunterSeeker), "Rules.cpp");
     Add_Swizzle_Database_Entry(0x005D0550, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::NukeProjectile), "Rules.cpp");
     Add_Swizzle_Database_Entry(0x005D0561, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::NukeDown), "Rules.cpp");
     Add_Swizzle_Database_Entry(0x005D0572, STRINGIZE(RulesClass::Load()), STRINGIZE(RulesClass::EMPulseProjectile), "Rules.cpp");
@@ -430,10 +381,10 @@ static void Build_Swizzle_Address_Database()
 
 /**
  *  Searches for a database entry from the input return address.
- * 
+ *
  *  @author: tomsons26
  */
-static SwizzleInfoDatabaseEntry *Swizzle_Find_Database_Entry(uintptr_t retaddr)
+static SwizzleInfoDatabaseEntry* Swizzle_Find_Database_Entry(uintptr_t retaddr)
 {
     for (int i = 0; i < SwizzleInfoDatabase.Count(); ++i) {
         if (SwizzleInfoDatabase[i].ReturnAddress == retaddr) {
@@ -441,7 +392,7 @@ static SwizzleInfoDatabaseEntry *Swizzle_Find_Database_Entry(uintptr_t retaddr)
         }
     }
 
-    //DEV_DEBUG_WARNING("0x%p was not found in the Swizzle database!\n", retaddr);
+    // DEV_DEBUG_WARNING("0x{} was not found in the Swizzle database!\n", retaddr);
 
     return nullptr;
 }
@@ -450,30 +401,30 @@ static SwizzleInfoDatabaseEntry *Swizzle_Find_Database_Entry(uintptr_t retaddr)
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor.
- * 
+ *
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
  */
-static class SwizzleManagerClassExt : public ViniferaSwizzleManagerClass
+static class SwizzleManagerClassExt : public SwizzleManagerClass
 {
-    public:
-        COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Reset();
-        COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Swizzle(void **pointer);
-        COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Fetch_Swizzle_ID(void *pointer, LONG *id);
-        COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Here_I_Am(LONG id, void *pointer);
+public:
+    COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Reset();
+    COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Swizzle(void** pointer);
+    COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Fetch_Swizzle_ID(void* pointer, LONG* id);
+    COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Here_I_Am(LONG id, void* pointer);
 };
 
 
 /**
  *  Wrapper for Here_I_Am to call the new Swizzle manager with attached debug information.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDAPICALLTYPE SwizzleManagerClassExt::_Here_I_Am(LONG id, void *pointer)
+LONG STDAPICALLTYPE SwizzleManagerClassExt::_Here_I_Am(LONG id, void* pointer)
 {
-    //DEV_DEBUG_INFO("SwizzleManager::Here_I_Am - retaddr 0x%08X id 0x%08X pointer 0x%08X\n", (uintptr_t)_ReturnAddress(), id, pointer);
+    // DEV_DEBUG_INFO("SwizzleManager::Here_I_Am - retaddr 0x{:08X} id 0x{:08X} pointer 0x{:08X}\n", (uintptr_t)_ReturnAddress(), id, pointer);
 
     /**
      *  Get the caller return address, we use this to identify a location in which the annoucement was made.
@@ -483,15 +434,15 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Here_I_Am(LONG id, void *pointer)
     /**
      *  Fetch the caller debug information based off the return address.
      */
-    SwizzleInfoDatabaseEntry *info = Swizzle_Find_Database_Entry(retaddr);
+    SwizzleInfoDatabaseEntry* info = Swizzle_Find_Database_Entry(retaddr);
     if (!info) {
-        DEV_DEBUG_WARNING("Here_I_Am() - Failed to find debug information for 0x%p!\n", retaddr);
+        DEV_DEBUG_WARNING("Here_I_Am() - Failed to find debug information for 0x{}!\n", retaddr);
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
         // Assert so we can investigate.
         ASSERT(false);
 #endif
-        
+
         /**
          *  Return failure!
          */
@@ -499,22 +450,22 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Here_I_Am(LONG id, void *pointer)
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
     } else {
-        DEV_DEBUG_INFO("Here_I_Am() - Debug info found:\n  File: %s\n  Line: %d\n  Function: %s\n  Var: %s\n", info->File, info->Line, info->Function, info->Variable);
+        DEV_DEBUG_INFO("Here_I_Am() - Debug info found:\n  File: {}\n  Line: {}\n  Function: {}\n  Var: {}\n", info->File, info->Line, info->Function, info->Variable);
 #endif
     }
 
-    return Here_I_Am_Dbg(id, pointer, info->File, info->Line, info->Function, info->Variable);
+    return ViniferaSwizzleManager.Here_I_Am_Dbg(id, pointer, info->File, info->Line, info->Function, info->Variable);
 }
 
 
 /**
  *  Wrapper for Reset to call the new Swizzle manager with attached debug information.
- * 
+ *
  *  @author: CCHyper
  */
 LONG STDAPICALLTYPE SwizzleManagerClassExt::_Reset()
 {
-    //DEV_DEBUG_INFO("SwizzleManager::Reset - retaddr 0x%08X id 0x%08X pointer 0x%08X\n", (uintptr_t)_ReturnAddress(), id, pointer);
+    // DEV_DEBUG_INFO("SwizzleManager::Reset - retaddr 0x{:08X} id 0x{:08X} pointer 0x{:08X}\n", (uintptr_t)_ReturnAddress(), id, pointer);
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
     /**
@@ -523,27 +474,27 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Reset()
     uintptr_t retaddr = (uintptr_t)_ReturnAddress();
 
     switch (retaddr) {
-        case 0x005D69C7:
-            DEV_DEBUG_INFO("Reset() - From Load_Game\n");
-            break;
-        case 0x005DD668:
-            DEV_DEBUG_INFO("Reset() - From Read_Scenario_INI\n");
-            break;
+    case 0x005D69C7:
+        DEV_DEBUG_INFO("Reset() - From Load_Game\n");
+        break;
+    case 0x005DD668:
+        DEV_DEBUG_INFO("Reset() - From Read_Scenario_INI\n");
+        break;
     };
 #endif
 
-    return Reset();
+    return ViniferaSwizzleManager.Reset();
 }
 
 
 /**
  *  Wrapper for Swizzle to call the new Swizzle manager with attached debug information.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDAPICALLTYPE SwizzleManagerClassExt::_Swizzle(void **pointer)
+LONG STDAPICALLTYPE SwizzleManagerClassExt::_Swizzle(void** pointer)
 {
-    //DEV_DEBUG_INFO("SwizzleManager::Swizzle - retaddr 0x%08X id 0x%08X pointer 0x%08X\n", (uintptr_t)_ReturnAddress(), id, pointer);
+    // DEV_DEBUG_INFO("SwizzleManager::Swizzle - retaddr 0x{:08X} id 0x{:08X} pointer 0x{:08X}\n", (uintptr_t)_ReturnAddress(), id, pointer);
 
     /**
      *  Get the caller return address, we use this to identify a location in which the request was made.
@@ -553,15 +504,15 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Swizzle(void **pointer)
     /**
      *  Fetch the caller debug information based off the return address.
      */
-    SwizzleInfoDatabaseEntry *info = Swizzle_Find_Database_Entry(retaddr);
+    SwizzleInfoDatabaseEntry* info = Swizzle_Find_Database_Entry(retaddr);
     if (!info) {
-        DEV_DEBUG_WARNING("Swizzle() - Failed to find debug information for 0x%p!\n", retaddr);
+        DEV_DEBUG_WARNING("Swizzle() - Failed to find debug information for 0x{}!\n", retaddr);
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
         // Assert so we can investigate.
         ASSERT(false);
 #endif
-        
+
         /**
          *  Return failure!
          */
@@ -569,22 +520,22 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Swizzle(void **pointer)
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
     } else {
-        DEV_DEBUG_INFO("Swizzle() - Debug info found:\n  File: %s\n  Line: %d\n  Function: %s\n  Var: %s\n", info->File, info->Line, info->Function, info->Variable);
+        DEV_DEBUG_INFO("Swizzle() - Debug info found:\n  File: {}\n  Line: {}\n  Function: {}\n  Var: {}\n", info->File, info->Line, info->Function, info->Variable);
 #endif
     }
 
-    return Swizzle_Dbg(pointer, info->File, info->Line, info->Function, info->Variable);
+    return ViniferaSwizzleManager.Swizzle_Dbg(pointer, info->File, info->Line, info->Function, info->Variable);
 }
 
 
 /**
  *  Wrapper for Fetch_Swizzle_ID to call the new Swizzle manager with attached debug information.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDAPICALLTYPE SwizzleManagerClassExt::_Fetch_Swizzle_ID(void *pointer, LONG *id)
+LONG STDAPICALLTYPE SwizzleManagerClassExt::_Fetch_Swizzle_ID(void* pointer, LONG* id)
 {
-    //DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID - retaddr 0x%08X id 0x%08X pointer 0x%08X\n", (uintptr_t)_ReturnAddress(), id, pointer);
+    // DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID - retaddr 0x{:08X} id 0x{:08X} pointer 0x{:08X}\n", (uintptr_t)_ReturnAddress(), id, pointer);
 
     /**
      *  Get the caller return address, we use this to identify a location in which the request was made.
@@ -594,15 +545,15 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Fetch_Swizzle_ID(void *pointer, LON
     /**
      *  Fetch the caller debug information based off the return address.
      */
-    SwizzleInfoDatabaseEntry *info = Swizzle_Find_Database_Entry(retaddr);
+    SwizzleInfoDatabaseEntry* info = Swizzle_Find_Database_Entry(retaddr);
     if (!info) {
-        DEV_DEBUG_WARNING("Fetch_Swizzle_ID() - Failed to find debug information for 0x%p!\n", retaddr);
+        DEV_DEBUG_WARNING("Fetch_Swizzle_ID() - Failed to find debug information for 0x{}!\n", retaddr);
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
         // Assert so we can investigate.
         ASSERT(false);
 #endif
-        
+
         /**
          *  Return failure!
          */
@@ -610,37 +561,24 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Fetch_Swizzle_ID(void *pointer, LON
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
     } else {
-        DEV_DEBUG_INFO("Fetch_Swizzle_ID() - Debug info found:\n  File: %s\n  Line: %d\n  Function: %s\n  Var: %s\n", info->File, info->Line, info->Function, info->Variable);
+        DEV_DEBUG_INFO("Fetch_Swizzle_ID() - Debug info found:\n  File: {}\n  Line: {}\n  Function: {}\n  Var: {}\n", info->File, info->Line, info->Function, info->Variable);
 #endif
     }
 
-    return Fetch_Swizzle_ID_Dbg(pointer, id, info->File, info->Line, info->Function, info->Variable);
+    return ViniferaSwizzleManager.Fetch_Swizzle_ID_Dbg(pointer, id, info->File, info->Line, info->Function, info->Variable);
 }
 
 
 /**
- *  Replacement functions for the dynamic initialisers to replace SwizzleManager with SwizzleManagerClassExt.
+ *  Main function for patching the hooks.
  */
-//static void __cdecl SwizzleManagerClassExt_atexit() { reinterpret_cast<SwizzleManagerClassExt &>(SwizzleManager).SwizzleManagerClassExt::~SwizzleManagerClassExt(); }
-static void __cdecl SwizzleManagerClassExt_dyn_init() { new (&SwizzleManager) SwizzleManagerClassExt; } //std::atexit(SwizzleManagerClassExt_atexit); }
-
-#endif
-
-
 void NewSwizzle_Hooks()
 {
-#ifdef VINIFERA_USE_NEW_SWIZZLE_MANAGER
 
     /**
      *  Build the database of debug info.
      */
     Build_Swizzle_Address_Database();
-
-    /**
-     *  Replaces dynamic inits for original SwizzleManager global.
-     */
-    Hook_Function(0x0060D8A0, &SwizzleManagerClassExt_dyn_init);
-    //Patch_Byte(0x0060D920, 0xC3); // retn, voids the original atexit.
 
     /**
      *  Replace the implementation of SwizzleManagerClass with our own implementation.
@@ -649,7 +587,4 @@ void NewSwizzle_Hooks()
     Patch_Jump(0x0060DA70, &SwizzleManagerClassExt::_Swizzle);
     Patch_Jump(0x0060DCC0, &SwizzleManagerClassExt::_Fetch_Swizzle_ID);
     Patch_Jump(0x0060DAF0, &SwizzleManagerClassExt::_Here_I_Am);
-
-#endif
 }
-

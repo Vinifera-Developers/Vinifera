@@ -1,36 +1,17 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Graphical electric bolts for weapons.
  *
- *  @project       Vinifera
- *
- *  @file          EBOLT.H
- *
- *  @author        CCHyper, tomsons26
- *
- *  @brief         Graphical electric bolts for weapons.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "rgb.h"
-#include "vector.h"
 #include "tibsun_defines.h"
+#include "vector.h"
 
 
 class TechnoClass;
@@ -58,9 +39,9 @@ class EBoltClass
         ~EBoltClass();
 
         void Draw_It();
-        void Create(Coordinate &start, Coordinate &end, int z_adjust);
+        void Create(Coord &start, Coord &end, int z_adjust);
 
-        Coordinate Source_Coord() const;
+        Coord Source_Coord() const;
         void Set_Properties(TechnoClass *techno, const WeaponTypeClass *weapon, WeaponSlotType slot);
 
         void Flag_To_Delete() { Lifetime = 0; }
@@ -71,24 +52,24 @@ class EBoltClass
     private:
         void Clear();
 
-        void Add_Plot_Line(Coordinate &start, Coordinate &end, RGBClass &line_color, int start_z, int end_z)
+        void Add_Plot_Line(Coord &start, Coord &end, RGBClass &line_color, int start_z, int end_z)
         {
             LineDrawList.Add( LineDrawDataStruct { start, end, line_color, start_z, end_z } );
         }
 
-        void Plot_Bolt(Coordinate &start, Coordinate &end);
+        void Plot_Bolt(Coord &start, Coord &end);
         void Draw_Bolts();
 
     private:
         /**
          *  The start coordinate for this electric bolt.
          */
-        Coordinate StartCoord;
+        Coord StartCoord;
 
         /**
          *  The end coordinate for this electric bolt.
          */
-        Coordinate EndCoord;
+        Coord EndCoord;
 
         /**
          *  The initial z draw adjustment value.
@@ -144,8 +125,8 @@ class EBoltClass
          */
         struct LineDrawDataStruct
         {
-            Coordinate Start;
-            Coordinate End;
+            Coord Start;
+            Coord End;
             RGBClass Color;
             int StartZ;
             int EndZ;

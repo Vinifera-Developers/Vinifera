@@ -1,45 +1,29 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended BuildingClass class.
  *
- *  @project       Vinifera
- *
- *  @file          BUILDINGEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended BuildingClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingext.h"
+
+#include "asserthandler.h"
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "extension.h"
 #include "house.h"
 #include "housetype.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
@@ -47,10 +31,9 @@ BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
     ProduceCashTimer(),
     CurrentProduceCashBudget(-1),
     IsCaptureOneTimeCashGiven(false),
-    IsBudgetDepleted(false)
+    IsBudgetDepleted(false),
+    LastFlameSpawnFrame(0)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("BuildingClassExtension::BuildingClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BuildingExtensions.Add(this);
 }
 
@@ -63,7 +46,6 @@ BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
 BuildingClassExtension::BuildingClassExtension(const NoInitClass &noinit) :
     TechnoClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::BuildingClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -74,8 +56,6 @@ BuildingClassExtension::BuildingClassExtension(const NoInitClass &noinit) :
  */
 BuildingClassExtension::~BuildingClassExtension()
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::~BuildingClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BuildingExtensions.Delete(this);
 }
 
@@ -87,8 +67,6 @@ BuildingClassExtension::~BuildingClassExtension()
  */
 HRESULT BuildingClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -106,8 +84,6 @@ HRESULT BuildingClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT BuildingClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -126,8 +102,6 @@ HRESULT BuildingClassExtension::Load(IStream *pStm)
  */
 HRESULT BuildingClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -144,23 +118,10 @@ HRESULT BuildingClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int BuildingClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void BuildingClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    TechnoClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -170,8 +131,6 @@ void BuildingClassExtension::Detach(AbstractClass * target, bool all)
  */
 void BuildingClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     /**
      *  #issue-26
      * 
@@ -189,8 +148,6 @@ void BuildingClassExtension::Object_CRC(CRCEngine &crc) const
  */
 void BuildingClassExtension::Produce_Cash_AI()
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Produce_Cash_AI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     const BuildingClass *this_building = reinterpret_cast<const BuildingClass *>(This());
     const BuildingTypeClass *this_buildingtype = reinterpret_cast<const BuildingTypeClass *>(This()->Class_Of());
 

@@ -1,44 +1,31 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended AnimTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          ANIMTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended AnimTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animtypeext.h"
+
 #include "animtype.h"
+#include "asserthandler.h"
 #include "ccini.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "findmake.h"
+#include "particletype.h"
 #include "tibsun_defines.h"
 #include "vinifera_saveload.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
@@ -47,7 +34,7 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     IsForceBigCraters(false),
     ZAdjust(0),
     AttachLayer(LAYER_NONE),
-    ParticleToSpawn(PARTICLE_NONE),
+    ParticleToSpawn(nullptr),
     NumberOfParticles(0),
     ParticleSpawnOffset(0, 0, 0),
     StartAnims(),
@@ -71,8 +58,6 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     DamageRate(-1),
     StopSound(VOC_NONE)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimTypeExtensions.Add(this);
 
     // The half-way frame is the middle frame by default.
@@ -104,7 +89,6 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
     EndAnimsDelay(noinit),
     MiddleFrames(noinit)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -115,8 +99,6 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
  */
 AnimTypeClassExtension::~AnimTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::~AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimTypeExtensions.Delete(this);
 }
 
@@ -128,8 +110,6 @@ AnimTypeClassExtension::~AnimTypeClassExtension()
  */
 HRESULT AnimTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -147,8 +127,6 @@ HRESULT AnimTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     StartAnims.Clear();
     StartAnimsCount.Clear();
     StartAnimsMinimum.Clear();
@@ -173,27 +151,28 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 
     new (this) AnimTypeClassExtension(NoInitClass());
 
-    StartAnims.Load(pStm);
-    StartAnimsCount.Load(pStm);
-    StartAnimsMinimum.Load(pStm);
-    StartAnimsMaximum.Load(pStm);
-    StartAnimsDelay.Load(pStm);
-    MiddleAnims.Load(pStm);
-    MiddleAnimsCount.Load(pStm);
-    MiddleAnimsMinimum.Load(pStm);
-    MiddleAnimsMaximum.Load(pStm);
-    MiddleAnimsDelay.Load(pStm);
-    EndAnims.Load(pStm);
-    EndAnimsCount.Load(pStm);
-    EndAnimsMinimum.Load(pStm);
-    EndAnimsMaximum.Load(pStm);
-    EndAnimsDelay.Load(pStm);
-    MiddleFrames.Load(pStm);
+    StartAnims.Load_Self(pStm);
+    StartAnimsCount.Load_Self(pStm);
+    StartAnimsMinimum.Load_Self(pStm);
+    StartAnimsMaximum.Load_Self(pStm);
+    StartAnimsDelay.Load_Self(pStm);
+    MiddleAnims.Load_Self(pStm);
+    MiddleAnimsCount.Load_Self(pStm);
+    MiddleAnimsMinimum.Load_Self(pStm);
+    MiddleAnimsMaximum.Load_Self(pStm);
+    MiddleAnimsDelay.Load_Self(pStm);
+    EndAnims.Load_Self(pStm);
+    EndAnimsCount.Load_Self(pStm);
+    EndAnimsMinimum.Load_Self(pStm);
+    EndAnimsMaximum.Load_Self(pStm);
+    EndAnimsDelay.Load_Self(pStm);
+    MiddleFrames.Load_Self(pStm);
 
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(ParticleToSpawn, "ParticleToSpawn");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(EndAnims, "EndAnims");
-    
+
     return hr;
 }
 
@@ -205,29 +184,27 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
 
-    StartAnims.Save(pStm);
-    StartAnimsCount.Save(pStm);
-    StartAnimsMinimum.Save(pStm);
-    StartAnimsMaximum.Save(pStm);
-    StartAnimsDelay.Save(pStm);
-    MiddleAnims.Save(pStm);
-    MiddleAnimsCount.Save(pStm);
-    MiddleAnimsMinimum.Save(pStm);
-    MiddleAnimsMaximum.Save(pStm);
-    MiddleAnimsDelay.Save(pStm);
-    EndAnims.Save(pStm);
-    EndAnimsCount.Save(pStm);
-    EndAnimsMinimum.Save(pStm);
-    EndAnimsMaximum.Save(pStm);
-    EndAnimsDelay.Save(pStm);
-    MiddleFrames.Save(pStm);
+    StartAnims.Save_Self(pStm);
+    StartAnimsCount.Save_Self(pStm);
+    StartAnimsMinimum.Save_Self(pStm);
+    StartAnimsMaximum.Save_Self(pStm);
+    StartAnimsDelay.Save_Self(pStm);
+    MiddleAnims.Save_Self(pStm);
+    MiddleAnimsCount.Save_Self(pStm);
+    MiddleAnimsMinimum.Save_Self(pStm);
+    MiddleAnimsMaximum.Save_Self(pStm);
+    MiddleAnimsDelay.Save_Self(pStm);
+    EndAnims.Save_Self(pStm);
+    EndAnimsCount.Save_Self(pStm);
+    EndAnimsMinimum.Save_Self(pStm);
+    EndAnimsMaximum.Save_Self(pStm);
+    EndAnimsDelay.Save_Self(pStm);
+    MiddleFrames.Save_Self(pStm);
 
     return hr;
 }
@@ -240,23 +217,10 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int AnimTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void AnimTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    ObjectTypeClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -266,8 +230,6 @@ void AnimTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(AttachLayer);
     crc(NumberOfParticles);
     crc(StartAnims.Count());
@@ -298,7 +260,6 @@ void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
     { while (list.Count() < count) \
         list.Add(value); }
 
-
 /**
  *  Fetches the extension data from the INI database.  
  *  
@@ -306,8 +267,6 @@ void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -323,32 +282,33 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      * 
      *  Reload the RandomRate value and correctly fix up negative and back to front values.
      */
-    TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
-    if (random_rate.X != -1) {
+    if (ini.Is_Present(ini_name, "RandomRate")) {
+        TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
+
         if (random_rate.X == 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'Low' value!\n", This()->Name());
+            DEV_DEBUG_WARNING("Animation \"{}\" has a zero random rate 'Low' value!\n", This()->Name());
         } else {
             if (random_rate.X < 0) {
-                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'Low' value!\n", This()->Name());
+                DEV_DEBUG_WARNING("Animation \"{}\" has a negative random rate 'Low' value!\n", This()->Name());
             }
             random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
         }
-    }
-    if (random_rate.Y != -1) {
+
         if (random_rate.Y == 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'High' value!\n", This()->Name());
+            DEV_DEBUG_WARNING("Animation \"{}\" has a zero random rate 'High' value!\n", This()->Name());
         } else {
             if (random_rate.Y < 0) {
-                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'High' value!\n", This()->Name());
+                DEV_DEBUG_WARNING("Animation \"{}\" has a negative random rate 'High' value!\n", This()->Name());
             }
             random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
         }
+
+        if (random_rate.X > random_rate.Y) {
+            std::swap(random_rate.X, random_rate.Y);
+        }
+        This()->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
+        This()->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
     }
-    if ((random_rate.X != -1 && random_rate.Y != -1) && random_rate.X > random_rate.Y) {
-        std::swap(random_rate.X, random_rate.Y);
-    }
-    This()->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
-    This()->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
 
     /**
      *  #issue-646
@@ -363,15 +323,15 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     IsForceBigCraters = ini.Get_Bool(ini_name, "ForceBigCraters", IsForceBigCraters);
     ZAdjust = ini.Get_Int(ini_name, "ZAdjust", ZAdjust);
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
-    ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
+    ParticleToSpawn = TGet_Class(ini, ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
     ParticleSpawnOffset = ini.Get_Point(ini_name, "SpawnsParticleOffset", ParticleSpawnOffset);
 
-    StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
-    StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);
-    StartAnimsMinimum = ini.Get_Integers(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
-    StartAnimsMaximum = ini.Get_Integers(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
-    StartAnimsDelay = ini.Get_Integers(ini_name, "StartAnimsDelay", StartAnimsDelay);
+    StartAnims = TGet_TypeList(ini, ini_name, "StartAnims", StartAnims);
+    StartAnimsCount = ini.Get_IntList(ini_name, "StartAnimsCount", StartAnimsCount);
+    StartAnimsMinimum = ini.Get_IntList(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
+    StartAnimsMaximum = ini.Get_IntList(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
+    StartAnimsDelay = ini.Get_IntList(ini_name, "StartAnimsDelay", StartAnimsDelay);
 
     if (!StartAnimsCount.Count()) {
         FILL_TYPELIST(StartAnimsMinimum, StartAnims.Count(), 1);
@@ -383,11 +343,11 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
     FILL_TYPELIST(StartAnimsDelay, StartAnims.Count(), 0);
 
-    MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
-    MiddleAnimsCount = ini.Get_Integers(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
-    MiddleAnimsMinimum = ini.Get_Integers(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
-    MiddleAnimsMaximum = ini.Get_Integers(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
-    MiddleAnimsDelay = ini.Get_Integers(ini_name, "MiddleAnimsDelay", MiddleAnimsDelay);
+    MiddleAnims = TGet_TypeList(ini, ini_name, "MiddleAnims", MiddleAnims);
+    MiddleAnimsCount = ini.Get_IntList(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
+    MiddleAnimsMinimum = ini.Get_IntList(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
+    MiddleAnimsMaximum = ini.Get_IntList(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
+    MiddleAnimsDelay = ini.Get_IntList(ini_name, "MiddleAnimsDelay", MiddleAnimsDelay);
 
     if (!MiddleAnimsCount.Count()) {
         FILL_TYPELIST(MiddleAnimsMinimum, MiddleAnims.Count(), 1);
@@ -399,11 +359,11 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
     FILL_TYPELIST(MiddleAnimsDelay, MiddleAnims.Count(), 0);
 
-    EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
-    EndAnimsCount = ini.Get_Integers(ini_name, "EndAnimsCount", EndAnimsCount);
-    EndAnimsMinimum = ini.Get_Integers(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
-    EndAnimsMaximum = ini.Get_Integers(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
-    EndAnimsDelay = ini.Get_Integers(ini_name, "EndAnimsDelay", EndAnimsDelay);
+    EndAnims = TGet_TypeList(ini, ini_name, "EndAnims", EndAnims);
+    EndAnimsCount = ini.Get_IntList(ini_name, "EndAnimsCount", EndAnimsCount);
+    EndAnimsMinimum = ini.Get_IntList(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
+    EndAnimsMaximum = ini.Get_IntList(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
+    EndAnimsDelay = ini.Get_IntList(ini_name, "EndAnimsDelay", EndAnimsDelay);
 
     if (!EndAnimsCount.Count()) {
         FILL_TYPELIST(EndAnimsMinimum, EndAnims.Count(), 1);
@@ -429,7 +389,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      *  A special value of "-1" will set the biggest frame to the actual middle frame
      *  of the shape file. This behavior was observed in Red Alert 2.
      */
-    MiddleFrames = ini.Get_Integers(ini_name, "MiddleFrame", MiddleFrames);
+    MiddleFrames = ini.Get_IntList(ini_name, "MiddleFrame", MiddleFrames);
     for (int& frame : MiddleFrames) {
         frame = std::clamp(frame, -1, ((This()->Image != nullptr) ? (This()->Image->Get_Count() - 1) : 0));
     }
@@ -444,6 +404,15 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     
     StopSound = ini.Get_VocType(ini_name, "StopSound", StopSound);
 
+    /**
+     *  ObjectTypeClass::Read_INI attempts to preload the image from a MIX file.
+     *  If you mark an object type DemandLoad=yes, and then place its image in a cached MIX,
+     *  the game will incorrectly attempt to delete that image later. To avoid this,
+     *  null the MIX-fetched image out now.
+     */
+    if (This()->IsDemandLoad) {
+        This()->Image = nullptr;
+    }
 
     IsInitialized = true;
 

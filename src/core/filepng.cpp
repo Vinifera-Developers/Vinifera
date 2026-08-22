@@ -1,45 +1,31 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Function for writing PNG files from a graphic surface.
  *
- *  @project       Vinifera
- *
- *  @file          FILEPNG.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Function for writing PNG files from a graphic surface.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "filepng.h"
-#include "ccfile.h"
-#include "surface.h"
-#include "bsurface.h"
-#include "dsurface.h"
-#include "buff.h"
-#include "stristr.h"
-#include "debughandler.h"
+
 #include "asserthandler.h"
+#include "bsurface.h"
+#include "buff.h"
+#include "ccfile.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "stristr.h"
+#include "surface.h"
+
 #include <lodepng.h>
 
 
-/** 
+/**
  *  Writes the contents of a graphic surface as PNG to a file instance.
- * 
+ *
  *  @author: CCHyper
  */
 bool Write_PNG_File(FileClass *name, Surface &pic, const PaletteClass *palette, bool greyscale)
@@ -105,7 +91,7 @@ bool Write_PNG_File(FileClass *name, Surface &pic, const PaletteClass *palette, 
      *  Handle any errors.
      */
     if (error) {
-        DEBUG_ERROR("lodepng_encode error %u: %s\n", error, lodepng_error_text(error));
+        DEBUG_ERROR("lodepng_encode error {}: {}\n", error, lodepng_error_text(error));
         return false;
     }
 
@@ -206,8 +192,8 @@ BSurface *Read_PNG_File(FileClass *name, unsigned char *palette, void *buff, lon
 
 
 #ifndef NDEBUG
-    DEBUG_INFO("Read_PNG_File() - bitdepth: %d, colortype: %d.\n",
-        state.info_raw.bitdepth, state.info_raw.colortype);
+    DEBUG_INFO("Read_PNG_File() - bitdepth: {}, colortype: {}.\n",
+        state.info_raw.bitdepth, (int)state.info_raw.colortype);
 #endif
 
     if (buff) {
@@ -226,14 +212,14 @@ BSurface *Read_PNG_File(FileClass *name, unsigned char *palette, void *buff, lon
      */
     for (int y = 0; y < pic->Get_Height(); ++y) {
     
-        unsigned short *buffptr = (unsigned short *)pic->Lock(0, y);
+        unsigned short *buffptr = (unsigned short *)pic->Lock(Point2D(0, y));
         for (int x = 0; x < pic->Get_Width(); ++x) {
     
             int r = *png_image++; // & 0xFF;
             int g = *png_image++; // & 0xFF;
             int b = *png_image++; // & 0xFF;
     
-            *buffptr++ = DSurface::RGB_To_Pixel(r, g, b);
+            *buffptr++ = DSurface::Build_Hicolor_Pixel(r, g, b);
         }
     
         pic->Unlock();

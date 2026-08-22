@@ -1,34 +1,16 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Pointers to Windows API functions to loading debug symbols.
  *
- *  @project       Vinifera
- *
- *  @file          DEBUGHLP.H
- *
- *  @author        CCHyper, OmniBlade
- *
- *  @brief         Pointers to Windows API functions to loading debug symbols.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include <Windows.h>
+#include <mutex>
+#include <windows.h>
 #include <dbghelp.h>
 
 
@@ -38,6 +20,20 @@ void __cdecl Uninit_Symbol_Info();
 
 extern HANDLE SymbolProcess;
 extern bool SymbolInit;
+
+
+/**
+ *  DbgHelp is documented as not thread-safe; every Sym*, StackWalk, and
+ *  MiniDumpWriteDump call across the codebase must hold this mutex.
+ *
+ *  Recursive because Make_Stack_Trace locks once around the whole walk,
+ *  but the per-frame callback re-enters via Get_Function_Details which
+ *  needs the same protection when called on its own from other paths.
+ *
+ *  Lock ordering: ExceptionCriticalSection (exception entry gate) ->
+ *  MiniDumpCriticalSection -> DbgHelpMutex. Never reverse.
+ */
+extern std::recursive_mutex DbgHelpMutex;
 
 
 extern BOOL(__stdcall *SymCleanupPtr)(HANDLE);

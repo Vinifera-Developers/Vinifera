@@ -1,37 +1,45 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended SideClass.
  *
- *  @project       Vinifera
- *
- *  @file          SIDETYPEEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended SideClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "sideext_hooks.h"
-#include "sideext_init.h"
+
 #include "sideext.h"
-#include "side.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#include "sideext_init.h"
+
+#include "extension.h"
+#include "ownrdraw.h"
+#include "rgb.h"
+#include "syringe.h"
+
+
+/**
+ *  Patches OwnerDraw initialization to set menu color based on the player's side.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x00591491, _OwnerDraw_Set_Colors_Text_Color_Patch, 6)
+{
+    RGBClass rgb;
+
+    if (PlayerPtr == nullptr) {
+        rgb = OPTIONS_MENU_TEXT_DEFAULT_COLOR;
+    } else {
+        SideClassExtension* sideext = Extension::Fetch(Sides[PlayerPtr->Class->Side]);
+        rgb = sideext->OptionsMenuTextColor;
+    }
+
+    OwnerDraw::TextColor1 = RGB(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
+
+    return 0;
+}
 
 
 /**

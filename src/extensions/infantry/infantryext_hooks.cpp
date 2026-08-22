@@ -1,61 +1,45 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended InfantryClass.
  *
- *  @project       Vinifera
- *
- *  @file          INFANTRYEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended InfantryClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "infantryext_hooks.h"
 
 #include "animtype.h"
-#include "infantryext_init.h"
-#include "infantry.h"
-#include "infantrytype.h"
-#include "infantrytypeext.h"
-#include "technotype.h"
-#include "technotypeext.h"
+#include "asserthandler.h"
 #include "building.h"
 #include "buildingtype.h"
-#include "tagtype.h"
-#include "house.h"
-#include "housetype.h"
-#include "target.h"
-#include "voc.h"
-#include "tibsun_globals.h"
 #include "extension.h"
+#include "fetchres.h"
+#include "hooker.h"
+#include "house.h"
+#include "infantry.h"
+#include "infantryext.h"
+#include "infantryext_init.h"
+#include "infantrytype.h"
+#include "infantrytypeext.h"
+#include "language.h"
+#include "mouse.h"
 #include "options.h"
 #include "rules.h"
-#include "wwkeyboard.h"
+#include "rulesext.h"
+#include "sideext.h"
+#include "syringe.h"
+#include "technotype.h"
+#include "technotypeext.h"
 #include "tiberium.h"
 #include "tiberiumext.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#include "tibsun_globals.h"
 #include "tibsun_inline.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-#include "sideext.h"
+#include "vinifera_globals.h"
+#include "voc.h"
+#include "wwkeyboard.h"
 
 
 /**
@@ -69,6 +53,7 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(InfantryClass)
 {
 public:
     const ShapeSet* _Get_Image_Data() const;
+    const char* _Full_Name(void) const;
 };
 
 
@@ -80,7 +65,10 @@ public:
  *
  *  Infantry currently in webs also display a different image.
  *
- *  @author: ZivDero
+ *  This implementation adds support for side-specific disguises and also fixes
+ *  a bug in the original game where friendly Spies were shown as disguised.
+ *
+ *  @author: ZivDero, Rampastring
  */
 const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 {
@@ -88,7 +76,7 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
         return Rule->WebbedInfantry->Get_Image_Data();
     }
 
-    if (!IsOwnedByPlayer && Class->IsDisguised) {
+    if (!House->Is_Ally(PlayerPtr) && Class->IsDisguised) {
 
         const auto disguise = SideClassExtension::Get_Disguise(House);
         if (disguise) {
@@ -101,6 +89,35 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 
 
 /**
+ *  Fetches the full name for this infantry unit.
+ *
+ *  This implementation adds support for side-specific disguises and also fixes
+ *  a bug in the original game where friendly Spies were shown as disguised.
+ *
+ *  @author: tomsons26/ZivDero, Rampastring
+ */
+const char* InfantryClassExt::_Full_Name(void) const
+{
+    assert(IsActive);
+
+    if (IsTechnician) {
+        return Fetch_String(TXT_TECHNICIAN);
+    }
+
+    if (Class->IsDisguised && !House->Is_Ally(PlayerPtr) && Rule->Disguise != NULL) {
+        const auto disguise = SideClassExtension::Get_Disguise(House);
+        if (disguise) {
+            return disguise->GivenName.c_str();
+        }
+
+        return Rule->Disguise->GivenName.c_str();
+    }
+
+    return Class->GivenName.c_str();
+}
+
+
+/**
  *  #issue-635
  * 
  *  Fixes a bug where EngineerDamage was not used to calculate the engineer damage.
@@ -110,25 +127,7 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 static int Get_Engineer_Damage(TechnoClass *tech)
 {
     float damage = Rule->EngineerDamage;    // Was "Rule->ConditionRed * 0.5f"
-    return std::min((tech->TClass->MaxStrength * damage), (float)(tech->Strength-1));
-}
-
-
-/** 
- *  Is the target buildings health low enough to be captured? 
- * 
- *  @author: CCHyper
- */
-static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
-{
-    /**
-     *  #issue-633
-     * 
-     *  Changed to use Rule->EngineerCaptureLevel.
-     * 
-     *  @author: CCHyper
-     */
-    return tech->HealthRatio <= Rule->EngineerCaptureLevel;
+    return std::min(tech->TClass->MaxStrength * damage, (float)(tech->Strength-1));
 }
 
 
@@ -137,37 +136,38 @@ static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch)
+DEFINE_HOOK(0x004D35F9, _InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass *, tech, edi);      // From "cellptr->Cell_Building()".
-    GET_REGISTER_STATIC(bool, iscapturable, bl);
-    static int damage;
+    GET(InfantryClass *, this_ptr, ESI);
+    GET(TechnoClass *, tech, EDI);      // From "cellptr->Cell_Building()".
 
     /**
      *  If the target buildings health is low enough, go ahead and capture it.
+     *  Changed to use Rule->EngineerCaptureLevel.
+     * 
+     *  @author: CCHyper
      */
-    if (Health_Low_Enough_To_Capture(tech)) {
+    if (tech->HealthRatio <= Rule->EngineerCaptureLevel) {
         goto capture;
     }
 
     /**
      *  Health is still not low enough, go ahead and apply some more damage to it.
      */
-    damage = Get_Engineer_Damage(tech);
+    int damage = Get_Engineer_Damage(tech);
     tech->Take_Damage(damage, 0, Rule->C4Warhead, this_ptr, true);
 
     /**
      *  Spring the DESTROYED_BY_ANYTHING event and remove this infantry.
      */
 spring_and_delete:
-    JMP(0x004D378D);
+    return 0x004D378D;
 
     /**
      *  Processing capturing of the target building.
      */
 capture:
-    JMP(0x004D36E1);
+    return 0x004D36E1;
 }
 
 
@@ -178,11 +178,10 @@ capture:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
+DEFINE_HOOK(0x004D3A7B, _InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass *, techno, edi);        // Radio contact
-    static TechnoTypeClassExtension *radio_technotypeext;
+    GET(InfantryClass *, this_ptr, ESI);
+    GET(TechnoClass *, techno, EDI);        // Radio contact
 
     /**
      *  Stolen bytes/code.
@@ -192,12 +191,12 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
     /**
      *  If this transport we are entering has a passenger entering sound, play it now.
      */
-    radio_technotypeext = Extension::Fetch(techno->TClass);
+    auto radio_technotypeext = Extension::Fetch(techno->TClass);
     if (radio_technotypeext->EnterTransportSound != VOC_NONE) {
-        Static_Sound(radio_technotypeext->EnterTransportSound, techno->Coord);
+        Static_Sound(radio_technotypeext->EnterTransportSound, techno->Position);
     }
 
-    JMP(0x004D3A87);
+    return 0x004D3A87;
 }
 
 
@@ -208,13 +207,12 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
+DEFINE_HOOK(0x004D87E9, _InfantryClass_Firing_AI_Mechanic_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
-    static InfantryTypeClassExtension *infantrytypeext;
+    GET(InfantryClass *, this_ptr, EBP);
+    GET(ObjectClass *, targ, ESI);      // TarCom as ObjectClass.
 
-    infantrytypeext = Extension::Fetch(this_ptr->Class);
+    auto infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -225,7 +223,10 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->RTTI == RTTI_UNIT || (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || targ->RTTI == RTTI_INFANTRY) {
+        if (targ->RTTI == RTTI_UNIT || 
+            (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            targ->RTTI == RTTI_INFANTRY || 
+            (targ->RTTI == RTTI_BUILDING && targ->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -238,7 +239,9 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->RTTI == RTTI_UNIT || (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air())) {
+        if (targ->RTTI == RTTI_UNIT || 
+            (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            (targ->RTTI == RTTI_BUILDING && targ->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -250,13 +253,13 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
     }
 
 assign_NULL_target:
-    JMP(0x004D8824);
+    return 0x004D8824;
 
     /**
      *  Check the targets health ratio.
      */
 health_ratio_check:
-    JMP(0x004D87F5);
+    return 0x004D87F5;
 }
 
 
@@ -267,13 +270,12 @@ health_ratio_check:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
+DEFINE_HOOK(0x004D7168, _InfantryClass_What_Action_Mechanic_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
-    static InfantryTypeClassExtension *infantrytypeext;
+    GET(InfantryClass *, this_ptr, EDI);
+    GET(/*const */ObjectClass *, object, ESI);  // target
 
-    infantrytypeext = Extension::Fetch(this_ptr->Class);
+    auto infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -291,13 +293,16 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->RTTI == RTTI_UNIT || object->RTTI == RTTI_AIRCRAFT || object->RTTI == RTTI_INFANTRY) {
+        if (object->RTTI == RTTI_UNIT ||
+            object->RTTI == RTTI_AIRCRAFT || 
+            object->RTTI == RTTI_INFANTRY || 
+            (object->RTTI == RTTI_BUILDING && object->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
             if (object->TClass->MaxPassengers > 0) {
-                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                if (Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
             }
@@ -324,13 +329,14 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->RTTI == RTTI_UNIT || object->RTTI == RTTI_AIRCRAFT) {
+        if (object->RTTI == RTTI_UNIT ||
+            object->RTTI == RTTI_AIRCRAFT || (object->RTTI == RTTI_BUILDING && object->TClass->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
             if (object->TClass->MaxPassengers > 0) {
-                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                if (Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
             }
@@ -360,19 +366,19 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     }
 
 next_check:
-    JMP(0x004D71B0);
+    return 0x004D71B0;
 
     /**
      *  Show the guard area mouse cursor over us.
      */
 guard_area:
-    JMP(0x004D71A1);
+    return 0x004D71A1;
 
     /**
      *  Check the targets health ratio.
      */
 health_ratio_check:
-    JMP(0x004D7178);
+    return 0x004D7178;
 }
 
 
@@ -383,23 +389,14 @@ health_ratio_check:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Can_Fire_Target_Check_Patch)
+DEFINE_HOOK(0x004D5AB4, _InfantryClass_Can_Fire_Target_Check_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_STACK_STATIC(AbstractClass *, target, esp, 0x10);
-    GET_STACK_STATIC(int, which, esp, 0x14);
-    static FootClass *targ;
+    GET_STACK(AbstractClass *, target, 0x10);
 
-    targ = Target_As_Foot(target);
-    if (targ == nullptr) {
-        goto return_FIRE_ILLEGAL;
-    }
+    TechnoClass* techno = dynamic_cast<TechnoClass*>(target);
+    R->EAX(techno);
 
-health_ratio_check:
-    JMP_REG(ecx, 0x004D5ACF);
-
-return_FIRE_ILLEGAL:
-    JMP(0x004D5AE8);
+    return 0x004D5ACB;
 }
 
 
@@ -413,12 +410,11 @@ return_FIRE_ILLEGAL:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
+DEFINE_HOOK(0x004D8C83, _InfantryClass_Doing_AI_JumpJet_Idle_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    static const InfantryTypeClass *infantrytype;
+    GET(InfantryClass *, this_ptr, ESI);
 
-    infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
+    auto infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
 
     /**
      *  Stolen code.
@@ -426,7 +422,7 @@ DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
      *  If infantry is prone, set DO_PRONE.
      */
     if (this_ptr->IsProne) {
-        JMP(0x004D8B12);
+        return 0x004D8B12;
     }
 
     if (infantrytype->IsJumpJet) {
@@ -449,7 +445,7 @@ DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
         this_ptr->Do_Action(DO_STAND_READY, true);
     }
 
-    JMP(0x004D8CA1);
+    return 0x004D8CA1;
 }
 
 
@@ -466,12 +462,11 @@ DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
+DEFINE_HOOK(0x004D50C9, _InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    static const InfantryTypeClass *infantrytype;
+    GET(InfantryClass *, this_ptr, ESI);
 
-    infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
+    auto infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
 
     if (infantrytype->IsJumpJet) {
 
@@ -500,7 +495,7 @@ DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
      */
     this_ptr->IsFiring = false;
 
-    JMP(0x004D50E0);
+    return 0x004D50E0;
 }
 
 
@@ -512,12 +507,11 @@ DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
+DEFINE_HOOK(0x004D9076, _InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
-    static const InfantryTypeClass *infantrytype;
+    GET(InfantryClass *, this_ptr, EBP);
 
-    infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
+    auto infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
 
     if (infantrytype->IsJumpJet) {
 
@@ -539,7 +533,7 @@ DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
         this_ptr->Do_Action(DO_STAND_READY);
     }
 
-    JMP(0x004D9087);
+    return 0x004D9087;
 }
 
 
@@ -555,9 +549,9 @@ DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
+DEFINE_HOOK(0x004D88FA, _InfantryClass_Firing_AI_JumpJet_In_Air_Patch, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
+    GET(InfantryClass *, this_ptr, EBP);
 
     /**
      *  Make sure its in the air before assigning the hover firing graphic sequence.
@@ -568,7 +562,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
         this_ptr->Do_Action(DO_FIRE_WEAPON);
     }
 
-    JMP(0x004D8933);
+    return 0x004D8933;
 }
 
 
@@ -577,17 +571,16 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
+DEFINE_HOOK(0x004D3F5D, _InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, tib_id, eax);
+    GET(int, tib_id, EAX);
 
-    static int damage;
-    damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
+    int damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
 
-    _asm mov eax, damage
-    _asm mov [esp + 0x10], eax
+    R->EAX(damage);
+    R->Stack(0x10, damage);
 
-    JMP(0x004D3F8E);
+    return 0x004D3F8E;
 }
 
 
@@ -615,11 +608,347 @@ void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_p
 }
 
 
-DECLARE_PATCH(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
+DEFINE_HOOK(0x004D8BE4, _InfantryClass_Doing_AI_Fix_Invalid_Facing_Set, 0)
 {
-    GET_REGISTER_STATIC(InfantryClass*, inf, esi);
+    GET(InfantryClass*, inf, ESI);
     _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
-    JMP(0x004D8C14);
+    return 0x004D8C14;
+}
+
+
+/**
+ *  Fixes an exploit where hijackers are able to hijack vehicles of their allies.
+ *
+ *  Author: Rampastring
+ */
+DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehicles, 0)
+{
+    GET(TechnoClass*, target, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    if (this_ptr->House->Is_Ally(target)) {
+        // The target is allied to the hijacker. Move on.
+        return 0x004D72B7;
+    }
+
+    // Move to harvester truce check.
+    return 0x004D7277;
+}
+
+
+/**
+ *  Patches InfantryClass::What_Action when the target object is an armory.
+ *  No longer transmits a message to the armory requesting it to establish radio connection (which only allows one unit at a time).
+ *  Instead, simply checks for the armory's conditions (unit's veterancy and armory's ammo) to determine if the unit can go in or not.
+ *  This also allows additional units to be ordered into the armory even if other unit(s) are already on their way to it.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
+{
+    GET(BuildingClass*, object, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    ActionType action = ACTION_ENTER;
+
+    if (this_ptr->Crew.Is_Elite()) {
+        action = ACTION_NO_ENTER;
+    }
+
+    if (object->Ammo <= 0) {
+        action = ACTION_NO_ENTER;
+    }
+
+    R->EBX(action);
+
+    return 0x004D738E;
+}
+
+
+/**
+ *  Patches InfantryClass::What_Action when the target object is a hospital.
+ *  No longer transmits a message to the hospital requesting it to establish radio connection (which only allows one unit at a time).
+ *  Instead, simply checks for the hospital's conditions (unit's health and hospital's ammo) to determine if the unit can go in or not.
+ *  This also allows additional units to be ordered into the hospital even if other unit(s) are already on their way to it.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
+{
+    GET(BuildingClass*, object, ESI);
+    GET(InfantryClass*, this_ptr, EDI);
+
+    ActionType action = ACTION_ENTER;
+
+    if (this_ptr->Strength >= this_ptr->Class->MaxStrength) {
+        action = ACTION_NO_ENTER;
+    }
+
+    if (object->Ammo <= 0) {
+        action = ACTION_NO_ENTER;
+    }
+
+    R->EBX(action);
+
+    return 0x004D731A;
+}
+
+
+/**
+ *  Clears the current cell from bridge damage trackers, if any.
+ *  Recursively looks around all orthogonal cells in order to find all directly adjacent bridge cells
+ *  That are part of that bridge, which expands until all bridge cells are evaluated.
+ *
+ *  @author: JoyfulShush
+ */
+void Scan_And_Clear_Bridge(Cell current_cell, DynamicVectorClass<Cell>& visited_cells)
+{
+    if (visited_cells.Is_Present(current_cell)) {
+        return;
+    }
+
+    visited_cells.Add(current_cell);
+
+    if (BridgeHealths.contains(current_cell)) {        
+        BridgeHealths.erase(current_cell);
+    }
+
+    CellClass* current_cellptr = &Map[current_cell];
+
+    FacingType dirs[4] = {FACING_W, FACING_E, FACING_S, FACING_N};
+    for (FacingType dir : dirs) {
+        if (current_cellptr->Is_Overlay_Low_Bridge()) {
+            /*
+             * Handle two low overlay bridges that are very close to each other.
+             * We skip one side checking another side that should never be part of the same low bridge.
+             */
+            if (current_cellptr->OverlayData == 0) {
+                if (current_cellptr->Is_Low_Bridge_SE_NW() && dir == FACING_N) {
+                    continue;
+                }
+
+                if (current_cellptr->Is_Low_Bridge_SW_NE() && dir == FACING_E) {
+                    continue;
+                }                    
+            }
+
+            if (current_cellptr->OverlayData == 2) {
+                if (current_cellptr->Is_Low_Bridge_SE_NW() && dir == FACING_S) {
+                    continue;
+                }
+
+                if (current_cellptr->Is_Low_Bridge_SW_NE() && dir == FACING_W) {
+                    continue;
+                }
+            }
+        }
+
+        Cell adjacent_cell = Adjacent_Cell(current_cell, dir);
+        CellClass* adjacent_cellptr = &Map[adjacent_cell];
+
+        if (adjacent_cellptr->Is_Bridge_Here() || adjacent_cellptr->Is_Overlay_Low_Bridge() || adjacent_cellptr->WasUnderBridge) {
+            Scan_And_Clear_Bridge(adjacent_cell, visited_cells);
+        }
+    }
+}
+
+
+/**
+ *  Scans for a bridge attached to a bridge hut that was just entered by an Engineer.
+ *  Checks for all types of bridges: Low Bridges (via overlay), High Bridges and High Train Bridges.
+ *  Since in some cases, notably high bridges the overlay is actually far, we need to search around the bridge hut
+ *  Up to 3 cells away from it, as only the bridge's center piece in a bridge tile is actually considered a bridge.
+ *  Once a bridge cell is located, it begins evaluation of the entire bridge and returns afterwards.
+ *
+ *  @author: JoyfulShush
+ */
+void Scan_Around_Bridge_Hut_For_Bridge(Cell const& bridge_hut_cell)
+{
+    DynamicVectorClass<Cell> visited_cells;
+
+    for (int depth = 1; depth <= 3; ++depth) {        
+        for (FacingType dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
+            Cell target_cell = Get_Nearby_Cell_At_Depth(bridge_hut_cell, dir, depth);
+            CellClass* target_cellptr = &Map[target_cell];            
+            if (target_cellptr && (target_cellptr->Is_Bridge_Here() || target_cellptr->Is_Overlay_Low_Bridge() || target_cellptr->WasUnderBridge)) {
+                Scan_And_Clear_Bridge(target_cell, visited_cells);
+                return;
+            }
+        }
+    }
+
+    return;
+}
+
+
+/**
+ *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
+ *  that is adjacent to either a Low Bridge or a High (non-train) Bridge.
+ *  Used to find the attached bridge parts and remove all bridge damage registers from it (essentially fully healing all bridge cells)
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D356B, _InfantryClass_Process_Per_Cell_Engineer_Bridge_Patch, 6)
+{    
+    GET(Cell*, cell_ptr, EAX);
+
+    if (RuleExtension->IsUseBridgeHealth) {
+        Scan_Around_Bridge_Hut_For_Bridge(*cell_ptr);
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Patches InfantryClass::Process_Per_Cell at the portion where engineers enter a Bridge Hut
+ *  that is adjacent to a Train High Bridge.
+ *  Used to find the attached bridge parts and remove all bridge damage registers from it (essentially fully healing all bridge cells)
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D3551, _InfantryClass_Process_Per_Cell_Engineer_Train_Bridge_Patch, 6)
+{    
+    GET(Cell*, cell_ptr, EAX);
+
+    if (RuleExtension->IsUseBridgeHealth) {
+        Scan_Around_Bridge_Hut_For_Bridge(*cell_ptr);
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Patches InfantryClass::Assign_Destination at the part that identifies infantry units with mission "MISSION_ENTER",
+ *  at a part where units are communicating with a building that has a radio buddy.
+ *  For hospitals and armories, this typically means that a unit got the permission to dock into the hospital/armory.
+ *  Other units will then go near the hospital/armory (due to being assigned MISSION_MOVE) and will constantly contact the hospital/armory to try to enter it.
+ *  Once the hospital/armory finish with the unit inside them, they dismiss contact with them and are available to accept requests from another unit.
+ * 
+ *  All other buildings preserve the original behavior that they had before.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
+{
+    GET(InfantryClass*, this_ptr, EBP);
+    GET(BuildingClass*, object, EBX);
+
+    bool assigned_archive_target = false;
+    if (object->Class->IsHospital || object->Class->IsArmory) {
+        if (object->Ammo >= 0) {
+            this_ptr->Assign_Archive_Target(object);
+            this_ptr->field_20C = object; // Seems to be the object that becomes the "entry target" of this unit.
+            this_ptr->Assign_Mission(MISSION_MOVE);
+            assigned_archive_target = true;
+        }
+    }
+
+    // original behavior
+    if (!assigned_archive_target) {
+        this_ptr->Assign_Archive_Target(nullptr);
+    }
+    
+    return 0x004D425A;
+}
+
+
+/**
+ *  Patches InfantryClass::What_Action at the part where medics/mechanics (AKA infantry with negative combat damage)
+ *  are evaluated whether they should commit to their action or switch to ACTION_SELECT.
+ *  
+ *  Fixes an issue where ACTION_TOGGLE_SELECT (selecting units while shift is held) was converted into ACTION_SELECT,
+ *  causing the game to instead unselect the currently selected units if the medic was the "best object" in the current selection.
+ * 
+ *  Causes What_Action to return with the ACTION_TOGGLE_SELECT action if this is the current mission.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D71CF, _Infantry_Class_What_Action_Medic_Toggle_Select_Patch, 9)
+{
+    GET(ActionType, action, EBX);
+
+    if (action == ACTION_TOGGLE_SELECT || action == ACTION_GUARD_AREA || action == ACTION_MOVE) {
+        return 0x004D76F9;
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Patches InfantryClass::AI at the part where Jumpjets are moving to determine if they should use Look
+ *  Sight range now takes into account adjustments from veterancy.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D5011, InfantryClass_AI_Sight_Range_Jumpjet_Patch, 0)
+{
+    GET(InfantryClass*, this_ptr, ESI);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr);
+
+    if (this_ptr->Locomotion->Is_Moving() && this_ptr->Get_Height_AGL() > 0 && this_ptr->IsOwnedByPlayer && this_ptr_ext->Get_Sight_Range() > 0) {
+        return 0x004D504C;
+    }
+
+    return 0x004D509D;
+}
+
+
+/**
+ *  Patches InfantryClass::Unlimbo at the part where blind infantry are evaluated to check for making infantry not be considered as disocvered
+ *  Sight range now takes into account adjustments from veterancy.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D6CBD, InfantryClass_Unlimbo_Sight_Range_Patch, 0)
+{
+    GET(InfantryClass*, this_ptr, EBX);
+
+    auto this_ptr_ext = Extension::Fetch(this_ptr);
+
+    if (this_ptr_ext->Get_Sight_Range() == 0) {
+        return 0x004D6CCD;
+    }
+
+    return 0x004D6CD4;
+}
+
+/**
+ *  Patches InfantryClass::Assign_Destination at the part where jumpjets determine whether to add a Q-Move.
+ *  This occurs when jumpjets are assigned a new destination while using the Walk Locomotion to move.
+ *  The Q-Move is used to make the jumpjets effectively stop near their position in order to reconsider swapping locomotions to fly
+ *  to the newly ordered position. However, in some cases, this behavior is not desired and causes issues, which this patch fixes.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004D4356, InfantryClass_Assign_Destination_Jumpjet_Move_Queue_Patch, 6)
+{
+    GET(InfantryClass*, this_ptr, EBP);
+
+    enum {
+        SKIP_NAVQUEUE_CHAIN = 0x004D43DB
+    };
+
+    // If the unit has an archive target, this typically means it was instructed to reach a position
+    // as soon as it finishes what it's currently doing, such as when being rallied out of a Barracks, Hospital or Armory.
+    // We should not add Q-Move to the destination when this is the case.
+    // Fixes a bug where jumpjets would go back to the building they exited from after reaching the building's rally point.
+    if (this_ptr->ArchiveTarget != nullptr) {
+        return SKIP_NAVQUEUE_CHAIN;
+    }
+
+    // If the unit is about to enter a building, it shouldn't have any Q-Moves lines up.
+    // Fixes a bug where jumpjets behave very erratically when trying to enter a hospital or an armory.
+    if (this_ptr->Get_Mission() == MISSION_ENTER) {
+        this_ptr->Clear_Navigation_List();
+
+        return SKIP_NAVQUEUE_CHAIN;
+    }
+
+    return 0;
 }
 
 
@@ -633,17 +962,6 @@ void InfantryClassExtension_Hooks()
      */
     InfantryClassExtension_Init();
 
-    Patch_Jump(0x004D88FA, &_InfantryClass_Firing_AI_JumpJet_In_Air_Patch);
-    Patch_Jump(0x004D8C83, &_InfantryClass_Doing_AI_JumpJet_Idle_Patch);
-    Patch_Jump(0x004D50C9, &_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch);
-    Patch_Jump(0x004D9076, &_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch);
-    Patch_Jump(0x004D5AB4, &_InfantryClass_Can_Fire_Target_Check_Patch);
-    Patch_Jump(0x004D7168, &_InfantryClass_What_Action_Mechanic_Patch);
-    Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
-    Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
-    Patch_Jump(0x004D35F9, &_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch);
-    Patch_Jump(0x004D3F5D, &_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch);
-    Patch_Jump(0x004D8BE4, &_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set);
-
     Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
+    Patch_Jump(0x004D77A0, &InfantryClassExt::_Full_Name);
 }

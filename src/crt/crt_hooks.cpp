@@ -1,69 +1,24 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Setup all the hooks to take control of the basic CRT.
  *
- *  @project       Vinifera
- *
- *  @file          CRT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Setup all the hooks to take control of the basic CRT.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "crt_hooks.h"
-#include <fenv.h>
-#include "vinifera_newdel.h"
+
 #include "asserthandler.h"
 #include "debughandler.h"
-
 #include "hooker.h"
 #include "hooker_macros.h"
 
-
-/**
- *  Redirect msize() to use HeapSize as we now control all memory allocations.
- */
-static unsigned int __cdecl vinifera_msize(void *ptr)
-{
-    return HeapSize(GetProcessHeap(), 0, ptr);
-}
-
-
-/**
- *  Reimplementation of strdup() to use our allocator.
- */
-static char * __cdecl vinifera_strdup(const char *string)
-{
-    char *str;
-    char *p;
-    int len = 0;
-
-    while (string[len]) {
-        len++;
-    }
-    str = (char *)vinifera_allocate(len + 1);
-    p = str;
-    while (*string) {
-        *p++ = *string++;
-    }
-    *p = '\0';
-    return str;
-}
+#include <crtdbg.h>
+#include <cstring>
+#include <fenv.h>
 
 
 /**
@@ -94,38 +49,36 @@ DECLARE_PATCH(_set_fp_mode)
  */
 void CRT_Hooks()
 {
+#ifdef _DEBUG
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+#endif
+
     /**
      *  Call the games fpmath to make sure we init 
      */
     Patch_Jump(0x005FFDAB, &_set_fp_mode);
 
     /**
-     *  dynamic init functions call _msize indirectly.
-     *  They call __onexit, so we need to patch this.
-     */
-    Hook_Function(0x006B80AA, &vinifera_msize);
-
-    /**
      *  Standard functions.
      */
-    Hook_Function(0x006BE766, &vinifera_strdup);
+    Hook_Function(0x006B602A, &std::strtok);
+    Hook_Function(0x006BE766, &strdup);
 
     /**
      *  C memory functions.
      */
-    Hook_Function(0x006B72CC, &vinifera_allocate);
-    Hook_Function(0x006BCA26, &vinifera_count_allocate);
-    Hook_Function(0x006B7F72, &vinifera_reallocate);
-    Hook_Function(0x006B67E4, &vinifera_free);
+    Hook_Function(0x006B72CC, &std::malloc);
+    Hook_Function(0x006BCA26, &std::calloc);
+    Hook_Function(0x006B7F72, &std::realloc);
+    Hook_Function(0x006B67E4, &std::free);
+    Hook_Function(0x006B80AA, &_msize);
 
     /**
      *  C++ new and delete.
      */
-    Hook_Function(0x006B51D7, &vinifera_allocate);
-    Hook_Function(0x006B51CC, &vinifera_free);
-
-    /**
-     *  Redirect the games CRT functions to use use the DLL's CRT.
-     */
-    Hook_Function(0x006B602A, &std::strtok);
+    Hook_Function(0x006B51D7, &std::malloc);
+    Hook_Function(0x006B51CC, &std::free);
 }

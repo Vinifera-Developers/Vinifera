@@ -1,71 +1,51 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  General functions.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_FUNCTIONS.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         General functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "vinifera_functions.h"
-#include "vinifera_globals.h"
-#include "vinifera_newdel.h"
-#include "tibsun_globals.h"
-#include "cncnet4.h"
-#include "cncnet4_globals.h"
-#include "cncnet5_globals.h"
-#include "rulesext.h"
+
+#include "actiontype.h"
+#include "aircrafttracker.h"
+#include "armortype.h"
+#include "asserthandler.h"
 #include "ccfile.h"
 #include "ccini.h"
-#include "filestraw.h"
-#include "readline.h"
 #include "cd.h"
-#include "ebolt.h"
+#include "debughandler.h"
+#include "exceptionhandler.h"
+#include "extension.h"
+#include "filestraw.h"
+#include "kamikazetracker.h"
+#include "mousetype.h"
+#include "newjumpjetlocomotion.h"
 #include "optionsext.h"
-#include "rulesext.h"
-#include "sessionext.h"
-#include "scenarioext.h"
-#include "tacticalext.h"
+#include "prerequisitegroup.h"
+#include "readline.h"
+#include "rocketlocomotion.h"
+#include "setup_hooks.h"
+#include "spawner.h"
+#include "spawner_hooks.h"
+#include "spawnmanager.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
-#include "kamikazetracker.h"
-#include "spawnmanager.h"
-#include "extension.h"
 #include "theatertype.h"
-#include "armortype.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "uicontrol.h"
-#include "mousetype.h"
-#include "actiontype.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#include "vinifera_globals.h"
+
 #include <string>
 
-#include "aircrafttracker.h"
-#include "rocketlocomotion.h"
-#include "newjumpjetlocomotion.h"
-#include "prerequisitegroup.h"
-#include "setup_hooks.h"
+#include "audio_util.h"
 
-
-static DynamicVectorClass<Wstring> ViniferaSearchPaths;
+static DynamicVectorClass<std::string> ViniferaSearchPaths;
 
 
 /**
@@ -91,11 +71,11 @@ bool Vinifera_Load_INI()
 
     ini.Load(file);
 
-    ini.Get_String("General", "ProjectName", Vinifera_ProjectName, sizeof(Vinifera_ProjectName));
-    ini.Get_String("General", "IconFile", Vinifera_IconName, sizeof(Vinifera_IconName));
-    ini.Get_String("General", "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
+    Vinifera_ProjectName = ini.Get_String("General", "ProjectName", "");
+    Vinifera_ProjectVersion = ini.Get_String("General", "ProjectVersion", "");
+    Vinifera_IconName = ini.Get_String("General", "IconFile", "");
+    Vinifera_CursorName = ini.Get_String("General", "CursorFile", "");
 
-#if defined(TS_CLIENT)
     /**
      *  TS Client uses a seperate "version" file, so its best we fetch the current
      *  version from there rather than have the user update the INI file each time
@@ -105,21 +85,13 @@ bool Vinifera_Load_INI()
     if (ver_file.Is_Available()) {
         INIClass ver_ini;
         ver_ini.Load(ver_file);
-        ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+        Vinifera_ProjectVersion = ver_ini.Get_String("DTA", "Version", "");
     } else {
-        ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+        Vinifera_ProjectVersion = ini.Get_String("General", "ProjectVersion", "");
     }
-#else
-    ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
-#endif
-
-    Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
-    Vinifera_ProjectVersion[sizeof(Vinifera_ProjectVersion)-1] = '\0';
-    Vinifera_IconName[sizeof(Vinifera_IconName)-1] = '\0';
-    Vinifera_CursorName[sizeof(Vinifera_CursorName)-1] = '\0';
 
     char buffer[1024];
-    if (ini.Get_String("General", "SearchPaths", buffer, sizeof(buffer)) > 0) {
+    if (ini.Get_String("General", "SearchPaths", "", buffer, sizeof(buffer)) > 0) {
         char *path = std::strtok(buffer, ",");
         while (path) {
             if (!ViniferaSearchPaths.Is_Present(path)) {
@@ -127,21 +99,10 @@ bool Vinifera_Load_INI()
             }
             path = std::strtok(nullptr, ",");
         }
-#if defined(TS_CLIENT)
-    } else {
-        DEBUG_ERROR("Failed to find SearchPaths in VINIFERA.INI!\n");
-        MessageBox(MainWindow, "Failed to find SearchPaths in VINIFERA.INI, please reinstall Vinifera.", "Vinifera", MB_ICONEXCLAMATION|MB_OK);
-        return false;
-#endif
     }
 
-    Vinifera_NoVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoVersionString);
-
-    Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
-    ini.Get_String("General", "SavedGamesDirectory", buffer, std::size(buffer));
-    if (std::strlen(buffer) > 0) {
-        std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);
-    }
+    Vinifera_NoTacticalVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoTacticalVersionString);
+    Vinifera_SavedGamesDirectory = ini.Get_String("General", "SavedGamesDirectory", Vinifera_SavedGamesDirectory);
 
     return true;
 }
@@ -226,7 +187,8 @@ static bool Vinifera_Load_Exception_Database(const char *filename)
         
         tok = std::strtok(nullptr, ",");
         ASSERT(tok != nullptr);
-        std::strncpy(einfo.Description, tok, std::strlen(tok));
+        std::strncpy(einfo.Description, tok, sizeof(einfo.Description) - 1);
+        einfo.Description[sizeof(einfo.Description) - 1] = '\0';
 
         ExceptionInfoDatabase.Add(einfo);
     }
@@ -240,7 +202,7 @@ static bool Vinifera_Load_Exception_Database(const char *filename)
     DEV_DEBUG_INFO("Exception database dump...\n");
     for (int i = 0; i < ExceptionInfoDatabase.Count(); ++i) {
         ExceptionInfoDatabaseStruct &e = ExceptionInfoDatabase[i];
-        DEV_DEBUG_INFO("  0x%08X %s %s \"%.32s...\"\n",
+        DEV_DEBUG_INFO("  0x{:08X} {} {} \"{:.32}...\"\n",
                        e.Address, e.CanContinue ? "true " : "false",
                        e.Ignore ? "true " : "false",
                        e.Description);
@@ -260,6 +222,13 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
 {
     if (argc > 1) {
         DEBUG_INFO("Parsing command line arguments...\n");
+    }
+
+    /**
+     *  Let the game parse the arguments first.
+     */
+    if (!Parse_Command_Line(argc, argv)) {
+        return false;
     }
 
     bool menu_skip = false;
@@ -295,6 +264,19 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
         if (stricmp(string, "-DEVELOPER") == 0) {
             DEBUG_INFO("  - Developer mode enabled.\n");
             Vinifera_DeveloperMode = true;
+            continue;
+        }
+
+        /**
+         *  Start in spawner mode.
+         */
+        if (stricmp(string, "-SPAWN") == 0) {
+            DEBUG_INFO("  - Spawner enabled.\n");
+            if (!Spawner::Init()) {
+                return false;
+            }
+
+            Spawner_Hooks();
             continue;
         }
 
@@ -384,12 +366,12 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
 
             CCFileClass::Set_Search_Drives(&string[3]);
             if (CCFileClass::Is_There_Search_Drives()) {
-                DEBUG_INFO("  - Search path set to \"%s\".\n", &string[3]);
+                DEBUG_INFO("  - Search path set to \"{}\".\n", &string[3]);
 
                 /**
                  *  Flag the cd search system to search for files locally.
                  */
-                CD::IsFilesLocal = true;
+                CD::OverrideSwap(true);
             }
             continue;
         }
@@ -449,6 +431,15 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
         }
 #endif
 
+        /**
+         *  Enable audio debug output?
+         */
+        if (stricmp(string, "-AUDIO_DEBUG") == 0) {
+            DEBUG_INFO("  - Extensive audio engine debugging.\n");
+            Vinifera_AudioDebug = true;
+            continue;
+        }
+
     }
 
     if (argc > 1) {
@@ -489,7 +480,7 @@ bool Vinifera_Startup()
     /**
      *  If -CD has been defined, set the root directory as highest priority.
      */
-    if (CD::IsFilesLocal) {
+    if (CD::IsOverrideSwap()) {
         ViniferaSearchPaths.Add(".");
     }
     
@@ -503,37 +494,11 @@ bool Vinifera_Startup()
 #endif
 
     /**
-     *  #issue-514:
-     * 
-     *  Adds various search paths for loading files locally for the TS-Client builds only.
-     * 
-     *  #NOTE: REMOVED: Additional paths must now be set via SearchPaths in VINIFERA.INI!
-     * 
-     *  @author: CCHyper
+     *  Search paths for use with the new audio engine.
      */
-#if 0 // #if defined(TS_CLIENT)
-
-    // Only required for the TS Client builds as most projects will
-    // put VINIFERA.INI in this directory.
-    ViniferaSearchPaths.Add("INI");
-
-    // Required for startup mix files to be found.
-    ViniferaSearchPaths.Add("MIX");
-#endif
-
-#if !defined(TS_CLIENT)
-    // Required for startup movies to be found.
-    ViniferaSearchPaths.Add("MOVIES");
-#endif
-
-    // REMOVED: Paths are now set via SearchPaths in VINIFERA.INI
-//#if defined(TS_CLIENT)
-//    ViniferaSearchPaths.Add("MUSIC");
-//    ViniferaSearchPaths.Add("SOUNDS");
-//    ViniferaSearchPaths.Add("MAPS");
-//    ViniferaSearchPaths.Add("MAPS\\MULTIPLAYER");
-//    ViniferaSearchPaths.Add("MAPS\\MISSION");
-//#endif
+    ViniferaSearchPaths.Add("SOUNDS");
+    ViniferaSearchPaths.Add("SPEECH");
+    ViniferaSearchPaths.Add("MUSIC");
 
     /**
      *  Load Vinifera settings and overrides.
@@ -541,19 +506,12 @@ bool Vinifera_Startup()
     if (Vinifera_Load_INI()) {
         DEBUG_INFO("\n");
         DEBUG_INFO("Project information:\n");
-        DEBUG_INFO("  Title: %s\n", Vinifera_ProjectName);
-        DEBUG_INFO("  Version: %s\n", Vinifera_ProjectVersion);
+        DEBUG_INFO("  Title: {}\n", Vinifera_ProjectName);
+        DEBUG_INFO("  Version: {}\n", Vinifera_ProjectVersion);
         DEBUG_INFO("\n");
     } else {
         DEBUG_WARNING("Failed to load VINIFERA.INI!\n");
-#if defined(TS_CLIENT)
-        MessageBoxA(nullptr, "Failed to load VINIFERA.INI!", "Vinifera", MB_ICONERROR|MB_OK);
-        return false;
-#endif
     }
-
-    DEBUG_INFO("Setting up conditional hooks.\n");
-    Setup_Conditional_Hooks();
 
     /**
      *  Current path (perhaps set set with -CD) should go next.
@@ -571,7 +529,7 @@ bool Vinifera_Startup()
          */
         for (int i = 0; i < ViniferaSearchPaths.Count(); ++i) {
             if (i != 0) std::strcat(new_path, ";");
-            std::strcat(new_path, ViniferaSearchPaths[i].Peek_Buffer());
+            std::strcat(new_path, ViniferaSearchPaths[i].c_str());
         }
 
         /**
@@ -587,7 +545,7 @@ bool Vinifera_Startup()
 
         delete[] new_path;
 
-        DEBUG_INFO("SearchPath: %s\n", CCFileClass::RawPath);
+        DEBUG_INFO("SearchPath: {}\n", CCFileClass::RawPath);
     }
 
     /**
@@ -615,30 +573,6 @@ bool Vinifera_Startup()
         return false;
     }
 
-#if !defined(TS_CLIENT)
-    /**
-     *  Initialise the CnCNet4 system.
-     */
-    if (!CnCNet4::Init()) {
-        CnCNet4::IsEnabled = false;
-        DEBUG_WARNING("Failed to initialise CnCNet4, continuing without CnCNet4 support!\n");
-    }
-
-    /**
-     *  Disable CnCNet4 if CnCNet5 is active, they can not co-exist.
-     */
-    if (CnCNet4::IsEnabled && CnCNet5::IsActive) {
-        CnCNet4::Shutdown();
-        CnCNet4::IsEnabled = false;
-    }
-#else
-    /**
-     *  Client builds can only use CnCNet5.
-     */
-    CnCNet4::IsEnabled = false;
-    //CnCNet5::IsActive = true; // Enable when new Client system is implemented.
-#endif
-
     KamikazeTracker = new KamikazeTrackerClass;
     AircraftTracker = new AircraftTrackerClass;
 
@@ -663,9 +597,6 @@ bool Vinifera_Shutdown()
     delete IsoGenericMix;
     IsoGenericMix = nullptr;
 
-    delete SideCTMix;
-    SideCTMix = nullptr;
-
     ViniferaMapsMixes.Clear();
     ViniferaMoviesMixes.Clear();
 
@@ -683,18 +614,11 @@ bool Vinifera_Shutdown()
     delete UIControls;
     UIControls = nullptr;
 
-    /**
-     *  Cleanup additional extension instances.
-     */
-    ThemeControlExtensions.Clear();
-
     delete KamikazeTracker;
     KamikazeTracker = nullptr;
 
     delete AircraftTracker;
     AircraftTracker = nullptr;
-
-    DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 
     return true;
 }
@@ -714,13 +638,9 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
     UIControls = new UIControlsClass;
 
     CCFileClass ui_file("UI.INI");
-    CCINIClass ui_ini;
 
     if (ui_file.Is_Available()) {
-
-        ui_ini.Load(ui_file, false);
-
-        if (!UIControls->Read_INI(ui_ini)) {
+        if (!UIControls->Read_INI_File("UI.INI", true)) {
             DEV_DEBUG_ERROR("Failed to read UI.INI!\n");
             //return EXIT_FAILURE;
         }
@@ -729,13 +649,6 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
         DEV_DEBUG_WARNING("UI.INI not found!\n");
     }
 
-#if defined(TS_CLIENT)
-    /**
-     *  The TS Client allows player to jump right into a game, so no need to
-     *  show the startup movies for these builds.
-     */
-    Vinifera_SkipStartupMovies = true;
-#endif
 
     /**
      *  Read the mouse controls and overrides.
@@ -812,6 +725,12 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
  */
 int Vinifera_Post_Init_Game(int argc, char *argv[])
 {
+    /**
+     *  Spawn the crash-dump thread (main thread, past dbghelp init, outside the
+     *  DllMain loader lock). Idempotent.
+     */
+    Start_Dumper_Thread();
+
     TheaterTypeClass::One_Time();
 
     CCFileClass theater_file("THEATERS.INI");

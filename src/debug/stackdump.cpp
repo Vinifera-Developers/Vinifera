@@ -1,35 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Functions for dumping the call stack.
  *
- *  @project       Vinifera
- *
- *  @file          STACKDUMP.CPP
- *
- *  @author        OmniBlade, CCHyper
- *
- *  @brief         Functions for dumping the call stack.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "stackdump.h"
+
 #include "debughlp.h"
-#include <Windows.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <eh.h>
- 
+#include <mutex>
+#include <windows.h>
+
 
 #define PRIPTRSIZE "08"
 
@@ -38,7 +28,7 @@
  *  Options for the stack walker.
  */
 #define STACK_SYMNAME_MAX 512
-#define STACK_DEPTH_MAX 30
+#define STACK_DEPTH_MAX   128
 
 
 /**
@@ -47,8 +37,10 @@
 static bool StripFilenamePaths = true;
 
 
-static void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigned *linenumber, uintptr_t *address)
+void Get_Function_Details(void *pointer, char *funcname, char *filename, unsigned *linenumber, uintptr_t *address)
 {
+    std::scoped_lock dbghelp_lock(DbgHelpMutex);
+
     char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64) + STACK_SYMNAME_MAX];
     IMAGEHLP_SYMBOL64 *const symbol_bufferp = reinterpret_cast<IMAGEHLP_SYMBOL64 *>(symbol_buffer);
     //IMAGEHLP_SYMBOL64 symbol_buffer;
@@ -100,6 +92,10 @@ static void Get_Function_Details(void *pointer, char *funcname, char *filename, 
                 std::strcat(funcname, "();");
             }
 
+            if (address != nullptr) {
+                *address = symbol_bufferp->Address;
+            }
+
             //if (SymGetLineFromAddrPtr != nullptr) {
                 IMAGEHLP_LINE64 line;
                 line.Key = 0;
@@ -135,14 +131,10 @@ static void Get_Function_Details(void *pointer, char *funcname, char *filename, 
                     if (linenumber != nullptr) {
                         *linenumber = line.LineNumber;
                     }
-
-                    if (address != nullptr) {
-                        *address = line.Address;
-                    }
                 }
             //}
         } else {
-            //DEBUG_INFO("Get_Function_Details() - SymFromAddr failed: %d\n", GetLastError());
+            //DEBUG_INFO("Get_Function_Details() - SymFromAddr failed: {}\n", GetLastError());
         }
     //}
 }
@@ -182,6 +174,14 @@ static void Write_Stack_Line(void *address, stackcallback_ptr_t callback)
 
 void Make_Stack_Trace(register_t instructionptr, register_t stackptr, register_t frameptr, int skip_frames, stackcallback_ptr_t callback)
 {
+    /**
+     *  Lock once around the whole walk so StackWalk64 keeps its internal
+     *  cursor coherent. The per-frame callback re-enters via
+     *  Get_Function_Details which acquires DbgHelpMutex again - that's safe
+     *  because it's a recursive_mutex.
+     */
+    std::scoped_lock dbghelp_lock(DbgHelpMutex);
+
     BOOL carry_on = true;
     //DWORD error = 0;
 
@@ -288,15 +288,14 @@ void Make_Stack_Trace(register_t instructionptr, register_t stackptr, register_t
                     nullptr);
 
                 /**
-                 *  Basic sanity check to make sure the frame is OK. Bail if not.
+                 *  End of stack: StackWalk64 returned false or AddrFrame
+                 *  hit zero. Either way the walk is done.
                  */
-                if (stack_frame.AddrFrame.Offset == 0) {
-				    continue; //break;
+                if (!carry_on || stack_frame.AddrFrame.Offset == 0) {
+                    break;
                 }
 
-                if (carry_on) {
-                    Write_Stack_Line((void *)stack_frame.AddrPC.Offset, callback);
-                }
+                Write_Stack_Line((void *)stack_frame.AddrPC.Offset, callback);
             }
         }
     //}

@@ -1,56 +1,48 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains any hooks for the game init process.
  *
- *  @project       Vinifera
- *
- *  @file          INITEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains any hooks for the game init process.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "initext_hooks.h"
-#include "vinifera_const.h"
+
+#include "addon.h"
+#include "audio_manager.h"
+#include "audio_util.h"
+#include "audio_voc.h"
+#include "audio_vox.h"
+#include "audio_theme.h"
+#include "asserthandler.h"
+#include "ccini.h"
+#include "cd.h"
+#include "debughandler.h"
+#include "dsaudio.h"
+#include "hooker.h"
+#include "iomap.h"
+#include "newmenu.h"
+#include "optionsext.h"
+#include "playmovie.h"
+#include "scenarioext.h"
+#include "sdl_functions.h"
+#include "session.h"
+#include "sessionext.h"
+#include "special.h"
+#include "syringe.h"
+#include "theme.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "special.h"
-#include "playmovie.h"
-#include "cd.h"
-#include "newmenu.h"
-#include "addon.h"
-#include "command.h"
-#include "theme.h"
-#include "session.h"
-#include "iomap.h"
-#include "dsaudio.h"
-#include "vinifera_gitinfo.h"
-#include "tspp_gitinfo.h"
-#include "resource.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include <Windows.h>
-#include <commctrl.h>
 
-#include "hooker.h"
-#include "hooker_macros.h"
+#include <bcrypt.h>
+#include <tlhelp32.h> // must be after windows.h
+#include <windows.h>
 
 
 extern HMODULE DLLInstance;
@@ -64,70 +56,47 @@ extern HMODULE DLLInstance;
 
 
 /**
- *  #issue-305
- * 
- *  Fixes bug where the sidebar mouse wheel scrolling "error" sound
- *  can be heard at the main menu.
- * 
- *  @author: CCHyper
+ *  #issue-218
+ *
+ *  We abuse SessionClass::IsGDI in this patch to store the current player's
+ *  HouseType so it can be used to fetch the SideType from it for loading
+ *  the assets. This also means this bugfix works without extending any of
+ *  the games classes.
+ *
+ *  Also sets up the playthrough ID for the session.
+ *
+ *  @warning: This does mean we are limited to 255 unique houses (oh no!).
+ *
+ *  @author: CCHyper, Rampastring
  */
-DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
+DEFINE_HOOK(0x004E2CE4, _Select_Game_PreStart_Patch, 0)
 {
-    GET_STACK_STATIC(UINT, wParam, esp, 0x14);
-    static bool _mouse_wheel_scolling;
+    /**
+     *  This patch removes the code that sets the "IsGDI" member of SessionClass
+     *  bool based on if the house name matched "GDI" or not and stores
+     *  the player HouseType directly.
+     */
+    SessionExtension->House = Session.Players.Fetch_Head()->Player.House;
 
     /**
-     *  The code before this patch checks for WM_MOUSEWHEEL.
+     *  Generate a new playthrough ID because we're about to start a new scenario or campaign run.
      */
+    Vinifera_Generate_PlaythroughID();
 
-    /**
-     *  We are not currently playing a scenario, no need to execute this command.
-     */
-    if (!ScenarioStarted && !TacticalViewActive) {
-        goto message_handler;
-    }
-
-    /**
-     *  Are we currently executing a scroll command? This is required because
-     *  the Main_Window_Procedure function runs at a Windows level.
-     */
-    if (_mouse_wheel_scolling) {
-        goto message_handler;
-    }
-
-    _mouse_wheel_scolling = true;
-
-    /**
-     *  Execute the command based on the direction of the mouse wheel.
-     */
-    if ((wParam & 0x80000000) == 0) {
-        CommandClass::Activate_From_Name("SidebarUp");
-    } else {
-        CommandClass::Activate_From_Name("SidebarDown");
-    }
-
-    _mouse_wheel_scolling = false;
-
-executed:
-    JMP_REG(eax, 0x00685F9C);
-
-message_handler:
-    JMP_REG(ecx, 0x00685FA0);
+    return 0x004E2D13;
 }
 
 
 /**
  *  #issue-513
  * 
- *  Patch to add check for CD::IsFilesLocal to make sure -CD really
+ *  Patch to add check for CD::IsOverrideSwap() to make sure -CD really
  *  was set by the user.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
+DEFINE_HOOK(0x004E0469, _Init_CDROM_Access_Local_Files_Patch, 0)
 {
-    _asm { add esp, 4 }
-
     /**
      *  If there are search drives specified then all files are to be
      *  considered local.
@@ -137,7 +106,7 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
         /**
          *  Double check that the game was launched with -CD.
          */
-        if (CD::IsFilesLocal) {
+        if (CD::IsOverrideSwap()) {
 
             /**
              *  This is a workaround to ensure the mix loading code passes.
@@ -152,13 +121,13 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
      *  Continue to initialise the CD-ROM code.
      */
 init_cdrom:
-    JMP(0x004E0471);
+    return 0x004E0471;
 
     /**
      *  Flag files as being local, no CD-ROM init.
      */
 files_local:
-    JMP(0x004E06F5);
+    return 0x004E06F5;
 }
 
 
@@ -182,27 +151,15 @@ static bool CCFile_Validate_Is_Available(const char *filename, int size)
  */
 static bool Vinifera_Play_Startup_Movies()
 {
-    static const int VINIFERA_VQA_SIZE = 704889;
-    static const int WWLOGO_VQA_SIZE = 2415362;
-
     if (Special.IsFromInstall) {
         DEBUG_INFO("Playing first time intro sequence.\n");
         Play_Movie("EVA.VQA");
     }
 
     if (!Vinifera_SkipLogoMovies) {
-        DEBUG_INFO("Playing logo movies.\n");
-        if (!CCFile_Validate_Is_Available("VINIFERA.VQA", VINIFERA_VQA_SIZE)) {
-            DEBUG_INFO("Failed to find VINIFERA.VQA!\n");
-        } else {
-            Play_Movie("VINIFERA.VQA");
-        }
-        
-        if (!CCFile_Validate_Is_Available("WWLOGO.VQA", WWLOGO_VQA_SIZE)) {
-            DEBUG_INFO("Failed to find WWLOGO.VQA!\n");
-        } else {
-            Play_Movie("WWLOGO.VQA");
-        }
+        DEBUG_INFO("Playing startup movies.\n");
+        Play_Movie("VINIFERA.VQA");
+        Play_Movie("WWLOGO.VQA");
     } else {
         DEBUG_INFO("Skipping logo movies.\n");
     }
@@ -219,7 +176,7 @@ static bool Vinifera_Play_Startup_Movies()
     return true;
 }
 
-DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
+DEFINE_HOOK(0x004E0786, _Init_Game_Skip_Startup_Movies_Patch, 0)
 {
     if (Vinifera_SkipStartupMovies) {
         DEBUG_INFO("Skipping startup movies.\n");
@@ -231,19 +188,18 @@ DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
     }
 
 loading_screen:
-    _asm { or ebx, 0xFFFFFFFF }
-    JMP(0x004E0848);
+    R->EBX(-1);
+    return 0x004E0848;
 
 skip_loading_screen:
-    JMP(0x004E084D);
+    return 0x004E084D;
 
 failed:
-    _asm { mov ebx, 1 }
-    JMP(0x004E08B3);
+    R->EBX(1);
+    return 0x004E08B3;
 }
 
 
-#if defined(TS_CLIENT)
 /**
  *  Forces Firestorm addon as Present (installed).
  * 
@@ -266,225 +222,51 @@ static bool Vinifera_Detect_Addons()
 
     return true;
 }
-#endif
 
+extern bool ImGui_Create_Main_Window(HINSTANCE hInstance);
 
 /**
- *  Creates the main window for Tiberian Sun
+ *  Creates the main window for Tiberian Sun at 480p resolution.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
-void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, int height)
+void Vinifera_Create_Main_Window_480p(HINSTANCE hInstance, int command_show, int width, int height)
 {
     //DEV_DEBUG_INFO("Create_Main_Window(enter)\n");
 
-    MainWindow = nullptr;
-
-    HWND hWnd = nullptr;
-    BOOL rc;
-    WNDCLASSEX wc;
-    tagRECT rect;
-    HICON hIcon = nullptr;
-    HICON hSmIcon = nullptr;
-    HCURSOR hCursor = nullptr;
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call InitCommonControls()\n");
-
-    InitCommonControls();
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Preparing window name (with version info).\n");
-
-    DWORD dwPid = GetProcessId(GetCurrentProcess());
-    if (!dwPid) {
-        DEBUG_ERROR("Create_Main_Window() - Failed to get the process id!\n");
-        return;
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Loading icon and cursor resources.\n");
-
-    /**
-     *  Load the Vinifera icon and cursor resources, falling back to the GAME.EXE
-     *  resources if not available or failed to load.
-     */
-    if (Vinifera_IconName[0] != '\0') {
-        DEBUG_INFO("Loading custom icon \"%s\"\n", Vinifera_IconName);
-        hIcon = (HICON)LoadImage(
-            nullptr,
-            Vinifera_IconName,
-            IMAGE_ICON,
-            0,
-            0,
-            LR_LOADFROMFILE);
-        DEBUG_INFO("Loading custom small icon \"%s\"\n", Vinifera_IconName);
-        hSmIcon = (HICON)LoadImage(
-            nullptr,
-            Vinifera_IconName,
-            IMAGE_ICON,
-            GetSystemMetrics(SM_CXSMICON),
-            GetSystemMetrics(SM_CXSMICON),
-            LR_LOADFROMFILE);
-    }
-    if (!hIcon) {
-        hIcon = LoadIcon((HINSTANCE)DLLInstance, MAKEINTRESOURCE(VINIFERA_MAINICON));
-        if (!hIcon) {
-            hIcon = LoadIcon((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINICON));
-        }
-    }
-    if (Vinifera_CursorName[0] != '\0') {
-        DEBUG_INFO("Loading custom cursor \"%s\"\n", Vinifera_CursorName);
-        hCursor = LoadCursorFromFile(Vinifera_CursorName);
-    }
-    if (!hCursor) {
-        hCursor = LoadCursor(nullptr, VINIFERA_MAINCURSOR); // IDC_ARROW is a system resource, does not require module.
-        if (!hCursor) {
-            hCursor = LoadCursor((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINCURSOR));
-        }
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Setting up window class info.\n");
-
-    /**
-     *  Register the window class.
-     */
-    wc.cbSize         = sizeof(WNDCLASSEX);
-    wc.style          = CS_HREDRAW|CS_VREDRAW;
-    wc.lpfnWndProc    = Main_Window_Procedure;
-    wc.cbClsExtra     = 0;
-    wc.cbWndExtra     = 0;
-    wc.hInstance      = (HINSTANCE)hInstance;
-    wc.hIcon          = hIcon;
-    wc.hCursor        = hCursor;
-    wc.hbrBackground  = nullptr;
-    wc.lpszMenuName   = nullptr;
-    wc.lpszClassName  = "Vinifera";
-    wc.hIconSm        = (hSmIcon ? hSmIcon : hIcon);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call RegisterClass()\n");
-
-    /**
-     *  Register window class.
-     */
-    rc = RegisterClassEx(&wc);
-    if (!rc) {
-        DEBUG_INFO("Create_Main_Window() - Failed to register window class!\n");
-        return;
-    }
-
-    /**
-     *  Get the dimensions of the primary display.
-     */
-    int display_width = GetSystemMetrics(SM_CXSCREEN);
-    int display_height = GetSystemMetrics(SM_CYSCREEN);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Desktop size %d x %d\n", display_width, display_height);
-
-    /**
-     *  Create our main window.
-     */
-    if (Debug_Windowed) {
-
-        DEBUG_INFO("Create_Main_Window() - Creating desktop window (%d x %d).\n", width, height);
-
-        hWnd = CreateWindowEx(
-            WS_EX_LEFT|WS_EX_TOPMOST,
-            "Vinifera",
-            Vinifera_Get_Window_Title(dwPid),
-            WS_SYSMENU|WS_MINIMIZEBOX|WS_CLIPCHILDREN|WS_CAPTION,
-            0, 0, 0, 0,
-            nullptr,
-            nullptr,
-            (HINSTANCE)hInstance,
-            nullptr);
-
-        SetRect(&rect, 0, 0, width, height);
-
-        AdjustWindowRectEx(&rect,
-            GetWindowLong(hWnd, GWL_STYLE),
-            GetMenu(hWnd) != nullptr,
-            GetWindowLong(hWnd, GWL_EXSTYLE));
-
-        /**
-         *  #BUGFIX:
-         * 
-         *  Fetch the desktop size, calculate the screen center position the window and move it.
-         */
-        RECT workarea;
-        SystemParametersInfo(SPI_GETWORKAREA, 0, &workarea, 0);
-
-        int x_pos = (display_width - width) / 2;
-        int y_pos = (((display_height - height) / 2) - (display_height - workarea.bottom));
-        
-        DEBUG_INFO("Create_Main_Window() - Moving window (%d,%d,%d,%d).\n",
-            x_pos, y_pos, (rect.right - rect.left), (rect.bottom - rect.top));
-
-        MoveWindow(hWnd, x_pos, y_pos, (rect.right - rect.left), (rect.bottom - rect.top), TRUE);
-
-    } else {
-
-        DEBUG_INFO("Create_Main_Window() - Creating fullscreen window.\n");
-
-        hWnd = CreateWindowEx(
-            WS_EX_TOPMOST,
-            "Vinifera",
-            Vinifera_Get_Window_Title(dwPid),
-            WS_POPUP|WS_CLIPCHILDREN,
-            0, 0,
-            display_width,
-            display_height,
-            nullptr,
-            nullptr,
-            (HINSTANCE)hInstance,
-            nullptr);
-    }
-
-    if (!hWnd) {
-        DEBUG_INFO("Create_Main_Window() - Failed to create window!\n");
-        return;
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call ShowWindow()\n");
-
-    ShowWindow(hWnd, SW_SHOWNORMAL);
-    ShowCommand = nCmdShow;
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call UpdateWindow()\n");
-
-    UpdateWindow(hWnd);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call SetFocus()\n");
-
-    SetFocus(hWnd);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call RegisterHotKey()\n");
-
-    RegisterHotKey(hWnd, 1, MOD_ALT|MOD_CONTROL|MOD_SHIFT, VK_M);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call SetCursor()\n");
-
-    SetCursor(hCursor);
-
-    Audio.AudioFocusLossFunction = &Focus_Loss;
-
-    /**
-     *  Save the handle to our main window.
-     */
-    MainWindow = hWnd;
-    ProgramInstance = hInstance;
-
-    /**
-     *  #NOTE:
-     *  This had been added to resolved a issue where the game gets stuck in a
-     *  focus checking loop, this could be because the DLL now creates the 
-     *  window in its thread.
-     */
-    GameInFocus = true;
+    SDL_Create_Main_Window(hInstance, width, height);
+    ShowCommand = command_show;
 
     //DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
 }
 
 
 /**
- *  Reimplemention of Prep_For_Side()
+ *  Creates the main window for Tiberian Sun at a custom resolution.
+ *
+ *  @author: ZivDero
+ */
+void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, int width, int height)
+{
+    // DEV_DEBUG_INFO("Create_Main_Window(enter)\n");
+
+    width = Options.ScreenWidth;
+    height = Options.ScreenHeight;
+
+    if (OptionsExtension->WindowWidth > 0 && OptionsExtension->WindowHeight > 0) {
+        width = OptionsExtension->WindowWidth;
+        height = OptionsExtension->WindowHeight;
+    }
+
+    SDL_Create_Main_Window(hInstance, width, height);
+    ShowCommand = command_show;
+
+    // DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
+}
+
+
+/**
+ *  Reimplementation of Prep_For_Side()
  *  
  *  Prepare the mixfiles for the player side.
  * 
@@ -494,33 +276,27 @@ bool Vinifera_Prep_For_Side(SideType side)
 {
     char name[64];
 
-    DEBUG_INFO("Preparing Mixfiles for Side %02d.\n", side);
+    DEBUG_INFO("Preparing Mixfiles for Side {:02}.\n", (int)side);
 
     /**
      *  Delete previously loaded mixes.
      */
     if (SideCMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCMix->Filename);
+        DEBUG_INFO("     Releasing {}\n", SideCMix->Filename);
         delete SideCMix;
         SideCMix = nullptr;
     }
 
     if (SideNCMix) {
-        DEBUG_INFO("     Releasing %s\n", SideNCMix->Filename);
+        DEBUG_INFO("     Releasing {}\n", SideNCMix->Filename);
         delete SideNCMix;
         SideNCMix = nullptr;
     }
 
     if (SideCDMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCDMix->Filename);
+        DEBUG_INFO("     Releasing {}\n", SideCDMix->Filename);
         delete SideCDMix;
         SideCDMix = nullptr;
-    }
-
-    if (SideCTMix) {
-        DEBUG_INFO("     Releasing %s\n", SideCTMix->Filename);
-        delete SideCTMix;
-        SideCTMix = nullptr;
     }
 
     int id = static_cast<int>(side) + 1; // Mix id
@@ -531,25 +307,13 @@ bool Vinifera_Prep_For_Side(SideType side)
     }
 
     /**
-     *  New Vinifera sidebar (Tabs) side-specific mix.
-     */
-    if (Vinifera_NewSidebar) {
-        std::snprintf(name, sizeof(name), "SIDECT%02d.MIX", id);
-        if (CCFileClass(name).Is_Available()) {
-            DEBUG_INFO("     Initializing %s\n", name);
-            SideCTMix = new MFCD(name, &FastKey);
-            SideCTMix->Cache();
-        }
-    }
-
-    /**
      *  Cached expansion side-specific mixes.
      */
-    if (Is_Addon_Enabled(ADDON_ANY) == true) {
+    if (Addon_Enabled(ADDON_ANY) == true) {
         for (int index = 99; index >= 0; index--) {
             std::snprintf(name, sizeof(name), "E%02dSC%02d.MIX", index, id);
             if (CCFileClass(name).Is_Available()) {
-                DEBUG_INFO("     Initializing %s\n", name);
+                DEBUG_INFO("     Initializing {}\n", name);
                 MFCD* mix = new MFCD(name, &FastKey);
                 ExpandSideMix.Add(mix);
                 mix->Cache();
@@ -562,7 +326,7 @@ bool Vinifera_Prep_For_Side(SideType side)
      */
     std::snprintf(name, sizeof(name), "SIDEC%02d.MIX", id);
     if (CCFileClass(name).Is_Available()) {
-        DEBUG_INFO("     Initializing %s\n", name);
+        DEBUG_INFO("     Initializing {}\n", name);
         SideCMix = new MFCD(name, &FastKey);
         SideCMix->Cache();
     }
@@ -570,12 +334,12 @@ bool Vinifera_Prep_For_Side(SideType side)
     /**
      *  Not cached expansion side-specific mixes.
      */
-    if (Is_Addon_Enabled(ADDON_ANY) == true) {
+    if (Addon_Enabled(ADDON_ANY) == true) {
         for (int index = 99; index >= 0; index--) {
             std::snprintf(name, sizeof(name), "E%02dSNC%02d.MIX", index, id);
 
             if (CCFileClass(name).Is_Available()) {
-                DEBUG_INFO("     Initializing %s\n", name);
+                DEBUG_INFO("     Initializing {}\n", name);
                 MFCD* mix = new MFCD(name, &FastKey);
                 ExpandSideMix.Add(mix);
             }
@@ -587,7 +351,7 @@ bool Vinifera_Prep_For_Side(SideType side)
      */
     std::snprintf(name, sizeof(name), "SIDENC%02d.MIX", id);
     if (CCFileClass(name).Is_Available()) {
-        DEBUG_INFO("     Initializing %s\n", name);
+        DEBUG_INFO("     Initializing {}\n", name);
         SideNCMix = new MFCD(name, &FastKey);
     }
 
@@ -595,18 +359,102 @@ bool Vinifera_Prep_For_Side(SideType side)
      *  Disk side-specific mix.
      */
     if (Session.Type == GAME_NORMAL) {
-        if (Is_Addon_Enabled(ADDON_ANY) == false) {
+        if (Addon_Enabled(ADDON_ANY) == false) {
             std::snprintf(name, sizeof(name), "SIDECD%02d.MIX", id);
         } else {
             std::snprintf(name, sizeof(name), "E%02dSCD%02d.MIX", Get_Required_Addon(), id);
         }
         if (CCFileClass(name).Is_Available()) {
-            DEBUG_INFO("     Initializing %s\n", name);
+            DEBUG_INFO("     Initializing {}\n", name);
             SideCDMix = new MFCD(name, &FastKey);
         }
     }
 
     Map.Init_For_House();
+
+    return true;
+}
+
+
+/**
+ *  Reimplementation of Prep_Speech_For_Side()
+ *
+ *  Prepare the mixfiles for the player side.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+bool Vinifera_Prep_Speech_For_Side(SideType side)
+{
+    char name[64];
+
+    if (side == SIDE_NONE) {
+        return false;
+    }
+
+    /**
+     *  Free previously loaded speech MIXes.
+     */
+    if (SpeechMix != nullptr) {
+        DEBUG_INFO("     Releasing {}\n", SpeechMix->Filename);
+        delete SpeechMix;
+        SpeechMix = nullptr;
+    }
+
+    while (ExpandSpeechMix.Count() > 0) {
+        delete ExpandSpeechMix[0];
+        ExpandSpeechMix.Delete(0);
+    }
+
+    /**
+     *  Load the new generic speech MIX.
+     */
+    DEBUG_INFO("     Initializing SPEECH.MIX\n");
+    if (CCFileClass("SPEECH.MIX").Is_Available()) {
+        MFCD* mix = new MFCD("SPEECH.MIX", &FastKey);
+        if (mix != nullptr) {
+            ExpandSpeechMix.Add(mix);
+            DEBUG_INFO(" SPEECH.MIX");
+        }
+    }
+
+    int id = static_cast<int>(side) + 1;
+
+    /**
+     *  Load the per-side mixes.
+     */
+    for (AddonType addon = ADDON_COUNT; addon > 0; --addon) {
+        if (Addon_Enabled(addon) == true) {
+            std::snprintf(name, std::size(name), "E%02dVOX%02d.MIX", addon, id);
+
+            if (CCFileClass(name).Is_Available()) {
+                MFCD* mix = new MFCD(name, &FastKey);
+                if (mix != nullptr) {
+                    ExpandSpeechMix.Add(mix);
+                    DEBUG_INFO(" {}", name);
+                }
+            }
+        }
+    }
+
+    std::snprintf(name, std::size(name), "SPEECH%02d.MIX", id);
+    DEBUG_INFO("     Initializing {}\n", name);
+    if (CCFileClass(name).Is_Available()) {
+        SpeechMix = new MFCD(name, &FastKey);
+    }
+
+    //if (SpeechMix == nullptr) {
+    //    DEBUG_INFO("     FAILED!\n");
+    //    return false;
+    //}
+
+    AudioVoxClass::ScanAsync();
+
+    /**
+     *  Reload UI.INI after the side mixes are mounted, then layer any
+     *  side-specific UI overrides on top.
+     */
+    UIControls->Read_INI_File("UI.INI", true);
+    UIControls->Read_INI_File("UIOVERRIDES.INI");
 
     return true;
 }
@@ -666,12 +514,12 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" CONQUER.MIX\n");
     }
 
-    int cd = CD::Get_Volume_Index();
+    int cd = CD::GetCurrentDisk();
 
     /**
      *  Make sure we have a grounded volume index (invalid volumes will cause error).
      */
-    if (CD::Get_Volume_Index() < 0) {
+    if (CD::GetCurrentDisk() < 0) {
         cd = 0;
     }
 
@@ -688,15 +536,15 @@ bool Vinifera_Init_Secondary_Mixfiles()
      * 
      *  @author: CCHyper
      */
-    if (CD::IsFilesLocal) {
+    if (CD::IsOverrideSwap()) {
 
         std::snprintf(buffer, sizeof(buffer), "MAPS*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
-            DEBUG_INFO(" %s\n", buffer);
+            DEBUG_INFO(" {}\n", buffer);
             MapsMix = new MFCD(buffer, &FastKey);
             ASSERT(MapsMix);
             while (CCFileClass::Find_Next_File(buffer)) {
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
                 mix = new MFCD(buffer, &FastKey);
                 ASSERT(mix);
                 if (mix) {
@@ -714,10 +562,10 @@ bool Vinifera_Init_Secondary_Mixfiles()
         }
     }
     if (!MapsMix) {
-        DEBUG_WARNING("Failed to load %s!\n", buffer);
+        DEBUG_WARNING("Failed to load {}!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::IsOverrideSwap()) DEBUG_INFO(" {}\n", buffer);
     }
 
     if (CCFileClass("MULTI.MIX").Is_Available()) {
@@ -731,7 +579,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" MULTI.MIX\n", buffer);
     }
 
-    if (Is_Addon_Available(ADDON_FIRESTORM)) {
+    if (Addon_Installed(ADDON_FIRESTORM)) {
         if (CCFileClass("SOUNDS01.MIX").Is_Available()) {
             FSSoundsMix = new MFCD("SOUNDS01.MIX", &FastKey);
             ASSERT(FSSoundsMix);
@@ -780,7 +628,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" SCORES.MIX\n", buffer);
     }
 	ScoresPresent = true;
-	Theme.Scan();
+    AudioTheme.Scan();
 
     /**
      *  #issue-513
@@ -790,15 +638,15 @@ bool Vinifera_Init_Secondary_Mixfiles()
      * 
      *  @author: CCHyper
      */
-    if (CD::IsFilesLocal) {
+    if (CD::IsOverrideSwap()) {
 
         std::snprintf(buffer, sizeof(buffer), "MOVIES*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
-            DEBUG_INFO(" %s\n", buffer);
+            DEBUG_INFO(" {}\n", buffer);
             MoviesMix = new MFCD(buffer, &FastKey);
             ASSERT(MoviesMix);
             while (CCFileClass::Find_Next_File(buffer)) {
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
                 mix = new MFCD(buffer, &FastKey);
                 ASSERT(mix);
                 if (mix) {
@@ -816,10 +664,10 @@ bool Vinifera_Init_Secondary_Mixfiles()
         }
     }
     if (!MoviesMix) {
-        DEBUG_WARNING("Failed to load %s!\n", buffer);
+        DEBUG_WARNING("Failed to load {}!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::IsOverrideSwap()) DEBUG_INFO(" {}\n", buffer);
     }
 
     return true;
@@ -842,10 +690,10 @@ bool Vinifera_Init_Expansion_Mixfiles()
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }
@@ -856,11 +704,11 @@ bool Vinifera_Init_Expansion_Mixfiles()
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 mix->Cache();
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }
@@ -879,18 +727,18 @@ bool Vinifera_Init_Expansion_Mixfiles()
 #if 0
     std::snprintf(buffer, sizeof(buffer), "ELOCAL*.MIX");
     if (CCFileClass::Find_First_File(buffer)) {
-        DEBUG_INFO(" %s\n", buffer);
+        DEBUG_INFO(" {}\n", buffer);
         mix = new MFCD(buffer, &FastKey);
         ASSERT(mix);
         while (CCFileClass::Find_Next_File(buffer)) {
-            DEBUG_INFO(" %s\n", buffer);
+            DEBUG_INFO(" {}\n", buffer);
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }
@@ -902,10 +750,10 @@ bool Vinifera_Init_Expansion_Mixfiles()
             mix = new MFCD(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
+                DEBUG_WARNING("Failed to load {}!\n", buffer);
             } else {
                 ExpandMix.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
+                DEBUG_INFO(" {}\n", buffer);
             }
         }
     }
@@ -928,7 +776,7 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
     MFCD *mix;
 
     DiskID temp = CD::RequiredCD;
-    CD::Set_Required_CD(DISK_LOCAL);
+    CD::SetRequiredDisk(DISK_LOCAL);
 
     DEBUG_INFO("\n"); // Fixes missing new-line after "Bootstrap..." print.
     //DEBUG_INFO("Init bootstrap mixfiles...\n");
@@ -989,9 +837,112 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
         DEBUG_INFO(" LOCAL.MIX\n");
     }
 
-    CD::Set_Required_CD(temp);
+    CD::SetRequiredDisk(temp);
 
     return true;
+}
+
+
+/**
+ *  Detaches the debugger from the current process.
+ *
+ *  @author: secsome
+ */
+bool Detach_Debugger()
+{
+    auto GetDebuggerProcessId = [](DWORD dwSelfProcessId) -> DWORD {
+        DWORD dwParentProcessId = -1;
+        HANDLE hSnapshot = CreateToolhelp32Snapshot(2, 0);
+        PROCESSENTRY32 pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32);
+        Process32First(hSnapshot, &pe32);
+        do {
+            if (pe32.th32ProcessID == dwSelfProcessId) {
+                dwParentProcessId = pe32.th32ParentProcessID;
+                break;
+            }
+        } while (Process32Next(hSnapshot, &pe32));
+        CloseHandle(hSnapshot);
+        return dwParentProcessId;
+    };
+
+    HMODULE hModule = LoadLibrary("ntdll.dll");
+    if (hModule != NULL) {
+        auto const NtRemoveProcessDebug = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, HANDLE)>(GetProcAddress(hModule, "NtRemoveProcessDebug"));
+        auto const NtSetInformationDebugObject = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtSetInformationDebugObject"));
+        auto const NtQueryInformationProcess = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtQueryInformationProcess"));
+        auto const NtClose = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE)>(GetProcAddress(hModule, "NtClose"));
+
+        HANDLE hDebug;
+        HANDLE hCurrentProcess = GetCurrentProcess();
+        NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
+        if (status >= 0) {
+            ULONG killProcessOnExit = FALSE;
+            status = NtSetInformationDebugObject(hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+            if (status >= 0) {
+                const auto pid = GetDebuggerProcessId(GetProcessId(hCurrentProcess));
+                status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
+                if (status >= 0) {
+                    return true;
+                }
+            }
+            NtClose(hDebug);
+        }
+        FreeLibrary(hModule);
+    }
+
+    return false;
+}
+
+/**
+ *  Give the user time to attach the debugger if one is not already present.
+ *
+ *  @author: ZivDero, CCHyper
+ */
+DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
+{
+    DEBUG_INFO("Syringe is active.\n");
+
+    if (Detach_Debugger()) {
+        if (!IsDebuggerPresent()) {
+#ifndef NDEBUG
+            bool wait_for_debugger = true;
+#else
+            const char* cmdline = GetCommandLineA();
+            bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
+#endif
+            if (wait_for_debugger) {
+                MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Load tutorial.ini into our new map in Init_Bulk_Data.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004E46BB, _Init_Bulk_Data_Tutorial_Text_Patch, 0)
+{
+    REF_STACK(CCINIClass, tutorial_ini, 0x18);
+    ScenarioClassExtension::Read_Tutorial_INI(tutorial_ini);
+    return 0x004E482E;
+}
+
+
+/**
+ *  Clear our new tutorial text map in Prog_End.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x00601B15, _Prog_End_Tutorial_Text_Patch, 5)
+{
+    Vinifera_TutorialText.clear();
+    return 0;
 }
 
 
@@ -1000,12 +951,12 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
  */
 void GameInit_Hooks()
 {
-    Patch_Jump(0x004E0786, &_Init_Game_Skip_Startup_Movies_Patch);
-    Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
     Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
-    Patch_Jump(0x00686190, &Vinifera_Create_Main_Window);
+    Patch_Jump(0x004E8460, &Vinifera_Prep_Speech_For_Side);
+    Patch_Call(0x006013AB, &Vinifera_Create_Main_Window_480p);
+    Patch_Call(0x00601696, &Vinifera_Create_Main_Window_Custom);
 
     /**
      *  #issue-110
@@ -1031,24 +982,20 @@ void GameInit_Hooks()
      *  This was a because the game was checking if the Firestorm addon was
      *  installed rather than if it was the currently active game mode.
      */
-    Patch_Call(0x004E1F70, &Is_Addon_Enabled);
-    Patch_Call(0x004E25A6, &Is_Addon_Enabled);
-    Patch_Call(0x004E2890, &Is_Addon_Enabled);
-    Patch_Call(0x004E2991, &Is_Addon_Enabled);
-    Patch_Call(0x004E86F5, &Is_Addon_Enabled);
-    Patch_Call(0x004E8735, &Is_Addon_Enabled);
-
-    Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
+    Patch_Call(0x004E1F70, &Addon_Enabled);
+    Patch_Call(0x004E25A6, &Addon_Enabled);
+    Patch_Call(0x004E2890, &Addon_Enabled);
+    Patch_Call(0x004E2991, &Addon_Enabled);
+    Patch_Call(0x004E86F5, &Addon_Enabled);
+    Patch_Call(0x004E8735, &Addon_Enabled);
 
     /**
      *  Fixes a bug where CompositeSurface is used instead of HiddenSurface in Allocate_Surfaces.
      */
     Patch_Dword(0x004E743D+1, (uint32_t)0x0074C5DC);
 
-#if defined(TS_CLIENT)
     /**
      *  TS Client file structure assumes Firestorm is always installed and enabled.
      */
-    //Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
-#endif
+    Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 }

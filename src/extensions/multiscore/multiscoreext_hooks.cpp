@@ -1,136 +1,226 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended MultiScore class.
  *
- *  @project       Vinifera
- *
- *  @file          MULTISCOREEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended MultiScore class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "multiscoreext_hooks.h"
+
 #include "debughandler.h"
-#include "asserthandler.h"
-
-#include "tibsun_globals.h"
-#include "house.h"
-#include "vector.h"
-
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "house.h"
+#include "houseext.h"
+#include "housetype.h"
+#include "multiscore.h"
 #include "scenario.h"
+#include "syringe.h"
+#include "tibsun_globals.h"
+#include "vector.h"
 #include "vinifera_globals.h"
 
+#include <algorithm>
 
-static int MostCreditsSpent;
-
-static void _MultiScore_Tally_Score_Get_Largest_CreditsSpent_Score()
-{
-    MostCreditsSpent = 0;
-
-    for (int i = 0; i < Houses.Count(); i++) {
-        if (Houses[i]->CreditsSpent > MostCreditsSpent) {
-            MostCreditsSpent = Houses[i]->CreditsSpent;
-        }
-    }
-}
-
-
+class HouseClassExtension;
 /**
- *  #issue-544
- *
- *  Fixes the nonsensical economy stat in the score screen.
- *  Records the highest "credits spent" score from all players for
- *  later use in comparing players' economy scores.
- *
- *  @author: Rampastring
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-DECLARE_PATCH(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
+class MultiScoreExt final : public MultiScore
 {
-    _MultiScore_Tally_Score_Get_Largest_CreditsSpent_Score();
+public:
+    void _Tally_Score();
+};
+
+
+void MultiScoreExt::_Tally_Score()
+{
+    /**
+     *  Reset the score entry count.
+     */
+    Session.NumScores = 0;
 
     /**
-     *  Stolen bytes / code.
+     *  Find which player has spent the most credits.
      */
-    _asm { mov ecx, dword ptr ds:0x007E1568 }
-    JMP(0x005687AF);
-}
+    int most_credits_spent = 0;
 
+    for (HousesType house = HOUSE_FIRST; house < Houses.Count(); house++) {
+        HouseClass* hptr = Houses[house];
+        const HouseClassExtension* hext = hptr ? Extension::Fetch(hptr) : nullptr;
 
-/**
- *  #issue-544
- *
- *  Fixes the nonsensical economy stat in the score screen.
- *  Calculates a player's economy score based on their amount of
- *  credits spent.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
-{
-    GET_REGISTER_STATIC(HouseClass *, house, ebx);
-    static int economy_score;
+        /**
+         *  Skip this house if it's multiplay passive, or is an observer.
+         */
+        if (!hptr || hptr->Class->IsMultiplayPassive || hext->IsObserver) {
+            continue;
+        }
 
-    /*
-     * Calculate a percentage of how many credits this house has
-     * spent compared to the house that spent the highest
-     * amount of credits during the match.
+        most_credits_spent = std::max<unsigned int>(Houses[house]->CreditsSpent, most_credits_spent);
+    }
+
+    /**
+     *  Loop through all houses, tallying up each player's score.
      */
-    if (MostCreditsSpent > 0) {
-        if (house->CreditsSpent >= MostCreditsSpent) {
+    for (HousesType house = HOUSE_FIRST; house < Houses.Count(); house++) {
+        HouseClass* hptr = Houses[house];
+        const HouseClassExtension* hext = hptr ? Extension::Fetch(hptr) : nullptr;
+
+        /**
+         *  Skip this house if it's multiplay passive, or is an observer.
+         */
+        if (!hptr || hptr->Class->IsMultiplayPassive || hext->IsObserver) {
+            continue;
+        }
+
+        /**
+         *  Now find out where this player is in the score array.
+         */
+        const int score_index = Session.NumScores++;
+
+        /**
+         *  Initialize this score entry.
+         */
+        Session.Score[score_index].Wins = 0;
+        std::strncpy(Session.Score[score_index].Name, hptr->IniName.c_str(), std::size(Session.Score[score_index].Name) - 1);
+
+        /**
+         *  Init this player's statistics to 0 (-1 means he didn't play this round;
+         *  0 means he played but did nothing).
+         */
+        Session.Score[score_index].Lost[0] = 0;
+        Session.Score[score_index].Kills[0] = 0;
+        Session.Score[score_index].Economy[0] = 0;
+        Session.Score[score_index].Score[0] = 0;
+
+        /**
+         *  Init this player's color to his last-used color index
+         */
+        Session.Score[score_index].Color = static_cast<PlayerColorType>(hptr->Scheme);
+
+        /**
+         *  If this house was undefeated, it must have been the winner.
+         *  (If no human houses are undefeated, the computer won.)
+         */
+        if (!hptr->IsDefeated) {
+            Session.Score[score_index].Wins++;
+            Session.Winner = score_index;
+
             /**
-             *  For some reason the score screen presentation seems to
-             *  lower this by some 1-2%, so we take that into account.
-             *  TODO investigate and fix
+             *  Calculate the average score for all other houses and use it as a basseline, I guess? Score inflation.
              */
-            economy_score = 102;
+            int score = 0;
+            int count = 0;
+
+            for (HousesType house2 = HOUSE_FIRST; house2 < Houses.Count(); house2++) {
+                const HouseClass* hptr2 = Houses[house2];
+                const HouseClassExtension* hext2 = hptr2 ? Extension::Fetch(hptr2) : nullptr;
+
+                /**
+                 *  Skip this house if it's the same house, is multiplay passive, or is an observer.
+                 */
+                if (!hptr2 || hptr2->Class->IsMultiplayPassive || hptr == hptr2 || hext2->IsObserver) {
+                    continue;
+                }
+
+                score += hptr->PointTotal;
+                count++;
+            }
+
+            /**
+             *  Average the scores.
+             */
+            if (count > 0) {
+                score /= count;
+            }
+
+            score = std::max(200, score);
+            Session.Score[score_index].Score[0] = score / 2;
+        }
+
+        /**
+         *  Tally up all kills for this player.
+         */
+        unsigned total_kills = 0;
+        for (int i = 0; i < std::size(hptr->UnitsKilled); i++) {
+            total_kills += hptr->UnitsKilled[i];
+        }
+
+        for (int i = 0; i < std::size(hptr->BuildingsKilled); i++) {
+            total_kills += hptr->BuildingsKilled[i];
+        }
+
+        Session.Score[score_index].Kills[0] = total_kills;
+
+        /**
+         *  Tally up the losses for this player.
+         */
+        const int total_losses = hptr->UnitsLost + hptr->BuildingsLost;
+        Session.Score[score_index].Lost[0] = total_losses;
+
+        /**
+         *  Calculate the kill to loss ratio.
+         */
+        double kill_ratio = 0.0;
+        if (total_losses > 0) {
+            kill_ratio = static_cast<double>(total_kills) / total_losses;
+        }
+
+        /*
+         *  Calculate a percentage of how many credits this house has
+         *  spent compared to the house that spent the highest
+         *  amount of credits during the match.
+         *  
+         *  @author: Rampastring
+         */
+        double build_economy;
+        if (most_credits_spent > 0) {
+            build_economy = static_cast<double>(hptr->CreditsSpent) / most_credits_spent;
         }
         else {
-            economy_score = (house->CreditsSpent * 100) / MostCreditsSpent;
+            build_economy = 0;
         }
-    } else {
-        economy_score = 0;
+        Session.Score[score_index].Economy[0] = (build_economy * 100.0);
+
+        /**
+         *  A score of 100 prints as 99 for some reason, so we do this to make it print 100.
+         */
+        if (Session.Score[score_index].Economy[0] == 100) {
+            Session.Score[score_index].Economy[0] = 102;
+        }
+
+        /**
+         *  Set the player's score.
+         */
+        if (hptr->PointTotal > 0) {
+            Session.Score[score_index].Score[0] += hptr->PointTotal;
+        }
+
+        /**
+         *  Print if this player is a winner or a loser.
+         */
+        const char* win_string = Session.Score[score_index].Wins > 0 ? "Winner" : "Loser";
+
+        DEBUG_INFO(
+            "{}: {}\n Scheme: {}\n Lost = {}\n Kills = {}\n Economy = {}\n Score = {}\n",
+            Session.Score[score_index].Name,
+            win_string,
+            (int)Session.Score[score_index].Color,
+            Session.Score[score_index].Lost[0],
+            Session.Score[score_index].Kills[0],
+            Session.Score[score_index].Economy[0],
+            Session.Score[score_index].Score[0]);
+
+        DEBUG_INFO(" KillRatio = {}\n BuildEconomy = {}\n", kill_ratio, build_economy);
     }
-
-    _asm { mov eax, [economy_score] };
-
-    /**
-     *  Assign economy score and continue score processing.
-     */
-    JMP_REG(ecx, 0x005689E0);
-}
-
-
-/**
- *  Patches the score screen to show the total time since the scenario was started,
- *  not since the last time the game was loaded.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
-{
-    static unsigned elapsed_time;
-    elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
-
-    _asm mov ebx, elapsed_time
-    JMP(0x00568D38);
 }
 
 
@@ -139,10 +229,8 @@ DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
  */
 void MultiScoreExtension_Hooks()
 {
-    Patch_Jump(0x005687A9, &_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score);
-    Patch_Jump(0x005689D5, &_MultiScore_Tally_Score_Calculate_Economy_Score);
-    Patch_Jump(0x00568D10, &_MultiScore_568BE0_ElapsedTime_Patch);
-
+    Patch_Jump(0x005687A0, &MultiScoreExt::_Tally_Score);
+    
     /**
      *  #issue-187
      *  
@@ -150,6 +238,5 @@ void MultiScoreExtension_Hooks()
      * 
      *  @author: CCHyper
      */
-    static const char *TEXT_LOSER = "Loser";
-    Patch_Dword(0x00568A05+1, (uintptr_t)TEXT_LOSER); // +1 skips "mov eax," opcode
+    Patch_Dword(0x00568A05 + 1, (uintptr_t)&"Loser"); // +1 skips "mov eax," opcode
 }

@@ -1,33 +1,14 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Rocket locomotion implementation.
  *
- *  @project       Vinifera
- *
- *  @file          ROCKETLOCOMOTION.H
- *
- *  @authors       ZivDero
- *
- *  @brief         Rocket locomotion implementation.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
 #include "locomotion.h"
 #include "rockettype.h"
 #include "vinifera_defines.h"
@@ -64,11 +45,11 @@ public:
      *  ILocomotion
      */
     IFACEMETHOD_(bool, Is_Moving)() override;
-    IFACEMETHOD_(Coordinate, Destination)() override;
+    IFACEMETHOD_(Coord, Destination)() override;
     IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key) override;
     IFACEMETHOD_(Point2D, Shadow_Point)() override;
     IFACEMETHOD_(bool, Process)() override;
-    IFACEMETHOD_(void, Move_To)(Coordinate to) override;
+    IFACEMETHOD_(void, Move_To)(Coord to) override;
     IFACEMETHOD_(void, Stop_Moving)() override;
     IFACEMETHOD_(LayerType, In_Which_Layer)() override;
     IFACEMETHOD_(bool, Is_Moving_Now)() override;
@@ -85,7 +66,7 @@ private:
     /**
      *  RocketLocomotionClass
      */
-    Coordinate Get_Next_Position(double speed) const;
+    Coord Get_Next_Position(double speed) const;
     double Get_Next_Pitch() const;
     void Explode();
     bool Time_To_Explode(const RocketTypeClass* rocket);
@@ -99,12 +80,12 @@ protected:
     /**
      *  This is the desired destination coordinate of the rocket.
      */
-    Coordinate DestinationCoord;
+    Coord DestinationCoord;
 
     /**
      *  This is the timer used by various mission states of the rocket.
      */
-    CDRateTimerClass<FrameTimerClass> MissionTimer;
+    ProgressTimerClass<FrameTimerClass> MissionTimer;
 
     /**
      *  This is the timer used for timing the trail animation.

@@ -1,50 +1,31 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended OverlayClass class.
  *
- *  @project       Vinifera
- *
- *  @file          OVERLAYEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended OverlayClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "overlayext.h"
+
+#include "extension.h"
 #include "overlay.h"
 #include "overlaytype.h"
 #include "overlaytypeext.h"
 #include "wwcrc.h"
-#include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 OverlayClassExtension::OverlayClassExtension(const OverlayClass *this_ptr) :
     ObjectClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("OverlayClassExtension::OverlayClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     OverlayExtensions.Add(this);
 }
 
@@ -57,7 +38,6 @@ OverlayClassExtension::OverlayClassExtension(const OverlayClass *this_ptr) :
 OverlayClassExtension::OverlayClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::OverlayClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -68,8 +48,6 @@ OverlayClassExtension::OverlayClassExtension(const NoInitClass &noinit) :
  */
 OverlayClassExtension::~OverlayClassExtension()
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::~OverlayClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     OverlayExtensions.Delete(this);
 }
 
@@ -81,8 +59,6 @@ OverlayClassExtension::~OverlayClassExtension()
  */
 HRESULT OverlayClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -100,8 +76,6 @@ HRESULT OverlayClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT OverlayClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -120,8 +94,6 @@ HRESULT OverlayClassExtension::Load(IStream *pStm)
  */
 HRESULT OverlayClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -138,23 +110,10 @@ HRESULT OverlayClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int OverlayClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void OverlayClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    ObjectClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -164,5 +123,4 @@ void OverlayClassExtension::Detach(AbstractClass * target, bool all)
  */
 void OverlayClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("OverlayClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

@@ -55,7 +55,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air.
 - Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action.
 - Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading.
-- Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
+- Fix a bug where a harvester/weeder could be ordered to dock with a refinery/waste facility that wasn't listed in the unit's `Dock=` key.
 - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
 - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed.
 - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying.
@@ -75,3 +75,67 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where you could use a stop command to reset a unit's burst.
 - Fix building light sources no longer being attached to the building after loading the game.
 - Fix shroud looking bugged if you attempt to reveal too many cells at once.
+- Fix the player being able to unload an aircraft onto a building, resulting in limboed units (port from ts-patches).
+- Fix only the building specified under `[General]->RepairBay` being able to repair aircraft (port from ts-patches).
+- Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft.
+- Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances.
+- Fix a buffer overflow crash in `MapClass::Place_Down`.
+- Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
+- Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
+- Fix a bug where mission `Ambush` wouldn't work correctly.
+- Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+- Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
+- Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+- Fix a bug where carryalls would unload infantry like they unload vehicles.
+- Fix a bug where carryalls would draw their infantry passenger's shadow.
+- Fix a bug where carryalls would try to drop off units when landing on a helipad.
+- Fix a bug where carryalls would land too high when carrying infantry.
+- Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
+- Fix a bug where carryalls assign their ROT to the unit they're carrying.
+- Fix a bug where paradropped vehicles would be placed off-center in the cell.
+- Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
+- Fix a bug where paradrops didn't take cell passability and bridges into account.
+- Fix a bug where carryalls assign their ROT to the unit they're carrying.
+- Teams attacking a BwP now take zones into account.
+- Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
+- Fix a bug where the player's army wouldn't fire at armed civilians.
+- Fix a bug where the last line of an INI file would not be parsed.
+- Fix incorrect merging of sections and keys in INI files.
+- Fix game end text being stretched horizontally.
+- Fix a bug where upon restoring focus to the window the last theme would play twice.
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+- Fix a bug where hijackers are able to hijack vehicles of their allies.
+- Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- Fix a bug where friendly Spies appeared as disguised.
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
+- Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+- Fix an edge case crash when AI is attempting to find a location to place a structure to.
+- Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, granting massive veterancy bonuses to their attackers.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
+- Removes incremental reveal logic when setting `RevealByHeight=no`, which could in some cases cause units with high `Sight` value to not reveal shroud close to them.
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation.
+- Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors.
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
+- Fix a bug where the map would accept input while the user was in a dialog window.
+- Fix a bug where the sidebar could only contain up to 75 items on a strip.
+- Fix a bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree).
+- Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving.
+- Fix a bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
+- Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with.
+- Fix a bug where AI medics would fail to heal their allies.
+- Fix a bug that would make healer units unselect themselves when adding other units to current selection.
+- Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.
+- EVA no longer says "Harvester under attack" when harvesters receive environmental damage.
+- Fix a bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards.
+- Fix a bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it.
+- Fix a bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point.
+- Fix a bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination.
+- Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building.
+- Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
+- Fix a bug where the game often reported multiple synchronization errors when one player got out of sync.

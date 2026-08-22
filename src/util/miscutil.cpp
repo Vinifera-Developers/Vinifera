@@ -1,49 +1,30 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Misc utility functions for common tasks.
  *
- *  @project       Vinifera
- *
- *  @file          MISCUTIL.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Misc utility functions for common tasks.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "miscutil.h"
-#include "rawfile.h"
-#include "ffactory.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include <Windows.h>
-#include <winver.h> // for GetFileVersionInfoSize, GetFileVersionInfo.
-#include <tlhelp32.h> // Must be after Windows.h!
-#include <shlwapi.h> // for PathFindExtension
-#include <shlobj.h> // for SHGetKnownFolderPath
-#include <dbghelp.h>
-#include <string>
-#include <locale>
-#include <codecvt>
 
+#include "always.h"
+
+#include "miscutil.h"
+
+#include "asserthandler.h"
 #include "ccfile.h"
+#include "debughandler.h"
 #include "objectext.h"
-#include "motionlib.h"
-#include "voxellib.h"
+#include "rawfile.h"
+
+#include <codecvt>
+#include <dbghelp.h>
+#include <locale>
+#include <shlobj.h>  // for SHGetKnownFolderPath
+#include <shlwapi.h> // for PathFindExtension
+#include <string>
+#include <windows.h>
+#include <winver.h> // for GetFileVersionInfoSize, GetFileVersionInfo.
 
 
 const char *Get_Text_Time()
@@ -342,7 +323,7 @@ bool Get_Version_Info(const char *filename, VS_FIXEDFILEINFO *out_file_info)
      *  Get the file version info size.
      */
     DWORD size = GetFileVersionInfoSize(filename, &handle);
-    ASSERT_PRINT(size > 0, "Error in GetFileVersionInfoSize: %d", GetLastError());
+    ASSERT_PRINT(size > 0, "Error in GetFileVersionInfoSize: {}", GetLastError());
     if (size <= 0) {
         return false;
     }
@@ -353,14 +334,14 @@ bool Get_Version_Info(const char *filename, VS_FIXEDFILEINFO *out_file_info)
     BYTE *verinfo = new BYTE[size];
 
     BOOL info_obtained = GetFileVersionInfo(filename, handle, size, verinfo);
-    ASSERT_PRINT(info_obtained, "Get_Version_Info() - Error in GetFileVersionInfo: %d", GetLastError());
+    ASSERT_PRINT(info_obtained, "Get_Version_Info() - Error in GetFileVersionInfo: {}", GetLastError());
     if (info_obtained) {
 
         UINT len = 0;
         VS_FIXEDFILEINFO *fileinfo = nullptr;
 
         BOOL query_success = VerQueryValue(verinfo, "\\", (LPVOID *)&fileinfo, &len);
-        ASSERT_PRINT(query_success, "Get_Version_Info() - Error in VerQueryValue: %d", GetLastError());
+        ASSERT_PRINT(query_success, "Get_Version_Info() - Error in VerQueryValue: {}", GetLastError());
 
         if (query_success) {
 
@@ -385,7 +366,7 @@ void HexPrint32(const uint32_t *data, size_t size)
         if (!(i % 80)) {
             DEBUG_INFO("\n");
         }
-        DEBUG_INFO("0x%04llX", data[i]);
+        DEBUG_INFO("0x{:04X}", data[i]);
     }
     DEBUG_INFO("\n");
 }
@@ -397,7 +378,7 @@ void HexPrint64(const uint64_t *data, size_t size)
         if (!(i % 80)) {
             DEBUG_INFO("\n");
         }
-        DEBUG_INFO("0x%08llX", data[i]);
+        DEBUG_INFO("0x{:08X}", data[i]);
     }
     DEBUG_INFO("\n");
 }
@@ -477,6 +458,15 @@ bool Delete_File(const char *filename)
 bool Rename_File(const char *filename, const char *new_filename)
 {
     return std::rename(filename, new_filename) == 0;
+}
+
+
+/**
+ *  Moves a file to a new name, replacing the destination file if it exists.
+ */
+bool Replace_File(const char *filename, const char *new_filename)
+{
+    return MoveFileExA(filename, new_filename, MOVEFILE_REPLACE_EXISTING) != 0;
 }
 
 
@@ -589,4 +579,9 @@ bool Parse_Boolean(const char* value, bool defval)
     default:
         return defval;
     }
+}
+
+bool Key_Down(int key)
+{
+    return (GetAsyncKeyState(key) & 0x8000) != 0;
 }

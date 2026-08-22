@@ -1,48 +1,29 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended HouseTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          HOUSETYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended HouseTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "housetypeext.h"
-#include "housetype.h"
+
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "housetype.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HouseTypeExtensions.Add(this);
 }
 
@@ -55,7 +36,6 @@ HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr)
 HouseTypeClassExtension::HouseTypeClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -66,8 +46,6 @@ HouseTypeClassExtension::HouseTypeClassExtension(const NoInitClass &noinit) :
  */
 HouseTypeClassExtension::~HouseTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::~HouseTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HouseTypeExtensions.Delete(this);
 }
 
@@ -79,8 +57,6 @@ HouseTypeClassExtension::~HouseTypeClassExtension()
  */
 HRESULT HouseTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -98,8 +74,6 @@ HRESULT HouseTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT HouseTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -118,8 +92,6 @@ HRESULT HouseTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT HouseTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -136,21 +108,10 @@ HRESULT HouseTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int HouseTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void HouseTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -160,7 +121,6 @@ void HouseTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void HouseTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -171,8 +131,6 @@ void HouseTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool HouseTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -186,4 +144,41 @@ bool HouseTypeClassExtension::Read_INI(CCINIClass &ini)
     IsInitialized = true;
     
     return true;
+}
+
+
+/**
+ *  Fetch house pointer from its name.
+ *  Also takes care of ts-patches spawn houses.
+ *
+ *  @warning: Do not use the raw output if you expect spawn houses!
+ *
+ *  @author: ZivDero
+ */
+HousesType HouseTypeClassExtension::House_From_Name(char const* name)
+{
+    if (Session.Type != GAME_NORMAL) {
+        int spawn_number;
+
+        /**
+         *  Try to read the house name as a spawn house name and extract its number.
+         */
+        if (std::sscanf(name, "Spawn%d", &spawn_number) == 1) {
+            spawn_number--;
+            if (spawn_number >= 0 && spawn_number < MAX_PLAYERS) {
+                return static_cast<HousesType>(spawn_number + 50);
+            }
+        }
+    }
+
+    if (name != nullptr) {
+        for (int house = HOUSE_FIRST; house < HouseTypes.Count(); house++) {
+            HouseTypeClass* ptr = HouseTypes[house];
+            if (ptr->GivenName == name || ptr->IniName == name) {
+                return ptr->House;
+            }
+        }
+    }
+
+    return HOUSE_NONE;
 }

@@ -1,40 +1,17 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Vinifera defines and constants.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_DEFINES.H
- *
- *  @authors       CCHyper
- *
- *  @brief         Vinifera defines and constants.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
+#include "session.h"
 #include "tibsun_defines.h"
 
-
-/**
- *  If defined, this will replace the SwizzleManagerClass with our own new implementation.
- */
-#define VINIFERA_USE_NEW_SWIZZLE_MANAGER 1
 
 /**
  *  Enable debug printing of the swizzle remapping process.
@@ -44,16 +21,6 @@
 #ifndef NDEBUG
 //#define VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING 1
 #endif
-
-/**
- *  Enable debug printing of class extension creation and destruction process.
- * 
- *  WARNING: This will slow the game down when many instances are created at once.
- */
-#ifndef NDEBUG
-//#define VINIFERA_ENABLE_EXTENSION_DEBUG_PRINTING 1
-#endif
-
 
 /**
  *  CLSIDs for all new locomotors.
@@ -146,13 +113,29 @@
 #define NEW_WAYPOINT_COUNT SHRT_MAX // "AVLG"
 
 
-enum ViniferaRTTIType
+/**
+ *  Extension of the RTTIType enum.
+ */
+enum ExtRTTIType
 {
-    RTTI_SPAWN_MANAGER = RTTI_COUNT,
+    EXT_RTTI_PAD = RTTI_VEINHOLEMONSTER, // The last RTTIType
 
-    VINIFERA_RTTI_COUNT
+    /**
+     *  Add new ExtRTTITypes from here.
+     */
+    EXT_RTTI_SPAWN_MANAGER,
+
+    /**
+     *  The new total ExtRTTITypes count.
+     */
+    EXT_RTTI_COUNT,
+
+    /**
+     *  The first ExtRTTITypes.
+     */
+    EXT_RTTI_FIRST = EXT_RTTI_PAD + 1
 };
-DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);
+DEFINE_ENUMERATION_OPERATORS(ExtRTTIType);
 
 
 enum TargetZoneScanType
@@ -163,6 +146,9 @@ enum TargetZoneScanType
 };
 
 
+/**
+ *  Production flags that are used for factory selection.
+ */
 enum ProductionFlags
 {
     PRODFLAG_NONE = 0,
@@ -172,6 +158,9 @@ enum ProductionFlags
 DEFINE_ENUMERATION_OPERATORS(ProductionFlags);
 
 
+/**
+ *  Prerequisite group enum.
+ */
 enum PrerequisiteGroupType
 {
     PREREQ_GROUP_FIRST = 0,
@@ -179,3 +168,347 @@ enum PrerequisiteGroupType
     PREREQ_GROUP_NONE = -1
 };
 DEFINE_ENUMERATION_OPERATORS(PrerequisiteGroupType);
+
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTActionType
+{
+    EXT_TACTION_PAD = TACTION_TALK_BUBBLE, // The last TActionType
+
+    /**
+     *  Add new ExtTActionTypes from here.
+     */
+    EXT_TACTION_GIVE_CREDITS,
+    EXT_TACTION_ENABLE_SHORT_GAME,
+    EXT_TACTION_DISABLE_SHORT_GAME,
+    EXT_TACTION_CREATE_BUILDING_AT,
+    EXT_TACTION_HOUSE_DESTROY_ALL,
+    EXT_TACTION_MAKE_ELITE,
+    EXT_TACTION_ENABLE_ALLYREVEAL,
+    EXT_TACTION_DISABLE_ALLYREVEAL,
+    EXT_TACTION_CREATE_AUTOSAVE,
+    EXT_TACTION_DELETE_OBJECT,
+    EXT_TACTION_ALL_ASSIGN_MISSION,
+    EXT_TACTION_MAKE_ALLY_ONE_WAY,
+    EXT_TACTION_MAKE_ENEMY_ONE_WAY,
+    EXT_TACTION_MODIFY_GLOBAL_CONSTANT,
+    EXT_TACTION_MODIFY_GLOBAL_GLOBAL,
+    EXT_TACTION_MODIFY_GLOBAL_LOCAL,
+    EXT_TACTION_INCREMENT_GLOBAL,
+    EXT_TACTION_DECREMENT_GLOBAL,
+    EXT_TACTION_MODIFY_LOCAL_CONSTANT,
+    EXT_TACTION_MODIFY_LOCAL_GLOBAL,
+    EXT_TACTION_MODIFY_LOCAL_LOCAL,
+    EXT_TACTION_INCREMENT_LOCAL,
+    EXT_TACTION_DECREMENT_LOCAL,
+    EXT_TACTION_RANDOM_NUMBER_GLOBAL,
+    EXT_TACTION_RANDOM_NUMBER_LOCAL,
+    EXT_TACTION_PRINT_GLOBAL,
+    EXT_TACTION_PRINT_LOCAL,
+    EXT_TACTION_ENABLE_TEMPLATED_TEXT,
+    EXT_TACTION_DISABLE_TEMPLATED_TEXT,
+    EXT_TACTION_ADJUST_HOUSE_MODIFIER,
+    EXT_TACTION_APPLY_IRON_CURTAIN,
+    EXT_TACTION_STOP_SOUNDS_AT,
+    EXT_TACTION_ATTACH_SOUND,
+    EXT_TACTION_DETACH_SOUND,
+
+    /**
+     *  The new total ExtTActionType count.
+     */
+    EXT_TACTION_COUNT,
+
+    /**
+     *  The first ExtTActionType.
+     */
+    EXT_TACTION_FIRST = EXT_TACTION_PAD + 1
+} ExtTActionType;
+
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTEventType
+{
+    EXT_TEVENT_PAD = TEVENT_LIMPED, // The last TEventType
+
+    /**
+     *  Add new ExtTEventTypes from here.
+     */
+    EXT_TEVENT_COMPARE_GLOBAL_WITH_CONSTANT,
+    EXT_TEVENT_COMPARE_GLOBAL_WITH_GLOBAL,
+    EXT_TEVENT_COMPARE_GLOBAL_WITH_LOCAL,
+    EXT_TEVENT_GLOBAL_EQUALS_CONSTANT,
+    EXT_TEVENT_GLOBAL_EQUALS_GLOBAL,
+    EXT_TEVENT_GLOBAL_EQUALS_LOCAL,
+    EXT_TEVENT_GLOBAL_GREATER_THAN_CONSTANT,
+    EXT_TEVENT_GLOBAL_GREATER_THAN_GLOBAL,
+    EXT_TEVENT_GLOBAL_GREATER_THAN_LOCAL,
+    EXT_TEVENT_GLOBAL_LESS_THAN_CONSTANT,
+    EXT_TEVENT_GLOBAL_LESS_THAN_GLOBAL,
+    EXT_TEVENT_GLOBAL_LESS_THAN_LOCAL,
+    EXT_TEVENT_COMPARE_LOCAL_WITH_CONSTANT,
+    EXT_TEVENT_COMPARE_LOCAL_WITH_GLOBAL,
+    EXT_TEVENT_COMPARE_LOCAL_WITH_LOCAL,
+    EXT_TEVENT_LOCAL_EQUALS_CONSTANT,
+    EXT_TEVENT_LOCAL_EQUALS_GLOBAL,
+    EXT_TEVENT_LOCAL_EQUALS_LOCAL,
+    EXT_TEVENT_LOCAL_GREATER_THAN_CONSTANT,
+    EXT_TEVENT_LOCAL_GREATER_THAN_GLOBAL,
+    EXT_TEVENT_LOCAL_GREATER_THAN_LOCAL,
+    EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT,
+    EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL,
+    EXT_TEVENT_LOCAL_LESS_THAN_LOCAL,
+    EXT_TEVENT_BUILDING_DOES_NOT_EXIST,
+
+    /**
+     *  The new total ExtTEventType count.
+     */
+    EXT_TEVENT_COUNT,
+
+    /**
+     *  The first ExtTEventType.
+     */
+    EXT_TEVENT_FIRST = EXT_TEVENT_PAD + 1
+} ExtTEventType;
+
+
+/**
+ *  Extension of the EventType enum.
+ */
+enum ExtEventType {
+    EXT_EVENT_PAD = EVENT_LATENCYFUDGE, // The last EventType
+
+    /**
+     *  Add new ExtEventTypes from here.
+     */
+    EXT_EVENT_PLAYER_OPTIONS,
+    EXT_EVENT_RESPONSE_TIME2,
+
+    /**
+     *  The new total ExtEventTypes count.
+     */
+    EXT_EVENT_COUNT,
+
+    /**
+     *  The first ExtEventTypes.
+     */
+    EXT_EVENT_FIRST = EXT_EVENT_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtEventType);
+
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtActionType {
+    EXT_ACTION_PAD = ACTION_ATTACK_SUPPORT, // The last ActionType
+
+    /**
+     *  Add new ExtEventTypes from here.
+     */
+    EXT_ACTION_PLACE_BEACON,
+    EXT_ACTION_PLACE_BEACON_1,
+    EXT_ACTION_PLACE_BEACON_2,
+    EXT_ACTION_PLACE_BEACON_3,
+    EXT_ACTION_PLACE_BEACON_4,
+    EXT_ACTION_PLACE_BEACON_5,
+    EXT_ACTION_PLACE_BEACON_6,
+    EXT_ACTION_PLACE_BEACON_7,
+    EXT_ACTION_SELECT_BEACON,
+
+    /**
+     *  The new total ExtEventTypes count.
+     */
+    EXT_ACTION_COUNT,
+
+    /**
+     *  The first ExtEventTypes.
+     */
+    EXT_ACTION_FIRST = EXT_ACTION_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtActionType);
+
+/**
+ *  New global packet types.
+ */
+enum ExtNetCommandType {
+    EXT_NET_BEACON_PLACE = NET_PROPOSE_KICK + 1,
+    EXT_NET_BEACON_DELETE,
+    EXT_NET_BEACON_TEXT,
+    EXT_NET_LOAD_GAME,
+    EXT_NET_HOST_ANNOUNCE,      // Sent by the game host to let the other players know who the host is.
+    EXT_NET_DESYNC_HEARTBEAT,   // Sent periodically while the desync dialog is open; keeps connections alive and detects departures.
+    EXT_NET_DESYNC_CONTINUE,    // The host's decision to continue the game without the desynced players.
+    EXT_NET_MOVIE_SKIP_VOTE,    // A player's request to skip the currently playing fullscreen movie.
+};
+
+/**
+ *  Extended struct for new global packet types.
+ */
+#pragma pack(1)
+struct ExtGlobalPacketType {
+    ExtNetCommandType Command;
+    char Name[MPLAYER_NAME_MAX];
+    char Serial[SERIAL_MAX];
+    union {
+        struct {
+            CoordStruct Position;
+            char House;
+            int Number;
+        } PlaceBeacon;
+        struct {
+            char House;
+            int Number;
+        } DeleteBeacon;
+        struct {
+            char Text[256];
+            int Number;
+            char House;
+        } BeaconText;
+        struct {
+            char Buf[370];
+            char Scope[30];
+            PlayerColorType Color;
+            unsigned long NameCRC;
+        } Message;
+        struct {
+            int ID;
+        } SaveInfo;
+        struct {
+            char HouseID;
+            char IsHost;
+        } Heartbeat;
+        struct {
+            unsigned long Context;
+            unsigned long Movie;
+            unsigned long Instance;
+        } MovieSkipVote;
+        char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
+    };
+};
+#pragma pack()
+
+static_assert(sizeof(ExtGlobalPacketType) == sizeof(GlobalPacketType), "ExtGlobalPacketType size is wrong!");
+
+enum ExtThreatType {
+    EXT_THREAT_HARVESTERS = 0x8000 // Limit scan to harvesters only
+};
+DEFINE_ENUMERATION_OPERATORS(ExtThreatType);
+DEFINE_ENUMERATION_BITWISE_OPERATORS(ExtThreatType);
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtQuarryType {
+    EXT_QUARRY_PAD = QUARRY_POWER,            // The last QuarryType
+
+    /**
+     *  Add new ExtActionTypes from here.
+     */
+    EXT_QUARRY_HARVESTERS,   // Attack harvesters only (no refineries).
+
+    /**
+     *  The new total ExtActionType count.
+     */
+    EXT_QUARRY_COUNT,
+
+    /**
+     *  The first ExtActionType.
+     */
+    EXT_QUARRY_FIRST = 0
+};
+DEFINE_ENUMERATION_OPERATORS(ExtQuarryType);
+
+/**
+ *  Extension of the Difficulty enum.
+ */
+enum ExtDiffType {
+    EXT_DIFF_PAD = DIFF_HARD, // The last DiffType
+
+    /**
+     *  Add new ExtDiffTypes from here.
+     */
+    EXT_DIFF_ULTIMATELY_EASY,
+    EXT_DIFF_EXTREMELY_EASY,
+    EXT_DIFF_BRUTALLY_EASY,
+    EXT_DIFF_VERY_EASY,
+
+    /**
+     *  The new total ExtDiffType count.
+     */
+    EXT_DIFF_COUNT,
+
+    /**
+     *  The first ExtDiffType.
+     */
+    EXT_DIFF_FIRST = EXT_DIFF_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtDiffType);
+
+/**
+ *  Returns the name for a DiffType value. Reflects how the bonuses affect *this* house.
+ *  For viewing CDifficulty or showing how "tough" an AI is, use CDifficulty_Name instead.
+ */
+inline const char *Difficulty_Name(DiffType d)
+{
+    switch (static_cast<int>(d)) {
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimately Easy";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extremely Easy";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutally Easy";
+    case EXT_DIFF_VERY_EASY:        return "Very Easy";
+    case DIFF_EASY:                 return "Easy";
+    case DIFF_NORMAL:               return "Medium";
+    case DIFF_HARD:                 return "Hard";
+    default:                        return "?";
+    }
+}
+
+/**
+ *  Returns a short "AI Difficulty" name for a DiffType value.
+ *  Reflects how "tough" an AI is, so the bonuses are reversed compared to Difficulty_Name.
+ */
+inline const char *CDifficulty_Name(DiffType d)
+{
+    switch (static_cast<int>(d)) {
+    case EXT_DIFF_ULTIMATELY_EASY:  return "Ultimate";
+    case EXT_DIFF_EXTREMELY_EASY:   return "Extreme";
+    case EXT_DIFF_BRUTALLY_EASY:    return "Brutal";
+    case EXT_DIFF_VERY_EASY:        return "Very Hard";
+    case DIFF_EASY:                 return "Hard";
+    case DIFF_NORMAL:               return "Medium";
+    case DIFF_HARD:                 return "Easy";
+    default:                        return "?";
+    }
+}
+
+
+/**
+ *  Extension of the HousesType enum.
+ */
+enum ExtHousesType {
+    EXT_HOUSE_SPAWN1 = 50,
+    EXT_HOUSE_SPAWN2,
+    EXT_HOUSE_SPAWN3,
+    EXT_HOUSE_SPAWN4,
+    EXT_HOUSE_SPAWN5,
+    EXT_HOUSE_SPAWN6,
+    EXT_HOUSE_SPAWN7,
+    EXT_HOUSE_SPAWN8
+};
+DEFINE_ENUMERATION_OPERATORS(ExtHousesType);
+
+
+/**
+ *  Extension of the SpecialDialogType enum.
+ */
+typedef enum ExtSpecialDialogType {
+    EXT_SDLG_PAD = SDLG_SPECIAL,
+
+    /**
+     *  Add new ExtSpecialDialogTypes from here.
+     */
+    EXT_SDLG_LOAD
+} ExtSpecialDialogType;

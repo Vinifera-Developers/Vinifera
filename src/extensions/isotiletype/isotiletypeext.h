@@ -1,34 +1,16 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended IsometricTileTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          ISOTILETYPEEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended IsometricTileTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "objecttypeext.h"
 #include "isotiletype.h"
+#include "objecttypeext.h"
 #include "typelist.h"
 
 
@@ -53,7 +35,6 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
         virtual ~IsometricTileTypeClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual IsometricTileTypeClass *This() const override { return reinterpret_cast<IsometricTileTypeClass *>(ObjectTypeClassExtension::This()); }
@@ -76,15 +57,20 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  The list of Tiberiums that can grow on this tile type.
          */
-        TypeList<TiberiumClass*> AllowedTiberiums;
+        TypeList<TiberiumType> AllowedTiberiums;
 
         /**
          *  The list of Smudges that can appear on this tile type.
          */
-        TypeList<SmudgeTypeClass*> AllowedSmudges;
+        TypeList<SmudgeType> AllowedSmudges;
 
         /**
          *  Can veins grow on this tile type?
          */
         bool IsAllowVeins;
+
+        /**
+         *  Is this a water tunnel entrance?
+         */
+        bool IsWaterTunnel;
 };

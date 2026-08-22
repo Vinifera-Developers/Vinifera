@@ -1,46 +1,32 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Debug printing and output.
  *
- *  @project       Vinifera
- *
- *  @file          DEBUGHANDLER.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Debug printing and output.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "debughandler.h"
-#include "critsection.h"
+
 #include "cpudetect.h"
-#include "rawfile.h"
+#include "critsection.h"
 #include "tibsun_globals.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
+
+#include <windows.h> // For OutputDebugString().
+#include <algorithm>
+#include <conio.h>
 #include <cstdio>
 #include <cstring>
-#include <conio.h>
+#include <fstream>
 #include <iostream>
 #include <wincon.h>
-#include <Windows.h> // For OutputDebugString().
-#include <fstream>
 
 
 /**
@@ -48,30 +34,30 @@
  */
 
 // The escape character that begins all VT sequences
-#define AICLI_VT_ESCAPE     "\x1b"
+#define AICLI_VT_ESCAPE "\x1b"
 
 // The beginning of a Control Sequence Introducer
-#define AICLI_VT_CSI        AICLI_VT_ESCAPE "["
+#define AICLI_VT_CSI AICLI_VT_ESCAPE "["
 
 // The beginning of an Operating system command
-#define AICLI_VT_OSC        AICLI_VT_ESCAPE "]"
+#define AICLI_VT_OSC AICLI_VT_ESCAPE "]"
 
 // Define a text formatting sequence with an integer id
-#define AICLI_VT_TEXTFORMAT(_id_)       AICLI_VT_CSI #_id_ "m"
+#define AICLI_VT_TEXTFORMAT(_id_) AICLI_VT_CSI #_id_ "m"
 
 // Color and format defines.
 // https://superuser.com/questions/413073/windows-console-with-ansi-colors-handling
-#define AICLI_STRONG_RED        AICLI_VT_TEXTFORMAT(91)
-#define AICLI_STRONG_GREEN      AICLI_VT_TEXTFORMAT(92)
-#define AICLI_STRONG_YELLOW     AICLI_VT_TEXTFORMAT(93)
-#define AICLI_STRONG_BLUE       AICLI_VT_TEXTFORMAT(94)
-#define AICLI_STRONG_MAGENTA    AICLI_VT_TEXTFORMAT(95)
-#define AICLI_STRONG_CYAN       AICLI_VT_TEXTFORMAT(96)
-#define AICLI_STRONG_WHITE      AICLI_VT_TEXTFORMAT(97)
+#define AICLI_STRONG_RED     AICLI_VT_TEXTFORMAT(91)
+#define AICLI_STRONG_GREEN   AICLI_VT_TEXTFORMAT(92)
+#define AICLI_STRONG_YELLOW  AICLI_VT_TEXTFORMAT(93)
+#define AICLI_STRONG_BLUE    AICLI_VT_TEXTFORMAT(94)
+#define AICLI_STRONG_MAGENTA AICLI_VT_TEXTFORMAT(95)
+#define AICLI_STRONG_CYAN    AICLI_VT_TEXTFORMAT(96)
+#define AICLI_STRONG_WHITE   AICLI_VT_TEXTFORMAT(97)
 
-#define AICLI_BOLD              AICLI_VT_TEXTFORMAT(1)
-#define AICLI_UNDERLINE         AICLI_VT_TEXTFORMAT(4)
-#define AICLI_INVERSE           AICLI_VT_TEXTFORMAT(7)
+#define AICLI_BOLD      AICLI_VT_TEXTFORMAT(1)
+#define AICLI_UNDERLINE AICLI_VT_TEXTFORMAT(4)
+#define AICLI_INVERSE   AICLI_VT_TEXTFORMAT(7)
 
 
 extern int Execute_Day;
@@ -331,22 +317,22 @@ static void Debug_Announce()
     DisableDebuggerOutput = true;
 
     DEBUG_INFO("--------------------------------------------------------------------------------\n");
-    DEBUG_INFO("--------------------  V I N I F E R A   D E B U G   L O G  ---------------------\n"); 
+    DEBUG_INFO("--------------------  V I N I F E R A   D E B U G   L O G  ---------------------\n");
     DEBUG_INFO("--------------------------------------------------------------------------------\n");
     DEBUG_INFO("\n");
-    DEBUG_INFO("Build Type : %s\n", Vinifera_Build_Type_String());
-    DEBUG_INFO("TS++ commit author: %s\n", TSPP_Git_Author());
-    DEBUG_INFO("TS++ commit date: %s\n", TSPP_Git_DateTime());
-    DEBUG_INFO("TS++ commit branch: %s\n", "master"); // TSPP_Git_Branch());
-    DEBUG_INFO("TS++ commit hash: %s\n", TSPP_Git_Hash_Short());
-    DEBUG_INFO("TS++ local changes: %s\n", TSPP_Git_Uncommitted_Changes() ? "YES" : "NO");
-    DEBUG_INFO("Vinifera commit author: %s\n", Vinifera_Git_Author());
-    DEBUG_INFO("Vinifera commit date: %s\n", Vinifera_Git_DateTime());
-    DEBUG_INFO("Vinifera commit branch: %s\n", Vinifera_Git_Branch());
-    DEBUG_INFO("Vinifera commit hash: %s\n", Vinifera_Git_Hash_Short());
-    DEBUG_INFO("Vinifera local changes: %s\n", Vinifera_Git_Uncommitted_Changes() ? "YES" : "NO");
+    DEBUG_INFO("Build Type : {}\n", Vinifera_Build_Type_String());
+    DEBUG_INFO("TS++ commit author: {}\n", TSPP_Git_Author());
+    DEBUG_INFO("TS++ commit date: {}\n", TSPP_Git_DateTime());
+    DEBUG_INFO("TS++ commit branch: {}\n", "master"); // TSPP_Git_Branch());
+    DEBUG_INFO("TS++ commit hash: {}\n", TSPP_Git_Hash_Short());
+    DEBUG_INFO("TS++ local changes: {}\n", TSPP_Git_Uncommitted_Changes() ? "YES" : "NO");
+    DEBUG_INFO("Vinifera commit author: {}\n", Vinifera_Git_Author());
+    DEBUG_INFO("Vinifera commit date: {}\n", Vinifera_Git_DateTime());
+    DEBUG_INFO("Vinifera commit branch: {}\n", Vinifera_Git_Branch());
+    DEBUG_INFO("Vinifera commit hash: {}\n", Vinifera_Git_Hash_Short());
+    DEBUG_INFO("Vinifera local changes: {}\n", Vinifera_Git_Uncommitted_Changes() ? "YES" : "NO");
     DEBUG_INFO("\n");
-    DEBUG_INFO(CPUDetectClass::Get_Processor_Log());
+    DEBUG_INFO("{}", CPUDetectClass::Get_Processor_Log());
     //DEBUG_INFO("\n"); // Get_Processor_Log writes a new line for us.
     DEBUG_INFO("--------------------------------------------------------------------------------\n");
     DEBUG_INFO("\n");
@@ -380,7 +366,7 @@ void __cdecl Vinifera_Debug_Handler_Startup()
 
 //#ifndef NDEBUG
 //    /**
-//     *  Halt the program until the user is ready to continue.  
+//     *  Halt the program until the user is ready to continue.
 //     */
 //    if (!IsDebuggerPresent()) {
 //        Debug_Console_Wait_For_Input();
@@ -395,7 +381,7 @@ void __cdecl Vinifera_Debug_Handler_Startup()
      *  Create a unique filename for the debug log based on the current time.
      */
     std::snprintf((char *)DebugLogFilename, sizeof(DebugLogFilename), "%s\\DEBUG_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
-        Vinifera_DebugDirectory,
+        Vinifera_DebugDirectory.c_str(),
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
     /**
@@ -414,23 +400,24 @@ void __cdecl Vinifera_Debug_Handler_Shutdown()
 }
 
 
-void Vinifera_Printf(DebugType type, const char *file, const char *function, int line, const char *fmt, ...)
+void Vinifera_Log_Raw(DebugType type, const char *file, const char *function, int line, std::string_view message)
 {
     static SimpleCriticalSectionClass DebugMutex;
     ScopedCriticalSectionClass mutex(&DebugMutex);
-    
+
     char buffer[4096];
     char tmpbuff[4096];
     char filebuff[4096];
     bool write_to_file = false;
 
-    va_list args;
-    va_start(args, fmt);
-
     /**
-     *  Fill the buffer with the arguments.
+     *  Copy the incoming message into a null-terminated stack buffer so the
+     *  existing snprintf / ofstream plumbing below can be reused unchanged.
+     *  Truncation matches the historical 4 KB limit of Vinifera_Printf.
      */
-    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
+    const size_t len = std::min(message.size(), sizeof(buffer) - 1);
+    std::memcpy(buffer, message.data(), len);
+    buffer[len] = '\0';
 
     /**
      *  Strip path from "file".
@@ -441,7 +428,6 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 
     switch (type) {
 
-        default:
         case DEBUGTYPE_GAME:
         {
 #ifdef NDEBUG
@@ -482,6 +468,7 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
             break;
         }
 
+        default:
         case DEBUGTYPE_NORMAL:
         case DEBUGTYPE_INFO:
         {
@@ -581,7 +568,7 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
                 file, function, line, buffer);
 
             Vinifera_Output_Debug_String(tracebuff);
-            
+
             std::snprintf(tmpbuff, sizeof(tmpbuff), AICLI_STRONG_WHITE "%s", tracebuff);
             Output_To_Console(tmpbuff);
 
@@ -643,28 +630,4 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
             DebugLogFileOpen = false;
         }
     }
-
-    va_end(args);
 }
-
-
-void Vinifera_Escape_Percent_Sign(char* string, size_t buffer_length)
-{
-    static char buffer[4096];
-
-    int i = 0, j = 0;
-    while (string[i] && i < buffer_length) {
-        if (string[i] == '%') {
-            buffer[j++] = '%';
-            buffer[j++] = '%';
-            i++;
-        }
-        else {
-            buffer[j++] = string[i++];
-        }
-    }
-    buffer[j] = '\0';
-
-    std::snprintf(string, buffer_length, "%s", buffer);
-}
-

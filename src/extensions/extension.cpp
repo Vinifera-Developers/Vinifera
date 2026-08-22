@@ -1,162 +1,143 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  The file contains the functions required for the extension system.
  *
- *  @project       Vinifera
- *
- *  @file          EXTENSION.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         The file contains the functions required for the extension system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "extension.h"
-#include "tibsun_functions.h"
-#include "vinifera_saveload.h"
-#include "vinifera_util.h"
-#include "wstring.h"
-#include "vector.h"
-#include "tclassfactory.h"
-#include "swizzle.h"
-#include "tracker.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 #include "aircraft.h"
+#include "aircraftext.h"
+#include "aircrafttracker.h"
 #include "aircrafttype.h"
+#include "aircrafttypeext.h"
+#include "aitrigtype.h"
+#include "alphashape.h"
 #include "anim.h"
+#include "animext.h"
 #include "animtype.h"
+#include "animtypeext.h"
+#include "armortype.h"
+#include "asserthandler.h"
 #include "building.h"
-#include "buildingtype.h"
+#include "buildingext.h"
 #include "buildinglight.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
+#include "buildnum.h"
 #include "bullet.h"
 #include "bullettype.h"
+#include "bullettypeext.h"
 #include "campaign.h"
+#include "campaignext.h"
+#include "debughandler.h"
 #include "empulse.h"
+#include "event.h"
+#include "eventext.h"
 #include "factory.h"
+#include "factoryext.h"
 #include "foggedobject.h"
-#include "side.h"
 #include "house.h"
+#include "houseext.h"
 #include "housetype.h"
+#include "housetypeext.h"
 #include "infantry.h"
+#include "infantryext.h"
 #include "infantrytype.h"
+#include "infantrytypeext.h"
+#include "iomap.h"
 #include "isotile.h"
 #include "isotiletype.h"
+#include "isotiletypeext.h"
+#include "kamikazetracker.h"
+#include "layer.h"
 #include "lightsource.h"
+#include "logic.h"
 #include "objecttype.h"
+#include "options.h"
 #include "overlay.h"
+#include "overlayext.h"
 #include "overlaytype.h"
+#include "overlaytypeext.h"
 #include "particle.h"
-#include "particletype.h"
 #include "particlesys.h"
 #include "particlesystype.h"
-#include "sidebarext.h"
-#include "radarevent.h"
+#include "particlesystypeext.h"
+#include "particletype.h"
+#include "particletypeext.h"
+#include "rockettype.h"
+#include "rulesext.h"
+#include "scenario.h"
+#include "scenarioext.h"
 #include "script.h"
 #include "scripttype.h"
+#include "session.h"
+#include "sessionext.h"
+#include "side.h"
+#include "sideext.h"
 #include "smudge.h"
+#include "smudgeext.h"
 #include "smudgetype.h"
+#include "smudgetypeext.h"
+#include "spawnmanager.h"
 #include "super.h"
+#include "superext.h"
 #include "supertype.h"
-#include "taskforce.h"
+#include "supertypeext.h"
+#include "syncrecorder.h"
+#include "tacticalext.h"
+#include "taction.h"
+#include "tactionext.h"
 #include "tag.h"
 #include "tagtype.h"
+#include "taskforce.h"
+#include "tclassfactory.h"
 #include "team.h"
+#include "teamext.h"
 #include "teamtype.h"
+#include "teamtypeext.h"
+#include "terrain.h"
+#include "terrainext.h"
+#include "terraintype.h"
+#include "terraintypeext.h"
+#include "tevent.h"
+#include "teventext.h"
+#include "tiberium.h"
+#include "tiberiumext.h"
+#include "tibsun_functions.h"
 #include "trigger.h"
 #include "triggertype.h"
-#include "aitrigtype.h"
-#include "terrain.h"
-#include "terraintype.h"
-#include "tiberium.h"
+#include "tspp_gitinfo.h"
+#include "tube.h"
 #include "unit.h"
+#include "unitext.h"
 #include "unittype.h"
+#include "unittypeext.h"
+#include "vector.h"
+#include "veinholemonster.h"
+#include "version.h"
+#include "vinifera_gitinfo.h"
+#include "vinifera_saveload.h"
+#include "vinifera_util.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
-#include "warheadtype.h"
-#include "wave.h"
-#include "weapontype.h"
-#include "veinholemonster.h"
-#include "taction.h"
-#include "tevent.h"
-#include "tube.h"
-#include "waypointpath.h"
-#include "alphashape.h"
-#include "event.h"
-#include "options.h"
-#include "session.h"
-#include "scenario.h"
-#include "wsproto.h"
-#include "iomap.h"
-#include "layer.h"
-#include "logic.h"
-
-#include "aircraftext.h"
-#include "aircrafttypeext.h"
-#include "animext.h"
-#include "animtypeext.h"
-#include "buildingext.h"
-#include "buildingtypeext.h"
-#include "bullettypeext.h"
-#include "campaignext.h"
-#include "factoryext.h"
-#include "sideext.h"
-#include "houseext.h"
-#include "housetypeext.h"
-#include "infantryext.h"
-#include "infantrytypeext.h"
-#include "isotiletypeext.h"
-#include "objecttypeext.h"
-#include "overlayext.h"
-#include "overlaytypeext.h"
-#include "particlesystypeext.h"
-#include "particletypeext.h"
-#include "smudgeext.h"
-#include "smudgetypeext.h"
-#include "superext.h"
-#include "supertypeext.h"
-#include "terrainext.h"
-#include "terraintypeext.h"
-#include "tiberiumext.h"
-#include "unitext.h"
-#include "unittypeext.h"
 #include "voxelanimtypeext.h"
+#include "warheadtype.h"
 #include "warheadtypeext.h"
+#include "wave.h"
 #include "waveext.h"
+#include "waypointpath.h"
+#include "weapontype.h"
 #include "weapontypeext.h"
+#include "wsproto.h"
 
-#include "rulesext.h"
-#include "scenarioext.h"
-#include "sessionext.h"
-#include "tacticalext.h"
-
-#include "themeext.h"
-
-#include "tspp_gitinfo.h"
-#include "vinifera_gitinfo.h"
-
+#include <float.h>
 #include <iostream>
-
-#include "aircrafttracker.h"
-#include "armortype.h"
-#include "kamikazetracker.h"
-#include "rockettype.h"
-#include "spawnmanager.h"
 
 
 extern int Execute_Day;
@@ -234,11 +215,8 @@ static EXT_CLASS * Extension_Make(const BASE_CLASS *abstract_ptr)
     ext_ptr = new EXT_CLASS(reinterpret_cast<const BASE_CLASS *>(abs_ptr));
     ASSERT(ext_ptr != nullptr);
     if (!ext_ptr) {
-
         char buffer[256];
         std::snprintf(buffer, sizeof(buffer), "Extension_Make: Failed to make \"%s\" extension!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
-
-        EXT_DEBUG_WARNING(buffer);
 
         ShowCursor(TRUE);
         MessageBoxA(MainWindow, buffer, "Vinifera", MB_OK|MB_ICONEXCLAMATION);
@@ -248,8 +226,6 @@ static EXT_CLASS * Extension_Make(const BASE_CLASS *abstract_ptr)
 
         return nullptr;
     }
-
-    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 
     /**
      *  Assign the extension class instance to the abstract class.
@@ -273,7 +249,6 @@ static bool Extension_Destroy(const BASE_CLASS *abstract_ptr)
      */
     EXT_CLASS *ext_ptr = reinterpret_cast<EXT_CLASS *>(Extension_Get_Abstract_Pointer(abstract_ptr));
     if (!ext_ptr) {
-        EXT_DEBUG_WARNING("Extension_Destroy: \"%s\" extension pointer is null!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
         return false;
     }
     
@@ -281,8 +256,6 @@ static bool Extension_Destroy(const BASE_CLASS *abstract_ptr)
      *  Destroy the attached extension class instance.
      */
     delete ext_ptr;
-
-    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 
     /**
      *  Clear the extension pointer for the abstract class.
@@ -311,11 +284,11 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
     }
 
     if (list.Count() <= 0) {
-        DEBUG_INFO("List for \"%s\" has a count of zero, skipping save.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+        DEBUG_INFO("List for \"{}\" has a count of zero, skipping save.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
         return true;
     }
 
-    DEBUG_INFO("Saving \"%s\" extensions (Count: %d)\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), list.Count());
+    DEBUG_INFO("Saving \"{}\" extensions (Count: {})\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), list.Count());
 
     /**
      *  Save each instance of this class.
@@ -330,7 +303,7 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
         IPersistStream *lpPS = nullptr;
         hr = ptr->QueryInterface(__uuidof(IPersistStream), (LPVOID *)&lpPS);
         if (FAILED(hr)) {
-            DEBUG_ERROR("Extension \"%s\" does not support IPersistStream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+            DEBUG_ERROR("Extension \"{}\" does not support IPersistStream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
             return false;
         }
 
@@ -339,7 +312,7 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
          */
         hr = OleSaveToStream(lpPS, pStm);
         if (FAILED(hr)) {
-            DEBUG_ERROR("OleSaveToStream failed for extension \"%s\" (Index: %d)!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str(), index);
+            DEBUG_ERROR("OleSaveToStream failed for extension \"{}\" (Index: {})!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>(), index);
             return false;
         }
 
@@ -348,14 +321,13 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
          */
         hr = lpPS->Release();
         if (FAILED(hr)) {
-            DEBUG_ERROR("Failed to release extension \"%s\" stream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+            DEBUG_ERROR("Failed to release extension \"{}\" stream!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
             return false;
         }
 
         EXT_CLASS * ext_ptr = reinterpret_cast<EXT_CLASS *>(lpPS);
 
         if (ext_ptr->Fetch_RTTI() != RTTI_WAVE || ext_ptr->Fetch_RTTI() != RTTI_LIGHT) {
-            EXT_DEBUG_INFO("  -> %s\n", ext_ptr->Name());
         }
     }
 
@@ -381,11 +353,11 @@ static bool Extension_Load(IStream *pStm, DynamicVectorClass<EXT_CLASS *> &list)
     }
 
     if (count <= 0) {
-        DEBUG_INFO("List for \"%s\" has a count of zero, skipping load.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str());
+        DEBUG_INFO("List for \"{}\" has a count of zero, skipping load.\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>());
         return true;
     }
 
-    DEBUG_INFO("Loading \"%s\" extensions (Count: %d)\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), count);
+    DEBUG_INFO("Loading \"{}\" extensions (Count: {})\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), count);
     
     /**
      *  Read each class instance.
@@ -398,7 +370,7 @@ static bool Extension_Load(IStream *pStm, DynamicVectorClass<EXT_CLASS *> &list)
         IUnknown *spUnk = nullptr;
         hr = OleLoadFromStream(pStm, __uuidof(IUnknown), (LPVOID *)&spUnk);
         if (FAILED(hr)) {
-            DEBUG_ERROR("OleLoadFromStream failed for extension \"%s\" (Index: %d)!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>().c_str(), index);
+            DEBUG_ERROR("OleLoadFromStream failed for extension \"{}\" (Index: {})!\n", Extension::Utility::Get_TypeID_Name<EXT_CLASS>(), index);
             return false;
         }
 
@@ -417,11 +389,11 @@ template<class BASE_CLASS, class EXT_CLASS>
 static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS *> &list)
 {
     if (!list.Count()) {
-        DEBUG_INFO("Requested remap of \"%s\" extension pointers, but the list is empty!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+        DEBUG_INFO("Requested remap of \"{}\" extension pointers, but the list is empty!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>());
         return true;
     }
 
-    DEBUG_INFO("Requesting remap of \"%s\" extension pointers (Count %d)...\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), list.Count());
+    DEBUG_INFO("Requesting remap of \"{}\" extension pointers (Count {})...\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), list.Count());
 
     for (int index = 0; index < list.Count(); ++index) {
 
@@ -429,11 +401,11 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
         if (object) {
 
             if (!Extension_Get_Abstract_Pointer(object)) {
-                DEV_DEBUG_ERROR("Extension_Request_Pointer_Remap: \"%s\" extension pointer (index %d) for is null!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str(), index);
+                DEV_DEBUG_ERROR("Extension_Request_Pointer_Remap: \"{}\" extension pointer (index {}) for is null!\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>(), index);
                 continue; //return false;
             }
 
-            Wstring extptr_name;
+            std::string extptr_name;
             extptr_name += Extension::Utility::Get_TypeID_Name(object).c_str();
             extptr_name += "::ExtPtr";
 
@@ -441,9 +413,8 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
              *  Inform the swizzle manager that we need to remap the pointer.
              */
             uintptr_t **ext_ptr_addr = ABSTRACT_EXTENSION_POINTER_REMAP_MACRO(object);
-            VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(*ext_ptr_addr, extptr_name.Peek_Buffer());
+            VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(*ext_ptr_addr, extptr_name.c_str());
 
-            EXT_DEBUG_INFO("  Requested remap of index %d extension pointer complete.\n", index);
         }
     }
 
@@ -452,16 +423,78 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
 
 
 /**
- *  Detaches the object from the list of active object.
- * 
- *  @author: CCHyper
+ *  Internal function that reports if the current abstract object can have an extension.
+ *
+ *  @author: ZivDero
  */
-template<class EXT_CLASS>
-static void Extension_Detach_This_From_All(DynamicVectorClass<EXT_CLASS *> &list, AbstractClass * target, bool all)
+bool Extension::Private::Is_Supported(const AbstractClass *abstract)
 {
-    for (int index = 0; index < list.Count(); ++index) {
-        list[index]->Detach(target, all);
-    }
+    ASSERT(abstract != nullptr);
+
+    switch (const_cast<AbstractClass *>(abstract)->RTTI) {
+        case RTTI_UNIT: { return true; }
+        case RTTI_AIRCRAFT: { return true; }
+        case RTTI_AIRCRAFTTYPE: { return true; }
+        case RTTI_ANIM: { return true; }
+        case RTTI_ANIMTYPE: { return true; }
+        case RTTI_BUILDING: { return true; }
+        case RTTI_BUILDINGTYPE: { return true; }
+        //case RTTI_BULLET: { return true; } // Not yet implemented
+        case RTTI_BULLETTYPE: { return true; }
+        case RTTI_CAMPAIGN: { return true; }
+        //case RTTI_CELL: { return true; } // Not yet implemented
+        case RTTI_FACTORY: { return true; }
+        case RTTI_HOUSE: { return true; }
+        case RTTI_HOUSETYPE: { return true; }
+        case RTTI_INFANTRY: {  return true; }
+        case RTTI_INFANTRYTYPE: {  return true; }
+        //case RTTI_ISOTILE: { return true; } // Not yet implemented
+        case RTTI_ISOTILETYPE: { return true; }
+        //case RTTI_LIGHT: { return true; } // Not yet implemented
+        case RTTI_OVERLAY: { return true; }
+        case RTTI_OVERLAYTYPE: { return true; }
+        //case RTTI_PARTICLE: { return true; } // Not yet implemented
+        case RTTI_PARTICLETYPE: { return true; }
+        //case RTTI_PARTICLESYSTEM: { return true; } // Not yet implemented
+        case RTTI_PARTICLESYSTEMTYPE: { return true; }
+        //case RTTI_SCRIPT: { return true; } // Not yet implemented
+        //case RTTI_SCRIPTTYPE: { return true; } // Not yet implemented
+        case RTTI_SIDE: { return true; }
+        case RTTI_SMUDGE: { return true; }
+        case RTTI_SMUDGETYPE: { return true; }
+        case RTTI_SUPERWEAPONTYPE: { return true; }
+        //case RTTI_TASKFORCE: { return true; } // Not yet implemented
+        case RTTI_TEAM: { return true; }
+        case RTTI_TEAMTYPE: { return true; }
+        case RTTI_TERRAIN: { return true; }
+        case RTTI_TERRAINTYPE: { return true; }
+        //case RTTI_TRIGGER: { return true; } // Not yet implemented
+        //case RTTI_TRIGGERTYPE: { return true; } // Not yet implemented
+        case RTTI_UNITTYPE: { return true; }
+        //case RTTI_VOXELANIM: { return true; } // Not yet implemented
+        case RTTI_VOXELANIMTYPE: { return true; }
+        case RTTI_WAVE: { return true; }
+        //case RTTI_TAG: { return true; } // Not yet implemented
+        //case RTTI_TAGTYPE: { return true; } // Not yet implemented
+        case RTTI_TIBERIUM: { return true; }
+        case RTTI_ACTION: { return true; }
+        case RTTI_EVENT: { return true; }
+        case RTTI_WEAPONTYPE: { return true; }
+        case RTTI_WARHEADTYPE: { return true; }
+        //case RTTI_WAYPOINT: { return true; } // Not yet implemented
+        //case RTTI_TUBE: { return true; } // Not yet implemented
+        //case RTTI_LIGHTSOURCE: { return true; } // Not yet implemented
+        //case RTTI_EMPULSE: { return true; } // Not yet implemented
+        case RTTI_SUPERWEAPON: { return true; }
+        //case RTTI_AITRIGGER: { return true; } // Not yet implemented
+        //case RTTI_AITRIGGERTYPE: { return true; } // Not yet implemented
+        //case RTTI_NEURON: { return true; } // Not yet implemented
+        //case RTTI_FOGGEDOBJECT: { return true; } // Not yet implemented
+        //case RTTI_ALPHASHAPE: { return true; } // Not yet implemented
+        //case RTTI_VEINHOLEMONSTER: { return true; } // Not yet implemented
+    };
+
+    return false;
 }
 
 
@@ -510,8 +543,8 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         case RTTI_SMUDGETYPE: { extptr = Extension_Make<SmudgeTypeClass, SmudgeTypeClassExtension>(reinterpret_cast<const SmudgeTypeClass *>(abstract)); break; }
         case RTTI_SUPERWEAPONTYPE: { extptr = Extension_Make<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(reinterpret_cast<const SuperWeaponTypeClass *>(abstract)); break; }
         //case RTTI_TASKFORCE: { extptr = Extension_Make<TaskForceClass, TaskForceClassExtension>(reinterpret_cast<const TaskForceClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_TEAM: { extptr = Extension_Make<TeamClass, TeamClassExtension>(reinterpret_cast<const TeamClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_TEAMTYPE: { extptr = Extension_Make<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_TEAM: { extptr = Extension_Make<TeamClass, TeamClassExtension>(reinterpret_cast<const TeamClass *>(abstract)); break; }
+        case RTTI_TEAMTYPE: { extptr = Extension_Make<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; }
         case RTTI_TERRAIN: { extptr = Extension_Make<TerrainClass, TerrainClassExtension>(reinterpret_cast<const TerrainClass *>(abstract)); break; }
         case RTTI_TERRAINTYPE: { extptr = Extension_Make<TerrainTypeClass, TerrainTypeClassExtension>(reinterpret_cast<const TerrainTypeClass *>(abstract)); break; }
         //case RTTI_TRIGGER: { extptr = Extension_Make<TriggerClass, TriggerClassExtension>(reinterpret_cast<const TriggerClass *>(abstract)); break; } // Not yet implemented
@@ -523,8 +556,8 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_TAG: { extptr = Extension_Make<TagClass, TagClassExtension>(reinterpret_cast<const TagClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_TAGTYPE: { extptr = Extension_Make<TagTypeClass, Extension>(reinterpret_cast<const TagTypeClass *>(abstract)); break; } // Not yet implemented
         case RTTI_TIBERIUM: { extptr = Extension_Make<TiberiumClass, TiberiumClassExtension>(reinterpret_cast<const TiberiumClass *>(abstract)); break; }
-        //case RTTI_ACTION: { extptr = Extension_Make<TActionClass, TActionClassExtension>(reinterpret_cast<const TActionClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_EVENT: { extptr = Extension_Make<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_ACTION: { extptr = Extension_Make<TActionClass, TActionClassExtension>(reinterpret_cast<const TActionClass *>(abstract)); break; }
+        case RTTI_EVENT: { extptr = Extension_Make<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; }
         case RTTI_WEAPONTYPE: { extptr = Extension_Make<WeaponTypeClass, WeaponTypeClassExtension>(reinterpret_cast<const WeaponTypeClass *>(abstract)); break; }
         case RTTI_WARHEADTYPE: { extptr = Extension_Make<WarheadTypeClass, WarheadTypeClassExtension>(reinterpret_cast<const WarheadTypeClass *>(abstract)); break; }
         //case RTTI_WAYPOINT: { extptr = Extension_Make<WaypointClass, WaypointClassExtension>(reinterpret_cast<const WaypointClass *>(abstract)); break; } // Not yet implemented
@@ -538,7 +571,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_FOGGEDOBJECT: { extptr = Extension_Make<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { extptr = Extension_Make<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { extptr = Extension_Make<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
+        default: { DEBUG_ERROR("Extension::Make: No extension support for \"{}\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     return extptr;
@@ -590,8 +623,8 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         case RTTI_SMUDGETYPE: { removed = Extension_Destroy<SmudgeTypeClass, SmudgeTypeClassExtension>(reinterpret_cast<const SmudgeTypeClass *>(abstract)); break; }
         case RTTI_SUPERWEAPONTYPE: { removed = Extension_Destroy<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(reinterpret_cast<const SuperWeaponTypeClass *>(abstract)); break; }
         //case RTTI_TASKFORCE: { removed = Extension_Destroy<TaskForceClass, TaskForceClassExtension>(reinterpret_cast<const TaskForceClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_TEAM: { removed = Extension_Destroy<TeamClass, TeamClassExtension>(reinterpret_cast<const TeamClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_TEAMTYPE: { removed = Extension_Destroy<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_TEAM: { removed = Extension_Destroy<TeamClass, TeamClassExtension>(reinterpret_cast<const TeamClass *>(abstract)); break; }
+        case RTTI_TEAMTYPE: { removed = Extension_Destroy<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; }
         case RTTI_TERRAIN: { removed = Extension_Destroy<TerrainClass, TerrainClassExtension>(reinterpret_cast<const TerrainClass *>(abstract)); break; }
         case RTTI_TERRAINTYPE: { removed = Extension_Destroy<TerrainTypeClass, TerrainTypeClassExtension>(reinterpret_cast<const TerrainTypeClass *>(abstract)); break; }
         //case RTTI_TRIGGER: { removed = Extension_Destroy<TriggerClass, TriggerClassExtension>(reinterpret_cast<const TriggerClass *>(abstract)); break; } // Not yet implemented
@@ -603,8 +636,8 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_TAG: { removed = Extension_Destroy<TagClass, TagClassExtension>(reinterpret_cast<const TagClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_TAGTYPE: { removed = Extension_Destroy<TagTypeClass, Extension>(reinterpret_cast<const TagTypeClass *>(abstract)); break; } // Not yet implemented
         case RTTI_TIBERIUM: { removed = Extension_Destroy<TiberiumClass, TiberiumClassExtension>(reinterpret_cast<const TiberiumClass *>(abstract)); break; }
-        //case RTTI_ACTION: { removed = Extension_Destroy<TActionClass, TActionClassExtension>(reinterpret_cast<const TActionClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_EVENT: { removed = Extension_Destroy<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_ACTION: { removed = Extension_Destroy<TActionClass, TActionClassExtension>(reinterpret_cast<const TActionClass *>(abstract)); break; }
+        case RTTI_EVENT: { removed = Extension_Destroy<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; }
         case RTTI_WEAPONTYPE: { removed = Extension_Destroy<WeaponTypeClass, WeaponTypeClassExtension>(reinterpret_cast<const WeaponTypeClass *>(abstract)); break; }
         case RTTI_WARHEADTYPE: { removed = Extension_Destroy<WarheadTypeClass, WarheadTypeClassExtension>(reinterpret_cast<const WarheadTypeClass *>(abstract)); break; }
         //case RTTI_WAYPOINT: { removed = Extension_Destroy<WaypointClass, WaypointClassExtension>(reinterpret_cast<const WaypointClass *>(abstract)); break; } // Not yet implemented
@@ -618,7 +651,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_FOGGEDOBJECT: { removed = Extension_Destroy<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { removed = Extension_Destroy<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { removed = Extension_Destroy<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
+        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"{}\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     ASSERT(removed);
@@ -639,7 +672,9 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     AbstractClassExtension *ext_ptr = Extension_Get_Abstract_Pointer(abstract);
 
     if (!ext_ptr) {
-        DEBUG_ERROR("Extension::Fetch: Extension for \"%s\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        if (Is_Supported(abstract)) {
+            DEBUG_ERROR("Extension::Fetch: Extension for \"{}\" is null!\n", Extension::Utility::Get_TypeID_Name(abstract));
+        }        
         return nullptr;
     }
 
@@ -647,11 +682,9 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
      *  Its possible the pointer could be invalid, so perform a check.
      */
     if (ext_ptr->Fetch_RTTI() <= RTTI_NONE || ext_ptr->Fetch_RTTI() >= RTTI_COUNT) {
-        DEBUG_ERROR("Extension::Fetch: Invalid extension RTTI type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        DEBUG_ERROR("Extension::Fetch: Invalid extension RTTI type for \"{}\"!\n", Extension::Utility::Get_TypeID_Name(abstract));
         return nullptr;
     }
-
-    //EXT_DEBUG_INFO("Extension::Fetch: Abstract \"%s\", got extension \"%s\".\n", Extension::Utility::Get_TypeID_Name(abstract).c_str(), ext_ptr->Name());
 
     return ext_ptr;
 }
@@ -684,7 +717,7 @@ bool Extension::Save(IStream *pStm)
     if (!Extension_Save<BuildingTypeClass, BuildingTypeClassExtension>(pStm, BuildingTypeExtensions)) { return false; }
     //if (!Extension_Save<BulletClass, BulletClassExtension>(pStm, BulletExtensions)) { return false; }                 // Not yet implemented
     if (!Extension_Save<BulletTypeClass, BulletTypeClassExtension>(pStm, BulletTypeExtensions)) { return false; }
-    //if (!Extension_Save<CampaignClass, CampaignClassExtension>(pStm, CampaignExtensions)) { return false; }           // Supported, but Campaign's are not saved to file.
+    //if (!Extension_Save<CampaignClass, CampaignClassExtension>(pStm, CampaignExtensions)) { return false; }           // Supported, but Campaigns are not saved to file.
     //if (!Extension_Save<CellClass, CellClassExtension>(pStm, CellExtensions)) { return false; }                       // Not yet implemented
     if (!Extension_Save<FactoryClass, FactoryClassExtension>(pStm, FactoryExtensions)) { return false; }
     if (!Extension_Save<HouseClass, HouseClassExtension>(pStm, HouseExtensions)) { return false; }
@@ -692,9 +725,9 @@ bool Extension::Save(IStream *pStm)
     if (!Extension_Save<InfantryClass, InfantryClassExtension>(pStm, InfantryExtensions)) { return false; }
     if (!Extension_Save<InfantryTypeClass, InfantryTypeClassExtension>(pStm, InfantryTypeExtensions)) { return false; }
     //if (!Extension_Save<IsometricTileClass, IsometricTileClassExtension>(pStm, IsometricTileExtensions)) { return false; } // Not yet implemented
-    //if (!Extension_Save<IsometricTileTypeClass, IsometricTileTypeClassExtension>(pStm, IsometricTileTypeExtensions)) { return false; } // Supported, but IsoTileTypes's are not saved to file.
+    //if (!Extension_Save<IsometricTileTypeClass, IsometricTileTypeClassExtension>(pStm, IsometricTileTypeExtensions)) { return false; } // Supported, but IsoTileTypess are not saved to file.
     //if (!Extension_Save<BuildingLightClass, BuildingLightClassExtension>(pStm, BuildingLightExtensions)) { return false; } // Not yet implemented
-    if (!Extension_Save<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }
+    //if (!Extension_Save<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Save<OverlayTypeClass, OverlayTypeClassExtension>(pStm, OverlayTypeExtensions)) { return false; }
     //if (!Extension_Save<ParticleClass, ParticleClassExtension>(pStm, ParticleClassExtensions)) { return false; }      // Not yet implemented
     if (!Extension_Save<ParticleTypeClass, ParticleTypeClassExtension>(pStm, ParticleTypeExtensions)) { return false; }
@@ -703,12 +736,12 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<ScriptClass, ScriptClassExtension>(pStm, ScriptExtensions)) { return false; }                 // Not yet implemented
     //if (!Extension_Save<ScriptTypeClass, ScriptTypeClassExtension>(pStm, ScriptTypeExtensions)) { return false; }     // Not yet implemented
     if (!Extension_Save<SideClass, SideClassExtension>(pStm, SideExtensions)) { return false; }
-    if (!Extension_Save<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }
+    //if (!Extension_Save<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Save<SmudgeTypeClass, SmudgeTypeClassExtension>(pStm, SmudgeTypeExtensions)) { return false; }
     if (!Extension_Save<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Save<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented
-    //if (!Extension_Save<TeamClass, TeamClassExtension>(pStm, TeamExtensions)) { return false; }                       // Not yet implemented
-    //if (!Extension_Save<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }           // Not yet implemented
+    if (!Extension_Save<TeamClass, TeamClassExtension>(pStm, TeamExtensions)) { return false; }
+    if (!Extension_Save<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }
     if (!Extension_Save<TerrainClass, TerrainClassExtension>(pStm, TerrainExtensions)) { return false; }
     if (!Extension_Save<TerrainTypeClass, TerrainTypeClassExtension>(pStm, TerrainTypeExtensions)) { return false; }
     //if (!Extension_Save<TriggerClass, TriggerClassExtension>(pStm, TriggerExtensions)) { return false; }              // Not yet implemented
@@ -720,8 +753,8 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<TagClass, TagClassExtension>(pStm, TagExtensions)) { return false; }                          // Not yet implemented
     //if (!Extension_Save<TagTypeClass, TagTypeClassExtension>(pStm, TagTypeExtensions)) { return false; }              // Not yet implemented
     if (!Extension_Save<TiberiumClass, TiberiumClassExtension>(pStm, TiberiumExtensions)) { return false; }
-    //if (!Extension_Save<TActionClass, TActionClassExtension>(pStm, TActionExtensions)) { return false; }              // Not yet implemented
-    //if (!Extension_Save<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }                 // Not yet implemented
+    if (!Extension_Save<TActionClass, TActionClassExtension>(pStm, TActionExtensions)) { return false; }
+    if (!Extension_Save<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }
     if (!Extension_Save<WeaponTypeClass, WeaponTypeClassExtension>(pStm, WeaponTypeExtensions)) { return false; }
     if (!Extension_Save<WarheadTypeClass, WarheadTypeClassExtension>(pStm, WarheadTypeExtensions)) { return false; }
     //if (!Extension_Save<WaypointClass, WaypointClassExtension>(pStm, WaypointExtensions)) { return false; }           // Not yet implemented
@@ -737,19 +770,16 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<VeinholeMonsterClass, VeinholeMonsterClassExtension>(pStm, VeinholeMonsterExtensions)) { return false; } // Not yet implemented
 
     if (FAILED(TacticalMapExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension.\n", TacticalMapExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension.\n", TacticalMapExtension->Name());
 
     if (FAILED(RuleExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", RuleExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension\n", RuleExtension->Name());
 
     if (FAILED(ScenExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", ScenExtension->Name());
-
-    if (FAILED(SidebarExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", SidebarExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension\n", ScenExtension->Name());
 
     if (FAILED(SessionExtension->Save(pStm, true))) { return false; }
-    DEBUG_INFO("Saved \"%s\" extension\n", SessionExtension->Name());
+    DEBUG_INFO("Saved \"{}\" extension\n", SessionExtension->Name());
 
     DEV_DEBUG_INFO("Extension::Save(exit)\n");
 
@@ -794,7 +824,7 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<IsometricTileClass, IsometricTileClassExtension>(pStm, IsometricTileExtensions)) { return false; } // Not yet implemented
     //if (!Extension_Load<IsometricTileTypeClass, IsometricTileTypeClassExtension>(pStm, IsometricTileTypeExtensions)) { return false; } // Supported, but IsoTileTypes's are not saved to file.
     //if (!Extension_Load<BuildingLightClass, BuildingLightClassExtension>(pStm, BuildingLightExtensions)) { return false; } // Not yet implemented
-    if (!Extension_Load<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }
+    //if (!Extension_Load<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Load<OverlayTypeClass, OverlayTypeClassExtension>(pStm, OverlayTypeExtensions)) { return false; }
     //if (!Extension_Load<ParticleClass, ParticleClassExtension>(pStm, ParticleClassExtensions)) { return false; }      // Not yet implemented
     if (!Extension_Load<ParticleTypeClass, ParticleTypeClassExtension>(pStm, ParticleTypeExtensions)) { return false; }
@@ -803,12 +833,12 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<ScriptClass, ScriptClassExtension>(pStm, ScriptExtensions)) { return false; }                 // Not yet implemented
     //if (!Extension_Load<ScriptTypeClass, ScriptTypeClassExtension>(pStm, ScriptTypeExtensions)) { return false; }     // Not yet implemented
     if (!Extension_Load<SideClass, SideClassExtension>(pStm, SideExtensions)) { return false; }
-    if (!Extension_Load<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }
+    //if (!Extension_Load<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; } // Base class instances are not saved
     if (!Extension_Load<SmudgeTypeClass, SmudgeTypeClassExtension>(pStm, SmudgeTypeExtensions)) { return false; }
     if (!Extension_Load<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Load<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented
-    //if (!Extension_Load<TeamClass, TeamClassExtension>(pStm, TeamExtensions)) { return false; }                       // Not yet implemented
-    //if (!Extension_Load<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }           // Not yet implemented
+    if (!Extension_Load<TeamClass, TeamClassExtension>(pStm, TeamExtensions)) { return false; }
+    if (!Extension_Load<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }
     if (!Extension_Load<TerrainClass, TerrainClassExtension>(pStm, TerrainExtensions)) { return false; }
     if (!Extension_Load<TerrainTypeClass, TerrainTypeClassExtension>(pStm, TerrainTypeExtensions)) { return false; }
     //if (!Extension_Load<TriggerClass, TriggerClassExtension>(pStm, TriggerExtensions)) { return false; }              // Not yet implemented
@@ -820,8 +850,8 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<TagClass, TagClassExtension>(pStm, TagExtensions)) { return false; }                          // Not yet implemented
     //if (!Extension_Load<TagTypeClass, TagTypeClassExtension>(pStm, TagTypeExtensions)) { return false; }              // Not yet implemented
     if (!Extension_Load<TiberiumClass, TiberiumClassExtension>(pStm, TiberiumExtensions)) { return false; }
-    //if (!Extension_Load<TActionClass, TActionClassExtension>(pStm, TActionExtensions)) { return false; }              // Not yet implemented
-    //if (!Extension_Load<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }                 // Not yet implemented
+    if (!Extension_Load<TActionClass, TActionClassExtension>(pStm, TActionExtensions)) { return false; }
+    if (!Extension_Load<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }
     if (!Extension_Load<WeaponTypeClass, WeaponTypeClassExtension>(pStm, WeaponTypeExtensions)) { return false; }
     if (!Extension_Load<WarheadTypeClass, WarheadTypeClassExtension>(pStm, WarheadTypeExtensions)) { return false; }
     //if (!Extension_Load<WaypointClass, WaypointClassExtension>(pStm, WaypointExtensions)) { return false; }           // Not yet implemented
@@ -837,23 +867,19 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<VeinholeMonsterClass, VeinholeMonsterClassExtension>(pStm, VeinholeMonsterExtensions)) { return false; } // Not yet implemented
 
     if (FAILED(TacticalMapExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", TacticalMapExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", TacticalMapExtension->Name());
     TacticalMapExtension->Assign_This(TacticalMap);
 
     if (FAILED(RuleExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", RuleExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", RuleExtension->Name());
     RuleExtension->Assign_This(Rule);
 
     if (FAILED(ScenExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", ScenExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", ScenExtension->Name());
     ScenExtension->Assign_This(Scen);
 
-    if (FAILED(SidebarExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", SidebarExtension->Name());
-    SidebarExtension->Assign_This(&Map);
-
     if (FAILED(SessionExtension->Load(pStm))) { return false; }
-    DEBUG_INFO("Loaded \"%s\" extension.\n", SessionExtension->Name());
+    DEBUG_INFO("Loaded \"{}\" extension.\n", SessionExtension->Name());
     SessionExtension->Assign_This(&Session);
 
     /**
@@ -912,8 +938,8 @@ bool Extension::Request_Pointer_Remap()
     if (!Extension_Request_Pointer_Remap<SmudgeTypeClass, SmudgeTypeClassExtension>(SmudgeTypes)) { return false; }
     if (!Extension_Request_Pointer_Remap<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(SuperWeaponTypes)) { return false; }
     //if (!Extension_Request_Pointer_Remap<TaskForceClass, TaskForceClassExtension>(TaskForces)) { return false; }      // Not yet implemented
-    //if (!Extension_Request_Pointer_Remap<TeamClass, TeamClassExtension>(Teams)) { return false; }                     // Not yet implemented
-    //if (!Extension_Request_Pointer_Remap<TeamTypeClass, TeamTypeClassExtension>(TeamTypes)) { return false; }         // Not yet implemented
+    if (!Extension_Request_Pointer_Remap<TeamClass, TeamClassExtension>(Teams)) { return false; }
+    if (!Extension_Request_Pointer_Remap<TeamTypeClass, TeamTypeClassExtension>(TeamTypes)) { return false; }
     if (!Extension_Request_Pointer_Remap<TerrainClass, TerrainClassExtension>(Terrains)) { return false; }
     if (!Extension_Request_Pointer_Remap<TerrainTypeClass, TerrainTypeClassExtension>(TerrainTypes)) { return false; }
     //if (!Extension_Request_Pointer_Remap<TriggerClass, TriggerClassExtension>(Triggers)) { return false; }            // Not yet implemented
@@ -925,10 +951,10 @@ bool Extension::Request_Pointer_Remap()
     //if (!Extension_Request_Pointer_Remap<TagClass, TagClassExtension>(Tags)) { return false; }                        // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<TagTypeClass, TagTypeClassExtension>(TagTypes)) { return false; }            // Not yet implemented
     if (!Extension_Request_Pointer_Remap<TiberiumClass, TiberiumClassExtension>(Tiberiums)) { return false; }
-    //if (!Extension_Request_Pointer_Remap<TActionClass, TActionClassExtension>(TActions)) { return false; }            // Not yet implemented
-    //if (!Extension_Request_Pointer_Remap<TEventClass, TEventClassExtension>(TEvents)) { return false; }               // Not yet implemented
-    if (!Extension_Request_Pointer_Remap<WeaponTypeClass, WeaponTypeClassExtension>(WeaponTypes)) { return false; }
-    if (!Extension_Request_Pointer_Remap<WarheadTypeClass, WarheadTypeClassExtension>(WarheadTypes)) { return false; }
+    if (!Extension_Request_Pointer_Remap<TActionClass, TActionClassExtension>(TActions)) { return false; }
+    if (!Extension_Request_Pointer_Remap<TEventClass, TEventClassExtension>(TEvents)) { return false; }
+    if (!Extension_Request_Pointer_Remap<WeaponTypeClass, WeaponTypeClassExtension>(Weapons)) { return false; }
+    if (!Extension_Request_Pointer_Remap<WarheadTypeClass, WarheadTypeClassExtension>(Warheads)) { return false; }
     //if (!Extension_Request_Pointer_Remap<WaypointClass, WaypointClassExtension>(Waypoints)) { return false; }         // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<TubeClass, TubeClassExtension>(Tubes)) { return false; }                     // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<LightSourceClass, LightSourceClassExtension>(LightSources)) { return false; } // Not yet implemented
@@ -991,8 +1017,8 @@ bool Extension::Register_Class_Factories()
     REGISTER_CLASS(SmudgeTypeClassExtension);
     REGISTER_CLASS(SuperWeaponTypeClassExtension);
     //REGISTER_CLASS(TaskForceClassExtension);                                  // Not yet implemented
-    //REGISTER_CLASS(TeamClassExtension);                                       // Not yet implemented
-    //REGISTER_CLASS(TeamTypeClassExtension);                                   // Not yet implemented
+    REGISTER_CLASS(TeamClassExtension);
+    REGISTER_CLASS(TeamTypeClassExtension);
     REGISTER_CLASS(TerrainClassExtension);
     REGISTER_CLASS(TerrainTypeClassExtension);
     //REGISTER_CLASS(TriggerClassExtension);                                    // Not yet implemented
@@ -1004,8 +1030,8 @@ bool Extension::Register_Class_Factories()
     //REGISTER_CLASS(TagClassExtension);                                        // Not yet implemented
     //REGISTER_CLASS(TagTypeClassExtension);                                    // Not yet implemented
     REGISTER_CLASS(TiberiumClassExtension);
-    //REGISTER_CLASS(TActionClassExtension);                                    // Not yet implemented
-    //REGISTER_CLASS(TEventClassExtension);                                     // Not yet implemented
+    REGISTER_CLASS(TActionClassExtension);
+    REGISTER_CLASS(TEventClassExtension);
     REGISTER_CLASS(WeaponTypeClassExtension);
     REGISTER_CLASS(WarheadTypeClassExtension);
     //REGISTER_CLASS(WaypointClassExtension);                                   // Not yet implemented
@@ -1073,8 +1099,8 @@ void Extension::Free_Heaps()
     SmudgeTypeExtensions.Clear();
     SuperWeaponTypeExtensions.Clear();
     //TaskForceExtensions.Clear();                                              // Not yet implemented
-    //TeamExtensions.Clear();                                                   // Not yet implemented
-    //TeamTypeExtensions.Clear();                                               // Not yet implemented
+    TeamExtensions.Clear();
+    TeamTypeExtensions.Clear();
     TerrainExtensions.Clear();
     TerrainTypeExtensions.Clear();
     //TriggerExtensions.Clear();                                                // Not yet implemented
@@ -1086,9 +1112,9 @@ void Extension::Free_Heaps()
     //TagExtensions.Clear();                                                    // Not yet implemented
     //TagTypeExtensions.Clear();                                                // Not yet implemented
     TiberiumExtensions.Clear();
-    //TActionExtensions.Clear();                                                // Not yet implemented
-    //TEventExtensions.Clear();                                                 // Not yet implemented
-     WeaponTypeExtensions.Clear();
+    TActionExtensions.Clear();
+    TEventExtensions.Clear();
+    WeaponTypeExtensions.Clear();
     WarheadTypeExtensions.Clear();
     //WaypointExtensions.Clear();                                               // Not yet implemented
     //TubeExtensions.Clear();                                                   // Not yet implemented
@@ -1110,30 +1136,52 @@ void Extension::Free_Heaps()
 
 
 /**
- *  Prints all the events from the queue list.
+ *  Prints the most recent events from an event queue's ring buffer, newest
+ *  first. The entire backing array is walked (not just the pending events),
+ *  so the history of already executed events is printed as well.
  *
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
-template<class T, int I>
-static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
+template<class T, int SIZE>
+static void Print_Event_History(FILE *fp, QueueClass<T, SIZE> &list, int max)
 {
-    for (int index = 0; index < list.Count; ++index) {
-        EventClass *ev = &list[index];
-        if (ev) {
-            char ev_byte_format[4];
-            Wstring ev_data_buffer;
-            int ev_size = EventClass::Event_Length(ev->Type);
-            const char *ev_name = EventClass::Event_Name(ev->Type);
-            for (int i = 0; i < ev_size; ++i) {
-                std::snprintf(ev_byte_format, sizeof(ev_byte_format), "%02X", (unsigned char)ev->Data.Array.Byte[i]); // We use this union member so we can do array access.
-                ev_data_buffer += ev_byte_format;
-                if (i < ev_size-1) ev_data_buffer += " ";
-            }
+    static_assert((SIZE & (SIZE - 1)) == 0, "Event queue size must be a power of two.");
 
-            std::fprintf(fp, "%04d  %s  Frame: %d  ID: %d  Data: %s\n", index, EventClass::Event_Name(ev->Type), ev->Frame, ev->ID, ev_data_buffer);
+    T *events = list.Get_Array();
+    int idx = (list.Get_Tail() - 1) & (SIZE - 1);
+
+    for (int n = 0; n < max && n < SIZE; ++n, idx = (idx - 1) & (SIZE - 1)) {
+        EventClass *ev = &events[idx];
+
+        /**
+         *  Stale slots can contain garbage, so validate the type before
+         *  using it for any name/length table lookups.
+         */
+        if (ev->Type <= EVENT_EMPTY || ev->Type >= EXT_EVENT_COUNT) {
+            continue;
         }
+
+        /**
+         *  Skip the housekeeping events that are sent constantly and would
+         *  drown out the interesting ones.
+         */
+        if (ev->Type == EVENT_FRAMEINFO
+            || ev->Type == EVENT_FRAMESYNC
+            || ev->Type == EVENT_PROCESS_TIME
+            || ev->Type == EVENT_RESPONSE_TIME
+            || ev->Type == EXT_EVENT_RESPONSE_TIME2) {
+            continue;
+        }
+
+        std::fprintf(fp, "Event: %-18s  Frame: %-8u  IsExecuted: %d  ID: %-4d  Data:",
+            EventClassExt::Event_Name(ev->Type), ev->Frame, ev->IsExecuted, ev->ID);
+
+        int ev_size = EventClassExt::Event_Length(ev->Type);
+        for (int i = 0; i < ev_size; ++i) {
+            std::fprintf(fp, " %02X", (unsigned char)ev->Data.Array.Byte[i]); // We use this union member so we can do array access.
+        }
+        std::fprintf(fp, "\n");
     }
-    return true;
 }
 
 
@@ -1155,7 +1203,6 @@ static void Print_Heap_CRC_Lists(FILE *fp, DynamicVectorClass<T *> &list)
         T *ptr = list[index];
         ptr->Object_CRC(*crc);
         std::fprintf(fp, "%05d    %08x\n", index, crc->CRC_Value());
-        EXT_DEBUG_INFO("%05d %08x\n", index, crc->CRC_Value());
     }
 
     delete crc;
@@ -1174,8 +1221,8 @@ void Extension::Print_CRCs(EventClass *ev)
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u-%d.LOG",
-        Vinifera_DebugDirectory,
-        PlayerPtr->IniName,
+        Vinifera_DebugDirectory.c_str(),
+        PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec, Frame);
 
@@ -1188,7 +1235,7 @@ void Extension::Print_CRCs(EventClass *ev)
         return;
     }
 
-    DEBUG_INFO("Writing sync log to file %s.\n", filename_buffer);
+    DEBUG_INFO("Writing sync log to file {}.\n", filename_buffer);
 
     Extension::Print_CRCs(fp, ev);
 
@@ -1253,10 +1300,19 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "--------------------------------------------------------------------------------\n");
     std::fprintf(fp, "\n");
 
+    std::fprintf(fp, "Version %s\n", Version_Name());
+    std::fprintf(fp, "Internal Version %s\n", VerNum.Version_Name());
+    std::fprintf(fp, "Release Build: %s by %s - %s\n",
+        BuildInfoClass::Get_Build_Number_String(),
+        BuildInfoClass::Get_Builder_Name_String(),
+        BuildInfoClass::Get_Build_Date_String());
+    std::fprintf(fp, "\n");
+
     std::fprintf(fp, "Frames: %d\n", Frame);
     std::fprintf(fp, "Player ID: %02d\n", PlayerPtr->HeapID);
-    std::fprintf(fp, "Player Name: %s\n", PlayerPtr->IniName);
-    //std::fprintf(fp, "Average FPS: %d\n", total_cycles_or_iterations_ > 0 ? total_fps_ / total_cycles_or_iterations_ : 0);
+    std::fprintf(fp, "Player Name: %s\n", PlayerPtr->IniName.c_str());
+    std::fprintf(fp, "Average FPS: %u\n", SecondsPassed != 0 ? TotalFrames / SecondsPassed : 0);
+    std::fprintf(fp, "FPU State: %x\n", _controlfp(0, 0));
     std::fprintf(fp, "Max MaxAhead: %d\n", Session.MaxMaxAhead);
     std::fprintf(fp, "FrameSendRate: %d\n", Session.FrameSendRate);
     std::fprintf(fp, "Latency setting: %d\n", Session.LatencyFudge);
@@ -1358,8 +1414,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "Tiberiums.Count = %d\n", Tiberiums.Count());
     std::fprintf(fp, "TActions.Count = %d\n", TActions.Count());
     std::fprintf(fp, "TEvents.Count = %d\n", TEvents.Count());
-    std::fprintf(fp, "WeaponTypes.Count = %d\n", WeaponTypes.Count());
-    std::fprintf(fp, "WarheadTypes.Count = %d\n", WarheadTypes.Count());
+    std::fprintf(fp, "Weapons.Count = %d\n", Weapons.Count());
+    std::fprintf(fp, "Warheads.Count = %d\n", Warheads.Count());
     std::fprintf(fp, "WaypointPaths.Count = %d\n", WaypointPaths.Count());
     std::fprintf(fp, "Tubes.Count = %d\n", Tubes.Count());
     std::fprintf(fp, "LightSources.Count = %d\n", LightSources.Count());
@@ -1402,8 +1458,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "SmudgeTypeExtensions.Count = %d\n", SmudgeTypeExtensions.Count());
     std::fprintf(fp, "SuperWeaponTypeExtensions.Count = %d\n", SuperWeaponTypeExtensions.Count());
     //std::fprintf(fp, "TaskForceExtensions.Count = %d\n", TaskForceExtensions.Count());                                // Not yet implemented
-    //std::fprintf(fp, "TeamExtensions.Count = %d\n", TeamExtensions.Count());                                          // Not yet implemented
-    //std::fprintf(fp, "TeamTypeExtensions.Count = %d\n", TeamTypeExtensions.Count());                                  // Not yet implemented
+    std::fprintf(fp, "TeamExtensions.Count = %d\n", TeamExtensions.Count());
+    std::fprintf(fp, "TeamTypeExtensions.Count = %d\n", TeamTypeExtensions.Count());
     std::fprintf(fp, "TerrainExtensions.Count = %d\n", TerrainExtensions.Count());
     std::fprintf(fp, "TerrainTypeExtensions.Count = %d\n", TerrainTypeExtensions.Count());
     //std::fprintf(fp, "TriggerExtensions.Count = %d\n", TriggerExtensions.Count());                                    // Not yet implemented
@@ -1415,8 +1471,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //std::fprintf(fp, "TagExtensions.Count = %d\n", TagExtensions.Count());                                            // Not yet implemented
     //std::fprintf(fp, "TagTypeExtensions.Count = %d\n", TagTypeExtensions.Count());                                    // Not yet implemented
     std::fprintf(fp, "TiberiumExtensions.Count = %d\n", TiberiumExtensions.Count());
-    //std::fprintf(fp, "TActionExtensions.Count = %d\n", TActionExtensions.Count());                                    // Not yet implemented
-    //std::fprintf(fp, "TEventExtensions.Count = %d\n", TEventExtensions.Count());                                      // Not yet implemented
+    std::fprintf(fp, "TActionExtensions.Count = %d\n", TActionExtensions.Count());
+    std::fprintf(fp, "TEventExtensions.Count = %d\n", TEventExtensions.Count());
     std::fprintf(fp, "WeaponTypeExtensions.Count = %d\n", WeaponTypeExtensions.Count());
     std::fprintf(fp, "WarheadTypeExtensions.Count = %d\n", WarheadTypeExtensions.Count());
     //std::fprintf(fp, "WaypointExtensions.Count = %d\n", WaypointExtensions.Count());                                  // Not yet implemented
@@ -1446,9 +1502,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             //const char *a = HouseTypes[housep->HeapID]->Name();
             //const char *b = housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>";
             std::fprintf(fp, "%s: IsHuman:%d  Color:%s  HeapID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
-                housep->IniName,
+                housep->IniName.c_str(),
                 housep->IsHuman,
-                ColorSchemes[housep->RemapColor]->Name,
+                ColorSchemes[housep->Scheme]->Name,
                 housep->HeapID,
                 housep->Credits,
                 housep->Power,
@@ -1456,7 +1512,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                 housep->Class->Name(),
                 housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>");
             Add_CRC(&GameCRC, (int)housep->Credits + (int)housep->Power + (int)housep->Drain);
-            EXT_DEBUG_INFO("House %s:%x\n", housep->Class->Name(), GameCRC);
         }
     }
     std::fprintf(fp, "\n");
@@ -1468,17 +1523,17 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
             for (int index = 0; index < Infantry.Count(); ++index) {
                 InfantryClass *ptr = Infantry[index];
                 if (ptr->Owner() == house) {
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);
+                    Coord tarcom_coord = Coord(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord = Coordinate(0, 0, 0);
+                    Coord navcom_coord = Coord(0, 0, 0);
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1502,7 +1557,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Print_Path(fp, ptr);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<InfantryClassExtension>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1514,17 +1568,17 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
             for (int index = 0; index < Units.Count(); ++index) {
                 UnitClass *ptr = Units[index];
                 if (ptr->Owner() == house) {
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);
+                    Coord tarcom_coord = Coord(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord = Coordinate(0, 0, 0);
+                    Coord navcom_coord = Coord(0, 0, 0);
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1547,7 +1601,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Print_Path(fp, ptr);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<UnitClass>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1559,14 +1612,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
             for (int index = 0; index < Buildings.Count(); ++index) {
                 BuildingClass *ptr = Buildings[index];
                 if (ptr->Owner() == house) {
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);;
+                    Coord tarcom_coord = Coord(0, 0, 0);;
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1580,7 +1633,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1592,17 +1644,17 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
             for (int index = 0; index < Aircrafts.Count(); ++index) {
                 AircraftClass *ptr = Aircrafts[index];
                 if (ptr->Owner() == house) {
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);;
+                    Coord tarcom_coord = Coord(0, 0, 0);;
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord = Coordinate(0, 0, 0);;
+                    Coord navcom_coord = Coord(0, 0, 0);;
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1624,7 +1676,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Print_Path(fp, ptr);
                 }
             }
-            EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str(), GameCRC);
         }
         std::fprintf(fp, "\n");
     }
@@ -1636,7 +1687,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Bullets.Count(); ++index) {
         BulletClass *bullet = Bullets[index];
 
-        const char *bullet_name = bullet->Class_Of()->IniName;
+        const char *bullet_name = bullet->Class_Of()->IniName.c_str();
 
         const char* payback = "None";
         const char* payback_owner = "None";
@@ -1645,7 +1696,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         if (bullet->Payback) {
             payback = bullet->Payback->Full_Name();
 
-            payback_owner = bullet->Payback->Owner_HouseClass()->IniName;
+            payback_owner = bullet->Payback->Owner_HouseClass()->IniName.c_str();
             owner_id = bullet->Payback->Owner();
         }
 
@@ -1663,7 +1714,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Anims.Count(); ++index) {
         AnimClass *animp = Anims[index];
         const char *xobject_name = "None";
-        Coordinate xobject_coord = Coordinate(0, 0, 0);;
+        Coord xobject_coord = Coord(0, 0, 0);;
 
         if (animp->xObject) {
             xobject_name = Name_From_RTTI(animp->xObject->RTTI);
@@ -1690,7 +1741,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         for (int index = 0; index < Map.Layer[layer].Count(); ++index) {
             ObjectClass *objp = Map.Layer[layer][index];
             Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
-            std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
+            std::fprintf(fp, "Object %d: %s ", index, objp->Position.As_String());
             switch (objp->RTTI) {
                 case RTTI_AIRCRAFT:
                     std::fprintf(fp, "Aircraft  (Type: %s (%d)) ", objp->Name(), Aircrafts.ID(static_cast<AircraftClass*>(objp)));
@@ -1723,12 +1774,12 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     std::fprintf(fp, "Particle  (Type: %s (%d)) ", objp->Name(), Particles.ID(static_cast<ParticleClass*>(objp)));
                     break;
                 default:
-                    std::fprintf(fp, "Other     (Type: %s (%d)) (RTTI: %d) ", objp->Name(), objp->Fetch_Heap_ID(), objp->RTTI);
+                    std::fprintf(fp, "Other     (Type: (%d)) (RTTI: %d) ", objp->Fetch_Heap_ID(), objp->RTTI);
                     break;
             };
             HouseClass *housep = objp->Owner_HouseClass();
             if (housep) {
-                std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
+                std::fprintf(fp, "Owner: %s\n", housep->Class->IniName.c_str());
             } else {
                 std::fprintf(fp, "Owner: NONE\n");
             }
@@ -1736,7 +1787,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         std::fprintf(fp, "\n");
     }
     std::fprintf(fp, "\n");
-    EXT_DEBUG_INFO("Map Layers: %x\n", GameCRC);
 
     /**
      *  Logic Layers
@@ -1746,7 +1796,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Logic.Count(); ++index) {
         ObjectClass *objp = Logic[index];
         Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
-        std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
+        std::fprintf(fp, "Object %d: %s ", index, objp->Position.As_String());
         switch (objp->RTTI) {
             case RTTI_AIRCRAFT:
                 std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
@@ -1781,22 +1831,19 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         };
         HouseClass *housep = objp->Owner_HouseClass();
         if (housep) {
-            std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
+            std::fprintf(fp, "Owner: %s\n", housep->Class->IniName.c_str());
         } else {
             std::fprintf(fp, "Owner: NONE\n");
         }
     }
     std::fprintf(fp, "\n");
-    EXT_DEBUG_INFO("Logic: %x\n", GameCRC);
 
     /**
      *  Random # generator, frame #.
      */
     std::fprintf(fp, "\nRandom Number:%x\n", Scen->RandomNumber());
-    EXT_DEBUG_INFO("Random Number: %x\n", Scen->RandomNumber());
 
     std::fprintf(fp, "My Frame:%d\n", Frame);
-    EXT_DEBUG_INFO("My Frame: %d\n", Frame);
 
     if (ev) {
         std::fprintf(fp, "\n");
@@ -1812,17 +1859,24 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
     /**
      *  Event queues.
-     *  Rampastring: printing these causes a crash atm
      */
-#if 0
     std::fprintf(fp, "-------------------- DoList Events -------------------\n");
-    Print_Event_List(fp, DoList);
+    Print_Event_History(fp, DoList, 4096);
     std::fprintf(fp, "\n");
 
     std::fprintf(fp, "-------------------- OutList Events -------------------\n");
-    Print_Event_List(fp, OutList);
+    Print_Event_History(fp, OutList, 64);
     std::fprintf(fp, "\n");
-#endif
+
+    /**
+     *  Recent gameplay state change histories (random number draws, facing
+     *  changes, target assignments, mission overrides, animation creations).
+     *
+     *  Note that writing this log itself draws from the scenario random
+     *  number generator (Scen->RandomNumber() above), so the newest entries
+     *  in the RNG section are self-inflicted by the logging.
+     */
+    SyncRecorder::Print_All(fp);
 
     /**
      *  Print heap CRC's.
@@ -1873,8 +1927,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     Print_Heap_CRC_Lists(fp, Tiberiums);
     Print_Heap_CRC_Lists(fp, TActions);
     Print_Heap_CRC_Lists(fp, TEvents);
-    Print_Heap_CRC_Lists(fp, WeaponTypes);
-    Print_Heap_CRC_Lists(fp, WarheadTypes);
+    Print_Heap_CRC_Lists(fp, Weapons);
+    Print_Heap_CRC_Lists(fp, Warheads);
     Print_Heap_CRC_Lists(fp, WaypointPaths);
     Print_Heap_CRC_Lists(fp, Tubes);
     Print_Heap_CRC_Lists(fp, LightSources);
@@ -1920,8 +1974,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     Print_Heap_CRC_Lists(fp, SmudgeTypeExtensions);
     Print_Heap_CRC_Lists(fp, SuperWeaponTypeExtensions);
     //Print_Heap_CRC_Lists(fp, TaskForceExtensions);                            // Not yet implemented
-    //Print_Heap_CRC_Lists(fp, TeamExtensions);                                 // Not yet implemented
-    //Print_Heap_CRC_Lists(fp, TeamTypeExtensions);                             // Not yet implemented
+    Print_Heap_CRC_Lists(fp, TeamExtensions);
+    Print_Heap_CRC_Lists(fp, TeamTypeExtensions);
     Print_Heap_CRC_Lists(fp, TerrainExtensions);
     Print_Heap_CRC_Lists(fp, TerrainTypeExtensions);
     //Print_Heap_CRC_Lists(fp, TriggerExtensions);                              // Not yet implemented
@@ -1933,8 +1987,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //Print_Heap_CRC_Lists(fp, TagExtensions);                                  // Not yet implemented
     //Print_Heap_CRC_Lists(fp, TagTypeExtensions);                              // Not yet implemented
     Print_Heap_CRC_Lists(fp, TiberiumExtensions);
-    //Print_Heap_CRC_Lists(fp, TActionExtensions);                              // Not yet implemented
-    //Print_Heap_CRC_Lists(fp, TEventExtensions);                               // Not yet implemented
+    Print_Heap_CRC_Lists(fp, TActionExtensions);
+    Print_Heap_CRC_Lists(fp, TEventExtensions);
     Print_Heap_CRC_Lists(fp, WeaponTypeExtensions);
     Print_Heap_CRC_Lists(fp, WarheadTypeExtensions);
     //Print_Heap_CRC_Lists(fp, WaypointExtensions);                             // Not yet implemented
@@ -1953,90 +2007,6 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 }
 
 
-/**
- *  Detaches this object from all active extension classes.
- * 
- *  @author: CCHyper
- */
-void Extension::Detach_This_From_All(AbstractClass * target, bool all)
-{
-    //DEV_DEBUG_INFO("Extension::Detach_This_From_All(enter)\n");
-
-    /**
-     *  #NOTE: AnimClass and IsoTileTypeClass detach calls are disabled because they currently do nothing but take up a lot of performance.
-     */
-
-    /**
-     *  #NOTE: The order of these calls must match the relevant RTTIType order!
-     */
-    Extension_Detach_This_From_All(UnitExtensions, target, all);
-    Extension_Detach_This_From_All(AircraftExtensions, target, all);
-    Extension_Detach_This_From_All(AircraftTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(AnimExtensions, target, all);
-    Extension_Detach_This_From_All(AnimTypeExtensions, target, all);
-    Extension_Detach_This_From_All(BuildingExtensions, target, all);
-    Extension_Detach_This_From_All(BuildingTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(BulletExtensions, target, all);            // Not yet implemented
-    Extension_Detach_This_From_All(BulletTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(CampaignExtensions, target, all);          // Does not need to be processed.
-    //Extension_Detach_This_From_All(CellExtensions, target, all);              // Not yet implemented
-    Extension_Detach_This_From_All(FactoryExtensions, target, all);
-    Extension_Detach_This_From_All(HouseExtensions, target, all);
-    Extension_Detach_This_From_All(HouseTypeExtensions, target, all);
-    Extension_Detach_This_From_All(InfantryExtensions, target, all);
-    Extension_Detach_This_From_All(InfantryTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(IsometricTileExtensions, target, all);     // Not yet implemented
-    //Extension_Detach_This_From_All(IsometricTileTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(BuildingLightExtensions, target, all);     // Not yet implemented
-    Extension_Detach_This_From_All(OverlayExtensions, target, all);
-    Extension_Detach_This_From_All(OverlayTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(ParticleExtensions, target, all);          // Not yet implemented
-    Extension_Detach_This_From_All(ParticleTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(ParticleSystemExtensions, target, all);    // Not yet implemented
-    Extension_Detach_This_From_All(ParticleSystemTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(ScriptExtensions, target, all);            // Not yet implemented
-    //Extension_Detach_This_From_All(ScriptTypeExtensions, target, all);        // Not yet implemented
-    Extension_Detach_This_From_All(SideExtensions, target, all);
-    Extension_Detach_This_From_All(SmudgeExtensions, target, all);
-    Extension_Detach_This_From_All(SmudgeTypeExtensions, target, all);
-    Extension_Detach_This_From_All(SuperWeaponTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(TaskForceExtensions, target, all);         // Not yet implemented
-    //Extension_Detach_This_From_All(TeamExtensions, target, all);              // Not yet implemented
-    //Extension_Detach_This_From_All(TeamTypeExtensions, target, all);          // Not yet implemented
-    Extension_Detach_This_From_All(TerrainExtensions, target, all);
-    Extension_Detach_This_From_All(TerrainTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(TriggerExtensions, target, all);           // Not yet implemented
-    //Extension_Detach_This_From_All(TriggerTypeExtensions, target, all);       // Not yet implemented
-    Extension_Detach_This_From_All(UnitTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(VoxelAnimExtensions, target, all);         // Not yet implemented
-    Extension_Detach_This_From_All(VoxelAnimTypeExtensions, target, all);
-    Extension_Detach_This_From_All(WaveExtensions, target, all);
-    //Extension_Detach_This_From_All(TagExtensions, target, all);               // Not yet implemented
-    //Extension_Detach_This_From_All(TagTypeExtensions, target, all);           // Not yet implemented
-    Extension_Detach_This_From_All(TiberiumExtensions, target, all);
-    //Extension_Detach_This_From_All(TActionExtensions, target, all);           // Not yet implemented
-    //Extension_Detach_This_From_All(TEventExtensions, target, all);            // Not yet implemented
-    Extension_Detach_This_From_All(WeaponTypeExtensions, target, all);
-    Extension_Detach_This_From_All(WarheadTypeExtensions, target, all);
-    //Extension_Detach_This_From_All(WaypointExtensions, target, all);          // Not yet implemented
-    //Extension_Detach_This_From_All(TubeExtensions, target, all);              // Not yet implemented
-    //Extension_Detach_This_From_All(LightSourceExtensions, target, all);       // Not yet implemented
-    //Extension_Detach_This_From_All(EMPulseExtensions, target, all);           // Not yet implemented
-    Extension_Detach_This_From_All(SuperExtensions, target, all);
-    //Extension_Detach_This_From_All(AITriggerExtensions, target, all);         // Not yet implemented
-    //Extension_Detach_This_From_All(AITriggerTypeExtensions, target, all);     // Not yet implemented
-    //Extension_Detach_This_From_All(NeuronExtensions, target, all);            // Not yet implemented
-    //Extension_Detach_This_From_All(FoggedObjectExtensions, target, all);      // Not yet implemented
-    //Extension_Detach_This_From_All(AlphaShapeExtensions, target, all);        // Not yet implemented
-    //Extension_Detach_This_From_All(VeinholeMonsterExtensions, target, all);   // Not yet implemented
-
-    TacticalMapExtension->Detach(target, all);
-    RuleExtension->Detach(target, all);
-    ScenExtension->Detach(target, all);
-    SessionExtension->Detach(target, all);
-
-    //DEV_DEBUG_INFO("Extension::Detach_This_From_All(exit)\n");
-}
 
 
 /**
@@ -2103,8 +2073,8 @@ unsigned Extension::Get_Save_Version_Number()
     //version += sizeof(TagClassExtension);                                     // Not yet implemented
     //version += sizeof(TagTypeClassExtension);                                 // Not yet implemented
     version += sizeof(TiberiumClassExtension);
-    //version += sizeof(TActionClassExtension);                                 // Not yet implemented
-    //version += sizeof(TEventClassExtension);                                  // Not yet implemented
+    version += sizeof(TActionClassExtension);                                 // Not yet implemented
+    version += sizeof(TEventClassExtension);
     version += sizeof(WeaponTypeClassExtension);
     version += sizeof(WarheadTypeClassExtension);
     //version += sizeof(WaypointClassExtension);                                // Not yet implemented
@@ -2125,13 +2095,11 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(TacticalExtension);                                       // We ignore the fact that Tactical is an abstract derived class, as we treat the extension as a global.
     version += sizeof(RulesClassExtension);
     version += sizeof(ScenarioClassExtension);
-    version += sizeof(SidebarClassExtension);
     version += sizeof(SessionClassExtension);
 
     /**
      *  All other classes.
      */
-    version += sizeof(ThemeControlExtension);
     version += sizeof(ArmorTypeClass);
     version += sizeof(RocketTypeClass);
     version += sizeof(SpawnManagerClass);

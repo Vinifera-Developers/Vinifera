@@ -1,98 +1,91 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended hotkey command class.
  *
- *  @project       Vinifera
- *
- *  @file          COMMANDEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended hotkey command class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "commandext.h"
-#include "tibsun_globals.h"
-#include "tibsun_util.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "iomap.h"
-#include "tactical.h"
-#include "tacticalext.h"
-#include "theme.h"
-#include "dsurface.h"
-#include "wwmouse.h"
-#include "rules.h"
-#include "house.h"
-#include "housetype.h"
-#include "base.h"
-#include "super.h"
-#include "factory.h"
-#include "anim.h"
-#include "animtype.h"
-#include "voxelanim.h"
-#include "voxelanimtype.h"
-#include "unit.h"
-#include "unittype.h"
-#include "infantry.h"
-#include "infantrytype.h"
-#include "building.h"
-#include "buildingtype.h"
+
 #include "aircraft.h"
 #include "aircrafttype.h"
-#include "weapontype.h"
-#include "warheadtype.h"
-#include "session.h"
-#include "ionstorm.h"
-#include "ionblast.h"
-#include "tiberium.h"
+#include "anim.h"
+#include "animtype.h"
+#include "armortype.h"
+#include "asserthandler.h"
+#include "audio_theme.h"
+#include "base.h"
+#include "battleui.h"
+#include "beacon.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "bullettype.h"
 #include "combat.h"
-#include "scenarioini.h"
+#include "debug_overlay.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "event.h"
+#include "eventext.h"
+#include "extension.h"
+#include "factory.h"
+#include "fatal.h"
+#include "filepng.h"
+#include "house.h"
+#include "houseext.h"
+#include "housetype.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "ionblast.h"
+#include "ionstorm.h"
+#include "language.h"
+#include "minidump.h"
+#include "miscutil.h"
+#include "mouse.h"
+#include "overlaytype.h"
+#include "particlesystype.h"
+#include "particletype.h"
+#include "queue.h"
+#include "rockettype.h"
+#include "rules.h"
 #include "scenario.h"
-#include "sidebarext.h"
+#include "scenario_overlay.h"
+#include "scenarioext.h"
+#include "session.h"
+#include "sidebar_tabbed_view.h"
+#include "smudgetype.h"
+#include "super.h"
+#include "tactical.h"
+#include "tacticalext.h"
 #include "tag.h"
 #include "tagtype.h"
+#include "technotypeext.h"
 #include "terraintype.h"
+#include "theme.h"
+#include "tiberium.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
+#include "tibsun_util.h"
 #include "trigger.h"
 #include "triggertype.h"
-#include "smudgetype.h"
-#include "overlaytype.h"
-#include "armortype.h"
+#include "unit.h"
+#include "unittype.h"
+#include "vinifera_globals.h"
+#include "voxelanim.h"
 #include "voxelanimtype.h"
-#include "particletype.h"
-#include "particlesystype.h"
-#include "rockettype.h"
-#include "vox.h"
-#include "event.h"
-#include "queue.h"
-#include "language.h"
-#include "wwcrc.h"
-#include "filepcx.h"
-#include "filepng.h"
-#include "extension.h"
-#include "fatal.h"
-#include "minidump.h"
+#include "warheadtype.h"
+#include "waypointpath.h"
+#include "weapontype.h"
 #include "winutil.h"
-#include "miscutil.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "bullettype.h"
-#include "eventext.h"
-#include "houseext.h"
+#include "wwcrc.h"
+#include "wwmouse.h"
+
+#include "mapext_hooks.h"
+#include <algorithm>
+#include <map>
 
 
 /**
@@ -103,7 +96,7 @@
 
 /**
  *  Skips to the previous available music track allowed.
- * 
+ *
  *  @author: CCHyper
  */
 static bool Prev_Theme_Command()
@@ -132,7 +125,7 @@ static bool Prev_Theme_Command()
      *  Queue the track for playback. We need to stop the track first
      *  otherwise Queue_Song() will fade the track out.
      */
-    Theme.Stop();
+    Theme.Stop(false);
     Theme.Queue_Song(theme);
 
     /**
@@ -141,7 +134,7 @@ static bool Prev_Theme_Command()
     TacticalMapExtension->InfoTextTimer.Stop();
 
     char buffer[256];
-    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.Full_Name(theme));
 
     TacticalMapExtension->Set_Info_Text(buffer);
     TacticalMapExtension->IsInfoTextSet = true;
@@ -198,7 +191,7 @@ static bool Next_Theme_Command()
     TacticalMapExtension->InfoTextTimer.Stop();
 
     char buffer[256];
-    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.Full_Name(theme));
 
     TacticalMapExtension->Set_Info_Text(buffer);
     TacticalMapExtension->IsInfoTextSet = true;
@@ -277,18 +270,18 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  We don't want the mouse to appear in screenshots!
      */
-    WWMouse->Hide_Mouse();
+    Hide_Mouse();
 
     /**
      *  Blit primary surface to the hidden.
      */
-    bool blit = HiddenSurface->Copy_From(dest, *PrimarySurface, src);
+    bool blit = HiddenSurface->Blit_From(dest, *VisibleSurface, src);
     ASSERT(blit);
 
     /**
      *  Now show the mouse again.
      */
-    WWMouse->Show_Mouse();
+    Show_Mouse();
 
     char buffer[256];
 
@@ -324,7 +317,7 @@ bool PNGScreenCaptureCommandClass::Process()
      *  @author: CCHyper
      */
     char fullpath_buffer[PATH_MAX];
-    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory, buffer);
+    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory.c_str(), buffer);
 
     /**
      *  We found a free filename, now write the buffer to a PNG file.
@@ -332,12 +325,152 @@ bool PNGScreenCaptureCommandClass::Process()
     bool success = Write_PNG_File(&RawFileClass(fullpath_buffer), *HiddenSurface, &GamePalette);
 
     if (success) {
-        DEBUG_INFO("PNG screenshot \"%s\" written sucessfully.\n", buffer);
+        DEBUG_INFO("PNG screenshot \"{}\" written sucessfully.\n", buffer);
     } else {
-        DEBUG_ERROR("Failed to write PNG screenshot \"%s\"!\n", buffer);
+        DEBUG_ERROR("Failed to write PNG screenshot \"{}\"!\n", buffer);
     }
 
     return success;
+}
+
+
+/**
+ *  Replacement for DeleteWaypointCommandClass.
+ *
+ *  @author: ZivDero
+ */
+const char* DeleteCommandClass::Get_Name() const
+{
+    return "DeleteWaypoint"; // kept as DeleteWaypoint to preserve keyboard.ini compatibility
+}
+
+const char* DeleteCommandClass::Get_UI_Name() const
+{
+    return "Delete";
+}
+
+const char* DeleteCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* DeleteCommandClass::Get_Description() const
+{
+    return "Deletes the selected waypoint or beacon.";
+}
+
+bool DeleteCommandClass::Process()
+{
+    if (Map.DraggedWaypoint) {
+        char waypoint_number;
+        PathType path_type = PATH_NONE;
+        PlayerPtr->Fetch_Waypoint_Data(Map.DraggedWaypoint, path_type, waypoint_number);
+        PlayerPtr->Ensure_Path(path_type);
+        PlayerPtr->Paths[path_type]->Delete_Waypoint(waypoint_number);
+        Map.DraggedWaypoint = nullptr;
+
+        for (int i = Foots.Count() - 1; i >= 0; i--) {
+            FootClass* foot = Foots[i];
+            if (foot->House == PlayerPtr && foot->CurrentPath == path_type && foot->NextWaypoint > waypoint_number) {
+                foot->NextWaypoint--;
+            }
+        }
+
+        Show_Mouse();
+    }
+
+    BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
+
+    return true;
+}
+
+
+/**
+ *  Replacement for SelectSameTypeCommandClass.
+ *
+ *  @author: JoyfulShush
+ */
+const char* SelectSameTypeImprovedCommandClass::Get_Name() const
+{
+    return "SelectType";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_UI_Name() const
+{
+    return "Select Same Type";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* SelectSameTypeImprovedCommandClass::Get_Description() const
+{
+    return "Selects all units of the same type as currently selected.";
+}
+
+/*
+ *  Improves the Select Same Type command in the following ways:
+ *  1. No longer deselects units that are out of the screen when running the command.
+ *  2. Rather than calling 'TacticalMap->Select_These' for each type, runs it once for all types.
+ *  3. When processed twice in a small amount of time, selects the units of those types in the entire map rather than just the current tactical view.
+ *  4. Ignores selected technos that do not belong to the player.
+ * 
+ *  @author: JoyfulShush
+ */
+bool SelectSameTypeImprovedCommandClass::Process()
+{   
+    SelectionTypes.clear();
+    DWORD current_time = timeGetTime();
+    DWORD previous_execution_time = LastExecutionTime;
+
+    LastExecutionTime = current_time;
+    
+    for (int i = 0; i < CurrentObjects.Count(); i++) {
+        auto current_object = CurrentObjects[i];
+        auto techno_class = current_object->Techno_Type_Class();
+
+        if (current_object->Is_Techno() && !current_object->As_Techno()->House->Is_Player_Control()) {
+            continue;
+        }
+
+        if (!SelectionTypes.contains(techno_class))  {
+            SelectionTypes.insert(techno_class);
+        }
+    }
+
+    if (SelectionTypes.size() > 0) {
+        if (previous_execution_time != 0 && current_time - previous_execution_time < 500) {
+            Map_Select_These(Process_Callback);
+        } else {
+            TacticalMap->Select_These(TacticalRect, Process_Callback);
+        }
+    }
+
+    return true;
+}
+
+
+/*
+ *  For each object being checked by the game, decide if the techno should be selected when running the Select Same Type command.
+ *
+ *  @author: JoyfulShush
+ */
+void SelectSameTypeImprovedCommandClass::Process_Callback(ObjectClass* object_ptr) 
+{
+    if (object_ptr == nullptr) return;
+    if (!object_ptr->Is_Techno()) return;
+    if (!object_ptr->IsDown) return;
+    
+    auto techno = object_ptr->As_Techno();
+    auto techno_class = techno->Techno_Type_Class();
+
+    if (techno->IsSelected) return;
+    if (!SelectionTypes.contains(techno_class)) return;
+    if (!techno->House->Is_Player_Control()) return;
+
+    techno->Select();
 }
 
 
@@ -485,7 +618,7 @@ bool RepeatLastBuildingCommandClass::Process()
         return false;
     }
 
-    const BuildingTypeClass *buildingtype = BuildingTypeClass::As_Pointer(building);
+    const BuildingTypeClass *buildingtype = BuildingTypes[building];
     if (!buildingtype) {
         return false;
     }
@@ -493,11 +626,11 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
         return false;
     }
 
-    DEBUG_INFO("RepeatLastBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
+    DEBUG_INFO("RepeatLastBuildingCommandClass - \"{}\"\n", buildingtype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building, TechnoTypeClassExtension::Get_Production_Flags(RTTI_BUILDINGTYPE, building)).As_Event());
 
@@ -555,7 +688,7 @@ bool RepeatLastInfantryCommandClass::Process()
         return false;
     }
 
-    const InfantryTypeClass *infantrytype = InfantryTypeClass::As_Pointer(infantry);
+    const InfantryTypeClass *infantrytype = InfantryTypes[infantry];
     if (!infantrytype) {
         return false;
     }
@@ -563,11 +696,11 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
         return false;
     }
 
-    DEBUG_INFO("RepeatLastInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
+    DEBUG_INFO("RepeatLastInfantryCommandClass - \"{}\"\n", infantrytype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry, TechnoTypeClassExtension::Get_Production_Flags(RTTI_INFANTRYTYPE, infantry)).As_Event());
 
@@ -625,7 +758,7 @@ bool RepeatLastUnitCommandClass::Process()
         return false;
     }
 
-    const UnitTypeClass *unittype = UnitTypeClass::As_Pointer(unit);
+    const UnitTypeClass *unittype = UnitTypes[unit];
     if (!unittype) {
         return false;
     }
@@ -633,11 +766,11 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
         return false;
     }
 
-    DEBUG_INFO("RepeatLastUnitCommandClass - \"%s\"\n", unittype->Full_Name());
+    DEBUG_INFO("RepeatLastUnitCommandClass - \"{}\"\n", unittype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_UNITTYPE, unit, TechnoTypeClassExtension::Get_Production_Flags(RTTI_UNITTYPE, unit)).As_Event());
 
@@ -695,7 +828,7 @@ bool RepeatLastAircraftCommandClass::Process()
         return false;
     }
 
-    const AircraftTypeClass *aircrafttype = AircraftTypeClass::As_Pointer(aircraft);
+    const AircraftTypeClass *aircrafttype = AircraftTypes[aircraft];
     if (!aircrafttype) {
         return false;
     }
@@ -703,11 +836,11 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+    if (!BattleUI.Get_Sidebar().Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
         return false;
     }
 
-    DEBUG_INFO("RepeatLastAircraftCommandClass - \"%s\"\n", aircrafttype->Full_Name());
+    DEBUG_INFO("RepeatLastAircraftCommandClass - \"{}\"\n", aircrafttype->Full_Name());
 
     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft, TechnoTypeClassExtension::Get_Production_Flags(RTTI_AIRCRAFTTYPE, aircraft)).As_Event());
 
@@ -951,7 +1084,7 @@ bool JumpCameraWestCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_W, dist);
 
@@ -989,7 +1122,7 @@ bool JumpCameraEastCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_E, dist);
 
@@ -1027,7 +1160,7 @@ bool JumpCameraNorthCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_N, dist);
 
@@ -1065,7 +1198,7 @@ bool JumpCameraSouthCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_S, dist);
 
@@ -1137,8 +1270,8 @@ const char* SetStructureTabCommandClass::Get_Description() const
 
 bool SetStructureTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
-    bool result = SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_STRUCTURE;
+    bool result = BattleUI.Get_Sidebar().Change_Tab(newtab);
 
     /**
      *  Enter the manual placement mode when a building is complete
@@ -1227,8 +1360,8 @@ const char* SetInfantryTabCommandClass::Get_Description() const
 
 bool SetInfantryTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_INFANTRY;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_INFANTRY;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1259,8 +1392,8 @@ const char* SetUnitTabCommandClass::Get_Description() const
 
 bool SetUnitTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_UNIT;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_UNIT;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1291,8 +1424,8 @@ const char* SetSpecialTabCommandClass::Get_Description() const
 
 bool SetSpecialTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_SPECIAL;
-    return SidebarExtension->Change_Tab(newtab);
+    const TabbedSidebarView::SidebarTabType newtab = TabbedSidebarView::SIDEBAR_TAB_SPECIAL;
+    return BattleUI.Get_Sidebar().Change_Tab(newtab);
 }
 
 
@@ -1367,7 +1500,7 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
 /**
  *  Handy macro for defining the logging the heaps CRCs.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, Rampastring
  */
 #define LOG_CRC(class_name, heap_name) \
     { \
@@ -1380,9 +1513,14 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
                     ptr->Object_CRC(crc); \
-                    DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value()); \
+                    if (ptr->RTTI == RTTI_INFANTRY || ptr->RTTI == RTTI_UNIT || ptr->RTTI == RTTI_BUILDING || ptr->RTTI == RTTI_AIRCRAFT) {                                                                                                                                                                    \
+                        TechnoClass* techno = (TechnoClass*)ptr;                                                                                                                                                                                                                                               \
+                        DEBUG_INFO("  {:04}\tName: {}\tCRC: 0x{:08X}\tOwner: {} ({}) (Class: {})\tCoord: {},{},{}\n", i, ptr->Name(), crc.CRC_Value(), techno->House->IniName, (int)techno->House->HeapID, techno->House->Class->IniName, techno->Position.X, techno->Position.Y, techno->Position.Z); \
+                    } else {                                                                                                                                                                                                                                                                                   \
+                        DEBUG_INFO("  {:04}\tName: {}\tCRC: 0x{:08X}\n", i, ptr->Name(), crc.CRC_Value());                                                                                                                                                                                                        \
+                    } \
                 } else { \
-                    DEBUG_INFO("  %04d\tFAILED!\n", i); \
+                    DEBUG_INFO("  {:04}\tFAILED!\n", i); \
                 } \
             } \
         } \
@@ -1407,8 +1545,8 @@ bool DumpHeapCRCCommandClass::Process()
     LOG_CRC(BuildingTypeClass, BuildingTypes);
     LOG_CRC(AircraftTypeClass, AircraftTypes);
 
-    LOG_CRC(WeaponTypeClass, WeaponTypes);
-    LOG_CRC(WarheadTypeClass, WarheadTypes);
+    LOG_CRC(WeaponTypeClass, Weapons);
+    LOG_CRC(WarheadTypeClass, Warheads);
 
     /**
      *  Color Schemes.
@@ -1422,9 +1560,9 @@ bool DumpHeapCRCCommandClass::Process()
             for (unsigned i = 0; i < ColorSchemes.Count(); ++i) {
                 ColorScheme *ptr = ColorSchemes[i];
                 if (ptr != nullptr) {
-                    DEBUG_INFO("  %04d\tName: %s\tfield_310: %d\n", i, ptr->Name, ptr->field_310);
+                    DEBUG_INFO("  {:04}\tName: {}\tfield_310: {}\n", i, ptr->Name, ptr->field_310);
                 } else {
-                    DEBUG_INFO("  %04d\tFAILED!\n", i);
+                    DEBUG_INFO("  {:04}\tFAILED!\n", i);
                 }
             }
         }
@@ -1470,18 +1608,18 @@ bool DumpTriggersCommandClass::Process()
     {
         TriggerClass* trigger = Triggers[i];
 
-        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->FullName);
-        DEBUG_INFO("    IsDestroyed: %d\n", trigger->IsDestroyed);
-        DEBUG_INFO("    IsTripped: %d\n", trigger->IsTripped);
-        DEBUG_INFO("    IsEnabled: %d\n", trigger->IsEnabled);
+        DEBUG_INFO("Trigger {}: {}\n", i, trigger->Class->GivenName);
+        DEBUG_INFO("    IsToDie: {}\n", trigger->IsToDie);
+        DEBUG_INFO("    TrippedFlags: {}\n", trigger->TrippedFlags);
+        DEBUG_INFO("    IsActive: {}\n", trigger->IsActive);
 
-        while (trigger->Next != nullptr) {
-            trigger = trigger->Next;
+        while (trigger->LinkedTo != nullptr) {
+            trigger = trigger->LinkedTo;
 
-            DEBUG_INFO("    Next: %s\n", trigger->Class->FullName);
-            DEBUG_INFO("        IsDestroyed: %d\n", trigger->IsDestroyed);
-            DEBUG_INFO("        IsTripped: %d\n", trigger->IsTripped);
-            DEBUG_INFO("        IsEnabled: %d\n", trigger->IsEnabled);
+            DEBUG_INFO("    LinkedTo: {}\n", trigger->Class->GivenName);
+            DEBUG_INFO("        IsToDie: {}\n", trigger->IsToDie);
+            DEBUG_INFO("        TrippedFlags: {}\n", trigger->TrippedFlags);
+            DEBUG_INFO("        IsActive: {}\n", trigger->IsActive);
         }
     }
 
@@ -1491,18 +1629,18 @@ bool DumpTriggersCommandClass::Process()
     {
         TagClass* tag = Tags[i];
 
-        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->FullName);
-        DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
-        DEBUG_INFO("    Location: %d,%d\n", tag->Location.X, tag->Location.Y);
-        DEBUG_INFO("    IsDestroyed: %d\n", tag->IsDestroyed);
-        DEBUG_INFO("    IsSprung: %d\n", tag->IsSprung);
+        DEBUG_INFO("Tag {}: {}\n", i, tag->Class->GivenName);
+        DEBUG_INFO("    AttachCount: {}\n", tag->AttachCount);
+        DEBUG_INFO("    CellID: {},{}\n", tag->CellID.X, tag->CellID.Y);
+        DEBUG_INFO("    IsToDie: {}\n", tag->IsToDie);
+        DEBUG_INFO("    IsSprung: {}\n", tag->IsSprung);
     }
 
     DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
 
-    for (int i = 0; i < std::size(Scen->LocalFlags); i++)
+    for (int i = 0; i < std::size(ScenExtension->LocalFlags); i++)
     {
-        DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
+        DEBUG_INFO("LocalFlag {}: {}, value: {}\n", i, ScenExtension->LocalFlags[i].VariableName, ScenExtension->LocalFlags[i].Value);
     }
 
     DEBUG_INFO("\nFinished!\n\n");
@@ -1626,8 +1764,53 @@ bool ForceWinCommandClass::Process()
 
 
 /**
+ *  Forces the current multiplayer game to go out of sync, for testing the
+ *  desync dialog. Advancing the synchronized random number generator on a
+ *  single machine makes its game-state CRC diverge from everyone else's,
+ *  which all players detect as a desync within a frame or two.
+ *
+ *  @author: ZivDero
+ */
+const char *ForceDesyncCommandClass::Get_Name() const
+{
+    return "ForceDesync";
+}
+
+const char *ForceDesyncCommandClass::Get_UI_Name() const
+{
+    return "Force Desync";
+}
+
+const char *ForceDesyncCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ForceDesyncCommandClass::Get_Description() const
+{
+    return "Forces the current multiplayer game to go out of sync (for testing).";
+}
+
+bool ForceDesyncCommandClass::Process()
+{
+    if (Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Advance the synchronized RNG only on this machine, desyncing it from
+     *  the other players.
+     */
+    Scen->RandomNumber();
+
+    DEBUG_INFO("ForceDesync: advanced the synchronized RNG to force a desync.\n");
+    return true;
+}
+
+
+/**
  *  Forces the player to lose the current game session.
- * 
+ *
  *  @author: CCHyper
  */
 const char *ForceLoseCommandClass::Get_Name() const
@@ -1759,6 +1942,520 @@ bool CaptureObjectCommandClass::Process()
 
 
 /**
+ *  Promote selected units to higher veterancy level
+ *
+ *  @author: hacklex
+ */
+const char* VeterancyPromoteCommandClass::Get_Name() const
+{
+    return "PromoteSelected";
+}
+
+const char* VeterancyPromoteCommandClass::Get_UI_Name() const
+{
+    return "Promote Selected";
+}
+
+const char* VeterancyPromoteCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char* VeterancyPromoteCommandClass::Get_Description() const
+{
+    return "Promote selected units to higher veterancy level";
+}
+
+bool VeterancyPromoteCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass* object = CurrentObjects[i];
+        if (!object || !object->Is_Techno()) {
+            continue;
+        }
+        TechnoClass* techno = static_cast<TechnoClass*>(object);
+        if (techno->House->Is_Player_Control()) {
+            if (techno->Crew.IsRookie) {
+                techno->Crew.Set_Veteran(true);
+            } else if (techno->Crew.IsVeteran) {
+                techno->Crew.Set_Elite(true);
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ *  A shorter name for a list of TechnoClass pointers.
+ */
+using TechnoList = DynamicVectorClass<TechnoClass*>;
+
+std::map<Classify_Function, DynamicVectorClass<TechnoClass*>*> UnitFilterLastFullSelectionByClassifiers;
+
+/**
+ *  Checks if two lists are equal, meaning they contain the same TechnoClass pointers.
+ *  We expect that the lists are actually sets, so they should not contain duplicates.
+ */
+static bool Set_Equals(TechnoList& a, TechnoList& b)
+{
+    if (a.Count() != b.Count()) {
+        return false;
+    }
+    for (int i = 0; i < a.Count(); ++i) {
+        if (!a.Is_Present(b[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ *  Checks if the current set is equal to the union of two other sets.
+ */
+static bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, TechnoList& b)
+{
+    if (current.Count() != a.Count() + b.Count()) {
+        return false;
+    }
+    for (int i = 0; i < current.Count(); ++i) {
+        if (!a.Is_Present(current[i]) && !b.Is_Present(current[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ *  Classifies a TechnoClass object based on its veterancy level.
+ *  Returns:
+ *  - 0 for Elite
+ *  - 1 for Veteran
+ *  - 2 for Rookie
+ */
+static int Get_Veterancy_Level(TechnoClass* techno)
+{
+    if (techno->Crew.IsElite) {
+        return 0;
+    } else if (techno->Crew.IsVeteran) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+/**
+ *  Classifies a TechnoClass object based on its health level.
+ *  Returns:
+ *  - 0 for Red (low health)
+ *  - 1 for Yellow (medium health)
+ *  - 2 for Green (high health)
+ */
+static int Get_Health_Level(TechnoClass* techno) {
+    auto ratio = techno->Get_Health_Ratio();
+    if (Rule->ConditionRed >= ratio) {
+        return 0;
+    }
+    if (Rule->ConditionYellow >= ratio) {
+        return 1;
+    }
+    return 2;
+}
+
+/**
+ *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2.
+ */
+typedef int (*Classify_Function)(TechnoClass*);
+
+/**
+ *  Returns the tier other than the two specified.
+ */
+int Get_Other_Tier(int a, int b)
+{
+    // (0, 1) => 2, (0, 2) => 1, (1, 2) => 0
+    return ((a + b) * 2) % 3;
+}
+
+/**
+ *  Reclassifies the TechnoClass objects in the lists_by_tiers array based on the classify_function.
+ *  It moves objects from one tier to another based on the classification result.
+ *  Might be needed when the objects' properties change, such as health or veterancy.
+ */ 
+void Reclassify(const Classify_Function& classify_function, TechnoList* lists_by_tiers) {
+    for (int from_tier = 0; from_tier < 3; from_tier++) { 
+        for (int i = lists_by_tiers[from_tier].Count() - 1; i >= 0; i--) {
+            auto current_tier = classify_function(lists_by_tiers[from_tier][i]);
+            if (current_tier != from_tier) {
+                lists_by_tiers[current_tier].Add(lists_by_tiers[from_tier][i]);
+                lists_by_tiers[from_tier].Delete(i);
+            }
+        }
+    }
+}
+
+/**
+ *  Classifies the TechnoClass objects in the current_selection list into three tiers based on the classify_function.
+ *  The results are stored in the lists_by_tiers array, where each index corresponds to a tier.
+ *  We expect the array to have three elements, one for each tier.
+ */
+void Classify(const Classify_Function &classify_function, TechnoList &current_selection, TechnoList *lists_by_tiers)
+{
+    for (int i = 0; i < current_selection.Count(); ++i) {
+        int tier = classify_function(current_selection[i]);
+        if (tier >= 0 && tier < 3) {
+            lists_by_tiers[tier].Add(current_selection[i]);
+        }
+    }
+}
+
+/**
+ *  Performs the filtering of the selection based on the classification function.
+ *  If shift is pressed, the next tier will be added to the selection,
+ *  otherwise the selection will be replaced with the next tier.
+ */
+bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
+{    
+    /**
+     *  Each classify_function has its own last_full_selection and last_selection arrays.
+     */
+    if (UnitFilterLastFullSelectionByClassifiers.empty()) {
+        UnitFilterLastFullSelectionByClassifiers[Get_Veterancy_Level] = new TechnoList();
+        UnitFilterLastFullSelectionByClassifiers[Get_Health_Level] = new TechnoList();
+    }
+
+    /**
+     *  We fetch the last full selection for the given classify_function.
+     */
+    TechnoList& last_full_selection = *(UnitFilterLastFullSelectionByClassifiers[classify_function]);
+    TechnoList last_selection[3]; 
+
+    /**
+     *  Then we classify the last full selection into three tiers.
+     */
+    Classify(classify_function, last_full_selection, last_selection);
+    TechnoList current_selection[3];
+    TechnoList current_technos;
+    int best_selected_tier = 3;
+    int worst_selected_tier = -1;
+
+    /**
+     *  Collecting info about current selection,
+     *  splitting it into three tiers based on the value returned by classify_function.
+     */
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass* object = CurrentObjects[i];
+        if (!object || !object->Is_Techno() || !static_cast<TechnoClass*>(object)->House->Is_Player_Control()) {
+
+            /**
+             *  Skip non-techno objects and objects not owned by the player.
+             */
+            continue;
+        }
+        TechnoClass* techno = static_cast<TechnoClass*>(object);
+        current_technos.Add(techno);
+        int tier = classify_function(techno);
+        best_selected_tier = std::min(tier, best_selected_tier);
+        worst_selected_tier = std::max(tier, worst_selected_tier);
+        if (tier >= 0 && tier < 3) {
+            current_selection[tier].Add(techno);
+        }
+    }
+
+    if (!Set_Equals(current_technos, last_full_selection) && // current selection differs from the last full selection
+        !Set_Equals(current_technos, last_selection[0]) && // current selection is not exactly any of the tiers 
+        !Set_Equals(current_technos, last_selection[1]) && 
+        !Set_Equals(current_technos, last_selection[2]) &&
+        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[1]) && // and not a union of any two tiers
+        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[2]) &&
+        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[1], last_selection[2])) {
+
+        /**
+         *  We have a new selection that is not a subset of the last selection,
+         *  so we start a new filtering process.
+         */
+        if (is_shift_pressed || best_selected_tier == worst_selected_tier) {
+
+            /**
+             *  Shift only makes sense if we already have started filtering.
+             *  Can't add anything if we haven't filtered yet or the new selection is already of same rank.
+             */
+            return true;
+        }
+        last_full_selection.Clear();
+        last_selection[0].Clear();
+        last_selection[1].Clear();
+        last_selection[2].Clear();
+
+        /**
+         *  Fill the last_full_selection and last_selection arrays.
+         */
+        for (int i = 0; i < current_technos.Count(); ++i) {
+            last_full_selection.Add(current_technos[i]);
+            last_selection[classify_function(current_technos[i])].Add(current_technos[i]);
+        }
+
+        /**
+         *  Unselect all objects except the ones in the best tier among the current selection.
+         */
+        for (int i = best_selected_tier + 1; i < 3; ++i) {
+            for (int k = 0; k < current_selection[i].Count(); ++k) {
+                current_selection[i][k]->Unselect();
+            }
+        }
+
+        /**
+         *  Play the selection sound for the best tier.
+         */
+        if (best_selected_tier >= 0 && best_selected_tier < 3) {
+            for (int k = 0; k < current_selection[best_selected_tier].Count(); ++k) {
+                current_selection[best_selected_tier][k]->Response_Select();
+            }
+        }
+    } else {
+
+        /**
+         *  We're already filtering.
+         */
+        int next_tier = worst_selected_tier;
+        int loop_breaker = 3;
+        if (best_selected_tier != worst_selected_tier) {
+
+            /**
+             *  There are at least two tiers in the selection.
+             */
+            if (Set_Equals(current_technos, last_full_selection)) {
+
+                /**
+                 *  If the current selection is the same as the last full selection,
+                 *  we restrict the selection to the best tier.
+                 */
+                next_tier = best_selected_tier;
+            } else {
+
+                /**
+                 *  If the current selection is not the same as the last full selection,
+                 *  we find the tier not in the current selection.
+                 */
+                next_tier = Get_Other_Tier(best_selected_tier, worst_selected_tier);
+            }
+        } else {
+            do {
+                loop_breaker--;
+                next_tier = (next_tier + 1) % 3;
+
+                /**
+                 *  We loop through the tiers until we find a non-empty one.
+                 */
+            } while (last_selection[next_tier].Count() == 0 && loop_breaker > 0);
+        }
+        if (next_tier == -1) {
+
+            /**
+             *  Couldn't find the next tier.
+             */
+            if (is_shift_pressed) {
+
+                /**
+                 *  Nothing to do if we can't find a next tier.
+                 */
+                return true;
+            } else {
+
+                /**
+                 *  If we're not in add mode, we select the best tier.
+                 */
+                next_tier = best_selected_tier;
+            }
+        }
+        if (next_tier >= 0 && next_tier < 3 && last_selection[next_tier].Count() > 0) {
+
+            /**
+             *  We found the next tier, and it is not empty.
+             */
+            if (!is_shift_pressed) {
+                for (int i = 0; i < current_technos.Count(); ++i) {
+                    current_technos[i]->Unselect();
+                }
+            }
+
+            /**
+             *  Select() also plays the selection sound.
+             */
+            for (int i = 0; i < last_selection[next_tier].Count(); ++i) {
+                last_selection[next_tier][i]->Select();
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* VeterancyFilterCommandClass::Get_Name() const
+{
+    return "VeterancyFilter";
+}
+
+const char* VeterancyFilterCommandClass::Get_UI_Name() const
+{
+    return "Veterancy Filter";
+}
+
+const char* VeterancyFilterCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* VeterancyFilterCommandClass::Get_Description() const
+{
+    return "Filter out elite/veteran/rookie units from the last mixed selection.";
+}
+
+bool VeterancyFilterCommandClass::Process()
+{
+    return Process_Filter(Get_Veterancy_Level, false);
+}
+
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* VeterancyFilterAddNextCommandClass::Get_Name() const
+{
+    return "VeterancyFilterAddLower";
+}
+
+const char* VeterancyFilterAddNextCommandClass::Get_UI_Name() const
+{
+    return "Veterancy Filter (Add Lower)";
+}
+
+const char* VeterancyFilterAddNextCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* VeterancyFilterAddNextCommandClass::Get_Description() const
+{
+    return "Add units of lower veterancy to the already filtered subset.";
+}
+
+bool VeterancyFilterAddNextCommandClass::Process()
+{
+    return Process_Filter(Get_Veterancy_Level, true);
+}
+
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* HealthFilterCommandClass::Get_Name() const
+{
+    return "HealthFilter";
+}
+
+const char* HealthFilterCommandClass::Get_UI_Name() const
+{
+    return "Health Filter";
+}
+
+const char* HealthFilterCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* HealthFilterCommandClass::Get_Description() const
+{
+    return "Filter out red/yellow/green units from the last mixed selection.";
+}
+
+bool HealthFilterCommandClass::Process()
+{
+    return Process_Filter(Get_Health_Level, false);
+}
+
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* HealthFilterAddNextCommandClass::Get_Name() const
+{
+    return "HealthFilterAddLower";
+}
+
+const char* HealthFilterAddNextCommandClass::Get_UI_Name() const
+{
+    return "Health Filter (Add Lower)";
+}
+
+const char* HealthFilterAddNextCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* HealthFilterAddNextCommandClass::Get_Description() const
+{
+    return "Add units of higher health group (yellow, green) to the already filtered subset.";
+}
+
+bool HealthFilterAddNextCommandClass::Process()
+{
+    return Process_Filter(Get_Health_Level, true);
+}
+
+
+/**
+ *  Enters beacon placement mode.
+ *
+ *  @author: ZivDero
+ */
+const char* BeaconPlacementCommandClass::Get_Name() const
+{
+    return "PlaceBeacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_UI_Name() const
+{
+    return "Place Beacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* BeaconPlacementCommandClass::Get_Description() const
+{
+    return "Used to place a communication beacon.";
+}
+
+bool BeaconPlacementCommandClass::Process()
+{
+    if (BeaconManagerClass::Are_Beacons_Enabled()) {
+        if (!PlayerPtr->IsDefeated) {
+            TacticalMapExtension->Beacon_Mode_Control(-1);
+        }
+    }
+
+    return true;
+}
+
+
+/**
  *  Grants all available special weapons to the player.
  * 
  *  @author: CCHyper
@@ -1798,11 +2495,6 @@ bool SpecialWeaponsCommandClass::Process()
         PlayerPtr->SuperWeapon[i]->Enable(true, true, true);
         PlayerPtr->SuperWeapon[i]->Forced_Charge(true);
         Map.Add(RTTI_SPECIAL, i);
-
-        /**
-         *  Redraw the right column.
-         */
-        Map.Column[1].Flag_To_Redraw();
     }
 
     return true;
@@ -1919,7 +2611,7 @@ bool IonBlastCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     new IonBlastClass(mouse_coord);
@@ -1959,7 +2651,7 @@ bool ExplosionCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -1975,7 +2667,7 @@ bool ExplosionCommandClass::Process()
     /**
      *  Pick a random warhead from the list, using C4Warhead as a backup.
      */
-    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer(Percent_Chance(50) ? "AP" : "HE");
+    const WarheadTypeClass* warheadtypeptr = Warheads[WarheadTypeClass::From_Name(Percent_Chance(50) ? "AP" : "HE")];
     if (!warheadtypeptr) {
         warheadtypeptr = Rule->C4Warhead;
     }
@@ -2027,7 +2719,7 @@ bool SuperExplosionCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -2043,7 +2735,7 @@ bool SuperExplosionCommandClass::Process()
     /**
      *  Pick a random warhead from the list, using C4Warhead as a backup.
      */
-    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer("Super");
+    const WarheadTypeClass *warheadtypeptr = Warheads[WarheadTypeClass::From_Name("Super")];
     if (!warheadtypeptr) {
         warheadtypeptr = Rule->C4Warhead;
     }
@@ -2194,7 +2886,7 @@ bool MapSnapshotCommandClass::Process()
     
     DEBUG_INFO(" COMPLETE!\n");
 
-    DEBUG_INFO("Filename: %s\n", buffer);
+    DEBUG_INFO("Filename: {}\n", buffer);
 
     return true;
 }
@@ -2287,10 +2979,10 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 {
     if (techno) {
 
-        int map_cell_x = Map.MapCellX;
-        int map_cell_y = Map.MapCellY;
-        int map_cell_right = map_cell_x + Map.MapCellWidth;
-        int map_cell_bottom = map_cell_y + Map.MapCellHeight;
+        int map_cell_x = Map.MapRect.X;
+        int map_cell_y = Map.MapRect.Y;
+        int map_cell_right = map_cell_x + Map.MapRect.Width;
+        int map_cell_bottom = map_cell_y + Map.MapRect.Height;
 
         /**
          *  Generally try to prevent the objects from spawning off the right of the screen.
@@ -2301,7 +2993,7 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 
         while (attempt.Y < map_cell_bottom) {
 
-            Coordinate coord = Cell_Coord(attempt, true);
+            Coord coord = attempt.As_Coord();
             if (techno->Unlimbo(coord)) {
 
                 attempt.X++;
@@ -2336,18 +3028,18 @@ bool SpawnAllCommandClass::Process()
     /**
      *  Dont spawn anything lower than this row.
      */
-    int map_cell_bottom = Map.MapCellY + Map.MapCellHeight;
+    int map_cell_bottom = Map.MapRect.Y + Map.MapRect.Height;
 
     /**
      *  Default spawn location (top left of map).
      */
-    Cell origin(Map.MapCellX + 2, Map.MapCellY + 2);
+    Cell origin(Map.MapRect.X + 2, Map.MapRect.Y + 2);
 
     /**
      *  If mouse position is valid, convert to world coordinates and update
      *  the spawn origin position to that of the mouse position.
      */
-    if (WWMouse->Get_Mouse_XY() != Point2D(0, 0)) {
+    if (Get_Mouse_Point() != Point2D(0, 0)) {
         origin = Get_Cell_Under_Mouse();
     }
 
@@ -2358,14 +3050,14 @@ bool SpawnAllCommandClass::Process()
      */
 
     for (StructType index = STRUCT_FIRST; index < BuildingTypes.Count(); ++index) {
-        BuildingTypeClass const & building_type = BuildingTypeClass::As_Reference(index);
+        BuildingTypeClass const & building_type = *BuildingTypes[index];
         if (building_type.Get_Ownable() /*&& building_type.Level != -1*/) {
             BuildingClass * building = (BuildingClass *)building_type.Create_One_Of(PlayerPtr);
             if (building) {
                 attempt = origin;
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(building, attempt)) {
-                        DEBUG_INFO("BuildingType %s spawned at %d,%d.\n", building_type.Name(),  attempt.X, attempt.Y);
+                        DEBUG_INFO("BuildingType {} spawned at {},{}.\n", building_type.Name(),  attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -2374,7 +3066,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (UnitType index = UNIT_FIRST; index < UnitTypes.Count(); ++index) {
-        UnitTypeClass const & unit_type = UnitTypeClass::As_Reference(index);
+        UnitTypeClass const & unit_type = *UnitTypes[index];
         if (unit_type.Get_Ownable() /*&& unit_type.Level != -1*/) {
             UnitClass * unit = (UnitClass *)unit_type.Create_One_Of(PlayerPtr);
             if (unit) {
@@ -2383,7 +3075,7 @@ bool SpawnAllCommandClass::Process()
 
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(unit, attempt)) {
-                        DEBUG_INFO("UnitType %s spawned at %d,%d.\n", unit_type.Name(), attempt.X, attempt.Y);
+                        DEBUG_INFO("UnitType {} spawned at {},{}.\n", unit_type.Name(), attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -2392,14 +3084,14 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (InfantryType index = INFANTRY_FIRST; index < InfantryTypes.Count(); ++index) {
-        InfantryTypeClass const & infantry_type = InfantryTypeClass::As_Reference(index);
+        InfantryTypeClass const & infantry_type = *InfantryTypes[index];
         if (infantry_type.Get_Ownable() /*&& infantry_type.Level != -1*/) {
             InfantryClass * inf = (InfantryClass *)infantry_type.Create_One_Of(PlayerPtr);
             if (inf) {
                 attempt = origin;
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(inf, attempt)) {
-                        DEBUG_INFO("InfantryType %s spawned at %d,%d.\n", infantry_type.Name(),  attempt.X, attempt.Y);
+                        DEBUG_INFO("InfantryType {} spawned at {},{}.\n", infantry_type.Name(),  attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -2408,7 +3100,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (AircraftType index = AIRCRAFT_FIRST; index < AircraftTypes.Count(); ++index) {
-        AircraftTypeClass const & aircraft_type = AircraftTypeClass::As_Reference(index);
+        AircraftTypeClass const & aircraft_type = *AircraftTypes[index];
 
         /**
          *  DROPPOD breaks the game!
@@ -2422,7 +3114,7 @@ bool SpawnAllCommandClass::Process()
                 attempt = origin;
                 while (attempt.Y < map_cell_bottom) {
                     if (Try_Unlimbo(air, attempt)) {
-                        DEBUG_INFO("AircraftType %s spawned at %d,%d.\n", aircraft_type.Name(),  attempt.X, attempt.Y);
+                        DEBUG_INFO("AircraftType {} spawned at {},{}.\n", aircraft_type.Name(),  attempt.X, attempt.Y);
                         break;
                     }
                 }
@@ -2468,7 +3160,7 @@ bool DamageCommandClass::Process()
      */
     for (int i = 0; i < CurrentObjects.Count(); ++i) {
         int damage = std::max(50, Rule->MinDamage);
-        const WarheadTypeClass *warhead = WarheadTypeClass::As_Pointer("SA");
+        const WarheadTypeClass *warhead = Warheads[WarheadTypeClass::From_Name("SA")];
         if (!warhead) {
             warhead = Rule->C4Warhead;
         }
@@ -2522,37 +3214,35 @@ bool ToggleEliteCommandClass::Process()
         /**
          *  Upgrade to rookie.
          */
-        if (techno->Veterancy.Is_Dumbass()) {
-            techno->Veterancy.Set_Rookie(true);
+        if (techno->Crew.Is_Dumbass()) {
+            techno->Crew.Set_Rookie(true);
             continue;
         }
 
         /**
          *  Upgrade to veteran.
          */
-        if (techno->Veterancy.Is_Rookie()) {
-            techno->Veterancy.Set_Veteran(true);
+        if (techno->Crew.IsRookie) {
+            techno->Crew.Set_Veteran(true);
             continue;
         }
         
         /**
          *  Upgrade to elite.
          */
-        if (techno->Veterancy.Is_Veteran()) {
-            techno->Veterancy.Set_Elite(true);
+        if (techno->Crew.IsVeteran) {
+            techno->Crew.Set_Elite(true);
             continue;
         }
         
         /**
          *  Degrade elite back to dumbass.
          */
-        if (techno->Veterancy.Is_Elite()) {
-            techno->Veterancy.Set_Dumbass(true);
+        if (techno->Crew.IsElite) {
+            techno->Crew.Set_Dumbass(true);
             continue;
         }
     }
-
-    Map.Recalc();
 
     return true;
 }
@@ -2731,8 +3421,6 @@ bool HealCommandClass::Process()
         CurrentObjects[i]->Take_Damage(damage, 0, Rule->C4Warhead, nullptr);
     }
 
-    Map.Recalc();
-
     return true;
 }
 
@@ -2821,16 +3509,16 @@ bool DumpAIBaseNodesCommandClass::Process()
 
             DEBUG_INFO("\n");
 
-            DEBUG_INFO("%02d \"%s\":\n", house_index, house->Class->Name());
+            DEBUG_INFO("{:02} \"{}\":\n", house_index, house->Class->Name());
 
-            //DEBUG_INFO("  field_50: %d\n", house->Base.field_50);
-            //DEBUG_INFO("  field_64: %d\n", house->Base.field_64);
-            //DEBUG_INFO("  field_68: %d\n", house->Base.field_68);
-            //DEBUG_INFO("  field_6C: %d\n", house->Base.field_6C);
-            //DEBUG_INFO("  field_70: %d\n", house->Base.field_70);
-            DEBUG_INFO("  PercentBuilt: %03d\n", house->Base.PercentBuilt);
+            //DEBUG_INFO("  field_50: {}\n", house->Base.field_50);
+            //DEBUG_INFO("  field_64: {}\n", house->Base.field_64);
+            //DEBUG_INFO("  field_68: {}\n", house->Base.field_68);
+            //DEBUG_INFO("  field_6C: {}\n", house->Base.field_6C);
+            //DEBUG_INFO("  field_70: {}\n", house->Base.field_70);
+            DEBUG_INFO("  PercentBuilt: {:03}\n", house->Base.PercentBuilt);
 
-            DEBUG_INFO("  Nodes.Count: %d\n", house->Base.Nodes.Count());
+            DEBUG_INFO("  Nodes.Count: {}\n", house->Base.Nodes.Count());
 
             /**
              *  Iterate all nodes for this house.
@@ -2843,7 +3531,7 @@ bool DumpAIBaseNodesCommandClass::Process()
                 }
 
                 const char *name = BuildingTypeClass::Name_From(node.Type);
-                DEBUG_INFO("  Node %03d: \"%s\" at %d,%d\n", node_index, name, node.Where.X, node.Where.Y);
+                DEBUG_INFO("  Node {:03}: \"{}\" at {},{}\n", node_index, name, node.CellID.X, node.CellID.Y);
             }
         }
     }
@@ -3130,7 +3818,7 @@ bool PlaceCrateCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Crate placed at %d, %d\n", mouse_cell.X, mouse_cell.Y);
+    DEBUG_INFO("Crate placed at {}, {}\n", mouse_cell.X, mouse_cell.Y);
 
     return true;
 }
@@ -3464,7 +4152,7 @@ bool StartingWaypointsCommandClass::Process()
      *  as Tiberian Sun only supports these for starting locatons.
      */
     static int _current_index = 0;
-    Coordinate wp_coord = Scen->Waypoint_Coord(_current_index++ % 8);
+    Coord wp_coord = Scen->Waypoint_Coord(_current_index++ % 8);
     if (wp_coord == COORD_NONE) {
         return false;
     }
@@ -3482,7 +4170,7 @@ bool StartingWaypointsCommandClass::Process()
     if (Map.PendingObject) {
         Map.Set_Cursor_Pos(Cell(0,0));
     }
-    Map.Follow_This(nullptr);
+    Map.Break_Follow_Mode();
 
     Map.Flag_To_Redraw(true);
 
@@ -3521,7 +4209,7 @@ bool PlaceInfantryCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -3539,7 +4227,7 @@ bool PlaceInfantryCommandClass::Process()
     for (int i = 0; i < InfantryTypes.Count(); ++i) {
         InfantryTypeClass *infantrytype = InfantryTypes[i];
         if (infantrytype && infantrytype->IsAllowedToStartInMultiplayer) {
-            if (infantrytype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
+            if (infantrytype->Level <= PlayerPtr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
                 available_infantry.Add(infantrytype);
             }
         }
@@ -3561,7 +4249,7 @@ bool PlaceInfantryCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Coord.X, inf->Coord.Y, inf->Coord.Z);
+    DEBUG_INFO("Placed infantry \"{}\" at {},{},{}\n", inf->Name(), inf->Position.X, inf->Position.Y, inf->Position.Z);
     return true;
 }
 
@@ -3597,7 +4285,7 @@ bool PlaceUnitCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -3616,7 +4304,7 @@ bool PlaceUnitCommandClass::Process()
         UnitTypeClass *unittype = UnitTypes[i];
         if (unittype && unittype->IsAllowedToStartInMultiplayer) {
             if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
-                if (unittype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
+                if (unittype->Level <= PlayerPtr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
                     available_units.Add(unittype);
                 }
             }
@@ -3639,7 +4327,7 @@ bool PlaceUnitCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Coord.X, unit->Coord.Y, unit->Coord.Z);
+    DEBUG_INFO("Placed unit \"{}\" at {},{},{}\n", unit->Name(), unit->Position.X, unit->Position.Y, unit->Position.Z);
     return true;
 }
 
@@ -3675,7 +4363,7 @@ bool PlaceTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -3684,7 +4372,7 @@ bool PlaceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 1)) {
-        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed tiberium \"{}\" at {},{},{}\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -3723,7 +4411,7 @@ bool ReduceTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -3732,7 +4420,7 @@ bool ReduceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Reduce_Tiberium(1)) {
-        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Reduced tiberium \"{}\" at {},{},{}\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -3771,7 +4459,7 @@ bool PlaceFullTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -3780,7 +4468,7 @@ bool PlaceFullTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 11)) {
-        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed fully grown tiberium \"{}\" at {},{},{}\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -3819,7 +4507,7 @@ bool RemoveTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -3828,7 +4516,7 @@ bool RemoveTiberiumCommandClass::Process()
     }
 
     if (cellptr->Reduce_Tiberium(12)) {
-        DEBUG_INFO("Removed tiberium at %d,%d,%d\n", mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Removed tiberium at {},{},{}\n", mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -3969,8 +4657,8 @@ bool DumpNetworkCRCCommandClass::Process()
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
-        Vinifera_DebugDirectory,
-        PlayerPtr->IniName,
+        Vinifera_DebugDirectory.c_str(),
+        PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         day, month, year, hour, min, sec);
 
@@ -3983,7 +4671,7 @@ bool DumpNetworkCRCCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Writing sync log to file %s.\n", filename_buffer);
+    DEBUG_INFO("Writing sync log to file {}.\n", filename_buffer);
 
     Extension::Print_CRCs(fp, nullptr);
 
@@ -4031,7 +4719,7 @@ const char* DumpHeapsCommandClass::Get_Description() const
             for (unsigned i = 0; i < heap_name.Count(); ++i) { \
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
-                    DEBUG_INFO("  %04d=%s\n", i, ptr->Name()); \
+                    DEBUG_INFO("  {:04}={}\n", i, ptr->Name()); \
                 } \
             } \
         } \
@@ -4062,8 +4750,8 @@ bool DumpHeapsCommandClass::Process()
     LOG_HEAP(ParticleTypeClass, ParticleTypes);
     LOG_HEAP(ParticleSystemTypeClass, ParticleSystemTypes);
 
-    LOG_HEAP(WeaponTypeClass, WeaponTypes);
-    LOG_HEAP(WarheadTypeClass, WarheadTypes);
+    LOG_HEAP(WeaponTypeClass, Weapons);
+    LOG_HEAP(WarheadTypeClass, Warheads);
     LOG_HEAP(SuperWeaponTypeClass, SuperWeaponTypes);
     LOG_HEAP(BulletTypeClass, BulletTypes);
 
@@ -4145,7 +4833,7 @@ bool MeteorShowerCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     if (!Map.In_Radar(mouse_coord)) {
@@ -4159,8 +4847,8 @@ bool MeteorShowerCommandClass::Process()
      */
     int count = Random_Pick<unsigned>(0, std::size(_meteor_counts)-1);
 
-    const AnimTypeClass *large_meteor = AnimTypeClass::As_Pointer("METLARGE");
-    const AnimTypeClass *small_meteor = AnimTypeClass::As_Pointer("METSMALL");
+    const AnimTypeClass *large_meteor = AnimTypes[AnimTypeClass::From_Name("METLARGE")];
+    const AnimTypeClass *small_meteor = AnimTypes[AnimTypeClass::From_Name("METSMALL")];
 
     for (int i = 0; i < count; ++i) {
 
@@ -4170,7 +4858,7 @@ bool MeteorShowerCommandClass::Process()
         int x_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_W/2));
         int y_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_H/2));
 
-        Coordinate where = mouse_coord;
+        Coord where = mouse_coord;
 
         where.X += x_adj;
         where.Y += y_adj;
@@ -4216,7 +4904,7 @@ bool MeteorImpactCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     if (!Map.In_Radar(mouse_coord)) {
@@ -4226,12 +4914,76 @@ bool MeteorImpactCommandClass::Process()
     /**
      *  Pick a random a random meteor object.
      */
-    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypeClass::As_Pointer(Percent_Chance(50) ? "METEOR01" : "METEOR02");
+    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypes[VoxelAnimTypeClass::From_Name(Percent_Chance(50) ? "METEOR01" : "METEOR02")];
     if (!voxelanimtypeptr) {
         return false;
     }
 
     new VoxelAnimClass(voxelanimtypeptr, mouse_coord);
 
+    return true;
+}
+
+
+/**
+ *  Toggle the in-game ImGui debug overlay window.
+ *
+ *  @author: ZivDero
+ */
+const char *ToggleDebugOverlayCommandClass::Get_Name() const
+{
+    return "ToggleDebugOverlay";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_UI_Name() const
+{
+    return "Toggle Game Info";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char *ToggleDebugOverlayCommandClass::Get_Description() const
+{
+    return "Shows or hides the Game Info overlay window.";
+}
+
+bool ToggleDebugOverlayCommandClass::Process()
+{
+    DebugOverlay::IsVisible = !DebugOverlay::IsVisible;
+    return true;
+}
+
+
+/**
+ *  Toggle the developer-mode scenario debug window.
+ *
+ *  @author: ZivDero
+ */
+const char *ToggleScenarioOverlayCommandClass::Get_Name() const
+{
+    return "ToggleScenarioOverlay";
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_UI_Name() const
+{
+    return "Toggle Scenario Overlay";
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleScenarioOverlayCommandClass::Get_Description() const
+{
+    return "Shows or hides the Vinifera scenario debug window (types, instances, variables, waypoints, AI nodes).";
+}
+
+bool ToggleScenarioOverlayCommandClass::Process()
+{
+    ScenarioOverlay::IsVisible = !ScenarioOverlay::IsVisible;
     return true;
 }

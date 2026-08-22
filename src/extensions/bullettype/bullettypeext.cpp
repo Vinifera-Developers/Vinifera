@@ -1,42 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended BulletTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          BULLETTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended BulletTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "bullettypeext.h"
+
 #include "bullettype.h"
-#include "tibsun_globals.h"
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "tibsun_globals.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BulletTypeClassExtension::BulletTypeClassExtension(const BulletTypeClass *this_ptr) :
@@ -44,8 +27,6 @@ BulletTypeClassExtension::BulletTypeClassExtension(const BulletTypeClass *this_p
     SpawnDelay(3),           // Default hardcoded value.
     IsTorpedo(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("BulletTypeClassExtension::BulletTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BulletTypeExtensions.Add(this);
 }
 
@@ -58,7 +39,6 @@ BulletTypeClassExtension::BulletTypeClassExtension(const BulletTypeClass *this_p
 BulletTypeClassExtension::BulletTypeClassExtension(const NoInitClass &noinit) :
     ObjectTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::BulletTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -69,8 +49,6 @@ BulletTypeClassExtension::BulletTypeClassExtension(const NoInitClass &noinit) :
  */
 BulletTypeClassExtension::~BulletTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::~BulletTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BulletTypeExtensions.Delete(this);
 }
 
@@ -82,8 +60,6 @@ BulletTypeClassExtension::~BulletTypeClassExtension()
  */
 HRESULT BulletTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -101,8 +77,6 @@ HRESULT BulletTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT BulletTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -121,8 +95,6 @@ HRESULT BulletTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT BulletTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -139,23 +111,10 @@ HRESULT BulletTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int BulletTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void BulletTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    ObjectTypeClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -165,7 +124,6 @@ void BulletTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void BulletTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -176,8 +134,6 @@ void BulletTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool BulletTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }

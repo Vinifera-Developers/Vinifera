@@ -1,43 +1,20 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended CargoClass.
  *
- *  @project       Vinifera
- *
- *  @file          CARGOEXT_HOOKS.CPP
- *
- *  @author        Rampastring
- *
- *  @brief         Contains the hooks for the extended CargoClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "cargoext_hooks.h"
-#include "tibsun_globals.h"
+
 #include "cargo.h"
 #include "foot.h"
-#include "scenario.h"
-#include "session.h"
-#include "techno.h"
-
-#include "debughandler.h"
-#include "asserthandler.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "techno.h"
 
 
 /**
@@ -51,6 +28,7 @@ static class CargoClassExt : public CargoClass
 {
 public:
     void _Attach_One(FootClass* object);
+    FootClass* _Detach_Unit();
 };
 
 
@@ -77,7 +55,7 @@ public:
 void CargoClassExt::_Attach_One(FootClass* object) {
 
     // If there is no object, then no action is necessary.
-    if (object == NULL) return;
+    if (object == nullptr) return;
 
     object->Limbo();
 
@@ -91,6 +69,19 @@ void CargoClassExt::_Attach_One(FootClass* object) {
 
 
 /**
+ *  Proxy function to detach specifically a unit.
+ *  Used in AircraftClass::Drop_Off_Cargo so that
+ *  carryalls don't drop off infantry like vehicles.
+ *
+ *  @author: ZivDero
+ */
+FootClass* CargoClassExt::_Detach_Unit()
+{
+    return Detach_Object(RTTI_UNIT);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void CargoClassExtension_Hooks()
@@ -99,4 +90,5 @@ void CargoClassExtension_Hooks()
     Patch_Call(0x004D39FB, &CargoClassExt::_Attach_One);
     Patch_Call(0x004D3A82, &CargoClassExt::_Attach_One);
     Patch_Call(0x0065431A, &CargoClassExt::_Attach_One);
+    Patch_Call(0x0040A76F, &CargoClassExt::_Detach_Unit);
 }

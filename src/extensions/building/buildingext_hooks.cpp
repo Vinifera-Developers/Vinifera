@@ -1,89 +1,68 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended BuildingClass.
  *
- *  @project       Vinifera
- *
- *  @file          BUILDINGEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended BuildingClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingext_hooks.h"
 
-#include <algorithm>
-#include "buildingext_init.h"
-#include "buildingext.h"
-#include "buildingtypeext.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "vinifera_util.h"
-#include "building.h"
-#include "buildingtype.h"
-#include "buildingtypeext.h"
-#include "unit.h"
-#include "unitext.h"
-#include "technotype.h"
-#include "technotypeext.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
 #include "aircrafttypeext.h"
 #include "anim.h"
 #include "animext.h"
+#include "asserthandler.h"
+#include "audio_vox.h"
+#include "bsurface.h"
+#include "building.h"
+#include "buildingext.h"
+#include "buildingext_init.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
+#include "bullettype.h"
+#include "cell.h"
+#include "convert.h"
+#include "debughandler.h"
+#include "drawshape.h"
+#include "event.h"
+#include "extension.h"
+#include "factory.h"
+#include "hooker.h"
 #include "house.h"
+#include "houseext.h"
 #include "housetype.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "jumpjetlocomotion.h"
 #include "map.h"
 #include "mouse.h"
-#include "cell.h"
-#include "bsurface.h"
-#include "dsurface.h"
-#include "convert.h"
-#include "drawshape.h"
-#include "infantrytype.h"
-#include "unit.h"
-#include "unittype.h"
 #include "rules.h"
-#include "voc.h"
-#include "iomap.h"
-#include "spritecollection.h"
-#include "extension.h"
-#include "sideext.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "bullettype.h"
-#include "coord.h"
-#include "debughandler.h"
-#include "event.h"
-#include "factory.h"
-#include "session.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-#include "houseext.h"
-#include "jumpjetlocomotion.h"
 #include "rulesext.h"
+#include "session.h"
+#include "sideext.h"
+#include "spritecollection.h"
 #include "super.h"
 #include "supertypeext.h"
-#include "vox.h"
+#include "syringe.h"
 #include "tactical.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "tibsun_globals.h"
+#include "unit.h"
+#include "unitext.h"
+#include "unittype.h"
+#include "unittypeext.h"
 #include "vinifera_saveload.h"
+#include "voc.h"
+#include "vox.h"
 #include "weapontype.h"
+
+#include <algorithm>
 
 
 /**
@@ -112,6 +91,9 @@ public:
     SuperWeaponType _Fetch_Super_Weapon() const;
     SuperWeaponType _Fetch_Super_Weapon2() const;
     void _Swizzle_Light_Source();
+    RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);
+    MoveType _Can_Enter_Cell(CellClass const* cell, FacingType dir, int cell_height, CellClass const*, bool) const;
+    void _Draw_Overlays(const Point2D & coord, const Rect & rect);
 };
 
 
@@ -128,7 +110,15 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
      *
      *  @author: Rampastring
      */
-    if (this->Class->CanUnitRepair)
+    if (this->Class->IsCanUnitRepair)
+        return true;
+
+    /**     
+     *  Makes it possible to give rally points to Hospitals and Armories
+     *
+     *  @author: JoyfulShush
+     */
+    if (this->Class->IsArmory || this->Class->IsHospital) 
         return true;
 
     return false;
@@ -145,45 +135,39 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
  */
 void BuildingClassExt::_Update_Buildables()
 {
-    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsPowerOn)
-    {
-        switch (Class->ToBuild)
-        {
+    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsOn) {
+        switch (Class->ToBuild) {
         case RTTI_AIRCRAFTTYPE:
-            for (int i = 0; i < AircraftTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(AircraftTypes[i], false, true) && AircraftTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < AircraftTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(AircraftTypes[i], false, true); // 0 = not allowed, 1 = allowed, -1 = build limit
+                if (can_build && (can_build == -1 || AircraftTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_AIRCRAFTTYPE, i);
                 }
             }
             break;
 
         case RTTI_BUILDINGTYPE:
-            for (int i = 0; i < BuildingTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(BuildingTypes[i], false, true) && BuildingTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < BuildingTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(BuildingTypes[i], false, true);
+                if (can_build && (can_build == -1 || BuildingTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_BUILDINGTYPE, i);
                 }
             }
             break;
 
         case RTTI_INFANTRYTYPE:
-            for (int i = 0; i < InfantryTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(InfantryTypes[i], false, true) && InfantryTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < InfantryTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(InfantryTypes[i], false, true);
+                if (can_build && (can_build == -1 || InfantryTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_INFANTRYTYPE, i);
                 }
             }
             break;
 
         case RTTI_UNITTYPE:
-            for (int i = 0; i < UnitTypes.Count(); i++)
-            {
-                if (PlayerPtr->Can_Build(UnitTypes[i], false, true) && UnitTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)
-                {
+            for (int i = 0; i < UnitTypes.Count(); i++) {
+                int can_build = PlayerPtr->Can_Build(UnitTypes[i], false, true);
+                if (can_build && (can_build == -1 || UnitTypes[i]->Who_Can_Build_Me(true, false, RuleExtension->IsRecheckPrerequisites, PlayerPtr) != nullptr)) {
                     Map.Add(RTTI_UNITTYPE, i);
                 }
             }
@@ -320,7 +304,7 @@ void BuildingClassExt::_Detach_Anim(AnimClass* anim)
                 Anims[i] = nullptr;
                 switch (i) {
                 case BANIM_SPECIAL_ONE:
-                    if (Class->CanUnitRepair) {
+                    if (Class->IsCanUnitRepair) {
                         if (In_Radio_Contact() && Get_Mission() == MISSION_REPAIR) {
                             Begin_Anim(BANIM_SPECIAL_TWO, Get_Health_Ratio() <= Rule->ConditionYellow, 0);
                         }
@@ -379,7 +363,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     bool open_roof = false;
     if (Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = Contact_With_Whom();
-        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
+        if (radio != nullptr && radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             open_roof = true;
         }
     }
@@ -405,7 +389,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         shapefile = Get_Image_Data();
 
         ZGradientType zgrad = ZGRAD_GROUND;
-        if (shapenum < Class->GateStages / 2) {
+        if (shapenum < Class->GateStages / 2 || type_ext->IsBarGate) {
             zgrad = ZGRAD_90DEG;
         }
 
@@ -688,7 +672,7 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
         if (!Can_Player_Move()) {
             action = ACTION_SELECT;
         } else if (Class->ToBuild == RTTI_INFANTRYTYPE || Class->ToBuild == RTTI_UNITTYPE || Class->ToBuild == RTTI_AIRCRAFTTYPE) {
-            bool altdown = WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2);
+            bool altdown = Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2);
             if (!altdown) {
                 action = ACTION_SELECT;
             } else {
@@ -705,7 +689,7 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
                          *
                          *  @author: Rampastring
                          */
-                        if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                        if (Map[cell].Passability != PASSABLE_LAND && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                             action = ACTION_NOMOVE;
                         }
                     }
@@ -751,7 +735,7 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
                  *
                  *  @author: Rampastring
                  */
-                if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                if (Map[cell].Passability != PASSABLE_LAND && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                     action = ACTION_NOMOVE;
                 }
                 
@@ -968,17 +952,16 @@ SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon2() const
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
+DEFINE_HOOK(0x00428AA4, _BuildingClass_Draw_Overlays_Fetch_Factory_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
-    static FactoryClass* factory;
-    static BuildingTypeClassExtension const* type_ext;
-    type_ext = Extension::Fetch(this_ptr->Class);
-    factory = Extension::Fetch(this_ptr->House)->Fetch_Factory(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    BuildingTypeClassExtension const* type_ext = Extension::Fetch(this_ptr->Class);
+    FactoryClass* factory = Extension::Fetch(this_ptr->House)->Fetch_Factory(
+        this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    R->EAX(factory);
 
-    _asm mov eax, factory
-    JMP_REG(ecx, 0x00428AC4);
+    return 0x00428AC4;
 }
 
 
@@ -987,14 +970,118 @@ DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Detach_Detach_Anim_Patch)
+DEFINE_HOOK(0x00433F1D, _BuildingClass_Detach_Detach_Anim_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(AnimClass*, anim, ecx);
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(AnimClass*, anim, ECX);
 
     this_ptr->Detach_Anim(anim);
 
-    JMP(0x00433F84);
+    return 0x00433F84;
+}
+
+
+/**
+ *  Reimplements the BuildingClass::Draw_Overlays function.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
+{
+    if (BState != BSTATE_CONSTRUCTION) {
+
+        /**
+         *  Draw the repair animation.
+         */
+        if (IsRepairing) {
+            if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->Special.IsFogOfWar || IsFogged) && Visual_Character() != VISUAL_HIDDEN) {
+                Point2D xy = coord;
+                if (!IsOn) xy -= Point2D(5, 5);
+
+                int delay = Options.Normalize_Delay(14) / 4;
+                delay = std::max(delay, 2);
+
+                int draw_frame;
+                if (Extension::Fetch(House)->IsPauseRepairs && House->Available_Money() < Class->Repair_Step()) {
+                    draw_frame = RuleExtension->PausedRepairsFrame;
+                } else {
+                    draw_frame = 6 * (Frame % delay) / (delay - 1);
+                }
+
+                Draw_Shape(*LogicalSurface, *MouseDrawer, WrenchShape, draw_frame, xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+            }
+        }
+
+        /**
+         *  Draw the power off animation.
+         */
+        if (!IsOn && House->Is_Player_Control()) {
+            if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->Special.IsFogOfWar || IsFogged)) {
+                Point2D xy = coord;
+                if (IsRepairing) xy += Point2D(10, 10);
+
+                int delay = Options.Normalize_Delay(14) / 4;
+                delay = std::max(delay, 2);
+
+                Draw_Shape(*LogicalSurface, *MouseDrawer, PowerOffShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+            }
+        }
+
+        if (IsSelected) {
+
+            /**
+             *  Draw the primary factory pip.
+             */
+            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || Session.ObiWan) {
+                Point2D xy(coord.X - 10, coord.Y + 10);
+                Draw_Text_Overlay(xy, coord, rect);
+            }
+
+            /**
+             *  If this is a factory, and the player has spied its owner, draw the cameo of what it's currently producing.
+             */
+            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || Session.ObiWan) {
+                FactoryClass* factory = House->Is_Human_Player() ? House->Fetch_Factory(Class->ToBuild) : Factory;
+                if (factory != nullptr) {
+                    ObjectClass* obj = factory->Get_Object();
+                    if (obj != nullptr) {
+
+                        /**
+                         *  #issue-487
+                         *
+                         *  Adds support for PCX/PNG cameo icons.
+                         *
+                         *  @author: CCHyper
+                         */
+                        const auto technotypeext = Extension::Fetch(obj->Techno_Type_Class());
+                        if (technotypeext->CameoImageSurface) {
+
+                            /**
+                             *  Draw the cameo pcx image.
+                             */
+                            Rect pcxrect;
+                            pcxrect.X = rect.X + coord.X;
+                            pcxrect.Y = rect.Y + coord.Y;
+                            pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
+                            pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
+
+                            SpriteCollection.Draw(pcxrect, *LogicalSurface, *technotypeext->CameoImageSurface);
+                        } else {
+                            const ShapeSet* shape = obj->TClass->Get_Cameo_Data();
+
+                            /**
+                             *  Draw the cameo shape.
+                             *
+                             *  Original code used NormalDrawer, which is the old Red Alert shape
+                             *  drawer, so we need to use CameoDrawer here for the correct palette.
+                             */
+                            Draw_Shape(*LogicalSurface, *CameoDrawer, shape, 0, coord, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -1006,24 +1093,16 @@ DECLARE_PATCH(_BuildingClass_Detach_Detach_Anim_Patch)
  * 
  *  @author: CCHyper
  */
-static int Building_Radio_Reload_Rate(BuildingClass *this_ptr)
+DEFINE_HOOK(0x0043266C, _BuildingClass_Mission_Repair_ReloadRate_Patch, 0)
 {
-    AircraftClass *radio = reinterpret_cast<AircraftClass *>(this_ptr->Contact_With_Whom());
-    AircraftTypeClassExtension *radio_class_ext = Extension::Fetch(radio->Class);
+    GET(BuildingClass*, this_ptr, EBP);
 
-    return radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
-}
+    AircraftClass* radio = reinterpret_cast<AircraftClass*>(this_ptr->Contact_With_Whom());
+    AircraftTypeClassExtension* radio_class_ext = Extension::Fetch(radio->Class);
+    int time = radio_class_ext->Get_ReloadRate() * TICKS_PER_MINUTE;
+    R->EAX(time);
 
-
-DECLARE_PATCH(_BuildingClass_Mission_Repair_ReloadRate_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, ebp);
-    static int time;
-
-    time = Building_Radio_Reload_Rate(this_ptr);
-
-    _asm { mov eax, time }
-    JMP_REG(edi, 0x0043260F);
+    return 0x0043260F;
 }
 
 
@@ -1034,36 +1113,31 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_ReloadRate_Patch)
  *
  *  @author: Rampastring
  */
-bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *building, TechnoClass *techno, bool clear_archive) {
-    Cell exitcell;
-    CellClass* cellptr;
-
+bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *building, TechnoClass *techno, bool clear_archive)
+{
     AbstractClass * target = nullptr;
 
-    if (building->ArchiveTarget != nullptr)
-    {
-        bool is_object = Target_As_Object(building->ArchiveTarget) != nullptr;
-
-        if (Target_Legal(building->ArchiveTarget, is_object))
-            target = building->ArchiveTarget;
+    if (building->ArchiveTarget != nullptr) {
+        if (building->ArchiveTarget != nullptr) target = building->ArchiveTarget;
     }
 
-    if (target == nullptr)
-    {
+    if (target == nullptr) {
+
         /**
          *  Stolen bytes/code.
          *  Reimplements original game behaviour.
          */
-        exitcell = building->Find_Exit_Cell(reinterpret_cast<TechnoClass*>(building->Radio));
+        Cell exitcell = building->Find_Exit_Cell(reinterpret_cast<TechnoClass*>(building->Radio));
 
         if (exitcell.X == 0 && exitcell.Y == 0) {
+
             /**
              *  Failed to find valid exit cell.
              */
             return false;
         }
 
-        cellptr = &Map[exitcell];
+        CellClass* cellptr = &Map[exitcell];
         target = As_Target(cellptr);
     }
 
@@ -1093,10 +1167,10 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed)
+DEFINE_HOOK(0x00432184, _BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
-    GET_REGISTER_STATIC(TechnoClass*, techno, esi);
+    GET(BuildingClass*, building, EBP);
+    GET(TechnoClass*, techno, ESI);
 
     _BuildingClass_Mission_Repair_Assign_Unit_Destination(building, techno, true);
 
@@ -1104,7 +1178,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Rep
      *  Set mission delay and return, regardless of whether the
      *  destination assignment succeeded.
      */
-    JMP_REG(ecx, 0x004324DF);
+    return 0x004324DF;
 }
 
 
@@ -1118,10 +1192,10 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Rep
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete)
+DEFINE_HOOK(0x00431DAB, _BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, building, ebp);
-    GET_REGISTER_STATIC(TechnoClass *, techno, esi);
+    GET(BuildingClass *, building, EBP);
+    GET(TechnoClass *, techno, ESI);
 
     if (_BuildingClass_Mission_Repair_Assign_Unit_Destination(building, techno, false)) {
         goto success;
@@ -1133,14 +1207,14 @@ DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repai
      *  The unit destination was applied successfully.
      */
 success:
-    _asm { mov eax, 1 }
-    JMP_REG(edi, 0x00431E27);
+    R->EAX(true);
+    return 0x00431E27;
 
     /**
      *  Return from the function without assigning any location for the unit to move into.
      */
 fail_return:
-    JMP(0x00431E90);
+    return 0x00431E90;
 }
 
 
@@ -1151,17 +1225,14 @@ fail_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_AI_ProduceCash_Patch)
+DEFINE_HOOK(0x00429A96, _BuildingClass_AI_ProduceCash_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingClassExtension *ext_ptr;
+    GET(BuildingClass *, this_ptr, ESI);
 
     /**
      *  Fetch the extension instance.
      */
-    ext_ptr = Extension::Fetch(this_ptr);
-
-    ext_ptr->Produce_Cash_AI();
+    Extension::Fetch(this_ptr)->Produce_Cash_AI();
 
     /**
      *  Stolen bytes/code here.
@@ -1173,7 +1244,7 @@ original_code:
      */
     this_ptr->Animation_AI();
 
-    JMP(0x00429A9D);
+    return 0x00429A9D;
 }
 
 
@@ -1184,18 +1255,16 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Captured_ProduceCash_Patch)
+DEFINE_HOOK(0x0042F67D, _BuildingClass_Captured_ProduceCash_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    GET_STACK_STATIC(HouseClass *, newowner, esp, 0x58);
-    static BuildingClassExtension *ext_ptr;
-    static BuildingTypeClassExtension *exttype_ptr;
+    GET(BuildingClass *, this_ptr, ESI);
+    GET_STACK(HouseClass *, newowner, 0x58);
 
     /**
      *  Fetch the extension instances.
      */
-    ext_ptr = Extension::Fetch(this_ptr);
-    exttype_ptr = Extension::Fetch(this_ptr->Class);
+    BuildingClassExtension* ext_ptr = Extension::Fetch(this_ptr);
+    BuildingTypeClassExtension* exttype_ptr = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is the owner a passive/neutral house? Only they can provide the capture bonus.
@@ -1248,7 +1317,7 @@ original_code:
         newowner->HasCloakGenerator = true;
     }
 
-    JMP(0x0042F68E);
+    return 0x0042F68E;
 }
 
 
@@ -1259,12 +1328,12 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Grand_Opening_ProduceCash_Patch)
+DEFINE_HOOK(0x0042E179, _BuildingClass_Grand_Opening_ProduceCash_Patch, 0)
 {
-    GET_STACK_STATIC8(bool, captured, esp, 0x40);
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingClassExtension *ext_ptr;
-    static BuildingTypeClassExtension *exttype_ptr;
+    GET_STACK(bool, captured, 0x40);
+    GET(BuildingClass *, this_ptr, ESI);
+    BuildingClassExtension *ext_ptr;
+    BuildingTypeClassExtension *exttype_ptr;
 
     /**
      *  Stolen bytes/code here.
@@ -1299,19 +1368,19 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_ProduceCash_Patch)
      *  Continue function flow (HasOpened == false).
      */
 continue_function:
-    JMP(0x0042E197);
+    return 0x0042E197;
 
     /**
      *  Function return.
      */
 function_return:
-    JMP(0x0042E9DF);
+    return 0x0042E9DF;
 
     /**
      *  Else case from "HasOpened" check.
      */
 has_opened_else:
-    JMP(0x0042E4C7);
+    return 0x0042E4C7;
 }
 
 
@@ -1322,25 +1391,22 @@ has_opened_else:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
+DEFINE_HOOK(0x00433BB5, _BuildingClass_Mission_Open_Gate_Open_Sound_Patch, 0)
 {
-    GET_REGISTER_STATIC(Coordinate *, coord, eax);
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingTypeClass *buildingtype;
-    static BuildingTypeClassExtension *buildingtypeext;
-    static VocType voc;
+    GET(Coord *, coord, EAX);
+    GET(BuildingClass *, this_ptr, ESI);
 
-    buildingtype = this_ptr->Class;
+    BuildingTypeClass* buildingtype = this_ptr->Class;
 
     /**
      *  Fetch the default gate lowering sound.
      */
-    voc = Rule->GateDownSound;
+    VocType voc = Rule->GateDownSound;
 
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch(buildingtype);
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(buildingtype);
 
     /**
      *  Does this building have a custom gate lowering sound? If so, use it.
@@ -1354,28 +1420,26 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
      */
     Static_Sound(voc, *coord);
 
-    JMP_REG(edx, 0x00433BC8);
+    return 0x00433BC8;
 }
 
-DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
-{
-    GET_REGISTER_STATIC(Coordinate *, coord, eax);
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static BuildingTypeClass *buildingtype;
-    static BuildingTypeClassExtension *buildingtypeext;
-    static VocType voc;
 
-    buildingtype = this_ptr->Class;
+DEFINE_HOOK(0x00433C6F, _BuildingClass_Mission_Open_Gate_Close_Sound_Patch, 0)
+{
+    GET(Coord *, coord, EAX);
+    GET(BuildingClass *, this_ptr, ESI);
+
+    BuildingTypeClass* buildingtype = this_ptr->Class;
 
     /**
      *  Fetch the default gate rising sound.
      */
-    voc = Rule->GateUpSound;
+    VocType voc = Rule->GateUpSound;
 
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch(buildingtype);
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(buildingtype);
 
     /**
      *  Does this building have a custom gate rising sound? If so, use it.
@@ -1392,7 +1456,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
     /**
      *  Function return (0).
      */
-    JMP(0x00433C81);
+    return 0x00433C81;
 }
 
 
@@ -1406,12 +1470,11 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
  */
 static void BuildingClass_Shake_Screen(BuildingClass *building)
 {
-    BuildingTypeClassExtension *buildingtypeext;
-
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch(static_cast<const BuildingTypeClass*>(building->TClass));
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(
+        static_cast<const BuildingTypeClass*>(building->TClass));
 
     /**
      *  #issue-414
@@ -1427,7 +1490,7 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
          *  offset values. GScreenClass::Blit will handle the rest for us.
          */
         if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0
-         || (buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0)) {
+         || buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0) {
 
             if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0) {
                 Map.ScreenX = Sim_Random_Pick(buildingtypeext->ShakePixelXLo, buildingtypeext->ShakePixelXHi);
@@ -1467,10 +1530,9 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
     }
 }
 
-DECLARE_PATCH(_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch)
+DEFINE_HOOK(0x0042B250, _BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    static int shakes;
+    GET(BuildingClass *, this_ptr, ESI);
 
     BuildingClass_Shake_Screen(this_ptr);
 
@@ -1488,69 +1550,10 @@ continue_function:
      * 
      *  @author: CCHyper
      */
-    _asm { xor edi, edi }
+    R->EDI(0);
 
-    JMP_REG(edx, 0x0042B27F);
+    return 0x0042B27F;
 }
-
-
-/**
- *  #issue-72
- * 
- *  Fixes the bug where the wrong palette used to draw the cameo of the object
- *  being produced above a enemy spied factory building.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass *, factory_obj, eax);
-    GET_REGISTER_STATIC(Point2D *, pos_xy, edi);
-    GET_REGISTER_STATIC(Rect *, window_rect, ebp);
-    static const TechnoTypeClass *technotype;
-    static TechnoTypeClassExtension *technotypeext;
-    static const ShapeSet *cameo_shape;
-    static Surface *pcx_image;
-    static Rect pcxrect;
-
-    technotype = factory_obj->TClass;
-
-    /**
-     *  #issue-487
-     * 
-     *  Adds support for PCX/PNG cameo icons.
-     * 
-     *  @author: CCHyper
-     */
-    technotypeext = Extension::Fetch(technotype);
-    if (technotypeext->CameoImageSurface) {
-
-        /**
-         *  Draw the cameo pcx image.
-         */
-        pcxrect.X = window_rect->X + pos_xy->X;
-        pcxrect.Y = window_rect->Y + pos_xy->Y;
-        pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
-        pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
-
-        SpriteCollection.Draw(pcxrect, *LogicSurface, *technotypeext->CameoImageSurface);
-
-    } else {
-
-        cameo_shape = technotype->Get_Cameo_Data();
-
-        /**
-         *  Draw the cameo shape.
-         * 
-         *  Original code used NormalDrawer, which is the old Red Alert shape
-         *  drawer, so we need to use CameoDrawer here for the correct palette.
-         */
-        Draw_Shape(*LogicSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
-    }
-
-    JMP(0x00428B13);
-}
-
 
 /**
  *  #issue-1049
@@ -1568,17 +1571,16 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto)
+DEFINE_HOOK(0x0042C624, _BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static BuildingTypeClass* buildingtype;
+    GET(BuildingClass*, this_ptr, ESI);
 
     if (this_ptr->Class->UndeploysInto == nullptr) {
 
         /**
          *  This building cannot undeploy. Exit the function.
          */
-        JMP(0x0042C58C);
+        return 0x0042C58C;
     }
 
     /**
@@ -1587,7 +1589,7 @@ DECLARE_PATCH(_BuildingClass_Assign_Target_No_Deconstruction_With_Null_Undeploys
      */
     this_ptr->Assign_Mission(MISSION_DECONSTRUCTION);
     this_ptr->Commence();
-    JMP(0x0042C63A);
+    return 0x0042C63A;
 }
 
 
@@ -1606,33 +1608,6 @@ bool Is_Allowed_Harvester(BuildingClass* building, UnitClass* harvester)
 
 
 /**
- *  #issue-129
- *
- *  Fixes a bug where a harvester is able to dock to a refinery that is not
- *  listed in the value of the harvester's Dock= key.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(UnitClass*, unit, edi);
-
-    if (!Is_Allowed_Harvester(this_ptr, unit)) {
-        JMP(0x0042696C); // Return RADIO_NEGATIVE
-    }
-
-    // Stolen bytes / code
-    if (!this_ptr->Cargo.Is_Something_Attached()) {
-        JMP(0x0042707B); // Return RADIO_ROGER
-    }
-
-    // Continue function execution beyond harvester-to-dock check
-    JMP(0x00426A8C);
-}
-
-
-/**
  *  #issue-445
  *
  *  Fixes a bug where crew wouldn't come out of sold/destroyed construction yards
@@ -1640,9 +1615,9 @@ DECLARE_PATCH(_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
+DEFINE_HOOK(0x00430CC2, _BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
     // Unfortunately, it seems like Mission_Deconstruction does not know if the building was sold or is undeploying
     // So we're going to
@@ -1652,11 +1627,11 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
     if ((this_ptr->ArchiveTarget == nullptr || this_ptr->Class->UndeploysInto == nullptr) && !this_ptr->Class->Is_Deployable())
     {
         // Process crew
-        JMP(0x00430CE4);
+        return 0x00430CE4;
     }
 
     // Don't process crew
-    JMP(0x00430EEA);
+    return 0x00430EEA;
 }
 
 
@@ -1666,26 +1641,29 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
+static bool Unlimbo_Helper(UnitClass* unit, Coord const& coord, Dir256 dir)
 {
-    GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
-    LEA_STACK_STATIC(Coordinate*, coords, esp, 0x40);
-    GET_REGISTER_STATIC(Dir256, dir, eax);
-
-    static bool result;
-
     ScenarioInit++;
-    result = mcv->Unlimbo(*coords, dir);
+    bool result = unit->Unlimbo(coord, dir);
     ScenarioInit--;
 
-    if (result)
-    {
-        JMP(0x00430A1A);
+    if (!result) {
+        delete unit;
     }
-    else
-    {
-        delete mcv;
-        JMP(0x00430B37);
+
+    return result;
+}
+
+DEFINE_HOOK(0x00430A01, _BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch, 0)
+{
+    GET(UnitClass*, mcv, EBP);
+    GET(Dir256, dir, EAX);
+    LEA_STACK(Coord const*, coord, 0x40);
+
+    if (Unlimbo_Helper(mcv, *coord, dir)) {
+        return 0x00430A1A;
+    } else {
+        return 0x00430B37;
     }
 }
 
@@ -1697,9 +1675,9 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
+DEFINE_HOOK(0x00430F2B, _BuildingClass_Mission_Deconstruction_Double_Survivors_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET(BuildingClass*, this_ptr, ESI);
 
     // We've already ejected the survivors, don't eject them any more.
     this_ptr->IsSurvivorless = true;
@@ -1708,7 +1686,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
     this_ptr->Status = 2;
     this_ptr->Begin_Mode(BSTATE_CONSTRUCTION);
 
-    JMP(0x00430F3B);
+    return 0x00430F3B;
 }
 
 
@@ -1717,17 +1695,17 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
+DEFINE_HOOK(0x0049436A, _EventClass_Execute_Archive_Selling_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    GET_REGISTER_STATIC(AbstractClass *, target, eax);
+    GET(TechnoClass*, techno, EDI);
+    GET(AbstractClass *, target, EAX);
 
     // Don't assign an archive target if currently selling
     if (techno->Mission != MISSION_DECONSTRUCTION) {
         techno->Assign_Archive_Target(target);
     }
 
-    JMP(0x00494372);
+    return 0x00494372;
 }
 
 
@@ -1736,18 +1714,16 @@ DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Captured_DontScore_Patch)
+DEFINE_HOOK(0x0042F799, _BuildingClass_Captured_DontScore_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static BuildingTypeClassExtension* ext;
+    GET(BuildingClass*, this_ptr, ESI);
 
-    ext = Extension::Fetch(this_ptr->Class);
-    if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !ext->IsDontScore)
-    {
-        JMP(0x0042F7A3);
+    auto ext = Extension::Fetch(this_ptr->Class);
+    if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !ext->IsDontScore) {
+        return 0x0042F7A3;
     }
 
-    JMP(0x0042F7BB);
+    return 0x0042F7BB;
 }
 
 /**
@@ -1759,21 +1735,18 @@ DECLARE_PATCH(_BuildingClass_Captured_DontScore_Patch)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch)
+DEFINE_HOOK(0x0042E5F5, _BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch, 6)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(UnitClass*, unit, edi);
-    static UnitClassExtension* unitext;
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(UnitClass*, unit, EDI);
 
-    unitext = Extension::Fetch(unit);
+    UnitClassExtension* unitext = Extension::Fetch(unit);
     unitext->LastDockedBuilding = this_ptr;
 
     /**
      *  Continue the FreeUnit down-placing process.
      */
-    _asm { movsx   eax, bp }
-    _asm { movsx   ecx, bx }
-    JMP_REG(edx, 0x0042E5FB);
+    return 0;
 }
 
 
@@ -1846,40 +1819,39 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
 }
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_INITIAL_Patch)
+DEFINE_HOOK(0x00432709, _BuildingClass_Mission_Missile_INITIAL_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static int delay;
+    GET(BuildingClass*, this_ptr, ESI);
 
-    delay = _BuildingClass_Mission_Missile_INITIAL(this_ptr);
-
+    int delay = _BuildingClass_Mission_Missile_INITIAL(this_ptr);
     this_ptr->IsToDisplay = true;
+    R->EAX(delay);
 
-    _asm mov eax, delay
-    JMP_REG(edi, 0x00432721);
+    return 0x00432721;
 }
 
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_DOOR_OPENING_Patch)
+DEFINE_HOOK(0x00432729, _BuildingClass_Mission_Missile_DOOR_OPENING_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static int delay;
+    GET(BuildingClass*, this_ptr, ESI);
+    int delay;
     
     delay = _BuildingClass_Mission_Missile_DOOR_OPENING(this_ptr);
+    R->EAX(delay);
 
-    _asm mov eax, delay
-    JMP_REG(edi, 0x0043274C);
+    return 0x0043274C;
 }
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
+DEFINE_HOOK(0x00432957, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static int delay;
-    
-    delay = _BuildingClass_Mission_Missile_LAUNCH_DOWN(this_ptr);
-    JMP_REG(edi, 0x0043296C);
+    GET(BuildingClass*, this_ptr, ESI);
+
+    int delay = _BuildingClass_Mission_Missile_LAUNCH_DOWN(this_ptr);
+    R->EAX(delay);
+
+    return 0x0043296C;
 }
 
 
@@ -1888,17 +1860,16 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
+DEFINE_HOOK(0x00432937, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    static SuperWeaponTypeClassExtension* super_ext;
+    GET(BuildingClass*, this_ptr, ESI);
 
-    super_ext = Extension::Fetch(SuperWeaponTypes[this_ptr->field_298]);
+    SuperWeaponTypeClassExtension* super_ext = Extension::Fetch(SuperWeaponTypes[this_ptr->field_298]);
     if (super_ext->VoxMissileLaunched != VOX_NONE) {
-        Speak(super_ext->VoxMissileLaunched);
+        AudioVoxClass::Speak(super_ext->VoxMissileLaunched);
     }
 
-    JMP(0x00432943);
+    return 0x00432943;
 }
 
 
@@ -1911,7 +1882,7 @@ bool Should_Open_Roof(BuildingClass* building)
 {
     if (building->Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = building->Contact_With_Whom();
-        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
+        if (radio != nullptr && radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             return true;
         }
     }
@@ -1924,41 +1895,34 @@ bool Should_Open_Roof(BuildingClass* building)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
+EXPORT_FUNC(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
-    const BuildingTypeClassExtension* btypeext;
+    GET(BuildingClass*, building, EBP);
 
-    btypeext = Extension::Fetch(building->Class);
-
+    const auto btypeext = Extension::Fetch(building->Class);
     if (building->Class->DoorAnim != nullptr && !Should_Open_Roof(building) || btypeext->RoofDoorAnim != nullptr && Should_Open_Roof(building)) {
-        JMP(0x00427CEC);
+        return 0x00427CEC;
     }
 
-    JMP(0x00427E27);
+    return 0x00427E27;
 }
 
 
-DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
+EXPORT_FUNC(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 {
-    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
-    const BuildingTypeClassExtension* btypeext;
+    GET(BuildingClass*, building, EBP);
+
+    const BuildingTypeClassExtension* btypeext = Extension::Fetch(building->Class);
+
     const ShapeSet* shapefile;
-
-    _asm pushad
-
-    btypeext = Extension::Fetch(building->Class);
-
     if (Should_Open_Roof(building)) {
         shapefile = btypeext->RoofDoorAnim;
     } else {
         shapefile = building->Class->DoorAnim;
     }
 
-    _asm popad
-    _asm mov edx, shapefile
-
-    JMP_REG(ecx, 0x00427DFB);
+    R->EDX(shapefile);
+    return 0x00427DFB;
 }
 
 
@@ -1996,9 +1960,16 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
     }
 
     /**
+     *  Calculate the direction the unit should face - away from the naval yard,
+     *  snapped to cardinal directions (looks nicer).
+     */
+    FacingType facing = static_cast<FacingType>(Desired_Facing(building->Center_Coord(), unlimbo_cell.As_Coord()).Get_Facing<8>());
+    Dir256 dir = static_cast<Dir256>(facing * ((DIR_MAX + 1) / FACING_COUNT));
+
+    /**
      *  Unlimbo the unit at that cell.
      */
-    if (techno->Unlimbo(Map[unlimbo_cell].Center_Coord())) {
+    if (techno->Unlimbo(Map[unlimbo_cell].Center_Coord(), dir)) {
 
         /**
          *  If there's a rally point, assign the unit to move there.
@@ -2035,23 +2006,22 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
+DEFINE_HOOK(0x0042CA98, _BuildingClass_Exit_Object_Naval_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    static BuildingTypeClassExtension* type_ext;
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EDI);
 
-    type_ext = Extension::Fetch(this_ptr->Class);
+    auto type_ext = Extension::Fetch(this_ptr->Class);
     if (type_ext->IsNaval) {
         if (Unlimbo_Naval_Helper(this_ptr, techno)) {
-            JMP(0x0042D7DF); // return 2 - successfully exited
+            return 0x0042D7DF; // return 2 - successfully exited
         } else {
-            JMP(0x0042D966); // return 0 - exit failed
+            return 0x0042D966; // return 0 - exit failed
         }
     } else {
         // Stolen call
         techno->Assign_Archive_Target(this_ptr->ArchiveTarget);
-        JMP(0x0042CAA6);
+        return 0x0042CAA6;
     }
 }
 
@@ -2061,27 +2031,23 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
+DEFINE_HOOK(0x0042CA35, _BuildingClass_Exit_Object_BuildNavalUnit_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-
-    static TechnoTypeClassExtension* ttype_ext;
-    static HouseClassExtension* house_ext;
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(TechnoClass*, techno, EDI);
 
     if (techno->RTTI == RTTI_UNIT) {
-        ttype_ext = Extension::Fetch(techno->TClass);
+        TechnoTypeClassExtension* ttype_ext = Extension::Fetch(techno->TClass);
         if (ttype_ext->IsNaval) {
-            house_ext = Extension::Fetch(this_ptr->House);
+            HouseClassExtension* house_ext = Extension::Fetch(this_ptr->House);
             house_ext->BuildNavalUnit = UNIT_NONE;
         } else {
             this_ptr->House->BuildUnit = UNIT_NONE;
         }
     }
 
-    _asm mov ebp, 0xFFFFFFFF
-
-    JMP(0x0042CA50);
+    R->EBP(0xFFFFFFFF);
+    return 0x0042CA50;
 }
 
 
@@ -2095,13 +2061,727 @@ void BuildingClassExt::_Swizzle_Light_Source()
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(LightSource, "LightSource");
 }
 
-DECLARE_PATCH(_BuildingClass_Load_SwizzleLightSource_Patch)
+
+/**
+ *  Handle an incoming message to the building.
+ *
+ *  @author: 06/09/1994 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessageType message, long& param)
 {
-    GET_REGISTER_STATIC(BuildingClassExt*, this_ptr, esi);
+    switch (message) {
+
+        /*
+        **  This message is received as a request to attach/load/dock with this building.
+        **  Verify that this is allowed and return the appropriate response.
+        */
+    case RADIO_CAN_LOAD:
+        TechnoClass::Receive_Message(from, message, param);
+        if (!House->Is_Ally(from)) return RADIO_STATIC;
+        if (Mission == MISSION_CONSTRUCTION || Mission == MISSION_DECONSTRUCTION || BState == BSTATE_CONSTRUCTION) return RADIO_NEGATIVE;
+        if (!IsOn) return RADIO_NEGATIVE;
+
+        if (Class->IsCanUnitRepair) {
+            if (from->RTTI == RTTI_UNIT || from->RTTI == RTTI_AIRCRAFT) {
+                if (Transmit_Message(RADIO_ON_DEPOT, from) != RADIO_ROGER) {
+                    return RADIO_ROGER;
+                }
+            }
+            return RADIO_NEGATIVE;
+        }        
+
+        if ((Class->IsArmory || Class->IsHospital) && from->RTTI == RTTI_INFANTRY) {
+            if (Ammo != 0 && Mission != MISSION_REPAIR) {
+                return RADIO_ROGER;
+            }
+            return RADIO_NEGATIVE;
+        }
+        if (Class->IsHelipad) {
+
+            /*
+            **  #FIX: Don't allow aircraft to dock with helipads that aren't listed as their Dock.
+            */
+            if (from->RTTI == RTTI_AIRCRAFT && static_cast<AircraftClass*>(from)->Class->Dock.Is_Present(Class)) {
+                return RADIO_ROGER;
+            }
+            return RADIO_NEGATIVE;
+        }
+
+        /*
+        *  Prevents units from requesting to load into the building if it's already in a radio contact with a unit.
+        *  This is typically used in order to only allow one unit to set up loading into it.
+        *  Originally, it was at the very top of this function to prevent any building from interacting with units while during contact,
+        *  however it was moved here in order to allow Helipads, Armories, Hospitals and Service Depots to communicate with
+        *  all units without limitation. Only one unit can still be accepted into being loaded at a time.
+        */ 
+        if (!ScenarioInit && In_Radio_Contact() && Contact_With_Whom() != from) return RADIO_NEGATIVE;
+
+        /**
+         *  #issue-129
+         *
+         *  Fixes a bug where a harvester is able to dock to a refinery that is not
+         *  listed in the value of the harvester's Dock= key.
+         *
+         *  @author: Rampastring
+         */
+        if (Class->IsDockUnload && from->RTTI == RTTI_UNIT && static_cast<UnitClass*>(from)->Class->IsToHarvest && static_cast<UnitClass*>(from)->Class->Dock.Is_Present(Class) && (ScenarioInit || !Cargo.Is_Something_Attached())) {
+            return RADIO_ROGER;
+        }
+
+        /**
+         *  Replicate the fix above for weeders.
+         *
+         *  @author: ZivDero
+         */
+        if (Class->IsWeeder && from->RTTI == RTTI_UNIT && static_cast<UnitClass*>(from)->Class->IsToVeinHarvest && static_cast<UnitClass*>(from)->Class->Dock.Is_Present(Class) && (ScenarioInit || !Cargo.Is_Something_Attached())) {
+            return RADIO_ROGER;
+        }
+
+        return RADIO_STATIC;
+
+        /*
+        **  This message is received when the object has attached itself to this
+        **  building.
+        */
+    case RADIO_IM_IN:
+        if (Mission == MISSION_DECONSTRUCTION) {
+            return RADIO_NEGATIVE;
+        }
+        if (Class->IsCanUnitRepair || Class->IsCanUnitReload || Class->IsHospital || Class->IsArmory) {
+            IsReadyToCommence = true;
+            Assign_Mission(MISSION_REPAIR);
+            from->Assign_Mission(MISSION_SLEEP);
+            return RADIO_ROGER;
+        }
+        if (Class->IsDockUnload || Class->IsWeeder) {
+            from->Assign_Mission(MISSION_UNLOAD);
+            return RADIO_ROGER;
+        }
+        break;
+
+        /*
+        **  Docking maneuver maintenance message. See if new order should be given to the
+        **  unit trying to dock.
+        */
+    case RADIO_DOCKING: {
+        TechnoClass::Receive_Message(from, message, param);
+
+        if (!IsOn) {
+            return RADIO_NEGATIVE;
+        }
+
+        if (Class->IsCanUnitRepair) {
+            RadioClass* radio = Contact_With_Whom();
+            if (radio != nullptr && radio == from) {
+                if (Transmit_Message(RADIO_NEED_REPAIR) == RADIO_NEGATIVE) {
+                    return RADIO_NEGATIVE;
+                }
+            }
+        }
+
+        /*
+        **  If this building is already in radio contact, then it might
+        **  be able to satisfy the request to load by bumping off any
+        **  preoccupying task.
+        */
+        if (Class->IsCanUnitReload) {
+            FootClass* radio = static_cast<FootClass*>(Contact_With_Whom());
+            if (radio != nullptr && radio != from) {
+                if (Transmit_Message(RADIO_ON_DEPOT) == RADIO_ROGER) {
+                    if (Transmit_Message(RADIO_ALL_DONE) == RADIO_ROGER) {
+                        radio->Assign_Destination(&Map[radio->Nearby_Location(this)]);
+                        radio->Assign_Mission(MISSION_MOVE);
+                        return RADIO_ROGER;
+                    }
+                }
+                return RADIO_NEGATIVE;
+            }
+        }
+
+        if (Class->IsHospital || Class->IsArmory) {
+            /**
+             *  If a unit is asking to go ("dock") into the armory or hospital and they don't have ammo for it, turn it away.
+             *  If the armory or hospital has a rally point, tell the unit to move to it instead.
+             *  This makes the all units that were ordered to go into it regroup at the rally position.
+             */ 
+            if (Ammo <= 0) {
+                if (ArchiveTarget != nullptr) {
+                    auto techno = from->As_Techno();
+                    techno->Assign_Mission(MISSION_MOVE);
+                    techno->Assign_Destination(ArchiveTarget);
+                }
+                return RADIO_NEGATIVE;
+            }
+
+            if (Contact_With_Whom() != from) {
+                if (Transmit_Message(RADIO_NEED_REPAIR) != RADIO_NEGATIVE) {
+                    return RADIO_ROGER;
+                }
+                Transmit_Message(RADIO_RUN_AWAY);
+            }
+            else {
+                param = reinterpret_cast<long>(&Map[Get_Coord()]);
+                Transmit_Message(RADIO_MOVE_HERE, param);
+            }
+            return RADIO_ROGER;
+        }
+
+        /*
+        **  Establish contact with the object if this building isn't already in contact
+        **  with another.
+        */
+        if (!In_Radio_Contact()) {
+            Transmit_Message(RADIO_HELLO, from);
+        }
+
+        bool needs_to_move = false;
+
+        if (Contact_With_Whom() != nullptr) {
+            if (Class->IsDockUnload || Class->IsWeeder) {
+                CellClass* docking_cell = &Map[Docking_Coord()];
+                AbstractClass* navcom = static_cast<FootClass*>(Contact_With_Whom())->NavCom;
+                if (navcom != nullptr && docking_cell != navcom) {
+                    needs_to_move = true;
+                }
+            }
+        }
+
+        if (Contact_With_Whom() != nullptr) {
+            if (Class->IsCanUnitRepair) {
+                if (Distance_To(Contact_With_Whom()) > CELL_LEPTON / 2) {
+                    needs_to_move = true;
+                }
+            }
+        }
+
+        if (Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER || needs_to_move) {
+            param = reinterpret_cast<long>(this);
+            if (Class->IsDockUnload || Class->IsWeeder) {
+                param = reinterpret_cast<long>(&Map[Get_Cell() + Cell(2, 1)]);
+
+                /*
+                **  Tell the harvester to move to the docking pad of the building.
+                */
+                if (Transmit_Message(RADIO_MOVE_HERE, param) == RADIO_YEA_NOW_WHAT) {
+
+                    /*
+                    **  Since the harvester is already there, tell it to begin the backup
+                    **  procedure now. If it can't, then tell it to get outta here.
+                    */
+                    Transmit_Message(RADIO_TETHER);
+                    if (Transmit_Message(RADIO_BACKUP_NOW, from) != RADIO_ROGER) {
+                        from->Scatter(COORD_NONE, true, true);
+                    }
+                }
+            }
+            else if (Class->IsHelipad) {
+                param = reinterpret_cast<long>(this);
+                if (Transmit_Message(RADIO_MOVE_HERE, param) == RADIO_YEA_NOW_WHAT) {
+                    Transmit_Message(RADIO_TETHER);
+                }
+            }
+        }
+        return RADIO_ROGER;
+    }
+
+        /*
+        **  If a transport or harvester is requesting permission to head toward, dock
+        **  and load/unload, check to make sure that this is allowed given the current
+        **  state of the building.
+        */
+    case RADIO_ARE_REFINERY:
+        if (Cargo.Is_Something_Attached() || In_Radio_Contact() || IsInLimbo || House != from->Owner_HouseClass() || (!Class->IsRefinery && !Class->IsCanUnitRepair && !Class->IsWeeder)) {
+            return RADIO_NEGATIVE;
+        }
+        return RADIO_ROGER;
+
+        /*
+        **  Someone is telling us that it is starting construction. This should only
+        **  occur if this is a construction yard and a building was just placed on
+        **  the map.
+        */
+    case RADIO_BUILDING:
+        Assign_Mission(MISSION_REPAIR);
+        TechnoClass::Receive_Message(from, message, param);
+        return RADIO_ROGER;
+
+        /*
+        **  Someone is telling us that they have finished construction. This should
+        **  only occur if this is a construction yard and the building that was being
+        **  constructed has finished. In this case, stop the construction yard
+        **  animation.
+        */
+    case RADIO_COMPLETE:
+        if (Mission != MISSION_DECONSTRUCTION) {
+            Assign_Mission(MISSION_GUARD);
+            if (Class->IsConstructionYard) {
+                End_Anim(BANIM_PRE_PRODUCTION);
+                Begin_Anim(BANIM_PRODUCTION, Get_Health_Ratio() <= Rule->ConditionYellow);
+            }
+        }
+        TechnoClass::Receive_Message(from, message, param);
+        return RADIO_ROGER;
+
+        /*
+        **  This message may occur unexpectedly if the unit in contact with this
+        **  building is suddenly destroyed. Handle any cleanup necessary. For example,
+        **  a construction yard should stop its construction animation in this case.
+        */
+    case RADIO_OVER_OUT:
+        Begin_Mode(BSTATE_IDLE);
+        TechnoClass::Receive_Message(from, message, param);
+        return RADIO_ROGER;
+
+        /*
+        **  This message is received when an object has completely left
+        **  building. Sometimes special cleanup action is required when
+        **  this event occurs.
+        */
+    case RADIO_UNLOADED:
+        if (Class->IsCanUnitRepair) {
+            if (Distance_To(from) < 0x0180) {
+                return RADIO_ROGER;
+            }
+        }
+        TechnoClass::Receive_Message(from, message, param);
+        if (Class->IsWeaponsFactory || Class->IsCanUnitRepair) return RADIO_RUN_AWAY;
+        return RADIO_ROGER;
+
+    case RADIO_REDRAW:
+        if (Class->IsWeaponsFactory) {
+            return RADIO_ROGER;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    /*
+    **  Pass along the message to the default message handler in the radio itself.
+    */
+    return TechnoClass::Receive_Message(from, message, param);
+}
+
+
+DEFINE_HOOK(0x004381F8, _BuildingClass_Load_SwizzleLightSource_Patch, 0)
+{
+    GET(BuildingClassExt*, this_ptr, ESI);
 
     this_ptr->_Swizzle_Light_Source();
 
-    JMP(0x00438202);
+    return 0x00438202;
+}
+
+
+/**
+ *  Prevents buildings from catching flames
+ *  when rapidly switching between yellow and green
+ *  damage states.
+ *
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x0042B6CC, _BuildingClass_Take_Damage_Prevent_Cumulative_Flame_Spawn_Patch, 0)
+{
+    GET(Coord *, coord, EAX);
+    GET(BuildingClass *, this_ptr, ESI);
+
+    /**
+     *  Stolen bytes / code.
+     */
+    Static_Sound(Rule->BlowupSound, *coord);
+
+    /**
+     *  Actual functionality of the hack.
+     *  Do not spawn flames on the building if flames were spawned
+     *  on it too recently.
+     */
+    BuildingClassExtension* buildingext = Extension::Fetch(this_ptr);
+    if (Frame < buildingext->LastFlameSpawnFrame + RuleExtension->BuildingFlameSpawnBlockFrames) {
+        goto past_flame_spawn;
+    }
+
+    buildingext->LastFlameSpawnFrame = Frame;
+
+    /**
+     *  Continue into applying building flames.
+     */
+original_code:
+    R->EBX(0x7FFF);
+    return 0x0042B6E4;
+
+    /**
+     *  Skip the game's code block for spawning flames on buildings.
+     */
+past_flame_spawn:
+    return 0x0042B684;
+}
+
+
+BuildingClass* Find_Best_Alternative_Factory(BuildingClass* this_ptr, FootClass* exiting_object)
+{
+    int closest_distance = INT_MAX;
+    BuildingClass* closest_match = nullptr;
+
+    for (int i = 0; i < Buildings.Count(); i++) {
+        BuildingClass* bldg = Buildings[i];
+
+        if (bldg->House == this_ptr->House && bldg != this_ptr && bldg->Mission == MISSION_GUARD && !bldg->Factory && bldg->Class->ToBuild == this_ptr->Class->ToBuild && bldg->Is_Powered_On()) {
+            // Original TS code, left here for reference. Was part of the above condition
+            // if (bldg->Class != this_ptr->Class)
+            //     continue;
+
+            const TechnoTypeClass* technotype = exiting_object->TClass;
+
+            // Check ownable, so only factories of a faction that owns the object can
+            // build the object
+            if ((bldg->Class->Get_Ownable() & technotype->Get_Ownable()) == 0) {
+                continue;
+            }
+
+            // Check ownable, so only factories of a faction that owns the object can
+            // build the object
+            if ((bldg->Class->Get_Ownable() & exiting_object->TClass->Get_Ownable()) == 0) {
+                continue;
+            }
+
+            // All checks have passed. Check the distance to find the closest factory to exit from.
+            int distance = this_ptr->Distance_To(bldg);
+            if (distance < closest_distance) {
+                closest_distance = distance;
+                closest_match = bldg;
+            }
+        }
+    }
+
+    return closest_match;
+}
+
+
+/**
+ *  Replaces the loop starting from 0x0042CAB9 to improve the alternative
+ *  war factory selection logic when a war factory is busy in 3 ways:
+ * 
+ *  1) The object can now exit from factory buildings of a different type
+ *     than what the object was originally produced from.
+ *  
+ *  2) The above takes speed type into account when finding building to exit from,
+ *     preventing ships from exiting from land-based factories and vice-versa.
+ * 
+ *  3) The logic prefers finding the closest rather than the "first" alternative
+ *  factory building.
+ * 
+ *  @author: Rampastring
+ */
+DEFINE_HOOK(0x0042CAB9, _BuildingClass_Exit_Object_Factory_Busy_Customized_Alternate_Factory_Seeking_Logic, 0)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+    GET(FootClass*, exiting_object, EDI);
+
+    BuildingClass* best_alternative_building = Find_Best_Alternative_Factory(this_ptr, exiting_object);
+    if (best_alternative_building != nullptr) {
+
+        /**
+         *  Exit from the factory we found.
+         */
+        R->EBP(best_alternative_building);
+        return 0x0042CB28;
+    }
+
+    /**
+     *  We could not find an alternative factory to exit from,
+     *  exit the function and return 1.
+     */
+    return 0x0042CB16;
+}
+
+
+/**
+ *  Allows AI to repair Base Nodes by enabling the IsToRepair flag on those buildings.
+ *  Only applies in campaign, and only if the AIRepairBaseNodes under [AI] is set to yes/true. 
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042A3D1, _BuildingClass_Unlimbo_AI_Repair_Base_Nodes, 5)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    // Ignore pre-placed buildings
+    if (ScenarioInit) {
+        return 0;
+    }
+
+    if (Session.Type == GAME_NORMAL && !this_ptr->House->Is_Human_Player() && RuleExtension->IsAIRepairBaseNodes) {
+        this_ptr->IsToRepair = true;
+    }
+    
+    return 0;
+}
+
+
+/*
+*  Patches a portion of BuildingClass::Captured where laser fence connections are updated (or more correctly - removed)
+*  At this point, the House of the captured building is NOT updated yet - and belongs to the original owner of this building.
+*  This allows us to add an additional check where if a sensor array is captured, the original owner loses that sensor array's sensing capabilities.
+* 
+*  @author: JoyfulShush
+*/
+DEFINE_HOOK(0x0042F749, _BuildingClass_Captured_Disable_Sensors, 6)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_type = this_ptr->Class;    
+
+    if (building_type->IsSensorArray) {
+        this_ptr->Disable_Sensor_Array();
+    }
+
+    return 0;
+}
+
+
+/*
+ *  Patches a portion of BuildingClass::Captured where a building that gets captured lets players reveal shroud around it with Look().
+ *  At this point, the House of the captured building is already updated - and belongs to the new owner of this building.
+ *  This allows us to add an additional check where if a sensor array is captured, the new owner gains that sensor array's sensing capabilities.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042FB9F, _BuildingClass_Captured_Enable_Sensors, 6)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_type = this_ptr->Class;
+
+    if (building_type->IsSensorArray) {
+        this_ptr->Enable_Sensor_Array();
+    }
+
+    return 0;
+}
+
+
+/*
+ *  Patches the part of BuildingClass::Repair_AI where a building can no longer be repaired due to a house having insufficient funds.
+ *  Typically, it would stop repairs altoghether. However, if the rule for pausing repairs is enabled, then it skips that.
+ *
+ *  @author: JoyfulShush, Rampastring
+ */
+DEFINE_HOOK(0x00435A38, _BuildingClass_Repair_AI_Pause_Repairs_Patch, 7)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    if (this_ptr->House->Is_Human_Player())
+    {
+        HouseClassExtension* houseext = Extension::Fetch(this_ptr->House);
+
+        if (houseext->IsPauseRepairs) {
+            return 0x00435A3F;
+        }
+    }
+
+    return 0;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0042AA76, _BuildingClass_Unlimbo_BuildConst_Patch, 0)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
+        return 0x0042AA8B;
+    }
+
+    return 0x0042AACF;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0042F958, _BuildingClass_Captured_BuildConst_Patch1, 0)
+{
+    GET(BuildingTypeClass*, buildingtype, ECX);
+
+    if (Rule->BuildConst.Is_Present(buildingtype)) {
+        return 0x0042F968;
+    }
+
+    return 0x0042F9A2;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if you have a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0042FACC, _BuildingClass_Captured_BuildConst_Patch2, 0)
+{
+    GET(HouseClass*, house, EBX);
+
+    if (house->Count_Owned(Rule->BuildConst)) {
+        return 0x0042FAEF;
+    }
+
+    return 0x0042FB10;
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x0042FCA1, _BuildingClass_Captured_BuildConst_Patch3, 0)
+{
+    GET(BuildingClass*, this_ptr, ESI);
+
+    if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
+        return 0x0042FCB6;
+    }
+
+    return 0x0042FCF8;
+}
+
+
+/*
+ *  Patches BuildingClass::Limbo, inside the IsWall check that turns a wall into an overlay.
+ *  Replacing the value of Sight to take into account all sight range modifications for this techno.
+ *  Particularly relevant to veterancy granting sight range bonuses.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042A0B0, Building_Class_Unlimbo_Sight_Range_Patch, 0)
+{
+    GET(Coord*, coord, EBP);
+    GET(BuildingClass*, this_ptr, ESI);
+
+    auto building_class_ext = Extension::Fetch(this_ptr);    
+
+    Map.Sight_From(*coord, building_class_ext->Get_Sight_Range(), this_ptr->House);
+
+    return 0x0042A0D7;
+}
+
+/*
+ *  Typically, whenever an infantry exits a Barracks, an Armory or a Hospital, they are assigned
+ *  to move into the exit cell of the building before moving towards the rally point (the ArchiveTarget).
+ *  For jumpjets, this causes issues when the rally point is far away, as they will start flying, then take a few seconds to land
+ *  on the exit coords before moving to the rally point.
+ * 
+ *  This patch makes jumpjets skip the exit coord assignment when they are going to be flying to a rally point when they exit the building,
+ *  allowing them to go straight to the designated position.
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042D192, Building_Class_Exit_Object_Jumpjet_Exit_Coords_Assignment_Patch, 6)
+{
+    GET(FootClass*, this_ptr, EDI);
+
+    // If there is no archive target set for the unit, then there was no rally point set.
+    if (this_ptr->ArchiveTarget != nullptr && this_ptr->RTTI == RTTI_INFANTRY) {
+        auto infantry = static_cast<InfantryClass*>(this_ptr);
+        if (infantry->Class->IsJumpJet) {
+            bool should_fly = infantry->Should_JumpJet_Fly(infantry->Get_Coord().As_Cell(), infantry->ArchiveTarget->Center_Coord().As_Cell());
+
+            if (should_fly) {
+                return 0x0042D1AC;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+/*
+ *  When a unit goes out of a structure such as a Barracks, an Armory or a Hospital, they are in radio contact.
+ *  This prevents other units from coming out from this structure until the unit reports that they are officially out of the building,
+ *  which is done by cutting off radio contact.
+ * 
+ *  When the rally point is far away, jumpjet infantry will decide to fly - and when they do, it can take them some time until they reach
+ *  the designated position - during which units cannot be produced and are lost.
+ *  Note that this is caused even without the "Building_Class_Exit_Object_Jumpjet_Exit_Coords_Assignment_Patch" patch,
+ *  as even landing at the exit coords takes some time.
+ * 
+ *  Instead, this patch causes jumpjet infantry that decide to fly away to the rally point immediately report that they are out of the structure,
+ *  without having to wait first to reach the exit coords or the rally points. This allows further production or units processing to resume with no issues.
+ *  
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0042D26B, Building_Class_Exit_Object_Jumpjet_Radio_Contact_Patch, 0)
+{
+    GET(FootClass*, this_ptr, EDI);
+
+    if (this_ptr->RTTI == RTTI_INFANTRY && this_ptr->ArchiveTarget != nullptr) {
+        auto infantry = static_cast<InfantryClass*>(this_ptr);
+        if (infantry->Class->IsJumpJet) {
+            bool should_fly = infantry->Should_JumpJet_Fly(infantry->Get_Coord().As_Cell(), infantry->ArchiveTarget->Center_Coord().As_Cell());
+
+            if (should_fly) {
+                infantry->Transmit_Message(RADIO_OVER_OUT);
+            }
+        }
+    }
+
+    return 0x0042CF07;
+}
+
+
+/*
+ *  Reimplements BuildingClass::Can_Enter_Cell, which is used for undeploy logic as well as building unlimbo logic
+ *  Improved the undeploy logic to check for the cell being hovered on with the cursor
+ *  rather than using building placement logic.
+ *  This fixes the cursor showing "NO MOVE" when hovering over tiberium, bridges, or invisible units or structures
+ *  Naval buildings checks water passage while making sure the cursor is not on a bridge,
+ *  while regular buildings checks land passage as well as bridges.
+ *
+ *  @author: JoyfulShush, Rampastring
+ */
+MoveType BuildingClassExt::_Can_Enter_Cell(CellClass const* cell, FacingType dir, int cell_height, CellClass const*, bool) const
+{    
+    if (Class->UndeploysInto && IsDown && !IsInLimbo) {
+
+        // If the scenario is being initialized, all cells are considered passable.
+        if (ScenarioInit) {
+            return MOVE_OK;
+        }
+
+        auto class_ext = Extension::Fetch(Class);
+        auto passability = cell->Passability;        
+        
+        if (class_ext->IsNaval) {
+            if (passability != PASSABLE_WATER || cell->Is_Bridge_Here()) {
+                return MOVE_NO;
+            }
+        } else {
+            if (passability != PASSABLE_LAND && !cell->Is_Bridge_Here()) {
+                return MOVE_NO;
+            }
+        }
+
+        return MOVE_OK;
+    }
+
+    Cell cell_id = cell->CellID;
+    return Class->Legal_Placement(cell_id, House) ? MOVE_OK : MOVE_NO;
 }
 
 
@@ -2115,50 +2795,25 @@ void BuildingClassExtension_Hooks()
      */
     BuildingClassExtension_Init();
 
-    Patch_Jump(0x00428AD3, &_BuildingClass_Draw_Spied_Cameo_Palette_Patch);
-    Patch_Jump(0x0042B250, &_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch);
-    Patch_Jump(0x00433BB5, &_BuildingClass_Mission_Open_Gate_Open_Sound_Patch);
-    Patch_Jump(0x00433C6F, &_BuildingClass_Mission_Open_Gate_Close_Sound_Patch);
-    Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
-    Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
-    Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
-    Patch_Jump(0x004325F9, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
-    Patch_Jump(0x0043266C, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
-    Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
-    Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
-    Patch_Jump(0x0042C624, &_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto);
-    Patch_Jump(0x00426A7E, &_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
     Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
     Patch_Jump(0x00433FB0, &BuildingClassExt::_Crew_Type);
     Patch_Jump(0x00435DA0, &BuildingClassExt::_How_Many_Survivors);
-    Patch_Jump(0x00430CC2, &_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch);
-    Patch_Jump(0x00430A01, &_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch);
-    Patch_Jump(0x00430F2B, &_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch);
-    Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
-    Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
-    Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
     Patch_Jump(0x00436410, &BuildingClassExt::_Detach_Anim);
     Patch_Jump(0x004275B0, &BuildingClassExt::_Draw_It);
-    Patch_Jump(0x00433F1D, &_BuildingClass_Detach_Detach_Anim_Patch);
-    Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
-    Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
-    Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
-    Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
     //Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
     //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
-    Patch_Jump(0x00428AA4, &_BuildingClass_Draw_Overlays_Fetch_Factory_Patch);
     Patch_Jump(0x00434000, &BuildingClassExt::_Detach_All);
     Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
     Patch_Jump(0x0042C340, &BuildingClassExt::_Assign_Rally_Point);
     Patch_Jump(0x00434FE0, &BuildingClassExt::_Factory_AI);
     Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
-    Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
-    Patch_Jump(0x0042CA35, &_BuildingClass_Exit_Object_BuildNavalUnit_Patch);
     Patch_Jump(0x0043AF60, &BuildingClassExt::_Fetch_Super_Weapon);
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
-    Patch_Jump(0x004381F8, &_BuildingClass_Load_SwizzleLightSource_Patch);
+    Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
+    Patch_Jump(0x0042FE70, &BuildingClassExt::_Can_Enter_Cell);
+    Patch_Jump(0x00428810, &BuildingClassExt::_Draw_Overlays);
 }

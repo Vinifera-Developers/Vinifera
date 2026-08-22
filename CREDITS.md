@@ -5,10 +5,13 @@ This page lists all the individual contributions to the project by their author.
 - **AlexB**:
   - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry.
   - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
+- **Apollo**:
+  - Correct the translucent-blend rounding so layered translucency no longer darkens.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
   - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
+  - Port the YR MP spawner from C to C++ and YR++, used as a base for the Vinifera spawner.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features.
   - Implement `CurleyShuffle` for AircraftTypes.
@@ -141,19 +144,79 @@ This page lists all the individual contributions to the project by their author.
   - Implement 'OmniFire' for WeaponTypes.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
+  - Extend `BaseUnit` to accept a list of vehicles.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+  - Add customizable wake animations.
+  - Replace DirectDraw with SDL.
+  - Replace DirectSound with a new audio engine backed by miniaudio.
+  - Reimplement the streaming audio path used by VQA movie playback.
+  - Add support for FLAC, WAV, OGG, and MP3 audio files alongside the original AUD format.
+  - Reimplement the music theme system from `THEME.INI` with per-theme volume, full name, artist, length, side ownership, and required-addon controls.
+  - Reimplement the sound-effect (`VocType`) system from `SOUND.INI` with configurable type, control, priority, limit, range, delay, volume and pitch shift.
+  - Reimplement the EVA/VOX speech system from `EVA.INI` with category, priority, control, and per-side speech file support.
+  - Groundwork for implementing modern movie playback.
+- **CnCNet Contributors**:
+  - Tiberian Sun TS-patches spawner, Yuri's Revenge CnCNet spawner that served as a base for Vinifera spawner.
+- **CrimRecya**:
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+- **Crimsonum**:
+  - Author of the default `EVA.INI` shipped alongside Vinifera.
+- **E1 Elite**:
+  - Transcribed the in-game speeches used for the subtitles in the default `EVA.INI`.
+- **hacklex**:
+  - Add Veterancy and Health Filter hotkeys.
+- **JoyfulShush**:
+  - Allow customizing self healing cap and rate game-wide and per-unit.
+  - Allow customizing whether AI can repair buildings created as base nodes.
+  - Add the ability to snap the camera to waypoint using the Center Camera at Waypoint trigger action
+  - Allow revealing maps with any radius (previously was clamped to 10)
+  - Remove logic related to incremental radius movement when setting `RevealByHeight=no` which could cause units to not reveal shroud in some cases.
+  - Allow Reveal Around Waypoints trigger actions to set their reveal radius, and whether they take elevation into account per action.
+  - Fix a vanilla bug where self-healing aircraft would enter an infinite tumbling animation loop and stay alive.
+  - Fix a few vanilla bugs where units with death frames (such as Reapers) would count as dead multiple times, and be allowed to be issued move orders by players.
+  - Fix a vanilla bug where capturing buildings with sensor capabilities would not update the owners of the sensors.
+  - Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points.
+  - Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree)
+  - Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use. 
+  - Allow repairs to be paused instead of stopped when a house has insufficient funds.
+  - Fix a bug that would make healing units unselect themselves when adding other units to current selection.
+  - Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection.
+  - Add Q-Move support for aircraft.
+  - Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving. 
+  - Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves.
+  - Fix a vanilla bug where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range.
+  - Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit.
+  - Fix a bug where AI medics would fail to heal their allies.
+  - Allow Free Radar to remain active when players are in low power.
+  - Add support for health tracking for bridges, as well as allowing bridges to have an armor type.
+  - Allow cloaked units to trigger cell tags when using Entered By trigger events.
+  - Add the ability to specify sight ranges for technos when they are veteran and elite.
+  - Allow customizing the amount of strength technos recover in each self-heal instance per techno and globally.
+  - Fix a vanilla bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards.
+  - Fix a vanilla bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it.
+  - Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point.
+  - Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination.
+  - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building.
+  - Fix a vanilla bug where cloaked units sensed by nearby enemy units can cloak again immediately.
+  - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values.
+  - Add a key to allow AI-controlled units to persist their tags when they deploy into a building.
+  - Improve same-type select command logic, and allow map-wide select when pressing twice in succession.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **Krnyoshi**:
+  - Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached.
 - **Noble Fish**:
   - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
   - Graphics for the new sidebar fitting vanilla sidebar.
 - **[Phobos Contributors](https://github.com/Phobos-developers/Phobos/blob/develop/CREDITS.md)**:
   - DirStruct implementation.
+  - Original INI inheritance implementation as reference.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
   - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes.
-  - Add extended descriptions in tooltips for objects on the sidebar.
+  - Add extended descriptions in tooltips for technos and superweapons on the sidebar.
   - Add developer command to dump all existing triggers, tags, and local and global variables to the log output.
   - Make it possible to assign rally points to service depots.
   - Fix the economy score in the score screen. Dead players also have a score and the score is a percentage of the credits spent by the player who spent the most credits.
@@ -181,6 +244,66 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
   - Implement `ExplosionDamage` for animations.
   - Implement naval yard rally points.
+  - Implement an option to disable Tiberium storage.
+  - Allow deploying air transports with the "Deploy" keyboard command.
+  - Add WallOwner to BuildingTypes.
+  - Implement `Mechanic` for InfantryTypes.
+  - Fix a buffer overflow crash in `MapClass::Place_Down`.
+  - Allow pre-placed units to have missions in multiplayer.
+  - Original implementations of actions in ts-patches.
+  - Add support for more than two houses for loading screens and more than two sides for sidebars and speech.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+  - Fix an edge case crash when AI raises money.
+  - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages.
+  - Improve alternative factory selection when the primary factory is blocked.
+  - Add "Adjust House Modifier" trigger action.
+  - Teams attacking a BwP now take zones into account.
+  - Add "Only Harvesters" quarry.
+  - Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building.
+  - Fix a bug where spawned aircraft would reveal terrain when they fired.
+  - Port a ts-patches fix for a bug where the player's army wouldn't fire at armed civilians.
+  - Add "Building Does Not Exist" trigger event.
+  - Add "Create Building At" trigger action.
+  - Add the Iron Curtain logic from Red Alert 1 for map scripting and AI.
+  - Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft.
+  - Fix a bug where hijackers are able to hijack vehicles of their allies.
+  - Add a developer command to dump all heaps to the log.
+  - Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game.
+  - Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally.
+  - Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land.
+  - Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game.
+  - Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps.
+  - Allow customizing the distance for the "Comes Near Waypoint" trigger event.
+  - Add DetectDisguise to TechnoTypes.
+  - Allow customizing whether AI sees through disguise.
+  - Fix a bug where friendly Spies appeared as disguised.
+  - Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name.
+  - Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type.
+  - Fix an edge case crash when AI is attempting to find a location to place a structure to.
+  - Allow customizing the number of harvesters the AI builds for each refinery.
+  - Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests.
+  - Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests.
+  - Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests.
+  - Vinifera's Developer mode now prints information on executed trigger actions.
+  - Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it.
+  - Allow repairs to be paused instead of stopped when a house has insufficient funds.
+  - Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no`.
+  - EVA no longer says "Harvester under attack" when harvesters receive environmental damage.
+  - Allow throttling the frequency of the "Harvester under attack" EVA event.
+  - Implement the multiplayer spawner.
+  - Allow defining Options menu text colors per side.
+  - Add support for additional multiplayer difficulty levels.
+  - Allow separating human players' and AI players' normal-difficulty settings.
+  - Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with.
+  - Make it possible to load multiplayer saves.
+  - Fix a bug where the game often reported multiple synchronization errors when one player got out of sync.
+  - Fix Win32 dialog scaling with SDL.
+  - Allow customizing end-of-game text color per side.
+  - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.
+  - Fix a bug where the sidebar accepted mouse input while input was locked through a trigger action.
+  - Make it possible to play videos in multiplayer.
+  - Make it possible to vote-skip videos in multiplayer.
+  - Options menu is no longer opened with network input delay in multiplayer.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -259,3 +382,71 @@ This page lists all the individual contributions to the project by their author.
   - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction.
   - Fix building light sources no longer being attached to the building after loading the game.
   - Fix shroud looking bugged if you attempt to reveal too many cells at once.
+  - Implement voxel light customization.
+  - Implement TActionClass extension, port ts-patches actions.
+  - Implement TEventClass extension.
+  - Increase the local/global variable cap to 500.
+  - Implement integer varialbes, and trigger actiosn and events to operate on them.
+  - Add unit promotion sounds, EVA and flashing.
+  - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player.
+  - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets.
+  - Implement the multiplayer spawner.
+  - Extend `BaseUnit` to accept a list of vehicles.
+  - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries.
+  - Port Rampastring's trigger actions from TS-Patches.
+  - Allow manually aiming AA buildings.
+  - Add support for more than two houses for loading screens and more than two sides for sidebars and speech.
+  - Disallow loading campaign saves from other playthroughs, as well as from skirmish.
+  - Allow customizing the options color per side.
+  - Fix a bug where units could gain veterancy by killing allies.
+  - Fix a bug where a trigger could delete itself, leading to a crash.
+  - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
+  - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
+  - Fix a bug where mission `Ambush` wouldn't work correctly.
+  - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.
+  - Fix a bug where `Totable=no` did not work.
+  - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+  - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
+  - Implement `BarGate` for buildings.
+  - Add Tiberium spreader customization.
+  - Fix a bug where carryalls would unload infantry like they unload vehicles.
+  - Fix a bug where carryalls would draw their infantry passenger's shadow.
+  - Fix a bug where carryalls would try to drop off units when landing on a helipad.
+  - Fix a bug where carryalls would land too high when carrying infantry.
+  - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.
+  - Fix a bug where paradropped vehicles would be placed off-center in the cell.
+  - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
+  - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
+  - Fix a bug where paradrops didn't take cell passability and bridges into account.
+  - Add Water movement zone override.
+  - Implement multiplayer beacons.
+  - Chat improvements.
+  - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily.
+  - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.
+  - Port to Syringe.
+  - Add customizable wake animations.
+  - Replace DirectDraw with SDL.
+  - Fix a bug where you could tote a `Totable=no` unit by force-moving onto it.
+  - Tutorial text INI keys are now interpreted as strings, not integers.
+  - Implement INI inheritance/includes.
+  - Fix a bug where the last line of an INI file would not be parsed.
+  - Fix incorrect merging of sections and keys in INI files.
+  - Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued.
+  - Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving.
+  - Fix game end text being stretched horizontally.
+  - Fix a bug where upon restoring focus to the window the last theme would play twice.
+  - Make spawners respect `IonSensitive` on weapons.
+  - Fix a bug where the sidebar could only contain up to 75 items on a strip.
+  - Extended sidebar customizability.
+  - Improve the audio engine's runtime architecture.
+  - Expand the sound-effect (`VocType`) system with positional behavior flags, looping/rotation/queueing controls, per-sound pitch and volume variance, and per-object ambient attachment that follows objects as they move.
+  - Add subtitle rendering for EVA speeches with customizable styling and a category filter.
+  - Add `Attach Sound`, `Detach Sound`, and `Stop Sounds At` trigger actions for managing ambient sounds from scripts.
+  - Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies.
+  - Add an in-game ImGui debug overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass`.
+  - Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass`.
+  - Reimplement the software blitters with hand-written SIMD (SSE2/AVX2) for faster rendering on modern CPUs.
+  - Correct the translucent-blend rounding so layered translucency no longer darkens.
+  - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.

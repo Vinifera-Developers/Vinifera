@@ -33,34 +33,28 @@ You can discuss the development and progress of this project on the **C&C Moddin
 
 
 # Downloading Vinifera
+### Releases
+
+Releases are the stable, recommended builds, and are the ones mods should ship against.  
+All official release builds are made from the `master` branch.  
+You can find all currently released versions of Vinifera [here](https://github.com/Vinifera-Developers/Vinifera/releases).
+
 ### Nightly Builds
 
 An automated build of the `develop` branch is uploaded daily.  
 These Nightly builds include the latest merged features and updates, but they are **not considered stable** and may contain unfinished or experimental functionality.  
 They are intended for active playtesting and for previewing upcoming changes — use them at your own risk.
 
-There are two versions of the Nightly builds available: **Standard** and **Compatibility**.
-
-- The **Standard** build is provided _as-is_, with no modifications for third-party integration.
-- The **Compatibility** build includes changes to improve compatibility (where possible) with existing community patches. This version is also used for integration into the **TS Client**.
-
-If you're unsure which version is right for you, feel free to ask a developer on the **Discord** server.
-
 You can find the latest Nightly builds [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/nightly.yml).  
 Alternatively, the latest build from the most recent commit can be found [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/push.yml).
-
-### Releases
-
-All official release builds are made from the `master` branch.  
-You can find all currently released versions of Vinifera [here](https://github.com/Vinifera-Developers/Vinifera/releases).
 
 ### Installing Vinifera
 
 #### With Freeware TS
 
-1. **Download the latest Vinifera nightly build**  
-   Make sure to get the one **_not postfixed with `ts_client`_**  
-   → https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop
+1. **Download the latest Vinifera release**  
+   → https://github.com/Vinifera-Developers/Vinifera/releases/latest  
+   (or a [nightly build](https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop) if you want the latest unstable changes)
 
 2. **Extract all files** from the archive into the **root directory of your Tiberian Sun installation** (where `Game.exe` is located).
 
@@ -73,8 +67,9 @@ You can use the `Vinifera Beta` version of the TS Client. To switch to it, go to
 After saving your settings and restarting the client, **force an update** to download the Vinifera build.
 
 Alternatively, if you wish to install it manually, you can follow these steps:
-1. **Download the Vinifera nightly build _postfixed with `ts_client`_**  
-   → https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop
+1. **Download the latest Vinifera release**  
+   → https://github.com/Vinifera-Developers/Vinifera/releases/latest  
+   (or a [nightly build](https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop) if you want the latest unstable changes)
 
 2. **Extract the files** into the **TS Client directory**.
 
@@ -175,6 +170,9 @@ Vinifera makes use of third-party libraries to help implement features. Below is
  - [LodePNG](https://lodev.org/lodepng/)
  - [Image-Resampler](https://github.com/ramenhut/image-resampler)
  - [XZip](https://www.codeproject.com/Articles/4135/XZip-and-XUnzip-Add-zip-and-or-unzip-to-your-app-w?msg=3792406)
+ - [SDL](https://github.com/libsdl-org/SDL)
+ - [miniaudio](https://github.com/mackron/miniaudio)
+ - [Dear ImGui](https://github.com/ocornut/imgui)
 
 
 # Anti-virus Warning
@@ -192,7 +190,9 @@ No assets, texts, artwork or other media from the original game(s) is included i
 
 # License
 The source code in this repository is licensed under the [GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.html).  
-Please refer to the accompanying `LICENSE` file for full details.
+Please refer to the accompanying `LICENSE` file for the complete license text.
+
+This project uses [SyringeEx](https://github.com/Vinifera-Developers/SyringeEx) for injection into the game's executable. SyringeEx is distributed under the [GNU Lesser General Public License version 3](https://www.gnu.org/licenses/lgpl-3.0.html).
 
 This project also incorporates source code released by Electronic Arts Inc. under the same [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) license.  
 These contributions originate from the following official repositories:
@@ -203,10 +203,7 @@ These contributions originate from the following official repositories:
 - [C&C Renegade](https://github.com/electronicarts/CnC_Renegade)  
 - [C&C Generals: Zero Hour](https://github.com/electronicarts/CnC_Generals_Zero_Hour)
 
-They are used in accordance with the original license terms and include additional terms as permitted under [Section 7 of the GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html#section7):
-
-<sub><i>Code within this repository can not be used for commercial or financial software as
-dictated by the license released by Electronic Arts Inc. (see ADDITIONAL TERMS - SECTION 7 of LICENSE)</i></sub>
+These components are used in accordance with their original license terms, and include additional permissions and conditions as permitted under [Section 7 of the GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html#section7):
 
 <sub><i>No trademark or publicity rights are granted. This license does NOT give
 you any right, title or interest in "Command & Conquer" or any other

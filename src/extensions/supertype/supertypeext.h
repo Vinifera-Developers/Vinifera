@@ -1,30 +1,12 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended SuperWeaponTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          SUPERTYPEEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended SuperWeaponTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
 #include "abstracttypeext.h"
@@ -55,7 +37,6 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
         virtual ~SuperWeaponTypeClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual bool Read_INI(CCINIClass &ini) override;
@@ -68,7 +49,7 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  These are only to be accessed for save and load operations!
          */
-        char SidebarImage[24 + 1];
+        FixedString<24> SidebarImage;
 
     public:
         /**
@@ -91,4 +72,9 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  Vox to speak when a missile SW is launched.
          */
         VoxType VoxMissileLaunched;
+
+        /**
+         *  Description for the extended sidebar tooltip.
+         */
+        char Description[200];
 };

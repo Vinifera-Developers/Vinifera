@@ -1,30 +1,12 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended TerrainTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          TERRAINTYPEEXT.H
- *
- *  @author        CCHyper
- *
- *  @brief         Extended TerrainTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
 #include "objecttypeext.h"
@@ -52,7 +34,6 @@ TerrainTypeClassExtension final : public ObjectTypeClassExtension
         virtual ~TerrainTypeClassExtension();
 
         virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual TerrainTypeClass *This() const override { return reinterpret_cast<TerrainTypeClass *>(ObjectTypeClassExtension::This()); }
@@ -91,4 +72,29 @@ TerrainTypeClassExtension final : public ObjectTypeClassExtension
          *  The blue tint of this terrain objects light.
          */
         int LightBlueTint;
+
+        /**
+         *  If SpawnsTiberium=yes, the max range in which Tiberium will be spawned.
+         */
+        int TiberiumSpawnRange;
+
+        /**
+         *  If SpawnsTiberium=yes, the growth stage at which the Tiberium will be spawned (min, max).
+         */
+        Point2D TiberiumSpawnStage;
+
+        /**
+         *  If SpawnsTiberium=yes, amount by which the growth stage will decrease for ever ring after 1.
+         */
+        float TiberiumSpawnStageFalloff;
+
+        /**
+         *  If SpawnsTiberium=yes, the number of Tiberium overlays that will be spawned (min, max).
+         */
+        Point2D TiberiumSpawnCount;
+
+        /**
+         *  If SpawnsTiberium=yes, should TIberium be spawned randomly in the range instead of spreading from the center.
+         */
+        bool IsTiberiumScatterSpawn;
 };

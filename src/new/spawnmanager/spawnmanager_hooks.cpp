@@ -1,41 +1,23 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for SpawnManagerClass and KamikazeTrackerClass.
  *
- *  @project       Vinifera
- *
- *  @file          SPAWNMANAGER_HOOKS.CPP
- *
- *  @author        ZivDero
- *
- *  @brief         Contains the hooks for SpawnManagerClass
- *                 and KamikazeTrackerClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
 
 #include "spawnmanager_hooks.h"
 
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "kamikazetracker.h"
 #include "spawnmanager.h"
+#include "syringe.h"
 #include "techno.h"
 #include "technoext.h"
-#include "kamikazetracker.h"
 #include "veinholemonster.h"
 #include "vinifera_globals.h"
 
@@ -45,24 +27,19 @@
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
+DEFINE_HOOK(0x00494AB5, _EventClass_Execute_IDLE_Spawn_Manager_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass*, techno, esi);
-    static TechnoClassExtension* extension;
-    static RTTIType rtti;
+    GET(TechnoClass*, techno, ESI);
 
-    extension = Extension::Fetch(techno);
-    if (extension->SpawnManager)
+    auto extension = Extension::Fetch(techno);
+    if (extension->SpawnManager) {
         extension->SpawnManager->Abandon_Target();
-
-    rtti = techno->RTTI;
-    if (rtti == RTTI_UNIT)
-    {
-        JMP(0x00494AC5);
     }
-    else
-    {
-        JMP(0x00495110);
+
+    if (techno->RTTI == RTTI_UNIT) {
+        return 0x00494AC5;
+    } else {
+        return 0x00495110;
     }
 
 }
@@ -73,24 +50,18 @@ DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
+DEFINE_HOOK(0x0047FE2F, _DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch, 0)
 {
-    GET_REGISTER_STATIC(TechnoClass*, linked_to, eax);
-    static TechnoClassExtension* extension;
+    GET(TechnoClass*, linked_to, EAX);
 
-    _asm pushad
-
-    extension = Extension::Fetch(linked_to);
-    if (linked_to->EMPFramesRemaining > 0 || extension->SpawnManager && extension->SpawnManager->Preparing_Count())
-    {
-        _asm popad
+    auto extension = Extension::Fetch(linked_to);
+    if (linked_to->EMPFramesRemaining > 0 || extension->SpawnManager && extension->SpawnManager->Preparing_Count()) {
         // return 1;
-        JMP(0x0047FE39);
+        return 0x0047FE39;
     }
 
     // Continue execution
-    _asm popad
-    JMP_REG(edx, 0x0047FE45);
+    return 0x0047FE45;
 }
 
 
@@ -99,14 +70,14 @@ DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_LogicClass_AI_Kamikaze_AI_Patch)
+DEFINE_HOOK(0x00507000, _LogicClass_AI_Kamikaze_AI_Patch, 0)
 {
     // Stolen instruction
     VeinholeMonsterClass::Update_All();
 
     KamikazeTracker->AI();
 
-    JMP(0x00507005);
+    return 0x00507005;
 }
 
 
@@ -115,7 +86,5 @@ DECLARE_PATCH(_LogicClass_AI_Kamikaze_AI_Patch)
  */
 void SpawnManager_Hooks()
 {
-    Patch_Jump(0x00494AB5, &_EventClass_Execute_IDLE_Spawn_Manager_Patch);
-    Patch_Jump(0x0047FE2F, &_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch);
-    Patch_Jump(0x00507000, &_LogicClass_AI_Kamikaze_AI_Patch);
+
 }

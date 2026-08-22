@@ -1,41 +1,26 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Custom _purecall virtual handler.
  *
- *  @project       Vinifera
- *
- *  @file          PURECALLHANDLER.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Custom _purecall virtual handler.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "purecallhandler.h"
-#include "stackdump.h"
-#include "textfile.h"
-#include "fatal.h"
-#include "fixedstring.h"
+
 #include "debughandler.h"
+#include "fatal.h"
+#include "stackdump.h"
+#include "stringid.h"
+#include "textfile.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
-#include <Windows.h>
-#include <string>
+
+#include <windows.h>
 
 
 extern int Execute_Day;
@@ -90,18 +75,19 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
 {
     /**
      *  First things we should do is dump the stack and memory.
-     *  
-     *  The default stack walker skip frames is 2, but we need to include
-     *  the call to us also here, so make that 3.
+     *
+     *  Skip 3 frames: Stack_Dump, Vinifera_PureCall_Handler, and the CRT
+     *  _purecall stub. The first reported frame is then the pure-virtual
+     *  call site.
      */
-    Stack_Dump(Vinifera_PureCall_StackCallback, 1);
+    Stack_Dump(Vinifera_PureCall_StackCallback, 3);
 
     /**
      *  Create a unique filename for the stack dump based on the time of execution.
      */
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\STACK_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
-        Vinifera_DebugDirectory,
+        Vinifera_DebugDirectory.c_str(),
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
         
     StackFile.Set_Name(filename_buffer);
@@ -109,7 +95,7 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
     /**
      *  Write the buffer to the file.
      */
-    StackFile.Write(StackBuffer.Peek_Buffer(), StackBuffer.Get_Length());
+    StackFile.Write(StackBuffer.c_str(), StackBuffer.size());
 
     DEBUG_ERROR("\n");
     DEBUG_ERROR("***** Pure virtual function called! *****\n");
@@ -119,8 +105,8 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
      */
     DEBUG_ERROR("See call stack in debugger for more information.\n");
     DEBUG_ERROR("\n");
-    if (!StackBuffer.Empty()) {
-        DEBUG_ERROR(StackBuffer.Peek_Buffer());
+    if (!StackBuffer.empty()) {
+        DEBUG_ERROR("{}", StackBuffer);
         DEBUG_ERROR("\n");
     }
 
@@ -128,7 +114,7 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
     std::snprintf(buffer, sizeof(buffer),
         "Pure virtual function called!\n\n"
         "See STACK_<date-time>.TXT in the application directory for more details.\n\n"
-        "%s", StackBuffer.Peek_Buffer());
+        "%s", StackBuffer.c_str());
 
     MessageBoxA(
         MainWindow,

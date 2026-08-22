@@ -1,50 +1,35 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended TActionClass.
  *
- *  @project       Vinifera
- *
- *  @file          TACTIONEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended TriggerClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "tactionext_hooks.h"
+
+#include "asserthandler.h"
+#include "audio_theme.h"
+#include "audio_util.h"
+#include "audio_voc.h"
+#include "audio_vox.h"
+#include "debughandler.h"
+#include "hooker.h"
+#include "house.h"
+#include "mouse.h"
+#include "object.h"
+#include "taction.h"
+#include "tactionext.h"
+#include "tagtype.h"
+#include "teamtype.h"
+#include "tibsun_defines.h"
 #include "tibsun_globals.h"
-#include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
-#include "taction.h"
-#include "scenario.h"
-#include "scenarioext.h"
-#include "voc.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "house.h"
-#include "housetype.h"
-#include "session.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-#include "mouse.h"
-#include "rules.h"
+#include "waypoint.h"
 
 
 /**
@@ -57,238 +42,175 @@
 DECLARE_EXTENDING_CLASS_AND_PAIR(TActionClass)
 {
 public:
-    bool _Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
-
+    bool _Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell);
+    void _Read_INI();
 };
 
 
 /**
- *  #issue-71
+ *  Intercept for TActionClass::operator() to add the
+ *  execution of our new TActions.
  *
- *  Reimplement Do_PLAY_SOUND_RANDOM to support the new waypoint limit.
- *
- *  @author: CCHyper
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell)
 {
-    Cell list[NEW_WAYPOINT_COUNT];
-    int count = 0;
+    bool success = true;
 
-    /**
-     *  Make a list of all the valid waypoints in this scenario.
-     */
-    for (WaypointType index = WAYPOINT_FIRST; index < NEW_WAYPOINT_COUNT; ++index) {
-        if (ScenExtension->Is_Waypoint_Valid(index)) {
-            list[count++] = ScenExtension->Waypoint_CellClass(index);
-            if (count >= std::size(list)) break;
-        }
+    if (Vinifera_DeveloperMode) {
+        DEBUG_INFO("Executing TAction {} {}. Trigger: \"{}\", Frame: {}\n", (int)Action, TActionClassExtension::Action_Name(Action), trigger->Class->GivenName, Frame);
     }
 
     /**
-     *  Pick a random cell from the valid waypoint list and play the desired sound.
+     *  If this is a Vinifera TAction, execute it.
      */
-    Static_Sound(Data.Sound, list[Random_Pick(0u, std::size(list) - 1)].As_Coord());
-    return true;
+    if (TActionClassExtension::Is_Vinifera_TAction(Action)) {
+        success = Extension::Fetch(this)->Execute(house, object, trigger, cell);
+    }
+
+    /**
+     *  Otherwise, let the game handle it.
+     */
+    else {
+        success = TActionClass::operator()(house, object, trigger, cell);
+    }
+
+    return success;
 }
 
 
-/**
- *  #issue-71
- *
- *  Replace inlined instance of Do_PLAY_SOUND_RANDOM.
- *
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TActionClass_Operator_Do_PLAY_SOUND_RANDOM_Remove_Inline_Patch)
-{
-    GET_REGISTER_STATIC(TActionClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(ObjectClass *, object, ecx);
-    GET_STACK_STATIC(Cell *, cell, esp, 0x1D0);
-    GET_STACK_STATIC(TriggerClass *, trigger, esp, 0x1CC);
-    //GET_STACK_STATIC(ObjectClass *, object, esp, 0x1C8); // Use ECX instead.
-    GET_STACK_STATIC(HouseClass *, house, esp, 0x1C4);
-    static bool retval;
-
-    retval = this_ptr->Do_PLAY_SOUND_RANDOM(house, object, trigger, *cell);
-
-    /**
-     *  Function return.
-     */
-return_true:
-    _asm { mov al, retval }
-    JMP_REG(ecx, 0x0061A9C5);
-}
+enum NeedCode {
+    NeedOther = 0,
+    NeedTeam = 1,
+    NeedTrigger = 2,
+    NeedTag = 3,
+    NeedTeamAndTime = 4,
+    NeedSpeech = 5,
+    NeedSound = 6,
+    NeedTheme = 7
+};
 
 
 /**
- *  #issue-299
- * 
- *  Fixes the issue with the current difficulty not being checked
- *  when enabling triggers.
- * 
- *  @see: TriggerClass and TriggerTypeClass for the other parts of this fix.
- * 
- *  @author: CCHyper
+ *  Parses the INI text for this action's data.
+ *
+ *  @author: ZivDero, tomsons26
  */
-DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
+void TActionClassExt::_Read_INI()
 {
-    GET_REGISTER_STATIC(int, trigger_index, edi);
-    static TriggerClass* trigger;
+    auto& extension = *Extension::Fetch(this);
 
-    /**
-     *  This is direct port of the code from Red Alert 2, which looks to fix this issue.
-     */
+    Data.Value = 0;
+    Action = static_cast<TActionType>(atoi(strtok(nullptr, ",")));
+    NeedCode code = static_cast<NeedCode>(atoi(strtok(nullptr, ",")));
+    char* text = strtok(nullptr, ",");
+    int val = atoi(text);
 
-    /**
-     *  We need to re-fetch the trigger from the vector as the
-     *  register is reused by this point.
-     */
-    trigger = Triggers[trigger_index];
-    if (trigger) {
+    switch (code) {
+    case NeedOther:
 
         /**
-         *  Set this trigger to be disabled if it is marked as disabled
-         *  for this current mission difficulty.
+         *  Hack: for text triggers, we want text now, but we won't change the need code
+         *  to preserve compatibility.
          */
-        if (Scen->Difficulty == DIFF_EASY && !trigger->Class->Easy
-            || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->Normal
-            || Scen->Difficulty == DIFF_HARD && !trigger->Class->Hard) {
-
-            trigger->Disable();
-
+        if (Action == TACTION_TEXT_TRIGGER || Action == EXT_TACTION_ENABLE_TEMPLATED_TEXT) {
+            extension.Text = text;
         } else {
-
-            trigger->Enable();
+            Data.Value = val;
         }
-    }
+        break;
 
-    JMP(0x0061A611);
-}
-
-/**
- *  Helper function. Flags all houses aside from the winner
- *  as defeated.
- *
- *  @author: Rampastring
- */
-void TAction_Win_Flag_Houses(HousesType winner)
-{
-    /**
-     *  Flag the player as won or lost, like in the original code.
-     */
-    if (PlayerPtr->Class->House == winner) {
-        PlayerPtr->Flag_To_Win(false);
-    } else {
-        PlayerPtr->Flag_To_Lose(false);
-    }
-
-    /**
-     *  Mark all other houses than the winner as defeated.
-     */
-    for (int i = 0; i < Houses.Count(); i++) {
-        HouseClass *house = Houses[i];
-
-        if (house->Class->House != winner) {
-            house->IsDefeated = true;
+    case NeedTeam:
+    case NeedTeamAndTime:
+        if (val == -1) {
+            Team = nullptr;
+        } else {
+            if (strlen(text) < 3) {
+                Team = TeamTypes[val];
+            } else {
+                Team = TeamTypeClass::Find_Or_Make(text);
+            }
         }
-    }
-}
+        break;
 
+    case NeedTrigger:
+        if (val == -1) {
+            Trigger = nullptr;
+        } else {
+            if (strlen(text) < 3) {
+                Trigger = TriggerTypes[val];
+            } else {
+                Trigger = TriggerTypeClass::Find_Or_Make(text);
+            }
+        }
+        break;
 
-/**
- *  #issue-965
- *
- *  Makes the "Winner is" trigger action set the IsDefeated flag on losing
- *  houses in multiplayer.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_TAction_Win_FlagLosersAsDefeatedInMultiplayer)
-{
-    GET_STACK_STATIC(HousesType, housestype, esi, 0x40);
+    case NeedTag:
+        if (val == -1) {
+            Tag = nullptr;
+        } else {
+            if (strlen(text) < 3) {
+                Tag = TagTypes[val];
+            } else {
+                Tag = TagTypeClass::Find_Or_Make(text);
+            }
+        }
+        break;
 
-    if (Session.Type == GAME_NORMAL) {
-        goto original_code;
-    }
+    case NeedSpeech:
+        Data.Speech = AudioVoxClass::From_Name(text);
+        break;
 
-    TAction_Win_Flag_Houses(housestype);
+    case NeedSound:
+        Data.Sound = AudioVocClass::From_Name(text);
+        break;
 
-    /**
-     *  The action has done its job, return true.
-     */
-return_true:
-    JMP_REG(ebx, 0x00619FF6);
-
-original_code:
-    /**
-     *  Stolen bytes / code.
-     */
-    _asm { mov ecx, PlayerPtr }
-    _asm { mov ecx, [ecx] }
-    JMP(0x00619FE1);
-}
-
-
-/**
- *  Helper function. Flags the losers as defeated.
- *
- *  @author: Rampastring
- */
-void TAction_Lose_Flag_Houses(HousesType loser)
-{
-    /**
-     *  Flag the player as won or lost, like in the original code.
-     */
-    if (PlayerPtr->Class->House == loser) {
-        PlayerPtr->Flag_To_Lose(false);
-    } else {
-        PlayerPtr->Flag_To_Win(false);
+    case NeedTheme:
+        Data.Theme = AudioTheme.From_Name(text);
+        break;
     }
 
-    /**
-     *  Mark all losers as defeated.
-     */
-    for (int i = 0; i < Houses.Count(); i++) {
-        HouseClass* house = Houses[i];
-
-        if (house->Class->House == loser) {
-            house->IsDefeated = true;
+    TriggerRect.X = atoi(strtok(nullptr, ","));
+    TriggerRect.Y = atoi(strtok(nullptr, ","));
+    TriggerRect.Width = atoi(strtok(nullptr, ","));
+    TriggerRect.Height = atoi(strtok(nullptr, ","));
+    char* temp = strtok(nullptr, ",");
+    if (temp != nullptr) {
+        if (code == NeedTeamAndTime) {
+            Data.Value = atoi(temp);
+        } else {
+            EffectLocation = Waypoint_From_String(temp);
         }
     }
 }
 
 
 /**
- *  #issue-965
+ *  What can this action attach to?
  *
- *  Makes the "Loser is" trigger action set the IsDefeated flag on the
- *  losing house in multiplayer.
- *
- *  @author: Rampastring
+ *  @author: ZivDero
  */
-DECLARE_PATCH(_TAction_Lose_FlagLoserAsLostInMultiplayer)
+AttachType _Attaches_To(TActionType event)
 {
-    GET_STACK_STATIC(HousesType, housestype, esi, 0x40);
+    AttachType attach = ATTACH_NONE;
 
-    if (Session.Type == GAME_NORMAL) {
-        goto original_code;
+    switch (event) {
+    case TACTION_DESTROY_OBJECT:
+    case TACTION_SELL_ATTACHED:
+    case TACTION_TURN_OFF_ATTACHED:
+    case TACTION_TURN_ON_ATTACHED:
+    case TACTION_CHANGE_HOUSE:
+    case TACTION_GO_BERZERK:
+    case TACTION_SET_GROUP_ID:
+    case EXT_TACTION_ATTACH_SOUND:
+    case EXT_TACTION_DETACH_SOUND:
+        attach |= ATTACH_OBJECT;
+        break;
+
+    default:
+        break;
     }
-
-    TAction_Lose_Flag_Houses(housestype);
-
-    /**
-     *  The action has done its job, return true.
-     */
-return_true:
-    JMP_REG(ebx, 0x0061A020);
-
-original_code:
-    /**
-     *  Stolen bytes / code.
-     */
-    _asm { mov ecx, PlayerPtr }
-    _asm { mov ecx, [ecx] }
-    JMP(0x0061A00B);
+    return attach;
 }
 
 
@@ -297,6 +219,10 @@ original_code:
  */
 void TActionClassExtension_Hooks()
 {
+    Patch_Call(0x0064961C, &TActionClassExt::_Operator_Parens_Intercept);
+    Patch_Jump(0x00618F70, &TActionClassExt::_Read_INI);
+    Patch_Jump(0x0061D9C0, &_Attaches_To);
+
     /**
      *  #issue-674
      * 
@@ -309,19 +235,4 @@ void TActionClassExtension_Hooks()
      *  @author: CCHyper
      */
     Patch_Dword(0x00619552+2, (0x007E4820+4)); // Foot vector to Technos vector.
-
-    Patch_Jump(0x0061A60C, &_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch);
-
-    /**
-     *  #issue-71
-     *
-     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
-     *
-     *  @author: CCHyper
-     */
-    Patch_Jump(0x0061BF50, &TActionClassExt::_Do_PLAY_SOUND_RANDOM);
-    Patch_Jump(0x00619E42, &_TActionClass_Operator_Do_PLAY_SOUND_RANDOM_Remove_Inline_Patch);
-
-    Patch_Jump(0x00619FDB, &_TAction_Win_FlagLosersAsDefeatedInMultiplayer);
-    Patch_Jump(0x0061A005, &_TAction_Lose_FlagLoserAsLostInMultiplayer);
 }

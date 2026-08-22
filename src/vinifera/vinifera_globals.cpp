@@ -1,39 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Vinifera global values.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_GLOBALS.CPP
- *
- *  @authors       CCHyper
- *
- *  @brief         Vinifera global values.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#pragma once
+
+#include "always.h"
 
 #include "vinifera_globals.h"
 
 #include "aircrafttracker.h"
 #include "prerequisitegroup.h"
 
+#include <chrono>
+#include <optional>
 
 bool Vinifera_DeveloperMode = false;
+
+bool Vinifera_AudioDebug = false;
 
 bool Vinifera_PerformingLoad = false;
 
@@ -41,15 +27,17 @@ bool Vinifera_PrintFileErrors = true;
 bool Vinifera_FatalFileErrors = false;
 bool Vinifera_AssertFileErrors = false;
 
-char Vinifera_ExceptionDatabaseFilename[PATH_MAX] = { "GAME.EDB" };
-char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
-char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
-char Vinifera_SavedGamesDirectory[PATH_MAX] = { "Saved Games" };
+std::string Vinifera_ExceptionDatabaseFilename { "GAME.EDB" };
+std::string Vinifera_DebugDirectory { "Debug" };
+std::string Vinifera_ScreenshotDirectory { "Screenshots" };
+std::string Vinifera_SavedGamesDirectory { "Saved Games" };
 
-char Vinifera_ProjectName[64] = { '\0' };
-char Vinifera_ProjectVersion[64] = { '\0' };
-char Vinifera_IconName[64] = { '\0' };
-char Vinifera_CursorName[64] = { '\0' };
+std::string Vinifera_ProjectName;
+std::string Vinifera_ProjectVersion;
+std::string Vinifera_IconName;
+std::string Vinifera_CursorName;
+
+DWORD Vinifera_MainThreadId = 0;
 
 bool Vinifera_Developer_InstantBuild = false;
 bool Vinifera_Developer_AIInstantBuild = false;
@@ -63,6 +51,13 @@ int Vinifera_Developer_FrameStepCount = 0;
 bool Vinifera_Developer_AIControl = false;
 bool Vinifera_Developer_IsToReloadRules = false;
 
+SDL_Window* SDLWindow = nullptr;
+SDL_Renderer* SDLWindowRenderer = nullptr;
+SDL_Texture* SDLWindowTexture = nullptr;
+int SDLWindowWidth = 0;
+int SDLWindowHeight = 0;
+bool Vinifera_ModernMoviePlaying = false;
+
 bool Vinifera_SkipLogoMovies = false;
 bool Vinifera_SkipStartupMovies = false;
 
@@ -70,13 +65,13 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
-/**
- *  The total play time from all previous sessions of the current game.
- */
-unsigned Vinifera_TotalPlayTime = 0;
-
 DynamicVectorClass<MFCD *> ViniferaMapsMixes;
-DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
+DynamicVectorClass<MFCD*> ViniferaMoviesMixes;
+
+unsigned Vinifera_PlaythroughID = 0;
+
+int PendingMultiplayerSaveLoadSlot = -1;
+std::optional<std::chrono::steady_clock::time_point> PendingMultiplayerSaveLoadTime;
 
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
@@ -90,9 +85,14 @@ DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;
 
+int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/MAX_ENVIRONMENT_GLOBALS];
+
+bool Vinifera_PlayerOptionsSent = false;
+
+std::unordered_map<std::string, std::string> Vinifera_TutorialText;
+
 MFCD *GenericMix = nullptr;
 MFCD *IsoGenericMix = nullptr;
-MFCD *SideCTMix = nullptr;
 
 bool Vinifera_SkipToTSMenu = false;
 bool Vinifera_SkipToFSMenu = false;
@@ -102,7 +102,6 @@ bool Vinifera_SkipToCampaign = false;
 bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
 
-bool Vinifera_NewSidebar = false;
-bool Vinifera_NoVersionString = false;
-
 DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;
+
+std::unordered_map<Cell, int, CellHasher> BridgeHealths;

@@ -1,71 +1,51 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended combat functions.
  *
- *  @project       Vinifera
- *
- *  @file          COMBATEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended combat functions.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "combatext_hooks.h"
-#include "tibsun_inline.h"
-#include "buildingext_hooks.h"
-#include <algorithm>
-#include <unordered_set>
-#include "aircraft.h"
+
 #include "aircrafttracker.h"
 #include "anim.h"
 #include "animtype.h"
-#include "vinifera_globals.h"
-#include "combat.h"
-#include "cell.h"
-#include "overlaytype.h"
-#include "rulesext.h"
-#include "scenarioext.h"
-#include "warheadtype.h"
-#include "warheadtypeext.h"
 #include "armortype.h"
-#include "extension.h"
-#include "fatal.h"
 #include "asserthandler.h"
 #include "building.h"
+#include "cell.h"
+#include "combat.h"
 #include "coord.h"
-#include "debughandler.h"
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "infantry.h"
-#include "infantrytype.h"
+#include "jumpjetlocomotion.h"
 #include "mouse.h"
+#include "overlaytype.h"
 #include "particlesys.h"
 #include "particlesystype.h"
+#include "rulesext.h"
+#include "scenarioext.h"
+#include "smudgetype.h"
+#include "syringe.h"
 #include "tactical.h"
 #include "team.h"
 #include "teamtype.h"
-#include "unit.h"
+#include "tibsun_inline.h"
 #include "unittype.h"
 #include "veinholemonster.h"
 #include "verses.h"
+#include "vinifera_globals.h"
 #include "voxelanim.h"
-#include "jumpjetlocomotion.h"
-#include "smudgetype.h"
+#include "warheadtype.h"
+#include "warheadtypeext.h"
+
+#include <algorithm>
+#include <unordered_set>
 
 
 template <typename T>
@@ -109,23 +89,22 @@ static T Percent_At_Max(T value, int range, int distance, float percent_at_max)
 int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * target, int distance)
 {
     /**
-     *	If there is no raw damage value to start with, then
-     *	there can be no modified damage either.
+     *  If there is no raw damage value to start with, then
+     *  there can be no modified damage either.
      */
-    if (!damage || Scen->Special.IsInert || warhead == nullptr)
-        return 0;
+    if (!damage || Scen->Special.IsInert || warhead == nullptr) return 0;
 
     ArmorType armor = target->Class_Of()->Armor;
 
     /**
-     *	Negative damage (i.e., heal) is always applied full strength, but only if the heal
-     *	effect is close enough.
+     *  Negative damage (i.e., heal) is always applied full strength, but only if the heal
+     *  effect is close enough.
      */
-    if (damage < 0)
-    {
+    if (damage < 0) {
         enum { MAX_HEAL_DISTANCE = 8 };
-        if (distance < MAX_HEAL_DISTANCE)
+        if (distance < MAX_HEAL_DISTANCE) {
             return damage;
+        }
 
         return 0;
     }
@@ -133,33 +112,11 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
     const auto warhead_ext = Extension::Fetch(warhead);
     const int min_damage = warhead_ext->MinDamage >= 0 ? warhead_ext->MinDamage : Rule->MinDamage;
 
-    float type_modifier = 1.0f;
-    switch (target->RTTI)
-    {
-    case RTTI_INFANTRY:
-        type_modifier = warhead_ext->InfantryModifier;
-        break;
-    case RTTI_UNIT:
-        type_modifier = warhead_ext->VehicleModifier;
-        break;
-    case RTTI_AIRCRAFT:
-        type_modifier = warhead_ext->AircraftModifier;
-        break;
-    case RTTI_BUILDING:
-        type_modifier = warhead_ext->BuildingModifier;
-        break;
-    case RTTI_TERRAIN:
-        type_modifier = warhead_ext->TerrainModifier;
-        break;
-    default:
-        break;
-    }
-
     /**
      *  Apply TS Spread logic.
      */
-    if (warhead_ext->CellSpread < 0.0)
-    {
+    if (warhead_ext->CellSpread < 0.0) {
+
         /**
          *  Apply the warhead's modifier to the damage.
          */
@@ -168,8 +125,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        if (type_modifier != 1.0f)
-            damage *= type_modifier;
+        damage *= warhead_ext->Fetch_Type_Modifier(target->RTTI);
 
         /**
          *  Ensure that the damage is at least MinDamage.
@@ -179,32 +135,36 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Reduce damage according to the distance from the impact point.
          */
-        if (damage)
-        {
-            if (!warhead->SpreadFactor)
+        if (damage) {
+
+            if (warhead->SpreadFactor == 0) {
                 distance /= PIXEL_LEPTON_W / 2;
-            else
+            } else {
                 distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
+            }
 
             distance = std::clamp(distance, 0, 16);
 
-            if (distance)
+            if (distance) {
                 damage /= distance;
+            }
 
             /**
-             *	Allow damage to drop to zero only if the distance would have
-             *	reduced damage to less than 1/4 full damage. Otherwise, ensure
-             *	that at least one damage point is done.
+             *  Allow damage to drop to zero only if the distance would have
+             *  reduced damage to less than 1/4 full damage. Otherwise, ensure
+             *  that at least one damage point is done.
              */
-            if (distance < 4)
+            if (distance < 4) {
                 damage = std::max(damage, min_damage);
+            }
         }
     }
+
     /**
      *  Apply RA2 CellSpread logic.
      */
-    else
-    {
+    else {
+
         /**
          *  Apply PercentAtMax.
          */
@@ -218,8 +178,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        if (type_modifier != 1.0f)
-            damage *= type_modifier;
+        damage *= warhead_ext->Fetch_Type_Modifier(target->RTTI);
 
         /**
          *  Ensure that the damage is at least MinDamage.
@@ -232,7 +191,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
 }
 
 
-static bool Is_On_High_Bridge(const Coordinate& coord)
+static bool Is_On_High_Bridge(const Coord& coord)
 {
     return Map[coord].IsUnderBridge && coord.Z >= BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(coord);
 }
@@ -243,12 +202,12 @@ static bool Is_On_High_Bridge(const Coordinate& coord)
  *
  *  @author: ZivDero
  */
-void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
+void Get_Explosion_Targets(const Coord& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
 {
     Cell cell;      // Cell number under explosion.
     ObjectClass* object; // Working object pointer
 
-    cell = Coord_Cell(coord);
+    cell = coord.As_Cell();
     CellClass* cellptr = &Map[cell];
 
     int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
@@ -318,12 +277,11 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
     if (cellptr->Overlay != OVERLAY_NONE) {
         OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
 
-        if (optr->IsChainReactive) {
-            if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
-                Chain_Reaction_Damage(cell);
-                cellptr->Reduce_Tiberium(strength / 10);
-            }
+        if (optr->IsChainReactive && (!optr->IsTiberium || warhead->IsTiberiumDestroyer) && do_chain_reaction) {
+            Chain_Reaction_Damage(cell);
+            cellptr->Reduce_Tiberium(strength / 10);
         }
+
         if (optr->IsWall) {
 
             /**
@@ -337,10 +295,15 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
             if (warheadtypeext->IsWallAbsoluteDestroyer) {
                 Map[cell].Reduce_Wall(-1);
             }
-            else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
+            else if (warhead->IsWallDestroyer) {
                 Map[cell].Reduce_Wall(strength);
             }
         }
+
+        if (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD) {
+            Map[cell].Reduce_Wall(strength);
+        }
+
         if (cellptr->Overlay == OVERLAY_NONE) {
             TechnoClass::Update_Mission_Targets(cellptr);
         }
@@ -355,7 +318,7 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
  */
 void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const WarheadTypeClass * warhead)
 {
-    Coordinate cell_coord = Cell_Coord(cell);
+    Coord cell_coord = cell.As_Coord();
     cell_coord.Z = Map.Get_Height_GL(cell_coord);
 
     const auto warhead_ext = Extension::Fetch(warhead);
@@ -375,6 +338,104 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
     }
 }
 
+/**
+ *  Deals damage to a bridge, taking into account the damage dealt and the warhead for calculation purposes.
+ *  A bridge will be destroyed one state when its health reaches 0,
+ *  and its damage tracking will be removed until the next damage instance that will be reset.
+ *  Returns whether the bridge sustained enough damage to be destroyed.
+ * 
+ *  Tracks all bridge types and makes sure damage is dealt in a 3x1 format.
+ *  This is typically achieved by checking if there already is a tracked cell or one that should be used for tracking purposes,
+ *  which is not always the one that the damage was dealt on.
+ * 
+ *  Since Low Bridges and High Bridges behave differently, the tracking logic is separated for each bridge type.
+ *
+ *  @author: JoyfulShush
+ */
+bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
+{    
+    if (!RuleExtension->IsUseBridgeHealth) {
+        return Random_Pick(1, Rule->BridgeStrength) < damage;
+    }
+
+    CellClass* cellptr = &Map[cell];
+    OverlayType overlay = cellptr->Overlay;
+    Cell cell_to_use = cell;
+
+    if (overlay == OVERLAY_NONE) { // rail or high bridge
+        // search only orthogonally for high bridge cells that have the overlays
+        FacingType dirs[4] = {FACING_N, FACING_E, FACING_S, FACING_W};
+
+        for (FacingType dir : dirs) {
+            Cell adjacent_cell = Adjacent_Cell(cell, dir);
+            CellClass* adjacent_cellptr = &Map[adjacent_cell];
+            if (adjacent_cellptr->Is_Overlay_Bridge() || adjacent_cellptr->Is_Overlay_Rail_Bridge()) {
+                cell_to_use = adjacent_cell;
+                break;
+            }
+        }
+        
+    } else if (cellptr->Is_Overlay_Low_Bridge()) { // low bridges
+        FacingType dirs[2] = {};
+        if (cellptr->Is_Low_Bridge_SE_NW()) {
+            dirs[0] = FACING_N;
+            dirs[1] = FACING_S;
+        } else {
+            dirs[0] = FACING_E;
+            dirs[1] = FACING_W;
+        }
+
+        bool cell_found = false;
+        for (FacingType dir : dirs) {
+            Cell current_cell = cell;
+            CellClass* current_cellptr = &Map[current_cell];
+            
+            /*
+            * Handle two low overlay bridges that are very close to each other.
+            * We skip one side checking another side that should never be part of the same low bridge.
+            */
+            if (current_cellptr->OverlayData == OVERLAYDATA_LOWBRIDGE_FRAME_TOP && (dir == FACING_N || dir == FACING_W)) {
+                continue;
+            }
+
+            if (current_cellptr->OverlayData == OVERLAYDATA_LOWBRIDGE_FRAME_BOTTOM && (dir == FACING_S || dir == FACING_E)) {
+                continue;
+            }
+
+            while (current_cellptr->Overlay == cellptr->Overlay) {
+                if (BridgeHealths.contains(current_cell)) {
+                    cell_to_use = current_cell;
+                    cell_found = true;
+                    break;
+                }
+
+                current_cell = Adjacent_Cell(current_cell, dir);
+                current_cellptr = &Map[current_cell];
+            }
+
+            if (cell_found) {
+                break;
+            }
+        }
+    }
+
+    if (!BridgeHealths.contains(cell_to_use)) {
+        BridgeHealths[cell_to_use] = Rule->BridgeStrength;
+    }
+    
+    if (RuleExtension->BridgeArmor != ARMOR_NULL) {
+        damage *= Verses::Get_Modifier(RuleExtension->BridgeArmor, warhead);
+    }
+    
+    BridgeHealths[cell_to_use] -= damage;
+
+    if (BridgeHealths[cell_to_use] <= 0) {
+        BridgeHealths.erase(cell_to_use);
+        return true;
+    }
+    
+    return false;
+}
 
 /**
  *  Inflict an explosion damage affect.
@@ -384,7 +445,7 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
  *           02/19/2025 Rampastring : Improved handling of explosion height level.
  *           03/04/2025 ZivDero : Implement CellSpread.
  */
-void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
+void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
     Cell cell;                                 // Cell number under explosion.
     DynamicVectorClass<ObjectClass*> objects;  // Objects to be damaged.
@@ -397,7 +458,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
     const auto warhead_ext = Extension::Fetch(warhead);
 
-    Coordinate explosion_coord = coord;
+    Coord explosion_coord = coord;
     if (warhead_ext->IsSnapToCellCenter) {
         explosion_coord = Coord_Snap(explosion_coord);
     }
@@ -410,7 +471,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         range = CELL_LEPTON_W + (CELL_LEPTON_W >> 1);
     }
 
-    cell = Coord_Cell(explosion_coord);
+    cell = explosion_coord.As_Cell();
 
     CellClass* cellptr = &Map[cell];
     const bool isbridge = cellptr->IsUnderBridge && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Height_GL(explosion_coord);
@@ -420,7 +481,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  Fill the list with units that are in flight, because
      *  they are not present in cell data.
      */
-    if (warhead_ext->IsVolumetric || Map.Get_Height_GL(Cell_Coord(cell)) < explosion_coord.Z) {
+    if (warhead_ext->IsVolumetric || Map.Get_Height_GL(cell.As_Coord()) < explosion_coord.Z) {
         int air_range = use_cell_spread ? static_cast<int>(warhead_ext->CellSpread + 0.99) : 1;
         AircraftTracker->Fetch_Targets(&Map[cell], air_range);
 
@@ -472,7 +533,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 const Cell* list = object->Occupy_List();
                 distance = INT_MAX;
                 while (*list != REFRESH_EOL) {
-                    int trydist = Distance_Level_Snap(explosion_coord, Cell_Coord(object->Get_Cell() + *list++));
+                    int trydist = Distance_Level_Snap(explosion_coord, object->PositionCoord + (list++)->As_Coord());
                     distance = std::min(trydist, distance);
                 }
             } else {
@@ -500,13 +561,13 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                     TechnoClass* techno = object->As_Techno();
                     if (techno != NULL) {
                         if (Cell(x, y) == cell && source) {
-                            Coordinate tcoord = techno->PositionCoord;
+                            Coord tcoord = techno->PositionCoord;
 
-                            Coordinate rockdir = source->PositionCoord - tcoord;
+                            Coord rockdir = source->PositionCoord - tcoord;
                             TPoint3D<float> rockdirf(rockdir.X, rockdir.Y, rockdir.Z);
                             rockdirf = rockdirf.Normalized() * 10.0f;
 
-                            tcoord += Coordinate(rockdirf.X, rockdirf.Y, rockdirf.Z);
+                            tcoord += Coord(rockdirf.X, rockdirf.Y, rockdirf.Z);
                             techno->Rock(tcoord, rocking_force);
                         }
                         else {
@@ -530,7 +591,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 for (int y = -cell_radius; y <= cell_radius; y++) {
                     Cell newcell = cell + Cell(x, y);
                     if (!Map.In_Radar(newcell)) continue;
-                    distance = Distance(Cell_Coord(newcell), Cell_Coord(cell));
+                    distance = Distance(newcell.As_Coord(), cell.As_Coord());
                     if (distance <= range) {
                         Damage_Overlay(newcell, warhead, strength, do_chain_reaction);
                         Spawn_Flames_And_Smudges(newcell, range, distance, warhead);
@@ -548,46 +609,42 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  If there is a bridge at this location, then it may be destroyed by the
      *  combat damage.
      */
-    bool ion_cannon = warhead == Rule->IonCannonWarhead;
     if (Scen->Special.IsDestroyableBridges && warhead->IsWallDestroyer) {
+        bool ion_cannon_warhead = warhead == Rule->IonCannonWarhead;
         const CellClass* bridge_owner_cell = cellptr->Get_Bridge_Owner();
+        
+        bool is_standard_bridge = (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()) || cellptr->Is_Tile_Bridge_Middle();
+        bool is_rail_bridge = (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()) || cellptr->Is_Tile_Train_Bridge_Middle();
 
-        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
-            || cellptr->Is_Tile_Bridge_Middle()) {
-            if (!cellptr->IsUnderBridge || explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2)) {
-                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
-                    for (int i = 0; i < (ion_cannon ? 4 : 1); i++) {
-                        if (Map.Destroy_Bridge_At(cell)) {
-                            TechnoClass::Update_Mission_Targets(cellptr);
-                            break;
-                        }
-                    }
-                    Point2D point;
-                    TacticalMap->Coord_To_Pixel(explosion_coord, point);
-                    TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
+        if (is_standard_bridge || is_rail_bridge) {            
+            if (!cellptr->IsUnderBridge || (explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2))) {
+                
+                bool should_destroy_bridge = false;
+                if (ion_cannon_warhead) {
+                    should_destroy_bridge = true;
+                } else {
+                    should_destroy_bridge = Damage_Bridge(cell, strength, warhead);
                 }
-            }
-        }
 
-        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
-            || cellptr->Is_Tile_Train_Bridge_Middle()) {
-            if (!cellptr->IsUnderBridge || explosion_coord.Z <= BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height + 1) && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT + LEVEL_LEPTON_H * (cellptr->Height - 2)) {
-                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
-                    for (int i = 0; i < (ion_cannon ? 4 : 1); i++) {
+                if (should_destroy_bridge) {                    
+                    for (int i = 0; i < (ion_cannon_warhead ? 4 : 1); i++) {
                         if (Map.Destroy_Bridge_At(cell)) {
                             TechnoClass::Update_Mission_Targets(cellptr);
                             break;
                         }
                     }
+                    
+                    int radius = is_standard_bridge ? 128 : 96;
+
                     Point2D point;
                     TacticalMap->Coord_To_Pixel(explosion_coord, point);
-                    TacticalMap->Register_Dirty_Area(Rect(point.X - 96, point.Y - 96, 192, 192), false);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - radius, point.Y - radius, radius * 2, radius * 2), false);
                 }
             }
         }
 
         if (cellptr->Is_Overlay_Low_Bridge() && close_to_ground) {
-            if (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength) {
+            if (ion_cannon_warhead || Damage_Bridge(cell, strength, warhead)) {
                 const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
                 Map.Destroy_Low_Bridge_At(cell);
                 if (destroyed) {
@@ -622,7 +679,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             static FacingType _part_facings[] = { FACING_N, FACING_E, FACING_S, FACING_W };
 
             for (auto facing : _part_facings) {
-                Coordinate adjacent = Adjacent_Coord_With_Height(explosion_coord, facing);
+                Coord adjacent = Adjacent_Coord_With_Height(explosion_coord, facing);
                 if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypes[Map[adjacent].Overlay]->IsExplosive) {
                     new AnimClass(AnimTypes[AnimTypeClass::From_Name("FIRE3")], explosion_coord, Random_Pick(1, 3) + 3);
                 }
@@ -631,7 +688,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
         if (strength > warhead->DeformThreshhold) {
             if (Percent_Chance(strength * 0.01 * warhead->Deform * 100.0) && !Is_On_High_Bridge(explosion_coord)) {
-                Map.Deform(Coord_Cell(explosion_coord), false);
+                Map.Deform(explosion_coord.As_Cell(), false);
             }
         }
 
@@ -649,9 +706,9 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
          *
          *  @author: Rampastring
          */
-        if ((warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(explosion_coord)
+        if (ScenExtension->IsIceDestruction && (warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(explosion_coord)
             && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)) {
-            Map.field_DC.Clear();
+            Map.DirtyIceCells.Clear();
             if (Map.Crack_Ice(*cellptr, nullptr)) {
                 Map.Recalc_Ice();
             }
@@ -680,7 +737,6 @@ static int Scale_Float_To_Int(float value, int scale)
     return (value * scale);
 }
 
-
 /**
  *  #issue-412
  * 
@@ -688,18 +744,16 @@ static int Scale_Float_To_Int(float value, int scale)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
+DEFINE_HOOK(0x00460477, _Do_Flash_CombatLightSize_Patch, 0)
 {
-    GET_REGISTER_STATIC(int, damage, ecx);
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, edx);
-    static const WarheadTypeClassExtension *warheadtypeext;
-    static float light_size;
-    static int flash_size;
+    GET(int, damage, ECX);
+    GET(const WarheadTypeClass *, warhead, EDX);
+    int flash_size;
 
     /**
      *  Fetch the extension instance.
      */
-    warheadtypeext = Extension::Fetch(warhead);
+    const WarheadTypeClassExtension* warheadtypeext = Extension::Fetch(warhead);
 
     /**
      *  If no custom light size has been set, then just use the default code.
@@ -710,11 +764,9 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
         /**
          *  Original code.
          */
-        flash_size = (damage / 4);
+        flash_size = damage / 4;
         if (flash_size < 63) {
-            if (flash_size <= 21) {
-                flash_size = 21;
-            }
+            flash_size = std::max(flash_size, 21);
         } else {
             flash_size = 63;
         }
@@ -729,19 +781,17 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
         /**
          *  Clamp the light size and scale to expected size range.
          */
-        light_size = warheadtypeext->CombatLightSize;
-        if (light_size > 1.0f) {
-            light_size = 1.0f;
-        }
+        float light_size = warheadtypeext->CombatLightSize;
+        light_size = std::min(light_size, 1.0f);
         flash_size = Scale_Float_To_Int(light_size, 63);
     }
 
     /**
      *  Set the desired flash size.
      */
-    _asm { mov esi, flash_size }
+    R->ESI(flash_size);
 
-    JMP(0x00460495);
+    return 0x00460495;
 }
 
 
@@ -752,7 +802,6 @@ void CombatExtension_Hooks()
 {
     Patch_Byte(0x0058604A, 0x56); // push eax -> push esi; Modify_Damage originally takes ArmorType as its argument, we instead pass the target object
 
-    Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
     Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
 }

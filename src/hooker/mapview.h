@@ -1,37 +1,15 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Map view helper to extract information from DOS executable.
  *
- *  @project       Vinifera
- *
- *  @file          MAPVIEW.CPP
- *
- *  @author        xezon
- *
- *  @brief         Map view helper to extract information from DOS executable.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- * 
- *  @note          This file contains modified code from the source code of the
- *                 Thyme project released under the GPL3 license. Source:
- *                 https://github.com/TheAssemblyArmada/Thyme/
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
+#include <windows.h>
 
 
 class MapViewOfFileClass
@@ -58,12 +36,20 @@ class MapViewOfFileClass
 };
 
 
+constexpr int MAX_MODULE_SECTIONS = 96;
+
+struct ImageSectionRange
+{
+    LPVOID Base;
+    SIZE_T Size;
+    DWORD Characteristics;
+    char Name[IMAGE_SIZEOF_SHORT_NAME + 1];
+};
+
 struct ImageSectionInfo
 {
-    LPVOID BaseOfCode;
-    LPVOID BaseOfData;
-    SIZE_T SizeOfCode;
-    SIZE_T SizeOfData;
+    ImageSectionRange Sections[MAX_MODULE_SECTIONS];
+    int SectionCount;
 };
 
 bool GetModuleSectionInfo(ImageSectionInfo &info);

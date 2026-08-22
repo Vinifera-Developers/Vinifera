@@ -1,33 +1,20 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Pointers to Windows API functions to loading debug symbols.
  *
- *  @project       Vinifera
- *
- *  @file          DEBUGHLP.CPP
- *
- *  @author        CCHyper, OmniBlade
- *
- *  @brief         Pointers to Windows API functions to loading debug symbols.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "debughlp.h"
+
 #include "debughandler.h"
 
+#include <cstdlib>
+#include <iterator>
 
 /**
  *  The process we initialised the symbols of.
@@ -86,6 +73,8 @@ static FARPROC *_sym_pointers[] = {
  */
 bool SymbolInit = false;
 
+std::recursive_mutex DbgHelpMutex;
+
 
 static void Init_DbgHelp()
 {
@@ -104,7 +93,7 @@ static void Init_DbgHelp()
             *_sym_pointers[i] = GetProcAddress(dll_handle, _sym_functions[i]);
 
             if (*_sym_pointers[i] == nullptr) {
-                DEBUG_WARNING("Init_DbgHelp: Unable to load %s from dbghelp.dll.", _sym_functions[i]);
+                DEBUG_WARNING("Init_DbgHelp: Unable to load {} from dbghelp.dll.", _sym_functions[i]);
             }
         }
     } else {
@@ -118,6 +107,8 @@ static void Init_DbgHelp()
  */
 void __cdecl Uninit_Symbol_Info()
 {
+    std::scoped_lock lock(DbgHelpMutex);
+
     if (SymbolInit) {
         SymbolInit = false;
 
@@ -133,6 +124,8 @@ void __cdecl Uninit_Symbol_Info()
  */
 bool __cdecl Init_Symbol_Info()
 {
+    std::scoped_lock lock(DbgHelpMutex);
+
     char drive[10];
     char pathname[PATH_MAX + 1];
     char directory[PATH_MAX + 1];

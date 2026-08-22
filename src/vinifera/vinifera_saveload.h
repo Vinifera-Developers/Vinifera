@@ -1,93 +1,56 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Utility functions for saving and loading.
  *
- *  @project       Vinifera
- *
- *  @file          VINIFERA_SAVELOAD.H
- *
- *  @authors       CCHyper
- *
- *  @brief         Utility functions for saving and loading.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include <vector>
-
-#include "always.h"
 #include "debughandler.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "wstring.h"
-#include "swizzle.h"
 #include "newswizzle.h"
+#include "tibsun_globals.h"
+
+#include <optional>
+#include <string_view>
+#include <vector>
 
 
 struct IStream;
+class ViniferaSaveVersionInfo;
 
 
 /**
  *  Wrappers for the new swizzle manager for providing debug information.
  */
-#ifdef VINIFERA_USE_NEW_SWIZZLE_MANAGER
-
 #define VINIFERA_SWIZZLE_RESET(func) \
     { \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Reset(); \
+        ViniferaSwizzleManager.Reset(); \
     }
 
 #define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(pointer, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&pointer, __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        ViniferaSwizzleManager.Swizzle_Dbg((void**)&pointer, __FILE__, __LINE__, __FUNCTION__ "()", variable); \
     }
 
 #define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
         for (int __i = 0; __i < vector.Count(); ++__i) { \
-            ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&vector[__i], __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+            ViniferaSwizzleManager.Swizzle_Dbg((void**)&vector[__i], __FILE__, __LINE__, __FUNCTION__ "()", variable); \
         } \
     }
 
 #define VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(pointer, id, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Fetch_Swizzle_ID_Dbg((void *)pointer, (LONG *)&id, __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        ViniferaSwizzleManager.Fetch_Swizzle_ID_Dbg((void*)pointer, (LONG*)&id, __FILE__, __LINE__, __FUNCTION__ "()", variable); \
     }
 
 #define VINIFERA_SWIZZLE_REGISTER_POINTER(id, pointer, variable) \
     { \
-        Wstring funcname = __FUNCTION__; \
-        funcname += "()"; \
-        ((ViniferaSwizzleManagerClass &)SwizzleManager).Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        ViniferaSwizzleManager.Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, __FUNCTION__ "()", variable); \
     }
-
-#else
-#define VINIFERA_SWIZZLE_RESET(func)                                      SWIZZLE_RESET(func);
-#define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(pointer, variable)         SWIZZLE_REQUEST_POINTER_REMAP(pointer);
-#define VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable)     SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable)
-#define VINIFERA_SWIZZLE_FETCH_SWIZZLE_ID(pointer, id, variable)          SWIZZLE_FETCH_POINTER_ID(pointer, id);
-#define VINIFERA_SWIZZLE_REGISTER_POINTER(id, pointer, variable)          SWIZZLE_REGISTER_POINTER(id, pointer);
-#endif
 
 
 extern unsigned ViniferaGameVersion;
@@ -98,13 +61,14 @@ bool Vinifera_Remap_Extension_Pointers();
 void Vinifera_Post_Load_Game();
 bool Vinifera_Save_Game(const char* file_name, const char* descr, bool);
 bool Vinifera_Load_Game(const char* file_name);
+bool Vinifera_Is_Save_Loadable(std::string_view path, ViniferaSaveVersionInfo* info_out = nullptr);
 void SaveGame_Hooks();
 
 
 template<class T>
-HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Save_Primitive_Vector requires T to be trivially copyable.");
 
     int count = list.Length();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -130,9 +94,9 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* 
 
 
 template<class T>
-HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
 {
-    // DEBUG_INFO("Loading %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Load_Primitive_Vector requires T to be trivially copyable.");
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -162,9 +126,9 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* 
 
 
 template<class T>
-HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Save_Primitive_Vector requires T to be trivially copyable.");
 
     int count = list.Count();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -178,7 +142,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 
     for (int index = 0; index < count; ++index) {
 
-        HRESULT hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -190,9 +154,9 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 
 
 template<class T>
-HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Load_Primitive_Vector requires T to be trivially copyable.");
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -209,7 +173,7 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
     for (int index = 0; index < count; ++index) {
 
         T obj;
-        HRESULT hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -222,9 +186,9 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 
 
 template<class T>
-HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* heap_name)
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list)
 {
-    DEBUG_INFO("Saving %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Save_Primitive_Vector requires T to be trivially copyable.");
 
     int count = list.size();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -238,7 +202,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* 
 
     for (int index = 0; index < count; ++index) {
 
-        HRESULT hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -250,9 +214,9 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* 
 
 
 template<class T>
-HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* heap_name)
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    static_assert(std::is_trivially_copyable_v<T>, "Load_Primitive_Vector requires T to be trivially copyable.");
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -269,7 +233,7 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* 
     for (int index = 0; index < count; ++index) {
 
         T obj;
-        HRESULT hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -278,5 +242,89 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* 
     }
 
     return hr;
+}
+
+
+template<typename T>
+HRESULT Put_Optional(IStream* stream, const std::optional<T>& value)
+{
+    static_assert(std::is_trivially_copyable_v<T>, "Put_Optional requires T to be trivially copyable.");
+
+    if (stream == nullptr) {
+        return E_POINTER;
+    }
+
+    const std::uint8_t has_value = value.has_value() ? 1 : 0;
+
+    ULONG written = 0;
+    HRESULT hr = stream->Write(&has_value, sizeof(has_value), &written);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    if (written != sizeof(has_value)) {
+        return STG_E_WRITEFAULT;
+    }
+
+    if (!value.has_value()) {
+        return S_OK;
+    }
+
+    written = 0;
+    hr = stream->Write(&*value, sizeof(T), &written);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    if (written != sizeof(T)) {
+        return STG_E_WRITEFAULT;
+    }
+
+    return S_OK;
+}
+
+template<typename T>
+HRESULT Read_Optional(IStream* stream, std::optional<T>& value)
+{
+    static_assert(std::is_trivially_copyable_v<T>, "Read_Optional requires T to be trivially copyable.");
+
+    if (stream == nullptr) {
+        return E_POINTER;
+    }
+
+    std::uint8_t has_value = 0;
+
+    ULONG read = 0;
+    HRESULT hr = stream->Read(&has_value, sizeof(has_value), &read);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    if (read != sizeof(has_value)) {
+        value.reset();
+        return STG_E_READFAULT;
+    }
+
+    if (has_value == 0) {
+        value.reset();
+        return S_OK;
+    }
+
+    T temp {};
+
+    read = 0;
+    hr = stream->Read(&temp, sizeof(T), &read);
+    if (FAILED(hr)) {
+        value.reset();
+        return hr;
+    }
+
+    if (read != sizeof(T)) {
+        value.reset();
+        return STG_E_READFAULT;
+    }
+
+    value = temp;
+    return S_OK;
 }
 

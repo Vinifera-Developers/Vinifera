@@ -1,45 +1,94 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended TerrainClass.
  *
- *  @project       Vinifera
- *
- *  @file          TERRAINEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended TerrainClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "terrainext_hooks.h"
-#include "terrainext_init.h"
-#include "terrainext.h"
-#include "terraintypeext.h"
-#include "terrain.h"
-#include "terraintype.h"
-#include "lightsource.h"
-#include "vinifera_util.h"
+
+#include "asserthandler.h"
 #include "extension.h"
 #include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "lightsource.h"
+#include "mouse.h"
+#include "rules.h"
+#include "scenario.h"
+#include "syringe.h"
+#include "terrain.h"
+#include "terrainext.h"
+#include "terrainext_init.h"
+#include "terraintype.h"
+#include "terraintypeext.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static DECLARE_EXTENDING_CLASS_AND_PAIR(TerrainClass)
+{
+public:
+    void _AI();
+};
+
+
+/**
+ *  Replacement for TerrainClass::AI.
+ *
+ *  @author: ZivDero
+ */
+void TerrainClassExt::_AI()
+{
+    ObjectClass::AI();
+
+    if (Class->IsAnimated) {
+        if (Fetch_Rate() == 0) {
+            if (Probability_Of(Class->AnimationProbability)) {
+                Set_Stage(0);
+                Set_Rate(Class->AnimationRate);
+            }
+        }
+    }
+
+    if (StageClass::Graphic_Logic()) {
+
+        /**
+         *  If the terrain object is in the process of crumbling, then when at the
+         *  last stage of the crumbling animation, delete the terrain object.
+         */
+        if (IsCrumbling && Fetch_Stage() == (((ShapeSet const*)Class->Get_Image_Data())->Get_Count()) - 1) {
+            Delete_Me();
+            return;
+        }
+
+        if (Class->IsTiberiumSpawn && Class->IsAnimated && Fetch_Stage() == (((ShapeSet const*)Class->Get_Image_Data())->Get_Count() / 2)) {
+            Set_Stage(0);
+            Set_Rate(0);
+            Extension::Fetch(this)->Spread_Tiberium();
+        }
+    }
+
+    if (IsOnFire) {
+        if (abs(Scen->RandomNumber()) % 100 == 0) {
+            CellClass& cellptr = Map[Get_Coord()];
+            for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; facing++) {
+                TerrainClass* terrain = cellptr.Adjacent_Cell(facing).Cell_Terrain();
+                if (terrain && !terrain->IsOnFire && Probability_Of2(Rule->TreeFlammability)) {
+                    terrain->Catch_Fire();
+                }
+            }
+        }
+    }
+}
 
 
 /**
@@ -88,21 +137,17 @@ static LightSourceClass *Terrain_New_LightSource(TerrainClass *this_ptr)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainClass_Unlimbo_LightSource_Patch)
+DEFINE_HOOK(0x006409C3, _TerrainClass_Unlimbo_LightSource_Patch, 7)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, edi);
-    static TerrainClassExtension *terrainext;
-    static TerrainTypeClassExtension *terraintypeext;
-    static TerrainTypeClass *terraintype;
-    static LightSourceClass *light;
+    GET(TerrainClass *, this_ptr, EDI);
 
-    terraintype = this_ptr->Class;
+    TerrainTypeClass* terraintype = this_ptr->Class;
 
     /**
      *  Fetch the extension instances.
      */
-    terrainext = Extension::Fetch(this_ptr);
-    terraintypeext = Extension::Fetch(terraintype);
+    TerrainClassExtension* terrainext = Extension::Fetch(this_ptr);
+    TerrainTypeClassExtension* terraintypeext = Extension::Fetch(terraintype);
 
     if (terraintypeext->IsLightEnabled && terraintypeext->LightIntensity > 0) {
 
@@ -111,7 +156,7 @@ DECLARE_PATCH(_TerrainClass_Unlimbo_LightSource_Patch)
             /**
              *  Create the light source object.
              */
-            light = Terrain_New_LightSource(this_ptr);
+            LightSourceClass* light = Terrain_New_LightSource(this_ptr);
 
             if (light) {
                 terrainext->LightSource = light;
@@ -126,15 +171,8 @@ DECLARE_PATCH(_TerrainClass_Unlimbo_LightSource_Patch)
 
     }
 
-    /**
-     *  Function return.
-     */
 function_return:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { add esp, 0x10 }
-    _asm { ret 0x8 }
+    return 0;
 }
 
 
@@ -148,15 +186,14 @@ function_return:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainClass_Take_Damage_LightSource_Patch)
+DEFINE_HOOK(0x0063F4D9, _TerrainClass_Take_Damage_LightSource_Patch, 6)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
-    static TerrainClassExtension *terrainext;
+    GET(TerrainClass *, this_ptr, ESI);
 
     /**
      *  Fetch the extension instance.
      */
-    terrainext = Extension::Fetch(this_ptr);
+    TerrainClassExtension* terrainext = Extension::Fetch(this_ptr);
     if (terrainext->LightSource) {
 
         /**
@@ -174,7 +211,7 @@ DECLARE_PATCH(_TerrainClass_Take_Damage_LightSource_Patch)
     /**
      *  Function return.
      */
-    JMP(0x0063F4EF);
+    return 0x0063F4EF;
 }
 
 
@@ -188,6 +225,5 @@ void TerrainClassExtension_Hooks()
      */
     TerrainClassExtension_Init();
 
-    Patch_Jump(0x006409C3, &_TerrainClass_Unlimbo_LightSource_Patch);
-    Patch_Jump(0x0063F4D9, &_TerrainClass_Take_Damage_LightSource_Patch);
+    Patch_Jump(0x0063FFB0, &TerrainClassExt::_AI);
 }

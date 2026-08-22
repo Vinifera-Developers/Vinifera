@@ -1,58 +1,36 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for initialising the extended
+ *          IsometricTileTypeClass.
  *
- *  @project       Vinifera
- *
- *  @file          ISOTILETYPEEXT_INIT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for initialising the extended IsometricTileTypeClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "isotiletypeext_hooks.h"
-#include "isotiletypeext.h"
-#include "isotiletype.h"
-#include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "vinifera_globals.h"
-#include "extension.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
+#include "always.h"
+
+#include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "isotiletype.h"
+#include "isotiletypeext.h"
+#include "syringe.h"
+#include "vinifera_globals.h"
 
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x004F32C4, _IsometricTileTypeClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x50); // ini name.
+    GET(IsometricTileTypeClass *, this_ptr, EBP); // "this" pointer.
+    GET_STACK(const char *, ini_name, 0x50); // ini name.
 
-    // IsoTileTypes's are not saved to file, so this case is not required.
+    // IsoTileTypes are not saved to file, so this case is not required.
 #if 0
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -68,16 +46,8 @@ DECLARE_PATCH(_IsometricTileTypeClass_Constructor_Patch)
      */
     Extension::Make<IsometricTileTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x34 }
-    _asm { ret 0x14 }
+    return 0;
 }
 
 
@@ -88,21 +58,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Destructor_Patch)
+DEFINE_HOOK(0x004F33C6, _IsometricTileTypeClass_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, esi);
+    GET(IsometricTileTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<IsometricTileTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x0080F588 } // Neuron vector vtble
-    JMP_REG(eax, 0x004F33CC);
+    return 0;
 }
 
 
@@ -113,22 +79,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Init_Patch)
+DEFINE_HOOK(0x004F55F2, _IsometricTileTypeClass_Init_Patch, 5)
 {
-    LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x30);
-    //GET_STACK_STATIC(const char *, theater_name, esp, 0x3C);
+    LEA_STACK(CCINIClass *, ini, 0x30);
 
     /**
      *  Load static values.
      */
     IsometricTileTypeClassExtension::Init(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov ebx, 0x006CAD64 } // const CCFileClass::`vftable'
-    JMP(0x004F55F7);
+    return 0;
 }
 
 
@@ -139,38 +100,44 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_1)
+DEFINE_HOOK(0x004F50AE, _IsometricTileTypeClass_Read_INI_Patch_1, 0)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp);
-    LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x30);
-    LEA_STACK_STATIC(/*const*/ char *, tileset_name, esp, 0x1F8);
-    LEA_STACK_STATIC(/*const*/ char *, set_name, esp, 0x29C);
-    static IsometricTileTypeClassExtension *exttype_ptr;
+    GET(IsometricTileTypeClass *, this_ptr, EBP);
+    LEA_STACK(CCINIClass *, ini, 0x30);
+    LEA_STACK(/*const*/ char *, tileset_name, 0x1F8);
 
     /**
      *  Stolen bytes here.
      */
-    _asm { mov [esp+0x84], ebp } // These must be before to retain stack.
-    _asm { mov [esp+0x20], ebp }
+    R->Stack(0x84, this_ptr);
+    R->Stack(0x20, this_ptr);
 
     /**
      *  Fetch the extension instance.
      */
-    exttype_ptr = Extension::Fetch(this_ptr);
+    auto exttype_ptr = Extension::Fetch(this_ptr);
+
+    /**
+     *  Save the tile set name.
+     */
+    std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
+
+    /**
+     *  We can't read the INI right now if we're loading the game because
+     *  all the other objects we may require don't exist yet.
+     *  We'll read the INIs later.
+     */
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
+    }
 
     /**
      *  Read type class ini.
      */
-    std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
     exttype_ptr->Read_INI(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    //_asm { mov [esp+0x84], ebp }
-    //_asm { mov [esp+0x20], ebp }
-    JMP(0x004F50BD);
+    return 0x004F50BD;
 }
 
 
@@ -186,36 +153,38 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_2)
+DEFINE_HOOK(0x004F53E9, _IsometricTileTypeClass_Read_INI_Patch_2, 6)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp);
-    LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x30);
-    LEA_STACK_STATIC(/*const*/ char *, tileset_name, esp, 0x1F8);
-    LEA_STACK_STATIC(/*const*/ char *, set_name, esp, 0x29C);
-    static IsometricTileTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Stolen bytes here.
-     */
-    _asm { mov [esp+0x20], ebp } // Must be before to retain stack.
+    GET(IsometricTileTypeClass *, this_ptr, EBP);
+    LEA_STACK(CCINIClass *, ini, 0x30);
+    LEA_STACK(/*const*/ char *, tileset_name, 0x1F8);
 
     /**
      *  Fetch the extension instance.
      */
-    exttype_ptr = Extension::Fetch(this_ptr);
+    auto exttype_ptr = Extension::Fetch(this_ptr);
+
+    /**
+     *  Save the tile set name.
+     */
+    std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
+
+    /**
+     *  We can't read the INI right now if we're loading the game because
+     *  all the other objects we may require don't exist yet.
+     *  We'll read the INIs later.
+     */
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
+    }
 
     /**
      *  Read type class ini.
      */
-    std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
     exttype_ptr->Read_INI(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { cmp esi, edi }
-    JMP(0x004F53EF);
+    return 0;
 }
 
 
@@ -224,9 +193,5 @@ original_code:
  */
 void IsometricTileTypeClassExtension_Init()
 {
-    Patch_Jump(0x004F32C4, &_IsometricTileTypeClass_Constructor_Patch);
-    Patch_Jump(0x004F33C6, &_IsometricTileTypeClass_Destructor_Patch);
-    Patch_Jump(0x004F55F2, &_IsometricTileTypeClass_Init_Patch);
-    Patch_Jump(0x004F50AE, &_IsometricTileTypeClass_Read_INI_Patch_1);
-    Patch_Jump(0x004F53E9, &_IsometricTileTypeClass_Read_INI_Patch_2);
+
 }

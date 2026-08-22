@@ -1,50 +1,32 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended CampaignClass class.
  *
- *  @project       Vinifera
- *
- *  @file          CAMPAIGNEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended CampaignClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "campaignext.h"
+
 #include "campaign.h"
 #include "ccini.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     IsDebugOnly(false),
-    IntroMovie()
+    IntroMovie(),
+    _House(HOUSE_NONE)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("CampaignClassExtension::CampaignClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     CampaignExtensions.Add(this);
 }
 
@@ -57,7 +39,6 @@ CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :
 CampaignClassExtension::CampaignClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::CampaignClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -68,8 +49,6 @@ CampaignClassExtension::CampaignClassExtension(const NoInitClass &noinit) :
  */
 CampaignClassExtension::~CampaignClassExtension()
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::~CampaignClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     CampaignExtensions.Delete(this);
 }
 
@@ -81,8 +60,6 @@ CampaignClassExtension::~CampaignClassExtension()
  */
 HRESULT CampaignClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -100,8 +77,6 @@ HRESULT CampaignClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT CampaignClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -120,8 +95,6 @@ HRESULT CampaignClassExtension::Load(IStream *pStm)
  */
 HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -138,21 +111,10 @@ HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int CampaignClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void CampaignClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -162,7 +124,6 @@ void CampaignClassExtension::Detach(AbstractClass * target, bool all)
  */
 void CampaignClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -173,8 +134,6 @@ void CampaignClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool CampaignClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -192,7 +151,42 @@ bool CampaignClassExtension::Read_INI(CCINIClass &ini)
         std::snprintf(This()->Description, sizeof(This()->Description), "[Debug] - %s", buffer);
     }
     
-    ini.Get_String(ini_name, "IntroMovie", IntroMovie, sizeof(IntroMovie));
+    ini.Get_String(ini_name, "IntroMovie", "", IntroMovie, sizeof(IntroMovie));
+
+    _House = static_cast<HousesType>(ini.Get_Int(ini_name, "Side", _House));
+
+    IsInitialized = true;
 
     return true;
+}
+
+
+/**
+ *  Fetches this campaign's house.
+ *
+ *  @author: ZivDero
+ */
+HousesType CampaignClassExtension::Get_House() const
+{
+    if (_House == HOUSE_NONE) {
+        if (std::strstr(This()->Scenario, "GDI")) {
+            return HOUSE_GDI;
+        } else if (std::strstr(This()->Scenario, "NOD")) {
+            return HOUSE_NOD;
+        }
+        return HOUSE_GDI;
+    }
+
+    return _House;
+}
+
+
+/**
+ *  Sets this campaign's house.
+ *
+ *  @author: ZivDero
+ */
+void CampaignClassExtension::Set_House(HousesType house)
+{
+    _House = house;
 }

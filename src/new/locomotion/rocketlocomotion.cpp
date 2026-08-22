@@ -1,49 +1,33 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Rocket locomotion implementation.
  *
- *  @project       Vinifera
- *
- *  @file          ROCKETLOCOMOTION.CPP
- *
- *  @authors       ZivDero
- *
- *  @brief         Rocket locomotion implementation.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "rocketlocomotion.h"
-#include "tibsun_inline.h"
-#include "tibsun_globals.h"
-#include "iomap.h"
-#include "aircraftext.h"
+
 #include "aircraft.h"
+#include "aircraftext.h"
 #include "aircrafttracker.h"
 #include "aircrafttype.h"
-#include "cell.h"
 #include "anim.h"
+#include "cell.h"
 #include "combat.h"
-#include "foot.h"
-#include "tactical.h"
-#include "wwmath.h"
-#include "debughandler.h"
 #include "extension.h"
 #include "fastmath.h"
+#include "foot.h"
+#include "iomap.h"
+#include "tactical.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "vector2.h"
 #include "voc.h"
+#include "wwmath.h"
 
 
 /**
@@ -111,7 +95,7 @@ RocketLocomotionClass::RocketLocomotionClass(const NoInitClass& noinit) : Locomo
  */
 IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving()
 {
-    return DestinationCoord != Coordinate();
+    return DestinationCoord != Coord(0, 0, 0);
 }
 
 
@@ -120,7 +104,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving()
  *
  *  @author: ZivDero
  */
-IFACEMETHODIMP_(Coordinate) RocketLocomotionClass::Destination()
+IFACEMETHODIMP_(Coord) RocketLocomotionClass::Destination()
 {
     return DestinationCoord;
 }
@@ -206,7 +190,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
     case RocketMissionState::Pause:
         {
             CurrentSpeed = 0;
-            IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
+            IsSpawnerElite = spawn_owner && spawn_owner->Crew.IsElite;
 
             /**
              *  Cruise missiles spawn a "taking off" animation in this state.
@@ -215,7 +199,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 if (TrailTimer.Expired() && rocket->TakeoffAnim)
                 {
-                    new AnimClass(rocket->TakeoffAnim, LinkedTo->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                    new AnimClass(rocket->TakeoffAnim, LinkedTo->Position, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
                     TrailTimer = 24;
                 }
 
@@ -251,7 +235,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
     case RocketMissionState::Tilt:
         {
             CurrentSpeed = 0;
-            IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
+            IsSpawnerElite = spawn_owner && spawn_owner->Crew.IsElite;
 
             /**
              *  If the rocket is done tilting, play a sound and animation, and proceed to take off.
@@ -266,9 +250,9 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                     AircraftTracker->Track(LinkedTo);
 
                 if (rocket->TakeoffAnim)
-                    new AnimClass(rocket->TakeoffAnim, LinkedTo->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                    new AnimClass(rocket->TakeoffAnim, LinkedTo->Position, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
-                Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->Coord);
+                Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->Position);
             }
             /**
              *  Otherwise, keep tilting.
@@ -308,7 +292,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             if (LinkedTo->HeightAGL >= rocket->Altitude)
             {
                 MissionState = RocketMissionState::Flight;
-                Coordinate center_coord = LinkedTo->Center_Coord();
+                Coord center_coord = LinkedTo->Center_Coord();
                 ApogeeDistance = (Cell(center_coord.X, center_coord.Y) - Cell(DestinationCoord.X, DestinationCoord.Y)).Length();
             }
             break;
@@ -346,7 +330,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                      *  Calculate how much to tilt the rocket based on the distance to the destination
                      *  compared to how far it was when it reached its cruising altitude.
                      */
-                    const Coordinate center_coord = LinkedTo->Center_Coord();
+                    const Coord center_coord = LinkedTo->Center_Coord();
                     const double dist = (Cell(center_coord.X, center_coord.Y) - Cell(DestinationCoord.X, DestinationCoord.Y)).Length();
                     const double ratio = dist / ApogeeDistance;
 
@@ -375,7 +359,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 /**
                  *  Orient the rocket towards the destination.
                  */
-                const Coordinate center_coord = LinkedTo->Center_Coord();
+                const Coord center_coord = LinkedTo->Center_Coord();
                 LinkedTo->PrimaryFacing.Set_Desired(Desired_Facing(DestinationCoord.X, DestinationCoord.Y, center_coord.X, center_coord.Y));
             }
             else
@@ -390,7 +374,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             /**
              *  If the rocket has flown outside the map's bounds, remove it so as to not lag the game.
              */
-            if (!Map.In_Radar(Coord_Cell(LinkedTo->Center_Coord())))
+            if (!Map.In_Radar(LinkedTo->Center_Coord().As_Cell()))
                 LinkedTo->Delete_Me();
 
             break;
@@ -422,7 +406,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
          */
     case RocketMissionState::VerticalTakeOff:
         {
-            IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
+            IsSpawnerElite = spawn_owner && spawn_owner->Crew.IsElite;
 
             /**
              *  Spawn the trail animation, as if the rocket is doing its best to lift off.
@@ -431,7 +415,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 if (rocket->TakeoffAnim)
                 {
-                    new AnimClass(rocket->TakeoffAnim, LinkedTo->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                    new AnimClass(rocket->TakeoffAnim, LinkedTo->Position, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
                     TrailTimer = 24;
                 }
             }
@@ -446,7 +430,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 const auto linked_ext = Extension::Fetch(LinkedTo);
                 if (linked_ext->Get_Last_Flight_Cell() == CELL_NONE)
                 {
-                    Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->Coord);
+                    Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->Position);
                     AircraftTracker->Track(LinkedTo);
                 }
 
@@ -458,9 +442,9 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
              */
             else
             {
-                Coordinate coord = LinkedTo->Coord;
+                Coord coord = LinkedTo->Position;
                 coord.Z += rocket->RaiseRate;
-                if (Map.In_Radar(Coord_Cell(coord)))
+                if (Map.In_Radar(coord.As_Cell()))
                     LinkedTo->PositionCoord = coord;
             }
         }
@@ -475,7 +459,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
      */
     if (Is_Moving_Now() && TrailTimer.Expired() && rocket->TrailAnim)
     {
-        new AnimClass(rocket->TrailAnim, LinkedTo->Coord, rocket->TrailAppearDelay, 1, SHAPE_WIN_REL | SHAPE_CENTER);
+        new AnimClass(rocket->TrailAnim, LinkedTo->Position, rocket->TrailAppearDelay, 1, SHAPE_WIN_REL | SHAPE_CENTER);
         TrailTimer = rocket->TrailSpawnDelay;
     }
 
@@ -484,9 +468,9 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
      */
     if (CurrentSpeed > 0.0)
     {
-        Coordinate coord = Get_Next_Position(static_cast<int>(CurrentSpeed));
+        Coord coord = Get_Next_Position(static_cast<int>(CurrentSpeed));
 
-        if (Map.In_Radar(Coord_Cell(coord)))
+        if (Map.In_Radar(coord.As_Cell()))
             LinkedTo->PositionCoord = coord;
 
         if (LinkedTo->Strength <= 0)
@@ -502,7 +486,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
  * 
  *  @author: ZivDero
  */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
+IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coord to)
 {
     const auto atype = reinterpret_cast<AircraftClass*>(LinkedTo)->Class;
     const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
@@ -536,7 +520,7 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
         else {
             const int randomx = Random_Pick(-rocket->Inaccuracy, rocket->Inaccuracy);
             const int randomy = Random_Pick(-rocket->Inaccuracy, rocket->Inaccuracy);
-            DestinationCoord = to + Coordinate(randomx, randomy, 0);
+            DestinationCoord = to + Coord(randomx, randomy, 0);
         }
     }
 }
@@ -579,16 +563,16 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving_Now()
  *
  *  @author: ZivDero
  */
-Coordinate RocketLocomotionClass::Get_Next_Position(double speed) const
+Coord RocketLocomotionClass::Get_Next_Position(double speed) const
 {
-    Coordinate coord;
+    Coord coord;
 
     const double horizontal_speed = FastMath::Cos(CurrentPitch) * speed;
     const double horizontal_angle = LinkedTo->PrimaryFacing.Current().Get_Radian();
 
-    coord.X = static_cast<int>(LinkedTo->Coord.X + FastMath::Cos(horizontal_angle) * horizontal_speed);
-    coord.Y = static_cast<int>(LinkedTo->Coord.Y - FastMath::Sin(horizontal_angle) * horizontal_speed);
-    coord.Z = static_cast<int>(LinkedTo->Coord.Z + FastMath::Sin(CurrentPitch) * speed);
+    coord.X = static_cast<int>(LinkedTo->Position.X + FastMath::Cos(horizontal_angle) * horizontal_speed);
+    coord.Y = static_cast<int>(LinkedTo->Position.Y - FastMath::Sin(horizontal_angle) * horizontal_speed);
+    coord.Z = static_cast<int>(LinkedTo->Position.Z + FastMath::Sin(CurrentPitch) * speed);
 
     return coord;
 }
@@ -604,7 +588,7 @@ double RocketLocomotionClass::Get_Next_Pitch() const
     /**
      *  Calculate how much is there left to go.
      */
-    const Coordinate left_to_go = DestinationCoord - LinkedTo->Coord;
+    const Coord left_to_go = DestinationCoord - LinkedTo->Position;
     const double length = Vector2(static_cast<float>(left_to_go.X), static_cast<float>(left_to_go.Y)).Length();
 
     /**
@@ -634,8 +618,8 @@ void RocketLocomotionClass::Explode()
     /**
      *  Calculate where it's moving right now.
      */
-    Coordinate coord = Get_Next_Position(rocket->BodyLength);
-    Cell cell = Coord_Cell(coord);
+    Coord coord = Get_Next_Position(rocket->BodyLength);
+    Cell cell = coord.As_Cell();
 
     /**
      *  The rocket uses its spawner's elite status to determine if it should deal elite damage.
@@ -657,7 +641,7 @@ void RocketLocomotionClass::Explode()
 
 bool RocketLocomotionClass::Time_To_Explode(const RocketTypeClass* rocket)
 {
-    Coordinate coord = Get_Next_Position(rocket->BodyLength);
+    Coord coord = Get_Next_Position(rocket->BodyLength);
 
     /**
      *  Check if we're there yet.

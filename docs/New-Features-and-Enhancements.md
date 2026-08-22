@@ -128,6 +128,16 @@ GateUpSound=    ; VocType, sound effect to play when the gate is rising. Default
 GateDownSound=  ; VocType, sound effect to play when the gate is lowering. Defaults to [AudioVisual]->GateDown.
 ```
 
+### Vertical Gate
+
+- Normally, the game drawn gates flat on the ground when they are open. You can optionally turn this off to have a gate that is drawn above units when open instead.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]  ; BuildingType
+BarGate=no      ; boolean, should the gate be drawn normally, as opposed to flat when it's open.
+```
+
 ### ProduceCash
 
 - Vinifera implements the Produce Cash logic from Red Alert 2. The system works exactly as it does in Red Alert 2, but with the following differences:
@@ -197,6 +207,16 @@ RoofDeployingAnim=  ; AnimType, the animation of the open roof when a Jump Jet i
 UnderRoofDoorAnim=  ; AnimType, the animation of the rest of the building when a Jump Jet is exiting the factory.
 ```
 
+### WallOwner
+
+- By default, all buildings in the game claim ownership of nearby pre-placed walls on maps. Vinifera allows disabling this behaviour per building, so that, for example, invisible light posts can be made not to claim ownership of nearby walls for their owning house.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]      ; BuildingType
+WallOwner=no        ; boolean, should the building claim ownership of pre-placed walls near it?
+```
+
 ## Harvesters
 
 - In the original game, harvesters always prefer free refineries over occupied ones, even if the free refinery was much farther away than the occupied refinery. Vinifera fixes this so that harvesters now prefer queueing to occupied refineries if they are much closer than free refineries. The distance for this preference is customizable.
@@ -208,6 +228,30 @@ In `RULES.INI`:
 ; refinery over a closer occupied refinery if the refineries' distance.
 ; difference in cells is less than this.
 MaxFreeRefineryDistanceBias=16
+```
+
+## Houses
+
+- Loading screens can be customized per house and resolution in `UI.INI`. Each entry has the format `<HouseType index>,<filename without .PCX>,<layout width>,<layout height>[,<singleplayer X>,<singleplayer Y>,<multiplayer X>,<multiplayer Y>]`. The layout dimensions are the image-fit threshold and the reference canvas used to center it.
+- Vinifera selects the greatest-area layout that fits the current resolution, then randomly chooses between matching entries for the active house.
+
+In `UI.INI`:
+```ini
+[LoadingScreens]
+0=0,LOAD400C,640,400
+1=0,LOAD400D,640,400
+2=0,LOAD600C,800,600,546,233,711,227
+3=1,LOAD400A,640,400
+4=1,LOAD400B,640,400
+```
+
+- The numeric keys only establish list order and must be unique.
+- Position fields are optional. Omitting them uses the built-in singleplayer and multiplayer positions for the standard 640x400, 640x480, and 800x600 layouts. Specify all four position values for non-standard dimensions. Both coordinates for a mode must be positive; if either is zero or negative, that mode uses the built-in position.
+- Campaign scenario files can include their own `[LoadingScreens]` section. A matching scenario entry takes precedence over `UI.INI`; the spawner's `CustomLoadScreen` setting takes final precedence.
+- If no configured entry matches, Vinifera generates the traditional name from the selected layout and house: GDI uses `C`/`D`, Nod uses `A`/`B`, and later houses use successive letter pairs, wrapping after `Z`.
+
+```{note}
+Loading-screen names in `[LoadingScreens]` must not contain the `.PCX` extension. The spawner's `CustomLoadScreen` value, by contrast, must include its extension.
 ```
 
 ## Ice
@@ -259,7 +303,18 @@ AllowedSmudges=   ; list of SmudgeTypes, which Smudges can appear on this tile. 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
 [SOMEISOTILESET]  ; IsometricTileType
-AllowVeins=yes    ; boolean, can Veins can grow on this tile.
+AllowVeins=yes    ; boolean, can Veins can grow on this tile?
+```
+
+
+### WaterTunnel
+
+- The `WaterTunnel` key turns this tile's `Tunnel` LandType tiles water-passable.
+
+In `TEMPERAT.INI` (or other theater file):
+```ini
+[SOMEISOTILESET]  ; IsometricTileType
+WaterTunnel=no    ; boolean, is this tile's tunnel on water?
 ```
 
 ## Infantry
@@ -281,6 +336,18 @@ OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, a
 
 ```{note}
 When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `ALT` key (Force Move) will allow you to enter the transport instead of healing it.
+```
+
+## Overlays
+
+### WaterTunnel
+
+- If the cell the overlay is on has the `Tunnel` LandType, the `WaterTunnel` key turns this tile water-passable.
+
+In `RULES.INI`:
+```ini
+[SOMEOVERLAY]   ; OverlayType
+WaterTunnel=no  ; boolean, is this tile's tunnel on water?
 ```
 
 ## Projectiles
@@ -327,9 +394,12 @@ SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to [General]
 
 In `RULES.INI`:
 ```ini
-[SOMESIDE]          ; Side
-UIColor=LightGold   ; ColorScheme, the color to be used when drawing UI elements.
-ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
+[SOMESIDE]                      ; Side
+UIColor=LightGold               ; ColorScheme, the color to be used when drawing UI elements.
+HoverHighlightColor=LightGold   ; ColorScheme, the color to be used for hover-on effects when drawing UI elements.
+ToolTipColor=Green              ; ColorScheme, the color to be used when drawing tooltips.
+OptionsMenuTextColor=112,255,0  ; RGB Color, the color to be used by the options menu.
+ScreenTextColor=255,255,255     ; RGB Color, the color to be used by end-of-game text.
 ```
 
 ![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)
@@ -601,6 +671,15 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     DropPod=AirStrike,AirStrike
     RallyToPoint=CanMove,Normal
     AttackSupport=Normal,Normal
+    PlaceBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon1=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon2=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon3=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon4=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon5=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon6=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon7=PlaceWaypoint,PlaceWaypoint
+    SelectBeacon=SelectWaypoint,SelectWaypoint
 
     ```
    :::
@@ -891,7 +970,7 @@ LeaveTransportSound=<none>  ; VocType, the sound effect to play when a passenger
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]  ; TechnoType
-Soylent=0     ; unsigned integer, the refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. 0 uses normal refund amount logic.
+Soylent=-1    ; integer, the refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. -1 uses normal refund amount logic.
 ```
 
 ### New Voice Responses
@@ -946,6 +1025,23 @@ ShakeXlo=0    ; unsigned integer, the minimum pixel X value.
 ### WalkRate
 
 - Vinifera allows `WalkRate` to be optionally loaded from `ART.INI` image entries, overriding any value defined in `RULES.INI`.
+
+### Wake Animation Customization
+
+- Vinifera allows customizing the wake (moving on water) animation per-techno.
+
+In `ART.INI`:
+```ini
+[SOMETECHNO]            ; TechnoType
+WakeAnim=               ; AnimType, the wake graphic to show as the object moves across water.
+WakeAnimRate=10         ; integer, the rate at which this object creates the wake animation while moving.
+IdleWakeAnim=           ; AnimType, the wake graphic to show when the object is staying still on water.
+HideWakeWhenCloaked=no  ; boolean, should this unit not spawn wakes when it's cloaked?
+```
+
+```{note}
+Wake customizations currently only take effect on units using `DriveLocomotion`.
+```
 
 ### ImmuneToEMP
 
@@ -1165,6 +1261,36 @@ Prerequisite=GROUPNAME
 Vanilla prerequisite groups always exist by default. If you re-define them in `[PrerequisiteGroups]`, values from `[PrerequisiteGroups]` will overwrite the values from `[General]`.
 ```
 
+### Self Healing
+
+- Vinifera adds the ability to control the Self Healing mechanism for all technos, allowing to control both the maximum healing capacity and healing rate, both game-wide and per techno.
+- Techno-specific values apply first.
+- If not specified, then game-wide values apply.
+- If both are not specified, then Vinifera falls back to the original values used by the game, which depends on the attribute:
+  - Self Healing Cap: based on `ConditionYellow`.
+  - Self Healing Rate: based on `RepairRate`.
+  - Self Healing Step: defaults to 1.
+
+Game-wide keys use the `SelfHeal` prefix, while techno-specific keys retain the original game's `SelfHealing` prefix.
+
+Game-wide definition:
+In `RULES.INI`:
+```ini
+[General]
+SelfHealCap=50% 		; % or float, determines the maximum amount of strength technos can automatically regenerate. Caps at 100%. Only used for technos that do not have this key defined for them.
+SelfHealRate=.016 		; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. Only used for technos that do not have this key defined for them. The lower the value, the faster technos will heal.
+SelfHealStep=1 			; integer, the amount of strength to recover in each regeneration tick. Minimum 1.
+```
+
+Techno-specific definition:
+In `RULES.INI`:
+```ini
+[SOMETECHNO]
+SelfHealingCap=50% 			; % or float, determines the maximum amount of strength this techno can automatically regenerate. Caps at 100%.
+SelfHealingRate=.016 		; float, minutes at 15 FPS between each regeneration tick. Caps at once per frame. The lower the value, the faster this techno will heal.
+SelfHealingStep=1 			; integer, the amount of strength to recover in each regeneration tick. Minimum 1.
+```
+
 ## Terrain
 
 ### Light Sources
@@ -1180,6 +1306,24 @@ LightIntensity=0      ; float, the distance that this light is visible from.
 LightRedTint=1        ; float, the red tint of this terrain objects light.
 LightGreenTint=1      ; float, the green tint of this terrain objects light.
 LightBlueTint=1       ; float, the blue tint of this terrain objects light.
+```
+
+### Tiberium Speaders
+
+- Vinifera adds additional customization for Tiberium spreaders (`SpawnsTiberium=yes`).
+
+```{note}
+With `SpawnsTiberiumScattered=no`, Spreaders don't spawn Tiberium out of thin air. A spreader first spreads Tiberium from itself, then from the radius-1 ring of Tiberium around it, then from the radius-2 ring, and so on. You can think of it as accelerating the natural spread process. If a cell doesn't border the spreader of a piece of Tiberium, it won't be spread to.
+```
+
+In `RULES.INI`:
+```ini
+[SOMETERRAIN]                 ; TerrainType
+SpawnsTiberiumRange=1         ; integer, the maximum range in which Tiberium will be spawned.
+SpawnsTiberiumStage=5,5       ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
+SpawnsTiberiumStageFalloff=0  ; float, the amount by which the growth stage will decrease for every ring after the first one.
+SpawnsTiberiumCount=1,1       ; two integers, the minimum and maximum number of spreads that will occur (maximum can be omitted).
+SpawnsTiberiumScattered=no    ; boolean, whether Tiberium should spawn scattered in the spawn range, as opposed to spreading from the center (imitates the old Tiberium spreaders using animations).
 ```
 
 ## Theaters
@@ -1289,14 +1433,289 @@ The random map generator does not currently support new theater types.
     `DESERT.MIX`, `ISODES.MIX`, `DES.MIX`, `DESERT.INI`, `ISODES.PAL`, `DESERT.PAL`, `UNITDES.PAL`, and `SLOP#Z.DES` (where # is 1 to 4).
    :::
 
-## Themes
+## Audio System
 
-- `RequiredAddon` can be set to be limit new and existing themes to a specific addon (i. e., Firestorm).
+Vinifera replaces the vanilla audio engine with a miniaudio-backed system for sound effects, music themes, EVA speech, subtitles, and VQA movie audio. The original miniaudio implementation was by CCHyper.
+
+### General Behavior
+
+- Supported file formats are `FLAC`, `WAV`, `OGG`, `MP3`, and the vanilla `AUD` format.
+- Use filenames without extensions in `SOUND.INI`, `THEME.INI`, and `EVA.INI`.
+- Formats are searched in this order: `FLAC`, `WAV`, `OGG`, `MP3`, then `AUD`.
+- Audio files are resolved through the normal game file system, so they may come from the game directory, the `SOUNDS`, `SPEECH`, and `MUSIC` search directories, or loaded `.MIX` archives.
+- When Firestorm is active, `SOUND01.INI` and `THEME01.INI` load after the base files. Repeating an existing sound or theme name updates that entry; new names are added.
+
+### Sound Effects
+
+`SOUND.INI` defines the `VocType` database used by sound effects. Sounds are listed in `[SoundList]`, and each listed sound may have its own section. `[Defaults]` can set fallback values for sounds that omit them.
+
+In `SOUND.INI`:
+```ini
+[Defaults]
+Limit=5        ; integer, default maximum number of simultaneous instances of one sound.
+Range=10       ; integer, default audible range, in cells, for positional sounds.
+Priority=10    ; integer, default playback priority.
+Volume=1.0     ; float, default volume multiplier.
+MinVolume=0.0  ; float, default minimum volume for GLOBAL sounds.
+
+[SoundList]
+0=MYSOUND
+1=MYALARM
+
+[MYSOUND]
+Sounds=        ; list of filenames, alternate audio files for this sound. Omit extensions. Defaults to the sound's INI name.
+Limit=5        ; integer, maximum number of simultaneous instances of this sound.
+LoopLimit=0    ; integer, total number of plays for a looping sound. 0 means unlimited.
+Delay=0        ; float or float pair, delay in seconds. A pair chooses a random value in the range.
+Range=10       ; integer, audible range, in cells.
+Priority=10    ; integer, playback priority for this sound.
+Volume=1.0     ; float, volume multiplier.
+MinVolume=0.0  ; float, minimum volume for GLOBAL sounds.
+VShift=0,0     ; two integers, random volume variation, in percent.
+FShift=0,0     ; two integers, random pitch variation, in percent.
+Type=          ; list of sound type flags. Omit for standard screen-based positional behavior.
+Control=NORMAL ; list of playback control flags.
+```
+
+#### Type Flags
+
+| Flag | Description |
+|------|-------------|
+| `NORMAL` | Standard positional sound. Volume fades based on distance from the tactical screen. |
+| `GLOBAL` | Positional sound that does not fall below `MinVolume` when out of range. |
+| `LOCAL` | Uses falloff from the source position instead of the screen edge. |
+| `UNSHROUDED` | Only plays if the source cell is currently visible or fog-visible to the player. |
+| `SHROUDED` | Only plays if the source cell is currently hidden by shroud or fog of war. |
+
+#### Control Flags
+
+| Flag | Description |
+|------|-------------|
+| `NORMAL` | Plays once with no special behavior. |
+| `LOOP` | Loops until stopped, unless `LoopLimit=` caps the number of plays. Each loop iteration is one full body cycle. |
+| `RANDOM` | Picks a random basename from `Sounds=` for each body cycle. Combined with `LOOP`, every loop iteration re-rolls — so a `LOOP,RANDOM` event walks through the `Sounds=` list at random instead of locking onto one pick at start. |
+| `SEQUENTIAL` | Picks the next basename from `Sounds=` for each body cycle, advancing a per-voc counter that persists across plays. Combined with `LOOP`, each iteration steps to the next entry, wrapping around. |
+| `ALL` | Plays all basenames from `Sounds=` in order. |
+| `PREDELAY` | Applies `Delay=` before the sound starts. Without this flag, ordered or looping events use `Delay=` between samples. |
+| `QUEUE` | When this sound's simultaneous instance limit is already full, defer the request until a slot frees up instead of dropping it. |
+| `INTERRUPT` | Allows a new request to interrupt an existing instance of the same limited sample. |
+| `ATTACK` | Plays the first `Sounds=` entry as an ordered attack/start sample before the body samples. |
+| `DECAY` | Plays the last `Sounds=` entry as an ordered decay/end sample after the body samples or when the event is stopped. |
+
+### Themes
+
+`THEME.INI` defines music themes used by the jukebox, menus, scripted music, and normal in-game playback. Vinifera adds per-theme file and display controls, per-theme volume, and configurable fade behavior.
 
 In `THEME.INI`:
 ```ini
-[SOMETHEME]      ; ThemeType
-RequiredAddon=0  ; AddonType, the addon required to be active for this theme to be available. Currently, only 0 (none) and 1 (Firestorm) are supported.
+[General]
+FadeOutSeconds=1.5     ; float, fade-out duration, in seconds, used when a theme is stopped with fading.
+CrossFading=no         ; boolean, whether theme changes cross-fade instead of stopping one track before starting the next.
+CrossFadeSeconds=10.0  ; float, cross-fade duration, in seconds.
+
+[Themes]
+0=MYTRACK
+
+[MYTRACK]
+Sound=                 ; filename, audio file for this theme. Omit the extension. Defaults to the theme's INI name.
+Name=                  ; string, full display name shown by music UI.
+Artist=                ; string, artist name shown by music UI.
+Length=0               ; float, track length in seconds, used by music UI.
+Normal=no              ; boolean, whether this theme can be selected during normal in-game music playback.
+Repeat=no              ; boolean, whether this theme should repeat when played.
+Scenario=0             ; integer, minimum single-player scenario number required before this theme can play normally.
+Side=                  ; list of Sides, which player sides are allowed to hear this theme. Omit for any side.
+Volume=1.0             ; float, per-theme volume multiplier.
+RequiredAddon=0        ; AddonType, addon required for the theme. 0 = base game, 1 = Firestorm.
+```
+
+### EVA Speech
+
+`EVA.INI` defines the EVA and mission speech database. It is optional: if it is not present, Vinifera uses the built-in speech list. However, if it is provided, no default speeches are added to it.
+
+A ready-to-use [`EVA.INI`](https://github.com/Vinifera-Developers/Vinifera-Files/blob/master/files/EVA.INI) covering the full vanilla and Firestorm speech set, with subtitle transcriptions, is available in the Vinifera-Files repository.
+
+Speech runs through a dedicated scheduler, separate from the sound effect engine. Each entry's `Control=` chooses whether it uses the single standard slot, the normal queue, or the interrupt queue; its `Priority=` determines ordering within queued speech. Within a queue, higher priorities drain first; equal priorities are FIFO. The interrupt queue drains before the normal queue.
+
+If no `EVA.INI` is provided, some built-in speeches also have different appropriate defaults for `Category=`, `Control=`, and `Priority=`.
+
+In `EVA.INI`:
+```ini
+[Defaults]
+Priority=NORMAL ; speech priority, see Priority Values below.
+Delay=0.2       ; float, default delay, in seconds, before speech starts.
+Volume=1.0      ; float, default speech volume multiplier.
+FShift=1.0      ; float, default speech pitch multiplier.
+
+[DialogList]
+0=EVA_MissionAccomplished
+
+[EVA_MissionAccomplished]
+Sound=             ; filename, audio file for this speech entry. Omit the extension. Defaults to the speech entry's INI name.
+Text=              ; string, descriptive text for this entry. It is not spoken.
+Category=Scenario  ; subtitle category, valid options are "System" and "Scenario".
+Priority=NORMAL    ; speech priority for this entry, see Priority Values below.
+Delay=0.2          ; float, delay, in seconds, before this speech starts.
+FShift=1.0         ; float, pitch multiplier for this speech entry.
+Volume=1.0         ; float, volume multiplier for this speech entry.
+Control=STANDARD   ; speech playback policy, see Control Values below.
+SOMESIDE=          ; filename, side-specific audio file for the side named SOMESIDE. Omit the extension.
+```
+
+#### Control Values
+
+`Control=` is a single value (not a list).
+
+| Value | Description |
+|------|-------------|
+| `STANDARD` | Use a single replaceable pending slot. If a `STANDARD` line is already pending, only a higher-priority `STANDARD` line replaces it. If a queued-interrupt or critical line is already pending, the request is dropped. The slot drains before the normal queue. This is the default. |
+| `QUEUE` | Insert into the normal queue. Plays after the currently-speaking line and any higher-priority queued lines. |
+| `INTERRUPT` | Stop the currently-playing line, clear both queues, and play immediately. |
+| `QUEUED_INTERRUPT` | Insert into the interrupt queue, which drains before the normal queue. Does not stop the line that is already playing. |
+
+#### Priority Values
+
+| Value | Description |
+|------|-------------|
+| `LOW` | Lowest priority. |
+| `NORMAL` | Default priority. |
+| `IMPORTANT` | Drains before `NORMAL` within the same queue. |
+| `CRITICAL` | Drains first within its queue. |
+
+### Subtitles
+
+`EVA.INI` speech entries can display subtitles using their `Text=` value. Subtitle filtering is controlled by `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Options]
+SubtitleMode=None  ; subtitle display mode. Valid options are "None", "All", "Scenario", and "System".
+```
+
+Subtitle appearance is controlled in `UI.INI`.
+
+In `UI.INI`:
+```ini
+[Ingame]
+SubtitleFontName=Arial          ; string, font face used for subtitles.
+SubtitleFontHeight=22           ; integer, font height.
+SubtitleFontWeight=700          ; integer, font weight.
+SubtitleTextColor=255,255,255   ; RGB color, subtitle text color.
+SubtitleOutlineColor=0,0,0      ; RGB color, subtitle outline color.
+SubtitleOutlineWidth=2          ; integer, outline thickness in pixels.
+SubtitleMarginX=40              ; integer, horizontal margin from the tactical view edges.
+SubtitleMarginBottom=24         ; integer, bottom margin from the tactical view.
+```
+
+### Hardcoded Speeches
+
+Some speeches are played by engine code in response to game events (mission accomplished, low power, unit ready, and so on) rather than by triggers. Vinifera looks these up by INI name, so when you provide a custom `EVA.INI` every name in the table below must exist in it — otherwise the corresponding event will play no speech. The order of the entries is not significant; only the names matter.
+
+- :::{dropdown} List of hardcoded speech names
+
+    | Index | File Name | New Name |
+    |------|------|------|
+    | 0 | 00-I026 | EVA_MissionAccomplished |
+    | 1 | 00-I028 | EVA_MissionFailed |
+    | 2 | 00-I064 | EVA_UnableToComply |
+    | 3 | 00-I018 | EVA_ConstructionComplete |
+    | 4 | 00-I076 | EVA_UnitReady |
+    | 5 | 00-I032 | EVA_NewConstructionOptions |
+    | 6 | 00-I016 | EVA_CannotDeployHere |
+    | 7 | 00-I008 | EVA_GDIStructureDestroyed |
+    | 8 | 00-I022 | EVA_InsufficientFunds |
+    | 9 | 00-I012 | EVA_BattleControlOffline |
+    | 10 | 00-I038 | EVA_ReinforcementsHaveArrived |
+    | 11 | 00-I220 | EVA_Canceled |
+    | 12 | 00-I216 | EVA_Building |
+    | 13 | 00-I024 | EVA_LowPower |
+    | 14 | 00-I082 | EVA_BaseUnderAttack |
+    | 15 | 00-I034 | EVA_PrimaryBuildingSet |
+    | 16 | 00-I074 | EVA_UnitLost |
+    | 17 | 00-I042 | EVA_SelectTarget |
+    | 18 | 00-I044 | EVA_SilosNeeded |
+    | 19 | 00-I218 | EVA_OnHold |
+    | 20 | 00-I040 | EVA_Repairing |
+    | 21 | 00-I062 | EVA_Training |
+    | 22 | 00-I068 | EVA_UnitArmorUpgraded |
+    | 23 | 00-I070 | EVA_UnitFirepowerUpgraded |
+    | 24 | 00-I080 | EVA_UnitSpeedUpgraded |
+    | 25 | 00-I078 | EVA_UnitRepaired |
+    | 26 | 00-I228 | EVA_StructureSold |
+    | 27 | 00-I090 | EVA_HarvesterUnderAttack |
+    | 28 | 00-I172 | EVA_CloakedUnitDetected |
+    | 29 | 00-I174 | EVA_SubterraneanUnitDetected |
+    | 37 | 00-I226 | EVA_UnitSold |
+    | 38 | 00-I056 | EVA_BuildingCaptured |
+    | 39 | 00-I200 | EVA_EstablishBattlefieldControl |
+    | 40 | 00-I176 | EVA_IonStormApproaching |
+    | 41 | 00-I178 | EVA_MeteorStormApproaching |
+    | 42 | 00-I198 | EVA_NewTerrainDiscovered |
+    | 43 | 00-I150 | EVA_MissileLaunchDetected |
+    | 49 | 00-I170 | EVA_FirestormDefenseOffline |
+    | 58 | 00-I014 | EVA_BuildingInfiltrated |
+    | 59 | 00-I058 | EVA_TimerStarted |
+    | 60 | 00-I060 | EVA_TimerStopped |
+    | 61 | 00-I118 | EVA_BridgeRepaired |
+    | 63 | 00-I230 | EVA_BuildingOffline |
+    | 64 | 00-I232 | EVA_BuildingOnline |
+    | 66 | 00-I268 | EVA_PlayerDefeated |
+    | 67 | 00-I284 | EVA_YouAreVictorious |
+    | 68 | 00-I286 | EVA_YouHaveLost |
+    | 71 | 00-I304 | EVA_AllianceFormed |
+    | 72 | 00-I306 | EVA_AllianceBroken |
+    | 73 | 00-I308 | EVA_OurAllyIsUnderAttack |
+    | 79 | 00-I344 | EVA_EvaTaunt01 |
+    | 80 | 00-I346 | EVA_EvaTaunt02 |
+    | 81 | 00-I348 | EVA_EvaTaunt03 |
+    | 82 | 00-I352 | EVA_EvaTaunt04 |
+    | 83 | 00-I356 | EVA_EvaTaunt05 |
+    | 84 | 00-I360 | EVA_EvaTaunt06 |
+    | 85 | 00-I370 | EVA_EvaTaunt07 |
+    | 86 | 00-I372 | EVA_EvaTaunt08 |
+    | 87 | 00-I374 | EVA_EvaTaunt09 |
+    | 88 | 00-I376 | EVA_EvaTaunt10 |
+    | 89 | 01-I342 | EVA_CabalTaunt01 |
+    | 90 | 01-I350 | EVA_CabalTaunt02 |
+    | 91 | 01-I352 | EVA_CabalTaunt03 |
+    | 92 | 01-I356 | EVA_CabalTaunt04 |
+    | 93 | 01-I360 | EVA_CabalTaunt05 |
+    | 94 | 01-I362 | EVA_CabalTaunt06 |
+    | 95 | 01-I364 | EVA_CabalTaunt07 |
+    | 96 | 01-I366 | EVA_CabalTaunt08 |
+    | 97 | 01-I368 | EVA_CabalTaunt09 |
+    | 98 | 01-I378 | EVA_CabalTaunt10 |
+    | 312 | 00-I020 | EVA_IncomingTransmission |
+   :::
+
+### Object Ambient Sounds
+
+- Any object can be given a looping ambient sound that starts when the object enters the world and follows it as it moves.
+
+In `RULES.INI`:
+```ini
+[SOMEOBJECT]    ; ObjectType
+AmbientSound=   ; VocType, the ambient sound that plays on this object while it is active. Defaults to none.
+```
+
+```{note}
+The `VocType` should have `Control=LOOP` in `SOUND.INI`. Non-looping sounds play through once and then go silent — they are not automatically restarted.
+```
+
+### Trigger Audio Actions
+
+Vinifera changes the mapper-facing sound trigger actions so sounds started at waypoints can be stopped reliably, and adds new actions for attaching ambient loops to trigger-bound objects.
+
+- `Play Sound At` is vanilla trigger action `99`. It plays the selected `VocType` at the action waypoint.
+- If the waypoint contains a building or terrain object, the sound is attached to that object.
+- If the waypoint is empty, Vinifera tracks the sound at that coordinate so it can be stopped later.
+- `Stop Sounds At` is Vinifera trigger action `137`. It stops sounds previously started by `Play Sound At` at the same waypoint, and detaches any ambient previously attached to a building or terrain there.
+- `Stop Sounds At` does not stop arbitrary one-shot sounds, music themes, EVA speech, or an object's rule-defined ambient loop.
+- `Attach Sound` is Vinifera trigger action `138`. It attaches the selected `VocType` as an ambient loop to every object the trigger is bound to. The sound plays for as long as the attachment lasts and follows each object as it moves.
+- `Detach Sound` is Vinifera trigger action `139`. It removes any previously-attached ambient sound from the trigger's bound objects.
+
+```{note}
+The `VocType` passed to `Attach Sound` should have `Control=LOOP`. Non-looping vocs play through once and then go silent for the rest of the attachment — they are not automatically restarted.
 ```
 
 ## Tiberiums
@@ -1355,6 +1774,16 @@ In `RULES.INI`:
 ```ini
 [AudioVisual]
 WeedPipIndex=1  ; integer, the pip index used for Weeds.
+```
+
+### Spread Customization
+
+- Vinifera allows mods to customize some aspects about how Tiberiums spread.
+In `RULES.INI`:
+```ini
+[SOMETIBERIUM]      ; Tiberium
+MinSpreadStage=5    ; integer, the minimum growth stage at which this Tiberium can spread to a nearby cell.
+SpreadSpawnStage=5  ; integer, newly spread Tiberium spawns grown to this stage.
 ```
 
 ## Vehicles
@@ -1613,3 +2042,89 @@ OmniFire=no   ; boolean, does the unit firing this weapon not have to perform a 
 ```{note}
 `OmniFire` only applies to `UnitTypes`.
 ```
+
+### Disguise
+
+- In the original game, disguised infantry are completely undetectable by the AI, or any units. Vinifera changes this so that the AI can see through disguise by default, and the AI can be configured not to see through disguise. TechnoTypes can now also optionally see through disguise.
+
+In `RULES.INI`:
+```ini
+[AI]
+AIDetectDisguise=yes ; boolean, are AI houses allowed to target disguised enemy units?
+
+[SOMETECHNOTYPE]
+DetectDisguise=no    ; boolean, are instances of the techno type allowed to automatically target disguised enemy units?
+```
+
+### Iron Curtains
+
+- Vinifera implements the Iron Curtain effect from Red Alert 1, available only for the AI and map scripting at this time.
+
+In `RULES.INI`:
+```ini
+[General]
+IronCurtains=RAIRON           ; comma-separated list of BuildingTypes that can cause the Iron Curtain effect
+IronCurtainDuration=675       ; integer, how long the Iron Curtain effect lasts in frames
+IronCurtainRechargeTime=9900  ; integer, how long it takes for a house's Iron Curtain to charge after it has been used
+
+[AudioVisual]
+IronCurtainFlashRate=8                 ; integer, the rate, in frames, at which the Iron Curtain pulse "animation" progresses to the next brightness phase
+IronCurtainFlashIntensityMultiplier=50 ; integer, multiplier for the Iron Curtain pulse brightness modifier (def=50). 1000 brightness units is equal to regular fully-lit lighting
+IronCurtainPulseTable=-16,-15,-14,-13,-12,-13,-14,-15 ; list of integers, defines the brightness phases and raw brightness rates of the Iron Curtain pulse effect (def=-16,-15,-14,-13,-12,-13,-14,-15).
+
+[SOMEUNIT]
+IronCurtainPriorityTarget=no ; boolean, if set to yes, the AI will apply the Iron Curtain to this unit when its HP is about to drop below half. Requires the AI to have an Iron Curtain building available and the Iron Curtain charged
+```
+
+### AI Harvester Count
+
+- Vinifera allows customizing the number of harvesters the AI builds per refinery.
+
+In `RULES.INI`:
+```ini
+[AI]
+HarvestersPerRefinery=2,2,1       ; list of integers, number of harvesters the AI builds per refinery by difficulty level, from hardest to easiest
+AIOneHarvesterInSingleplayer=true ; boolean, is the AI limited to one harvester per refinery in singleplayer regardless of difficulty, like in the original game?
+```
+
+## Difficulty
+
+- Vinifera adds more multiplayer difficulty options for clients launching the game through its built-in spawner. These are parsed from `RULES.INI` sections `[VeryEasy]`, `[BrutallyEasy]`, `[ExtremelyEasy]` and `[UltimatelyEasy]`, and have the same keys as the original game's difficulty sections (`[Easy]`, `[Normal]`, `[Difficult]`).
+
+- In the original game, human players and AI players playing on Normal/Medium difficulty share their difficulty settings through the `[Normal]` section. Vinifera allows splitting these settings by introducing a new difficulty section for Normal-difficulty human players.
+
+In `RULES.INI`:
+```ini
+[General]
+HasPlayerNormal=no    ; boolean, whether PlayerNormal difficulty level is to be used for human players on Normal difficulty
+
+[PlayerNormal]
+Groundspeed=1.0
+Airspeed=1.0
+BuildTime=1.0
+Armor=1.0
+ROF=1.0
+Cost=1.0
+RepairDelay=.02
+BuildDelay=.03
+BuildSlowdown=yes
+DestroyWalls=yes
+ContentScan=yes
+```
+
+### Harvester Under Attack Event
+
+- In the original game, EVA can alert you needlessly often when a harvester is being attacked. Vinifera allows you to throttle the frequency of the alert.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+HarvesterUnderAttackThrottleTime=0.0  ; float, minutes that EVA is forbidden from alerting about a harvester being under attack after last alerting about it. Automatically scaled by game speed (iow. it's real-life minutes)
+```
+
+### Select Same Type Command
+
+- The Select Same Type command is used by players to select all units and structures across the screen that are of the same types of the currently selected units and structures. The command has been improved in the following ways:
+	- No longer deselects units that are outside of the screen.
+	- Command is now ignored when non-player controlled units or structures are selected.
+	- Players can now press the Select Same Type command twice in quick succession to select units and structures across the map.

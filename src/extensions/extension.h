@@ -1,45 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  The file contains the functions required for the extension system.
  *
- *  @project       Vinifera
- *
- *  @file          EXTENSION.H
- *
- *  @author        CCHyper
- *
- *  @brief         The file contains the functions required for the extension system.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "always.h"
-#include "vinifera_defines.h"
-#include "extension_globals.h"
+
 #include "abstract.h"
 #include "abstractext.h"
-#include "swizzle.h"
-#include "noinit.h"
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "extension_globals.h"
+#include "swizzle.h"
+#include "vinifera_defines.h"
 
-#include <unknwn.h> // for IStream
-#include <typeinfo>
 #include <string>
+#include <typeinfo>
+#include <unknwn.h> // for IStream
 
 
 class EventClass;
@@ -175,7 +155,7 @@ class WaveClassExtension;
 // class TagClassExtension;
 // class TagTypeClassExtension;
 class TiberiumClassExtension;
-// class TActionClassExtension;
+class TActionClassExtension;
 // class TEventClassExtension;
 class WeaponTypeClassExtension;
 class WarheadTypeClassExtension;
@@ -201,7 +181,8 @@ namespace Extension
 namespace Private
 {
 
-AbstractClassExtension *Make_Internal(const AbstractClass *abstract);
+bool Is_Supported(const AbstractClass* abstract);
+AbstractClassExtension* Make_Internal(const AbstractClass* abstract);
 bool Destroy_Internal(const AbstractClass *abstract);
 AbstractClassExtension *Fetch_Internal(const AbstractClass *abstract);
 
@@ -276,8 +257,6 @@ EXT_CLASS *Make(const BASE_CLASS *base)
     EXT_CLASS *ext_ptr = new EXT_CLASS(base);
     ASSERT(ext_ptr != nullptr);
 
-    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
-
     return ext_ptr;
 }
 
@@ -293,14 +272,12 @@ void Destroy(const EXT_CLASS *ext)
 
     delete ext;
 
-    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 }
 
 }; // namespace "Extension::Singleton".
 
 namespace List
 {
-
 /**
  *  Fetch an extension instance from a list whose extension pointer points to the base class.
  * 
@@ -314,7 +291,6 @@ EXT_CLASS *Fetch(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
     for (int index = 0; index < list.Count(); ++index) {
         EXT_CLASS * ext = list[index];
         if (list[index]->This() == base) {
-            EXT_DEBUG_INFO("Found \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
             return ext;
         }
     }
@@ -335,8 +311,6 @@ EXT_CLASS *Make(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
     EXT_CLASS *ext_ptr = new EXT_CLASS(base);
     ASSERT(ext_ptr != nullptr);
 
-    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
-
     list.Add(ext_ptr);
 
     return ext_ptr;
@@ -355,13 +329,11 @@ void Destroy(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
     for (int index = 0; index < list.Count(); ++index) {
         EXT_CLASS * ext = list[index].This();
         if (ext->This() == base) {
-            EXT_DEBUG_INFO("Found \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
             delete ext;
             return;
         }
     }
 
-    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
 }
 
 }; // namespace "Extension::List".
@@ -417,8 +389,8 @@ MAKE_EXTENSION_PAIR(SmudgeClass);
 MAKE_EXTENSION_PAIR(SmudgeTypeClass);
 MAKE_EXTENSION_PAIR(SuperWeaponTypeClass);
 //MAKE_EXTENSION_PAIR(TaskForceClass);                                  // Not yet implemented
-//MAKE_EXTENSION_PAIR(TeamClass);                                       // Not yet implemented
-//MAKE_EXTENSION_PAIR(TeamTypeClass);                                   // Not yet implemented
+MAKE_EXTENSION_PAIR(TeamClass);
+MAKE_EXTENSION_PAIR(TeamTypeClass);
 MAKE_EXTENSION_PAIR(TerrainClass);
 MAKE_EXTENSION_PAIR(TerrainTypeClass);
 //MAKE_EXTENSION_PAIR(TriggerClass);                                    // Not yet implemented
@@ -430,7 +402,7 @@ MAKE_EXTENSION_PAIR(WaveClass);
 //MAKE_EXTENSION_PAIR(TagClass);                                        // Not yet implemented
 //MAKE_EXTENSION_PAIR(TagTypeClass);                                    // Not yet implemented
 MAKE_EXTENSION_PAIR(TiberiumClass);
-//MAKE_EXTENSION_PAIR(TActionClass);                                    // Not yet implemented
+MAKE_EXTENSION_PAIR(TActionClass);
 //MAKE_EXTENSION_PAIR(TEventClass);                                     // Not yet implemented
 MAKE_EXTENSION_PAIR(WeaponTypeClass);
 MAKE_EXTENSION_PAIR(WarheadTypeClass);
@@ -516,9 +488,8 @@ bool Request_Pointer_Remap();
 unsigned Get_Save_Version_Number();
 
 /**
- *  Tracking, announcement, and debugging functions.
+ *  Announcement and debugging functions.
  */
-void Detach_This_From_All(AbstractClass * target, bool all = true);
 bool Register_Class_Factories();
 void Free_Heaps();
 void Print_CRCs(EventClass *ev);
@@ -552,15 +523,8 @@ class GlobalExtensionClass
         virtual int Get_Object_Size() const = 0;
 
         /**
-         *  Removes the specified target from any targeting and reference trackers.
-         *  
-         *  @note: This must be overridden by the extended class!
-         */
-        virtual void Detach(AbstractClass * target, bool all = true) = 0;
-
-        /**
          *  Compute a unique crc value for this instance.
-         *  
+         *
          *  @note: This must be overridden by the extended class!
          */
         virtual void Object_CRC(CRCEngine &crc) const = 0;
@@ -614,7 +578,6 @@ template<class T>
 GlobalExtensionClass<T>::GlobalExtensionClass(const T *this_ptr) :
     ThisPtr(this_ptr)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::GlobalExtensionClass - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
     //ASSERT(ThisPtr != nullptr);      // NULL ThisPtr is valid when performing a Load state operation.
 }
 
@@ -627,7 +590,6 @@ GlobalExtensionClass<T>::GlobalExtensionClass(const T *this_ptr) :
 template<class T>
 GlobalExtensionClass<T>::GlobalExtensionClass(const NoInitClass &noinit)
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::GlobalExtensionClass(NoInitClass) - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -639,8 +601,6 @@ GlobalExtensionClass<T>::GlobalExtensionClass(const NoInitClass &noinit)
 template<class T>
 GlobalExtensionClass<T>::~GlobalExtensionClass()
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::~GlobalExtensionClass - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
-
     ThisPtr = nullptr;
 }
 
@@ -657,8 +617,6 @@ GlobalExtensionClass<T>::~GlobalExtensionClass()
 template<class T>
 HRESULT GlobalExtensionClass<T>::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::Load - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }
@@ -685,8 +643,6 @@ HRESULT GlobalExtensionClass<T>::Load(IStream *pStm)
 template<class T>
 HRESULT GlobalExtensionClass<T>::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::Save - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
-
     if (!pStm) {
         return E_POINTER;
     }

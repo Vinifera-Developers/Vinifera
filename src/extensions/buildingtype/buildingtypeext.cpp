@@ -1,44 +1,27 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended BuildingTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          BUILDINGTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended BuildingTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "buildingtypeext.h"
+
 #include "buildingtype.h"
-#include "tibsun_defines.h"
 #include "ccini.h"
-#include "wwcrc.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
 #include "scenario.h"
+#include "tibsun_defines.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *this_ptr) :
@@ -57,10 +40,10 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     RoofDeployingAnim(nullptr),
     RoofDoorAnim(nullptr),
     UnderRoofDoorAnim(nullptr),
-    IsExclusiveFactory(false)
+    IsExclusiveFactory(false),
+    IsWallOwner(true),
+    IsBarGate(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BuildingTypeExtensions.Add(this);
 }
 
@@ -73,7 +56,6 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
 BuildingTypeClassExtension::BuildingTypeClassExtension(const NoInitClass &noinit) :
     TechnoTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -84,8 +66,6 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const NoInitClass &noinit
  */
 BuildingTypeClassExtension::~BuildingTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::~BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     BuildingTypeExtensions.Delete(this);
 }
 
@@ -97,8 +77,6 @@ BuildingTypeClassExtension::~BuildingTypeClassExtension()
  */
 HRESULT BuildingTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -116,8 +94,6 @@ HRESULT BuildingTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -136,8 +112,6 @@ HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -154,23 +128,10 @@ HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int BuildingTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void BuildingTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    TechnoTypeClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -180,8 +141,6 @@ void BuildingTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsEligibleForAllyBuilding);
     crc(IsExclusiveFactory);
 }
@@ -194,10 +153,8 @@ void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!IsInitialized) {
-        IsEligibleForAllyBuilding = This()->IsConstructionYard;
+        IsEligibleForAllyBuilding = IsEligibleForAllyBuilding || This()->IsConstructionYard;
         EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE ? 25 : 0;
     }
 
@@ -221,8 +178,27 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsHideDuringSpecialAnim = ArtINI.Get_Bool(ini_name, "HideDuringSpecialAnim", IsHideDuringSpecialAnim);
 
     IsExclusiveFactory = ini.Get_Bool(ini_name, "ExclusiveFactory", IsExclusiveFactory);
+    IsWallOwner = ini.Get_Bool(ini_name, "WallOwner", IsWallOwner);
+    IsBarGate = ini.Get_Bool(ini_name, "BarGate", IsBarGate);
 
     Fetch_Building_Normal_Image(Scen->Theater);
+
+    /**
+     *  ObjectTypeClass::Read_INI attempts to preload the image from a MIX file.
+     *  If you mark an object type DemandLoad=yes, and then place its image in a cached MIX,
+     *  the game will incorrectly attempt to delete that image later. To avoid this,
+     *  null the MIX-fetched image out now.
+     */
+    if (This()->IsDemandLoad) {
+        This()->Image = nullptr;
+    }
+
+    /**
+     *  Don't try to free buildups if we don't demand load them.
+     */
+    if (!This()->IsDemandLoadBuildup) {
+        This()->IsFreeBuildup = false;
+    }
 
     IsInitialized = true;
 
@@ -240,21 +216,21 @@ void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater
     char fullname[MAX_PATH];
     char buffer[64];
 
-    ArtINI.Get_String(This()->GraphicName, "RoofDeployingAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "RoofDeployingAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);
         RoofDeployingAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
-    ArtINI.Get_String(This()->GraphicName, "RoofDoorAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "RoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);
         RoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
-    ArtINI.Get_String(This()->GraphicName, "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);

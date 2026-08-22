@@ -1,53 +1,34 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended AnimClass class.
  *
- *  @project       Vinifera
- *
- *  @file          ANIMEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended AnimClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "animext.h"
+
 #include "anim.h"
 #include "animtype.h"
 #include "animtypeext.h"
-#include "tibsun_inline.h"
-#include "wwcrc.h"
-#include "extension.h"
 #include "asserthandler.h"
-#include "debughandler.h"
+#include "extension.h"
 #include "options.h"
+#include "tibsun_inline.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
     ObjectClassExtension(this_ptr),
     DamageStage()
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimExtensions.Add(this);
 
     if (this_ptr) {
@@ -99,7 +80,6 @@ AnimClassExtension::AnimClassExtension(const NoInitClass &noinit) :
     ObjectClassExtension(noinit),
     DamageStage(noinit)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -110,8 +90,6 @@ AnimClassExtension::AnimClassExtension(const NoInitClass &noinit) :
  */
 AnimClassExtension::~AnimClassExtension()
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::~AnimClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     AnimExtensions.Delete(this);
 }
 
@@ -123,8 +101,6 @@ AnimClassExtension::~AnimClassExtension()
  */
 HRESULT AnimClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -142,8 +118,6 @@ HRESULT AnimClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT AnimClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -162,8 +136,6 @@ HRESULT AnimClassExtension::Load(IStream *pStm)
  */
 HRESULT AnimClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -180,23 +152,10 @@ HRESULT AnimClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int AnimClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void AnimClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("AnimClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    ObjectClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -206,7 +165,6 @@ void AnimClassExtension::Detach(AbstractClass * target, bool all)
  */
 void AnimClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -277,7 +235,7 @@ bool AnimClassExtension::End()
  *  
  *  @author: CCHyper
  */
-bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist)
+bool AnimClassExtension::Spawn_Animations(const Coord &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist)
 {
     if (!animlist.Count()) {
         return false;
@@ -329,7 +287,7 @@ bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeLis
              */
             int delay = delaylist[index] * This()->Fetch_Rate();
 
-            AnimClass *anim = new AnimClass(animtype, (Coordinate &)coord, delay);
+            AnimClass *anim = new AnimClass(animtype, (Coord &)coord, delay);
             ASSERT(anim != nullptr);
         }
     }

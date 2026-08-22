@@ -1,30 +1,12 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Windows resources include file.
  *
- *  @project       Vinifera
- *
- *  @file          RESOURCE.H
- *
- *  @author        CCHyper
- *
- *  @brief         Windows resources include file.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
 #ifndef _WINUSER_
@@ -53,6 +35,8 @@
 
 #define IDD_RULES                         4000
 #define IDD_EXCEPTION                     4001
+#define IDD_DESYNC_HOST                   4002
+#define IDD_DESYNC_WAIT                   4003
 
 
 /**
@@ -67,13 +51,20 @@
 #define IDC_RULE_SELECT                   1188
 #define IDC_RULE_LISTBOX                  1187
 
-#define IDC_EXCEPTION_SAVE                1149
 #define IDC_EXCEPTION_DEBUG               1150
 #define IDC_EXCEPTION_FILENAME            1151
 #define IDC_EXCEPTION_QUIT                1153
-#define IDC_EXCEPTION_MAINMENU            1154
 #define IDC_EXCEPTION_LOG                 1156
-#define IDC_EXCEPTION_CONTINUE            1157
+
+#define IDC_DESYNC_HEADER                 1200
+#define IDC_DESYNC_CHAT_LIST              1210
+#define IDC_DESYNC_CHAT_EDIT              1211
+#define IDC_DESYNC_PLAYER_LIST            1212
+#define IDC_DESYNC_LOAD                   1220
+#define IDC_DESYNC_CONTINUE               1221
+#define IDC_DESYNC_QUIT                   1222
+#define IDC_DESYNC_COUNTDOWN_BAR          1230
+#define IDC_DESYNC_COUNTDOWN_TEXT         1231
 
 
 /**

@@ -1,43 +1,26 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended WeaponTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          WEAPONTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended WeaponTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "weapontypeext.h"
-#include "weapontype.h"
-#include "ebolt.h"
+
 #include "ccini.h"
-#include "wwcrc.h"
+#include "ebolt.h"
 #include "extension.h"
-#include "asserthandler.h"
-#include "debughandler.h"
+#include "weapontype.h"
+#include "wwcrc.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_ptr) :
@@ -58,8 +41,6 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     CursorAttack(ACTION_ATTACK),
     CursorStayAttack(ACTION_ATTACK)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WeaponTypeExtensions.Add(this);
 }
 
@@ -72,7 +53,6 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
 WeaponTypeClassExtension::WeaponTypeClassExtension(const NoInitClass &noinit) :
     AbstractTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -83,8 +63,6 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const NoInitClass &noinit) :
  */
 WeaponTypeClassExtension::~WeaponTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::~WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     WeaponTypeExtensions.Delete(this);
 }
 
@@ -95,8 +73,6 @@ WeaponTypeClassExtension::~WeaponTypeClassExtension()
  */
 HRESULT WeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -114,8 +90,6 @@ HRESULT WeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT WeaponTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -134,8 +108,6 @@ HRESULT WeaponTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -152,21 +124,10 @@ HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WeaponTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void WeaponTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-}
 
 
 /**
@@ -176,8 +137,6 @@ void WeaponTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void WeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     crc(IsOmniFire);
     crc(IsElectricBolt);
     crc(IsSpawner);
@@ -192,8 +151,6 @@ void WeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -205,9 +162,9 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     IsOmniFire = ini.Get_Bool(ini_name, "OmniFire", IsOmniFire);
 
     IsElectricBolt = ini.Get_Bool(ini_name, "IsElectricBolt", IsElectricBolt);
-    ElectricBoltColor1 = ini.Get_RGB(ini_name, "EBoltColor1", ElectricBoltColor1);
-    ElectricBoltColor2 = ini.Get_RGB(ini_name, "EBoltColor2", ElectricBoltColor2);
-    ElectricBoltColor3 = ini.Get_RGB(ini_name, "EBoltColor3", ElectricBoltColor3);
+    ElectricBoltColor1 = ini.Get_RGBColor(ini_name, "EBoltColor1", ElectricBoltColor1);
+    ElectricBoltColor2 = ini.Get_RGBColor(ini_name, "EBoltColor2", ElectricBoltColor2);
+    ElectricBoltColor3 = ini.Get_RGBColor(ini_name, "EBoltColor3", ElectricBoltColor3);
     ElectricBoltSegmentCount = ini.Get_Int(ini_name, "EBoltSegmentCount", ElectricBoltSegmentCount);
     ElectricBoltLifetime = ini.Get_Int(ini_name, "EBoltLifetime", ElectricBoltLifetime);
     ElectricBoltIterationCount = ini.Get_Int(ini_name, "EBoltIterations", ElectricBoltIterationCount);

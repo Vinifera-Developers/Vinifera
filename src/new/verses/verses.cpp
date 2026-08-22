@@ -1,35 +1,16 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  New Verses handler.
  *
- *  @project       Vinifera
- *
- *  @file          VERSES.CPP
- *
- *  @authors       ZivDero
- *
- *  @brief         New Verses handler.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
 
 #include "verses.h"
 
-#include "armortype.h"
-#include "asserthandler.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
@@ -47,19 +28,19 @@ std::vector<std::vector<Verses::VersesData<bool>>> Verses::Retaliate;
  */
 HRESULT Verses::Save(IStream* pStm)
 {
-    HRESULT hr = Save_2D_Vector(pStm, Modifier, "Verses::Modifier");
+    HRESULT hr = Save_2D_Vector(pStm, Modifier);
     if (FAILED(hr))
         return hr;
 
-    hr = Save_2D_Vector(pStm, ForceFire, "Verses::ForceFire");
+    hr = Save_2D_Vector(pStm, ForceFire);
     if (FAILED(hr))
         return hr;
 
-    hr = Save_2D_Vector(pStm, PassiveAcquire, "Verses::PassiveAcquire");
+    hr = Save_2D_Vector(pStm, PassiveAcquire);
     if (FAILED(hr))
         return hr;
 
-    hr = Save_2D_Vector(pStm, Retaliate, "Verses::Retaliate");
+    hr = Save_2D_Vector(pStm, Retaliate);
     return hr;
 }
 
@@ -71,19 +52,19 @@ HRESULT Verses::Save(IStream* pStm)
  */
 HRESULT Verses::Load(IStream* pStm)
 {
-    HRESULT hr = Load_2D_Vector(pStm, Modifier, "Verses::Modifier");
+    HRESULT hr = Load_2D_Vector(pStm, Modifier);
     if (FAILED(hr))
         return hr;
 
-    hr = Load_2D_Vector(pStm, ForceFire, "Verses::ForceFire");
+    hr = Load_2D_Vector(pStm, ForceFire);
     if (FAILED(hr))
         return hr;
 
-    hr = Load_2D_Vector(pStm, PassiveAcquire, "Verses::PassiveAcquire");
+    hr = Load_2D_Vector(pStm, PassiveAcquire);
     if (FAILED(hr))
         return hr;
 
-    hr = Load_2D_Vector(pStm, Retaliate, "Verses::Retaliate");
+    hr = Load_2D_Vector(pStm, Retaliate);
     return hr;
 }
 
@@ -106,19 +87,19 @@ void Verses::Resize()
     // Resize the old arrays for new warheads and set defaults
     for (int i = 0; i < old_armor_count; i++)
     {
-        Modifier[i].resize(WarheadTypes.Count());
-        ForceFire[i].resize(WarheadTypes.Count());
-        PassiveAcquire[i].resize(WarheadTypes.Count());
-        Retaliate[i].resize(WarheadTypes.Count());
+        Modifier[i].resize(Warheads.Count());
+        ForceFire[i].resize(Warheads.Count());
+        PassiveAcquire[i].resize(Warheads.Count());
+        Retaliate[i].resize(Warheads.Count());
     }
 
     // Create new arrays for new armors
     for (int i = old_armor_count; i < ArmorTypes.Count(); i++)
     {
-        Modifier[i] = std::vector<VersesData<double>>(WarheadTypes.Count());
-        ForceFire[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
-        PassiveAcquire[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
-        Retaliate[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
+        Modifier[i] = std::vector<VersesData<double>>(Warheads.Count());
+        ForceFire[i] = std::vector<VersesData<bool>>(Warheads.Count());
+        PassiveAcquire[i] = std::vector<VersesData<bool>>(Warheads.Count());
+        Retaliate[i] = std::vector<VersesData<bool>>(Warheads.Count());
     }
 }
 
@@ -143,7 +124,7 @@ void Verses::Clear()
  *  @author: ZivDero
  */
 template <typename T>
-HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name)
+HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector)
 {
     int count = vector.size();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
@@ -152,10 +133,7 @@ HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
 
     for (int i = 0; i < count; i++)
     {
-        static char buffer[64];
-        std::snprintf(buffer, sizeof(buffer), "%s[%d]", heap_name, i);
-
-        HRESULT hr = Save_Primitive_Vector(pStm, vector[i], buffer);
+        hr = Save_Primitive_Vector(pStm, vector[i]);
         if (FAILED(hr))
             return hr;
     }
@@ -170,7 +148,7 @@ HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
  *  @author: ZivDero
  */
 template <typename T>
-HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name)
+HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector)
 {
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -181,10 +159,7 @@ HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
 
     for (int i = 0; i < count; i++)
     {
-        static char buffer[64];
-        std::snprintf(buffer, sizeof(buffer), "%s[%d]", heap_name, i);
-
-        HRESULT hr = Load_Primitive_Vector(pStm, vector[i], buffer);
+        hr = Load_Primitive_Vector(pStm, vector[i]);
         if (FAILED(hr))
             return hr;
     }

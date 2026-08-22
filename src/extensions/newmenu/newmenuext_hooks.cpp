@@ -1,45 +1,25 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended NewMenuClass.
  *
- *  @project       Vinifera
- *
- *  @file          NEWMENUEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended NewMenuClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "initext_hooks.h"
-#include "vinifera_globals.h"
-#include "tibsun_functions.h"
-#include "tibsun_globals.h"
+
+#include "always.h"
+
+#include "addon.h"
+#include "cd.h"
+#include "debughandler.h"
+#include "hooker.h"
 #include "iomap.h"
 #include "newmenu.h"
 #include "session.h"
-#include "cd.h"
-#include "addon.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
 
 
 /**
@@ -55,8 +35,8 @@ static bool MenuSkipDone = false;
  */
 static void Draw_Title_Screen(bool firestorm)
 {
-    Load_Title_Screen(firestorm ? "FSTBACK.PCX" : "TSTBACK.PCX", (XSurface *)HiddenSurface, &OriginalPalette);
-    GScreenClass::Blit(false, (Surface *)HiddenSurface);
+    Load_Title_Screen(firestorm ? "FSTBACK.PCX" : "TSTBACK.PCX", HiddenSurface, &OriginalPalette);
+    Update_Visible_Surface(false, HiddenSurface);
 }
 
 
@@ -74,11 +54,11 @@ static void Set_Addon_Mode(bool firestorm)
          Enable_Addon(ADDON_FIRESTORM);
     }
 
-    Set_Required_Addon(firestorm ? ADDON_FIRESTORM : ADDON_NONE);
+    Set_Required_Addon(firestorm ? ADDON_FIRESTORM : ADDON_BASE_GAME);
 
     if (firestorm) {
-        CD::Set_Required_CD(DISK_FIRESTORM);
-        CD().Is_Available(DISK_FIRESTORM);
+        CD::SetRequiredDisk(DISK_FIRESTORM);
+        CD().ForceAvailable(DISK_FIRESTORM);
         Session.Read_Scenario_Descriptions();
     }
 }
@@ -92,17 +72,22 @@ static void Set_Addon_Mode(bool firestorm)
  *  @author: CCHyper
  */
 static bool firsttime = true;
-DECLARE_PATCH(_NewMenuClass_Process_SkipToMenus_Patch)
+DEFINE_HOOK(0x004E8831, _NewMenuClass_Process_SkipToMenus_Patch, 7)
 {
-    GET_REGISTER_STATIC(NewMenuClass *, newmenu, ecx);
-    static int gamemode;
-    static int mode;
+    GET(NewMenuClass *, newmenu, ECX);
+
+    /**
+     *  Stolen instruction.
+     */
+    // Session.IsWDT
+    Session.field_4 = false;
 
     /**
      *  -1 = Game Select
      *   0 = Tiberian Sun
      *   1 = Firestorm
      */
+    int gamemode;
     if (firsttime) {
         gamemode = -1;           // Default to Game Select.
         firsttime = false;
@@ -126,7 +111,7 @@ DECLARE_PATCH(_NewMenuClass_Process_SkipToMenus_Patch)
      *  12 = Credits
      *  13 = Main Menu
      */
-    mode = 0;               // Default to Exit.
+    int mode = 0;               // Default to Exit.
 
     if (Vinifera_SkipToTSMenu) {
         DEBUG_INFO("Skipping to the Tiberian Sun menu.\n");
@@ -182,11 +167,7 @@ DECLARE_PATCH(_NewMenuClass_Process_SkipToMenus_Patch)
      */
 show_game_menu:
     newmenu->GameMode = gamemode;
-    _asm { mov ecx, newmenu }
-    _asm { mov eax, 0x0057FD40 }
-    _asm { call eax }
-
-    JMP_REG(ecx, 0x004E883D);
+    return 0;
     
     /**
      *  Set the desired dialog, making sure Exit was not set.
@@ -230,8 +211,8 @@ set_dialog_check_for_exit:
      *  Set the desired dialog, no checks.
      */
 set_dialog:
-    _asm { mov eax, mode }
-    JMP_REG(ecx, 0x004E883D);
+    R->EAX(mode);
+    return 0x004E883D;
 }
 
 
@@ -240,5 +221,5 @@ set_dialog:
  */
 void NewMenuExtension_Hooks()
 {
-    Patch_Jump(0x004E8838, &_NewMenuClass_Process_SkipToMenus_Patch);
+    
 }

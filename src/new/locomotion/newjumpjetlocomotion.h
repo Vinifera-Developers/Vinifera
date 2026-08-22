@@ -1,34 +1,16 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Jumpjet locomotion re-implementation.
  *
- *  @project       Vinifera
- *
- *  @file          NEWJUMPJETLOCOMOTION.H
- *
- *  @authors       ZivDero, tomsons26
- *
- *  @brief         Jumpjet locomotion re-implementation.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
 #pragma once
 
-#include "locomotion.h"
 #include "facing.h"
+#include "locomotion.h"
 #include "vinifera_defines.h"
 
 
@@ -54,10 +36,10 @@ NewJumpjetLocomotionClass : public LocomotionClass
          */
         IFACEMETHOD(Link_To_Object)(void* object);
         IFACEMETHOD_(bool, Is_Moving)() override;
-        IFACEMETHOD_(Coordinate, Destination)() override;
-        IFACEMETHOD_(Coordinate, Head_To_Coord)() override;
+        IFACEMETHOD_(Coord, Destination)() override;
+        IFACEMETHOD_(Coord, Head_To_Coord)() override;
         IFACEMETHOD_(bool, Process)() override;
-        IFACEMETHOD_(void, Move_To)(Coordinate to) override;
+        IFACEMETHOD_(void, Move_To)(Coord to) override;
         IFACEMETHOD_(void, Stop_Moving)() override;
         IFACEMETHOD_(void, Do_Turn)(DirType coord) override;
         IFACEMETHOD_(LayerType, In_Which_Layer)() override;
@@ -85,7 +67,7 @@ NewJumpjetLocomotionClass : public LocomotionClass
         void Process_Cruise();
         void Process_Descent();
         void Movement_AI();
-        Coordinate Closest_Free_Spot(Coordinate const & to) const;
+        Coord Closest_Free_Spot(Coord const & to) const;
         int Desired_Flight_Level() const;
 
     private:
@@ -137,7 +119,7 @@ NewJumpjetLocomotionClass : public LocomotionClass
         /**
          *  The destination coordinate the jumpjet is moving toward.
          */
-        Coordinate HeadToCoord;
+        Coord HeadToCoord;
 
         /**
          *  Indicates whether the jumpjet is currently moving toward a target.

@@ -1,62 +1,42 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the hooks for the extended FootClass.
  *
- *  @project       Vinifera
- *
- *  @file          FOOTEXT_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the hooks for the extended FootClass.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "footext_hooks.h"
 
 #include "aircrafttracker.h"
-#include "foot.h"
-#include "technoext.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "tibsun_inline.h"
-#include "tibsun_globals.h"
-#include "tactical.h"
-#include "textprint.h"
+#include "asserthandler.h"
 #include "clipline.h"
-#include "convert.h"
+#include "extension.h"
+#include "foot.h"
+#include "hooker.h"
 #include "house.h"
 #include "iomap.h"
-#include "rules.h"
-#include "rulesext.h"
-#include "session.h"
-#include "unit.h"
-#include "unitext.h"
-#include "unittype.h"
-#include "extension.h"
-#include "fatal.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
 #include "ionstorm.h"
 #include "levitatelocomotion.h"
 #include "radarevent.h"
+#include "rules.h"
+#include "rulesext.h";
+#include "session.h"
+#include "syringe.h"
+#include "tactical.h"
+#include "tag.h"
+#include "technoext.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "uicontrol.h"
+#include "unit.h"
+#include "unitext.h"
+#include "unittype.h"
 #include "vinifera_globals.h"
 #include "vox.h"
 
@@ -64,7 +44,7 @@
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
- * 
+ *
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
@@ -75,11 +55,11 @@ public:
     void _Draw_NavComQueue_Lines() const;
     void _Death_Announcement(TechnoClass* source) const;
     Cell _Search_For_Tiberium(int rad, bool a2);
-    bool _Unlimbo(const Coordinate& coord, Dir256 dir);
+    bool _Unlimbo(const Coord& coord, Dir256 dir);
     bool _Limbo();
 
 private:
-    void _Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
+    void _Draw_Line(Coord& start_coord, Coord& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
 };
 
 
@@ -88,7 +68,7 @@ private:
  *
  *  @author: CCHyper, ZivDero
  */
-void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const
+void FootClassExt::_Draw_Line(Coord& start_coord, Coord& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const
 {
     int point_size = 3;
     Point2D point_offset(-1, -1);
@@ -258,12 +238,12 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
     const bool is_thick = UIControls->IsNavComQueueLineThick;
     const bool is_dropshadow = UIControls->IsNavComQueueLineDropShadow;
 
-    const unsigned line_color = DSurface::RGB_To_Pixel(
+    const unsigned line_color = DSurface::Build_Hicolor_Pixel(
         UIControls->NavComQueueLineColor.R,
         UIControls->NavComQueueLineColor.G,
         UIControls->NavComQueueLineColor.B);
 
-    const unsigned drop_color = DSurface::RGB_To_Pixel(
+    const unsigned drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->NavComQueueLineDropShadowColor.R,
         UIControls->NavComQueueLineDropShadowColor.G,
         UIControls->NavComQueueLineDropShadowColor.B);
@@ -274,20 +254,20 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
     AbstractClass * start = NavCom;
     AbstractClass * end = NavQueue[0];
 
-    Coordinate start_coord;
-    Coordinate end_coord;
+    Coord start_coord;
+    Coord end_coord;
 
     for (int i = 0; i < NavQueue.Count(); i++) {
 
         start_coord = start->Center_Coord();
 
-        if (Map.In_Radar(Coord_Cell(start_coord)) && Map[start_coord].IsUnderBridge) {
+        if (Map.In_Radar(start_coord.As_Cell()) && Map[start_coord].IsUnderBridge) {
             start_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(start_coord);
         }
 
         end_coord = end->Center_Coord();
 
-        if (Map.In_Radar(Coord_Cell(end_coord)) && Map[end_coord].IsUnderBridge) {
+        if (Map.In_Radar(end_coord.As_Cell()) && Map[end_coord].IsUnderBridge) {
             end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(end_coord);
         }
 
@@ -310,7 +290,7 @@ void FootClassExt::_Draw_Action_Line() const
         return;
     }
 
-    if (!UIControls->IsAlwaysShowActionLines && ActionLineTimer.Expired() && !WWKeyboard->Down(Options.KeyQueueMove1) && !WWKeyboard->Down(Options.KeyQueueMove2)) {
+    if (!UIControls->IsAlwaysShowActionLines && ActionLineTimer.Expired() && !Keyboard->Down(Options.KeyQueueMove1) && !Keyboard->Down(Options.KeyQueueMove2)) {
         return;
     }
 
@@ -325,22 +305,22 @@ void FootClassExt::_Draw_Action_Line() const
     const bool navcom_is_thick = UIControls->IsMovementLineThick;
     const bool navcom_is_dropshadow = UIControls->IsMovementLineDropShadow;
 
-    const unsigned tarcom_color = DSurface::RGB_To_Pixel(
+    const unsigned tarcom_color = DSurface::Build_Hicolor_Pixel(
         UIControls->TargetLineColor.R,
         UIControls->TargetLineColor.G,
         UIControls->TargetLineColor.B);
 
-    const unsigned tarcom_drop_color = DSurface::RGB_To_Pixel(
+    const unsigned tarcom_drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->TargetLineDropShadowColor.R,
         UIControls->TargetLineDropShadowColor.G,
         UIControls->TargetLineDropShadowColor.B);
 
-    const unsigned navcom_color = DSurface::RGB_To_Pixel(
+    const unsigned navcom_color = DSurface::Build_Hicolor_Pixel(
         UIControls->MovementLineColor.R,
         UIControls->MovementLineColor.G,
         UIControls->MovementLineColor.B);
 
-    const unsigned navcom_drop_color = DSurface::RGB_To_Pixel(
+    const unsigned navcom_drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->MovementLineDropShadowColor.R,
         UIControls->MovementLineDropShadowColor.G,
         UIControls->MovementLineDropShadowColor.B);
@@ -348,8 +328,8 @@ void FootClassExt::_Draw_Action_Line() const
     /**
      *  Fetch the action line start and end coord.
      */
-    Coordinate start_coord;
-    Coordinate end_coord;
+    Coord start_coord;
+    Coord end_coord;
 
     if (TarCom) {
 
@@ -366,7 +346,7 @@ void FootClassExt::_Draw_Action_Line() const
 
         AbstractClass * navtarget = field_260.Count() ? field_260.Fetch_Tail() : NavCom;
         end_coord = navtarget->Center_Coord();
-        Cell target_cell = Coord_Cell(end_coord);
+        Cell target_cell = end_coord.As_Cell();
 
         if (Map.In_Radar(target_cell) && Map[end_coord].IsUnderBridge) {
             end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(end_coord);
@@ -443,8 +423,8 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
         return Search_For_Tiberium_Weighted(rad);
     }
 
-    Coordinate center_coord = Center_Coord();
-    Cell cell_coords = Coord_Cell(center_coord);
+    Coord center_coord = Center_Coord();
+    Cell cell_coords = center_coord.As_Cell();
     Cell unit_cell_coords = cell_coords;
 
     if (Map[unit_cell_coords].Land_Type() == LAND_TIBERIUM) {
@@ -498,13 +478,11 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
  * 
  *  @author: CCHyper
  */
-static bool Foot_Target_Something_Nearby_Coord(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->PositionCoord, threat); }
-DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
+DEFINE_HOOK(0x004A102F, _FootClass_Mission_Move_Can_Passive_Acquire_Patch, 0)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
-    static TechnoClassExtension *technoclassext;
+    GET(FootClass *, this_ptr, ESI);
 
-    technoclassext = Extension::Fetch(this_ptr);
+    auto technoclassext = Extension::Fetch(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
@@ -516,10 +494,10 @@ DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
     /**
      *  Find a fresh target within my range.
      */
-    Foot_Target_Something_Nearby_Coord(this_ptr, THREAT_RANGE);
+    this_ptr->Target_Something_Nearby(this_ptr->PositionCoord, THREAT_RANGE);
 
 finish_mission_process:
-    JMP(0x004A104B);
+    return 0x004A104B;
 }
 
 
@@ -530,12 +508,11 @@ finish_mission_process:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
+DEFINE_HOOK(0x004A1AAE, _FootClass_Mission_Guard_Can_Passive_Acquire_Patch, 0)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
-    static TechnoClassExtension *technoclassext;
+    GET(FootClass *, this_ptr, ESI);
 
-    technoclassext = Extension::Fetch(this_ptr);
+    auto technoclassext = Extension::Fetch(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
@@ -547,15 +524,15 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
     /**
      *  Find a fresh target within my range.
      */
-    if (!Foot_Target_Something_Nearby_Coord(this_ptr, THREAT_RANGE)) {
+    if (!this_ptr->Target_Something_Nearby(this_ptr->PositionCoord, THREAT_RANGE)) {
         goto random_animate;
     }
 
 continue_check:
-    JMP(0x004A1AD6);
+    return 0x004A1AD6;
 
 random_animate:
-    JMP(0x004A1ACC);
+    return 0x004A1ACC;
 }
 
 
@@ -566,13 +543,11 @@ random_animate:
  * 
  *  @author: CCHyper
  */
-static bool Foot_Target_Something_Nearby_Archive(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->ArchiveTarget->Center_Coord(), threat); }
-DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch)
+DEFINE_HOOK(0x004A2BE7, _FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch, 0)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
-    static TechnoClassExtension *technoclassext;
+    GET(FootClass *, this_ptr, ESI);
 
-    technoclassext = Extension::Fetch(this_ptr);
+    auto technoclassext = Extension::Fetch(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
@@ -584,10 +559,12 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch)
     /**
      *  Find a fresh target in my area using the backup target.
      */
-    Foot_Target_Something_Nearby_Archive(this_ptr, THREAT_AREA);
+    if (this_ptr->ArchiveTarget != nullptr) {
+        this_ptr->Target_Something_Nearby(this_ptr->ArchiveTarget->Center_Coord(), THREAT_AREA);
+    }
 
 tarcom_check:
-    JMP(0x004A2C04);
+    return 0x004A2C04;
 }
 
 
@@ -598,35 +575,31 @@ tarcom_check:
  * 
  *  @author: CCHyper
  */
-static bool Locomotion_Is_Moving_Now(FootClass *this_ptr) { return this_ptr->Locomotion->Is_Moving_Now(); }
-DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
+DEFINE_HOOK(0x004A59E1, _FootClass_AI_IdleRate_Patch, 0)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(ILocomotion *, loco, edi);
-    static TechnoTypeClassExtension *technotypeext;
+    GET(FootClass *, this_ptr, ESI);
+    GET(ILocomotion *, loco, EDI);
 
-    technotypeext = Extension::Fetch(this_ptr->TClass);
+    auto technotypeext = Extension::Fetch(this_ptr->TClass);
 
     /**
      *  Stolen bytes/code.
      * 
      *  If the object is currently moving, check to see if its time to update its walk frame.
      */
-    if (Locomotion_Is_Moving_Now(this_ptr) && !(Frame % this_ptr->TClass->WalkRate)) {
+    if (this_ptr->Locomotion->Is_Moving_Now() && !(Frame % this_ptr->TClass->WalkRate)) {
         ++this_ptr->TotalFramesWalked;
 
     /**
      *  Otherwise, if the object is not currently moving, check to see if its time to update its idle frame.
      */
     } else if (technotypeext->IdleRate > 0) {
-        if (!Locomotion_Is_Moving_Now(this_ptr) && !(Frame % technotypeext->IdleRate)) {
+        if (!this_ptr->Locomotion->Is_Moving_Now() && !(Frame % technotypeext->IdleRate)) {
             ++this_ptr->TotalFramesWalked;
         }
     }
 
-    _asm { mov edi, loco }      // Restore EDI register.
-
-    JMP_REG(edx, 0x004A5A12);
+    return 0x004A5A12;
 }
 
 
@@ -637,18 +610,15 @@ DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch)
+DEFINE_HOOK(0x004A6866, _FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch, 0)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoTypeClass *, technotype, eax);
-    static ILocomotion *loco;
+    GET(FootClass *, this_ptr, ESI);
+    GET(TechnoTypeClass *, technotype, EAX);
 
     /**
      *  Is this unit flagged to only re-cloak when not moving?
      */
     if (technotype->CloakStop) {
-
-        loco = this_ptr->Locomotor_Ptr();
 
         /**
          *  If the object is currently moving, then return false.
@@ -657,7 +627,7 @@ DECLARE_PATCH(_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch)
          *  false when the locomotor was on a slope or rotating, which
          *  breaks the CloakStop mechanic.
          */
-        if (loco->Is_Moving()) {
+        if (this_ptr->Locomotion->Is_Moving()) {
             goto return_false;
         }
     }
@@ -666,13 +636,13 @@ DECLARE_PATCH(_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch)
      *  The unit can re-cloak.
      */
 return_true:
-    JMP_REG(ecx, 0x004A6897);
+    return 0x004A6897;
 
     /**
      *  The unit is not allowed to re-cloak.
      */
 return_false:
-    JMP_REG(ecx, 0x004A689B);
+    return 0x004A689B;
 }
 
 
@@ -689,7 +659,7 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
         const auto is_spawned = Extension::Fetch(TClass)->IsSpawned;
         if (!TClass->IsInsignificant && !is_spawned) {
 
-            RadarEventClass::LastEventCell = Coord_Cell(entry_50());
+            RadarEventClass::LastEventCell = entry_50().As_Cell();
             Speak(VOX_UNIT_LOST);
         }
     }
@@ -701,7 +671,7 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
  *
  *  @author: ZivDero
  */
-bool FootClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
+bool FootClassExt::_Unlimbo(const Coord& coord, Dir256 dir)
 {
     /**
      *  Try to unlimbo the unit.
@@ -719,8 +689,7 @@ bool FootClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
 
         if (off) {
             Locomotion->Power_Off();
-        }
-        else {
+        } else {
             Locomotion->Power_On();
         }
 
@@ -742,7 +711,7 @@ bool FootClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
          */
         Path[0] = FACING_NONE;
 
-        Cell cell = Coord_Cell(Coord);
+        Cell cell = Position.As_Cell();
         for (int face = FACING_FIRST; face < FACING_COUNT; face++) {
             Cell c = Adjacent_Cell(cell, FacingType(face));
             CellClass* cptr = &Map[c];
@@ -790,6 +759,172 @@ bool FootClassExt::_Limbo()
     return TechnoClass::Limbo();
 }
 
+/**
+ *  Patches FootClass::Do_MISSION_GUARD_AREA during the archive target check.
+ *  This overrides the distance that a unit can move away before a area-guarding unit will still to chase it,
+ *  as well as allowing units to keep engaging a target before abandoning it and returning to the unit it is guarding.
+ *  When not provided, falls back to the original game logic.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A2B90, _FootClass_Do_MISSION_GUARD_AREA_Escort_Distance_Patch, 6)
+{
+    GET(FootClass*, this_ptr, ESI);
+    TechnoTypeClassExtension* ext = Extension::Fetch(this_ptr->TClass);
+
+    enum {
+        TarComCheck = 0x004A2BDD,
+        GoToArchiveTarget = 0x004A2BBE,
+        ApproachTarcomTarget = 0x004A2C25
+    };
+
+    if (this_ptr->ArchiveTarget == nullptr) {
+        return TarComCheck;
+    }
+    
+    if (this_ptr->TarCom != nullptr) {
+        int abandon_target_escort_range = -1;
+        if (ext->AbandonTargetEscortRange > 0) {
+            abandon_target_escort_range = ext->AbandonTargetEscortRange;
+        }
+
+        if (abandon_target_escort_range <= 0 && RuleExtension->AbandonTargetEscortRange > 0) {
+            abandon_target_escort_range = RuleExtension->AbandonTargetEscortRange;
+        }
+
+        if (abandon_target_escort_range > 0) {
+            if (this_ptr->Distance_To(this_ptr->ArchiveTarget) >= abandon_target_escort_range) {
+                return GoToArchiveTarget;
+            }
+        }
+
+        return ApproachTarcomTarget;
+    }
+    
+    int escort_range = -1;
+    if (ext->EscortRange > 0) {
+        escort_range = ext->EscortRange;
+    }
+
+    if (escort_range <= 0 && RuleExtension->EscortRange > 0) {
+        escort_range = RuleExtension->EscortRange;
+    }
+
+    if (escort_range > 0) {
+        if (this_ptr->Distance_To(this_ptr->ArchiveTarget) >= escort_range) {
+            return GoToArchiveTarget;
+        }
+
+        return TarComCheck;
+    }
+    
+    return 0;
+}
+
+/**
+ *  Patches FootClass::Active_Click_With inside the 'ACTION_ATTACK_SUPPORT' case.
+ *  Makes healing units (negative damage) prefer to guard other units instead of themselves.
+ *  Healing units will guard other combatants, if any, and will assign themselves to the unit closest to them.
+ *  
+ *  If they can't find any, or they are not healing units, then they'll simply guard themselves instead.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A3518, _FootClass_Active_Click_With_Attack_Support_Patch, 0)
+{
+    GET(FootClass*, this_ptr, ESI);
+    bool has_negative_damage = R->AL();
+
+    ObjectClass* guard_object = this_ptr;
+    MissionType mission = MISSION_GUARD;    
+    if (has_negative_damage) {
+        mission = MISSION_GUARD_AREA;
+        for (int i = 0; i < CurrentObjects.Count(); ++i) {
+            ObjectClass* object = CurrentObjects[i];
+            if (!object || object == this_ptr || !object->Is_Techno() || object->Fetch_RTTI() == RTTI_BUILDING) {
+                continue;
+            }
+
+            TechnoClass* techno = static_cast<TechnoClass*>(object);
+            if (techno->Combat_Damage() <= 0) {
+                continue;
+            }
+
+            if (techno->House->Is_Player_Control() && techno->House == this_ptr->House) {
+                // if the object that is currently assigned is the unit doing the guard, simply assign it an eligible unit to guard
+                if (guard_object == this_ptr) {
+                    guard_object = object;
+                } else {
+                    if (this_ptr->Distance_To(object) < this_ptr->Distance_To(guard_object)) {
+                        guard_object = object;
+                    }
+                }
+            }
+        }
+    }
+
+    this_ptr->Player_Assign_Mission(mission, guard_object, nullptr);
+
+    return 0x004A2F95;
+}
+
+/**
+ *  Patches FootClass::Do_MISSION_GUARD_AREA inside the 'this->TarCom' case, where the unit is assigned to approach its tarcom target.
+ *  Clears the current destination, which made object-specific Area Guarding units have to go back to their guard object
+ *  between each time a tarcom target is acquired, as Approach_Target in vanilla code only kicked in
+ *  after the unit started moving towards its guard object.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A2C25, _FootClass_Do_MISSION_GUARD_AREA_Approach_Target_Patch, 10)
+{
+    GET(FootClass*, this_ptr, ESI);
+
+    this_ptr->Assign_Destination(nullptr);
+
+    return 0;
+}
+
+
+/**
+ *  Patches FootClass::Per_Cell_Process inside the cloak check.
+ *  Trigger cell tags via the TEVENT_PLAYER_ENTERED trigger event.
+ *  Cell Tags can only be sprung by cloaked units if the 'CloakedTechnosTriggerCellTags' key is set in rules under [General].
+ * 
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x004A3E25, _FootClass_Spring_Entered_By_Cloaked_Units_Patch, 6)
+{
+    GET(FootClass*, this_ptr, ESI);
+        
+    if (!RuleExtension->IsCellTagsIgnoreStealth) {
+        CellClass* cellptr = &Map[this_ptr->PositionCell];
+        TagClass* tag = cellptr->CellTag;
+
+        if (((!cellptr->IsUnderBridge && !cellptr->WasUnderBridge) || this_ptr->IsOnBridge) && tag != nullptr) {
+            tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr, this_ptr->PositionCell);
+        }
+    }    
+
+    return 0;
+}
+
+/**
+ *  #issue-177
+ *
+ *  Patches the harvester counting to count all units listed under HarvesterUnit.
+ *
+ *  @author: ZivDero
+ */
+DEFINE_HOOK(0x004A7A3F, _FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch, 0)
+{
+    GET(FootClass *, this_ptr, EDI);
+
+    int count = this_ptr->House->Count_Owned(Rule->HarvesterUnit);
+    R->EAX(count);
+
+    return 0x004A7A65;
+}
 
 
 /**
@@ -797,11 +932,6 @@ bool FootClassExt::_Limbo()
  */
 void FootClassExtension_Hooks()
 {
-    Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
-    Patch_Jump(0x004A59E1, &_FootClass_AI_IdleRate_Patch);
-    Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
-    Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
-    Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A6A40, &FootClassExt::_Draw_Action_Line);
     Patch_Jump(0x004A4D60, &FootClassExt::_Death_Announcement);
     Patch_Jump(0x004A76F0, &FootClassExt::_Search_For_Tiberium);

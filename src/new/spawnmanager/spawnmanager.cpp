@@ -1,30 +1,13 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  SpawnManagerClass reimplementation from YR.
  *
- *  @project       Vinifera
- *
- *  @file          SPAWNMANAGER.CPP
- *
- *  @authors       ZivDero
- *
- *  @brief         SpawnManagerClass reimplementation from YR.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
 
 #include "spawnmanager.h"
 
@@ -39,14 +22,13 @@
 #include "hoverlocomotion.h"
 #include "ionstorm.h"
 #include "kamikazetracker/kamikazetracker.h"
-#include "tibsun_inline.h"
+#include "rockettype.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "vinifera_globals.h"
+#include "vinifera_saveload.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
-#include "rockettype.h"
-#include "vinifera_saveload.h"
-#include "mouse.h"
 
 
 /**
@@ -155,6 +137,9 @@ IFACEMETHODIMP SpawnManagerClass::Save(IStream* pStm, BOOL fClearDirty)
  *  @author: ZivDero
  */
 SpawnManagerClass::SpawnManagerClass() :
+    AbstractClass(),
+    Vinifera::Detach::Listener<TechnoClass>(),
+    Vinifera::Detach::Listener<AbstractClass>(),
     Owner(nullptr),
     SpawnType(nullptr),
     SpawnCount(0),
@@ -172,6 +157,9 @@ SpawnManagerClass::SpawnManagerClass() :
  *  @author: ZivDero
  */
 SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate, int spawn_rate, int logic_rate) :
+    AbstractClass(),
+    Vinifera::Detach::Listener<TechnoClass>(),
+    Vinifera::Detach::Listener<AbstractClass>(),
     Owner(owner),
     SpawnType(spawns),
     SpawnCount(spawn_count),
@@ -234,7 +222,7 @@ SpawnManagerClass::~SpawnManagerClass()
  */
 RTTIType SpawnManagerClass::Fetch_RTTI() const
 {
-    return static_cast<RTTIType>(RTTI_SPAWN_MANAGER);
+    return static_cast<RTTIType>(EXT_RTTI_SPAWN_MANAGER);
 }
 
 
@@ -338,7 +326,11 @@ void SpawnManagerClass::AI()
                 /**
                  *  No spawning during an Ion Storm.
                  */
-                if (IonStorm_Is_Active())
+                WeaponTypeClass* primary = Owner->PrimaryWeapon;
+                WeaponTypeClass* secondary = Owner->SecondaryWeapon;
+                bool ion_sensitive = (primary && Extension::Fetch(primary)->IsSpawner && primary->IsIonSensitive) ||
+                    (secondary && Extension::Fetch(secondary)->IsSpawner && secondary->IsIonSensitive);
+                if (ion_sensitive && IonStorm_Is_Active())
                     continue;
 
                 /**
@@ -381,19 +373,19 @@ void SpawnManagerClass::AI()
                 /**
                  *  Apply SecondSpawnOffset if this is the second missile in a burst.
                  */
-                Coordinate fire_coord;
+                Coord fire_coord;
                 if (Owner->BurstIndex % 2 == 0)
                     fire_coord = owner_ext->Fire_Coord(weapon_slot);
                 else
                     fire_coord = owner_ext->Fire_Coord(weapon_slot, owner_type_ext->SecondSpawnOffset);
 
-                Coordinate spawn_coord = Coordinate(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
+                Coord spawn_coord = Coord(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
 
                 /**
                  *  Randomize the horizontal position a bit if requested.
                  */
                 if (owner_type_ext->MaxRandomSpawnOffset > 0)
-                    spawn_coord += Coordinate(Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), 0);
+                    spawn_coord += Coord(Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), 0);
 
                 /**
                  *  Place the spawn in the world.
@@ -407,7 +399,7 @@ void SpawnManagerClass::AI()
                  *  Cruise missiles spawn their takeoff animation.
                  */
                 if (rocket && rocket->IsCruiseMissile && rocket->TakeoffAnim)
-                    new AnimClass(rocket->TakeoffAnim, spawnee->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                    new AnimClass(rocket->TakeoffAnim, spawnee->Position, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
                 /**
                  *  Reset burst since if we're done with this volley.
@@ -557,9 +549,9 @@ void SpawnManagerClass::AI()
 
                 if (good_landing_cell)
                 {
-                    bool good_landing_height = std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20;
+                    bool good_landing_height = std::abs(spawnee->Position.Z - Owner->Position.Z) < 20;
                     if (!good_landing_height && Owner->Is_Foot() && Owner->TClass->Locomotor == __uuidof(HoverLocomotionClass))
-                        good_landing_height = (spawnee->Coord.Z <= Owner->Coord.Z + 20);
+                        good_landing_height = (spawnee->Position.Z <= Owner->Position.Z + 20);
 
                     if (good_landing_height)
                     {
@@ -780,7 +772,7 @@ void SpawnManagerClass::Detach_Spawns()
                  */
                 if (control->Status == SpawnControlStatus::Takeoff)
                 {
-                    KamikazeTracker->Detach(control->Spawnee);
+                    KamikazeTracker->On_Detach(control->Spawnee, true);
                     control->Status = SpawnControlStatus::Dead;
                     control->Spawnee->Delete_Me();
                 }
@@ -843,7 +835,7 @@ void SpawnManagerClass::Abandon_Target()
             {
                 KamikazeTracker->Add(control->Spawnee, Target);
                 KamikazeTracker->UpdateTimer = 2;
-                Detach(control->Spawnee);
+                Detach_Spawnee(control->Spawnee);
             }
         }
     }
@@ -874,16 +866,60 @@ bool SpawnManagerClass::Next_Target()
 
 
 /**
- *  Detaches an object from the SpawnManager.
- *
- *  @author: ZivDero
+ *  Internal helper: remove the given spawnee from our control list if present.
+ *  Used both by the detach-listener path and by Abandon_Target's kamikaze handoff.
  */
-void SpawnManagerClass::Detach(AbstractClass * target)
+void SpawnManagerClass::Detach_Spawnee(AircraftClass *spawnee)
+{
+    for (int i = 0; i < SpawnControls.Count(); i++)
+    {
+        const auto control = SpawnControls[i];
+        if (control->Spawnee == spawnee)
+        {
+            /**
+             *  Only remove spawnees that are suicidal or have strength below zero.
+             *  Otherwise, it is a spawnee that landed on us and was limbo'ed for reloading.
+             */
+            if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnedMissile)
+            {
+                control->Spawnee = nullptr;
+                control->Status = SpawnControlStatus::Dead;
+                control->ReloadTimer = RegenRate;
+            }
+
+            break;
+        }
+    }
+}
+
+
+/**
+ *  Detach handler for any TechnoClass-derived object: covers Owner and Spawnees.
+ */
+void SpawnManagerClass::On_Detach(TechnoClass *target, bool all)
 {
     /**
-     *  If it's the suspended target, remove it.
-     *  If we don't have any more targets, stop attacking.
+     *  Spawnees are AircraftClass instances; safe upcast to TechnoClass means
+     *  AircraftClass-typed Spawnee comparisons must go through static_cast.
      */
+    if (target != nullptr && target->RTTI == RTTI_AIRCRAFT)
+        Detach_Spawnee(static_cast<AircraftClass *>(target));
+
+    if (Owner == target)
+    {
+        Detach_Spawns();
+        Abandon_Target();
+    }
+}
+
+
+/**
+ *  Detach handler for any AbstractClass target: covers Target / QueuedTarget.
+ *  Fires for every detach (including the same target that On_Detach(TechnoClass*)
+ *  saw); per-field guards make the checks idempotent.
+ */
+void SpawnManagerClass::On_Detach(AbstractClass *target, bool all)
+{
     if (Target == target)
     {
         Target = nullptr;
@@ -891,46 +927,9 @@ void SpawnManagerClass::Detach(AbstractClass * target)
         if (!QueuedTarget)
             Abandon_Target();
     }
-    /**
-     *  If it's the current target, remove it.
-     */
     else if (QueuedTarget == target)
     {
         QueuedTarget = nullptr;
-    }
-    else
-    {
-        /**
-         *  Check if it's one of the spawns. If so, remove it.
-         */
-        for (int i = 0; i < SpawnControls.Count(); i++)
-        {
-            const auto control = SpawnControls[i];
-            if (control->Spawnee == target)
-            {
-                /**
-                 *  Only remove spawnees that are suicidal or have strength below zero.
-                 *  Otherwise, it is a spawnee that landed on us and was limbo'ed for reloading.
-                 */
-                if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnedMissile)
-                {
-                    control->Spawnee = nullptr;
-                    control->Status = SpawnControlStatus::Dead;
-                    control->ReloadTimer = RegenRate;
-                }
-
-                break;
-            }
-        }
-
-        /**
-         *  lastly, check if it's maybe the owner of the spawner itself.
-         */
-        if (Owner == target)
-        {
-            Detach_Spawns();
-            Abandon_Target();
-        }
     }
 }
 

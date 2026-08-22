@@ -31,6 +31,9 @@
 *.out
 *.app
 
+# Allow Syringe.exe
+!Syringe.exe
+
 # MSVC
 build/
 build_*/
@@ -51,6 +54,9 @@ CMakeCache.txt
 CMakeUserPresets.json
 *.dir
 
+# clangd background index (machine-local cache)
+.cache/
+
 # Windows
 thumbs.db
 desktop.ini
@@ -62,3 +68,12 @@ desktop.ini
 
 # Docs
 docs/_build/
+
+# AI Agents
+.claude/
+
+# JetBrains
+.idea/
+
+# repowise API keys (local)
+.repowise/.env

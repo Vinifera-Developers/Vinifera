@@ -1,146 +1,84 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Contains the debug hooks and patches.
  *
- *  @project       Vinifera
- *
- *  @file          DEBUG_HOOKS.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Contains the debug hooks and patches.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
-#include "setup_hooks.h"
+
+#include "always.h"
+
 #include "asserthandler.h"
 #include "debughandler.h"
-#include "purecallhandler.h"
+#include "debughlp.h"
 #include "exceptionhandler.h"
-#include "vinifera_globals.h"
-#include "tspp_assert.h"
-#include "winutil.h"
-#include "wstring.h"
 #include "hooker.h"
-#include "hooker_macros.h"
-#include <string>
+#include "purecallhandler.h"
+#include "tspp_assert.h"
+#include "vinifera_globals.h"
+#include "winutil.h"
+
+#include <exception>
 #include <stdarg.h>
+#include <string>
 
 
 /**
- *  Prints an string to the debug handler.
- * 
+ *  Vanilla logger intercepts. The four wrappers below are installed via
+ *  Hook_Function / Patch_Call at fixed addresses in the original game binary.
+ *  The vanilla binary calls them with printf-style format strings stored at
+ *  those fixed addresses, so the wrappers must keep printf semantics. They
+ *  format once locally with vsnprintf, then hand the finished message to
+ *  Vinifera_Log_Raw - no second format pass, no '%'-escape dance.
+ *
  *  @author: CCHyper
  */
 static void __cdecl Debug_Print(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    Wstring tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_GAME(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_GAME, nullptr, nullptr, -1, buffer);
 }
 
 
-/**
- *  Prints an string without a carriage return to the debug handler.
- * 
- *  @author: CCHyper
- */
 static void __cdecl Debug_Print_Line(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    Wstring tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_GAME_LINE(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_GAME_LINE, nullptr, nullptr, -1, buffer);
 }
 
 
-/**
- *  Prints an warning string to the debug handler.
- * 
- *  @author: CCHyper
- */
 static void __cdecl Debug_Print_Warning(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    Wstring tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_WARNING(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_WARNING, nullptr, nullptr, -1, buffer);
 }
 
 
-/**
- *  Prints an error string to the debug handler.
- * 
- *  @author: CCHyper
- */
 static void __cdecl Debug_Print_Error(const char *fmt, ...)
 {
+    char buffer[4096];
     va_list args;
     va_start(args, fmt);
-
-    Wstring tmp = fmt;
-
-    char buffer[4096];
-    vsprintf(buffer, tmp.Peek_Buffer(), args);
-
-    /**
-     *  Re-escape any % signs.
-     */
-    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
-
-    DEBUG_ERROR(buffer);
-
+    std::vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
+
+    Vinifera_Log_Raw(DEBUGTYPE_ERROR, nullptr, nullptr, -1, buffer);
 }
 
 
@@ -548,17 +486,18 @@ static void Debug_Handler_Hooks()
  */
 static void Vinifera_Assert_Handler(TSPPAssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...)
 {
-    static char buf[4096];
-
-    if (msg) {
-        va_list args;
-        va_start(args, msg);
-        vsnprintf(buf, sizeof(buf), msg, args);
-        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, args);
-        va_end(args);
-    } else {
-        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, nullptr);
+    if (msg == nullptr) {
+        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, std::string_view{});
+        return;
     }
+
+    char buf[4096];
+    va_list args;
+    va_start(args, msg);
+    std::vsnprintf(buf, sizeof(buf), msg, args);
+    va_end(args);
+
+    Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, std::string_view{buf});
 }
 
 
@@ -577,22 +516,6 @@ static void Assert_Handler_Hooks()
 }
 
 
-/**
- *  Exception handlers to all out implementation.
- * 
- *  @author: CCHyper
- */
-static LONG __stdcall _Top_Level_Exception_Filter(EXCEPTION_POINTERS *e_info)
-{
-    return Vinifera_Exception_Handler(e_info->ExceptionRecord->ExceptionCode, e_info);
-}
-
-static void __cdecl _Structured_Exception_Translator(unsigned int code, EXCEPTION_POINTERS *e_info)
-{
-    Vinifera_Exception_Handler(code, e_info);
-}
-
-
 void Debug_Hooks()
 {
     Debug_Handler_Hooks();
@@ -605,13 +528,24 @@ void Debug_Hooks()
     Hook_Function(0x006B51E5, &Vinifera_PureCall_Handler);
 
     /**
-     *  Hook in the Exception handler.
+     *  Hook in the Exception handler. _Top_Level_Exception_Filter and
+     *  _Structured_Exception_Translator live in exceptionhandler.cpp so
+     *  per-thread guards in vinifera_thread.h can install the translator
+     *  on worker threads.
      */
     SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)&_Top_Level_Exception_Filter);
     _set_se_translator((_se_translator_function)&_Structured_Exception_Translator);
+    std::set_terminate(&Vinifera_Terminate_Handler);
     Hook_Function(0x005FF7D0, &_Top_Level_Exception_Filter);
     Hook_Function(0x00496350, &Vinifera_Exception_Handler);
     //ASM_Hook_Function(0x00495610, Dump_Exception_Info);
+
+    /**
+     *  Eagerly load dbghelp.dll and call SymInitialize so the exception
+     *  handler can later suspend sibling threads without risking the loader
+     *  lock being held by a sibling mid-LoadLibrary.
+     */
+    Init_Symbol_Info();
 
     /**
      *  Change the exception dialog to use the developer dialog.
@@ -632,7 +566,7 @@ void Debug_Hooks()
     /**
      *  Create the debug output directory.
      */
-    CreateDirectory(Vinifera_DebugDirectory, nullptr);
+    CreateDirectory(Vinifera_DebugDirectory.c_str(), nullptr);
 
     /**
      *  MSVC does not need to know this information.
@@ -644,12 +578,12 @@ void Debug_Hooks()
      */
     DEBUG_INFO("Running cleanup on debug folder...\n");
     DEBUG_INFO("(files older than 5 days will be removed)\n");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "DEBUG_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "STACK_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "EXCEPT_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "CRASHDUMP_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "MINIDUMP_*");
-    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "DEBUG_*.ZIP");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "DEBUG_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "STACK_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "EXCEPT_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "CRASHDUMP_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "MINIDUMP_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory.c_str(), "DEBUG_*.ZIP");
 
     DisableDebuggerOutput = false;
 }

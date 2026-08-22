@@ -12,7 +12,11 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 - Tiberium `[Vinifera]->Power`, previously hardcoded to `17`, has been de-hardcoded. As such, a proper value needs to be set in `RULES.INI`.
 
-% ### When updating Vinifera
+### When updating Vinifera
+
+- Saved games are not compatible between Vinifera versions. Saves created with 0.1.0.0 will not load in 1.0.0.0.
+- Vinifera now includes its own multiplayer spawner, which supersedes the ts-patches spawner. See the [spawner section](Miscellaneous.md#spawner) for how it is configured through `SPAWN.INI`.
+- Campaign difficulty is no longer applied to AI houses from `SUN.INI` when reading a campaign scenario. Both human and AI difficulty now come from the settings the campaign run was started with.
 
 ### From TS Patches
 
@@ -49,7 +53,181 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 ## Changelog
 
-### 0.1
+### 1.0.0.0
+
+:::{dropdown} Click to show
+
+New:
+- Implement voxel light customization (by ZivDero)
+- Implement an option to disable Tiberium storage (by Rampastring)
+- Tooltips for super weapons on the sidebar can now show a custom description (by Rampastring)
+- Allow deploying air transports with the "Deploy" keyboard command (by Rampastring)
+- Add WallOwner to BuildingTypes (by Rampastring)
+- Allow pre-placed units to have missions in multiplayer (by Rampastring)
+- Implement TActionClass extensions, port ts-patches actions (by ZivDero, Rampastring)
+- Implement TEventClass extensions (by ZivDero)
+- Increase the local/global variable cap to 500 (by ZivDero)
+- Implement integer varialbes, and trigger actiosn and events to operate on them (by ZivDero)
+- Veterancy and Health Filter kotkeys (by hacklex)
+- Add unit promotion sounds, EVA and flashing (by ZivDero)
+- Add Tiberium spreader customization (by ZivDero)
+- Implement `BarGate` for buildings (by ZivDero)
+- Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color (by ZivDero)
+- Add Water movement zone override (by ZivDero)
+- Implement multiplayer beacons (by ZivDero)
+- Chat improvements (by ZivDero)
+- Port to Syringe (by ZivDero)
+- Add customizable wake animations (by CCHyper, ZivDero)
+- Replace DirectDraw with SDL (by ZivDero, tomsons26, CCHyper)
+- Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages (by Rampastring)
+- Improve alternative factory selection when the primary factory is blocked (by Rampstring)
+- Add "Adjust House Modifier" trigger action (by Rampstring)
+- Add "Only Harvesters" quarry (by Rampastring)
+- Tutorial text INI keys are now interpreted as strings, not integers (by ZivDero)
+- Implement INI inheritance/includes (by ZivDero)
+- Add "Building Does Not Exist" trigger event (by Rampastring)
+- Add "Create Building At" trigger action (by Rampastring)
+- Add the Iron Curtain logic from Red Alert 1 for map scripting and AI (by Rampastring)
+- Heap dumping command now logs more information of Techno objects (by Rampastring)
+- Allow customizing the distance for the "Comes Near Waypoint" trigger event (by Rampastring)
+- Add DetectDisguise to TechnoTypes (by Rampastring)
+- Allow customizing whether AI sees through disguise (by Rampastring)
+- Allow customizing the number of harvesters the AI builds for each refinery (by Rampastring)
+- Make spawners respect `IonSensitive` on weapons (by ZivDero)
+- Vinifera's Developer mode now prints information on executed trigger actions (by Rampastring)
+- Extended sidebar customizability (by ZivDero)
+- Replace the vanilla audio engine with a miniaudio-backed system for sound effects, music, EVA speech, subtitles, and VQA movie audio (by CCHyper/tomsons26, ZivDero)
+- Add new customizations options for themes, sounds and speeches (by CCHyper/tomsons26, ZivDero)
+- Add support for modern video formats (MP4, WMV, MPG, AVI) as replacements for VQA movies (by ZivDero, CCHyper)
+- Allow customizing Self Healing cap and rate globally and per-unit (by JoyfulShush)
+- Allow customizing whether AI can repair buildings created as base nodes (by JoyfulShush)
+- Add the ability to snap camera position instantly when using the Center Camera At Waypoint trigger action (by JoyfulShush)
+- Allow hospitals and armories to accept multiple infantry in one order to set a queue and to set rally points (by JoyfulShush)
+- Units and Reveal Around Waypoints trigger actions can now reveal any desired radius (by JoyfulShush)
+- Allow Reveal Around Waypoints trigger actions to specify their reveal radius and whether they take elevation into account (by JoyfulShush)
+- Removed incremental revealing logic when setting `RevealByHeight=no` (by JoyfulShush)
+- Allow building repairs to be paused rather than stopped when a house has insufficient funds (by JoyfulShush, Rampastring)
+- Allows aircraft to use Q-Move (by JoyfulShush)
+- Add an in-game ImGui "Game Info" overlay window (Stats / House / Unit / Network tabs) toggled by `ToggleDebugOverlayCommandClass` (by ZivDero)
+- Add a developer-mode scenario debug window (Scenario / Types / Instances / State tabs) toggled by `ToggleScenarioOverlayCommandClass` (by ZivDero)
+- Healing units now apply area-guard on a nearby combatant unit when attacking enemy targets, rather than area-guarding on themselves (by JoyfulShush)
+- Added the ability to specify the range area-guarding units will move to their assigned unit, as well as the range that area-guarding units will abandon their targets and move towards their assigned unit (by JoyfulShush)
+- Allow Free Radar to be used when players are in low power (by JoyfulShush)
+- Allow cloaked units to trigger cell tags when using Entered By trigger events (by JoyfulShush)
+- Add support for health tracking for bridges, as well as allowing bridges to have an armor type (by JoyfulShush)
+- Allow throttling the frequency of the "Harvester under attack" EVA event (by Rampastring)
+- Fix Win32 dialog scaling with SDL (by Rampastring)
+- Reimplement the software blitters with SIMD (SSE2/AVX2) for faster rendering on modern CPUs (by ZivDero)
+- Add the ability to specify sight ranges for technos when they are veteran and elite (by JoyfulShush)
+- Allow customizing the amount of strength technos recover in each self-heal instance per techno and globally (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with rally point set goes back to the barracks afterwards (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry being ordered to enter structures (e.g. hospital, armory) behaving extremely erratically as they try to go into it (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them block further infantry production until they land on their rally point (by JoyfulShush)
+- Fix a vanilla bug where Jumpjet infantry exiting a barracks with a far enough rally point makes them fly, land near the barracks, and only then go to their destination (by JoyfulShush)
+- Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building (by JoyfulShush)
+- Fix a bug where cloaked units sensed by nearby enemy units can cloak again immediately (by JoyfulShush)
+- Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
+- Implement the multiplayer spawner (by ZivDero, Rampastring)
+- Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
+- Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
+- Add support for more than two houses for loading screens and more than two sides for sidebars and speech (by CCHyper/tomsons26, ZivDero)
+- Disallow loading campaign saves from other playthroughs, as well as from skirmish (by ZivDero)
+- Allow defining Options menu text colors per side (by Rampastring)
+- Add support for additional multiplayer difficulty levels (by Rampastring)
+- Allow separating human players' and AI players' normal-difficulty settings (by Rampastring)
+- Make it possible to load multiplayer saves (by Rampastring)
+- Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat (by ZivDero, Rampastring)
+- Allow customizing end-of-game text color per side (by Rampastring)
+- Make it possible to play videos in multiplayer (by Rampastring)
+- Make it possible to vote-skip videos in multiplayer (by Rampastring)
+- Add a key to allow AI-controlled units to persist their tags when they deploy into a building (by JoyfulShush)
+- Improve same-type select command logic, and allow map-wide select when pressing twice in succession (by JoyfulShush)
+
+Vinifera fixes:
+- Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
+- Fix a bug where `CellSpread` incorrectly handled height distance with buildings (by ZivDero)
+- Units spawned from naval factories now face away from the factory, instead of always facing North (by ZivDero)
+- Fix mechanic infantry being unable to repair deployed vehicles (by Rampastring)
+- Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player (by ZivDero)
+- Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets (by ZivDero)
+- Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection (by ZivDero)
+- Fix a bug where `Totable=no` did not work (by ZivDero)
+- Fix a crash that could happen if you lost a factory while producing something (by ZivDero)
+- Fix problems with new IsometricTileType flags during save/load (by ZivDero)
+- Fix a bug where when undeploying a building, the resulting unit would face the wrong way (by ZivDero)
+- Fix a bug where only local variables up to 50 would be used (by ZivDero)
+- Fix a bug where you'd hear "Construction complete" after placing a building, instead of when it's ready (by ZivDero)
+- Fix a bug where AI vehicles got stuck on War Factory if attacked while exiting (by Rampastring, ZivDero)
+- Fix a bug where you could tote a `Totable=no` unit by force-moving onto it (by ZivDero)
+- Fix a bug where spawned aircraft would reveal terrain when they fired (by Rampastring)
+- Fix a bug where new local/global variable trigger events wouldn't reset their timers correctly (by ZivDero)
+- Fix a bug where EVA would say "training" every time you queued a unit, instead of just for the first unit queued (by ZivDero)
+- Fix a bug where units with `OpportunityFire=yes` would abandon their new target if ordered to attack while moving (by ZivDero)
+- Fix a bug where moving infantry were allowed to target objects that their warhead does not allow them to target normally (by Rampastring)
+- Fix a bug where AI-controlled units equipped with torpedoes could attempt to pursue targets on land (by Rampastring)
+- Fix a bug where ts-patches Spawn houses stopped working as trigger event parameters after loading a saved game (by Rampastring)
+- Fix a bug where the map would accept input while the user was in a dialog window (by ZivDero)
+- Fix a bug where ice was destroyable despite the scenario having `IceDestructionEnabled=no` (by Rampastring)
+- Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached. (by Krnyoshi)
+
+
+Vanilla fixes:
+- Fix the player being able to unload an aircraft onto a building, resulting in limboed units (port from ts-patches) (by ZivDero)
+- Fix only the building specified under `[General]->RepairBay` being able to repair aircraft (port from ts-patches) (by ZivDero)
+- Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft (by ZivDero)
+- Fix a bug where a weeder could be ordered to dock with a waste facility that wasn't listed in the weeder's `Dock=` key (by ZivDero)
+- Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances (by ZivDero)
+- Fix a buffer overflow crash in `MapClass::Place_Down` (by Rampastring)
+- Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar (by ZivDero)
+- Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory (by ZivDero)
+- Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2 (by tomsons26, Rampastring)
+- Fix a bug where carryalls would unload infantry like they unload vehicles (by ZivDero)
+- Fix a bug where carryalls would draw their infantry passenger's shadow (by ZivDero)
+- Fix a bug where carryalls would try to drop off units when landing on a helipad (by ZivDero)
+- Fix a bug where carryalls would land too high when carrying infantry (by ZivDero)
+- Fix a bug where carryalls would allow boarding in some situations when they shouldn't (by ZivDero)
+- Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
+- Fix a bug where paradropped vehicles would be placed off-center in the cell (by ZivDero)
+- Fix a bug where vehicles paradropped from a carryall would be drawn with an offset (by ZivDero)
+- Fix a bug where paradrops didn't take cell passability and bridges into account (by ZivDero)
+- Fix a bug where units in guard mode would not abandon targets out of their range (by ZivDero)
+- Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily (by ZivDero)
+- Fix a bug where Tiberium spawned by animations wouldn't grow or spread (by ZivDero)
+- Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
+- Teams attacking a BwP now take zones into account (by Rampastring) 
+- Fix a bug where placed buildings were not revealed to allies, only the player who placed down the building (by Rampastring)
+- Fix a bug where the player's army wouldn't fire at armed civilians (by Rampastring)
+- Fix a bug where the last line of an INI file would not be parsed (by ZivDero)
+- Fix incorrect merging of sections and keys in INI files (by ZivDero)
+- Fix game end text being stretched horizontally (by ZivDero)
+- Fix a bug where upon restoring focus to the window the last theme would play twice (by ZivDero)
+- Fix a bug where units that had AA-capable secondary weapons but AA-uncapable primary weapons did not automatically fire at aircraft (by Rampastring)
+- Fix a bug where hijackers are able to hijack vehicles of their allies (by Rampastring)
+- Fix a bug where tiberium growth and spread was concentrated to the south of the map after loading a saved game (by Rampastring)
+- Fix several bugs where pathfinding could overflow buffers and corrupt memory on large and open maps (by Rampastring, ported from Phobos code by CrimRecya)
+- Fix a bug where friendly Spies appeared as disguised (by Rampastring)
+- Fix a bug where name (hover-on tooltip) of friendly spies was displayed as the disguise's name (by Rampastring)
+- Fix an exploit where hijacked build-limit units could be deployed to erase the hijacker and circumvent the build limits of both the hijacker and its target unit type (by Rampastring)
+- Fix an edge case crash when AI is attempting to find a location to place a structure to (by Rampastring)
+- Fix a bug that allowed players to build objects they are not normally allowed to build through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue Stop orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug that allowed players to issue movement and attack orders to units not owned by them through crafted network requests (by Rampastring)
+- Fix a bug where a trigger's "Elapsed Time" event timers were reset when the trigger was already enabled and the "Enable Trigger" TAction was used on it (by Rampastring)
+- Fix a bug where the sidebar could only contain up to 75 items on a strip (by ZivDero)
+- Fix a vanilla bug where harvesters would become permanently idle if they exhausted all resources to mine, even if new resources appeared (e.g. spawned by a Tiberium tree) (by JoyfulShush)
+- Fix a bug where if you started the game owning a Techno at its BuildLimit, it would not appear on your sidebar (by ZivDero)
+- Fix destroyed APCs sometimes not ejecting the infantry inside them when destroyed while moving (by JoyfulShush)
+- Fix an issue where area-guarding units that are guarding another unit will constantly go back to their designated unit instead of acquiring additional targets in range (by JoyfulShush)
+- Removed a partial feature implementation where the game applied difficulty from SUN.INI to AI houses when reading a campaign scenario, in preference of applying difficulty (both human and AI) with settings that the campaign run was started with (by Rampastring)
+- Fix a bug where AI medics would fail to heal their allies (by JoyfulShush)
+- EVA no longer says "Harvester under attack" when harvesters receive environmental damage (by Rampastring)
+- Correct the 25%/50%/75% translucency blend so layered translucent sprites no longer progressively darken (by ZivDero, Apollo)
+- Fix a bug where the game often reported multiple synchronization errors when one player got out of sync (by Rampastring)
+- Options menu is no longer opened with network input delay in multiplayer (by Rampastring)
+
+:::
+
+### 0.1.0.0
 
 :::{dropdown} Click to show
 
@@ -277,6 +455,16 @@ Vanilla fixes:
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction (by ZivDero)
 - Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
+- Fix a bug where aircraft that had `SelfHealing=yes` would become indestructible on death and heal back up, causing them to get stuck in a tumbling animation (by JoyfulShush)
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, granting massive veterancy bonuses to their attackers.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be killed multiple times, dropping small patches of tiberium with each death.
+- Fix a bug where units that have DeathFrames (such as Reapers) could be issued move orders by players while playing their death animations.
+- Fix a bug where capturing buildings with sensor capabilities (`SensorArray=yes`) would not update to the owners of the sensors (by JoyfulShush)
+- Allow helipads and service depots to accept additional units to add to the queue or re-assign to a different helipad when clicking on one that is currently in use (by JoyfulShush)
+- Fix a bug that would make healer units unselect themselves when adding other units to current selection (by JoyfulShush)
+- Fix a bug that would make infantry healer units flash and go into Area Guard mode when they were added to current selection (by JoyfulShush)
+- Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses (by ZivDero)
+- Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes` (by ZivDero)
+- Fix a bug where mission `Ambush` wouldn't work correctly (by ZivDero)
 
 :::
-

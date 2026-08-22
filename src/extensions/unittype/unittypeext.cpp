@@ -1,43 +1,28 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Extended UnitTypeClass class.
  *
- *  @project       Vinifera
- *
- *  @file          UNITTYPEEXT.CPP
- *
- *  @author        CCHyper
- *
- *  @brief         Extended UnitTypeClass class.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "unittypeext.h"
-#include "unittype.h"
+
 #include "ccini.h"
-#include "tibsun_globals.h"
-#include "extension.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
 #include "debughandler.h"
+#include "extension.h"
+#include "findmake.h"
+#include "tibsun_globals.h"
+#include "unittype.h"
+#include "vinifera_saveload.h"
 
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
 UnitTypeClassExtension::UnitTypeClassExtension(const UnitTypeClass *this_ptr) :
@@ -50,8 +35,6 @@ UnitTypeClassExtension::UnitTypeClassExtension(const UnitTypeClass *this_ptr) :
     TransformsInto(nullptr),
     IsTransformRequiresFullCharge(false)
 {
-    //if (this_ptr) EXT_DEBUG_TRACE("UnitTypeClassExtension::UnitTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     UnitTypeExtensions.Add(this);
 }
 
@@ -64,7 +47,6 @@ UnitTypeClassExtension::UnitTypeClassExtension(const UnitTypeClass *this_ptr) :
 UnitTypeClassExtension::UnitTypeClassExtension(const NoInitClass &noinit) :
     TechnoTypeClassExtension(noinit)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::UnitTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -75,8 +57,6 @@ UnitTypeClassExtension::UnitTypeClassExtension(const NoInitClass &noinit) :
  */
 UnitTypeClassExtension::~UnitTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::~UnitTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     UnitTypeExtensions.Delete(this);
 }
 
@@ -88,8 +68,6 @@ UnitTypeClassExtension::~UnitTypeClassExtension()
  */
 HRESULT UnitTypeClassExtension::GetClassID(CLSID *lpClassID)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (lpClassID == nullptr) {
         return E_POINTER;
     }
@@ -107,8 +85,6 @@ HRESULT UnitTypeClassExtension::GetClassID(CLSID *lpClassID)
  */
 HRESULT UnitTypeClassExtension::Load(IStream *pStm)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -129,8 +105,6 @@ HRESULT UnitTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT UnitTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
@@ -147,23 +121,10 @@ HRESULT UnitTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int UnitTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     return sizeof(*this);
 }
 
 
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void UnitTypeClassExtension::Detach(AbstractClass * target, bool all)
-{
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
-    TechnoTypeClassExtension::Detach(target, all);
-}
 
 
 /**
@@ -173,7 +134,6 @@ void UnitTypeClassExtension::Detach(AbstractClass * target, bool all)
  */
 void UnitTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -184,8 +144,6 @@ void UnitTypeClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
-
     if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -198,7 +156,7 @@ bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
     //}
 
     IsTotable = ini.Get_Bool(ini_name, "Totable", IsTotable);
-    TransformsInto = ini.Get_Unit(ini_name, "TransformsInto", TransformsInto);
+    TransformsInto = TGet_Class(ini, ini_name, "TransformsInto", TransformsInto);
     IsTransformRequiresFullCharge = ini.Get_Bool(ini_name, "TransformRequiresFullCharge", IsTransformRequiresFullCharge);
 
     StartTurretFrame = ArtINI.Get_Int(graphic_name, "StartTurretFrame", StartTurretFrame);

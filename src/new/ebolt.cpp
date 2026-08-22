@@ -1,49 +1,33 @@
 /*******************************************************************************
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
+ *  @brief  Graphical electric bolts for weapons.
  *
- *  @project       Vinifera
- *
- *  @file          EBOLT.CPP
- *
- *  @author        CCHyper, tomsons26
- *
- *  @brief         Graphical electric bolts for weapons.
- *
- *  @license       Vinifera is free software: you can redistribute it and/or
- *                 modify it under the terms of the GNU General Public License
- *                 as published by the Free Software Foundation, either version
- *                 3 of the License, or (at your option) any later version.
- *
- *                 Vinifera is distributed in the hope that it will be
- *                 useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *                 PURPOSE. See the GNU General Public License for more details.
- *
- *                 You should have received a copy of the GNU General Public
- *                 License along with this program.
- *                 If not, see <http://www.gnu.org/licenses/>.
- *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
  ******************************************************************************/
+
+#include "always.h"
+
 #include "ebolt.h"
-#include "vinifera_globals.h"
+
+#include "asserthandler.h"
+#include "clipline.h"
+#include "debughandler.h"
+#include "dsurface.h"
+#include "extension.h"
+#include "particlesys.h"
+#include "rgb.h"
+#include "rules.h"
+#include "tactical.h"
+#include "techno.h"
+#include "technoext.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
-#include "technoext.h"
-#include "techno.h"
-#include "particlesys.h"
+#include "vinifera_globals.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
-#include "tactical.h"
-#include "rgb.h"
-#include "dsurface.h"
-#include "rules.h"
-#include "random.h"
 #include "wwmath.h"
-#include "clipline.h"
-#include "extension.h"
-#include "debughandler.h"
-#include "asserthandler.h"
 
 
 /**
@@ -159,7 +143,7 @@ void EBoltClass::Draw_It()
  * 
  *  @author: CCHyper
  */
-void EBoltClass::Create(Coordinate &start, Coordinate &end, int z_adjust)
+void EBoltClass::Create(Coord &start, Coord &end, int z_adjust)
 {
     StartCoord = start;
     EndCoord = end;
@@ -181,9 +165,9 @@ void EBoltClass::Create(Coordinate &start, Coordinate &end, int z_adjust)
  * 
  *  @author: CCHyper
  */
-Coordinate EBoltClass::Source_Coord() const
+Coord EBoltClass::Source_Coord() const
 {
-    Coordinate coord;
+    Coord coord = COORD_NONE;
     if (Source) {
         coord = Source->Fire_Coord(WeaponSlot);
     }
@@ -248,7 +232,7 @@ void EBoltClass::Draw_All()
         /**
          *  Update the source coord.
          */
-        Coordinate coord = ebolt->Source_Coord();
+        Coord coord = ebolt->Source_Coord();
         if (coord != COORD_NONE) {
             ebolt->StartCoord = coord;
         }
@@ -286,12 +270,12 @@ void EBoltClass::Clear_All()
  * 
  *  @author: tomsons26, CCHyper
  */
-void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
+void EBoltClass::Plot_Bolt(Coord &start, Coord &end)
 {
     struct EBoltPlotStruct
     {
-        Coordinate StartCoords[EBOLT_DEFAULT_SEGMENT_LINES];
-        Coordinate EndCoords[EBOLT_DEFAULT_SEGMENT_LINES];
+        Coord StartCoords[EBOLT_DEFAULT_SEGMENT_LINES];
+        Coord EndCoords[EBOLT_DEFAULT_SEGMENT_LINES];
         int Distance;
         int Deviation;
         int StartZ;
@@ -301,13 +285,13 @@ void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
         bool operator!=(const EBoltPlotStruct &that) const { return std::memcmp(this, &that, sizeof(EBoltPlotStruct)) != 0; }
     };
 
-    int SEGEMENT_COORDS_SIZE = sizeof(Coordinate)*EBOLT_DEFAULT_SEGMENT_LINES;
+    int SEGEMENT_COORDS_SIZE = sizeof(Coord)*EBOLT_DEFAULT_SEGMENT_LINES;
 
     VectorClass<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
 
-    Coordinate start_coords[EBOLT_DEFAULT_SEGMENT_LINES];
-    Coordinate end_coords[EBOLT_DEFAULT_SEGMENT_LINES];
-    Coordinate working_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord start_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord end_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord working_coords[EBOLT_DEFAULT_SEGMENT_LINES];
 
     int deviation_values[6];
 
@@ -451,10 +435,10 @@ void EBoltClass::Draw_Bolts()
         TacticalMap->Coord_To_Pixel(data.Start, start_pixel);
         TacticalMap->Coord_To_Pixel(data.End, end_pixel);
 
-        int start_z = data.StartZ - TacticalMap->func_60F3C0(data.Start.Z) - 2;
-        int end_z = data.EndZ - TacticalMap->func_60F3C0(data.End.Z) - 2;
+        int start_z = data.StartZ - TacticalMap->Z_Lepton_To_Pixel(data.Start.Z) - 2;
+        int end_z = data.EndZ - TacticalMap->Z_Lepton_To_Pixel(data.End.Z) - 2;
 
-        unsigned color = DSurface::RGB_To_Pixel(data.Color.Red, data.Color.Green, data.Color.Blue);
+        unsigned color = DSurface::Build_Hicolor_Pixel(data.Color.Red, data.Color.Green, data.Color.Blue);
 
         CompositeSurface->Draw_Line_entry_34(TacticalRect, start_pixel, end_pixel, color, start_z, end_z);
     }
