@@ -114,7 +114,6 @@ public:
     PlayerConfig Players[8] {};
     int HumanPlayers = 0;
     int LocalPlayerIndex = 0;
-    bool HumanPlayerSectionsContiguous = true;
 
     /**
      *  Extended Options

@@ -524,19 +524,13 @@ bool SessionClassExtension::Init_Multiplayer_Saves_For_Session()
             std::error_code ec;
             fs::remove(fullpath, ec);
             if (ec) {
-                DEBUG_ERROR("Failed to remove old multiplayer save \"{}\": {}\n", fullpath.string(), ec.message());
-                return false;
+                DEBUG_WARNING("Failed to remove old multiplayer save \"{}\": {}\n", fullpath.string(), ec.message());
             }
         }
 
         // Copy spawn.ini from main game directory and place it as spawnSG.ini to the saved games subdirectory.
         // It is read by the client when loading saved multiplayer games.
         fs::path spawn_ini = "spawn.ini";
-
-        if (IsSpawnerSession && !fs::exists(spawn_ini)) {
-            DEBUG_ERROR("Failed to initialize multiplayer saves: spawn.ini does not exist.\n");
-            return false;
-        }
 
         if (fs::exists(spawn_ini)) {
             fs::path spawn_sg_ini = saved_games_directory / fs::path("spawnSG.ini");
