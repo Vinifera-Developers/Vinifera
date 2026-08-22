@@ -207,10 +207,10 @@ Port=0                      ; integer, tunnel server port; 0 disables tunnel mod
 
 - If `IsSinglePlayer=yes`, the spawner starts a campaign. Otherwise, one human player starts skirmish and multiple humans start network multiplayer.
 - The total number of human and AI players must not exceed 8. Human players are sorted by ascending color; house-indexed sections use this final human order followed by the AI players.
-- Additional human sections must be contiguous, starting at `[Other1]`. A section's presence makes that slot human; there is no `IsHuman` key.
-- Player colors must be unique and within the loaded color-scheme range (normally 0-7), and `Side`/`HouseCountries` must be valid loaded HouseType indices.
-- `[Settings] Port` is both the local UDP listening port and, in tunnel mode, the local tunnel client ID. Direct multiplayer also requires a valid IP and non-zero port for every remote human. Tunnel mode requires a valid `[Tunnel]` endpoint and uses each player's non-zero, unique `Port` as its tunnel client ID.
-- Fixed-protocol `FrameSendRate` must be 1-255. `MaxAhead` accepts `-1` or 0-65535, `PreCalcMaxAhead` accepts 0-65535, and timeout values cannot be negative.
+- Additional human sections start at `[Other1]`. A section's presence makes that slot human; there is no `IsHuman` key.
+- Player colors must be within the loaded color-scheme range (normally 0-7) and unique for human players (AI houses may share a color), and `Side`/`HouseCountries` must be valid loaded HouseType indices.
+- `[Settings] Port` is both the local UDP listening port and, in tunnel mode, the local tunnel client ID. In direct multiplayer each remote human needs a reachable IP and port; in tunnel mode each player's unique `Port` is used as its tunnel client ID.
+- Fixed-protocol `FrameSendRate` must be 1-255.
 
 Campaign difficulty values use the engine's house-oriented scale. Consequently, the same numeric value has a reversed display meaning for computer opponents:
 

@@ -187,33 +187,13 @@ bool Spawner::Validate_Config()
         return false;
     }
 
-    if (!Config->HumanPlayerSectionsContiguous) {
-        DEBUG_ERROR("[Spawner] Human player sections must be contiguous from [Settings] through [Other7].\n");
-        return false;
-    }
-
     if (Config->AIPlayers < 0 || Config->AIPlayers > MAX_PLAYERS - Config->HumanPlayers) {
         DEBUG_ERROR("[Spawner] Invalid AI player count {} for {} human players.\n", Config->AIPlayers, Config->HumanPlayers);
         return false;
     }
 
-    if (Config->GameSpeed < 0 || Config->GameSpeed > 7) {
-        DEBUG_ERROR("[Spawner] Invalid game speed {}. Expected a value from 0 through 7.\n", Config->GameSpeed);
-        return false;
-    }
-
-    if (Config->ListenPort < 0 || Config->ListenPort > 0xFFFF || Config->TunnelId < 0 || Config->TunnelId > 0xFFFF || Config->TunnelPort < 0 || Config->TunnelPort > 0xFFFF) {
-        DEBUG_ERROR("[Spawner] A configured network port or tunnel ID is outside the 0-65535 range.\n");
-        return false;
-    }
-
-    if (Config->Protocol != 0 && Config->Protocol != 2) {
-        DEBUG_ERROR("[Spawner] Unsupported network protocol {}.\n", Config->Protocol);
-        return false;
-    }
-
-    if ((Config->Protocol != 0 && (Config->FrameSendRate < 1 || Config->FrameSendRate > UCHAR_MAX)) || Config->MaxAhead < -1 || Config->MaxAhead > USHRT_MAX || Config->PreCalcMaxAhead < 0 || Config->PreCalcMaxAhead > USHRT_MAX || Config->ReconnectTimeout < 0 || Config->ConnTimeout < 0) {
-        DEBUG_ERROR("[Spawner] One or more network timing values are outside their supported range.\n");
+    if (Config->Protocol != 0 && (Config->FrameSendRate < 1 || Config->FrameSendRate > UCHAR_MAX)) {
+        DEBUG_ERROR("[Spawner] Invalid frame send rate {}. Expected a value from 1 through 255.\n", Config->FrameSendRate);
         return false;
     }
 
@@ -244,20 +224,6 @@ bool Spawner::Validate_Config()
 
     const int total_slots = Config->HumanPlayers + Config->AIPlayers;
     std::vector<bool> colors_used(ColorSchemes.Count());
-    const bool tunnel_enabled = Config->TunnelPort != 0;
-
-    if (Config->HumanPlayers > 1) {
-        if (tunnel_enabled) {
-            const unsigned long tunnel_ip = inet_addr(Config->TunnelIp.c_str());
-            if (Config->TunnelId == 0 || tunnel_ip == INADDR_ANY || tunnel_ip == INADDR_NONE) {
-                DEBUG_ERROR("[Spawner] Invalid tunnel endpoint or client ID.\n");
-                return false;
-            }
-        } else if (Config->ListenPort == 0) {
-            DEBUG_ERROR("[Spawner] Direct multiplayer requires a non-zero listen port.\n");
-            return false;
-        }
-    }
 
     for (int slot = 0; slot < total_slots; ++slot) {
         const auto& player = Config->Players[slot];
@@ -269,11 +235,16 @@ bool Spawner::Validate_Config()
             return false;
         }
 
-        if (colors_used[color]) {
-            DEBUG_ERROR("[Spawner] Slot {} reuses color index {}.\n", slot, color);
-            return false;
+        /**
+         *  Only human colors need to be unique; AI houses may share one.
+         */
+        if (player.IsHuman) {
+            if (colors_used[color]) {
+                DEBUG_ERROR("[Spawner] Human slot {} reuses color index {}.\n", slot, color);
+                return false;
+            }
+            colors_used[color] = true;
         }
-        colors_used[color] = true;
 
         if (house < 0 || house >= HouseTypes.Count()) {
             DEBUG_ERROR("[Spawner] Slot {} has invalid house index {}.\n", slot, house);
@@ -296,36 +267,6 @@ bool Spawner::Validate_Config()
                 if (other.IsHuman && !_stricmp(player.Name.c_str(), other.Name.c_str())) {
                     DEBUG_ERROR("[Spawner] Human slots {} and {} use the same name.\n", other_slot, slot);
                     return false;
-                }
-            }
-
-            if (Config->HumanPlayers > 1 && (player.Port < 0 || player.Port > 0xFFFF)) {
-                DEBUG_ERROR("[Spawner] Human slot {} has invalid port {}.\n", slot, player.Port);
-                return false;
-            }
-
-            if (Config->HumanPlayers > 1 && tunnel_enabled) {
-                for (int other_slot = 0; other_slot < slot; ++other_slot) {
-                    const auto& other = Config->Players[other_slot];
-                    if (other.IsHuman && other.Port == player.Port) {
-                        DEBUG_ERROR("[Spawner] Human slots {} and {} reuse tunnel client ID {}.\n", other_slot, slot, player.Port);
-                        return false;
-                    }
-                }
-            }
-
-            if (Config->HumanPlayers > 1 && slot != Config->LocalPlayerIndex) {
-                if (player.Port == 0) {
-                    DEBUG_ERROR("[Spawner] Remote human slot {} has a zero port.\n", slot);
-                    return false;
-                }
-
-                if (!tunnel_enabled) {
-                    const unsigned long player_ip = inet_addr(player.Ip.c_str());
-                    if (player_ip == INADDR_ANY || player_ip == INADDR_NONE) {
-                        DEBUG_ERROR("[Spawner] Remote human slot {} has invalid IP address \"{}\".\n", slot, player.Ip);
-                        return false;
-                    }
                 }
             }
         } else {
