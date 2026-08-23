@@ -198,6 +198,15 @@ bool Spawner::Validate_Config()
     }
 
     /**
+     *  When resuming a saved game, the session state comes from the save
+     *  itself and the client only provides a minimal config, so the slot
+     *  data is neither present nor used.
+     */
+    if (Config->LoadSaveGame) {
+        return true;
+    }
+
+    /**
      *  Campaign scenarios create their houses from the map rather than the
      *  multiplayer slot configuration.
      */
@@ -543,11 +552,17 @@ bool Spawner::Load_Game(const char* file_name)
     }
 
     const GameEnum saved_type = static_cast<GameEnum>(save_info.Get_Game_Type());
-    const bool expected_campaign = Session.Type == GAME_NORMAL && saved_type == GAME_NORMAL;
-    const bool expected_skirmish = Session.Type == GAME_SKIRMISH && saved_type == GAME_SKIRMISH;
-    const bool expected_multiplayer = (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && (saved_type == GAME_INTERNET || saved_type == GAME_IPX);
 
-    if (!expected_campaign && !expected_skirmish && !expected_multiplayer) {
+    /**
+     *  Loading restores the game type from the save itself, so only a
+     *  multiplayer/single-player mismatch matters: a multiplayer save
+     *  needs the network setup from the config, which a single-player
+     *  session does not have.
+     */
+    const bool session_is_multiplayer = Session.Type == GAME_INTERNET || Session.Type == GAME_IPX;
+    const bool save_is_multiplayer = saved_type == GAME_INTERNET || saved_type == GAME_IPX;
+
+    if (session_is_multiplayer != save_is_multiplayer) {
         DEBUG_ERROR("[Spawner] Savegame [{}] has incompatible game type {}.\n", file_name, static_cast<int>(saved_type));
         MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
         return false;
