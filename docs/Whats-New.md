@@ -53,6 +53,15 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 ## Changelog
 
+### 1.0.0.1
+
+:::{dropdown} Click to show
+
+Fixes:
+- Fix a bug where loading a saved game through the client would fail due to overly strict spawner config validation (by ZivDero)
+
+:::
+
 ### 1.0.0.0
 
 :::{dropdown} Click to show
