@@ -2074,6 +2074,10 @@ bool TActionClassExtension::Do_MODIFY_TEAM_DELAY(HouseClass* house, ObjectClass*
 
     switch (Scen->CDifficulty) {
     case DIFF_EASY:
+    case EXT_DIFF_VERY_EASY:  
+    case EXT_DIFF_BRUTALLY_EASY:
+    case EXT_DIFF_EXTREMELY_EASY:
+    case EXT_DIFF_ULTIMATELY_EASY:
         team_delay_index = 0;
         team_delay = This()->TriggerRect.Y;
         break;
