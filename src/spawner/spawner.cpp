@@ -198,6 +198,15 @@ bool Spawner::Validate_Config()
     }
 
     /**
+     *  When resuming a saved game, the session state comes from the save
+     *  itself and the client only provides a minimal config, so the slot
+     *  data is neither present nor used.
+     */
+    if (Config->LoadSaveGame) {
+        return true;
+    }
+
+    /**
      *  Campaign scenarios create their houses from the map rather than the
      *  multiplayer slot configuration.
      */
