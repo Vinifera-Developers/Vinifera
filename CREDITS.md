@@ -451,3 +451,4 @@ This page lists all the individual contributions to the project by their author.
   - Correct the translucent-blend rounding so layered translucency no longer darkens.
   - Add a synchronization error dialog that lets the host load a saved game, continue or quit when a multiplayer game goes out of sync, with host migration and in-dialog chat.
   - Fix volume handling issues in the audio engine.
+  - Fix a crash that occurred when the game tried to pick the next music track while no tracks were available to play.

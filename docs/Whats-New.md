@@ -63,6 +63,7 @@ Fixes:
 - Fix a bug where system feedback sounds (such as the voice volume slider feedback beep) were scaled by the sound effect volume and skipped entirely when it was zero, contrary to vanilla behavior (by ZivDero)
 - Fix a bug where positional sounds discarded the caller-supplied volume, and moving sounds would jump in volume on their first position update because the sound's own volume was not applied (by ZivDero)
 - Fix a bug where the ion storm music volume reduction could compound permanently when the ambient sound was restarted (e.g. after loading a saved game mid-storm), and was not undone if the ambient stopped on its own. Changing the music volume during a storm now also keeps the reduction applied instead of cancelling it (by ZivDero)
+- Fix a crash that occurred when the game tried to pick the next music track while no tracks were available to play, for example when the scores mix files are missing from the installation and the music volume is raised from zero in-game (by ZivDero)
 
 :::
 
