@@ -57,7 +57,12 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 :::{dropdown} Click to show
 
+New:
+- Screenshots now display an on-screen confirmation with the saved filename, or an error message if the screenshot could not be written (by ZivDero)
+
 Fixes:
+- Fix a bug where taking a screenshot at very high resolutions (such as 8K and above) could fail with a memory allocation error, freeze the game for several seconds, or leave an empty PNG file in the Screenshots folder. The PNG is now encoded incrementally in small bands, keeping memory use constant at any resolution (by ZivDero)
+- Fix a bug where screenshots captured a wrongly offset and scaled region of the screen when the game window size did not match the render resolution, or when running in windowed mode with the window away from the top-left corner of the screen. Screenshots now always capture the full frame at the render resolution (by ZivDero)
 - Fix a bug where the EVA voiceover on the campaign mission selection screen was played through the UI audio group, so it was attenuated by the sound effect volume on top of the speech volume, and was silent entirely when the sound effect volume was zero. It now follows the speech volume only, like the rest of EVA's lines (by ZivDero)
 - Fix a bug where menu, score screen, World Domination Tour and dialog sound effects had the sound effect volume applied twice, making them quieter than in vanilla at any setting below maximum (by ZivDero)
 - Fix a bug where system feedback sounds (such as the voice volume slider feedback beep) were scaled by the sound effect volume and skipped entirely when it was zero, contrary to vanilla behavior (by ZivDero)

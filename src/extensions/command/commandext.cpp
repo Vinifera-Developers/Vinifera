@@ -238,64 +238,9 @@ const char *PNGScreenCaptureCommandClass::Get_Description() const
 
 bool PNGScreenCaptureCommandClass::Process()
 {
-    if (!IsWindow(MainWindow)) {
+    if (VisibleSurface == nullptr) {
         return false;
     }
-
-    RECT crect;
-    if (!GetClientRect(MainWindow, &crect)) {
-        return false;
-    }
-
-    POINT tl_point;
-    tl_point.x = crect.left;
-    tl_point.y = crect.top;
-    if (!ClientToScreen(MainWindow, &tl_point)) {
-        return false;
-    }
-
-    POINT br_point;
-    br_point.x = crect.right;
-    br_point.y = crect.bottom;
-    if (!ClientToScreen(MainWindow, &br_point)) {
-        return false;
-    }
-
-    int w = std::min((int)crect.right+1, HiddenSurface->Get_Width());
-    int h = std::min((int)crect.bottom+1, HiddenSurface->Get_Height());
-
-    Rect src(tl_point.x, tl_point.y, w, h);
-    Rect dest(0, 0, HiddenSurface->Get_Width(), HiddenSurface->Get_Height());
-
-    /**
-     *  We don't want the mouse to appear in screenshots!
-     */
-    Hide_Mouse();
-
-    /**
-     *  Blit primary surface to the hidden.
-     */
-    bool blit = HiddenSurface->Blit_From(dest, *VisibleSurface, src);
-    ASSERT(blit);
-
-    /**
-     *  Now show the mouse again.
-     */
-    Show_Mouse();
-
-    char buffer[256];
-
-#if 0
-    /**
-     *  Find a free filename slot.
-     */
-    for (unsigned i = 0; i <= 9999; ++i) {
-        std::snprintf(buffer, sizeof(buffer), "SCRN%04d.PNG", i);
-        if (!RawFileClass(buffer).Is_Available()) {
-            break;
-        }
-    }
-#endif
 
     /**
      *  Generate a unique filename with the current timestamp.
@@ -307,7 +252,9 @@ bool PNGScreenCaptureCommandClass::Process()
     int min = 0;
     int sec = 0;
     Get_Full_Time(day, month, year, hour, min, sec);
-    std::snprintf(buffer, sizeof(buffer), "SCRN_%02u-%02u-%04u_%02u-%02u-%02u.PNG", day, month, year, hour, min, sec);
+
+    char buffer[256];
+    std::snprintf(buffer, sizeof(buffer), "SCRN_%02d-%02d-%04d_%02d-%02d-%02d.PNG", day, month, year, hour, min, sec);
 
     /**
      *  #issue-195
@@ -320,14 +267,40 @@ bool PNGScreenCaptureCommandClass::Process()
     std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory.c_str(), buffer);
 
     /**
-     *  We found a free filename, now write the buffer to a PNG file.
+     *  Write the visible surface - the final composited frame at the full
+     *  render resolution - to a PNG file. The mouse is an OS cursor these
+     *  days and is never drawn into game surfaces, so it cannot appear in
+     *  the screenshot.
      */
-    bool success = Write_PNG_File(&RawFileClass(fullpath_buffer), *HiddenSurface, &GamePalette);
+    bool success = Write_PNG_File(&RawFileClass(fullpath_buffer), *VisibleSurface);
 
     if (success) {
         DEBUG_INFO("PNG screenshot \"{}\" written sucessfully.\n", buffer);
     } else {
         DEBUG_ERROR("Failed to write PNG screenshot \"{}\"!\n", buffer);
+    }
+
+    /**
+     *  Show the result on the screen.
+     */
+    if (TacticalMapExtension != nullptr) {
+
+        char info_buffer[288];
+        if (success) {
+            std::snprintf(info_buffer, sizeof(info_buffer), "Screenshot saved: %s", buffer);
+        } else {
+            std::snprintf(info_buffer, sizeof(info_buffer), "Failed to save screenshot!");
+        }
+
+        TacticalMapExtension->InfoTextTimer.Stop();
+
+        TacticalMapExtension->Set_Info_Text(info_buffer);
+        TacticalMapExtension->IsInfoTextSet = true;
+
+        TacticalMapExtension->InfoTextPosition = InfoTextPosType::BOTTOM_LEFT;
+
+        TacticalMapExtension->InfoTextTimer = SECONDS_TO_MILLISECONDS(4);
+        TacticalMapExtension->InfoTextTimer.Start();
     }
 
     return success;

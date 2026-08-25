@@ -475,6 +475,27 @@ bool Vinifera_Startup()
 {
     DWORD rc;
 
+    /**
+     *  Log whether the game process has access to more than 2 GB of address
+     *  space. The stock executable is not large-address-aware, which is the
+     *  limiting factor for very high resolutions (the surfaces alone consume
+     *  hundreds of megabytes of contiguous address space at 8K and above).
+     */
+    {
+        const IMAGE_NT_HEADERS *game_headers = (const IMAGE_NT_HEADERS *)((const unsigned char *)GetModuleHandle(nullptr) + ((const IMAGE_DOS_HEADER *)GetModuleHandle(nullptr))->e_lfanew);
+        const bool is_laa = (game_headers->FileHeader.Characteristics & IMAGE_FILE_LARGE_ADDRESS_AWARE) != 0;
+
+        MEMORYSTATUSEX mem_status = { sizeof(mem_status) };
+        GlobalMemoryStatusEx(&mem_status);
+
+        DEBUG_INFO("Large address aware: {}, virtual address space: {} MB.\n",
+            is_laa ? "yes" : "no", (unsigned)(mem_status.ullTotalVirtual / (1024 * 1024)));
+
+        if (!is_laa) {
+            DEBUG_WARNING("The game executable is not large address aware - very high resolutions (8K+) may exhaust the 2 GB address space!\n");
+        }
+    }
+
     ViniferaSearchPaths.Clear();
 
     /**
