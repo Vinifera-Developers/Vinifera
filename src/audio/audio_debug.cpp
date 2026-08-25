@@ -212,6 +212,7 @@ void AudioManagerClass::Draw_Debug_UI()
             ImGui::Text("SoundEffect.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX].size());
             ImGui::Text("UI.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_UI].size());
             ImGui::Text("Streaming.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_STREAMING].size());
+            ImGui::Text("System.Count = %d", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SYSTEM].size());
 
             ImGui::Separator();
 
@@ -240,6 +241,7 @@ void AudioManagerClass::Draw_Debug_UI()
             DisplayGroupList("Sound Effects", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SFX]);
             DisplayGroupList("UI", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_UI]);
             DisplayGroupList("Streaming", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_STREAMING]);
+            DisplayGroupList("System", AudioManager.GroupedActiveInstanceMap[AUDIO_GROUP_SYSTEM]);
 
             ImGui::EndChild();
 

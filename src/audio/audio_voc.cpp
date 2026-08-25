@@ -159,7 +159,10 @@ AudioControlType Parse_Control_Type(char const* value)
 
 
 /**
- *  Calculates stereo panning and volume for a sound based on its world position relative to the tactical screen.
+ *  Calculates stereo panning and positional volume attenuation for a sound
+ *  based on its world position relative to the tactical screen. The incoming
+ *  volume_result is scaled by the positional attenuation, so any caller-supplied
+ *  volume is preserved rather than overwritten.
  *
  *  @author: tomsons26, CCHyper
  */
@@ -224,7 +227,7 @@ void AudioVocClass::Calculate_Pan_And_Volume(Coord const& coord, float& pan_resu
     pan = (x_delta * (pan_scale / 2.0f) / tact_center_x_sq + (pan_scale / 2.0f));
     pan = (pan / (pan_scale / 2.0f)) - 1.0f;
 
-    volume_result = std::clamp(volume, AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
+    volume_result = std::clamp(volume * volume_result, AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
     pan_result = std::clamp(pan, -1.0f, 1.0f);
 }
 
@@ -292,7 +295,7 @@ float AudioVocClass::Random_Delay_Seconds() const
 }
 
 
-AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord const& coord, float volume, float fade_in_seconds, bool looping, int loop_limit, float delay_seconds) const
+AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord const& coord, float volume, float fade_in_seconds, bool looping, int loop_limit, float delay_seconds, AudioGroupType group) const
 {
     /**
      *  Bail out early if the audio system is unavailable or sound is muted.
@@ -304,7 +307,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
     /**
      *  Skip if the sound group volume is muted.
      */
-    if (AudioManager.Get_Group_Volume(AUDIO_GROUP_SFX) <= AUDIO_VOLUME_MIN) {
+    if (AudioManager.Get_Group_Volume(group) <= AUDIO_VOLUME_MIN) {
         return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
@@ -399,7 +402,7 @@ AudioInstanceHandle AudioVocClass::Start_File(const std::string& filename, Coord
     {
         std::scoped_lock lock(VocScanMutex);
 
-        handle = AudioManager.Request_Play(filename, AUDIO_GROUP_SFX, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit, Control);
+        handle = AudioManager.Request_Play(filename, group, vol, pitch, pan, priority, Get_Limit(), fade_in_seconds, delay_seconds, true, looping, loop_limit, Control);
         if (handle == INVALID_AUDIO_INSTANCE_HANDLE) {
             DEBUG_ERROR("Voc::Play - Failed to play \"{}\"!\n", Name);
             return handle;
@@ -556,6 +559,33 @@ int AudioVocClass::Play(VocType voc, Coord const &coord)
 
 
 /**
+ *  Vanilla-compat shim for Voice_Sound_Effect. Unlike Sound_Effect, it is
+ *  documented as not subject to Options.SoundVolume - vanilla used it for
+ *  system feedback sounds that must be audible regardless of the sound
+ *  effect slider (e.g. the voice volume slider feedback beep). Play it in
+ *  the system group, which always stays at full volume, to preserve that
+ *  contract.
+ *
+ *  @author: ZivDero
+ */
+int AudioVocClass::Voice_Play(VocType voc, float volume)
+{
+    if (voc >= VOC_FIRST && voc < AudioVocs.Count()) {
+
+        /**
+         *  Vocs are only submitted to the sound effect group up front, and
+         *  samples are keyed by (filename, group), so submit this voc's files
+         *  to the system group on demand.
+         */
+        AudioVocs[voc]->Submit_Sounds(AUDIO_GROUP_SYSTEM);
+
+        AudioEventSystem::Start(*AudioVocs[voc], COORD_NONE, -1, volume, 0.0f, AUDIO_GROUP_SYSTEM);
+    }
+    return -1;
+}
+
+
+/**
  *  Scans all registered vocs for available audio files and resolves their file info.
  *
  *  @author: CCHyper
@@ -619,41 +649,53 @@ void AudioVocClass::Preload()
             continue;
         }
 
-        auto submit_sound = [&](const std::string& sound) {
-            if (sound.empty()) {
-                return;
-            }
-            std::string filename;
-            AudioFileType filetype = AUDIO_TYPE_NONE;
-            if (!AudioManager.Get_File_Info(sound, filetype, filename, true)) {
-                return;
-            }
+        vocptr->Submit_Sounds(AUDIO_GROUP_SFX);
+    }
+}
 
-            if (AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_SFX)) {
-                AUDIO_DEBUG_MSG(LEVEL_WARNING, TYPE_VOC, "Voc::Preload - File \"%s\" has already been submitted to the audio manager!\n", filename.c_str());
-                return;
-            }
 
-            bool submitted = AudioManager.Submit_Sample(
-                filename,
-                filetype,
-                AUDIO_GROUP_SFX,
-                AudioManagerClass::Priority_To_AudioPriority(vocptr->Get_Priority()),
-                vocptr->Control,
-                vocptr->Type,
-                vocptr->Get_Limit());
-
-            if (submitted) {
-                AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Preload - Submitted \"%s\" to audio manager.\n", filename.c_str());
-            } else {
-                AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "Voc::Preload - Failed to submit \"%s\" to audio manager!\n", filename.c_str());
-            }
-        };
-
-        submit_sound(vocptr->Name);
-        for (int sound = 0; sound < vocptr->Sounds.Count(); ++sound) {
-            submit_sound(vocptr->Sounds[sound]);
+/**
+ *  Submits all of this voc's sound files to the audio manager under the given
+ *  group. Files that have already been submitted to that group are skipped, so
+ *  calling this repeatedly is cheap.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+void AudioVocClass::Submit_Sounds(AudioGroupType group) const
+{
+    auto submit_sound = [&](const std::string& sound) {
+        if (sound.empty()) {
+            return;
         }
+        std::string filename;
+        AudioFileType filetype = AUDIO_TYPE_NONE;
+        if (!AudioManager.Get_File_Info(sound, filetype, filename, true)) {
+            return;
+        }
+
+        if (AudioManager.Has_Been_Submitted(filename, group)) {
+            return;
+        }
+
+        bool submitted = AudioManager.Submit_Sample(
+            filename,
+            filetype,
+            group,
+            AudioManagerClass::Priority_To_AudioPriority(Get_Priority()),
+            Control,
+            Type,
+            Get_Limit());
+
+        if (submitted) {
+            AUDIO_DEBUG_MSG(LEVEL_INFO, TYPE_VOC, "Voc::Submit_Sounds - Submitted \"%s\" to audio manager.\n", filename.c_str());
+        } else {
+            AUDIO_DEBUG_MSG(LEVEL_ERROR, TYPE_VOC, "Voc::Submit_Sounds - Failed to submit \"%s\" to audio manager!\n", filename.c_str());
+        }
+    };
+
+    submit_sound(Name);
+    for (int sound = 0; sound < Sounds.Count(); ++sound) {
+        submit_sound(Sounds[sound]);
     }
 }
 

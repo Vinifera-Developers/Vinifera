@@ -21,7 +21,7 @@ extern AudioThemeClass AudioTheme;
  *  Utility functions
  */
 bool Audio_IsAUDFile(const std::string & filename);
-AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, int volume);
-AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume);
+AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, int volume, AudioGroupType group = AUDIO_GROUP_UI);
+AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume, AudioGroupType group = AUDIO_GROUP_UI);
 
 ma_format Audio_GetMAFormatFromBPS(int bps);

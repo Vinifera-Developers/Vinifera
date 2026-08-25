@@ -23,7 +23,6 @@
 #include "credits.h"
 #include "debughandler.h"
 #include "hooker.h"
-#include "options.h"
 #include "rules.h"
 #include "stimer.h"
 #include "syringe.h"
@@ -72,8 +71,10 @@ DEFINE_HOOK(0x004ED2B8, _IonStormClass_Ion_Storm_AI_Ambient_Patch, 6)
 
 DEFINE_HOOK(0x004ECE7F, _IonStormClass_Ion_Storm_End_Ambient_Patch, 6)
 {
-    // Stop the ambient sound now.
-    if (IonAmbient::Is_Available() && IonAmbient::Is_Playing()) {
+    // Stop the ambient sound now. Always take this path when the ambient is
+    // available (mirroring the Begin patch), so the music volume duck is
+    // restored even if the ambient already stopped playing on its own.
+    if (IonAmbient::Is_Available()) {
         IonAmbient::Stop();
         return 0x004ECE90;
     }
@@ -199,8 +200,9 @@ DEFINE_HOOK(0x00593DAC, _OwnerDraw_Window_Procedure_Play_EMBLEM_Patch, 0)
 {
     /**
      *  Play the emblem sound at a reduced volume matching the original game's scaling.
+     *  The sound effect volume is applied by the UI group, so it must not be folded in here.
      */
-    Audio_Play_UI_Sample("EMBLEM", 10, int(Options.SoundVolume * 64));
+    Audio_Play_UI_Sample("EMBLEM", 10, 64);
 
     return 0x00593DF9;
 }
@@ -468,7 +470,9 @@ void Audio_Hooks()
      *  Replace VocClass with the new AudioVocClass.
      */
     Patch_Jump(0x00664BA0, static_cast<int (*)(VocType, float, int)>(&AudioVocClass::Play));
-    Patch_Jump(0x00664C60, static_cast<int (*)(VocType, float)>(&AudioVocClass::Play));
+    // Voice_Sound_Effect is not subject to Options.SoundVolume, so it goes through
+    // a dedicated function that plays in the always-full-volume system group.
+    Patch_Jump(0x00664C60, static_cast<int (*)(VocType, float)>(&AudioVocClass::Voice_Play));
     Patch_Jump(0x00664D10, static_cast<int (*)(VocType, Coord const &)>(&AudioVocClass::Play));
     Patch_Jump(0x00664EC0, &AudioVocClass::Process);
     Patch_Jump(0x00665080, &AudioVocClass::Clear);

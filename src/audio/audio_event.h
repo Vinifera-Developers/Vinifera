@@ -47,7 +47,7 @@ public:
         Sequential,   // Pick the next filename via the voc's persistent index (Control & SEQUENTIAL).
     };
 
-    AudioEventClass(AudioEventHandle public_handle, AudioVocClass const& voc, Coord const& coord, int variation, float volume, float fade_in_seconds);
+    AudioEventClass(AudioEventHandle public_handle, AudioVocClass const& voc, Coord const& coord, int variation, float volume, float fade_in_seconds, AudioGroupType group = AUDIO_GROUP_SFX);
 
     AudioEventHandle Get_Public_Handle() const { return PublicHandle; }
     AudioInstanceHandle Get_Current_Handle() const { return CurrentHandle; }
@@ -75,6 +75,7 @@ private:
     Coord Position = COORD_NONE;
     float Volume = 1.0f;
     float FadeInSeconds = 0.0f;
+    AudioGroupType Group = AUDIO_GROUP_SFX;
     int CompletedBodyCycles = 0;
     bool SeenCurrentPlaying = false;
     bool StopRequested = false;
@@ -105,7 +106,7 @@ private:
 
 namespace AudioEventSystem
 {
-AudioEventHandle Start(AudioVocClass const& voc, Coord const& coord, int variation, float volume, float fade_in_seconds);
+AudioEventHandle Start(AudioVocClass const& voc, Coord const& coord, int variation, float volume, float fade_in_seconds, AudioGroupType group = AUDIO_GROUP_SFX);
 void AI();
 bool Stop(AudioEventHandle handle, float fade_out_seconds = 1.0f);
 bool Is_Playing(AudioEventHandle handle);

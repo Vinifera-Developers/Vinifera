@@ -56,4 +56,12 @@ bool Is_Available();
 bool Is_Playing();
 bool Start();
 bool Stop();
+
+/**
+ *  Music volume filter for the ion storm duck. Whenever the music group volume
+ *  is set from the options (AudioThemeClass::Set_Volume), it must pass through
+ *  here so that a slider change during a storm keeps the duck applied and the
+ *  post-storm restore picks up the new setting.
+ */
+float Filter_Music_Volume(float volume);
 }

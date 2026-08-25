@@ -162,6 +162,12 @@ namespace IonAmbient
 {
 std::unique_ptr<AudioVocHandle> Handle = nullptr;
 float OldMusicVolume = 1.0f;
+bool MusicDucked = false;
+
+/**
+ *  Factor the music group volume is reduced by while the ion storm ambient plays.
+ */
+constexpr float MUSIC_DUCK_FACTOR = 0.33f;
 } // namespace IonAmbient
 
 
@@ -215,9 +221,18 @@ bool IonAmbient::Start()
     if (!Handle->Is_Playing()) {
         Handle->Start();
 
-        // Reduce music to 1/3 volume so the ion storm ambient is clearly audible.
-        OldMusicVolume = AudioManager.Get_Group_Volume(AUDIO_GROUP_MUSIC);
-        AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, OldMusicVolume * 0.33f);
+        /**
+         *  Reduce music volume so the ion storm ambient is clearly audible.
+         *  Only capture the pre-duck volume when not already ducked, otherwise
+         *  a re-entrant start (e.g. the ambient re-arming after a saved game is
+         *  loaded mid-storm) captures the ducked value and compounds the
+         *  reduction permanently.
+         */
+        if (!MusicDucked) {
+            OldMusicVolume = AudioManager.Get_Group_Volume(AUDIO_GROUP_MUSIC);
+            AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, OldMusicVolume * MUSIC_DUCK_FACTOR);
+            MusicDucked = true;
+        }
     }
 
     return true;
@@ -231,15 +246,38 @@ bool IonAmbient::Start()
  */
 bool IonAmbient::Stop()
 {
-    if (!Is_Available()) return false;
-
-    if (Handle == nullptr) return true;
-
-    if (Handle->Is_Playing()) {
+    if (Handle != nullptr) {
         Handle->Stop();
-        AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, OldMusicVolume);
         Handle.reset();
     }
 
+    /**
+     *  Restore the music volume whenever it is ducked, even if the ambient
+     *  already stopped playing on its own - otherwise the music would stay
+     *  quiet forever.
+     */
+    if (MusicDucked) {
+        AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, OldMusicVolume);
+        MusicDucked = false;
+    }
+
     return true;
+}
+
+
+/**
+ *  Applies the ion storm duck to a new music group volume. If the music is
+ *  currently ducked, updates the volume to restore afterwards and returns the
+ *  ducked value; otherwise returns the volume unchanged.
+ *
+ *  @author: ZivDero
+ */
+float IonAmbient::Filter_Music_Volume(float volume)
+{
+    if (MusicDucked) {
+        OldMusicVolume = volume;
+        return volume * MUSIC_DUCK_FACTOR;
+    }
+
+    return volume;
 }

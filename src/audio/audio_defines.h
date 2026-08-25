@@ -108,6 +108,7 @@ typedef enum AudioGroupType
     AUDIO_GROUP_SFX,              // In-game sound effects (including ambient sounds like ion storm).
     AUDIO_GROUP_UI,               // UI and menu sounds.
     AUDIO_GROUP_STREAMING,        // Streaming audio (VQA movie audio).
+    AUDIO_GROUP_SYSTEM,           // System feedback sounds (e.g. the volume slider feedback beep). Stays at full volume; not affected by any volume slider.
 
     AUDIO_GROUP_COUNT,
     AUDIO_GROUP_NONE = -1

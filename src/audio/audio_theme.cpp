@@ -14,6 +14,7 @@
 #include "addon.h"
 #include "audio_debug.h"
 #include "audio_manager.h"
+#include "audio_voc_handle.h"
 #include "ccini.h"
 #include "debughandler.h"
 #include "house.h"
@@ -498,13 +499,15 @@ void AudioThemeClass::Free_Themes()
 
 /**
  *  Sets the music group volume, converting from 0-255 range to 0.0-1.0.
+ *  The volume passes through the ion storm duck filter so a slider change
+ *  during a storm stays ducked and the post-storm restore uses the new value.
  *
  *  @author: CCHyper
  */
 void AudioThemeClass::Set_Volume(int volume)
 {
     float volf = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, volf);
+    AudioManager.Set_Group_Volume(AUDIO_GROUP_MUSIC, IonAmbient::Filter_Music_Volume(volf));
 }
 
 

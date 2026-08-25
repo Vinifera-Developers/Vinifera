@@ -53,6 +53,19 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 ## Changelog
 
+### 1.0.0.2
+
+:::{dropdown} Click to show
+
+Fixes:
+- Fix a bug where the EVA voiceover on the campaign mission selection screen was played through the UI audio group, so it was attenuated by the sound effect volume on top of the speech volume, and was silent entirely when the sound effect volume was zero. It now follows the speech volume only, like the rest of EVA's lines (by ZivDero)
+- Fix a bug where menu, score screen, World Domination Tour and dialog sound effects had the sound effect volume applied twice, making them quieter than in vanilla at any setting below maximum (by ZivDero)
+- Fix a bug where system feedback sounds (such as the voice volume slider feedback beep) were scaled by the sound effect volume and skipped entirely when it was zero, contrary to vanilla behavior (by ZivDero)
+- Fix a bug where positional sounds discarded the caller-supplied volume, and moving sounds would jump in volume on their first position update because the sound's own volume was not applied (by ZivDero)
+- Fix a bug where the ion storm music volume reduction could compound permanently when the ambient sound was restarted (e.g. after loading a saved game mid-storm), and was not undone if the ambient stopped on its own. Changing the music volume during a storm now also keeps the reduction applied instead of cancelling it (by ZivDero)
+
+:::
+
 ### 1.0.0.1
 
 :::{dropdown} Click to show

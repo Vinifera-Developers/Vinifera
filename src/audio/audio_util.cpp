@@ -111,9 +111,13 @@ static std::string Audio_Normalize_Name(const std::string &name)
 /**
  *  Plays a UI sound effect by name with specified priority and volume.
  *
+ *  The volume passed in is the raw per-sample volume only. The player's volume
+ *  slider is already applied by the group this plays in, so callers must not
+ *  fold Options.SoundVolume (or any other slider) into the volume argument.
+ *
  *  @author: ZivDero
  */
-AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, int volume)
+AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, int volume, AudioGroupType group)
 {
     if (!AudioManager.Is_Available() || name.empty()) {
         return INVALID_AUDIO_INSTANCE_HANDLE;
@@ -132,39 +136,44 @@ AudioInstanceHandle Audio_Play_UI_Sample(const std::string &name, int priority, 
     }
 
     AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
-    if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
-        if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
+    AudioSoundType sound_type = group == AUDIO_GROUP_SPEECH ? AUDIO_SOUND_VOICE : AUDIO_SOUND_UI;
+    if (!AudioManager.Has_Been_Submitted(filename, group)) {
+        if (!AudioManager.Submit_Sample(filename, type, group, audio_priority, AUDIO_CONTROL_NORMAL, sound_type, AUDIO_MAX_CONCURRENT_LIMIT)) {
             DEBUG_WARNING("Audio_Play_UI_Sample - Failed to submit \"{}\".\n", filename);
             return INVALID_AUDIO_INSTANCE_HANDLE;
         }
     }
 
     float vol = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    return AudioManager.Request_Play(filename, AUDIO_GROUP_UI, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
+    return AudioManager.Request_Play(filename, group, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
 }
 
 
 /**
  *  Plays a UI sound effect from a file with specified priority and volume.
  *
+ *  As with Audio_Play_UI_Sample, the volume passed in must not have any of the
+ *  player's volume sliders folded into it; the group applies those.
+ *
  *  @author: ZivDero
  */
-AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume)
+AudioInstanceHandle Audio_Play_UI_File(const std::string &filename, AudioFileType type, int priority, int volume, AudioGroupType group)
 {
     if (!AudioManager.Is_Available() || filename.empty()) {
         return INVALID_AUDIO_INSTANCE_HANDLE;
     }
 
     AudioPriorityType audio_priority = AudioManagerClass::Priority_To_AudioPriority(priority);
-    if (!AudioManager.Has_Been_Submitted(filename, AUDIO_GROUP_UI)) {
-        if (!AudioManager.Submit_Sample(filename, type, AUDIO_GROUP_UI, audio_priority, AUDIO_CONTROL_NORMAL, AUDIO_SOUND_UI, AUDIO_MAX_CONCURRENT_LIMIT)) {
+    AudioSoundType sound_type = group == AUDIO_GROUP_SPEECH ? AUDIO_SOUND_VOICE : AUDIO_SOUND_UI;
+    if (!AudioManager.Has_Been_Submitted(filename, group)) {
+        if (!AudioManager.Submit_Sample(filename, type, group, audio_priority, AUDIO_CONTROL_NORMAL, sound_type, AUDIO_MAX_CONCURRENT_LIMIT)) {
             DEBUG_WARNING("Audio_Play_UI_File - Failed to submit \"{}\".\n", filename);
             return INVALID_AUDIO_INSTANCE_HANDLE;
         }
     }
 
     float vol = std::clamp(AudioManagerClass::iVolume_To_fVolume(volume), AUDIO_VOLUME_MIN, AUDIO_VOLUME_MAX);
-    return AudioManager.Request_Play(filename, AUDIO_GROUP_UI, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
+    return AudioManager.Request_Play(filename, group, vol, 1.0f, 0.0f, audio_priority, AUDIO_MAX_CONCURRENT_LIMIT);
 }
 
 /**
