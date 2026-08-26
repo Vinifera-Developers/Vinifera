@@ -680,39 +680,18 @@ void HouseClassExt::_MPlayer_Defeated()
         }
     }
 
-    /**
-     *  If this is me:
-     *  - Add my defeat message
-     */
-    if (PlayerPtr == this) {
-        if (!Extension::Fetch(PlayerPtr)->IsObserver) {
+    if (!Class->IsMultiplayPassive && !Extension::Fetch(this)->IsObserver)
+    {
+        std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName.c_str());
+        Session.Messages.Add_Message(nullptr, 0, txt, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
 
-            /**
-             *  Pop up a message showing that I was defeated
-             */
-            std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName.c_str());
-            Session.Messages.Add_Message(nullptr, 0, txt, static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+        if (PlayerPtr == this) {
             Speak(VOX_YOU_HAVE_LOST);
+        } else {
+            Speak(VOX_PLAYER_DEFEATED);
         }
 
-        Map.Flag_To_Redraw();
         DEBUG_INFO("MPlayer_Defeated() - Player {} has been defeated\n", IniName);
-
-    } else {
-
-        /**
-         *  If it wasn't me, find out who was defeated
-         */
-        if (!Class->IsMultiplayPassive) {
-            if (!Extension::Fetch(PlayerPtr)->IsObserver) {
-                std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName.c_str());
-                Session.Messages.Add_Message(nullptr, 0, txt, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
-                Speak(VOX_PLAYER_DEFEATED);
-            }
-
-            Map.Flag_To_Redraw();
-            DEBUG_INFO("MPlayer_Defeated() - Opponent {} has been defeated\n", IniName);
-        }
     }
 
     /**
