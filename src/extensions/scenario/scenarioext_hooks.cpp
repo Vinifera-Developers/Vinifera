@@ -551,33 +551,6 @@ DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Clear_Globals_Patch, 0)
 
 
 /**
- *  Patch to fetch the spawn house for infantry during initial placement.
- *
- *  @author: ZivDero
- */
-DEFINE_HOOK(0x004D7B98, _InfantryClass_Read_INI_SpawnHouses_Patch, 0)
-{
-    GET(char*, house_name, EAX);
-
-    static HousesType house;
-    static HouseClass* hptr;
-
-    house = HouseTypeClass::From_Name(house_name);
-
-    if (house != HOUSE_NONE) {
-        hptr = House_From_HousesType(house);
-
-        if (hptr) {
-            R->EDI(hptr);
-            return 0x004D7BD5;
-        }
-    }
-
-    return 0x004D7F30;
-}
-
-
-/**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  *

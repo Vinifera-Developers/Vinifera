@@ -15,15 +15,18 @@
 #include "asserthandler.h"
 #include "building.h"
 #include "buildingtype.h"
+#include "debughandler.h"
 #include "extension.h"
 #include "fetchres.h"
 #include "hooker.h"
 #include "house.h"
+#include "housetypeext.h"
 #include "infantry.h"
 #include "infantryext.h"
 #include "infantryext_init.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
+#include "ccini.h"
 #include "language.h"
 #include "mouse.h"
 #include "options.h"
@@ -31,6 +34,8 @@
 #include "rulesext.h"
 #include "sideext.h"
 #include "syringe.h"
+#include "tag.h"
+#include "tagtype.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "tiberium.h"
@@ -38,8 +43,23 @@
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "voc.h"
 #include "wwkeyboard.h"
+
+
+/***************************************************************************
+**	Relative coordinate offsets from the center of a cell for each
+**	of the legal positions that an object in a cell may stop at. Only infantry
+**	are allowed to stop at other than the center of the cell.
+*/
+Coord const StoppingCoordAbs[5] = {
+    Coord(128, 128, 0), // center
+    Coord(64, 64, 0),   // upper left
+    Coord(192, 64, 0),  // upper right
+    Coord(64, 192, 0),  // lower left
+    Coord(192, 192, 0)  // lower right
+};
 
 
 /**
@@ -54,6 +74,7 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(InfantryClass)
 public:
     const ShapeSet* _Get_Image_Data() const;
     const char* _Full_Name(void) const;
+    static void _Read_INI(CCINIClass const & ini);
 };
 
 
@@ -952,6 +973,172 @@ DEFINE_HOOK(0x004D4356, InfantryClass_Assign_Destination_Jumpjet_Move_Queue_Patc
 }
 
 
+TagClass* Find_Or_Make_Tag_Inf(TagTypeClass* type)
+{
+    for (int index = 0; index < Tags.Count(); index++) {
+        TagClass* tag = Tags[index];
+        if (tag->Class == type) {
+            return (tag);
+        }
+    }
+
+    return (new TagClass(type));
+}
+
+
+/**
+ *  Replacement for InfantryClass::Read_INI for the multiplayer spawner.
+ *
+ *  @author: Rampastring
+ */
+void InfantryClassExt::_Read_INI(CCINIClass const & ini)
+{
+    char buf[128];
+
+    const char* sectionname = "Infantry";
+
+    int len = ini.Entry_Count(sectionname);
+    for (int index = 0; index < len; index++) {
+        char const* entry = ini.Get_Entry(sectionname, index);
+
+        /*
+        **	Get an infantry entry
+        */
+        ini.Get_String(sectionname, entry, nullptr, buf, sizeof(buf));
+
+        /*
+        **	1st token: house name.
+        */
+        char* housename = strtok(buf, ",");
+        HousesType inhouse = HouseTypeClassExtension::House_From_Name(housename);
+        HouseClass* inhousep = House_From_HousesType(inhouse);
+
+        if (inhousep == nullptr) {
+            if (Session.Type == GAME_NORMAL || inhouse < EXT_HOUSE_SPAWN1) {
+                Vinifera_Log_And_Show_WWMessageBox("Unable to find house %s while reading infantry!", housename);
+                continue;
+            } else {
+                DEBUG_INFO("Ignoring unit placed for {} because the house is not present\n", housename);
+                continue;
+            }
+        }
+
+        /*
+        **	2nd token: infantry type name.
+        */
+        char* infantrytypename = strtok(nullptr, ",");
+        InfantryType classid = InfantryTypeClass::From_Name(infantrytypename);
+
+        if (classid == INFANTRY_NONE) {
+            Vinifera_Log_And_Show_WWMessageBox("Unable to find InfantryType %s while reading units!", infantrytypename);
+            continue;
+        }
+
+        InfantryClass* infantry = new InfantryClass(InfantryTypes[classid], inhousep);
+        if (infantry != nullptr) {
+
+            /*
+            **	3rd token: strength.
+            */
+            int strength = atoi(strtok(nullptr, ","));
+
+            /*
+            **	4th token: cell #.
+            */
+            int x, y;
+            if (NewINIFormat >= 4) {
+                x = atoi(strtok(nullptr, ","));
+                y = atoi(strtok(nullptr, ","));
+            } else {
+                int cellnum = atoi(strtok(nullptr, ","));
+                x = cellnum % 128;
+                y = cellnum / 128;
+            }
+            Cell cell(x, y);
+            Coord coord = cell.As_Coord();
+
+            /*
+            **	5th token: cell sub-location.
+            */
+            int sub = atoi(strtok(nullptr, ","));
+            coord = Coord_Whole(coord) + StoppingCoordAbs[sub];
+
+            /*
+            **	Fetch the mission and facing.
+            */
+            MissionType mission = MissionClass::Mission_From_Name(strtok(nullptr, ","));
+            Dir256 dir;
+            char* token = strtok(nullptr, ",");
+            if (token) {
+                dir = (Dir256)atoi(token);
+            } else {
+                dir = (Dir256)0;
+            }
+
+            TagType tagtype = TagTypeClass::From_Name(strtok(nullptr, ","));
+            if (tagtype != TAG_NONE) {
+                TagTypeClass* tp = TagTypes[tagtype];
+                if (tp != nullptr) {
+                    TagClass* tt = Find_Or_Make_Tag_Inf(tp);
+                    if (tt != nullptr) {
+                        infantry->Attach_Tag(tt);
+                    }
+                }
+            }
+
+            token = strtok(nullptr, ",");
+            if (token) {
+                infantry->Crew.From_Integer(atoi(token));
+            }
+
+            token = strtok(nullptr, ",");
+            if (token) {
+                infantry->Group = atoi(token);
+            }
+
+            token = strtok(nullptr, ",");
+            if (token) {
+                infantry->IsOnBridge = atoi(token) != 0;
+                if (infantry->IsOnBridge) {
+                    coord.Z = Map.Get_Height_GL(coord) + BRIDGE_LEPTON_HEIGHT;
+                } else {
+                    coord.Z = Map.Get_Height_GL(coord);
+                }
+            }
+
+            token = strtok(nullptr, ",");
+            if (token) {
+                infantry->field_205 = atoi(token) != 0;
+            }
+
+            token = strtok(nullptr, ",");
+            if (token) {
+                infantry->field_206 = atoi(token) != 0;
+            }
+
+            if (&Map[coord] != &BlubCell && infantry->Unlimbo(coord, dir)) {
+                infantry->Strength = infantry->Class->MaxStrength * (strength / 256.0);
+                if (infantry->Strength > infantry->Class->MaxStrength - 3) infantry->Strength = infantry->Class->MaxStrength;
+                if (infantry->Strength < 1) infantry->Strength = 1;
+                if (Session.Type == GAME_NORMAL || infantry->House->Is_Human_Player()) {
+                    infantry->Assign_Mission(mission);
+                    infantry->Commence();
+                } else {
+                    infantry->Enter_Idle_Mode();
+                }
+            } else {
+
+                /*
+                **	If the infantry could not be unlimboed, then this is a big error.
+                **	Delete the infantry.
+                */
+                delete infantry;
+            }
+        }
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -964,4 +1151,5 @@ void InfantryClassExtension_Hooks()
 
     Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
     Patch_Jump(0x004D77A0, &InfantryClassExt::_Full_Name);
+    Patch_Jump(0x004D7B30, &InfantryClassExt::_Read_INI);
 }
