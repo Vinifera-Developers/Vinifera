@@ -757,8 +757,8 @@ function_return:
 DEFINE_HOOK(0x004F51DF, _IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch, 0)
 {
     GET_STACK(TheaterType, theater, 0xAC);
-    GET(char *, filename, EAX); // char [128]
-    GET(char *, fullname, ECX); // char [_MAX_FNAME+_MAX_EXT]
+    GET_STACK(char*, filename, 0x0C);
+    GET_STACK(char*, fullname, 0x00);
 
     std::snprintf(fullname, 512, "%s.%s", filename, TheaterTypeClass::MMSuffix_From(theater));
     //DEV_DEBUG_INFO("MM: {}\n", fullname);
