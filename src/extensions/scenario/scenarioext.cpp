@@ -3150,6 +3150,11 @@ void ScenarioClassExtension::Create_Units(bool official)
                     technotype = infantry[Random_Pick(0, infantry.Count() - 1)];
                 }
 
+                if (technotype == nullptr) {
+                    DEBUG_WARNING("No technotype available to place for house {}, skipping further placement\n", hptr->Class->IniName);
+                    break;
+                }
+
                 /**
                  *  Create units (Note: Unlimbo calls Enter_Idle_Mode(), which
                  *  assigns the unit to HUNT; we must use Set_Mission() to override
