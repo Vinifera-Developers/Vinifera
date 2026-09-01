@@ -72,6 +72,7 @@
 #include "veinholemonster.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
+#include "vinifera_util.h"
 #include "waypoint.h"
 #include "wwmouse.h"
 
@@ -3031,6 +3032,12 @@ void ScenarioClassExtension::Create_Units(bool official)
          */
         if (Session.Options.Bases) {
 
+            UnitTypeClass* baseunittype = hptr->Get_First_Ownable(RuleExtension->BaseUnit);
+            if (baseunittype == nullptr) {
+                Vinifera_Log_And_Show_WWMessageBox("Failed to find a valid BaseUnit for house %s (%d) of HouseType %s (%d)!", hptr->IniName.c_str(), hptr->HeapID, hptr->Class->IniName.c_str(), hptr->Class->HeapID);
+                continue;
+            }
+
             /**
              *  #issue-206
              *
@@ -3044,7 +3051,15 @@ void ScenarioClassExtension::Create_Units(bool official)
                 /**
                  *  Create a construction yard (decided from the base unit).
                  */
-                BuildingClass* building = new BuildingClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit)->DeploysInto, hptr);
+
+                if (baseunittype->DeploysInto == nullptr) {
+                    Vinifera_Log_And_Show_WWMessageBox("BaseUnit %s (%d) of house %s (%d) of HouseType %s (%d) has DeploysInto=none!", 
+                        baseunittype->IniName.c_str(), baseunittype->HeapID, hptr->IniName.c_str(), hptr->HeapID, hptr->Class->IniName.c_str(), hptr->Class->HeapID);
+                    continue;
+                }
+
+                BuildingClass* building = new BuildingClass(baseunittype->DeploysInto, hptr);
+
                 if (building->Unlimbo(centroid.As_Coord(), DIR_N) || _Scan_Place_Object(building, centroid)) {
                     if (building != nullptr) {
                         DEBUG_INFO("  Construction yard {} placed at {},{}.\n", building->Class_Of()->Name(), building->Get_Cell().X, building->Get_Cell().Y);
@@ -3096,7 +3111,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *    - Create an MCV
                  *    - Attach a flag to it for capture-the-flag mode.
                  */
-                UnitClass* unit = new UnitClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit), hptr);
+                UnitClass* unit = new UnitClass(baseunittype, hptr);
                 if (unit->Unlimbo(centroid.As_Coord(), DIR_N) || _Scan_Place_Object(unit, centroid)) {
                     if (unit != nullptr) {
                         DEBUG_INFO("  Base unit {} placed at {},{}.\n", unit->Class_Of()->Name(), unit->Get_Cell().X, unit->Get_Cell().Y);
