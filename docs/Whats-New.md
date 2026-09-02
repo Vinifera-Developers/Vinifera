@@ -71,7 +71,7 @@ Fixes:
 - Fix a crash that occurred when the game tried to pick the next music track while no tracks were available to play, for example when the scores mix files are missing from the installation and the music volume is raised from zero in-game (by ZivDero)
 - Fix the game crashing on scenario start when a HouseType has no valid starting infantry and UnitCount is above 0 (by JoyfulShush)
 - Fix alternative war factory selection not respecting the `Naval=` key (by Rampastring)
-- Introduce -2 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
+- Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
 
 :::
 

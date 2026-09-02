@@ -489,7 +489,7 @@ inline const char *CDifficulty_Name(DiffType d)
  *  Extension of the HousesType enum.
  */
 enum ExtHousesType {
-    HOUSE_ANY_HUMAN = -2,
+    HOUSE_ANY_HUMAN = -4,
 
     EXT_HOUSE_SPAWN1 = 50,
     EXT_HOUSE_SPAWN2,

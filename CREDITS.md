@@ -306,7 +306,7 @@ This page lists all the individual contributions to the project by their author.
   - Make it possible to vote-skip videos in multiplayer.
   - Options menu is no longer opened with network input delay in multiplayer.
   - Fix alternative war factory selection not respecting the `Naval=` key.
-  - Introduce -2 as a possible argument meaning "any human player" for the "Entered By" event.
+  - Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
