@@ -69,6 +69,9 @@ Fixes:
 - Fix a bug where positional sounds discarded the caller-supplied volume, and moving sounds would jump in volume on their first position update because the sound's own volume was not applied (by ZivDero)
 - Fix a bug where the ion storm music volume reduction could compound permanently when the ambient sound was restarted (e.g. after loading a saved game mid-storm), and was not undone if the ambient stopped on its own. Changing the music volume during a storm now also keeps the reduction applied instead of cancelling it (by ZivDero)
 - Fix a crash that occurred when the game tried to pick the next music track while no tracks were available to play, for example when the scores mix files are missing from the installation and the music volume is raised from zero in-game (by ZivDero)
+- Fix the game crashing on scenario start when a HouseType has no valid starting infantry and UnitCount is above 0 (by JoyfulShush)
+- Fix alternative war factory selection not respecting the `Naval=` key (by Rampastring)
+- Introduce -2 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
 
 :::
 

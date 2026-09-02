@@ -201,6 +201,7 @@ This page lists all the individual contributions to the project by their author.
   - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values.
   - Add a key to allow AI-controlled units to persist their tags when they deploy into a building.
   - Improve same-type select command logic, and allow map-wide select when pressing twice in succession.
+  - Fix the game crashing on scenario start when a HouseType has no valid starting infantry and UnitCount is above 0.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Krnyoshi**:
@@ -304,6 +305,8 @@ This page lists all the individual contributions to the project by their author.
   - Make it possible to play videos in multiplayer.
   - Make it possible to vote-skip videos in multiplayer.
   - Options menu is no longer opened with network input delay in multiplayer.
+  - Fix alternative war factory selection not respecting the `Naval=` key.
+  - Introduce -2 as a possible argument meaning "any human player" for the "Entered By" event.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
