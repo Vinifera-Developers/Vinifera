@@ -414,7 +414,9 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
     */
     if (Event == TEVENT_PLAYER_ENTERED || Event == TEVENT_CROSS_HORIZONTAL || Event == TEVENT_CROSS_VERTICAL || Event == TEVENT_ENTERS_ZONE) {
         if (event != Event) return false;
-        if (!object || (Data.House != HOUSE_NONE && object->Owner() != HouseClassExtension::House_From_HousesType(Data.House)->HeapID)) return false;
+        if (!object || !object->Is_Techno()) return false;
+        if ((Data.House > HOUSE_NONE && object->Owner() != HouseClassExtension::House_From_HousesType(Data.House)->HeapID)) return false;
+        if ((Data.House == HOUSE_ANY_HUMAN && !reinterpret_cast<const TechnoClass*>(object)->House->Is_Human_Player())) return false;
         is_perm = true;
         return true;
     } else if (Event == TEVENT_NEAR_WAYPOINT) {
