@@ -208,6 +208,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached.
 - **Noble Fish**:
   - Document proofreading and formatting/styling assistance.
+  - Fix the MSVC 19.40 build failure by using `std::extent_v` for member-array bounds in the spawner config.
 - **MarkJFox**:
   - Graphics for the new sidebar fitting vanilla sidebar.
 - **[Phobos Contributors](https://github.com/Phobos-developers/Phobos/blob/develop/CREDITS.md)**:

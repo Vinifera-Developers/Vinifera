@@ -81,6 +81,7 @@ Fixes:
 
 Fixes:
 - Fix a bug where loading a saved game through the client would fail due to overly strict spawner config validation (by ZivDero)
+- Fix the MSVC 19.40 build failure by using `std::extent_v` for member-array bounds in the spawner config (by Noble_Fish)
 
 :::
 
