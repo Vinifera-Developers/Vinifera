@@ -59,6 +59,8 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 New:
 - Screenshots now display an on-screen confirmation with the saved filename, or an error message if the screenshot could not be written (by ZivDero)
+- Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
+- Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files (by Rampastring)
 
 Fixes:
 - Fix a bug where taking a screenshot at very high resolutions (such as 8K and above) could fail with a memory allocation error, freeze the game for several seconds, or leave an empty PNG file in the Screenshots folder. The PNG is now encoded incrementally in small bands, keeping memory use constant at any resolution (by ZivDero)
@@ -71,9 +73,7 @@ Fixes:
 - Fix a crash that occurred when the game tried to pick the next music track while no tracks were available to play, for example when the scores mix files are missing from the installation and the music volume is raised from zero in-game (by ZivDero)
 - Fix the game crashing on scenario start when a HouseType has no valid starting infantry and UnitCount is above 0 (by JoyfulShush)
 - Fix alternative war factory selection not respecting the `Naval=` key (by Rampastring)
-- Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
 - Fix crash when loading a game when a game object's or animation's graphics are present in side-specific MIX file (by Rampastring)
-- Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files (by Rampastring)
 - Fix game exiting with a "The legacy version of HouseClass::Fetch_Factory has been called" error when a spectator selected a factory building (by Rampastring)
 
 :::
