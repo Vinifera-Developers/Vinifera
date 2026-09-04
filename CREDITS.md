@@ -308,6 +308,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix alternative war factory selection not respecting the `Naval=` key.
   - Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event.
   - Fix crash when loading a game when a game object's or animation's graphics are present in side-specific MIX file.
+  - Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

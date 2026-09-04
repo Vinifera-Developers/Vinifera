@@ -21,6 +21,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "housetypeext.h"
+#include "initext_hooks.h"
 #include "ipxmgr.h"
 #include "language.h"
 #include "latencylevel.h"
@@ -87,7 +88,6 @@ bool Spawner::Init()
     return false;
 }
 
-
 /**
  *  Starts the game.
  *
@@ -100,6 +100,17 @@ bool Spawner::Start_Game()
     }
 
     GameActive = true;
+
+    // Initialize MIX files for the side.
+    // They are needed for mods that have side-specific OwnerDraw graphics
+    // so the game can display potential WWMessageBoxes or other dialogs before
+    // the side has been fully initialized through the scenario initialization routines.
+    SideType side = static_cast<SideType>(Config->Players[0].House);
+    if (side == SIDE_NONE) side = SIDE_GDI;
+    if (!Vinifera_Load_Side_Mixfiles(side)) {
+        DEBUG_ERROR("[Spawner] Start_Game: Failed to load side MIXes!\n");
+        return false;
+    }
 
     /**
      *  Initialize some OD global state so that dialogs work correctly.
