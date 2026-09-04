@@ -12,19 +12,25 @@
 #include "initext_hooks.h"
 
 #include "addon.h"
+#include "animtype.h"
 #include "audio_manager.h"
 #include "audio_util.h"
 #include "audio_voc.h"
 #include "audio_vox.h"
 #include "audio_theme.h"
 #include "asserthandler.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
 #include "ccini.h"
 #include "cd.h"
 #include "debughandler.h"
 #include "dsaudio.h"
+#include "extension_globals.h"
 #include "hooker.h"
 #include "iomap.h"
+#include "mixfile.h"
 #include "newmenu.h"
+#include "overlaytype.h"
 #include "optionsext.h"
 #include "playmovie.h"
 #include "scenarioext.h"
@@ -32,11 +38,14 @@
 #include "session.h"
 #include "sessionext.h"
 #include "special.h"
+#include "shapeset.h"
+#include "supertype.h"
 #include "syringe.h"
 #include "theme.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "uicontrol.h"
+#include "unittype.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 
@@ -266,45 +275,52 @@ void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, i
 
 
 /**
- *  Reimplementation of Prep_For_Side()
- *  
- *  Prepare the mixfiles for the player side.
- * 
- *  @author: CCHyper, ZivDero
+ *  Own one complete set of side archives until it is committed to the engine
+ *  globals or destroyed after a failed load.
  */
-bool Vinifera_Prep_For_Side(SideType side)
+struct SideMixFiles
+{
+    std::unique_ptr<MFCD> Cached;
+    std::unique_ptr<MFCD> Uncached;
+    std::unique_ptr<MFCD> Disk;
+    std::vector<std::unique_ptr<MFCD>> Expansions;
+
+    bool Contains_Cached_Pointer(const void* data) const
+    {
+        if (Cached && Cached->Contains_Cached_Pointer(data)) return true;
+        for (const auto& mix : Expansions) {
+            if (mix->Contains_Cached_Pointer(data)) return true;
+        }
+        return false;
+    }
+};
+
+
+static std::unique_ptr<MFCD> Open_Side_Mixfile(const char* name, bool cache)
+{
+    auto mix = std::make_unique<MFCD>(name, &FastKey);
+    if (!mix->Is_Valid()) {
+        DEBUG_ERROR("Failed to load side MIX {}.\n", name);
+        return nullptr;
+    }
+    if (cache && !mix->Cache()) {
+        DEBUG_ERROR("Failed to cache side MIX {}.\n", name);
+        return nullptr;
+    }
+    return mix;
+}
+
+
+/**
+ *  Build and validate a replacement set without changing its owner globals.
+ */
+static bool Load_Side_Mixfiles(SideType side, SideMixFiles& mixes)
 {
     char name[64];
 
     DEBUG_INFO("Preparing Mixfiles for Side {:02}.\n", (int)side);
 
-    /**
-     *  Delete previously loaded mixes.
-     */
-    if (SideCMix) {
-        DEBUG_INFO("     Releasing {}\n", SideCMix->Filename);
-        delete SideCMix;
-        SideCMix = nullptr;
-    }
-
-    if (SideNCMix) {
-        DEBUG_INFO("     Releasing {}\n", SideNCMix->Filename);
-        delete SideNCMix;
-        SideNCMix = nullptr;
-    }
-
-    if (SideCDMix) {
-        DEBUG_INFO("     Releasing {}\n", SideCDMix->Filename);
-        delete SideCDMix;
-        SideCDMix = nullptr;
-    }
-
     int id = static_cast<int>(side) + 1; // Mix id
-
-    while (ExpandSideMix.Count() > 0) {
-        delete ExpandSideMix[0];
-        ExpandSideMix.Delete(0);
-    }
 
     /**
      *  Cached expansion side-specific mixes.
@@ -314,9 +330,9 @@ bool Vinifera_Prep_For_Side(SideType side)
             std::snprintf(name, sizeof(name), "E%02dSC%02d.MIX", index, id);
             if (CCFileClass(name).Is_Available()) {
                 DEBUG_INFO("     Initializing {}\n", name);
-                MFCD* mix = new MFCD(name, &FastKey);
-                ExpandSideMix.Add(mix);
-                mix->Cache();
+                auto mix = Open_Side_Mixfile(name, true);
+                if (!mix) return false;
+                mixes.Expansions.emplace_back(std::move(mix));
             }
         }
     }
@@ -327,8 +343,8 @@ bool Vinifera_Prep_For_Side(SideType side)
     std::snprintf(name, sizeof(name), "SIDEC%02d.MIX", id);
     if (CCFileClass(name).Is_Available()) {
         DEBUG_INFO("     Initializing {}\n", name);
-        SideCMix = new MFCD(name, &FastKey);
-        SideCMix->Cache();
+        mixes.Cached = Open_Side_Mixfile(name, true);
+        if (!mixes.Cached) return false;
     }
 
     /**
@@ -340,8 +356,9 @@ bool Vinifera_Prep_For_Side(SideType side)
 
             if (CCFileClass(name).Is_Available()) {
                 DEBUG_INFO("     Initializing {}\n", name);
-                MFCD* mix = new MFCD(name, &FastKey);
-                ExpandSideMix.Add(mix);
+                auto mix = Open_Side_Mixfile(name, false);
+                if (!mix) return false;
+                mixes.Expansions.emplace_back(std::move(mix));
             }
         }
     }
@@ -352,7 +369,8 @@ bool Vinifera_Prep_For_Side(SideType side)
     std::snprintf(name, sizeof(name), "SIDENC%02d.MIX", id);
     if (CCFileClass(name).Is_Available()) {
         DEBUG_INFO("     Initializing {}\n", name);
-        SideNCMix = new MFCD(name, &FastKey);
+        mixes.Uncached = Open_Side_Mixfile(name, false);
+        if (!mixes.Uncached) return false;
     }
 
     /**
@@ -366,13 +384,183 @@ bool Vinifera_Prep_For_Side(SideType side)
         }
         if (CCFileClass(name).Is_Available()) {
             DEBUG_INFO("     Initializing {}\n", name);
-            SideCDMix = new MFCD(name, &FastKey);
+            mixes.Disk = Open_Side_Mixfile(name, false);
+            if (!mixes.Disk) return false;
         }
     }
 
-    Map.Init_For_House();
-
     return true;
+}
+
+
+static ShapeSet* Retrieve_Shape(const char* filename)
+{
+    return const_cast<ShapeSet*>(MFCD::RetrieveT<ShapeSet>(filename));
+}
+
+
+/**
+ *  Reload borrowed type graphics after replacing the archives that supplied
+ *  them. Demand-loaded images are left to their existing on-demand loaders.
+ */
+static void Reload_Side_Graphics(const SideMixFiles& retiring)
+{
+    const auto theater = Scen->Theater;
+
+    for (auto type : ObjectTypes) {
+        if (!type->IsVoxel) {
+            switch (type->Fetch_RTTI()) {
+                case RTTI_ANIMTYPE: {
+                    auto anim = static_cast<AnimTypeClass*>(type);
+                    if (!anim->IsDemandLoad) {
+                        anim->Image = nullptr;
+                        anim->Load_Image(theater);
+                    } else if (retiring.Contains_Cached_Pointer(anim->Image)) {
+                        anim->Image = nullptr;
+                    }
+                    break;
+                }
+                case RTTI_BUILDINGTYPE:
+                    // Building graphics are reloaded together below.
+                    break;
+                case RTTI_OVERLAYTYPE: {
+                    auto overlay = static_cast<OverlayTypeClass*>(type);
+                    if (!overlay->IsDemandLoad) {
+                        overlay->Image = nullptr;
+                        overlay->Fetch_Normal_Image();
+                    } else if (retiring.Contains_Cached_Pointer(overlay->Image)) {
+                        overlay->Image = nullptr;
+                    }
+                    break;
+                }
+                default:
+                    type->Image = nullptr;
+                    type->Fetch_Normal_Image();
+                    break;
+            }
+        }
+
+        type->AlphaImage = nullptr;
+        if (!type->AlphaGraphicName.empty()) {
+            char filename[_MAX_PATH];
+            _makepath(filename, nullptr, nullptr, type->AlphaGraphicName.c_str(), ".SHP");
+            type->AlphaImage = Retrieve_Shape(filename);
+        }
+    }
+
+    for (auto type : BuildingTypes) {
+        if (!type->IsDemandLoad || retiring.Contains_Cached_Pointer(type->Image)) type->Image = nullptr;
+        if (!type->IsDemandLoadBuildup || retiring.Contains_Cached_Pointer(type->BuildupData)) type->BuildupData = nullptr;
+        type->DeployingAnim = nullptr;
+        type->UnderDoorAnim = nullptr;
+        type->DoorAnim = nullptr;
+        type->SpecialZOverlay = nullptr;
+        type->BibShape = nullptr;
+        type->Fetch_Building_Normal_Image(theater);
+    }
+
+    for (auto ext : BuildingTypeExtensions) {
+        ext->RoofDeployingAnim = nullptr;
+        ext->RoofDoorAnim = nullptr;
+        ext->UnderRoofDoorAnim = nullptr;
+        if (!Vinifera_PerformingLoad) ext->Fetch_Building_Normal_Image(theater);
+    }
+
+    // Cameos use Vinifera's existing lazy loader.
+    for (auto type : TechnoTypes) type->CameoData = nullptr;
+
+    for (auto type : UnitTypes) {
+        type->AltImage = nullptr;
+        if (!type->AltImageFile.empty()) {
+            char filename[_MAX_PATH];
+            _makepath(filename, nullptr, nullptr, type->AltImageFile.c_str(), ".SHP");
+            type->AltImage = Retrieve_Shape(filename);
+        }
+    }
+
+    for (auto type : SuperWeaponTypes) {
+        char filename[_MAX_PATH];
+        _makepath(filename, nullptr, nullptr, type->SidebarImage.c_str(), ".SHP");
+        type->SidebarIcon = Retrieve_Shape(filename);
+        if (!type->SidebarIcon) {
+            type->SidebarIcon = Retrieve_Shape("XXICON.SHP");
+        }
+    }
+
+    DEBUG_INFO("Reloaded side-dependent type graphics after replacing side MIXes.\n");
+}
+
+
+/**
+ *  Replace side archives even when reloading the same side. Keep the old cache
+ *  allocations alive until type graphics and house UI have been refreshed.
+ *  Remove old archives from file searches only after loading succeeds so the
+ *  normal type loaders resolve graphics against the replacement search list.
+ */
+bool Vinifera_Load_Side_Mixfiles(SideType side, bool prepare_house)
+{
+    std::vector<MFCD*> previous_expansions;
+    previous_expansions.reserve(ExpandSideMix.Count());
+    for (auto mix : ExpandSideMix) previous_expansions.push_back(mix);
+
+    SideMixFiles replacement;
+    if (!Load_Side_Mixfiles(side, replacement)) {
+        DEBUG_ERROR("Side MIX replacement failed; previous archives retained.\n");
+        return false;
+    }
+
+    // Complete every fallible operation before changing the owning globals.
+    const auto expansion_count = static_cast<int>(replacement.Expansions.size());
+    if (expansion_count > ExpandSideMix.Length() && !ExpandSideMix.Resize(expansion_count)) {
+        DEBUG_ERROR("Failed to reserve the side MIX expansion list; previous archives retained.\n");
+        return false;
+    }
+    SideMixFiles retiring;
+    retiring.Expansions.reserve(previous_expansions.size());
+
+    // Capacity is fixed now, so publishing the replacement cannot fail.
+    for (int i = 0; i < expansion_count; ++i) {
+        ExpandSideMix[i] = replacement.Expansions[i].get();
+    }
+    ExpandSideMix.Set_Active(expansion_count);
+
+    retiring.Cached.reset(SideCMix);
+    retiring.Uncached.reset(SideNCMix);
+    retiring.Disk.reset(SideCDMix);
+    for (auto mix : previous_expansions) retiring.Expansions.emplace_back(mix);
+    SideCMix = replacement.Cached.release();
+    SideNCMix = replacement.Uncached.release();
+    SideCDMix = replacement.Disk.release();
+    for (auto& mix : replacement.Expansions) mix.release();
+
+    const auto unlink = [](const auto& mix) { if (mix) mix->Unlink(); };
+    unlink(retiring.Cached);
+    unlink(retiring.Uncached);
+    unlink(retiring.Disk);
+    for (const auto& mix : retiring.Expansions) unlink(mix);
+    Reload_Side_Graphics(retiring);
+    if (prepare_house) {
+        Map.Init_For_House();
+        AudioTheme.Scan();
+    }
+
+    const auto log_release = [](const auto& mix) {
+        if (mix) DEBUG_INFO("     Releasing {} after graphics refresh\n", mix->Filename);
+    };
+    log_release(retiring.Cached);
+    log_release(retiring.Uncached);
+    log_release(retiring.Disk);
+    for (const auto& mix : retiring.Expansions) log_release(mix);
+    return true;
+}
+
+
+/**
+ *  Reimplementation of Prep_For_Side().
+ */
+bool Vinifera_Prep_For_Side(SideType side)
+{
+    return Vinifera_Load_Side_Mixfiles(side, true);
 }
 
 

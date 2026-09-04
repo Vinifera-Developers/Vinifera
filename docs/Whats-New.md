@@ -72,6 +72,7 @@ Fixes:
 - Fix the game crashing on scenario start when a HouseType has no valid starting infantry and UnitCount is above 0 (by JoyfulShush)
 - Fix alternative war factory selection not respecting the `Naval=` key (by Rampastring)
 - Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
+- Fix crash when loading a game when a game object's or animation's graphics are present in side-specific MIX file (by Rampastring)
 
 :::
 

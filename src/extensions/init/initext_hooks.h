@@ -9,5 +9,8 @@
 
 #pragma once
 
+#include "tibsun_defines.h"
+
+bool Vinifera_Load_Side_Mixfiles(SideType side, bool prepare_house = false);
 
 void GameInit_Hooks();
