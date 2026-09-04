@@ -309,6 +309,7 @@ This page lists all the individual contributions to the project by their author.
   - Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event.
   - Fix crash when loading a game when a game object's or animation's graphics are present in side-specific MIX file.
   - Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files.
+  - Fix game exiting with a "The legacy version of HouseClass::Fetch_Factory has been called" error when a spectator selected a factory building.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

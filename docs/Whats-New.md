@@ -74,6 +74,7 @@ Fixes:
 - Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
 - Fix crash when loading a game when a game object's or animation's graphics are present in side-specific MIX file (by Rampastring)
 - Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files (by Rampastring)
+- Fix game exiting with a "The legacy version of HouseClass::Fetch_Factory has been called" error when a spectator selected a factory building (by Rampastring)
 
 :::
 

@@ -1041,7 +1041,9 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
              *  If this is a factory, and the player has spied its owner, draw the cameo of what it's currently producing.
              */
             if (SpiedBy & (1 << (PlayerPtr->Class->House)) || Session.ObiWan) {
-                FactoryClass* factory = House->Is_Human_Player() ? House->Fetch_Factory(Class->ToBuild) : Factory;
+
+                BuildingTypeClassExtension* btypeext = Extension::Fetch(Class);
+                FactoryClass* factory = House->Is_Human_Player() ? Extension::Fetch(House)->Fetch_Factory(Class->ToBuild, btypeext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE) : Factory;
                 if (factory != nullptr) {
                     ObjectClass* obj = factory->Get_Object();
                     if (obj != nullptr) {
