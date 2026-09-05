@@ -161,6 +161,7 @@ New:
 - Fix a bug where players could not click on a cell that included tiberium, bridges or enemy cloaked units or structure to undeploy a building (by JoyfulShush)
 - Fix a bug where cloaked units sensed by nearby enemy units can cloak again immediately (by JoyfulShush)
 - Extend aircraft speed to include house Airspeed bias, game speed bias, and the FASTER veteran/elite ability when calculating aircraft speed values (by JoyfulShush)
+- Add a new TAction "Modify Team Delays" where you can increase or decrease the delay for the trigger house's AITrigger execution (by Krnyoshi)
 - Implement the multiplayer spawner (by ZivDero, Rampastring)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)

@@ -206,6 +206,7 @@ This page lists all the individual contributions to the project by their author.
   - Initial documentation setup.
 - **Krnyoshi**:
   - Fix a bug where MultipleFactoryCap was giving full production speed bonuses after building the second factory instead of incrementally giving speed bonuses until the cap was reached.
+  - Add a new TAction "Modify Team Delays" where you can increase or decrease the delay for AITrigger execution.
 - **Noble Fish**:
   - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
