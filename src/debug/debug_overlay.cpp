@@ -8,8 +8,8 @@
  ******************************************************************************/
 
 #include "always.h"
-
 #include "debug_overlay.h"
+#include "extension.h"
 
 #include "aircraft.h"
 #include "anim.h"
@@ -21,6 +21,7 @@
 #include "factory.h"
 #include "foot.h"
 #include "house.h"
+#include "houseext.h"
 #include "housetype.h"
 #include "infantry.h"
 #include "mission.h"
@@ -60,6 +61,7 @@
 
 #include <imgui.h>
 
+#include <cfloat>
 #include <cmath>
 #include <cstdio>
 
@@ -93,13 +95,26 @@ namespace
         std::snprintf(out, out_size, "%d:%02d:%02d", hours, minutes, seconds);
     }
 
+    
+    static void Cell_Goto_Button(Cell cell)
+    {
+        if (TacticalMap == nullptr) {
+            ImGui::Text("(%d, %d)", cell.X, cell.Y);
+            return;
+        }
+        char buf[64];
+        std::snprintf(buf, sizeof(buf), "> (%d, %d)", cell.X, cell.Y);
+        if (ImGui::SmallButton(buf)) {
+            TacticalMap->Set_Tactical_Position(cell.As_Coord());
+        }
+    }
 
     /**
      *  Performance block; in dev mode adds heap / queue counts.
      *
      *  @author: ZivDero
      */
-    static void Draw_Stats_Tab()
+    static void Draw_General_Tab()
     {
         char timebuf[16];
         Format_Mission_Time(timebuf, sizeof(timebuf));
@@ -136,13 +151,21 @@ namespace
         ImGui::Text("Factories  : %d", Factories.Count());
         ImGui::Text("Triggers   : %d", Triggers.Count());
 
-        Cell cursormapcoords = TacticalMap->Click_Cell_Calc(MouseCursor->Get_Mouse_Point());
-        if (cursormapcoords != CELL_NONE)
+        Cell cursor_map_cell = TacticalMap->Click_Cell_Calc(MouseCursor->Get_Mouse_Point());
+        if (cursor_map_cell != CELL_NONE)
         {
-            CellClass& cell = Map[cursormapcoords];
+            CellClass& cell = Map[cursor_map_cell];
             ImGui::SeparatorText("Cell");
             ImGui::Text("Owner      : %d (%s)", (int)cell.Owner, cell.Owner == HOUSE_NONE ? "<none>" : Houses[cell.Owner]->Class->IniName.c_str());
-            ImGui::Text("Land       : %d", (int)cell.Land);
+            ImGui::Text("Land       : %s", Name_From_Land(cell.Land));
+            ImGui::Text("Position   : %d,%d", cursor_map_cell.X, cursor_map_cell.Y);
+            
+            auto cell_object = cell.Cell_Object();
+            if (cell_object != nullptr) {
+                ImGui::Text("Cell Object: %s (%s)", cell_object->Full_Name(), cell_object->Name());
+            } else {
+                ImGui::Text("Cell Object: <none>");
+            }
         }
 
         /**
@@ -161,8 +184,9 @@ namespace
             return;
         }
         const TechnoClass* obj = factory->Get_Object();
-        const char* name = obj && obj->Class_Of() ? obj->Class_Of()->Name() : "?";
-        ImGui::Text("%-12s: %s", label, name);
+        const char* name = obj && obj->Class_Of() ? obj->Class_Of()->Full_Name() : "Unknown object";
+        int stage_percent = std::round(double(factory->Fetch_Stage()) / FactoryClass::FactoryClassEnum::STEP_COUNT * 100);
+        ImGui::Text("%-12s: %s (%d%%)", label, name, stage_percent);
     }
 
 
@@ -171,59 +195,67 @@ namespace
      */
     static void Draw_House_Tab()
     {
-        HouseClass* h = Get_Display_House();
-        if (h == nullptr) {
+        HouseClass* house = Get_Display_House();
+        if (house == nullptr) {
             ImGui::TextDisabled("(no house)");
             return;
         }
 
-        ImGui::Text("House : %s (%s) [#%d]", h->IniName.c_str(), h->Class->IniName.c_str(), h->HeapID);
+        ImGui::Text("House    : %s (%s) [#%d]", Session.Type == GAME_NORMAL && house == PlayerPtr 
+            ? "You" : house->IniName.c_str(),
+            house->Class->IniName.c_str(), house->HeapID);
         ImGui::Separator();
 
-        ImGui::Text("Credits  : %ld", h->Available_Money());
-        ImGui::Text("Capacity : %ld", h->Capacity);
+        ImGui::Text("Total Credits    : %ld", house->Available_Money());
+        ImGui::Text("Cash Reserves    : %ld", house->Credits);
+        ImGui::Text("Stored Tiberium  : %ld", house->Tiberium.Get_Total_Value());
+        ImGui::Text("Storage Capacity : %ld / %ld", house->Capacity - house->Available_Storage(), house->Capacity);
 
-        const long power = h->Power_Output();
-        const long drain = h->Power_Drain();
+        const long power = house->Power_Output();
+        const long drain = house->Power_Drain();
         const bool low_power = drain > power;
+        
         if (low_power) {
-            ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Power    : %ld / %ld (LOW)", power, drain);
+            ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Power            : %ld / %ld (LOW)", drain, power);
         } else {
-            ImGui::Text("Power    : %ld / %ld", power, drain);
+            ImGui::Text("Power            : %ld / %ld", drain, power);
         }
 
         ImGui::SeparatorText("Production");
-        Draw_Factory_Line("Building", h->BuildingFactory);
-        Draw_Factory_Line("Unit",     h->UnitFactory);
-        Draw_Factory_Line("Infantry", h->InfantryFactory);
-        Draw_Factory_Line("Aircraft", h->AircraftFactory);
+        Draw_Factory_Line("Building", house->BuildingFactory);
+        Draw_Factory_Line("Infantry", house->InfantryFactory);
+        Draw_Factory_Line("Unit",     house->UnitFactory);
+        Draw_Factory_Line("Aircraft", house->AircraftFactory);
+
+        FactoryClass* naval_factory = Extension::Fetch(house)->NavalFactory;
+        Draw_Factory_Line("Naval", naval_factory);
 
         ImGui::SeparatorText("Profile");
-        ImGui::Text("TechLevel  : %d", h->Control.TechLevel);
-        ImGui::Text("IQ         : %d", h->IQ);
-        ImGui::Text("Difficulty : %s", Difficulty_Name(h->Difficulty));
+        ImGui::Text("TechLevel  : %d", house->Control.TechLevel);
+        ImGui::Text("IQ         : %d", house->IQ);
+        ImGui::Text("Difficulty : %s", Difficulty_Name(house->Difficulty));
 
         ImGui::SeparatorText("Biases");
-        ImGui::Text("Firepower : x%.2f", h->FirepowerBias);
-        ImGui::Text("Armor     : x%.2f", h->ArmorBias);
-        ImGui::Text("ROF       : x%.2f", h->ROFBias);
-        ImGui::Text("GroundSpd : x%.2f", h->GroundspeedBias);
-        ImGui::Text("AirSpd    : x%.2f", h->AirspeedBias);
-        ImGui::Text("Cost      : x%.2f", h->CostBias);
-        ImGui::Text("BuildSpd  : x%.2f", h->BuildSpeedBias);
+        ImGui::Text("Firepower    : x%.2f", house->FirepowerBias);
+        ImGui::Text("Armor        : x%.2f", house->ArmorBias);
+        ImGui::Text("ROF          : x%.2f", house->ROFBias);
+        ImGui::Text("Ground Speed : x%.2f", house->GroundspeedBias);
+        ImGui::Text("Air Speed    : x%.2f", house->AirspeedBias);
+        ImGui::Text("Cost         : x%.2f", house->CostBias);
+        ImGui::Text("Build Speed  : x%.2f", house->BuildSpeedBias);
 
         ImGui::SeparatorText("Losses");
-        ImGui::Text("Units lost      : %u", h->UnitsLost);
-        ImGui::Text("Buildings lost  : %u", h->BuildingsLost);
+        ImGui::Text("Units lost      : %u", house->UnitsLost);
+        ImGui::Text("Buildings lost  : %u", house->BuildingsLost);
 
         if (ImGui::CollapsingHeader("Flags")) {
-            ImGui::Text("IsHuman         : %s", h->IsHuman ? "yes" : "no");
-            ImGui::Text("IsPlayerControl : %s", h->IsPlayerControl ? "yes" : "no");
-            ImGui::Text("IsAlerted       : %s", h->IsAlerted ? "yes" : "no");
-            ImGui::Text("IsDefeated      : %s", h->IsDefeated ? "yes" : "no");
-            ImGui::Text("IsToDie         : %s", h->IsToDie ? "yes" : "no");
-            ImGui::Text("IsToWin         : %s", h->IsToWin ? "yes" : "no");
-            ImGui::Text("IsToLose        : %s", h->IsToLose ? "yes" : "no");
+            ImGui::Text("IsHuman         : %s", house->IsHuman ? "yes" : "no");
+            ImGui::Text("IsPlayerControl : %s", house->IsPlayerControl ? "yes" : "no");
+            ImGui::Text("IsAlerted       : %s", house->IsAlerted ? "yes" : "no");
+            ImGui::Text("IsDefeated      : %s", house->IsDefeated ? "yes" : "no");
+            ImGui::Text("IsToDie         : %s", house->IsToDie ? "yes" : "no");
+            ImGui::Text("IsToWin         : %s", house->IsToWin ? "yes" : "no");
+            ImGui::Text("IsToLose        : %s", house->IsToLose ? "yes" : "no");
         }
     }
 
@@ -324,7 +356,7 @@ namespace
             return;
         }
 
-        ImGui::Text("Unit    : %s (%s)", type->Full_Name(), type->Name());
+        ImGui::Text("Object   : %s (%s)", type->Full_Name(), type->Name());
 
         /**
          *  Owner is shown as "<house type> (<who controls it>)". The control tag
@@ -353,17 +385,14 @@ namespace
 
             std::snprintf(owner_buf, sizeof(owner_buf), "%s (%s)", house_name, tag);
         }
-        ImGui::Text("Owner   : %s", owner_buf);
+        ImGui::Text("Owner    : %s", owner_buf);
 
-        ImGui::Text("HP      : %d / %d", obj->Strength, type->MaxStrength);
+        ImGui::Text("HP       : %d / %d", obj->Strength, type->MaxStrength);
 
-        const Cell c = obj->Get_Cell();
-        ImGui::Text("Cell    : %d, %d", c.X, c.Y);
-
-        const ArmorType armor = type->Armor;
-        const char* armor_name = (armor >= ARMOR_FIRST && armor < ArmorTypes.Count())
-            ? ArmorTypes[armor]->Name() : "?";
-        ImGui::Text("Armor   : %s", armor_name);
+        const Cell cell = obj->Get_Cell();
+        ImGui::Text("Cell     :");
+        ImGui::SameLine();
+        Cell_Goto_Button(cell);        
 
         if (!obj->Is_Techno()) {
             return;
@@ -372,18 +401,25 @@ namespace
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
         auto techno_type_ext = Extension::Fetch(techno);
 
-        ImGui::Text("Sight   : %d", techno_type_ext->Get_Sight_Range());
+        ImGui::Text("Sight    : %d", techno_type_ext->Get_Sight_Range());
 
-        ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
+        ImGui::Text("Mission  : %s", MissionClass::Mission_Name(techno->Get_Mission()));
 
         /**
          *  Group is 0-9 for Ctrl+# groups, otherwise -1 (0xFF as unsigned).
          */
         const int group = static_cast<int>(techno->Group);
         if (group >= 0 && group <= 9) {
-            ImGui::Text("Group   : %d", group);
+            ImGui::Text("Group    : %d", group == 9 ? 0 : group + 1); // align with actual group view rather than internal group number
+            if (Vinifera_DeveloperMode) {
+                ImGui::Text("Group ID : %d", group);
+            }
         } else {
-            ImGui::Text("Group   : (none)");
+            ImGui::Text("Group    : (none)");
+
+            if (Vinifera_DeveloperMode) {
+                ImGui::Text("Group ID : (none)");
+            }
         }
 
         /**
@@ -393,17 +429,18 @@ namespace
          */
         const double exp = techno->Crew.Get_Experience();
         const VeterancyRankType rank = techno->Crew.Get_Rank();
-        ImGui::Text("Rank    : %s", Rank_To_String(rank));
+        ImGui::Text("Rank     : %s", Rank_To_String(rank));
 
         const TechnoTypeClass* ttype = techno->Techno_Type_Class();
         const double per_level = ttype != nullptr ? ttype->Cost_Of(owner) * Rule->VeteranRatio : 0.0;
         if (rank == RANK_ELITE || per_level <= 0.0) {
-            ImGui::Text("XP      : (max rank)  (exp %.2f)", exp);
+            ImGui::Text("XP       : (max rank)");
         } else {
             const double frac = exp - std::floor(exp);
-            ImGui::Text("XP      : %d / %d  (exp %.2f)",
-                static_cast<int>(frac * per_level + 0.5),
-                static_cast<int>(per_level + 0.5), exp);
+            ImGui::Text("XP       : %d / %d (%d%%)",
+                static_cast<int>(frac * per_level + 0.5), 
+                static_cast<int>(per_level + 0.5), 
+                static_cast<int>(std::round(frac * 100)));
         }
 
         /**
@@ -412,27 +449,43 @@ namespace
         const bool is_foot = obj->RTTI == RTTI_UNIT || obj->RTTI == RTTI_INFANTRY || obj->RTTI == RTTI_AIRCRAFT;
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
-            ImGui::Text("Speed   : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
+            ImGui::Text("Speed    : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
 
-            if (foot->NavCom == nullptr)
-            {
-                ImGui::Text("NavCom  : <none>");
-            }
-            else
-            {
-                Cell navcomcell = foot->NavCom->Center_Coord().As_Cell();
-                ImGui::Text("NavCom  : %s (%d, %d)", Name_From_RTTI(foot->NavCom->RTTI), navcomcell.X, navcomcell.Y);
+            if (foot->NavCom == nullptr) {
+                ImGui::Text("NavCom   : <none>");
+            } else {
+                Cell navcom_cell = foot->NavCom->Center_Coord().As_Cell();
+                bool is_navcom_techno = Is_Techno(foot->NavCom);
+                std::string text;
+                if (is_navcom_techno) {
+                    auto navcom_techno = static_cast<TechnoClass*>(foot->NavCom);
+                    text = std::format("{} ({})", navcom_techno->Full_Name(), navcom_techno->Name());
+                } else {
+                    text = Name_From_RTTI(foot->NavCom->RTTI);
+                }
+
+                ImGui::Text("NavCom   : %s", text.c_str());
+                ImGui::SameLine();
+                Cell_Goto_Button(navcom_cell);
             }
         }
 
-        if (techno->TarCom == nullptr)
-        {
-            ImGui::Text("TarCom  : <none>");
-        }
-        else
-        {
-            Cell tarcomcell = techno->TarCom->Center_Coord().As_Cell();
-            ImGui::Text("TarCom  : %s (%d, %d)", Name_From_RTTI(techno->TarCom->RTTI), tarcomcell.X, tarcomcell.Y);
+        if (techno->TarCom == nullptr) {
+            ImGui::Text("TarCom   : <none>");
+        } else {
+            Cell tarcom_cell = techno->TarCom->Center_Coord().As_Cell();
+            bool is_tarcom_techno = Is_Techno(techno->TarCom);
+            std::string text;
+            if (is_tarcom_techno) {
+                auto tarcom_techno = static_cast<TechnoClass*>(techno->TarCom);
+                text = std::format("{} ({})", tarcom_techno->Full_Name(), tarcom_techno->Name());
+            } else {
+                text = Name_From_RTTI(techno->TarCom->RTTI);
+            }
+
+            ImGui::Text("TarCom   : %s", text.c_str());
+            ImGui::SameLine();
+            Cell_Goto_Button(tarcom_cell);
         }
 
         /**
@@ -447,6 +500,7 @@ namespace
             if (team != nullptr) {
                 ImGui::Text("Team    : %s", team->Name());
                 if (ImGui::TreeNode("Team details")) {
+                    ImGui::Text("Team Name     : %s", team->Class->Full_Name());
                     ImGui::Text("Members       : %d", team->Total);
                     ImGui::Text("Risk          : %d", team->Risk);
                     ImGui::Text("Forced active : %s", team->IsForcedActive ? "yes" : "no");
@@ -462,14 +516,18 @@ namespace
                 ImGui::Text("Tag     : %s", tagtype ? tagtype->Name() : "?");
                 if (ImGui::TreeNode("Tag details")) {
                     if (tagtype != nullptr && tagtype->TriggerType != nullptr) {
-                        ImGui::Text("Trigger     : %s", tagtype->TriggerType->Name());
+                        ImGui::Text("Trigger      : %s", tagtype->TriggerType->Name());
+                        ImGui::Text("Trigger Name : %s", tagtype->TriggerType->Full_Name());
                     }
+
                     if (tagtype != nullptr) {
-                        ImGui::Text("Persistence : %s", Persistence_To_String(tagtype->Persistence));
+                        ImGui::Text("Tag Name     : %s", tagtype->Full_Name());
+                        ImGui::Text("Persistence  : %s (%d)", Persistence_To_String(tagtype->Persistence), tagtype->Persistence);
                     }
-                    ImGui::Text("AttachCount : %d", tag->AttachCount);
-                    ImGui::Text("IsSprung    : %s", tag->IsSprung ? "yes" : "no");
-                    ImGui::Text("IsToDie     : %s", tag->IsToDie ? "yes" : "no");
+
+                    ImGui::Text("AttachCount  : %d", tag->AttachCount);
+                    ImGui::Text("IsSprung     : %s", tag->IsSprung ? "yes" : "no");
+                    ImGui::Text("IsToDie      : %s", tag->IsToDie ? "yes" : "no");
                     ImGui::TreePop();
                 }
             }
@@ -480,7 +538,22 @@ namespace
         const WeaponInfoStruct* primary   = techno->Get_Weapon(WEAPON_SLOT_PRIMARY);
         const WeaponInfoStruct* secondary = techno->Get_Weapon(WEAPON_SLOT_SECONDARY);
         Draw_Weapon_Block("Primary  ", primary   ? primary->Weapon   : nullptr, firepower_bias);
-        Draw_Weapon_Block("Secondary", secondary ? secondary->Weapon : nullptr, firepower_bias);
+        Draw_Weapon_Block("Secondary", secondary ? secondary->Weapon : nullptr, firepower_bias);        
+        
+        ImGui::SeparatorText("Armor");
+        const ArmorType armor = type->Armor;
+        bool is_valid_armor = armor >= ARMOR_FIRST && armor < ArmorTypes.Count();
+        const char* armor_name = is_valid_armor ? ArmorTypes[armor]->Name() : "Unknown armor";
+        ImGui::Text("Armor   : %s", armor_name);
+
+        if (is_valid_armor) {
+            if (ImGui::TreeNode("Default Armor Values")) {
+                ImGui::Text("PassiveAcquire : %s", ArmorTypes[armor]->PassiveAcquire ? "yes" : "no");
+                ImGui::Text("ForceFire      : %s", ArmorTypes[armor]->ForceFire ? "yes" : "no");
+                ImGui::Text("Retaliate      : %s", ArmorTypes[armor]->Retaliate ? "yes" : "no");
+                ImGui::TreePop();
+            }
+        }
     }
 
 
@@ -609,6 +682,8 @@ void DebugOverlay::Draw()
         return;
     }
 
+    // minimum width of 360, no max width/height
+    ImGui::SetNextWindowSizeConstraints(ImVec2(360.0f, 0.0f), ImVec2(FLT_MAX, FLT_MAX));
     if (!ImGui::Begin("Game Info", &IsVisible, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
@@ -622,8 +697,8 @@ void DebugOverlay::Draw()
 
     if (ImGui::BeginTabBar("##vinifera_debug_tabs")) {
 
-        if (ImGui::BeginTabItem("Stats")) {
-            Draw_Stats_Tab();
+        if (ImGui::BeginTabItem("General")) {
+            Draw_General_Tab();
             ImGui::EndTabItem();
         }
 
@@ -634,7 +709,7 @@ void DebugOverlay::Draw()
             }
         }
 
-        if (ImGui::BeginTabItem("Unit")) {
+        if (ImGui::BeginTabItem("Selected Object")) {
             Draw_Unit_Tab();
             ImGui::EndTabItem();
         }
