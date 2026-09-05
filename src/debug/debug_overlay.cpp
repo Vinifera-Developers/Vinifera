@@ -522,7 +522,7 @@ namespace
 
                     if (tagtype != nullptr) {
                         ImGui::Text("Tag Name     : %s", tagtype->Full_Name());
-                        ImGui::Text("Persistence  : %s", Persistence_To_String(tagtype->Persistence));
+                        ImGui::Text("Persistence  : %s (%d)", Persistence_To_String(tagtype->Persistence), tagtype->Persistence);
                     }
 
                     ImGui::Text("AttachCount  : %d", tag->AttachCount);
