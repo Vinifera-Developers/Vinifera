@@ -95,11 +95,7 @@ namespace
         std::snprintf(out, out_size, "%d:%02d:%02d", hours, minutes, seconds);
     }
 
-    /**
-     *  "> (X, Y)" button that scrolls the tactical view to `cell`.
-     *  Falls back to plain text outside a tactical map. Caller must
-     *  push a unique ID if multiple buttons share coordinates in scope.
-     */
+    
     static void Cell_Goto_Button(Cell cell)
     {
         if (TacticalMap == nullptr) {
@@ -360,7 +356,7 @@ namespace
             return;
         }
 
-        ImGui::Text("Object  : %s (%s)", type->Full_Name(), type->Name());
+        ImGui::Text("Object   : %s (%s)", type->Full_Name(), type->Name());
 
         /**
          *  Owner is shown as "<house type> (<who controls it>)". The control tag
@@ -389,12 +385,12 @@ namespace
 
             std::snprintf(owner_buf, sizeof(owner_buf), "%s (%s)", house_name, tag);
         }
-        ImGui::Text("Owner   : %s", owner_buf);
+        ImGui::Text("Owner    : %s", owner_buf);
 
-        ImGui::Text("HP      : %d / %d", obj->Strength, type->MaxStrength);
+        ImGui::Text("HP       : %d / %d", obj->Strength, type->MaxStrength);
 
         const Cell cell = obj->Get_Cell();
-        ImGui::Text("Cell    :");
+        ImGui::Text("Cell     :");
         ImGui::SameLine();
         Cell_Goto_Button(cell);        
 
@@ -405,18 +401,25 @@ namespace
         TechnoClass* techno = static_cast<TechnoClass*>(obj);
         auto techno_type_ext = Extension::Fetch(techno);
 
-        ImGui::Text("Sight   : %d", techno_type_ext->Get_Sight_Range());
+        ImGui::Text("Sight    : %d", techno_type_ext->Get_Sight_Range());
 
-        ImGui::Text("Mission : %s", MissionClass::Mission_Name(techno->Get_Mission()));
+        ImGui::Text("Mission  : %s", MissionClass::Mission_Name(techno->Get_Mission()));
 
         /**
          *  Group is 0-9 for Ctrl+# groups, otherwise -1 (0xFF as unsigned).
          */
         const int group = static_cast<int>(techno->Group);
         if (group >= 0 && group <= 9) {
-            ImGui::Text("Group   : %d", group == 9 ? 0 : group + 1); // align with actual group view rather than internal group number
+            ImGui::Text("Group    : %d", group == 9 ? 0 : group + 1); // align with actual group view rather than internal group number
+            if (Vinifera_DeveloperMode) {
+                ImGui::Text("Group ID : %d", group);
+            }
         } else {
-            ImGui::Text("Group   : (none)");
+            ImGui::Text("Group    : (none)");
+
+            if (Vinifera_DeveloperMode) {
+                ImGui::Text("Group ID : (none)");
+            }
         }
 
         /**
@@ -426,15 +429,15 @@ namespace
          */
         const double exp = techno->Crew.Get_Experience();
         const VeterancyRankType rank = techno->Crew.Get_Rank();
-        ImGui::Text("Rank    : %s", Rank_To_String(rank));
+        ImGui::Text("Rank     : %s", Rank_To_String(rank));
 
         const TechnoTypeClass* ttype = techno->Techno_Type_Class();
         const double per_level = ttype != nullptr ? ttype->Cost_Of(owner) * Rule->VeteranRatio : 0.0;
         if (rank == RANK_ELITE || per_level <= 0.0) {
-            ImGui::Text("XP      : (max rank)");
+            ImGui::Text("XP       : (max rank)");
         } else {
             const double frac = exp - std::floor(exp);
-            ImGui::Text("XP      : %d / %d (%d%%)",
+            ImGui::Text("XP       : %d / %d (%d%%)",
                 static_cast<int>(frac * per_level + 0.5), 
                 static_cast<int>(per_level + 0.5), 
                 static_cast<int>(std::round(frac * 100)));
@@ -446,10 +449,10 @@ namespace
         const bool is_foot = obj->RTTI == RTTI_UNIT || obj->RTTI == RTTI_INFANTRY || obj->RTTI == RTTI_AIRCRAFT;
         if (is_foot) {
             FootClass* foot = static_cast<FootClass*>(obj);
-            ImGui::Text("Speed   : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
+            ImGui::Text("Speed    : %d (bias x%.2f)", foot->Locomotion->Apparent_Speed(), foot->SpeedBias);
 
             if (foot->NavCom == nullptr) {
-                ImGui::Text("NavCom  : <none>");
+                ImGui::Text("NavCom   : <none>");
             } else {
                 Cell navcom_cell = foot->NavCom->Center_Coord().As_Cell();
                 bool is_navcom_techno = Is_Techno(foot->NavCom);
@@ -461,14 +464,14 @@ namespace
                     text = Name_From_RTTI(foot->NavCom->RTTI);
                 }
 
-                ImGui::Text("NavCom  : %s", text.c_str());
+                ImGui::Text("NavCom   : %s", text.c_str());
                 ImGui::SameLine();
                 Cell_Goto_Button(navcom_cell);
             }
         }
 
         if (techno->TarCom == nullptr) {
-            ImGui::Text("TarCom  : <none>");
+            ImGui::Text("TarCom   : <none>");
         } else {
             Cell tarcom_cell = techno->TarCom->Center_Coord().As_Cell();
             bool is_tarcom_techno = Is_Techno(techno->TarCom);
@@ -480,7 +483,7 @@ namespace
                 text = Name_From_RTTI(techno->TarCom->RTTI);
             }
 
-            ImGui::Text("TarCom  : %s", text.c_str());
+            ImGui::Text("TarCom   : %s", text.c_str());
             ImGui::SameLine();
             Cell_Goto_Button(tarcom_cell);
         }
@@ -541,7 +544,7 @@ namespace
         const ArmorType armor = type->Armor;
         bool is_valid_armor = armor >= ARMOR_FIRST && armor < ArmorTypes.Count();
         const char* armor_name = is_valid_armor ? ArmorTypes[armor]->Name() : "Unknown armor";
-        ImGui::Text("Armor          : %s", armor_name);
+        ImGui::Text("Armor   : %s", armor_name);
 
         if (is_valid_armor) {
             if (ImGui::TreeNode("Default Armor Values")) {
