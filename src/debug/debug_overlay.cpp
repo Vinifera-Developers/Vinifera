@@ -205,9 +205,9 @@ namespace
             return;
         }
 
-        bool isCampaign = Session.Type == GAME_NORMAL;
-
-        ImGui::Text("House    : %s (%s) [#%d]", isCampaign && house == PlayerPtr ? "You" : house->IniName.c_str(), house->Class->IniName.c_str(), house->HeapID);
+        ImGui::Text("House    : %s (%s) [#%d]", Session.Type == GAME_NORMAL && house == PlayerPtr 
+            ? "You" : house->IniName.c_str(),
+            house->Class->IniName.c_str(), house->HeapID);
         ImGui::Separator();
 
         ImGui::Text("Total Credits    : %ld", house->Available_Money());
