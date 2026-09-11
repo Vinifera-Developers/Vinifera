@@ -376,10 +376,8 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceHarvest = Get_VocTypes(ini, ini_name, "VoiceHarvest", VoiceHarvest);
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
-
-    if (ini.Is_Present(ini_name, "Description")) {
-        ini.Get_String(ini_name, "Description", "", Description, std::size(Description));
-    }
+    
+    ini.Get_String(ini_name, "Description", Description, Description, std::size(Description));
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
