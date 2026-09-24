@@ -31,6 +31,7 @@ public:
     void Update_Position(FootClass* target, Cell oldcell, Cell newcell);
 
     void Clear();
+    void Clear_Working_Set();
 
     HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
     HRESULT STDMETHODCALLTYPE Save(IStream* pStm);

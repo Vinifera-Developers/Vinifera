@@ -84,7 +84,9 @@ DEFINE_HOOK(0x0049A07D, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2, 
 {
     GET(FootClass*, linked_to, ECX);
 
-    AircraftTracker->Untrack(linked_to);
+    if (linked_to->HeightAGL < 100) {
+        AircraftTracker->Untrack(linked_to);
+    }
 
     // Stolen instruction
     return 0;
@@ -95,7 +97,9 @@ DEFINE_HOOK(0x0049B92C, _FlyLocomotionClass_Process_Landing_AircraftTracker_Patc
 {
     GET(FlyLocomotionClass*, loco, ESI);
 
-    AircraftTracker->Untrack(loco->LinkedTo);
+    if (loco->LinkedTo->HeightAGL < 100) {
+        AircraftTracker->Untrack(loco->LinkedTo);    
+    }
 
     return 0;
 }

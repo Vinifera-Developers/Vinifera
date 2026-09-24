@@ -189,6 +189,18 @@ void AircraftTrackerClass::Clear(void)
 
 
 /**
+ *  Clears the working set. Use when you don't need the remaining of the targets in the set.
+ *  Useful when looking for a particular type of target.
+ *
+ *  @author: JoyfulShush
+ */
+void AircraftTrackerClass::Clear_Working_Set(void)
+{
+    WorkingSet.Clear();
+}
+
+
+/**
  *  Saves the tracker to the stream.
  *
  *  @author: ZivDero

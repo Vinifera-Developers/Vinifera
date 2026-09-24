@@ -12,6 +12,7 @@
 #include "technoext_hooks.h"
 
 #include "aircraft.h"
+#include "aircrafttracker.h"
 #include "asserthandler.h"
 #include "audio_vox.h"
 #include "buildingext.h"
@@ -41,6 +42,7 @@
 #include "session.h"
 #include "sessionext.h"
 #include "sideext.h"
+#include "spawner.h"
 #include "spawnmanager.h"
 #include "syncrecorder.h"
 #include "syringe.h"
@@ -70,8 +72,6 @@
 #include "weapontype.h"
 #include "weapontypeext.h"
 #include "wwkeyboard.h"
-#include "spawner.h"
-#include "vox.h"
 
 #include <intrin.h>
 #include <vector>
@@ -145,6 +145,27 @@ static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
     }
 
     return false;
+}
+
+
+/**
+ *  Is this a Carryall that is on the ground and holding a unit?
+ *  A Carryall will stay at a fixed height of 100 while holding a unit, which makes it be considered on air even though it has finished flying.
+ *
+ * @author: JoyfulShush
+ */
+static bool Is_Carryall_On_Ground_With_Unit_Cargo(const AbstractClass* target)
+{
+    if (target == nullptr || target->RTTI != RTTI_AIRCRAFT) {
+        return false;
+    }
+
+    const auto aircraft = static_cast<const AircraftClass*>(target);
+
+    if (!aircraft->Class->IsCarryall) 
+        return false;
+
+    return aircraft->Cargo.Is_Something_Attached(RTTI_UNIT) && aircraft->HeightAGL <= 100;
 }
 
 
@@ -823,12 +844,24 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     }
 
     /**
-     *  Can only fire anti-aircraft weapons against aircraft unless the aircraft is
-     *  sitting on the ground. If the object is on the ground,
-     *  then don't allow firing if it can't fire upon ground objects.
+     *  Special handling for Carryalls: a Carryall that is sitting on the ground carrying a unit is in a weird state.
+     *  Because it is holding a unit, it is technically flying at attitude of 100, but for all intents and purposes,
+     *  it should be considered a unit on the ground. 
+     *  This means that anti-aircraft weapons should not fire on it, and ground weapons should.
      */
-    if (target->In_Air() && !weapon->Bullet->IsAntiAircraft ||
-        target->On_Ground() && !weapon->Bullet->IsAntiGround)
+    const bool carryall_on_ground = Is_Carryall_On_Ground_With_Unit_Cargo(target);
+
+    // Can only fire anti-aircraft weapons against units in the air. Ignore Carryalls that are on the ground.
+    const bool target_in_air = target->In_Air() && !carryall_on_ground;
+    if (target_in_air && !weapon->Bullet->IsAntiAircraft) 
+    {
+        return FIRE_CANT;
+    }
+
+    // If the object is on the ground, then don't allow firing if it can't fire upon ground objects.
+    // A Carryall on the ground should also count.
+    const bool target_on_ground = target->On_Ground() || carryall_on_ground;
+    if (target_on_ground && !weapon->Bullet->IsAntiGround)
     {
         return FIRE_CANT;
     }
@@ -3758,6 +3791,37 @@ int TechnoClassExt::_Value(void) const
     }
 
     return Risk() + TClass->Reward + value;
+}
+
+
+/**
+ *  Patches TechnoClass::Evaluate_Cell before checking the cell for valid cell occupiers.
+ *  Checks if the current cell has a Carryall sitting on the ground with a unit as cargo in this cell,
+ *  and if so, uses it as the object to evaluate. This allows a Carryall to be targeting automatically by
+ *  enemy units, as well as allied healing units, when searching for targets.
+ *
+ *  @author: JoyfulShush
+ */
+DEFINE_HOOK(0x0062D92F, _TechnoClass_Evaluate_Cell_Carryall_Ground_Check_Patch, 5)
+{
+    GET(CellClass*, cell, EBP);
+
+    AircraftTracker->Fetch_Targets(cell, 1);
+
+    FootClass* target = AircraftTracker->Get_Target();
+    while (target != nullptr) {
+        if (target->IsActive && target->IsDown && target->Strength > 0 && target->Get_Cell() == cell->CellID) {
+            if (Is_Carryall_On_Ground_With_Unit_Cargo(target)) {
+                // Found valid carryall - set it as the target to evaluate and skip right to the object evaluation stage
+                AircraftTracker->Clear_Working_Set();
+                R->EDI(target);
+                return 0x0062DA27;
+            }
+        }
+        target = AircraftTracker->Get_Target();
+    }
+
+    return 0;
 }
 
 
