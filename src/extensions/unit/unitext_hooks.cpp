@@ -1620,14 +1620,14 @@ void UnitClassExt::_Read_INI(CCINIClass& ini)
                 unit->Strength = unit->Class->MaxStrength * (double)strength / 256.0;
                 if (unit->Strength > unit->Class->MaxStrength - 3) unit->Strength = unit->Class->MaxStrength;
                 if (unit->Strength == 0) unit->Strength = 1;
-                if (Session.Type == GAME_NORMAL || unit->House->Is_Human_Player()) {
+                // if (Session.Type == GAME_NORMAL || unit->House->Is_Human_Player()) {
                     unit->Assign_Mission(mission);
                     if (unit->Ready_To_Commence()) {
                         unit->Commence();
                     }
-                } else {
-                    unit->Enter_Idle_Mode();
-                }
+                // } else {
+                //     unit->Enter_Idle_Mode();
+                // }
 
             } else {
 
