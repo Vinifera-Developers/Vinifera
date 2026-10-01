@@ -638,7 +638,7 @@ DEFINE_HOOK(0x004D8BE4, _InfantryClass_Doing_AI_Fix_Invalid_Facing_Set, 0)
 
 
 /**
- *  Fixes an exploit where hijackers are able to hijack vehicles of their allies.
+ *  Prevents allied vehicle hijacking and respects the target type's theft veto.
  *
  *  Author: Rampastring
  */
@@ -647,13 +647,102 @@ DEFINE_HOOK(0x004D7267, _InfantryClass_What_Action_Prevent_Hijacking_Allied_Vehi
     GET(TechnoClass*, target, ESI);
     GET(InfantryClass*, this_ptr, EDI);
 
-    if (this_ptr->House->Is_Ally(target)) {
-        // The target is allied to the hijacker. Move on.
+    if (this_ptr->House->Is_Ally(target)
+        || !TechnoTypeClassExtension::Is_Vehicle_Theft_Allowed(target)) {
+        // Continue with normal actions, including passenger boarding.
         return 0x004D72B7;
     }
 
     // Move to harvester truce check.
     return 0x004D7277;
+}
+
+
+/**
+ *  Stop a rejected theft order without consuming the infantry or changing the
+ *  target. Keep unrelated attack targets intact.
+ */
+static void Cancel_Vehicle_Theft(InfantryClass* infantry, TechnoClass* target)
+{
+    if (infantry->TarCom == target) {
+        infantry->Assign_Target(nullptr);
+    }
+    infantry->Assign_Destination(nullptr);
+    infantry->Stop_Driver();
+    infantry->Assign_Mission(MISSION_GUARD);
+}
+
+
+/**
+ *  Per_Cell_Process: ESI is the infantry, EDI is its checked vehicle destination.
+ *  Veto before TEVENT_PLAYER_ENTERED, Detach_All, Captured, or Delete_Me.
+ *  The six displaced bytes only set up the following cell-coordinate call.
+ */
+DEFINE_HOOK(0x004D32E4, _InfantryClass_Per_Cell_Process_VehicleThief_Allowed, 6)
+{
+    GET(InfantryClass*, infantry, ESI);
+    GET(TechnoClass*, target, EDI);
+
+    if ((infantry->Class->IsVehicleThief || infantry->Class->IsThief)
+        && !TechnoTypeClassExtension::Is_Vehicle_Theft_Allowed(target)) {
+        Cancel_Vehicle_Theft(infantry, target);
+        return 0x004D3435; // Continue with the normal building checks.
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Theft_AI: ESI is the Thief infantry, EDI its non-allied UnitClass destination.
+ *  This path is separate from VehicleThief capture missions and cannot steal
+ *  aircraft. Reject before chasing, triggers, radio messages, or capture.
+ */
+DEFINE_HOOK(0x004D83E3, _InfantryClass_Theft_AI_VehicleThief_Allowed, 6)
+{
+    GET(InfantryClass*, infantry, ESI);
+    GET(TechnoClass*, target, EDI);
+
+    if (!TechnoTypeClassExtension::Is_Vehicle_Theft_Allowed(target)) {
+        Cancel_Vehicle_Theft(infantry, target);
+        return 0x004D8744; // Existing false-return epilogue.
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Can_Enter_Cell: ESI is a VehicleThief's considered-vehicle destination.
+ *  Do not grant the special MOVE_OK shortcut for a forbidden theft. Continue
+ *  with stock collision/radio handling, preserving normal transport boarding.
+ */
+DEFINE_HOOK(0x004D568B, _InfantryClass_Can_Enter_Cell_VehicleThief_Allowed, 6)
+{
+    GET(TechnoClass*, target, ESI);
+
+    if (!TechnoTypeClassExtension::Is_Vehicle_Theft_Allowed(target)) {
+        return 0x004D5699;
+    }
+
+    return 0;
+}
+
+
+/**
+ *  Greatest_Threat: the stock VehicleThief shortcut is about to return NavCom.
+ *  A forbidden destination must fall through to ordinary target evaluation.
+ */
+DEFINE_HOOK(0x004D6E60, _InfantryClass_Greatest_Threat_VehicleThief_Allowed, 6)
+{
+    GET(InfantryClass*, infantry, ESI);
+
+    if (!TechnoTypeClassExtension::Is_Vehicle_Theft_Allowed(
+            static_cast<TechnoClass const*>(infantry->NavCom))) {
+        return 0x004D6E6E;
+    }
+
+    return 0;
 }
 
 

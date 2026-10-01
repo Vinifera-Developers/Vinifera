@@ -686,6 +686,46 @@ Vanilla actions are always present implicitly, but their properties **can** be o
 
 ## Technos
 
+### Vehicle Theft Permission
+
+`VehicleThief.Allowed` controls whether infantry can steal a VehicleType or
+AircraftType. It is a boolean in the target type's `RULES.INI` section and defaults
+to `yes`. Setting it to `no` blocks both `VehicleThief=yes` capture orders and the
+separate `Thief=yes` proximity theft routine, wherever those routines already
+support the target.
+
+```ini
+[SOMEVEHICLE] ; VehicleType, or an AircraftType section
+VehicleThief.Allowed=yes
+```
+
+This is an additional restriction. Missing or `yes` preserves existing theft
+behavior; it does not bypass `NonVehicle`, train restrictions, alliance checks,
+harvester truce, or the requirement that aircraft be on the ground. `Thief=yes`
+alone still cannot steal aircraft. Ordinary attacks, transport boarding, and
+building infiltration are not controlled by this flag.
+
+The stock `Thief` proximity routine has fewer eligibility checks than the
+`VehicleThief` capture-order path, including no `NonVehicle` check. Missing or
+`yes` preserves those differences. `no` vetoes either routine without changing
+their other checks.
+
+To make a drone count as a vehicle while keeping it immune to theft:
+
+```ini
+[ExampleDrone]
+NonVehicle=no
+VehicleThief.Allowed=no
+```
+
+The drone can then use normal vehicle repair and carryall rules. Those actions
+still depend on its configuration, the repair weapon, and normal game conditions.
+Keeping `NonVehicle=yes` keeps that tag's existing side effects. This feature does
+not change `TiberiumHeal`, `SelfHealing`, or veteran abilities.
+
+The setting is saved with type data and applies to orders restored from a save.
+Saves from before this serialized layout change are incompatible.
+
 ### Spawners
 
 - Vinifera ports the spawn manager, responsible for AircraftType missiles and aircraft carriers from Red Alert 2.

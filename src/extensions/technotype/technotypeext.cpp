@@ -111,7 +111,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     AbandonTargetEscortRange(-1),
     ScrapExplosion(),
     VeteranSightRange(-1),
-    EliteSightRange(-1)
+    EliteSightRange(-1),
+    IsVehicleThiefAllowed(true)
 {
 }
 
@@ -295,6 +296,7 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(AbandonTargetEscortRange);
     crc(VeteranSightRange);
     crc(EliteSightRange);
+    crc(IsVehicleThiefAllowed);
 }
 
 
@@ -361,6 +363,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsImmuneToEMP = ini.Get_Bool(ini_name, "ImmuneToEMP", IsImmuneToEMP);
     IsCanPassiveAcquire = ini.Get_Bool(ini_name, "CanPassiveAcquire", IsCanPassiveAcquire);
     IsCanRetaliate = ini.Get_Bool(ini_name, "CanRetaliate", IsCanRetaliate);
+    IsVehicleThiefAllowed = ini.Get_Bool(ini_name, "VehicleThief.Allowed", IsVehicleThiefAllowed);
     IsLegalTargetComputer = ini.Get_Bool(ini_name, "AILegalTarget", IsLegalTargetComputer);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
@@ -564,6 +567,16 @@ int TechnoTypeClassExtension::Get_Jumpjet_Wobble_Deviation() const
         return _JumpjetWobbleDeviation;
     }
     return Rule->JumpjetWobbleDeviation;
+}
+
+
+bool TechnoTypeClassExtension::Is_Vehicle_Theft_Allowed(const TechnoClass* target)
+{
+    if (target == nullptr || (target->RTTI != RTTI_UNIT && target->RTTI != RTTI_AIRCRAFT)) {
+        return true;
+    }
+
+    return Extension::Fetch(target->TClass)->IsVehicleThiefAllowed;
 }
 
 

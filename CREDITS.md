@@ -163,6 +163,9 @@ This page lists all the individual contributions to the project by their author.
   - Author of the default `EVA.INI` shipped alongside Vinifera.
 - **E1 Elite**:
   - Transcribed the in-game speeches used for the subtitles in the default `EVA.INI`.
+- **equalchance**:
+  - Implement `VehicleThief.Allowed` with AI assistance, following a TI developer's request and Vinifera request #634. Native gameplay acceptance is recorded separately in the contribution test kit.
+
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:
