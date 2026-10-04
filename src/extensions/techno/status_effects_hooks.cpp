@@ -36,7 +36,7 @@ DEFINE_HOOK(0x004A58B9, _FootClass_AI_Status_Tiberium_Healing, 6)
 
 // EBP is ParticleClass*. Converted clouds retain movement and aging but skip
 // RemainingDC/legacy health handling. Exposure is sampled at frame completion.
-DEFINE_HOOK(0x005A3779, _ParticleClass_AI_Status_Gas_Health, 9)
+DEFINE_HOOK(0x005A3779, _ParticleClass_AI_Status_Gas_Health, 10)
 {
     GET(ParticleClass*, particle, EBP);
     if (StatusEffects::Replaces_Gas_Health(particle)) return 0x005A396D;
