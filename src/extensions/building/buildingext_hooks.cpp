@@ -1695,6 +1695,8 @@ DEFINE_HOOK(0x00430A01, _BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Pa
     LEA_STACK(Coord const*, coord, 0x40);
 
     if (Unlimbo_Helper(mcv, *coord, dir)) {
+        GET(BuildingClass*, previous, ESI);
+        StatusEffects::Transfer(previous, mcv);
         return 0x00430A1A;
     } else {
         return 0x00430B37;

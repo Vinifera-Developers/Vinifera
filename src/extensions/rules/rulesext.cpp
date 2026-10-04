@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "rulesext.h"
 
@@ -164,6 +165,7 @@ RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     MaxPips(noinit),
     IronCurtains(noinit),
     IronCurtainPulseTable(noinit),
+    StatusDefinitions(noinit),
     AIHarvestersPerRefinery(noinit),
     BaseUnit(noinit)
 {
@@ -187,6 +189,7 @@ RulesClassExtension::~RulesClassExtension()
  */
 HRESULT RulesClassExtension::Load(IStream *pStm)
 {
+    StatusDefinitions.Clear();
     MaxPips.Clear();
     IronCurtains.Clear();
     IronCurtainPulseTable.Clear();
@@ -200,6 +203,8 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
 
     new (this) RulesClassExtension(NoInitClass());
 
+    hr = StatusEffects::Load_Definitions(pStm, StatusDefinitions);
+    if (FAILED(hr)) return hr;
     MaxPips.Load_Self(pStm);
     IronCurtains.Load_Self(pStm);
     IronCurtainPulseTable.Load_Self(pStm);
@@ -226,6 +231,8 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    hr = StatusEffects::Save_Definitions(pStm, StatusDefinitions);
+    if (FAILED(hr)) return hr;
     MaxPips.Save_Self(pStm);
     IronCurtains.Save_Self(pStm);
     IronCurtainPulseTable.Save_Self(pStm);
@@ -385,6 +392,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
      *  Process the objects (extension classes).
      *  This includes all vanilla objects.
      */
+    StatusEffects::Read_Definitions(ini);
     Objects(ini);
 
     This()->CrateRules(ini);

@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "technoext_hooks.h"
 
@@ -2466,6 +2467,9 @@ DEFINE_HOOK(0x006328DE, _TechnoClass_Take_Damage_Intercept_Patch, 7)
     GET_STACK(int*, damage, 0xEC);
     GET_STACK(const WarheadTypeClass*, warhead, 0xF4);
     GET_STACK(TechnoClass*, source, 0xF8);
+
+    if (!Is_Unit_Dying(reinterpret_cast<TechnoClassExt*>(this_ptr)))
+        StatusEffects::Weapon_Impact(this_ptr, warhead, source);
 
     if (!Should_Take_Damage(this_ptr, source, warhead, *damage)) {
         *damage = 0;

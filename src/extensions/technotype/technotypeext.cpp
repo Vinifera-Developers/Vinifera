@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "technotypeext.h"
 
@@ -127,6 +128,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
     VoiceEnter(noinit),
     VoiceDeploy(noinit),
     VoiceHarvest(noinit),
+    StatusRules(noinit),
     BuiltAt(noinit),
     ScrapExplosion(noinit)
 {
@@ -152,6 +154,7 @@ TechnoTypeClassExtension::~TechnoTypeClassExtension()
  */
 HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
+    StatusRules.Clear();
     VoiceCapture.Clear();
     VoiceEnter.Clear();
     VoiceDeploy.Clear();
@@ -164,6 +167,8 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    hr = StatusEffects::Load_Targets(pStm, StatusRules);
+    if (FAILED(hr)) return hr;
     VoiceCapture.Load_Self(pStm);
     VoiceEnter.Load_Self(pStm);
     VoiceDeploy.Load_Self(pStm);
@@ -218,6 +223,8 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    hr = StatusEffects::Save_Targets(pStm, StatusRules);
+    if (FAILED(hr)) return hr;
     VoiceCapture.Save_Self(pStm);
     VoiceEnter.Save_Self(pStm);
     VoiceDeploy.Save_Self(pStm);
@@ -468,6 +475,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     This()->CollateralDamageCoefficient = ini.Get_Float(ini_name, "CollateralDamageCoefficient", This()->CollateralDamageCoefficient);
 
+    StatusEffects::Read_Target(ini, ini_name, StatusRules);
     return true;
 }
 

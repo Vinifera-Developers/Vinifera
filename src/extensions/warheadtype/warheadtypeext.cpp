@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "warheadtypeext.h"
 
@@ -34,6 +35,7 @@
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
+    StatusBinding(StatusEffects::EmptyBinding()),
     IsWallAbsoluteDestroyer(false),
     IsAffectsAllies(true),
     CombatLightSize(0.0f),
@@ -317,6 +319,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     IsVolumetric = ini.Get_Bool(ini_name, "Volumetric", IsVolumetric);
     IsSnapToCellCenter = ini.Get_Bool(ini_name, "SnapToCellCenter", IsSnapToCellCenter);
 
+    StatusEffects::Read_Binding(ini, ini_name, StatusBinding, false);
     IsInitialized = true;
 
     return true;

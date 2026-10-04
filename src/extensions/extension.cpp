@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "extension.h"
 
@@ -2106,5 +2107,6 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(KamikazeTrackerClass);
     version += sizeof(AircraftTrackerClass);
 
-    return version;
+    // Named status records have their own wire-format revision.
+    return version ^ 0x53540001u;
 }

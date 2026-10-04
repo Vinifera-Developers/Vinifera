@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "particletypeext.h"
 
@@ -22,7 +23,8 @@
  *  @author: CCHyper
  */
 ParticleTypeClassExtension::ParticleTypeClassExtension(const ParticleTypeClass *this_ptr) :
-    ObjectTypeClassExtension(this_ptr)
+    ObjectTypeClassExtension(this_ptr),
+    StatusBinding(StatusEffects::EmptyBinding())
 {
     ParticleTypeExtensions.Add(this);
 }
@@ -141,6 +143,7 @@ bool ParticleTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    StatusEffects::Read_Binding(ini, ini_name, StatusBinding, true);
     IsInitialized = true;
     
     return true;
