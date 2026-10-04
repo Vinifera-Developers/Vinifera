@@ -1,6 +1,6 @@
 # Status effects
 
-Define a named damage-over-time effect in `[StatusEffectTypes]`, then bind it to a warhead, Tiberium type, or particle type. The target owns its timer. Animation visibility and removal do not control health changes.
+Define a named damage-over-time effect in `[StatusEffectTypes]`, then bind it to a warhead, Tiberium type, or gas particle type. Non-gas particle bindings are rejected when loading configuration. The target owns its timer. Animation visibility and removal do not control health changes.
 
 ```ini
 [StatusEffectTypes]
@@ -8,6 +8,7 @@ Define a named damage-over-time effect in `[StatusEffectTypes]`, then bind it to
 
 [Status.TiberiumPoisoning]
 EligibleTypes=Infantry
+Response=Damage
 Damage.PerTick=2
 Damage.Warhead=StatusTiberiumWH
 Tick.Count=6
@@ -58,9 +59,11 @@ Status.TiberiumPoisoning.Response=Inherit
 
 `EligibleTypes` accepts `Infantry`, `Vehicle`/`Unit`, `Aircraft`, and `Building`. Explicit eligibility overrides the category. Immunity rejects application and clears existing instances. The percentage multiplier affects harmful ticks. Explicit target `Response=Damage`, `Heal`, or `Ignore` takes precedence over source and effect responses.
 
+`Response=Damage`, `Heal`, or `Ignore` on an effect selects its default health response; it defaults to `Damage`. For example, a `Status.Repair` effect with `Response=Heal` can repair eligible vehicles without `TiberiumHeal=yes`. `TiberiumHeal.Response` defaults to `Inherit`, so those targets also use the effect default unless a conditional override is configured.
+
 The example converts ticks into healing for targets with the existing type boolean `TiberiumHeal=yes`, regardless of application source. A source can override this with `Status.TiberiumPoisoning.TiberiumHeal.Response=Damage`, `Heal`, `Ignore`, or `Inherit`. The veteran ability is not included automatically. `TiberiumProof` is not generalized status immunity.
 
-Ticks use native damage handling with the configured warhead. Positive damage retains armor and other native modifiers; negative damage clamps at maximum health. Zero resistance skips the damage call. The first accepted source keeps attribution; destruction clears its live pointer while the timer continues. Environmental sources are neutral. Friendly-fire checks use the original source house and current target owner.
+Ticks use native damage handling with the configured warhead. Effects apply to explosion targets selected by existing `CellSpread` and air-targeting logic; ticks do not create another area explosion. Iron Curtain can block tick damage while the attached timer continues and consumes attempts. Positive damage retains armor and other native modifiers; negative damage clamps at maximum health. Zero resistance skips the damage call. The first accepted source keeps attribution; destruction clears its live pointer while the timer continues. Environmental sources are neutral. Friendly-fire checks use the original source house and current target owner.
 
 Limbo pauses countdowns; cloaking and EMP do not. Successful supported deployment and transformation paths transfer eligible state. Death removes it. Saves stream records and remap pointers; the save format is incompatible with older builds. Status state contributes to the native network checksum.
 

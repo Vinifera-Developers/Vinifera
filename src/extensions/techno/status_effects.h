@@ -21,6 +21,7 @@ struct Definition {
     int Count;
     int Interval;
     int FirstDelay;
+    Response HealthResponse;
     Response TiberiumHeal;
     bool ApplyStatuses;
     WarheadTypeClass* Warhead;

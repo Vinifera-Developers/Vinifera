@@ -15,7 +15,7 @@ DEFINE_HOOK(0x005B58C0, _Compute_Game_CRC_Status_State, 6)
     return 0;
 }
 
-// Exact Chilong game.exe: 8f1756fb...dd41. The 12-byte span is
+// Verified TS 2.03 native instruction span (reaudit for each executable):
 // mov eax,[esp+14h]; mov dword ptr [esp+10h],6D1398h. Returning zero
 // executes those displaced instructions before normal LogicClass::AI cleanup.
 DEFINE_HOOK(0x005071E4, _LogicClass_AI_Status_Completion, 12)

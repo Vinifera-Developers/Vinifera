@@ -237,7 +237,8 @@ void Read_Definitions(CCINIClass& ini)
             strcpy_s(definition.Name, name);
             definition.EligibleMask = 1;
             definition.Damage = 1; definition.Count = 1; definition.Interval = 15; definition.FirstDelay = -1;
-            definition.TiberiumHeal = Response::Damage;
+            definition.HealthResponse = Response::Damage;
+            definition.TiberiumHeal = Response::Inherit;
             definitions.Add(definition);
         }
     }
@@ -263,6 +264,8 @@ void Read_Definitions(CCINIClass& ini)
             Invalid(section, "Tick.FirstDelay");
         definition.FirstDelay = Integer(ini, section, "Tick.FirstDelay", definition.FirstDelay);
         if (definition.FirstDelay < 0) definition.FirstDelay = definition.Interval;
+        definition.HealthResponse = ReadResponse(ini, section, "Response", definition.HealthResponse);
+        if (definition.HealthResponse == Response::Inherit) Invalid(section, "Response requires Damage, Heal, or Ignore");
         definition.TiberiumHeal = ReadResponse(ini, section, "TiberiumHeal.Response", definition.TiberiumHeal);
         definition.ApplyStatuses = Boolean(ini, section, "Tick.ApplyStatuses", definition.ApplyStatuses);
         if (Text(ini, section, "Damage.Warhead", value)) {
@@ -389,7 +392,8 @@ void Complete_Frame()
             if (!Advance(state.Clock, Frame, definition.Interval, paused)) { ++i; continue; }
             const auto settings = TargetSettings(object, state.Effect);
             Response response = settings.HealthResponse;
-            if (response == Response::Inherit) response = object->TClass->IsTiberiumHeal ? state.TiberiumHeal : Response::Damage;
+            if (response == Response::Inherit && object->TClass->IsTiberiumHeal) response = state.TiberiumHeal;
+            if (response == Response::Inherit) response = definition.HealthResponse;
             int damage = response == Response::Heal ? -definition.Damage :
                 static_cast<int>(std::min<long long>(INT_MAX, static_cast<long long>(definition.Damage) * settings.DamagePercent / 100));
             if (response == Response::Ignore || (!state.AffectsAllies && Allied(state.SourceHouse, object))) damage = 0;
@@ -442,7 +446,7 @@ unsigned long Network_CRC(unsigned long native_crc)
     for (int i = 0; i < definitions.Count(); ++i) {
         const auto& d = definitions[i];
         crc(d.Name); crc(d.EligibleMask); crc(d.Damage); crc(d.Count);
-        crc(d.Interval); crc(d.FirstDelay); crc(static_cast<int>(d.TiberiumHeal));
+        crc(d.Interval); crc(d.FirstDelay); crc(static_cast<int>(d.HealthResponse)); crc(static_cast<int>(d.TiberiumHeal));
         crc(d.ApplyStatuses); crc(d.Warhead ? d.Warhead->Fetch_Heap_ID() : -1);
     }
     auto binding = [&](const Binding& b) {
@@ -504,6 +508,7 @@ HRESULT Load_Definitions(IStream* stream, DynamicVectorClass<Definition>& defini
     for (int i = 0; i < definitions.Count(); ++i) {
         const auto& d = definitions[i];
         if (!memchr(d.Name, 0, sizeof(d.Name)) || d.Damage <= 0 || d.Count <= 0 || d.Interval <= 0 || d.FirstDelay < 0 ||
+            d.HealthResponse < Response::Damage || d.HealthResponse > Response::Ignore ||
             d.TiberiumHeal < Response::Inherit || d.TiberiumHeal > Response::Ignore) return E_FAIL;
         VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(definitions[i].Warhead, "Status.Warhead");
     }

@@ -2108,5 +2108,5 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(AircraftTrackerClass);
 
     // Named status records have their own wire-format revision.
-    return version ^ 0x53540001u;
+    return version ^ 0x53540002u;
 }

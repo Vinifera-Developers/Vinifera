@@ -14,6 +14,8 @@
 
 #include "ccini.h"
 #include "extension.h"
+#include "fatal.h"
+#include <cstdlib>
 #include "particletype.h"
 
 
@@ -144,6 +146,11 @@ bool ParticleTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     StatusEffects::Read_Binding(ini, ini_name, StatusBinding, true);
+    // Only gas has a verified adapter that replaces native health handling.
+    if (StatusBinding.Effect >= 0 && This()->BehavesLike != BEHAVIOUR_GAS) {
+        Fatal("Invalid status-effect configuration: [%s] Status.Apply requires BehavesLike=Gas", ini_name);
+        std::abort();
+    }
     IsInitialized = true;
     
     return true;
