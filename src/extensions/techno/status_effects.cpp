@@ -394,7 +394,9 @@ void Complete_Frame()
             Response response = settings.HealthResponse;
             if (response == Response::Inherit && object->TClass->IsTiberiumHeal) response = state.TiberiumHeal;
             if (response == Response::Inherit) response = definition.HealthResponse;
-            int damage = response == Response::Heal ? -definition.Damage :
+            // Native healing adds before clamping. Bound the addition so a
+            // valid large magnitude cannot overflow a living target's health.
+            int damage = response == Response::Heal ? -std::min(definition.Damage, INT_MAX - object->Strength) :
                 static_cast<int>(std::min<long long>(INT_MAX, static_cast<long long>(definition.Damage) * settings.DamagePercent / 100));
             if (response == Response::Ignore || (!state.AffectsAllies && Allied(state.SourceHouse, object))) damage = 0;
             TechnoClass* invoker = state.Invoker;
