@@ -81,6 +81,7 @@ Fixes:
 - Fix a bug where CollateralDamageCoefficient would be reset if an object's section is specified on the map file (by JoyfulShush)
 - Fix a bug where AITrigger team creation happened for human players in multiplayer if enabled through a trigger, leading to desyncs due to team recruitment depending on local unit control group state (by Rampastring)
 - Fix a bug where Carryalls became immune to weapons when sitting on the ground while holding a unit and being ignored by AI (by JoyfulShush)
+- Fix a bug where the game could go out of sync when a rocket was spawned (by Rampastring)
 
 :::
 

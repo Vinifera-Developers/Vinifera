@@ -314,6 +314,7 @@ This page lists all the individual contributions to the project by their author.
   - Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files.
   - Fix game exiting with a "The legacy version of HouseClass::Fetch_Factory has been called" error when a spectator selected a factory building.
   - Fix a bug where AITrigger team creation happened for human players in multiplayer if enabled through a trigger, leading to desyncs due to team recruitment depending on local unit control group state.
+  - Fix a bug where the game could go out of sync when a rocket was spawned.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

@@ -18,7 +18,8 @@
  *  @author: CCHyper
  */
 FootClassExtension::FootClassExtension(const FootClass *this_ptr) :
-    TechnoClassExtension(this_ptr)
+    TechnoClassExtension(this_ptr),
+    LastFlightCell(CELL_NONE)
 {
 }
 
