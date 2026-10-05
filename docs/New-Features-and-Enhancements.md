@@ -688,7 +688,7 @@ Vanilla actions are always present implicitly, but their properties **can** be o
 
 ### Vehicle Theft Permission
 
-`VehicleThief.Allowed` controls whether infantry can steal a VehicleType or
+`VehicleThiefAllowed` controls whether infantry can steal a VehicleType or
 AircraftType. It is a boolean in the target type's `RULES.INI` section and defaults
 to `yes`. Setting it to `no` blocks both `VehicleThief=yes` capture orders and the
 separate `Thief=yes` proximity theft routine, wherever those routines already
@@ -696,7 +696,7 @@ support the target.
 
 ```ini
 [SOMEVEHICLE] ; VehicleType, or an AircraftType section
-VehicleThief.Allowed=yes
+VehicleThiefAllowed=yes
 ```
 
 This is an additional restriction. Missing or `yes` preserves existing theft
@@ -715,7 +715,7 @@ To make a drone count as a vehicle while keeping it immune to theft:
 ```ini
 [ExampleDrone]
 NonVehicle=no
-VehicleThief.Allowed=no
+VehicleThiefAllowed=no
 ```
 
 The drone can then use normal vehicle repair and carryall rules. Those actions

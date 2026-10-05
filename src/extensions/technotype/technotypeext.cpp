@@ -363,7 +363,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsImmuneToEMP = ini.Get_Bool(ini_name, "ImmuneToEMP", IsImmuneToEMP);
     IsCanPassiveAcquire = ini.Get_Bool(ini_name, "CanPassiveAcquire", IsCanPassiveAcquire);
     IsCanRetaliate = ini.Get_Bool(ini_name, "CanRetaliate", IsCanRetaliate);
-    IsVehicleThiefAllowed = ini.Get_Bool(ini_name, "VehicleThief.Allowed", IsVehicleThiefAllowed);
+    IsVehicleThiefAllowed = ini.Get_Bool(ini_name, "VehicleThiefAllowed", IsVehicleThiefAllowed);
     IsLegalTargetComputer = ini.Get_Bool(ini_name, "AILegalTarget", IsLegalTargetComputer);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
