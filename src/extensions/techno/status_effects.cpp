@@ -232,6 +232,7 @@ void Read_Definitions(CCINIClass& ini)
     const int count = ini.Entry_Count("StatusEffectTypes");
     for (int i = 0; i < count; ++i) {
         if (!Text(ini, "StatusEffectTypes", ini.Get_Entry("StatusEffectTypes", i), name)) Invalid("StatusEffectTypes", "empty entry");
+        if (std::strchr(name, '.')) Invalid("StatusEffectTypes", "effect names must not contain periods");
         if (Find(name) < 0) {
             Definition definition{};
             strcpy_s(definition.Name, name);
@@ -257,49 +258,48 @@ void Read_Definitions(CCINIClass& ini)
                 else Invalid(section, "EligibleTypes");
             }
         }
-        definition.Damage = Integer(ini, section, "Damage.PerTick", definition.Damage);
-        definition.Count = Integer(ini, section, "Tick.Count", definition.Count);
-        definition.Interval = Integer(ini, section, "Tick.Interval", definition.Interval);
-        if (Text(ini, section, "Tick.FirstDelay", value) && Integer(ini, section, "Tick.FirstDelay", 0) < 0)
-            Invalid(section, "Tick.FirstDelay");
-        definition.FirstDelay = Integer(ini, section, "Tick.FirstDelay", definition.FirstDelay);
+        definition.Damage = Integer(ini, section, "DamagePerTick", definition.Damage);
+        definition.Count = Integer(ini, section, "TickCount", definition.Count);
+        definition.Interval = Integer(ini, section, "TickInterval", definition.Interval);
+        if (Text(ini, section, "TickFirstDelay", value) && Integer(ini, section, "TickFirstDelay", 0) < 0)
+            Invalid(section, "TickFirstDelay");
+        definition.FirstDelay = Integer(ini, section, "TickFirstDelay", definition.FirstDelay);
         if (definition.FirstDelay < 0) definition.FirstDelay = definition.Interval;
         definition.HealthResponse = ReadResponse(ini, section, "Response", definition.HealthResponse);
         if (definition.HealthResponse == Response::Inherit) Invalid(section, "Response requires Damage, Heal, or Ignore");
-        definition.TiberiumHeal = ReadResponse(ini, section, "TiberiumHeal.Response", definition.TiberiumHeal);
-        definition.ApplyStatuses = Boolean(ini, section, "Tick.ApplyStatuses", definition.ApplyStatuses);
-        if (Text(ini, section, "Damage.Warhead", value)) {
+        definition.TiberiumHeal = ReadResponse(ini, section, "TiberiumHealResponse", definition.TiberiumHeal);
+        definition.ApplyStatuses = Boolean(ini, section, "TickApplyStatuses", definition.ApplyStatuses);
+        if (Text(ini, section, "DamageWarhead", value)) {
             definition.Warhead = nullptr;
             for (int w = 0; w < Warheads.Count(); ++w) if (!_stricmp(Warheads[w]->Name(), value)) definition.Warhead = Warheads[w];
-            if (!definition.Warhead) Invalid(section, "Damage.Warhead");
+            if (!definition.Warhead) Invalid(section, "DamageWarhead");
         }
-        if (!definition.Warhead) Invalid(section, "Damage.Warhead is required");
+        if (!definition.Warhead) Invalid(section, "DamageWarhead is required");
         if (definition.Damage <= 0 || definition.Count <= 0 || definition.Interval <= 0 || definition.FirstDelay < 0 ||
             static_cast<long long>(definition.FirstDelay) + static_cast<long long>(definition.Count - 1) * definition.Interval > INT_MAX)
             Invalid(section, "damage/count/interval/delay");
         if (Text(ini, section, "Reapply", value) && _stricmp(value, "Refresh")) Invalid(section, "Reapply (v1 requires Refresh)");
         if (Integer(ini, section, "StackLimit", 1) != 1) Invalid(section, "StackLimit (v1 requires 1)");
-        if (Text(ini, section, "Duration", value) || Text(ini, section, "Tick.Duration", value)) Invalid(section, "duration is unsupported; use Tick.Count");
+        if (Text(ini, section, "Duration", value) || Text(ini, section, "TickDuration", value)) Invalid(section, "duration is unsupported; use TickCount");
     }
 }
 void Read_Binding(CCINIClass& ini, const char* section, Binding& binding, bool environment)
 {
     char value[128];
-    if (Text(ini, section, "Status.Apply", value)) {
+    if (Text(ini, section, "StatusEffect", value)) {
         if (!_stricmp(value, "none")) binding = EmptyBinding();
         binding.Effect = !_stricmp(value, "none") ? -1 : Find(value);
-        if (binding.Effect < 0 && _stricmp(value, "none")) Invalid(section, "Status.Apply");
+        if (binding.Effect < 0 && _stricmp(value, "none")) Invalid(section, "StatusEffect");
         if (environment && binding.Effect >= 0) binding.ReplaceLegacy = true;
     }
-    binding.ReplaceLegacy = Boolean(ini, section, "Status.ReplaceLegacyHealth", binding.ReplaceLegacy);
+    binding.ReplaceLegacy = Boolean(ini, section, "StatusEffectReplaceLegacyHealth", binding.ReplaceLegacy);
     if (binding.Effect < 0) {
-        if (binding.ReplaceLegacy) Invalid(section, "Status.ReplaceLegacyHealth requires Status.Apply");
+        if (binding.ReplaceLegacy) Invalid(section, "StatusEffectReplaceLegacyHealth requires StatusEffect");
         return;
     }
     if (environment && !binding.ReplaceLegacy) Invalid(section, "environmental status requires legacy health replacement");
-    const std::string name = RuleExtension->StatusDefinitions[binding.Effect].Name;
-    binding.TiberiumHeal = ReadResponse(ini, section, (name + ".TiberiumHeal.Response").c_str(), binding.TiberiumHeal);
-    binding.Persist = Boolean(ini, section, (name + ".PersistAfterExit").c_str(), binding.Persist);
+    binding.TiberiumHeal = ReadResponse(ini, section, "StatusEffectTiberiumHealResponse", binding.TiberiumHeal);
+    binding.Persist = Boolean(ini, section, "StatusEffectPersistAfterExit", binding.Persist);
     if (!environment && !binding.Persist) Invalid(section, "weapon status requires finite persistence");
 }
 void Read_Target(CCINIClass& ini, const char* section, DynamicVectorClass<TargetRule>& rules)
@@ -308,13 +308,13 @@ void Read_Target(CCINIClass& ini, const char* section, DynamicVectorClass<Target
         TargetRule rule{effect, -1, false, 100, Response::Inherit};
         int index = -1;
         for (int i = 0; i < rules.Count(); ++i) if (rules[i].Effect == effect) { rule = rules[i]; index = i; }
-        const std::string prefix = RuleExtension->StatusDefinitions[effect].Name;
+        const std::string prefix = std::string("StatusEffect") + RuleExtension->StatusDefinitions[effect].Name;
         char value[128];
-        if (Text(ini, section, (prefix + ".Eligible").c_str(), value)) rule.Eligible = Boolean(ini, section, (prefix + ".Eligible").c_str(), false);
-        rule.Immune = Boolean(ini, section, (prefix + ".Immune").c_str(), rule.Immune);
-        rule.DamagePercent = Integer(ini, section, (prefix + ".DamageMultiplier").c_str(), rule.DamagePercent, true);
+        if (Text(ini, section, (prefix + "Eligible").c_str(), value)) rule.Eligible = Boolean(ini, section, (prefix + "Eligible").c_str(), false);
+        rule.Immune = Boolean(ini, section, (prefix + "Immune").c_str(), rule.Immune);
+        rule.DamagePercent = Integer(ini, section, (prefix + "DamageMultiplier").c_str(), rule.DamagePercent, true);
         if (rule.DamagePercent < 0 || rule.DamagePercent > 10000) Invalid(section, "DamageMultiplier (0..10000%)");
-        rule.HealthResponse = ReadResponse(ini, section, (prefix + ".Response").c_str(), rule.HealthResponse);
+        rule.HealthResponse = ReadResponse(ini, section, (prefix + "Response").c_str(), rule.HealthResponse);
         if (index < 0) rules.Add(rule); else rules[index] = rule;
     }
 }
