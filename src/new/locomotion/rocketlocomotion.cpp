@@ -471,7 +471,17 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
         Coord coord = Get_Next_Position(static_cast<int>(CurrentSpeed));
 
         if (Map.In_Radar(coord.As_Cell()))
+        {
             LinkedTo->PositionCoord = coord;
+
+            const auto extension = Extension::Fetch(LinkedTo);
+            Cell oldcell = extension->Get_Last_Flight_Cell();
+            Cell newcell = LinkedTo->Get_Cell();
+
+            if (newcell != oldcell) {
+                AircraftTracker->Update_Position(LinkedTo, oldcell, newcell);
+            }
+        }
 
         if (LinkedTo->Strength <= 0)
             Explode();
