@@ -125,6 +125,7 @@ int ParticleTypeClassExtension::Get_Object_Size() const
  */
 void ParticleTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC(StatusBinding, crc);
 }
 
 
@@ -148,7 +149,7 @@ bool ParticleTypeClassExtension::Read_INI(CCINIClass &ini)
     StatusEffects::Read_Binding(ini, ini_name, StatusBinding, true);
     // Only gas has a verified adapter that replaces native health handling.
     if (StatusBinding.Effect >= 0 && This()->BehavesLike != BEHAVIOUR_GAS) {
-        Fatal("Invalid status-effect configuration: [%s] Status.Apply requires BehavesLike=Gas", ini_name);
+        Fatal("Invalid status-effect configuration: [%s] StatusEffect requires BehavesLike=Gas", ini_name);
         std::abort();
     }
     IsInitialized = true;

@@ -1063,6 +1063,9 @@ void Extension::Free_Heaps()
 {
     DEV_DEBUG_INFO("Extension::Free_Heaps(enter)\n");
 
+    // Discard scenario-owned status references before the native type heaps.
+    StatusEffects::Reset();
+
     ++ScenarioInit;
 
     /**

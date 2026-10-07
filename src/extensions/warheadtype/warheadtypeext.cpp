@@ -167,6 +167,7 @@ int WarheadTypeClassExtension::Get_Object_Size() const
  */
 void WarheadTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC(StatusBinding, crc);
     crc(IsWallAbsoluteDestroyer);
     crc(IsAffectsAllies);
     crc(CombatLightSize);

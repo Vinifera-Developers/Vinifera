@@ -62,11 +62,15 @@ void Queue_Application(TechnoClass* target, const Binding& binding, TechnoClass*
                        bool affects_allies = true, bool exposure = false);
 void Weapon_Impact(TechnoClass* target, const WarheadTypeClass* warhead, TechnoClass* invoker);
 void Complete_Frame();
+void Reset();
 void Detach(TechnoClass* object);
 void Transfer(TechnoClass* from, TechnoClass* to);
 bool Replaces_Tiberium_Health(TechnoClass* target);
 bool Replaces_Gas_Health(ParticleClass* particle);
 void CRC(const Instance& state, CRCEngine& crc);
+void CRC(const Binding& binding, CRCEngine& crc);
+void CRC_Definitions(const DynamicVectorClass<Definition>& definitions, CRCEngine& crc);
+void CRC_Targets(const DynamicVectorClass<TargetRule>& targets, CRCEngine& crc);
 unsigned long Network_CRC(unsigned long native_crc);
 HRESULT Load_Instances(IStream* stream, DynamicVectorClass<Instance>& states);
 HRESULT Save_Instances(IStream* stream, const DynamicVectorClass<Instance>& states);

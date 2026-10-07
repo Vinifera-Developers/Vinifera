@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "always.h"
 #include "status_effects.h"
+#include "status_parse.h"
 #include "aircraftext.h"
 #include "buildingext.h"
 #include "cell.h"
@@ -32,6 +33,7 @@
 #include <cstring>
 #include <vector>
 #include <unordered_set>
+#include <type_traits>
 
 namespace StatusEffects {
 namespace {
@@ -66,21 +68,17 @@ int Integer(CCINIClass& ini, const char* section, const char* tag, int fallback,
 {
     char value[128];
     if (!Text(ini, section, tag, value)) return fallback;
-    errno = 0;
-    char* end = nullptr;
-    const long parsed = std::strtol(value, &end, 10);
-    if (percent && *end == '%') ++end;
-    while (*end == ' ' || *end == '\t') ++end;
-    if (end == value || *end || errno || parsed > INT_MAX || parsed < INT_MIN) Invalid(section, tag);
-    return static_cast<int>(parsed);
+    int parsed = 0;
+    if (!Parse_Integer(value, parsed, percent)) Invalid(section, tag);
+    return parsed;
 }
 bool Boolean(CCINIClass& ini, const char* section, const char* tag, bool fallback)
 {
     char value[128];
     if (!Text(ini, section, tag, value)) return fallback;
-    if (!_stricmp(value, "yes") || !_stricmp(value, "true") || !strcmp(value, "1")) return true;
-    if (!_stricmp(value, "no") || !_stricmp(value, "false") || !strcmp(value, "0")) return false;
-    Invalid(section, tag);
+    bool parsed = false;
+    if (!Parse_Boolean(value, parsed)) Invalid(section, tag);
+    return parsed;
 }
 Response ReadResponse(CCINIClass& ini, const char* section, const char* tag, Response fallback)
 {
@@ -198,6 +196,7 @@ HRESULT ReadExact(IStream* stream, void* data, ULONG size)
 }
 template<class T> HRESULT WriteRecords(IStream* stream, const DynamicVectorClass<T>& records)
 {
+    static_assert(std::is_trivially_copyable_v<T>);
     int count = records.Count();
     HRESULT hr = WriteExact(stream, &count, sizeof(count));
     if (FAILED(hr)) return hr;
@@ -209,6 +208,7 @@ template<class T> HRESULT WriteRecords(IStream* stream, const DynamicVectorClass
 }
 template<class T> HRESULT ReadRecords(IStream* stream, DynamicVectorClass<T>& records)
 {
+    static_assert(std::is_trivially_copyable_v<T>);
     int count = 0;
     HRESULT hr = ReadExact(stream, &count, sizeof(count));
     if (FAILED(hr)) return hr;
@@ -225,6 +225,15 @@ template<class T> HRESULT ReadRecords(IStream* stream, DynamicVectorClass<T>& re
 }
 }
 
+void Reset()
+{
+    Requests.clear();
+    FrameObjects.clear();
+    TickOrigin = false;
+    AllowTickApplications = false;
+    if (RuleExtension) RuleExtension->StatusDefinitions.Clear();
+}
+
 void Read_Definitions(CCINIClass& ini)
 {
     auto& definitions = RuleExtension->StatusDefinitions;
@@ -233,6 +242,7 @@ void Read_Definitions(CCINIClass& ini)
     for (int i = 0; i < count; ++i) {
         if (!Text(ini, "StatusEffectTypes", ini.Get_Entry("StatusEffectTypes", i), name)) Invalid("StatusEffectTypes", "empty entry");
         if (std::strchr(name, '.')) Invalid("StatusEffectTypes", "effect names must not contain periods");
+        if (!_stricmp(name, "none")) Invalid("StatusEffectTypes", "none is reserved for clearing a source binding");
         if (Find(name) < 0) {
             Definition definition{};
             strcpy_s(definition.Name, name);
@@ -409,7 +419,12 @@ void Complete_Frame()
                 extension = Extension::Fetch(object);
             }
             if (object->Strength <= 0) { extension->StatusInstances.Clear(); break; }
-            if (extension->StatusInstances[i].Clock.Remaining <= 0) extension->StatusInstances.Delete(i);
+            auto& completed = extension->StatusInstances[i];
+            // Uninterrupted exposure retains its interval even with Count=1.
+            // Keep a finite budget for a persistent channel's eventual exit tail.
+            if (completed.Clock.Remaining <= 0 && completed.ExposureFrame == Frame)
+                Refresh(completed.Clock, definition.Count);
+            if (completed.Clock.Remaining <= 0) extension->StatusInstances.Delete(i);
             else ++i;
         }
     }
@@ -439,11 +454,13 @@ void CRC(const Instance& state, CRCEngine& crc)
     crc(state.Invoker ? static_cast<int>(state.Invoker->Fetch_RTTI()) : -1);
     crc(state.Invoker ? state.Invoker->Fetch_Heap_ID() : -1);
 }
-unsigned long Network_CRC(unsigned long native_crc)
+void CRC(const Binding& binding, CRCEngine& crc)
 {
-    if (!RuleExtension || !RuleExtension->StatusDefinitions.Count()) return native_crc;
-    CRCEngine crc;
-    const auto& definitions = RuleExtension->StatusDefinitions;
+    crc(binding.Effect); crc(static_cast<int>(binding.TiberiumHeal));
+    crc(binding.Persist); crc(binding.ReplaceLegacy);
+}
+void CRC_Definitions(const DynamicVectorClass<Definition>& definitions, CRCEngine& crc)
+{
     crc(definitions.Count());
     for (int i = 0; i < definitions.Count(); ++i) {
         const auto& d = definitions[i];
@@ -451,26 +468,34 @@ unsigned long Network_CRC(unsigned long native_crc)
         crc(d.Interval); crc(d.FirstDelay); crc(static_cast<int>(d.HealthResponse)); crc(static_cast<int>(d.TiberiumHeal));
         crc(d.ApplyStatuses); crc(d.Warhead ? d.Warhead->Fetch_Heap_ID() : -1);
     }
-    auto binding = [&](const Binding& b) {
-        crc(b.Effect); crc(static_cast<int>(b.TiberiumHeal)); crc(b.Persist); crc(b.ReplaceLegacy);
-    };
-    for (int i = 0; i < Warheads.Count(); ++i) binding(Extension::Fetch(Warheads[i])->StatusBinding);
-    for (int i = 0; i < Tiberiums.Count(); ++i) binding(Extension::Fetch(Tiberiums[i])->StatusBinding);
-    for (int i = 0; i < ParticleTypes.Count(); ++i) binding(Extension::Fetch(ParticleTypes[i])->StatusBinding);
+}
+void CRC_Targets(const DynamicVectorClass<TargetRule>& targets, CRCEngine& crc)
+{
+    crc(targets.Count());
+    for (int i = 0; i < targets.Count(); ++i) {
+        const auto& t = targets[i];
+        crc(t.Effect); crc(t.Eligible); crc(t.Immune); crc(t.DamagePercent); crc(static_cast<int>(t.HealthResponse));
+    }
+}
+unsigned long Network_CRC(unsigned long native_crc)
+{
+    if (!RuleExtension || !RuleExtension->StatusDefinitions.Count()) return native_crc;
+    CRCEngine crc;
+    const auto& definitions = RuleExtension->StatusDefinitions;
+    CRC_Definitions(definitions, crc);
+    for (int i = 0; i < Warheads.Count(); ++i) CRC(Extension::Fetch(Warheads[i])->StatusBinding, crc);
+    for (int i = 0; i < Tiberiums.Count(); ++i) CRC(Extension::Fetch(Tiberiums[i])->StatusBinding, crc);
+    for (int i = 0; i < ParticleTypes.Count(); ++i) CRC(Extension::Fetch(ParticleTypes[i])->StatusBinding, crc);
     for (auto object : Objects()) {
         const auto& states = Extension::Fetch(object)->StatusInstances;
         crc(static_cast<int>(object->Fetch_RTTI())); crc(object->Fetch_Heap_ID()); crc(states.Count());
         for (int i = 0; i < states.Count(); ++i) CRC(states[i], crc);
-        const auto& targets = Extension::Fetch(object->TClass)->StatusRules;
-        for (int i = 0; i < targets.Count(); ++i) {
-            const auto& t = targets[i];
-            crc(t.Effect); crc(t.Eligible); crc(t.Immune); crc(t.DamagePercent); crc(static_cast<int>(t.HealthResponse));
-        }
+        CRC_Targets(Extension::Fetch(object->TClass)->StatusRules, crc);
     }
     crc(static_cast<int>(Requests.size()));
     for (const auto& r : Requests) {
         crc(r.Target ? static_cast<int>(r.Target->Fetch_RTTI()) : -1);
-        crc(r.Target ? r.Target->Fetch_Heap_ID() : -1); binding(r.Policy);
+        crc(r.Target ? r.Target->Fetch_Heap_ID() : -1); CRC(r.Policy, crc);
         crc(r.Invoker ? static_cast<int>(r.Invoker->Fetch_RTTI()) : -1);
         crc(r.Invoker ? r.Invoker->Fetch_Heap_ID() : -1);
         crc(r.House); crc(r.Allies); crc(r.Exposure); crc(r.Frame);

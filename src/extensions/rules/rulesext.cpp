@@ -261,6 +261,7 @@ int RulesClassExtension::Get_Object_Size() const
  */
 void RulesClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC_Definitions(StatusDefinitions, crc);
     crc(IsMPAutoDeployMCV);
     crc(IsMPPrePlacedConYards);
     crc(IsBuildOffAlly);

@@ -14,7 +14,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 ### When updating Vinifera
 
-- Status effects change the save format. Saves from builds without this feature cannot be loaded. Existing weapons and hazards retain their behavior unless bound with `Status.Apply`. Bound Tiberium replaces both its legacy damage and terrain healing; bound gas replaces its legacy health damage.
+- Status effects change the save format. Saves from builds without this feature cannot be loaded. Existing weapons and hazards retain their behavior unless bound with `StatusEffect`. Bound Tiberium replaces both its legacy damage and terrain healing; bound gas replaces its legacy health damage.
 
 - Saved games are not compatible between Vinifera versions. Saves created with 0.1.0.0 will not load in 1.0.0.0.
 - Vinifera now includes its own multiplayer spawner, which supersedes the ts-patches spawner. See the [spawner section](Miscellaneous.md#spawner) for how it is configured through `SPAWN.INI`.
@@ -60,7 +60,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 :::{dropdown} Click to show
 
 New:
-  - Add reusable timed status effects with warhead, Tiberium and gas application, target responses, environmental persistence and save/load support.
+- Add reusable timed status effects with warhead, Tiberium and gas application, target responses, environmental persistence and save/load support (by equalchance).
 - Screenshots now display an on-screen confirmation with the saved filename, or an error message if the screenshot could not be written (by ZivDero)
 - Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
 - Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files (by Rampastring)

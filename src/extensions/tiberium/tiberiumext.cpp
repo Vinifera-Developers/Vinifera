@@ -149,6 +149,7 @@ int TiberiumClassExtension::Get_Object_Size() const
  */
 void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC(StatusBinding, crc);
 }
 
 

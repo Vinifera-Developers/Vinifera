@@ -265,6 +265,7 @@ LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
  */
 void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC_Targets(StatusRules, crc);
     crc(IsShakeScreen);
     crc(IsImmuneToEMP);
     crc(ShakePixelYHi);
