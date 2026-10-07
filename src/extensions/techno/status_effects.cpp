@@ -23,6 +23,7 @@
 #include "tibsun_globals.h"
 #include "unitext.h"
 #include "vinifera_saveload.h"
+#include "vinifera_crc.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
 #include "wwcrc.h"
@@ -37,12 +38,6 @@
 
 namespace StatusEffects {
 namespace {
-struct NativeCRCStorage {
-    CRCEngine Engine;
-    // Native CRC staging writes one byte beyond TSpp's four-byte buffer.
-    unsigned char StagingPadding[sizeof(long)]{};
-};
-static_assert(sizeof(CRCEngine) == 12 && sizeof(NativeCRCStorage) == 16);
 struct Request {
     TechnoClass* Target;
     Binding Policy;
@@ -455,33 +450,41 @@ void Transfer(TechnoClass* from, TechnoClass* to)
 }
 void CRC(const Instance& state, CRCEngine& crc)
 {
-    crc(state.Effect); crc(static_cast<int>(state.TiberiumHeal)); crc(state.Persist); crc(state.AffectsAllies);
-    crc(state.Clock.Remaining); crc(state.Clock.Delay); crc(state.Clock.LastFrame); crc(state.ExposureFrame); crc(state.SourceHouse);
-    crc(state.Invoker ? static_cast<int>(state.Invoker->Fetch_RTTI()) : -1);
-    crc(state.Invoker ? state.Invoker->Fetch_Heap_ID() : -1);
+    Feed_Native_CRC(crc, [&state](CRCEngine& native_crc) {
+        native_crc(state.Effect); native_crc(static_cast<int>(state.TiberiumHeal)); native_crc(state.Persist); native_crc(state.AffectsAllies);
+        native_crc(state.Clock.Remaining); native_crc(state.Clock.Delay); native_crc(state.Clock.LastFrame); native_crc(state.ExposureFrame); native_crc(state.SourceHouse);
+        native_crc(state.Invoker ? static_cast<int>(state.Invoker->Fetch_RTTI()) : -1);
+        native_crc(state.Invoker ? state.Invoker->Fetch_Heap_ID() : -1);
+    });
 }
 void CRC(const Binding& binding, CRCEngine& crc)
 {
-    crc(binding.Effect); crc(static_cast<int>(binding.TiberiumHeal));
-    crc(binding.Persist); crc(binding.ReplaceLegacy);
+    Feed_Native_CRC(crc, [&binding](CRCEngine& native_crc) {
+        native_crc(binding.Effect); native_crc(static_cast<int>(binding.TiberiumHeal));
+        native_crc(binding.Persist); native_crc(binding.ReplaceLegacy);
+    });
 }
 void CRC_Definitions(const DynamicVectorClass<Definition>& definitions, CRCEngine& crc)
 {
-    crc(definitions.Count());
-    for (int i = 0; i < definitions.Count(); ++i) {
-        const auto& d = definitions[i];
-        crc(d.Name); crc(d.EligibleMask); crc(d.Damage); crc(d.Count);
-        crc(d.Interval); crc(d.FirstDelay); crc(static_cast<int>(d.HealthResponse)); crc(static_cast<int>(d.TiberiumHeal));
-        crc(d.ApplyStatuses); crc(d.Warhead ? d.Warhead->Fetch_Heap_ID() : -1);
-    }
+    Feed_Native_CRC(crc, [&definitions](CRCEngine& native_crc) {
+        native_crc(definitions.Count());
+        for (int i = 0; i < definitions.Count(); ++i) {
+            const auto& d = definitions[i];
+            native_crc(d.Name); native_crc(d.EligibleMask); native_crc(d.Damage); native_crc(d.Count);
+            native_crc(d.Interval); native_crc(d.FirstDelay); native_crc(static_cast<int>(d.HealthResponse)); native_crc(static_cast<int>(d.TiberiumHeal));
+            native_crc(d.ApplyStatuses); native_crc(d.Warhead ? d.Warhead->Fetch_Heap_ID() : -1);
+        }
+    });
 }
 void CRC_Targets(const DynamicVectorClass<TargetRule>& targets, CRCEngine& crc)
 {
-    crc(targets.Count());
-    for (int i = 0; i < targets.Count(); ++i) {
-        const auto& t = targets[i];
-        crc(t.Effect); crc(t.Eligible); crc(t.Immune); crc(t.DamagePercent); crc(static_cast<int>(t.HealthResponse));
-    }
+    Feed_Native_CRC(crc, [&targets](CRCEngine& native_crc) {
+        native_crc(targets.Count());
+        for (int i = 0; i < targets.Count(); ++i) {
+            const auto& t = targets[i];
+            native_crc(t.Effect); native_crc(t.Eligible); native_crc(t.Immune); native_crc(t.DamagePercent); native_crc(static_cast<int>(t.HealthResponse));
+        }
+    });
 }
 unsigned long Network_CRC(unsigned long native_crc)
 {
