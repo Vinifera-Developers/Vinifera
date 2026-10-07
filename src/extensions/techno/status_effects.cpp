@@ -37,6 +37,12 @@
 
 namespace StatusEffects {
 namespace {
+struct NativeCRCStorage {
+    CRCEngine Engine;
+    // Native CRC staging writes one byte beyond TSpp's four-byte buffer.
+    unsigned char StagingPadding[sizeof(long)]{};
+};
+static_assert(sizeof(CRCEngine) == 12 && sizeof(NativeCRCStorage) == 16);
 struct Request {
     TechnoClass* Target;
     Binding Policy;
@@ -480,7 +486,8 @@ void CRC_Targets(const DynamicVectorClass<TargetRule>& targets, CRCEngine& crc)
 unsigned long Network_CRC(unsigned long native_crc)
 {
     if (!RuleExtension || !RuleExtension->StatusDefinitions.Count()) return native_crc;
-    CRCEngine crc;
+    NativeCRCStorage storage;
+    CRCEngine& crc = storage.Engine;
     const auto& definitions = RuleExtension->StatusDefinitions;
     CRC_Definitions(definitions, crc);
     for (int i = 0; i < Warheads.Count(); ++i) CRC(Extension::Fetch(Warheads[i])->StatusBinding, crc);
