@@ -2128,3 +2128,56 @@ HarvesterUnderAttackThrottleTime=0.0  ; float, minutes that EVA is forbidden fro
 	- No longer deselects units that are outside of the screen.
 	- Command is now ignored when non-player controlled units or structures are selected.
 	- Players can now press the Select Same Type command twice in quick succession to select units and structures across the map.
+
+## Visceroid ownership from gas particles
+
+Gas particles can assign the small visceroid created by a mutation kill to a
+configured house. Set this on a particle type in `RULES.INI`:
+
+```ini
+[MutationParticle]         ; ParticleType from [Particles]
+VisceroidOwner=Neutral     ; Neutral (default), Invoker or Victim
+```
+
+- `Neutral` uses the existing Neutral house.
+- `Invoker` uses the originating house captured when the effect is created.
+  If no originating house is available, it uses Neutral.
+- `Victim` uses the killed unit's house, captured before the lethal damage call.
+  If no victim house is available, it uses Neutral.
+
+Values are case-insensitive. An unknown value logs an INI warning and retains
+the particle type's current setting, which defaults to `Neutral`. A map overlay
+that omits the key also retains the current setting.
+
+The particle type is the setting's location because the gas particle performs
+the mutation kill. The weapon's warhead may create animations whose damage
+creates another warhead's particles several frames later. Setting ownership on
+the final gas particle covers both direct particles and these delayed chains
+without requiring a second ownership setting on warheads or animations.
+
+The originating house is stored independently of the firing unit. Projectile,
+impact animation, `TrailerAnim`, `Spawns`, bounce/expire animation, warhead
+particle system and descendant particle creation carry this attribution.
+`Next` animation changes retain it on the same animation object. Death or owner
+changes of the firing unit do not change existing effects' attribution. Effect
+records are saved with swizzled effect references and house identities; they
+are included in the multiplayer state CRC in object order. An effect with no
+origin stays unattributed when it creates descendants.
+
+This setting changes ownership only. Existing damage, mutation eligibility,
+scenario enablement, random child counts, placement and occupancy restrictions
+still apply. It does not change mutation from infantry's Tiberium-contact death,
+create different creature types or enable mutation for Smoke or WeakGas.
+
+Small visceroids merge only with small visceroids of the same house. A merge
+retains the destination visceroid's house. Human-owned visceroids retain movement
+and attack orders; wildlife roaming and healing orders are suppressed for every
+human house. Idle same-house small visceroids can still seek a merge. Selection
+continues to use the creature type's normal `Selectable` setting and the game's
+ordinary house control rules.
+
+Effects may be shared by several weapons or environmental producers. To enable
+`Invoker` for only one weapon, clone its shared mutation animation, warhead,
+particle-system and particle definitions as needed, register the cloned types,
+and repoint that weapon's effects. Leave shared gas particles at their default
+unless all their producers should use the new ownership mode.
