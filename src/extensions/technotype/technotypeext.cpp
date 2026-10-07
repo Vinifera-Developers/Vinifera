@@ -22,6 +22,7 @@
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
 #include "spritecollection.h"
+#include "vinifera_crc.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "animtype.h"
@@ -296,7 +297,7 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(AbandonTargetEscortRange);
     crc(VeteranSightRange);
     crc(EliteSightRange);
-    crc(IsVehicleThiefAllowed);
+    Feed_Native_CRC(crc, [this](CRCEngine& native_crc) { native_crc(IsVehicleThiefAllowed); });
 }
 
 

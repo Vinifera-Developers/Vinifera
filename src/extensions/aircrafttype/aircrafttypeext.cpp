@@ -16,6 +16,7 @@
 #include "extension.h"
 #include "rules.h"
 #include "tibsun_globals.h"
+#include "vinifera_crc.h"
 #include "vinifera_saveload.h"
 #include "wwcrc.h"
 
@@ -135,7 +136,7 @@ int AircraftTypeClassExtension::Get_Object_Size() const
  */
 void AircraftTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    crc(IsVehicleThiefAllowed);
+    Feed_Native_CRC(crc, [this](CRCEngine& native_crc) { native_crc(IsVehicleThiefAllowed); });
 }
 
 
