@@ -18,6 +18,7 @@
 #include "tibsun_globals.h"
 #include "unittype.h"
 #include "vinifera_saveload.h"
+#include "wwcrc.h"
 
 
 /**
@@ -134,6 +135,7 @@ int UnitTypeClassExtension::Get_Object_Size() const
  */
 void UnitTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    crc(IsVehicleThiefAllowed);
 }
 
 
