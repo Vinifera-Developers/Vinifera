@@ -14,6 +14,7 @@
 #include "ccini.h"
 #include "debughandler.h"
 #include "wwcrc.h"
+#include "vinifera_crc.h"
 #include "extension.h"
 #include "particletype.h"
 
@@ -124,7 +125,9 @@ int ParticleTypeClassExtension::Get_Object_Size() const
  */
 void ParticleTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    crc(static_cast<int>(VisceroidOwner));
+    Feed_Native_CRC(crc, [this](CRCEngine& native_crc) {
+        native_crc(static_cast<int>(VisceroidOwner));
+    });
 }
 
 

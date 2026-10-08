@@ -2167,7 +2167,7 @@ origin stays unattributed when it creates descendants.
 This setting changes ownership only. Existing damage, mutation eligibility,
 scenario enablement, random child counts, placement and occupancy restrictions
 still apply. It does not change mutation from infantry's Tiberium-contact death,
-create different creature types or enable mutation for Smoke or WeakGas.
+create different creature types or add new mutation paths.
 
 Small visceroids merge only with small visceroids of the same house. A merge
 retains the destination visceroid's house. Human-owned visceroids retain movement

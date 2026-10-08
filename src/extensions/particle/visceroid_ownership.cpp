@@ -4,6 +4,7 @@
 
 #include "abstract.h"
 #include "wwcrc.h"
+#include "vinifera_crc.h"
 #include "particletypeext.h"
 #include "extension.h"
 #include "house.h"
@@ -119,7 +120,8 @@ unsigned Network_CRC(unsigned seed)
     for (int i = 0; i < ParticleTypes.Count(); ++i)
         if (Extension::Fetch(ParticleTypes[i])->VisceroidOwner != Owner::Neutral) configured = true;
     if (records.empty() && !configured) return seed;
-    CRCEngine crc;
+    NativeCRCStorage storage;
+    auto& crc = storage.Engine;
     crc(seed);
     for (int i = 0; i < ParticleTypes.Count(); ++i) {
         crc(ParticleTypes[i]->Fetch_Heap_ID());
