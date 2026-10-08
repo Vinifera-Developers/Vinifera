@@ -144,3 +144,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where music stopped for the rest of the mission once `[Basic]Theme=` had played through.
 - Fix a bug where CollateralDamageCoefficient would be reset if an object's section is specified on the map file.
 - Fix a bug where Carryalls became immune to weapons when sitting on the ground while holding a unit and being ignored by AI.
+- Fix a bug where healing units in AI teams would be preferred as team's leaders, causing attack scripts to be skipped.

@@ -24,6 +24,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Allow pre-placed units to have missions in multiplayer.
 - `BaseUnit` now accepts a list of units. Players will be granted the first unit in the list that has their house listed under `Owners=`.
 - The AI now correctly considers all entries of `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit`.
+- Healing units in AI teams now assume Area Guard stance and escort team members in attack scripts.
 
 ## SIMD Blitters
 
