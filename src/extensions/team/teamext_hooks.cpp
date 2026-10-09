@@ -16,10 +16,11 @@
 #include "cell.h"
 #include "extension.h"
 #include "foot.h"
-#include "footext.h"
 #include "hooker.h"
 #include "house.h"
+#include "infantry.h"
 #include "iomap.h"
+#include "script.h"
 #include "scripttype.h"
 #include "syringe.h"
 #include "team.h"
@@ -41,7 +42,92 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(TeamClass)
 {
 public:
     void _TMission_ATTACK(ScriptMissionClass * mission, bool a1);
+    void _Coordinate_Attack(void);
+    FootClass* TeamClassExt::_Fetch_A_Leader(void) const;
 };
+
+/***********************************************************************************************
+ * _Is_It_Breathing -- Checks to see if unit is an active team member.                         *
+ *                                                                                             *
+ *    A unit could be a team member, but not be active. Such a case would occur when a         *
+ *    reinforcement team is inside a transport. It could also occur if a unit is in the        *
+ *    process of dying. Call this routine to ensure that the specified unit is a will and      *
+ *    able participant in the team.                                                            *
+ *                                                                                             *
+ * INPUT:   object   -- Pointer to the unit/infantry/aircraft that is to be checked.           *
+ *                                                                                             *
+ * OUTPUT:  bool; Is the specified unit active and able to be given commands by the team?      *
+ *                                                                                             *
+ * WARNINGS:   none                                                                            *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   03/11/1996 JLB : Created.                                                                 *
+ *=============================================================================================*/
+static inline bool _Is_It_Breathing(FootClass const* object)
+{
+    /*
+    **	If the object is not present or appears to be dead, then it
+    **	certainly isn't an active member of the team.
+    */
+    if (object == NULL || !object->IsActive || object->Strength == 0) return (false);
+
+    /*
+    **	If the object is in limbo, then it isn't an active team member either. However, if the
+    **	scenario init flag is on, then it is probably a reinforcement issue or scenario
+    **	creation situation. In such a case, the members are considered active because they need to
+    **	be given special orders and treatment.
+    */
+    if (!ScenarioInit && object->IsInLimbo) return (false);
+
+    /*
+    **	Nothing eliminated this object from being considered an active member of the team (i.e.,
+    **	"breathing"), then return that it is ok.
+    */
+    return (true);
+}
+
+
+/***********************************************************************************************
+ * _Is_It_Playing -- Determines if unit is active and an initiated team member.                *
+ *                                                                                             *
+ *    Use this routine to determine if the specified unit is an active participant of the      *
+ *    team. When a unit is first recruited to the team, it must travel to the team's location  *
+ *    before it can become an active player. Call this routine to determine if the specified   *
+ *    unit can be considered an active player.                                                 *
+ *                                                                                             *
+ * INPUT:   object   -- Pointer to the object that is to be checked to see if it is an         *
+ *                      active player.                                                         *
+ *                                                                                             *
+ * OUTPUT:  bool; Is the specified unit an active, living, initiated member of the team?       *
+ *                                                                                             *
+ * WARNINGS:   none                                                                            *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   03/11/1996 JLB : Created.                                                                 *
+ *=============================================================================================*/
+static inline bool _Is_It_Playing(FootClass const* object)
+{
+    /*
+    **	If the object is not active, then it certainly can be a participating member of the
+    **	team.
+    */
+    if (!_Is_It_Breathing(object)) return (false);
+
+    /*
+    **	Only members that have been "Initiated" are considered "playing" participants of the
+    **	team. This results in the team members that are racing to regroup with the team (i.e.,
+    **	not initiated), will continue to catch up to the team even while the initiated team members
+    **	carry out their team specific orders.
+    */
+    if (!object->IsInitiated && object->RTTI != RTTI_AIRCRAFT) return (false);
+
+    /*
+    **	If it reaches this point, then nothing appears to disqualify the specified object from
+    **	being considered an active playing member of the team. In this case, return that
+    **	information.
+    */
+    return (true);
+}
 
 
 /**
@@ -309,6 +395,129 @@ BuildingClass* _Pick_Building_With_Property(BuildingTypeClass* type, HouseClass*
 
 
 /**
+ *  TeamClass::Coordinate_Attack re-implementation.
+ *  Adds a new clause where units that have negative combat damage are instead assigned to area-guard,
+ *  escorting the first team member that has a weapon. Members that have nothing to escort area-guard in place.
+ *  Those units are also set to skip being set the team's target.
+ *
+ *  @author: JoyfulShush
+ */
+void TeamClassExt::_Coordinate_Attack(void)
+{
+    if (Target == NULL) {
+        Target = MissionTarget;
+    }
+
+    /*
+    **	Check if they're attacking a cell.  If the contents of the cell are
+    **	a bridge or a building/unit/techno, then it's a valid target.  Otherwise,
+    **	the target is invalid. This only applies to non-aircraft teams. An aircraft team
+    **	can "attack" an empty cell and this is perfectly ok (paratrooper drop and parabombs
+    **	are prime examples).
+    */
+    if (Is_Target_Cell(Target) && Member != NULL && Fetch_A_Leader()->RTTI != RTTI_AIRCRAFT) {
+        CellClass* cellptr = dynamic_cast<CellClass*>(Target);
+        if (cellptr->Cell_Object()) {
+            Target = cellptr->Cell_Object();
+        }
+    }
+
+    if (Target == NULL) {
+        IsNextMission = true;
+    } else {
+        ScriptMissionClass mission = Script->Get_Current_Mission();
+        bool has_attacker = false;
+        FootClass* unit = Member;
+        while (unit != NULL) {
+
+            Coordinate_Conscript(unit);
+
+            if (_Is_It_Playing(unit)) {
+                if (unit->Combat_Damage() < 0) {
+                    if (unit->ArchiveTarget == nullptr) {
+                        auto member = unit->Team->Member;
+                        FootClass* unit_to_guard = nullptr;
+
+                        while (member != nullptr) {
+                            if (member->Combat_Damage() > 0) {
+                                unit_to_guard = member;
+                                break;
+                            }
+
+                            member = member->Member;
+                        }
+
+                        unit->Assign_Mission(MISSION_GUARD_AREA);
+                        if (unit_to_guard != nullptr) {
+                            unit->Assign_Destination(unit_to_guard);
+                            unit->ArchiveTarget = unit_to_guard;
+                        }
+                    }
+                } else if (mission.Mission == SMISSION_SPY && unit->RTTI == RTTI_INFANTRY && ((InfantryClass*)unit)->Class->IsCapture) {
+                    unit->Assign_Mission(MISSION_CAPTURE);
+                    unit->Assign_Target(Target);
+                } else {
+                    if (unit->Mission != MISSION_ATTACK && unit->Mission != MISSION_ENTER && unit->Mission != MISSION_CAPTURE && (unit->Mission != MISSION_UNLOAD || !unit->Deploy_To_Fire())) {
+                        unit->Transmit_Message(RADIO_OVER_OUT);
+                        unit->Assign_Mission(MISSION_ATTACK);
+                        unit->Assign_Target(NULL);
+                        unit->Assign_Destination(NULL);
+                    }
+                }
+                
+                if (unit->Combat_Damage() >= 0 && unit->TarCom != Target && unit->TarCom == NULL) {
+                    unit->Assign_Target(Target);
+                }
+
+                if (unit->RTTI != RTTI_AIRCRAFT || unit->PrimaryWeapon == NULL || unit->Ammo > 0) {
+                    has_attacker = true;
+                }
+            }
+
+            unit = unit->Member;
+        }
+        if (!has_attacker) {
+            IsNextMission = true;
+        }
+    }
+}
+
+
+/**
+ *  TeamClass::Fetch_A_Leader re-implementation.
+ *  Prefers a leader that has a weapon that can deal damage. If there isn't one, use the last member left to check.
+ *  This fixes a bug where if healers are the first members, they are unable to attack targets, causing attack missions to be skipped.
+ *
+ *  @author: JoyfulShush
+ */
+FootClass* TeamClassExt::_Fetch_A_Leader(void) const
+{
+    FootClass* leader = Member;
+
+    /*
+    **	Scan through the team members trying to find one that is an active member
+    */
+    while (leader != nullptr) {
+        if (_Is_It_Playing(leader) && leader->Combat_Damage() >= 0) {
+            break;
+        }
+
+        leader = leader->Member;
+    }
+
+    /*
+    **	If no suitable leader was found, then just return with the first conveniently
+    **	accessable team member. This presumes that some member is better than no member
+    **	at all.
+    */
+    if (leader == nullptr) {
+       leader = Member;
+    }
+
+    return leader;
+}
+
+/**
  *  Main function for patching the hooks.
  */
 void TeamClassExtension_Hooks()
@@ -317,4 +526,6 @@ void TeamClassExtension_Hooks()
 
     Patch_Jump(0x00625B90, &TeamClassExt::_TMission_ATTACK);
     Patch_Jump(0x006271F0, &_Pick_Building_With_Property);
+    Patch_Jump(0x006245B0, &TeamClassExt::_Coordinate_Attack);
+    Patch_Jump(0x006251F0, &TeamClassExt::_Fetch_A_Leader);
 }

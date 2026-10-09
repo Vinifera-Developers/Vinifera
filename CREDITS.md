@@ -205,6 +205,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where an AI house could get stuck trying to build base nodes after being interrupted by a friendly immovable object.
   - Fix a bug where CollateralDamageCoefficient would be reset if an object's section is specified on the map file.
   - Fix a bug where Carryalls became immune to weapons when sitting on the ground while holding a unit and being ignored by AI.
+  - Fix a bug where healing units in AI teams would be preferred as team's leaders, causing attack scripts to be skipped.
+  - Healing units in AI teams now assume Area Guard stance and escort team members in attack scripts.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Krnyoshi**:
