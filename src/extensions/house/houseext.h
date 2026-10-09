@@ -126,6 +126,11 @@ public:
      */
     bool IsPauseRepairs;
 
+    /*
+    *  Per house TeamTime delay override.
+    */
+    int TeamDelayOverride;
+    
     /**
      *  Is this house an observer?
      */
