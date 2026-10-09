@@ -19,6 +19,7 @@
 #include "syringe.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "visceroid_ownership.h"
 
 
 /**
@@ -62,6 +63,8 @@ DEFINE_HOOK(0x00413C79, _AnimClass_Constructor_Patch, 7)
      *  Create an extended class instance.
      */
     ext_ptr = Extension::Make<AnimClassExtension>(this_ptr);
+    // Local move flashes are not synchronized effects.
+    if (this_ptr->Fetch_ID() >= 0) VisceroidOwnership::Capture(this_ptr);
 
     /**
      *  In multiplayer, the move flash anim is transferred out of the Anims heap

@@ -155,6 +155,8 @@ This page lists all the individual contributions to the project by their author.
   - Reimplement the sound-effect (`VocType`) system from `SOUND.INI` with configurable type, control, priority, limit, range, delay, volume and pitch shift.
   - Reimplement the EVA/VOX speech system from `EVA.INI` with category, priority, control, and per-side speech file support.
   - Groundwork for implementing modern movie playback.
+- **equalchance**:
+  - Add configurable gas-particle visceroid ownership with saved effect attribution and support for control and same-house merging.
 - **CnCNet Contributors**:
   - Tiberian Sun TS-patches spawner, Yuri's Revenge CnCNet spawner that served as a base for Vinifera spawner.
 - **CrimRecya**:

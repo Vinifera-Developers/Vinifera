@@ -11,6 +11,7 @@
 
 #include "objecttypeext.h"
 #include "particletype.h"
+#include "visceroid_ownership.h"
 
 
 class DECLSPEC_UUID(UUID_PARTICLETYPE_EXTENSION)
@@ -43,4 +44,5 @@ ParticleTypeClassExtension final : public ObjectTypeClassExtension
         virtual bool Read_INI(CCINIClass& ini) override;
 
     public:
+        VisceroidOwnership::Owner VisceroidOwner;
 };
