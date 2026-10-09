@@ -8,11 +8,14 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "particletypeext.h"
 
 #include "ccini.h"
 #include "extension.h"
+#include "fatal.h"
+#include <cstdlib>
 #include "particletype.h"
 
 
@@ -22,7 +25,8 @@
  *  @author: CCHyper
  */
 ParticleTypeClassExtension::ParticleTypeClassExtension(const ParticleTypeClass *this_ptr) :
-    ObjectTypeClassExtension(this_ptr)
+    ObjectTypeClassExtension(this_ptr),
+    StatusBinding(StatusEffects::EmptyBinding())
 {
     ParticleTypeExtensions.Add(this);
 }
@@ -121,6 +125,7 @@ int ParticleTypeClassExtension::Get_Object_Size() const
  */
 void ParticleTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC(StatusBinding, crc);
 }
 
 
@@ -141,6 +146,12 @@ bool ParticleTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    StatusEffects::Read_Binding(ini, ini_name, StatusBinding, true);
+    // Only gas has a verified adapter that replaces native health handling.
+    if (StatusBinding.Effect >= 0 && This()->BehavesLike != BEHAVIOUR_GAS) {
+        Fatal("Invalid status-effect configuration: [%s] StatusEffect requires BehavesLike=Gas", ini_name);
+        std::abort();
+    }
     IsInitialized = true;
     
     return true;

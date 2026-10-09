@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #pragma once
+#include "status_effects.h"
 
 #include "abstracttypeext.h"
 #include "warheadtype.h"
@@ -124,4 +125,5 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  Should explosions using this warhead always take place at the center of the cell?
          */
         bool IsSnapToCellCenter;
+    StatusEffects::Binding StatusBinding;
 };

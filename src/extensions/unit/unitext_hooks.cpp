@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "unitext_hooks.h"
 
@@ -975,6 +976,7 @@ UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
             newunit->Commence();
         }
 
+        StatusEffects::Transfer(this_ptr, newunit);
         return newunit;
     }
 
@@ -1672,6 +1674,8 @@ DEFINE_HOOK(0x00651122, Unit_Class_Try_To_Deploy_AI_Persist_Tag_Patch, 10)
 {
     GET(UnitClass*, this_ptr, ESI);
     GET(ObjectClass*, new_building, EDI);
+
+    StatusEffects::Transfer(this_ptr, static_cast<TechnoClass*>(new_building));
 
     if (!RuleExtension->PersistTagsOnAIDeploy) {
         return 0;

@@ -163,6 +163,8 @@ This page lists all the individual contributions to the project by their author.
   - Author of the default `EVA.INI` shipped alongside Vinifera.
 - **E1 Elite**:
   - Transcribed the in-game speeches used for the subtitles in the default `EVA.INI`.
+- **equalchance**:
+  - Implement configurable damage-over-time and healing status effects (with AI assistance).
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **JoyfulShush**:

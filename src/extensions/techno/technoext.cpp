@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "technoext.h"
 
@@ -86,6 +87,7 @@ TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
     RadioClassExtension(noinit),
     Vinifera::Detach::Listener<TechnoClass>(noinit),
     Vinifera::Detach::Listener<AnimClass>(noinit),
+    StatusInstances(noinit),
     Storage(noinit),
     BurstResetTimer(noinit)
 {
@@ -99,6 +101,7 @@ TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
  */
 TechnoClassExtension::~TechnoClassExtension()
 {
+    StatusEffects::Detach(This());
     if (ElectricBolt) {
         delete ElectricBolt;
         ElectricBolt = nullptr;
@@ -128,6 +131,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    hr = StatusEffects::Load_Instances(pStm, StatusInstances);
+    if (FAILED(hr)) return hr;
     Load_Primitive_Vector(pStm, Storage);
 
     ElectricBolt = nullptr;
@@ -153,6 +158,8 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    hr = StatusEffects::Save_Instances(pStm, StatusInstances);
+    if (FAILED(hr)) return hr;
     Save_Primitive_Vector(pStm, Storage);
 
     return hr;
@@ -166,6 +173,11 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 void TechnoClassExtension::On_Detach(TechnoClass *target, bool all)
 {
+    if (all) {
+        StatusEffects::Detach(target);
+        for (int i = 0; i < StatusInstances.Count(); ++i)
+            if (StatusInstances[i].Invoker == target) StatusInstances[i].Invoker = nullptr;
+    }
     if (target == SpawnOwner) {
         SpawnOwner = nullptr;
     }
@@ -191,6 +203,8 @@ void TechnoClassExtension::On_Detach(AnimClass *target, bool all)
 void TechnoClassExtension::Object_CRC(CRCEngine &crc) const
 {
     RadioClassExtension::Object_CRC(crc);
+    crc(StatusInstances.Count());
+    for (int i = 0; i < StatusInstances.Count(); ++i) StatusEffects::CRC(StatusInstances[i], crc);
 
     if (SpawnOwner) {
         crc(SpawnOwner->Fetch_Heap_ID());

@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "extension.h"
 
@@ -1062,6 +1063,9 @@ void Extension::Free_Heaps()
 {
     DEV_DEBUG_INFO("Extension::Free_Heaps(enter)\n");
 
+    // Discard scenario-owned status references before the native type heaps.
+    StatusEffects::Reset();
+
     ++ScenarioInit;
 
     /**
@@ -2106,5 +2110,6 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(KamikazeTrackerClass);
     version += sizeof(AircraftTrackerClass);
 
-    return version;
+    // Named status records have their own wire-format revision.
+    return version ^ 0x53540002u;
 }
