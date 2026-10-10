@@ -92,7 +92,10 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
      *  into the front of the final array, followed by AIs.
      *  House data is read per final slot index since it's already in game slot order.
      */
-    PlayerConfig temp[std::size(Players)];
+    // Use std::extent_v instead of std::size() here: MSVC 19.40 (VS 17.10)
+    // rejects std::size() of a member array as a constant expression in array
+    // bounds ("reads this"), while std::extent_v only inspects the array type.
+    PlayerConfig temp[std::extent_v<decltype(Players)>];
     for (int i = 0; i < std::size(temp); ++i) {
         temp[i].Read_Player_INI(spawn_ini, i);
         if (temp[i].IsHuman) {
@@ -100,7 +103,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
         }
     }
 
-    bool claimed[std::size(Players)] = {};
+    bool claimed[std::extent_v<decltype(Players)>] = {};
     int slot = 0;
 
     for (int s = 0; s < HumanPlayers && slot < std::size(Players); ++s) {
