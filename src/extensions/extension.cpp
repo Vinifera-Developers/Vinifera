@@ -2016,7 +2016,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
  */
 unsigned Extension::Get_Save_Version_Number()
 {
-    unsigned version = 0x100000;
+    // VehicleThiefAllowed changes serialized TechnoType and derived type layouts.
+    unsigned version = 0x100001;
 
     /**
      *  For debug builds, offset the save file version.
