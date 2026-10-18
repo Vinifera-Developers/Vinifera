@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "aircrafttypeext.h"
 
@@ -134,6 +135,7 @@ int AircraftTypeClassExtension::Get_Object_Size() const
  */
 void AircraftTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC_Targets(StatusRules, crc);
 }
 
 

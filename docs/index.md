@@ -13,6 +13,7 @@ License<License.md>
 :caption: Extension Documentation
 Bugfixes<Bugfixes.md>
 New Features and Enhancements<New-Features-and-Enhancements.md>
+Status Effects<Status-Effects.md>
 Mapping<Mapping.md>
 User Interface<User-Interface.md>
 Miscellaneous<Miscellaneous.md>

@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "buildingtypeext.h"
 
@@ -141,6 +142,7 @@ int BuildingTypeClassExtension::Get_Object_Size() const
  */
 void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC_Targets(StatusRules, crc);
     crc(IsEligibleForAllyBuilding);
     crc(IsExclusiveFactory);
 }

@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #pragma once
+#include "status_effects.h"
 
 #include "extension.h"
 #include "objecttypeext.h"
@@ -420,4 +421,5 @@ public:
      *  Falls back to VeteranSightRange when not provided.
      */
     int EliteSightRange;
+    DynamicVectorClass<StatusEffects::TargetRule> StatusRules;
 };

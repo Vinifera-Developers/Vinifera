@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "infantrytypeext.h"
 
@@ -124,6 +125,7 @@ int InfantryTypeClassExtension::Get_Object_Size() const
  */
 void InfantryTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC_Targets(StatusRules, crc);
     crc(IsMechanic);
     crc(IsOmniHealer);
 }

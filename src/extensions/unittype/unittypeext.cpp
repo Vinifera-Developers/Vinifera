@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "unittypeext.h"
 
@@ -134,6 +135,7 @@ int UnitTypeClassExtension::Get_Object_Size() const
  */
 void UnitTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC_Targets(StatusRules, crc);
 }
 
 

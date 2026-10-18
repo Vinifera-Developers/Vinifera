@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #pragma once
+#include "status_effects.h"
 
 #include "abstracttypeext.h"
 #include "tiberium.h"
@@ -103,6 +104,7 @@ public:
     std::vector<bool> SpreadState;
     std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
     std::vector<bool> GrowthState;
+    StatusEffects::Binding StatusBinding;
 };
 
 int Map_Cell_Index(Cell const& cell);

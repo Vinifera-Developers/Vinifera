@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #pragma once
+#include "status_effects.h"
 
 #include "objecttypeext.h"
 #include "particletype.h"
@@ -43,4 +44,5 @@ ParticleTypeClassExtension final : public ObjectTypeClassExtension
         virtual bool Read_INI(CCINIClass& ini) override;
 
     public:
+    StatusEffects::Binding StatusBinding;
 };

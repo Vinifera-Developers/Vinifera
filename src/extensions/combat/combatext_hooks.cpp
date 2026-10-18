@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "combatext_hooks.h"
 
@@ -454,7 +455,7 @@ void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* so
 
     if (Special.IsInert || !warhead) return;
 
-    if (!strength && !warhead->IsWebby) return;
+    if (!strength && !warhead->IsWebby && Extension::Fetch(warhead)->StatusBinding.Effect < 0) return;
 
     const auto warhead_ext = Extension::Fetch(warhead);
 

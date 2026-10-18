@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "infantryext_hooks.h"
 
@@ -596,7 +597,9 @@ DEFINE_HOOK(0x004D3F5D, _InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch, 0
 {
     GET(int, tib_id, EAX);
 
-    int damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
+    const auto tiberium = Extension::Fetch(Tiberiums[tib_id]);
+    int damage = tiberium->StatusBinding.Effect >= 0 && tiberium->StatusBinding.ReplaceLegacy
+        ? 0 : tiberium->DamageToInfantry;
 
     R->EAX(damage);
     R->Stack(0x10, damage);

@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #pragma once
+#include "status_effects.h"
 
 #include "detach_listener.h"
 #include "radioext.h"
@@ -123,4 +124,5 @@ class TechnoClassExtension : public RadioClassExtension,
          *  The countdown until the object's Iron Curtain effect fades away.
          */
         CDTimerClass<FrameTimerClass> IronCurtainTimer;
+    DynamicVectorClass<StatusEffects::Instance> StatusInstances;
 };

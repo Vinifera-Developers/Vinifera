@@ -2,6 +2,10 @@
 
 This page describes all the engine features that are either new and introduced by Vinifera or are otherwise enhanced.
 
+## Status effects
+
+- Define reusable timed damage or healing effects, then apply them through warheads, Tiberium, or gas particles. Configure eligible target categories, immunity, resistance, healing response, timing, refresh and environmental persistence. See [Status effects](Status-Effects.md) for the settings and examples.
+
 ## Aircraft
 
 ### CurleyShuffle

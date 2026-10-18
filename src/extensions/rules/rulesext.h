@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #pragma once
+#include "status_effects.h"
 
 #include "extension.h"
 #include "point.h"
@@ -331,4 +332,5 @@ public:
      *  Whether AI units that deploy should persist their tags, if any, on the building that the unit deployed into
      */
     bool PersistTagsOnAIDeploy;
+    DynamicVectorClass<StatusEffects::Definition> StatusDefinitions;
 };

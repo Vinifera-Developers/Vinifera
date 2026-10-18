@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "status_effects.h"
 
 #include "tiberiumext.h"
 
@@ -29,6 +30,7 @@
  */
 TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
+    StatusBinding(StatusEffects::EmptyBinding()),
     MinSpreadStage(5),
     SpreadSpawnStage(5)
 {
@@ -147,6 +149,7 @@ int TiberiumClassExtension::Get_Object_Size() const
  */
 void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    StatusEffects::CRC(StatusBinding, crc);
 }
 
 
@@ -189,6 +192,7 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     MinSpreadStage = ini.Get_Int(ini_name, "MinSpreadStage", MinSpreadStage);
     SpreadSpawnStage = ini.Get_Int(ini_name, "SpreadSpawnStage", SpreadSpawnStage);
 
+    StatusEffects::Read_Binding(ini, ini_name, StatusBinding, true);
     IsInitialized = true;
     
     return true;
