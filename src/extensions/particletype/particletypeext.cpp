@@ -12,6 +12,9 @@
 #include "particletypeext.h"
 
 #include "ccini.h"
+#include "debughandler.h"
+#include "wwcrc.h"
+#include "vinifera_crc.h"
 #include "extension.h"
 #include "particletype.h"
 
@@ -22,7 +25,8 @@
  *  @author: CCHyper
  */
 ParticleTypeClassExtension::ParticleTypeClassExtension(const ParticleTypeClass *this_ptr) :
-    ObjectTypeClassExtension(this_ptr)
+    ObjectTypeClassExtension(this_ptr),
+    VisceroidOwner(VisceroidOwnership::Owner::Neutral)
 {
     ParticleTypeExtensions.Add(this);
 }
@@ -121,6 +125,9 @@ int ParticleTypeClassExtension::Get_Object_Size() const
  */
 void ParticleTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
+    Feed_Native_CRC(crc, [this](CRCEngine& native_crc) {
+        native_crc(static_cast<int>(VisceroidOwner));
+    });
 }
 
 
@@ -139,6 +146,16 @@ bool ParticleTypeClassExtension::Read_INI(CCINIClass &ini)
 
     if (!ini.Is_Present(ini_name)) {
         return false;
+    }
+
+    char owner[64];
+    if (ini.Get_String(ini_name, "VisceroidOwner", nullptr, owner, sizeof(owner)) > 0) {
+        if (!_stricmp(owner, "Neutral")) VisceroidOwner = VisceroidOwnership::Owner::Neutral;
+        else if (!_stricmp(owner, "Invoker")) VisceroidOwner = VisceroidOwnership::Owner::Invoker;
+        else if (!_stricmp(owner, "Victim")) VisceroidOwner = VisceroidOwnership::Owner::Victim;
+        else {
+            DEBUG_WARNING("[{}] Invalid VisceroidOwner={} (expected Neutral, Invoker or Victim); retaining current value.\n", ini_name, owner);
+        }
     }
 
     IsInitialized = true;

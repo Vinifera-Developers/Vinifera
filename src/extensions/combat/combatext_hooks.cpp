@@ -10,6 +10,7 @@
 #include "always.h"
 
 #include "combatext_hooks.h"
+#include "visceroid_ownership.h"
 
 #include "aircrafttracker.h"
 #include "anim.h"
@@ -447,6 +448,7 @@ bool Damage_Bridge(Cell cell, int damage, const WarheadTypeClass* warhead)
  */
 void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
+    VisceroidOwnership::Scope mutation_origin(VisceroidOwnership::Has_Context() ? VisceroidOwnership::Current() : (source ? source->House : nullptr));
     Cell cell;                                 // Cell number under explosion.
     DynamicVectorClass<ObjectClass*> objects;  // Objects to be damaged.
     int distance;                              // Distance to unit.

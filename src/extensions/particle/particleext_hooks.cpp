@@ -20,17 +20,44 @@
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
 #include "unit.h"
+#include "techno.h"
+#include "particle.h"
+#include "particletypeext.h"
+#include "extension.h"
+#include "visceroid_ownership.h"
+#include <unordered_map>
 
 
-UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
-{
-    if (destroyedobject->RTTI == RTTI_INFANTRY || (destroyedobject->Is_Techno() && destroyedobject->TClass->IsCrew)) {
-        return new UnitClass(Rule->SmallVisceroid, House_From_HousesType(HouseTypeClass::From_Name("Neutral")));
-    }
-
-    return nullptr;
+namespace {
+struct MutationSnapshot {
+    bool Eligible;
+    HouseClass* Owner;
+};
+// A native Take_Damage call has six stack arguments (24 bytes). Its post-call
+// stack pointer distinguishes nested damage calls without retaining the victim.
+std::unordered_map<unsigned, MutationSnapshot> MutationSnapshots;
 }
 
+DEFINE_HOOK(0x005A3896, _ParticleClass_Gas_Capture_Victim_Owner, 6)
+{
+    GET(ObjectClass*, victim, ESI);
+    GET(ParticleClass*, particle, EBP);
+    const bool techno = victim->Is_Techno();
+    const bool eligible = victim->RTTI == RTTI_INFANTRY || (techno && victim->TClass->IsCrew);
+    HouseClass* owner = nullptr;
+    switch (Extension::Fetch(particle->Class)->VisceroidOwner) {
+    case VisceroidOwnership::Owner::Invoker:
+        owner = VisceroidOwnership::Origin(particle);
+        break;
+    case VisceroidOwnership::Owner::Victim:
+        if (techno) owner = static_cast<TechnoClass*>(victim)->House;
+        break;
+    default:
+        break;
+    }
+    MutationSnapshots[R->ESP() + 24] = {eligible, owner};
+    return 0; // Replay the original virtual Take_Damage call.
+}
 
 /**
  *  Fixes a bug where gas clouds are able to turn everything into visceroids, including
@@ -40,7 +67,6 @@ UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
  */
 DEFINE_HOOK(0x005A389C, _ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch, 0)
 {
-    GET(ObjectClass*, destroyedobject, ESI);
     GET(ResultType, result, EAX);
     GET_STACK(ObjectClass*, nextobject, 0x40);
 
@@ -50,6 +76,13 @@ DEFINE_HOOK(0x005A389C, _ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_D
     };
 
     R->ESI(nextobject);
+
+    const auto pending = MutationSnapshots.find(R->ESP());
+    MutationSnapshot mutation = {false, nullptr};
+    if (pending != MutationSnapshots.end()) {
+        mutation = pending->second;
+        MutationSnapshots.erase(pending);
+    }
 
     if (result != RESULT_DESTROYED) {
         // Object was not destroyed, do not create visceroid.
@@ -61,7 +94,11 @@ DEFINE_HOOK(0x005A389C, _ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_D
         return SkipToNextObjectOnCell;
     }
 
-    UnitClass* visceroid = Create_Visceroid(destroyedobject);
+    if (!mutation.Eligible) return SkipToNextObjectOnCell;
+
+    HouseClass* owner = mutation.Owner;
+    if (!owner) owner = House_From_HousesType(HouseTypeClass::From_Name("Neutral"));
+    UnitClass* visceroid = new UnitClass(Rule->SmallVisceroid, owner);
     if (visceroid == nullptr) {
         // No visceroid was created.
         return SkipToNextObjectOnCell;
@@ -77,5 +114,5 @@ DEFINE_HOOK(0x005A389C, _ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_D
  */
 void ParticleClassExtension_Hooks()
 {
-    
+    VisceroidOwnership::Hooks();
 }

@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "always.h"
+#include "visceroid_ownership.h"
 
 #include "extension.h"
 
@@ -781,6 +782,8 @@ bool Extension::Save(IStream *pStm)
     if (FAILED(SessionExtension->Save(pStm, true))) { return false; }
     DEBUG_INFO("Saved \"{}\" extension\n", SessionExtension->Name());
 
+    if (!VisceroidOwnership::Save(pStm)) return false;
+
     DEV_DEBUG_INFO("Extension::Save(exit)\n");
 
     return true;
@@ -887,6 +890,8 @@ bool Extension::Load(IStream *pStm)
      *  of all the abstract extension pointers.
      */
     if (!Extension::Request_Pointer_Remap()) { return false; }
+
+    if (!VisceroidOwnership::Load(pStm)) return false;
 
     DEV_DEBUG_INFO("Extension::Load(exit)\n");
 
@@ -1060,6 +1065,7 @@ bool Extension::Register_Class_Factories()
  */
 void Extension::Free_Heaps()
 {
+    VisceroidOwnership::Clear();
     DEV_DEBUG_INFO("Extension::Free_Heaps(enter)\n");
 
     ++ScenarioInit;
@@ -2017,6 +2023,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 unsigned Extension::Get_Save_Version_Number()
 {
     unsigned version = 0x100000;
+    // Attribution adds a global serialized block as well as a particle-type field.
+    version += 0x564F0001;
 
     /**
      *  For debug builds, offset the save file version.

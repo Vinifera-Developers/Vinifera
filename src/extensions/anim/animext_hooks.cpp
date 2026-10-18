@@ -39,6 +39,7 @@
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
 #include "voc.h"
+#include "visceroid_ownership.h"
 
 
 /**
@@ -126,6 +127,7 @@ static void Do_Anim_Damage(AnimClass* anim, int damage)
  */
 void AnimClassExt::_AI()
 {
+    VisceroidOwnership::Scope mutation_origin(VisceroidOwnership::Origin(this));
     const auto animext = Extension::Fetch(this);
     auto animtypeext = Extension::Fetch(Class);
 
@@ -437,6 +439,7 @@ void AnimClassExt::_AI()
  */
 void AnimClassExt::_Start()
 {
+    VisceroidOwnership::Scope mutation_origin(VisceroidOwnership::Origin(this));
     const auto animext = Extension::Fetch(this);
     const auto animtypeext = Extension::Fetch(Class);
 
@@ -518,6 +521,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
  */
 void AnimClassExt::_Middle()
 {
+    VisceroidOwnership::Scope mutation_origin(VisceroidOwnership::Origin(this));
     const auto animext = Extension::Fetch(this);
     const auto animtypeext = Extension::Fetch(Class);
 
