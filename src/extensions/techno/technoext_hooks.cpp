@@ -3210,6 +3210,16 @@ bool TechnoClassExt::_Evaluate_Object(ThreatType method, int mask, int range, Te
         return false;
     }
 
+    // Weaponless thieves scan for theft targets. An armed thief's ordinary attacks
+    // must still be able to target vehicles that cannot be stolen.
+    if (RTTI == RTTI_INFANTRY && !Is_Weapon_Equipped()) {
+        const auto infantry = reinterpret_cast<InfantryClass const*>(this);
+        if ((infantry->Class->IsVehicleThief || infantry->Class->IsThief)
+            && !TechnoTypeClassExtension::Is_Vehicle_Theft_Allowed(object)) {
+            return false;
+        }
+    }
+
     /*
     **  Never consider a spy to be a valid target, unless you're a dog
     */

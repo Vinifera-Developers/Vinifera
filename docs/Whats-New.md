@@ -14,6 +14,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 ### When updating Vinifera
 
+- `VehicleThiefAllowed` defaults to `yes`, so existing rules need no migration. To replace `NonVehicle` as a drone's theft restriction, set `NonVehicle=no` and `VehicleThiefAllowed=no`; repair and carryall eligibility still follows normal rules. This addition changes serialized type data and rejects saves made with the previous layout.
 - Saved games are not compatible between Vinifera versions. Saves created with 0.1.0.0 will not load in 1.0.0.0.
 - Vinifera now includes its own multiplayer spawner, which supersedes the ts-patches spawner. See the [spawner section](Miscellaneous.md#spawner) for how it is configured through `SPAWN.INI`.
 - Campaign difficulty is no longer applied to AI houses from `SUN.INI` when reading a campaign scenario. Both human and AI difficulty now come from the settings the campaign run was started with.
@@ -58,6 +59,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 :::{dropdown} Click to show
 
 New:
+- Add `VehicleThiefAllowed` for vehicles and aircraft, blocking infantry theft independently of normal vehicle classification (by equalchance, with AI assistance; requested by a TI developer).
 - Screenshots now display an on-screen confirmation with the saved filename, or an error message if the screenshot could not be written (by ZivDero)
 - Introduce -4 as a possible argument meaning "any human player" for the "Entered By" event (by Rampastring)
 - Add support for loading OwnerDraw (Options Menu) graphics from side-specific MIX files (by Rampastring)

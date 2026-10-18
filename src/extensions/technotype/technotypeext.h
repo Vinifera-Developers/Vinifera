@@ -49,6 +49,9 @@ public:
     static ProductionFlags Get_Production_Flags(const TechnoTypeClass* ttype) { return Get_Production_Flags(Extension::Fetch(ttype)); }
     static ProductionFlags Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext);
 
+    // This veto applies only to vehicles and aircraft, not to building infiltration.
+    static bool Is_Vehicle_Theft_Allowed(const TechnoClass* target);
+
 public:
     /**
      *  This is the sound effect to play when the unit is cloaking.
@@ -420,4 +423,10 @@ public:
      *  Falls back to VeteranSightRange when not provided.
      */
     int EliteSightRange;
+
+    /**
+     *  Can infantry steal this vehicle or aircraft? Existing theft restrictions
+     *  still apply when this is true. Does not change Considered_Vehicle().
+     */
+    bool IsVehicleThiefAllowed;
 };
