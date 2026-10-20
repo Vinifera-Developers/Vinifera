@@ -1571,6 +1571,31 @@ void HouseClassExt::_Production_Check()
     }
 }
 
+/*
+*  Applies a per-house TeamDelay override whenever HouseClass::AI resets its TeamTime timer.
+*  This hook intercepts the reload of TeamTime.DelayTime with a custom value.
+* 
+*  @author: Krnyoshi
+*/
+DEFINE_HOOK(0x004BCA87, _HouseClass_AI_PerHouse_TeamDelay_Patch, 6)
+{
+    GET(HouseClass*, house, ESI);
+
+    HouseClassExtension* house_ext = Extension::Fetch(house);
+
+    /*
+    *  Replaces the TeamDelay value to the house - specific override
+    */
+    if (house_ext->TeamDelayOverride >= 0) {
+
+        R->ECX(house_ext->TeamDelayOverride);
+    }
+
+    /* Execute the original instruction using the possibly modified ECX value, and continue normal execution */
+    return 0;
+}
+
+
 DEFINE_HOOK(0x004BD0E5, _HouseClass_AI_BuildNavalUnit_Patch, 0)
 {
     GET(HouseClassExt*, this_ptr, ESI);
