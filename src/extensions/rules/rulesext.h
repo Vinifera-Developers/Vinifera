@@ -331,4 +331,9 @@ public:
      *  Whether AI units that deploy should persist their tags, if any, on the building that the unit deployed into
      */
     bool PersistTagsOnAIDeploy;
+
+    /**
+     *  The general cash bounty that is awarded to each kill as a percentage of a unit's cost.
+     */
+    float CashBounty;
 };

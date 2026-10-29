@@ -46,4 +46,13 @@ HouseTypeClassExtension final : public AbstractTypeClassExtension
         static HousesType House_From_Name(char const* name);
 
     public:
+        /**
+         *  Can this house earn bounty for killing enemy units?
+         */
+        bool IsCanEarnBounty;
+
+        /**
+         *  The percentage of cost given as bounty reward to an enemy killing this house's units
+         */
+        float CashBountyReward;
 };

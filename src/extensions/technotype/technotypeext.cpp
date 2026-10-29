@@ -111,7 +111,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     AbandonTargetEscortRange(-1),
     ScrapExplosion(),
     VeteranSightRange(-1),
-    EliteSightRange(-1)
+    EliteSightRange(-1),
+    BountyReward(-1),
+    ScaleByHouseBounty(false)
 {
 }
 
@@ -279,6 +281,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(AbandonTargetEscortRange);
     crc(VeteranSightRange);
     crc(EliteSightRange);
+    crc(BountyReward);
+    crc(ScaleByHouseBounty);
 }
 
 
@@ -434,6 +438,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VeteranSightRange = ini.Get_Int(ini_name, "VeteranSight", VeteranSightRange);
     EliteSightRange = ini.Get_Int(ini_name, "EliteSight", EliteSightRange);
 
+    BountyReward = ini.Get_Int(ini_name, "BountyReward", BountyReward);
+    ScaleByHouseBounty = ini.Get_Bool(ini_name, "ScaleByHouseBounty", ScaleByHouseBounty);
+	
     if (!IsInitialized) {
         if (This()->RTTI == RTTI_INFANTRYTYPE) {
             This()->CollateralDamageCoefficient = 0.66f;

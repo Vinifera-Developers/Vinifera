@@ -18,6 +18,7 @@
 #include "debughandler.h"
 #include "house.h"
 #include "houseext.h"
+#include "housetypeext.h"
 #include "housetype.h"
 #include "mouse.h"
 #include "object.h"
@@ -79,7 +80,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Stop Sounds At", "Stops sounds at the waypoint that were started by Play Sound At, and detaches any ambient previously attached to a building or terrain there."},
     { "Attach sound", "Attaches an ambient sound to all objects associated with the trigger. The VocType should have Control=LOOP for a continuous attachment; non-looping vocs play once and then go silent." },
     { "Detach sound", "Detaches any ambient sound from all objects associated with the trigger." },
-};
+    { "Adjust Cash Bounty", "Adjusts the cash bounty amount for the house associated with this trigger."}};
 
 
 /**
@@ -321,6 +322,7 @@ bool TActionClassExtension::Execute(HouseClass* house, ObjectClass* object, Trig
         EXT_DISPATCH(STOP_SOUNDS_AT);
         EXT_DISPATCH(ATTACH_SOUND);
         EXT_DISPATCH(DETACH_SOUND);
+        EXT_DISPATCH(ADJUST_CASH_BOUNTY);
 
         /**
          *  Unexpected TActionType.
@@ -1936,6 +1938,29 @@ bool TActionClassExtension::Do_REVEAL_SOME(HouseClass*, ObjectClass*, TriggerCla
     return true;
 }
 
+
+/**
+ *  Adjusts the cash bounty percentage of the trigger's house.
+ *  This supports all known operations similarly to modifying locals and globals.
+ *  The values are regarded as integers for the purposes of doing calculations, but they become floats (percentages) again afterwards.
+ *  Values have a hard lower limit of 0.
+ *
+ *  @author: JoyfulShush
+ */
+bool TActionClassExtension::Do_ADJUST_CASH_BOUNTY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    auto house_class_ext = Extension::Fetch(house->Class);
+    
+    int value = This()->Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(This()->TriggerRect.X);
+    int current_bounty_reward = std::max(0.0f, house_class_ext->CashBountyReward * 100);
+
+    int result = Operate(current_bounty_reward, value, operation);
+
+    house_class_ext->CashBountyReward = std::max(0.0f, static_cast < float > (result) / 100);
+
+    return true;
+}
 
 
 /**

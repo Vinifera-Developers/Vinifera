@@ -22,7 +22,9 @@
  *  @author: CCHyper
  */
 HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr) :
-    AbstractTypeClassExtension(this_ptr)
+    AbstractTypeClassExtension(this_ptr),    
+    IsCanEarnBounty(true),
+    CashBountyReward(-1)
 {
     HouseTypeExtensions.Add(this);
 }
@@ -140,6 +142,9 @@ bool HouseTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    IsCanEarnBounty = ini.Get_Bool(ini_name, "CanEarnBounty", IsCanEarnBounty);
+    CashBountyReward = ini.Get_Float(ini_name, "CashBountyReward", CashBountyReward);
 
     IsInitialized = true;
     

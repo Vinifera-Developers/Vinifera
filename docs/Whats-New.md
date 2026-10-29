@@ -83,8 +83,9 @@ Fixes:
 - Fix a bug where Carryalls became immune to weapons when sitting on the ground while holding a unit and being ignored by AI (by JoyfulShush)
 - Fix a bug where the game could go out of sync when a rocket was spawned (by Rampastring)
 - Fix a bug where rockets could be invincible to anti-air weapons (by Rampastring)
-- Fix a bug where healing units in AI teams would be preferred as team's leaders, causing attack scripts to be skipped.
-- Healing units in AI teams now assume Area Guard stance and escort team members in attack scripts.
+- Fix a bug where healing units in AI teams would be preferred as team's leaders, causing attack scripts to be skipped (by JoyfulShush).
+- Healing units in AI teams now assume Area Guard stance and escort team members in attack scripts (by JoyfulShush).
+- Add the cash bounty mechanism, allowing houses to gain money from killing enemy units and structures (by JoyfulShush)
 
 :::
 

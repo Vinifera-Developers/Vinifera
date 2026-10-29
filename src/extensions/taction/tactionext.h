@@ -126,6 +126,7 @@ private:
     bool Do_STOP_SOUNDS_AT(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_ATTACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     bool Do_DETACH_SOUND(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    bool Do_ADJUST_CASH_BOUNTY(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 public:
     /**

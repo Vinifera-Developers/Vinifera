@@ -114,7 +114,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     Diff(),
     PlayerNormal(),
     IsHasPlayerNormal(false),
-    PersistTagsOnAIDeploy(false)
+    PersistTagsOnAIDeploy(false),
+    CashBounty(0)
 {
     /**
      *  Due to the changes made when addressing issues #632, 633, and 635, we
@@ -282,6 +283,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(SelfHealingStep);
     crc(BaseUnit.Count());
     crc(PersistTagsOnAIDeploy);
+    crc(CashBounty);
 }
 
 
@@ -718,6 +720,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsFreeRadarOnLowPower = ini.Get_Bool(GENERAL, "FreeRadarOnLowPower", IsFreeRadarOnLowPower);    
     IsCellTagsIgnoreStealth = ini.Get_Bool(GENERAL, "CellTagsIgnoreStealth", IsCellTagsIgnoreStealth);
     PersistTagsOnAIDeploy = ini.Get_Bool(GENERAL, "PersistTagsOnAIDeploy", PersistTagsOnAIDeploy);
+    CashBounty = ini.Get_Float(GENERAL, "CashBounty", CashBounty);
 
     /**
      *  Allow replacing any signle movement zone with a copy of RA2's water MZone.

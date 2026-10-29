@@ -2128,3 +2128,35 @@ HarvesterUnderAttackThrottleTime=0.0  ; float, minutes that EVA is forbidden fro
 	- No longer deselects units that are outside of the screen.
 	- Command is now ignored when non-player controlled units or structures are selected.
 	- Players can now press the Select Same Type command twice in quick succession to select units and structures across the map.
+
+### Cash Bounty
+
+- A new Cash Bounty mechanism has been added. This mechanism allows houses to earn money from killing enemy units and structures based on their cost.
+- By default, no one earns a bounty. This can be configured globally. Cost rewards ignore difficulty modifiers.
+
+in `RULES.INI`:
+```ini
+[General]
+CashBounty=0% 			  ; float, all houses will earn this percentage of the enemy unit or structure's cost.
+```
+
+- Per-house overrides can be added as well to allow different houses to benefit from different bounties amounts.
+- Houses can be specified whether they are eligible to earn a bounty by any means.
+- A new trigger action also allows mappers to adjust per-house bounty amounts on the fly.
+
+in `RULES.ini`:
+```ini
+[SOMEHOUSE]
+CashBountyReward=-1 	  ; float, when 0 or a positive value, overrides the global cash bounty reward for this house.
+CanEarnBounty=yes 		  ; boolean, whether this house can earn a bounty.
+```
+
+- Specific technos can be configured to grant a specific bounty that overrides their cost. They will grant that amount when killed.
+- Technos can also be configured whether that specific bounty amount should be scaled based on the house's bounty reward.
+
+in `RULES.ini`:
+```ini
+[SOMETECHNO]
+BountyReward=-1 		  ; integer, when 0 or a positive value, uses this value as the bounty reward instead of its cost.
+ScaleByHouseBounty=no     ; boolean, whether the bounty should scale based on the house's bounty reward percentage.
+```

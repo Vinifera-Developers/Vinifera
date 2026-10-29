@@ -29,6 +29,7 @@
 #include "house.h"
 #include "houseext.h"
 #include "housetype.h"
+#include "housetypeext.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
@@ -124,6 +125,7 @@ public:
     void _Look(bool incremental, bool dontmap);
     bool _Is_Allowed_To_Recloak();
     int _Value(void) const;
+    int Get_Cash_Bounty(TechnoClass * source);
 };
 
 
@@ -145,6 +147,55 @@ static bool Is_Unit_Dying(TechnoClassExt* this_ptr)
     }
 
     return false;
+}
+
+
+/**
+ *  Calculate the cash bounty that a house earns after one of its objects kills an enemy unit.
+ *  This should be typically called during the same flow of gaining XP.
+ *  A house that is not allowed to earn a bounty can't earn anything, regardless of what was killed.
+ *  Bounties have linear rules to be awarded: direct techno rewards come first, then house specific bounty percentages, 
+ *  then global scales percentages.
+ *  The bounty earned is typically a percentage of the killed unit's raw cost, excluding any difficulty modifications.
+ *
+ * @author: JoyfulShush
+ */
+int TechnoClassExt::Get_Cash_Bounty(TechnoClass* source)
+{
+    if (source == nullptr) {
+        return 0;
+    }
+    
+    auto source_house_ext = Extension::Fetch(source->House->Class);
+
+    if (!source_house_ext->IsCanEarnBounty) {
+        return 0;
+    }
+
+    auto house_ext = Extension::Fetch(House->Class);
+
+    // if techno has a specific bounty, use it instead of the cost. It can scale based on the house's bounty reward if scaling is set.
+    auto techno_class_ext = Extension::Fetch(TClass);
+    if (techno_class_ext->BountyReward >= 0) {
+        if (!techno_class_ext->ScaleByHouseBounty) {
+            return techno_class_ext->BountyReward;
+        }
+
+        return techno_class_ext->BountyReward * std::max(0.0f, house_ext->CashBountyReward);
+    }
+
+    // otherwise, if house has a cash bounty percentage set, use it.
+    // This includes 0% bounty scaling as well in order to make it possible for a house to not grant any bounty.
+    if (house_ext->CashBountyReward >= 0) {
+        return TClass->Raw_Cost() * house_ext->CashBountyReward;
+    }
+
+    // otherwise, if general rules has a cash bounty percentage, use it
+    if (RuleExtension->CashBounty > 0) {
+        return TClass->Raw_Cost() * RuleExtension->CashBounty;
+    }
+
+    return 0;
 }
 
 
@@ -1406,7 +1457,12 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         /**
          *  Add up the score for killing this unit
          */
-        source->House->PointTotal += points;
+        source->House->PointTotal += points; 
+        
+        int cash_bounty = Get_Cash_Bounty(source);
+        if (cash_bounty > 0) {
+            source->House->Refund_Money(cash_bounty);
+        }
     }
 
     switch (RTTI) {
